@@ -4,8 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft, TrendingUp, Layers, Zap,
-  ChevronRight, ChevronLeft, Play,
+  ChevronRight, ChevronLeft, Play, Loader2,
 } from "lucide-react";
+import { calculateMA } from "@/lib/api-client";
+import type { MAApiInput, MAApiOutput } from "@/lib/types/ma";
 
 /* ═══════════════════════════════════════════════════════════════ Types ══ */
 
@@ -340,11 +342,55 @@ export default function MaSimulatorPage() {
   const [formData, setFormData]         = useState<FormData>(defaultFormData);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  const [apiResult, setApiResult]       = useState<MAApiOutput | null>(null);
+  const [loading, setLoading]           = useState(false);
+  const [apiError, setApiError]         = useState<string | null>(null);
+
   function update(patch: Partial<FormData>) {
     setFormData((prev) => ({ ...prev, ...patch }));
   }
 
+  /** Local metrics — always computed, serves as fallback & source of rich KPIs. */
   const metrics = computeMetrics(formData);
+
+  /** Map the rich frontend form to the simplified backend payload. */
+  function buildApiPayload(): MAApiInput {
+    const ebitdaMargin = formData.caCible > 0
+      ? formData.ebitdaCible / formData.caCible
+      : 0;
+    const entryMultiple = formData.ebitdaCible > 0
+      ? formData.veProposeee / formData.ebitdaCible
+      : 0;
+    const benchEv = (BENCHMARKS[formData.secteur] ?? BENCHMARKS["Industrie"]).evEbitda;
+    const premiumPct = benchEv > 0
+      ? Math.max(0, (entryMultiple - benchEv) / benchEv)
+      : 0;
+
+    return {
+      targetRevenue: formData.caCible,
+      targetEbitdaMargin: ebitdaMargin,
+      entryMultiple,
+      netDebt: formData.detteNetteCible,
+      synergyAmount: formData.synergiesRevenu + formData.synergiesCouts,
+      purchasePremiumPct: premiumPct,
+    };
+  }
+
+  async function handleSubmit() {
+    setHasSubmitted(true);
+    setLoading(true);
+    setApiError(null);
+    setApiResult(null);
+
+    try {
+      const result = await calculateMA(buildApiPayload());
+      setApiResult(result);
+    } catch {
+      setApiError("API indisponible, affichage des calculs locaux temporaires.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   /* ── Step content ───────────────────────────────────────────────────── */
 
@@ -704,11 +750,16 @@ export default function MaSimulatorPage() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => setHasSubmitted(true)}
-                  className="flex items-center gap-2 px-5 py-2 bg-accent text-white text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-5 py-2 bg-accent text-white text-sm font-medium rounded-md hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Play className="h-4 w-4" />
-                  Lancer l&apos;analyse
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                  {loading ? "Analyse en cours…" : "Lancer l\u2019analyse"}
                 </button>
               )}
             </div>
@@ -716,11 +767,19 @@ export default function MaSimulatorPage() {
         </section>
 
         {/* ══ PART C — Résultats ═════════════════════════════════════════ */}
-        {hasSubmitted && (
+        {hasSubmitted && !loading && (
           <section className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <p className="data-label">Résultats de l&apos;analyse</p>
-              <span className="badge badge-success">Analyse terminée</span>
+              <div className="flex items-center gap-2">
+                {apiResult && (
+                  <span className="badge badge-success">API connectée</span>
+                )}
+                {apiError && (
+                  <span className="badge badge-warning">{apiError}</span>
+                )}
+                <span className="badge badge-success">Analyse terminée</span>
+              </div>
             </div>
 
             {/* 4 KPI cards */}
@@ -870,6 +929,8 @@ export default function MaSimulatorPage() {
                   setHasSubmitted(false);
                   setCurrentStep(1);
                   setFormData(defaultFormData);
+                  setApiResult(null);
+                  setApiError(null);
                 }}
                 className="text-sm text-foreground-subtle hover:text-foreground-muted transition-colors underline underline-offset-4"
               >

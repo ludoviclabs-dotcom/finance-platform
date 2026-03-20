@@ -214,7 +214,7 @@ function DoraRadar({ data }: { data: RadarPoint[] }) {
                 borderRadius: 8,
                 fontSize: 12,
               }}
-              formatter={(value: number) => [`${value} / 4`, "Score"]}
+              formatter={(value) => [`${value as number} / 4`, "Score"]}
             />
           </RadarChart>
         </ResponsiveContainer>

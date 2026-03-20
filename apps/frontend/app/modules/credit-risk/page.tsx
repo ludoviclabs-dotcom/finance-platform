@@ -157,9 +157,9 @@ function StageBarChart({ stages }: { stages: StageBreakdown[] }) {
                 borderRadius: 8,
                 fontSize: 12,
               }}
-              formatter={(value, name: string) => [
+              formatter={(value, name) => [
                 fmtKE(value as number),
-                name === "ead" ? "EAD" : "ECL",
+                (name as string) === "ead" ? "EAD" : "ECL",
               ]}
             />
             <Bar dataKey="ead" name="EAD" radius={[4, 4, 0, 0]} barSize={36}>
@@ -258,7 +258,7 @@ function StagePieChart({ stages }: { stages: StageBreakdown[] }) {
                 borderRadius: 8,
                 fontSize: 12,
               }}
-              formatter={(value: number) => [fmtKE(value), "EAD"]}
+              formatter={(value) => [fmtKE(value as number), "EAD"]}
             />
             <Legend
               formatter={(value: string) => (

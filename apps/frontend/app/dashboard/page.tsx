@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NavDropdowns } from "@/components/layout/nav-dropdown";
 import {
   FileText,
   ChevronRight,
@@ -378,17 +379,7 @@ export default function Dashboard() {
               <span className="text-accent">Finance</span>
               <span className="text-foreground">Platform</span>
             </Link>
-            <nav className="hidden md:flex items-center gap-1">
-              {["Comptabilité", "Fiscalité", "Finance", "RH", "Autres"].map((label) => (
-                <a
-                  key={label}
-                  href="#"
-                  className="px-3 py-1.5 text-sm text-foreground-muted hover:text-foreground transition-colors rounded-md hover:bg-white/5"
-                >
-                  {label}
-                </a>
-              ))}
-            </nav>
+            <NavDropdowns />
           </div>
           <span className="text-xs text-foreground-subtle tabnum">{dateLabel}</span>
         </div>

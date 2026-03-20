@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import health, calculate, excel, report, clients
+from routers import health, calculate, excel, report, clients, entreprise
 
 app = FastAPI(
     title="Finance Platform API",
@@ -41,3 +41,4 @@ app.include_router(calculate.router, prefix="/calculate", tags=["calculate"])
 app.include_router(excel.router, prefix="/excel", tags=["excel"])
 app.include_router(report.router, prefix="/report", tags=["report"])
 app.include_router(clients.router, prefix="/clients", tags=["clients"])
+app.include_router(entreprise.router, prefix="/entreprise", tags=["entreprise"])

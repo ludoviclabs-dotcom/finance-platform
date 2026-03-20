@@ -23,15 +23,28 @@ type Status = "idle" | "uploading" | "success" | "error";
 interface AnalysisResult {
   filename: string;
   sheets: string[];
-  sheet_count?: number;
-  zScore: number;
-  croissanceCA: number;
-  margeEBE: number;
-  ratioEndettement: number;
-  tresorerieNette: number;
+  sheet_count: number;
+  source_sheet: string;
+  z_score: number;
+  croissance_ca: number;
+  marge_ebe: number;
+  ratio_endettement: number;
+  tresorerie_nette: number;
   roe: number;
-  bfrJours: number;
+  bfr_jours: number;
 }
+
+/* Convenience accessors — keep JSX readable with camelCase names */
+function zScore(r: AnalysisResult): number { return r.z_score; }
+function croissanceCA(r: AnalysisResult): number { return r.croissance_ca; }
+function margeEBE(r: AnalysisResult): number { return r.marge_ebe; }
+function ratioEndettement(r: AnalysisResult): number { return r.ratio_endettement; }
+function tresorerieNette(r: AnalysisResult): number { return r.tresorerie_nette; }
+function roeVal(r: AnalysisResult): number { return r.roe; }
+function bfrJours(r: AnalysisResult): number { return r.bfr_jours; }
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 /* ═══════════════════════════════════════════════════════ Helpers ══ */
 
@@ -71,20 +84,6 @@ function endettementBadge(ratio: number): BadgeVariant {
   if (ratio < 100) return { cls: "badge badge-warning", label: "Mod\u00E9r\u00E9" };
   return { cls: "badge badge-danger", label: "\u00C9lev\u00E9" };
 }
-
-/* ═══════════════════════════════════════════════════════ Mock data ══ */
-
-const MOCK_RESULT: AnalysisResult = {
-  filename: "",
-  sheets: [],
-  zScore: 2.45,
-  croissanceCA: 7.2,
-  margeEBE: 14.8,
-  ratioEndettement: 68,
-  tresorerieNette: 2_340,
-  roe: 12.3,
-  bfrJours: 47,
-};
 
 /* ═══════════════════════════════════════════════════ Sub-components ══ */
 
@@ -181,7 +180,7 @@ export default function AnalyseEntreprisePage() {
 
   /* ── File handling ───────────────────────────────────────────── */
 
-  const processFile = useCallback((file: File) => {
+  const processFile = useCallback(async (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (ext !== "xlsx" && ext !== "xls") {
       setStatus("error");
@@ -193,15 +192,31 @@ export default function AnalyseEntreprisePage() {
     setStatus("uploading");
     setErrorMsg("");
 
-    /* Simulated 2 s loading — will be replaced by real API call */
-    setTimeout(() => {
-      setResult({
-        ...MOCK_RESULT,
-        filename: file.name,
-        sheets: ["Balance G\u00E9n\u00E9rale", "Compte de R\u00E9sultat", "Annexes"],
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`${API_BASE_URL}/entreprise/analyze`, {
+        method: "POST",
+        body: formData,
       });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(body.detail || `Erreur ${res.status}`);
+      }
+
+      const data: AnalysisResult = await res.json();
+      setResult(data);
       setStatus("success");
-    }, 2_000);
+    } catch (err) {
+      setStatus("error");
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Une erreur inattendue est survenue lors de l\u2019analyse.",
+      );
+    }
   }, []);
 
   const onDrop = useCallback(
@@ -390,7 +405,7 @@ export default function AnalyseEntreprisePage() {
                     {result.filename}
                   </p>
                   <p className="text-xs text-foreground-subtle">
-                    {result.sheet_count ?? result.sheets.length} onglet{result.sheets.length > 1 ? "s" : ""} d\u00E9tect\u00E9{result.sheets.length > 1 ? "s" : ""} :{" "}
+                    {result.sheet_count} onglet{result.sheets.length > 1 ? "s" : ""} d\u00E9tect\u00E9{result.sheets.length > 1 ? "s" : ""} :{" "}
                     {result.sheets.join(", ")}
                   </p>
                 </div>
@@ -415,32 +430,32 @@ export default function AnalyseEntreprisePage() {
             </div>
 
             {/* Z-Score gauge — prominent */}
-            <ZScoreGauge score={result.zScore} />
+            <ZScoreGauge score={zScore(result)} />
 
             {/* KPI grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <KpiCard
                 label="Croissance CA"
-                value={fmtPct(result.croissanceCA)}
-                badge={kpiBadge(result.croissanceCA, [3, 5])}
+                value={fmtPct(croissanceCA(result))}
+                badge={kpiBadge(croissanceCA(result), [3, 5])}
                 sub="variation N/N-1"
               />
               <KpiCard
                 label="Marge EBE"
-                value={fmtPct(result.margeEBE)}
-                badge={kpiBadge(result.margeEBE, [8, 12])}
+                value={fmtPct(margeEBE(result))}
+                badge={kpiBadge(margeEBE(result), [8, 12])}
                 sub="EBE / CA"
               />
               <KpiCard
                 label="Ratio d'endettement"
-                value={fmtPct(result.ratioEndettement, 0)}
-                badge={endettementBadge(result.ratioEndettement)}
+                value={fmtPct(ratioEndettement(result), 0)}
+                badge={endettementBadge(ratioEndettement(result))}
                 sub="dettes / CP"
               />
               <KpiCard
                 label="ROE"
-                value={fmtPct(result.roe)}
-                badge={kpiBadge(result.roe, [8, 15])}
+                value={fmtPct(roeVal(result))}
+                badge={kpiBadge(roeVal(result), [8, 15])}
                 sub="r\u00E9sultat / CP"
               />
             </div>
@@ -450,9 +465,9 @@ export default function AnalyseEntreprisePage() {
               <p className="data-label">Ratios compl\u00E9mentaires</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-4">
                 {[
-                  { label: "Tr\u00E9sorerie nette", value: fmtKE(result.tresorerieNette) },
-                  { label: "BFR en jours", value: `${result.bfrJours} j` },
-                  { label: "Marge EBE", value: fmtPct(result.margeEBE) },
+                  { label: "Tr\u00E9sorerie nette", value: fmtKE(tresorerieNette(result)) },
+                  { label: "BFR en jours", value: `${bfrJours(result)} j` },
+                  { label: "Marge EBE", value: fmtPct(margeEBE(result)) },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex flex-col gap-0.5">
                     <span className="data-label">{label}</span>
@@ -480,20 +495,20 @@ export default function AnalyseEntreprisePage() {
             <div className="card p-6 flex flex-col gap-3">
               <p className="data-label">Interpr\u00E9tation</p>
               <p className="text-sm text-foreground-muted leading-relaxed">
-                Le Z-Score de {result.zScore.toFixed(2)} place l&apos;entreprise en{" "}
-                <span className={`font-semibold ${zScoreColor(result.zScore)}`}>
-                  {zScoreBadge(result.zScore).label.toLowerCase()}
+                Le Z-Score de {zScore(result).toFixed(2)} place l&apos;entreprise en{" "}
+                <span className={`font-semibold ${zScoreColor(zScore(result))}`}>
+                  {zScoreBadge(zScore(result)).label.toLowerCase()}
                 </span>
-                . La marge EBE de {fmtPct(result.margeEBE)} et un ratio d&apos;endettement
-                de {fmtPct(result.ratioEndettement, 0)} sugg\u00E8rent une structure financi\u00E8re
-                qui n\u00E9cessite une surveillance active. Le ROE de {fmtPct(result.roe)} reste
-                {result.roe >= 8 ? " satisfaisant" : " en de\u00E7\u00E0 du co\u00FBt des fonds propres"}.
+                . La marge EBE de {fmtPct(margeEBE(result))} et un ratio d&apos;endettement
+                de {fmtPct(ratioEndettement(result), 0)} sugg\u00E8rent une structure financi\u00E8re
+                qui n\u00E9cessite une surveillance active. Le ROE de {fmtPct(roeVal(result))} reste
+                {roeVal(result) >= 8 ? " satisfaisant" : " en de\u00E7\u00E0 du co\u00FBt des fonds propres"}.
               </p>
               <p className="text-xs text-foreground-subtle leading-relaxed border-t border-border pt-3 mt-1">
                 Le Z-Score Altman est un mod\u00E8le statistique de pr\u00E9diction \u2014 il ne se
-                substitue pas \u00E0 une analyse de cr\u00E9dit compl\u00E8te. Les donn\u00E9es
-                affich\u00E9es sont actuellement simul\u00E9es et seront remplac\u00E9es par les
-                valeurs extraites de votre balance g\u00E9n\u00E9rale.
+                substitue pas \u00E0 une analyse de cr\u00E9dit compl\u00E8te. Les r\u00E9sultats
+                d\u00E9pendent de la qualit\u00E9 des donn\u00E9es extraites de votre fichier
+                Excel (onglet : {result.source_sheet}).
               </p>
             </div>
 

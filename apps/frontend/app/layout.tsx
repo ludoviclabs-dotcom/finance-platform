@@ -1,6 +1,21 @@
 import type { Metadata } from "next";
+import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/layout/sidebar";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "900"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -22,15 +37,8 @@ export default function RootLayout({
      * Toggle by setting data-theme="light" on this element from a client
      * component — e.g. document.documentElement.dataset.theme = "light".
      */
-    <html lang="fr" data-theme="dark" className="h-full antialiased">
-      <head>
-        {/* Satoshi — Fontshare variable font (display + body) */}
-        <link rel="preconnect" href="https://api.fontshare.com" />
-        <link
-          rel="stylesheet"
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap"
-        />
-      </head>
+    <html lang="fr" data-theme="dark" className={`h-full antialiased ${playfair.variable} ${inter.variable}`}>
+      <head />
       {/*
        * h-screen + overflow-hidden → sidebar + scrollable main column.
        * pt-14 on main → clears the fixed mobile top bar (h-14 = 56px).

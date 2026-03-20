@@ -370,16 +370,25 @@ export default function Dashboard() {
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-surface border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <Link
               href="/"
-              className="text-sm font-semibold tracking-tight"
+              className="text-sm font-semibold tracking-tight shrink-0"
             >
               <span className="text-accent">Finance</span>
               <span className="text-foreground">Platform</span>
             </Link>
-            <span className="text-border-strong select-none">·</span>
-            <span className="text-sm text-foreground-muted">Dashboard</span>
+            <nav className="hidden md:flex items-center gap-1">
+              {["Comptabilité", "Fiscalité", "Finance", "RH", "Autres"].map((label) => (
+                <a
+                  key={label}
+                  href="#"
+                  className="px-3 py-1.5 text-sm text-foreground-muted hover:text-foreground transition-colors rounded-md hover:bg-white/5"
+                >
+                  {label}
+                </a>
+              ))}
+            </nav>
           </div>
           <span className="text-xs text-foreground-subtle tabnum">{dateLabel}</span>
         </div>

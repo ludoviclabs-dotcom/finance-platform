@@ -158,8 +158,6 @@ const CATALOGUE: Systeme[] = [
   },
 ];
 
-const CATALOGUE_IDS = CATALOGUE.map((s) => s.id);
-
 /* Couleurs fixes pour positions A / B / C — littérales pour le scanner Tailwind */
 const POS_DOT: Record<number, string> = { 0: "bg-accent",  1: "bg-warning",  2: "bg-success"  };
 const POS_TXT: Record<number, string> = { 0: "text-accent", 1: "text-warning", 2: "text-success" };

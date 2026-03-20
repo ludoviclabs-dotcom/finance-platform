@@ -433,7 +433,7 @@ export default function PatrimoinePLPage() {
 
               {/* Statut */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-300">Statut d'exercice</label>
+                <label className="text-sm font-medium text-zinc-300">Statut d&apos;exercice</label>
                 <div className="grid grid-cols-3 gap-2">
                   {STATUTS.map(s => (
                     <button
@@ -607,7 +607,7 @@ export default function PatrimoinePLPage() {
                 className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-all"
               >
                 <Play className="w-4 h-4" />
-                Lancer l'analyse
+                Lancer l&apos;analyse
               </button>
             )}
           </div>
@@ -616,7 +616,7 @@ export default function PatrimoinePLPage() {
         {/* ── Résultats ── */}
         {showResults && (
           <div className="mt-10 space-y-6">
-            <h2 className="text-2xl font-bold">Résultats de l'analyse</h2>
+            <h2 className="text-2xl font-bold">Résultats de l&apos;analyse</h2>
 
             {/* KPI cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -754,19 +754,19 @@ export default function PatrimoinePLPage() {
                   Vos versements PER de <strong className="text-white">{fmtKE(form.per)}</strong> génèrent
                   une économie fiscale estimée à{" "}
                   <strong className="text-white">{fmtKE(metrics.economiePer)}</strong> en réduisant
-                  votre revenu imposable à la tranche marginale d'imposition (déductibilité plafonnée
+                  votre revenu imposable à la tranche marginale d&apos;imposition (déductibilité plafonnée
                   à 10 % des revenus professionnels, dans la limite de 8 × PASS).
                 </p>
                 <p>
                   La structure SEL / SELARL permet de dissocier rémunération et dividendes (PFU 30 %).
-                  Elle devient avantageuse à partir d'honoraires élevés (&gt; 150 K€ selon le profil),
-                  permettant de capitaliser les bénéfices à l'IS (25 %) avant distribution.
+                  Elle devient avantageuse à partir d&apos;honoraires élevés (&gt; 150 K€ selon le profil),
+                  permettant de capitaliser les bénéfices à l&apos;IS (25 %) avant distribution.
                   En dessous, le BNC reste généralement plus simple et compétitif.
                 </p>
                 <p>
                   Votre patrimoine net de{" "}
                   <strong className="text-white">{fmtKE(metrics.patrimoineNet)}</strong> peut être
-                  optimisé via l'assurance-vie (exonération partielle des plus-values après 8 ans,
+                  optimisé via l&apos;assurance-vie (exonération partielle des plus-values après 8 ans,
                   avantage successoral) et le PER (sortie en rente défiscalisée ou en capital à la retraite,
                   avec abattement de 10 % sur la rente).
                 </p>

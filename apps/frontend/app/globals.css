@@ -1,0 +1,376 @@
+@import "tailwindcss";
+
+/* ─── Dark mode: data-theme attribute toggle ─────────────────────────────── */
+@variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — CSS custom properties
+   Light mode defaults in :root, dark overrides in [data-theme="dark"]
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand palette ────────────────────────────────────────────────────── */
+  --navy:         #1B2A4A;
+  --accent:       #4472C4;
+  --accent-hover: #3560B0;
+  --green:        #27AE60;
+  --orange:       #F39C12;
+  --red:          #E74C3C;
+
+  /* ── Semantic surfaces ────────────────────────────────────────────────── */
+  --color-background:      #F8F9FA;
+  --color-surface:         #FFFFFF;
+  --color-surface-raised:  #FFFFFF;
+
+  /* ── Semantic text ────────────────────────────────────────────────────── */
+  --color-foreground:        #1B2A4A;
+  --color-foreground-muted:  #64748B;
+  --color-foreground-subtle: #94A3B8;
+
+  /* ── Borders & rings ──────────────────────────────────────────────────── */
+  --color-border:       #E2E8F0;
+  --color-border-strong:#CBD5E1;
+  --color-ring:         #4472C4;
+
+  /* ── Status ──────────────────────────────────────────────────────────── */
+  --color-success:     #27AE60;
+  --color-success-bg:  #ECFDF5;
+  --color-warning:     #F39C12;
+  --color-warning-bg:  #FFFBEB;
+  --color-danger:      #E74C3C;
+  --color-danger-bg:   #FEF2F2;
+  --color-info:        #4472C4;
+  --color-info-bg:     #EFF6FF;
+
+  /* ── Radius tokens (4px base) ─────────────────────────────────────────── */
+  --radius-xs:   0.125rem;  /*  2px */
+  --radius-sm:   0.25rem;   /*  4px */
+  --radius:      0.375rem;  /*  6px */
+  --radius-md:   0.5rem;    /*  8px */
+  --radius-lg:   0.75rem;   /* 12px */
+  --radius-xl:   1rem;      /* 16px */
+  --radius-2xl:  1.5rem;    /* 24px */
+  --radius-full: 9999px;
+
+  /* ── Shadows (light) ──────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.10), 0 1px 2px -1px rgb(0 0 0 / 0.10);
+  --shadow:    0 4px 6px -1px rgb(0 0 0 / 0.10), 0 2px 4px -2px rgb(0 0 0 / 0.10);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.10), 0 4px 6px -4px rgb(0 0 0 / 0.10);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.10), 0 8px 10px -6px rgb(0 0 0 / 0.10);
+
+  /* ── Fluid type scale (clamp, 390px–1280px viewport) ─────────────────── */
+  --text-2xs:  clamp(0.625rem,  0.60rem + 0.13vw, 0.688rem);
+  --text-xs:   clamp(0.688rem,  0.65rem + 0.19vw, 0.75rem);
+  --text-sm:   clamp(0.813rem,  0.77rem + 0.22vw, 0.875rem);
+  --text-base: clamp(0.938rem,  0.88rem + 0.29vw, 1rem);
+  --text-lg:   clamp(1.063rem,  1.00rem + 0.34vw, 1.125rem);
+  --text-xl:   clamp(1.188rem,  1.10rem + 0.45vw, 1.313rem);
+  --text-2xl:  clamp(1.375rem,  1.25rem + 0.63vw, 1.625rem);
+  --text-3xl:  clamp(1.75rem,   1.55rem + 1.01vw, 2.125rem);
+  --text-4xl:  clamp(2.125rem,  1.85rem + 1.38vw, 2.75rem);
+  --text-5xl:  clamp(2.75rem,   2.30rem + 2.25vw, 3.75rem);
+  --text-6xl:  clamp(3.5rem,    2.80rem + 3.50vw, 5rem);
+
+  /* ── Line heights ─────────────────────────────────────────────────────── */
+  --leading-tight:   1.2;
+  --leading-snug:    1.375;
+  --leading-normal:  1.6;
+  --leading-relaxed: 1.75;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] {
+  --color-background:        #171614;
+  --color-surface:           #1F1E1C;
+  --color-surface-raised:    #272523;
+
+  --color-foreground:        #F1F0EE;
+  --color-foreground-muted:  #A8A29E;
+  --color-foreground-subtle: #78716C;
+
+  --color-border:            #2C2B28;
+  --color-border-strong:     #3D3C38;
+
+  --color-success:           #34D399;
+  --color-success-bg:        #052E16;
+  --color-warning:           #FBBF24;
+  --color-warning-bg:        #1C1400;
+  --color-danger:            #F87171;
+  --color-danger-bg:         #200A09;
+  --color-info:              #60A5FA;
+  --color-info-bg:           #0C1A2E;
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.30);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.40), 0 1px 2px -1px rgb(0 0 0 / 0.40);
+  --shadow:    0 4px 6px -1px rgb(0 0 0 / 0.40), 0 2px 4px -2px rgb(0 0 0 / 0.40);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.50), 0 8px 10px -6px rgb(0 0 0 / 0.50);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TAILWIND v4 THEME MAPPING
+   @theme inline → Tailwind generates utilities referencing these vars.
+   Fonts: literal strings (Tailwind resolves at parse time, var() won't work).
+   Colors: var() refs resolved by browser at runtime (enables dark mode).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme inline {
+  /* ── Fonts (literal strings — NOT var()) ──────────────────────────────── */
+  --font-sans: "Satoshi", "Satoshi Fallback", ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono",
+    Menlo, Consolas, monospace;
+
+  /* ── Semantic colors (var() refs — browser resolves at runtime) ────────── */
+  --color-background:        var(--color-background);
+  --color-surface:           var(--color-surface);
+  --color-surface-raised:    var(--color-surface-raised);
+  --color-foreground:        var(--color-foreground);
+  --color-foreground-muted:  var(--color-foreground-muted);
+  --color-foreground-subtle: var(--color-foreground-subtle);
+  --color-border:            var(--color-border);
+  --color-border-strong:     var(--color-border-strong);
+  --color-ring:              var(--color-ring);
+  --color-success:           var(--color-success);
+  --color-success-bg:        var(--color-success-bg);
+  --color-warning:           var(--color-warning);
+  --color-warning-bg:        var(--color-warning-bg);
+  --color-danger:            var(--color-danger);
+  --color-danger-bg:         var(--color-danger-bg);
+  --color-info:              var(--color-info);
+  --color-info-bg:           var(--color-info-bg);
+
+  /* ── Brand colors (static) ────────────────────────────────────────────── */
+  --color-navy:         #1B2A4A;
+  --color-accent:       #4472C4;
+  --color-accent-hover: #3560B0;
+  --color-green:        #27AE60;
+  --color-orange:       #F39C12;
+  --color-red:          #E74C3C;
+
+  /* ── Radius ───────────────────────────────────────────────────────────── */
+  --radius-xs:   var(--radius-xs);
+  --radius-sm:   var(--radius-sm);
+  --radius:      var(--radius);
+  --radius-md:   var(--radius-md);
+  --radius-lg:   var(--radius-lg);
+  --radius-xl:   var(--radius-xl);
+  --radius-2xl:  var(--radius-2xl);
+  --radius-full: var(--radius-full);
+
+  /* ── Shadows ──────────────────────────────────────────────────────────── */
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow:    var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-border);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* ─── Typography ─────────────────────────────────────────────────────────── */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.025em;
+  color: var(--color-foreground);
+}
+
+h1 { font-size: var(--text-4xl); }
+h2 { font-size: var(--text-3xl); }
+h3 { font-size: var(--text-2xl); }
+h4 { font-size: var(--text-xl);  font-weight: 600; }
+h5 { font-size: var(--text-lg);  font-weight: 600; }
+h6 { font-size: var(--text-base); font-weight: 600; letter-spacing: -0.01em; }
+
+p {
+  line-height: var(--leading-relaxed);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+strong, b {
+  font-weight: 700;
+}
+
+code, kbd, samp, pre {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+code {
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.125em 0.375em;
+  font-size: var(--text-xs);
+}
+
+pre {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  overflow-x: auto;
+  line-height: var(--leading-relaxed);
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* ─── Focus ──────────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Selection ──────────────────────────────────────────────────────────── */
+
+::selection {
+  background-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-foreground-subtle);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPONENT PATTERNS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Surface cards ──────────────────────────────────────────────────────── */
+
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.card-raised {
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ─── Status badges ──────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  line-height: 1.5;
+}
+
+.badge-success { background: var(--color-success-bg); color: var(--color-success); }
+.badge-warning { background: var(--color-warning-bg); color: var(--color-warning); }
+.badge-danger  { background: var(--color-danger-bg);  color: var(--color-danger);  }
+.badge-info    { background: var(--color-info-bg);    color: var(--color-info);    }
+.badge-neutral {
+  background: var(--color-surface-raised);
+  color: var(--color-foreground-muted);
+  border: 1px solid var(--color-border);
+}
+
+/* ─── Divider ────────────────────────────────────────────────────────────── */
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINANCIAL DATA UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Tabular numeric data — use on tables, KPIs, metric grids */
+.tabnum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* Value sentiment */
+.val-pos  { color: var(--color-success); }
+.val-neg  { color: var(--color-danger);  }
+.val-null { color: var(--color-foreground-subtle); }
+
+/* Data label above a metric */
+.data-label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-foreground-muted);
+}
+
+/* Large KPI value */
+.kpi-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--color-foreground);
+}

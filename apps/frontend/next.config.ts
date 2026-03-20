@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // "standalone" is for Docker only — Vercel handles output automatically
+  // To re-enable for Docker: output: "standalone",
   reactCompiler: true,
 };
 

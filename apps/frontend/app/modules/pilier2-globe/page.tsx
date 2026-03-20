@@ -1,490 +1,309 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft, Globe, Calculator, ShieldCheck,
-  ChevronRight, ChevronLeft, Play,
+  ArrowLeft,
+  Globe,
+  Calculator,
+  ShieldCheck,
+  Upload,
+  FileSpreadsheet,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2,
+  X,
+  ArrowDown,
+  ArrowUp,
 } from "lucide-react";
 
-/* ═══════════════════════════════════════════════════════════════ Types ══ */
+/* ═══════════════════════════════════════════════════════════ Types ══ */
 
-type UpePays = "France" | "Irlande" | "Singapour" | "États-Unis" | "Royaume-Uni" | "Autre";
+type Status = "idle" | "uploading" | "success" | "error";
 
-interface FormData {
-  /* Step 1 — Identité groupe */
-  caMondial: number;
-  nbJuridictions: number;
-  upePays: UpePays;
-  /* Step 2 — Données par juridiction */
-  frCa: number; frIsPaye: number; frRevenuGlobe: number;
-  ieCa: number; ieIsPaye: number; ieRevenuGlobe: number;
-  sgCa: number; sgIsPaye: number; sgRevenuGlobe: number;
-  /* Step 3 — Safe harbours */
-  frEtrSimplifie: boolean;
-  ieEtrSimplifie: boolean;
-  sgEtrSimplifie: boolean;
-}
-
-interface JuriMetrics {
+interface JurisdictionRow {
   pays: string;
-  code: string;
+  revenu_globe: number;
+  is_paye: number;
   etr: number;
-  topUp: number;
-  deMinimis: boolean;
-  safeHarbour: boolean;
+  seuil: number;
+  top_up: number;
+  conforme: boolean;
 }
 
-interface Metrics {
-  juridictions: JuriMetrics[];
-  topUpTotal: number;
-  etrMoyen: number;
-  nbExemptees: number;
+interface Pilier2Result {
+  filename: string;
+  sheets: string[];
+  sheet_count: number;
+  source_sheet: string;
+  top_up_total: number;
+  nb_jurisdictions: number;
+  nb_sous_seuil: number;
+  etr_moyen: number;
+  juridictions: JurisdictionRow[];
 }
 
-/* ══════════════════════════════════════════════════════════ Constants ══ */
+/* ═══════════════════════════════════════════════════════ Helpers ══ */
 
-const STEP_LABELS = ["Identité groupe", "Données juridictions", "Safe harbours"];
-
-const UPE_PAYS: UpePays[] = [
-  "France", "Irlande", "Singapour", "États-Unis", "Royaume-Uni", "Autre",
-];
-
-/* Full literal strings — Tailwind scanner picks these up */
-const JURI_DOTS: Record<string, string> = {
-  France: "bg-accent",
-  Irlande: "bg-warning",
-  Singapour: "bg-success",
-};
-
-const GLOBE_RATE = 0.15; /* 15 % minimum GloBE */
-
-const defaultFormData: FormData = {
-  caMondial: 800000,
-  nbJuridictions: 12,
-  upePays: "France",
-  frCa: 200000, frIsPaye: 50000, frRevenuGlobe: 200000,
-  ieCa: 80000,  ieIsPaye: 10000, ieRevenuGlobe: 80000,
-  sgCa: 40000,  sgIsPaye: 6800,  sgRevenuGlobe: 40000,
-  frEtrSimplifie: false,
-  ieEtrSimplifie: false,
-  sgEtrSimplifie: false,
-};
-
-/* ═══════════════════════════════════════════════════════ Computations ══ */
-
-function computeJuri(
-  pays: string,
-  code: string,
-  ca: number,
-  isPaye: number,
-  revenuGlobe: number,
-  etrSimplifie: boolean,
-): JuriMetrics {
-  const etr = revenuGlobe > 0 ? (isPaye / revenuGlobe) * 100 : 0;
-  /* De minimis — art. 5.6 GloBE Model Rules: CA < 10 M€ ET revenu GloBE < 1 M€ */
-  const deMinimis = ca < 10_000 && Math.abs(revenuGlobe) < 1_000;
-  const safeHarbour = deMinimis || (etrSimplifie && etr >= 15);
-  const topUp =
-    !safeHarbour && etr < 15 && revenuGlobe > 0
-      ? (GLOBE_RATE - etr / 100) * revenuGlobe
-      : 0;
-  return { pays, code, etr, topUp, deMinimis, safeHarbour };
-}
-
-function computeMetrics(d: FormData): Metrics {
-  const juridictions = [
-    computeJuri("France",    "FR", d.frCa, d.frIsPaye, d.frRevenuGlobe, d.frEtrSimplifie),
-    computeJuri("Irlande",   "IE", d.ieCa, d.ieIsPaye, d.ieRevenuGlobe, d.ieEtrSimplifie),
-    computeJuri("Singapour", "SG", d.sgCa, d.sgIsPaye, d.sgRevenuGlobe, d.sgEtrSimplifie),
-  ];
-  const topUpTotal    = juridictions.reduce((s, j) => s + j.topUp, 0);
-  const totalRevenu   = d.frRevenuGlobe + d.ieRevenuGlobe + d.sgRevenuGlobe;
-  const totalImpot    = d.frIsPaye + d.ieIsPaye + d.sgIsPaye;
-  const etrMoyen      = totalRevenu > 0 ? (totalImpot / totalRevenu) * 100 : 0;
-  const nbExemptees   = juridictions.filter((j) => j.safeHarbour).length;
-  return { juridictions, topUpTotal, etrMoyen, nbExemptees };
-}
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 function fmtKE(ke: number): string {
   if (Math.abs(ke) >= 1_000)
-    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " M€";
-  return Math.round(ke).toLocaleString("fr-FR") + " K€";
+    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " M\u20AC";
+  return Math.round(ke).toLocaleString("fr-FR") + " K\u20AC";
 }
 
-function fmtPct(pct: number): string {
-  return pct.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " %";
+function fmtPct(pct: number, dec = 1): string {
+  return pct.toLocaleString("fr-FR", { maximumFractionDigits: dec }) + " %";
 }
 
-type BadgeResult = { cls: string; label: string };
+type BadgeVariant = { cls: string; label: string };
 
-function etrMoyenBadge(etr: number): BadgeResult {
+function etrMoyenBadge(etr: number): BadgeVariant {
   if (etr >= 15) return { cls: "badge badge-success", label: "Conforme GloBE" };
   if (etr >= 10) return { cls: "badge badge-warning", label: "Sous seuil GloBE" };
   return { cls: "badge badge-danger", label: "ETR critique" };
 }
 
-function topUpBadge(topUp: number): BadgeResult {
-  if (topUp === 0)   return { cls: "badge badge-success", label: "Aucun" };
-  if (topUp < 5_000) return { cls: "badge badge-warning", label: "Modéré" };
+function topUpBadge(topUp: number): BadgeVariant {
+  if (topUp === 0) return { cls: "badge badge-success", label: "Aucun" };
+  if (topUp < 5_000) return { cls: "badge badge-warning", label: "Mod\u00E9r\u00E9" };
   return { cls: "badge badge-danger", label: "Significatif" };
 }
 
-function exemptBadge(nb: number): BadgeResult {
-  if (nb === 3) return { cls: "badge badge-success", label: "3 / 3 exemptées" };
-  if (nb > 0)   return { cls: "badge badge-warning", label: `${nb} / 3 exemptée${nb > 1 ? "s" : ""}` };
-  return { cls: "badge badge-neutral", label: "Aucune exemption" };
+function sousSeuilBadge(nb: number, total: number): BadgeVariant {
+  if (nb === 0) return { cls: "badge badge-success", label: `0 / ${total}` };
+  if (nb <= 2) return { cls: "badge badge-warning", label: `${nb} / ${total}` };
+  return { cls: "badge badge-danger", label: `${nb} / ${total}` };
 }
 
-function etrJuriBadge(etr: number, safeHarbour: boolean): BadgeResult {
-  if (safeHarbour) return { cls: "badge badge-neutral",  label: "Safe harbour" };
-  if (etr >= 15)   return { cls: "badge badge-success",  label: fmtPct(etr) };
-  if (etr >= 10)   return { cls: "badge badge-warning",  label: fmtPct(etr) };
-  return             { cls: "badge badge-danger",   label: fmtPct(etr) };
-}
+/* ═══════════════════════════════════════════════════ Sub-components ══ */
 
-function generateInterpretation(m: Metrics, d: FormData): string {
-  if (d.caMondial < 750_000) {
-    return (
-      `Le chiffre d'affaires mondial consolidé (${fmtKE(d.caMondial)}) est inférieur au seuil ` +
-      `d'assujettissement GloBE de 750 M€. Ce groupe n'est pas soumis au Pilier 2, sauf option QDMTT ` +
-      `nationale ou application de l'UTPR par une juridiction d'implantation.`
-    );
-  }
-
-  const parts: string[] = [];
-  const sousSeuilGlobe = m.juridictions.filter((j) => j.etr < 15 && !j.safeHarbour);
-
-  if (sousSeuilGlobe.length === 0) {
-    parts.push(
-      `L'ETR moyen pondéré de ${fmtPct(m.etrMoyen)} est supérieur au taux minimum global de 15 %. ` +
-      `Aucun impôt complémentaire IIR n'est estimé sur les trois juridictions analysées.`
-    );
-  } else {
-    const list = sousSeuilGlobe
-      .map((j) => `${j.pays} (ETR ${fmtPct(j.etr)}, top-up estimé ${fmtKE(j.topUp)})`)
-      .join(", ");
-    parts.push(
-      `Les juridictions suivantes présentent un ETR inférieur à 15 % : ${list}. ` +
-      `Un impôt complémentaire de ${fmtKE(m.topUpTotal)} (IIR — Income Inclusion Rule) est estimé, ` +
-      `collecté au niveau de l'UPE résidente en ${d.upePays}.`
-    );
-  }
-
-  const exemptees = m.juridictions.filter((j) => j.safeHarbour);
-  if (exemptees.length > 0) {
-    const noms = exemptees.map((j) =>
-      j.deMinimis ? `${j.pays} (de minimis < 10 M€)` : `${j.pays} (ETR simplifié ≥ 15 %)`
-    );
-    parts.push(
-      `Safe harbour appliqué à : ${noms.join(", ")}. ` +
-      `Ces juridictions sont exonérées du calcul complémentaire sous réserve de confirmation par les autorités compétentes.`
-    );
-  }
-
-  if (m.topUpTotal > 5_000) {
-    parts.push(
-      `L'exposition de ${fmtKE(m.topUpTotal)} est significative. L'adoption d'un QDMTT (Qualified Domestic ` +
-      `Minimum Top-up Tax) dans les juridictions sous seuil permettrait de capter l'impôt localement ` +
-      `et de neutraliser l'IIR au niveau de l'UPE.`
-    );
-  } else if (m.topUpTotal > 0) {
-    parts.push(
-      `Le montant estimé de ${fmtKE(m.topUpTotal)} est gérable. ` +
-      `Évaluez l'opportunité d'un QDMTT dans les juridictions sous seuil.`
-    );
-  }
-
-  return parts.join(" ");
-}
-
-/* ════════════════════════════════════════════════════ Sub-components ══ */
-
-function StepIndicator({ current }: { current: number }) {
-  return (
-    <div className="flex mb-8">
-      {STEP_LABELS.map((label, i) => {
-        const step = i + 1;
-        const isCompleted = step < current;
-        const isCurrent   = step === current;
-        const isLast      = step === STEP_LABELS.length;
-        return (
-          <div key={step} className={`flex flex-col ${!isLast ? "flex-1" : ""}`}>
-            <div className="flex items-center">
-              <div
-                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
-                  isCompleted
-                    ? "bg-success text-white"
-                    : isCurrent
-                    ? "bg-accent text-white"
-                    : "bg-surface-raised border border-border text-foreground-subtle"
-                }`}
-              >
-                {isCompleted ? "✓" : step}
-              </div>
-              {!isLast && (
-                <div
-                  className={`flex-1 h-px ml-2 transition-colors ${
-                    step < current ? "bg-success" : "bg-border"
-                  }`}
-                />
-              )}
-            </div>
-            <span
-              className={`text-xs mt-1.5 hidden sm:block whitespace-nowrap ${
-                isCurrent ? "text-foreground font-medium" : "text-foreground-subtle"
-              }`}
-            >
-              {label}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-const INPUT_CLS =
-  "w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:border-border-strong transition-colors";
-
-function FormField({
-  label, id, value, onChange, unit,
+function KpiCard({
+  label,
+  value,
+  badge,
+  sub,
 }: {
-  label: string; id: string; value: number;
-  onChange: (val: number) => void; unit?: string;
+  label: string;
+  value: string;
+  badge: BadgeVariant;
+  sub?: string;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-foreground">
-        {label}
-        {unit && <span className="ml-1 text-xs font-normal text-foreground-subtle">({unit})</span>}
-      </label>
-      <input
-        id={id}
-        type="number"
-        min={0}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className={INPUT_CLS}
-      />
-    </div>
-  );
-}
-
-function ResultCard({ label, value, badge }: { label: string; value: string; badge: BadgeResult }) {
-  return (
-    <div className="card p-6 flex flex-col gap-3">
+    <div className="card p-5 flex flex-col gap-3">
       <span className="data-label">{label}</span>
-      <span className="kpi-value tabnum">{value}</span>
-      <span className={badge.cls}>{badge.label}</span>
+      <span className="kpi-value tabnum" style={{ fontSize: "var(--text-2xl)" }}>
+        {value}
+      </span>
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className={badge.cls}>{badge.label}</span>
+        {sub && <span className="text-xs text-foreground-subtle">{sub}</span>}
+      </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ Page ══ */
+function JurisdictionTable({ rows }: { rows: JurisdictionRow[] }) {
+  return (
+    <div className="card p-6 flex flex-col gap-4">
+      <p className="data-label">D\u00E9tail par juridiction</p>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left py-2 pr-4 text-foreground-subtle font-medium text-xs uppercase tracking-wider">
+                Pays
+              </th>
+              <th className="text-right py-2 px-4 text-foreground-subtle font-medium text-xs uppercase tracking-wider">
+                Revenu GloBE
+              </th>
+              <th className="text-right py-2 px-4 text-foreground-subtle font-medium text-xs uppercase tracking-wider">
+                IS pay\u00E9
+              </th>
+              <th className="text-right py-2 px-4 text-foreground-subtle font-medium text-xs uppercase tracking-wider">
+                ETR
+              </th>
+              <th className="text-right py-2 px-4 text-foreground-subtle font-medium text-xs uppercase tracking-wider">
+                Seuil
+              </th>
+              <th className="text-right py-2 pl-4 text-foreground-subtle font-medium text-xs uppercase tracking-wider">
+                Top-up Tax
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((j) => (
+              <tr
+                key={j.pays}
+                className="border-b border-border last:border-0 hover:bg-surface-raised/50 transition-colors"
+              >
+                <td className="py-3 pr-4 font-medium text-foreground">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`h-2 w-2 rounded-full shrink-0 ${
+                        j.conforme ? "bg-success" : "bg-danger"
+                      }`}
+                    />
+                    {j.pays}
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-right tabnum text-foreground-muted">
+                  {fmtKE(j.revenu_globe)}
+                </td>
+                <td className="py-3 px-4 text-right tabnum text-foreground-muted">
+                  {fmtKE(j.is_paye)}
+                </td>
+                <td className="py-3 px-4 text-right tabnum">
+                  <span
+                    className={`font-semibold ${
+                      j.conforme ? "text-success" : "text-danger"
+                    }`}
+                  >
+                    {fmtPct(j.etr)}
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-right tabnum text-foreground-subtle">
+                  {fmtPct(j.seuil)}
+                </td>
+                <td className="py-3 pl-4 text-right tabnum">
+                  {j.top_up > 0 ? (
+                    <span className="text-danger font-semibold flex items-center justify-end gap-1">
+                      <ArrowUp className="h-3 w-3" />
+                      {fmtKE(j.top_up)}
+                    </span>
+                  ) : (
+                    <span className="text-success flex items-center justify-end gap-1">
+                      <ArrowDown className="h-3 w-3" />
+                      0
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="flex flex-col gap-3 sm:hidden">
+        {rows.map((j) => (
+          <div
+            key={j.pays}
+            className={`rounded-lg border p-4 flex flex-col gap-2 ${
+              j.conforme ? "border-border" : "border-danger/30 bg-danger-bg/30"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-foreground">{j.pays}</span>
+              <span
+                className={`font-semibold tabnum text-sm ${
+                  j.conforme ? "text-success" : "text-danger"
+                }`}
+              >
+                ETR {fmtPct(j.etr)}
+              </span>
+            </div>
+            <div className="flex justify-between text-xs text-foreground-muted">
+              <span>Revenu GloBE : {fmtKE(j.revenu_globe)}</span>
+              <span>IS : {fmtKE(j.is_paye)}</span>
+            </div>
+            {j.top_up > 0 && (
+              <div className="text-xs text-danger font-semibold tabnum">
+                Top-up : {fmtKE(j.top_up)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═════════════════════════════════════════════════════════ Page ══ */
 
 export default function Pilier2GlobePage() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData]       = useState<FormData>(defaultFormData);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [status, setStatus] = useState<Status>("idle");
+  const [result, setResult] = useState<Pilier2Result | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  function update(patch: Partial<FormData>) {
-    setFormData((prev) => ({ ...prev, ...patch }));
-  }
+  /* ── File handling ───────────────────────────────────────────── */
 
-  const metrics = computeMetrics(formData);
+  const processFile = useCallback(async (file: File) => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext !== "xlsx" && ext !== "xls") {
+      setStatus("error");
+      setErrorMsg("Format non support\u00E9. Veuillez importer un fichier Excel (.xlsx).");
+      return;
+    }
 
-  /* ── Step content ───────────────────────────────────────────────────── */
+    setSelectedFile(file);
+    setStatus("uploading");
+    setErrorMsg("");
 
-  const stepContent: Record<number, React.ReactNode> = {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-    /* ── Étape 1 — Identité groupe ───────────────────────────────────── */
-    1: (
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="upePays" className="text-sm font-medium text-foreground">
-            Pays de résidence de l&apos;UPE
-          </label>
-          <select
-            id="upePays"
-            value={formData.upePays}
-            onChange={(e) => update({ upePays: e.target.value as UpePays })}
-            className={INPUT_CLS}
-          >
-            {UPE_PAYS.map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-          <p className="text-xs text-foreground-subtle">
-            UPE — Ultimate Parent Entity : entité faîtière ultime du groupe consolidé dont le CA
-            mondial dépasse 750 M€ sur au moins 2 des 4 exercices précédents.
-          </p>
-        </div>
+      const res = await fetch(`${API_BASE_URL}/pilier2/analyze`, {
+        method: "POST",
+        body: formData,
+      });
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <FormField
-            label="CA mondial consolidé"
-            id="caMondial"
-            value={formData.caMondial}
-            onChange={(val) => update({ caMondial: val })}
-            unit="K€"
-          />
-          <FormField
-            label="Nombre de juridictions"
-            id="nbJuridictions"
-            value={formData.nbJuridictions}
-            onChange={(val) => update({ nbJuridictions: val })}
-            unit="pays"
-          />
-        </div>
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(body.detail || `Erreur ${res.status}`);
+      }
 
-        {formData.caMondial < 750_000 && (
-          <div className="flex items-start gap-3 p-4 bg-warning-bg border border-warning rounded-md">
-            <span className="text-warning font-bold text-sm shrink-0">⚠</span>
-            <p className="text-sm text-warning leading-relaxed">
-              Le CA mondial déclaré ({fmtKE(formData.caMondial)}) est inférieur au seuil GloBE de 750 M€.
-              Ce groupe n&apos;est généralement pas soumis au Pilier 2.
-            </p>
-          </div>
-        )}
-      </div>
-    ),
+      const data: Pilier2Result = await res.json();
+      setResult(data);
+      setStatus("success");
+    } catch (err) {
+      setStatus("error");
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Une erreur inattendue est survenue lors de l\u2019analyse.",
+      );
+    }
+  }, []);
 
-    /* ── Étape 2 — Données par juridiction ──────────────────────────── */
-    2: (
-      <div className="flex flex-col gap-8">
-        <p className="text-sm text-foreground-muted leading-relaxed">
-          Saisissez les données fiscales pour chacune des trois juridictions.
-          Le revenu GloBE correspond au revenu qualifié OCDE avant substance-based income exclusions (SBIE).
-        </p>
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragActive(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) processFile(file);
+    },
+    [processFile],
+  );
 
-        {/* France */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-border">
-            <span className="h-2 w-2 rounded-full bg-accent shrink-0" />
-            <p className="text-sm font-semibold text-foreground">France</p>
-            <span className="badge badge-neutral ml-auto">IS 25 %</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <FormField label="CA local" id="frCa"
-              value={formData.frCa} onChange={(v) => update({ frCa: v })} unit="K€" />
-            <FormField label="IS payé" id="frIsPaye"
-              value={formData.frIsPaye} onChange={(v) => update({ frIsPaye: v })} unit="K€" />
-            <FormField label="Revenu GloBE" id="frRevenuGlobe"
-              value={formData.frRevenuGlobe} onChange={(v) => update({ frRevenuGlobe: v })} unit="K€" />
-          </div>
-        </div>
+  const onFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) processFile(file);
+    },
+    [processFile],
+  );
 
-        {/* Irlande */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-border">
-            <span className="h-2 w-2 rounded-full bg-warning shrink-0" />
-            <p className="text-sm font-semibold text-foreground">Irlande</p>
-            <span className="badge badge-warning ml-auto">IS 12,5 % historique</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <FormField label="CA local" id="ieCa"
-              value={formData.ieCa} onChange={(v) => update({ ieCa: v })} unit="K€" />
-            <FormField label="IS payé" id="ieIsPaye"
-              value={formData.ieIsPaye} onChange={(v) => update({ ieIsPaye: v })} unit="K€" />
-            <FormField label="Revenu GloBE" id="ieRevenuGlobe"
-              value={formData.ieRevenuGlobe} onChange={(v) => update({ ieRevenuGlobe: v })} unit="K€" />
-          </div>
-        </div>
+  const reset = useCallback(() => {
+    setStatus("idle");
+    setResult(null);
+    setSelectedFile(null);
+    setErrorMsg("");
+    if (inputRef.current) inputRef.current.value = "";
+  }, []);
 
-        {/* Singapour */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-border">
-            <span className="h-2 w-2 rounded-full bg-success shrink-0" />
-            <p className="text-sm font-semibold text-foreground">Singapour</p>
-            <span className="badge badge-neutral ml-auto">IS 17 %</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <FormField label="CA local" id="sgCa"
-              value={formData.sgCa} onChange={(v) => update({ sgCa: v })} unit="K€" />
-            <FormField label="IS payé" id="sgIsPaye"
-              value={formData.sgIsPaye} onChange={(v) => update({ sgIsPaye: v })} unit="K€" />
-            <FormField label="Revenu GloBE" id="sgRevenuGlobe"
-              value={formData.sgRevenuGlobe} onChange={(v) => update({ sgRevenuGlobe: v })} unit="K€" />
-          </div>
-        </div>
-      </div>
-    ),
-
-    /* ── Étape 3 — Safe harbours ─────────────────────────────────────── */
-    3: (
-      <div className="flex flex-col gap-6">
-        <p className="text-sm text-foreground-muted leading-relaxed">
-          Les safe harbours permettent d&apos;exclure certaines juridictions du calcul de l&apos;impôt
-          complémentaire. Le test de minimis est évalué automatiquement depuis les données saisies.
-        </p>
-
-        {/* De minimis — automatique */}
-        <div className="card p-4 flex flex-col gap-3">
-          <p className="text-sm font-semibold text-foreground">
-            Test de minimis <span className="badge badge-neutral ml-2">Automatique</span>
-          </p>
-          <p className="text-xs text-foreground-muted leading-relaxed">
-            Exemption si CA local &lt; 10 M€ ET revenu GloBE &lt; 1 M€ (art. 5.6 OCDE GloBE Model Rules).
-          </p>
-          <div className="flex flex-col divide-y divide-border">
-            {[
-              { label: "France",    ca: formData.frCa, revenu: formData.frRevenuGlobe },
-              { label: "Irlande",   ca: formData.ieCa, revenu: formData.ieRevenuGlobe },
-              { label: "Singapour", ca: formData.sgCa, revenu: formData.sgRevenuGlobe },
-            ].map(({ label, ca, revenu }) => {
-              const ok = ca < 10_000 && Math.abs(revenu) < 1_000;
-              return (
-                <div key={label} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
-                  <span className="text-sm text-foreground">{label}</span>
-                  <span className={ok ? "badge badge-success" : "badge badge-neutral"}>
-                    {ok ? "Exempté" : "Non exempté"}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ETR simplifié — Transitional Safe Harbour */}
-        <div className="card p-4 flex flex-col gap-3">
-          <p className="text-sm font-semibold text-foreground">
-            ETR simplifié — Transitional Safe Harbour
-          </p>
-          <p className="text-xs text-foreground-muted leading-relaxed">
-            Disponible pour les exercices 2023–2026. L&apos;entité doit disposer de comptes statutaires
-            locaux conformes (CbCR qualifié). Cochez si la juridiction satisfait le test ETR ≥ 15 %.
-          </p>
-          <div className="flex flex-col gap-3 mt-1">
-            {[
-              { label: "France",    key: "frEtrSimplifie" as const, value: formData.frEtrSimplifie },
-              { label: "Irlande",   key: "ieEtrSimplifie" as const, value: formData.ieEtrSimplifie },
-              { label: "Singapour", key: "sgEtrSimplifie" as const, value: formData.sgEtrSimplifie },
-            ].map(({ label, key, value }) => (
-              <label key={key} className="flex items-center justify-between cursor-pointer">
-                <span className="text-sm text-foreground">{label}</span>
-                <div className="flex items-center gap-3">
-                  {value && <span className="badge badge-success">Actif</span>}
-                  <input
-                    type="checkbox"
-                    checked={value}
-                    onChange={(e) => update({ [key]: e.target.checked } as Partial<FormData>)}
-                    className="h-4 w-4 accent-[var(--color-accent)] cursor-pointer"
-                  />
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-  };
-
-  /* ── Render ─────────────────────────────────────────────────────────── */
+  /* ── Render ──────────────────────────────────────────────────── */
 
   return (
     <div className="flex flex-col min-h-svh bg-background">
-
       {/* Nav */}
       <header className="sticky top-0 z-50 bg-surface border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -500,16 +319,18 @@ export default function Pilier2GlobePage() {
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 w-full py-12 flex flex-col gap-16">
-
-        {/* ══ PART A — Éditoriale ════════════════════════════════════════ */}
+        {/* ══ SECTION A — Introduction \u00E9ditoriale ═══════════════════════ */}
         <section className="flex flex-col gap-10">
-
           <div className="flex flex-col gap-4">
             <span className="badge badge-info self-start">Module 2 sur 8</span>
-            <h1 className="text-foreground">Fiscalité Pilier 2 GloBE</h1>
-            <p className="text-foreground-muted max-w-2xl" style={{ fontSize: "var(--text-lg)" }}>
-              Calculez l&apos;ETR par juridiction, estimez le top-up tax IIR et qualifiez les safe
-              harbours applicables à votre groupe multinational.
+            <h1 className="text-foreground">Fiscalit\u00E9 Pilier 2 GloBE</h1>
+            <p
+              className="text-foreground-muted max-w-2xl"
+              style={{ fontSize: "var(--text-lg)" }}
+            >
+              Calculez l&apos;ETR par juridiction, estimez le top-up tax IIR et identifiez les
+              pays sous le seuil minimum de 15 % en importent votre fichier de donn\u00E9es
+              fiscales.
             </p>
           </div>
 
@@ -520,17 +341,20 @@ export default function Pilier2GlobePage() {
                 {
                   icon: Globe,
                   title: "Calcul ETR GloBE",
-                  detail: "Taux effectif d'imposition par juridiction selon les règles OCDE — IS qualifié / revenu GloBE qualifié.",
+                  detail:
+                    "Taux effectif d\u2019imposition par juridiction selon les r\u00E8gles OCDE \u2014 IS qualifi\u00E9 / revenu GloBE qualifi\u00E9.",
                 },
                 {
                   icon: Calculator,
                   title: "Top-up Tax IIR / QDMTT",
-                  detail: "Impôt complémentaire si ETR < 15 %. Collecté par l'UPE (IIR) ou localement (QDMTT).",
+                  detail:
+                    "Imp\u00F4t compl\u00E9mentaire si ETR < 15 %. Collect\u00E9 par l\u2019UPE (IIR) ou localement (QDMTT).",
                 },
                 {
                   icon: ShieldCheck,
                   title: "Safe Harbours",
-                  detail: "De minimis, ETR simplifié (TSH) et UTPR safe harbour — exclusions du calcul complémentaire.",
+                  detail:
+                    "De minimis, ETR simplifi\u00E9 (TSH) et UTPR safe harbour \u2014 exclusions du calcul compl\u00E9mentaire.",
                 },
               ].map(({ icon: Icon, title, detail }) => (
                 <div key={title} className="card p-5 flex flex-col gap-3">
@@ -545,31 +369,35 @@ export default function Pilier2GlobePage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <p className="data-label">Indicateurs clés à surveiller</p>
+            <p className="data-label">Indicateurs cl\u00E9s \u00E0 surveiller</p>
             <ul className="flex flex-col gap-3">
               {[
                 {
                   title: "ETR GloBE par juridiction",
-                  detail: "Rapport IS qualifié / revenu GloBE. Si ETR < 15 %, un impôt complémentaire est dû sauf safe harbour applicable (art. 5 OCDE GloBE Model Rules, BEPS Action 15).",
+                  detail:
+                    "Rapport IS qualifi\u00E9 / revenu GloBE. Si ETR < 15 %, un imp\u00F4t compl\u00E9mentaire est d\u00FB sauf safe harbour applicable.",
                 },
                 {
-                  title: "Top-up Tax estimé (IIR)",
-                  detail: "Impôt complémentaire collecté par l'UPE : (15 % − ETR) × revenu GloBE. Peut être neutralisé par un QDMTT local adopté par la juridiction sous seuil.",
+                  title: "Top-up Tax estim\u00E9 (IIR)",
+                  detail:
+                    "Imp\u00F4t compl\u00E9mentaire : (15 % \u2212 ETR) \u00D7 revenu GloBE. Peut \u00EAtre neutralis\u00E9 par un QDMTT local.",
                 },
                 {
                   title: "Exemption de minimis",
-                  detail: "Juridiction exclue automatiquement si CA < 10 M€ et revenu GloBE < 1 M€ sur l'exercice (art. 5.6 GloBE Model Rules). Aucun calcul complémentaire requis.",
+                  detail:
+                    "Juridiction exclue si CA < 10 M\u20AC et revenu GloBE < 1 M\u20AC (art. 5.6 OCDE GloBE Model Rules).",
                 },
                 {
-                  title: "QDMTT — Domestic Top-up Tax",
-                  detail: "Impôt national de complément permettant à la juridiction sous seuil de capter l'impôt en local. France (2024), Irlande (2024), Singapour (2025) ont adopté ou prévu le QDMTT.",
+                  title: "QDMTT \u2014 Domestic Top-up Tax",
+                  detail:
+                    "Imp\u00F4t national de compl\u00E9ment permettant \u00E0 la juridiction sous seuil de capter l\u2019imp\u00F4t localement.",
                 },
               ].map(({ title, detail }) => (
                 <li key={title} className="flex gap-3 items-start">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0 mt-[7px]" />
                   <div>
                     <span className="text-sm font-semibold text-foreground">{title}</span>
-                    <span className="text-sm text-foreground-muted"> — {detail}</span>
+                    <span className="text-sm text-foreground-muted"> \u2014 {detail}</span>
                   </div>
                 </li>
               ))}
@@ -577,122 +405,178 @@ export default function Pilier2GlobePage() {
           </div>
         </section>
 
-        {/* ══ PART B — Wizard ════════════════════════════════════════════ */}
+        {/* ══ SECTION B — Upload Excel ═══════════════════════════════════ */}
         <section className="flex flex-col gap-4">
-          <p className="data-label">Saisie des données</p>
+          <p className="data-label">Importer votre fichier</p>
 
-          <div className="card-raised p-6 sm:p-8">
-            <StepIndicator current={currentStep} />
+          <div className="card-raised p-6 sm:p-8 flex flex-col gap-6">
+            {(status === "idle" || status === "error") && (
+              <>
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragActive(true);
+                  }}
+                  onDragLeave={() => setDragActive(false)}
+                  onDrop={onDrop}
+                  onClick={() => inputRef.current?.click()}
+                  className={`relative flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed p-10 sm:p-14 cursor-pointer transition-colors ${
+                    dragActive
+                      ? "border-accent bg-accent/5"
+                      : "border-border hover:border-border-strong hover:bg-surface-raised/50"
+                  }`}
+                >
+                  <input
+                    ref={inputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={onFileChange}
+                    className="hidden"
+                  />
+                  <div className="h-12 w-12 rounded-full bg-surface-raised flex items-center justify-center">
+                    <Upload className="h-6 w-6 text-accent" />
+                  </div>
+                  <div className="text-center flex flex-col gap-1">
+                    <p className="text-sm font-medium text-foreground">
+                      Glissez-d\u00E9posez votre fichier Excel ici
+                    </p>
+                    <p className="text-xs text-foreground-subtle">
+                      ou{" "}
+                      <span className="text-accent font-medium underline underline-offset-2">
+                        parcourez vos fichiers
+                      </span>{" "}
+                      \u2014 .xlsx uniquement \u2014 onglets attendus : 4-ETR Juridictionnel, 6-Top-up Tax
+                    </p>
+                  </div>
+                </div>
 
-            <div className="mb-7">
-              <h2 className="text-foreground" style={{ fontSize: "var(--text-xl)" }}>
-                Étape {currentStep} — {STEP_LABELS[currentStep - 1]}
-              </h2>
-            </div>
+                {status === "error" && (
+                  <div className="flex items-center gap-3 rounded-md bg-danger-bg border border-danger/20 px-4 py-3">
+                    <AlertTriangle className="h-4 w-4 text-danger shrink-0" />
+                    <p className="text-sm text-danger">{errorMsg}</p>
+                    <button
+                      type="button"
+                      onClick={reset}
+                      className="ml-auto text-danger/60 hover:text-danger transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
 
-            {stepContent[currentStep]}
+            {status === "uploading" && (
+              <div className="flex flex-col items-center gap-5 py-10">
+                <Loader2 className="h-10 w-10 text-accent animate-spin" />
+                <div className="text-center flex flex-col gap-1">
+                  <p className="text-sm font-medium text-foreground">
+                    Analyse en cours\u2026
+                  </p>
+                  <p className="text-xs text-foreground-subtle">
+                    <FileSpreadsheet className="inline h-3.5 w-3.5 mr-1 -mt-px" />
+                    {selectedFile?.name}
+                  </p>
+                </div>
+                <div className="w-48 h-1.5 rounded-full bg-surface-raised overflow-hidden">
+                  <div className="h-full bg-accent rounded-full animate-pulse w-2/3" />
+                </div>
+              </div>
+            )}
 
-            <div className="flex items-center justify-between mt-10 pt-6 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setCurrentStep((s) => s - 1)}
-                disabled={currentStep === 1}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground-muted border border-border rounded-md hover:text-foreground hover:border-border-strong transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Précédent
-              </button>
-
-              {currentStep < STEP_LABELS.length ? (
+            {status === "success" && result && (
+              <div className="flex items-center gap-4 rounded-md bg-success-bg border border-success/20 px-4 py-3">
+                <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {result.filename}
+                  </p>
+                  <p className="text-xs text-foreground-subtle">
+                    {result.sheet_count} onglet{result.sheet_count > 1 ? "s" : ""} \u2014{" "}
+                    {result.nb_jurisdictions} juridiction{result.nb_jurisdictions > 1 ? "s" : ""} d\u00E9tect\u00E9e{result.nb_jurisdictions > 1 ? "s" : ""}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setCurrentStep((s) => s + 1)}
-                  className="flex items-center gap-2 px-5 py-2 bg-accent text-white text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
+                  onClick={reset}
+                  className="text-xs text-foreground-subtle hover:text-foreground transition-colors underline underline-offset-2"
                 >
-                  Suivant
-                  <ChevronRight className="h-4 w-4" />
+                  Remplacer
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setHasSubmitted(true)}
-                  className="flex items-center gap-2 px-5 py-2 bg-accent text-white text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
-                >
-                  <Play className="h-4 w-4" />
-                  Lancer l&apos;analyse
-                </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* ══ PART C — Résultats ═════════════════════════════════════════ */}
-        {hasSubmitted && (
-          <section className="flex flex-col gap-6">
+        {/* ══ SECTION C — Dashboard ══════════════════════════════════════ */}
+        {status === "success" && result && (
+          <section className="flex flex-col gap-8">
             <div className="flex items-center justify-between">
-              <p className="data-label">Résultats de l&apos;analyse</p>
-              <span className="badge badge-success">Analyse terminée</span>
+              <p className="data-label">R\u00E9sultats de l&apos;analyse</p>
+              <span className="badge badge-success">Analyse termin\u00E9e</span>
             </div>
 
-            {/* 3 KPI cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <ResultCard
-                label="ETR moyen pondéré"
-                value={fmtPct(metrics.etrMoyen)}
-                badge={etrMoyenBadge(metrics.etrMoyen)}
+            {/* KPI grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <KpiCard
+                label="Top-up Tax Total"
+                value={fmtKE(result.top_up_total)}
+                badge={topUpBadge(result.top_up_total)}
+                sub="IIR estim\u00E9"
               />
-              <ResultCard
-                label="Top-up Tax estimé (IIR)"
-                value={fmtKE(metrics.topUpTotal)}
-                badge={topUpBadge(metrics.topUpTotal)}
+              <KpiCard
+                label="ETR moyen pond\u00E9r\u00E9"
+                value={fmtPct(result.etr_moyen)}
+                badge={etrMoyenBadge(result.etr_moyen)}
+                sub="toutes juridictions"
               />
-              <ResultCard
-                label="Juridictions exemptées"
-                value={`${metrics.nbExemptees} / 3`}
-                badge={exemptBadge(metrics.nbExemptees)}
+              <KpiCard
+                label="Juridictions < 15 %"
+                value={String(result.nb_sous_seuil)}
+                badge={sousSeuilBadge(result.nb_sous_seuil, result.nb_jurisdictions)}
+                sub="sous seuil GloBE"
+              />
+              <KpiCard
+                label="Juridictions analys\u00E9es"
+                value={String(result.nb_jurisdictions)}
+                badge={{ cls: "badge badge-neutral", label: "Total" }}
+                sub={`source : ${result.source_sheet}`}
               />
             </div>
 
-            {/* Détail par juridiction */}
-            <div className="card p-6 flex flex-col gap-4">
-              <p className="data-label">Détail par juridiction</p>
-              <div className="flex flex-col divide-y divide-border">
-                {metrics.juridictions.map((j) => {
-                  const eb = etrJuriBadge(j.etr, j.safeHarbour);
-                  return (
-                    <div key={j.code} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
-                      <span className={`h-2 w-2 rounded-full shrink-0 ${JURI_DOTS[j.pays] ?? "bg-border"}`} />
-                      <span className="text-sm font-medium text-foreground w-28">{j.pays}</span>
-                      <span className={eb.cls}>{eb.label}</span>
-                      <span className="ml-auto tabnum text-sm">
-                        {j.safeHarbour ? (
-                          <span className="text-foreground-subtle">
-                            {j.deMinimis ? "De minimis" : "ETR simplifié"}
-                          </span>
-                        ) : j.topUp > 0 ? (
-                          <span className="text-danger font-semibold">
-                            Top-up : {fmtKE(j.topUp)}
-                          </span>
-                        ) : (
-                          <span className="text-success">Conforme</span>
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            {/* Jurisdiction table */}
+            <JurisdictionTable rows={result.juridictions} />
 
-            {/* Interprétation */}
+            {/* Interpretation */}
             <div className="card p-6 flex flex-col gap-3">
-              <p className="data-label">Interprétation</p>
+              <p className="data-label">Interpr\u00E9tation</p>
               <p className="text-sm text-foreground-muted leading-relaxed">
-                {generateInterpretation(metrics, formData)}
+                {result.nb_sous_seuil === 0 ? (
+                  <>
+                    L&apos;ETR moyen pond\u00E9r\u00E9 de {fmtPct(result.etr_moyen)} est
+                    sup\u00E9rieur au taux minimum global de 15 %. Aucun imp\u00F4t
+                    compl\u00E9mentaire IIR n&apos;est estim\u00E9 sur les{" "}
+                    {result.nb_jurisdictions} juridictions analys\u00E9es.
+                  </>
+                ) : (
+                  <>
+                    {result.nb_sous_seuil} juridiction{result.nb_sous_seuil > 1 ? "s" : ""}{" "}
+                    pr\u00E9sente{result.nb_sous_seuil > 1 ? "nt" : ""} un ETR inf\u00E9rieur
+                    \u00E0 15 %, g\u00E9n\u00E9rant un imp\u00F4t compl\u00E9mentaire IIR
+                    estim\u00E9 \u00E0{" "}
+                    <span className="font-semibold text-danger">
+                      {fmtKE(result.top_up_total)}
+                    </span>
+                    . L&apos;adoption d&apos;un QDMTT dans les juridictions concern\u00E9es
+                    permettrait de capter l&apos;imp\u00F4t localement.
+                  </>
+                )}
               </p>
               <p className="text-xs text-foreground-subtle leading-relaxed border-t border-border pt-3 mt-1">
-                Ces résultats sont générés à titre indicatif sur la base des données saisies et des règles
-                GloBE OCDE 2024. Ils ne constituent pas un avis fiscal. Consultez votre directeur fiscal
-                et vos conseils pour toute décision de provisionnement ou de dépôt déclaratif Pilier 2.
+                Ces r\u00E9sultats sont g\u00E9n\u00E9r\u00E9s \u00E0 titre indicatif sur la base
+                des donn\u00E9es extraites de votre fichier et des r\u00E8gles GloBE OCDE 2024.
+                Ils ne constituent pas un avis fiscal. Consultez votre directeur fiscal pour toute
+                d\u00E9cision de provisionnement Pilier 2.
               </p>
             </div>
 
@@ -700,19 +584,14 @@ export default function Pilier2GlobePage() {
             <div className="flex justify-end">
               <button
                 type="button"
-                onClick={() => {
-                  setHasSubmitted(false);
-                  setCurrentStep(1);
-                  setFormData(defaultFormData);
-                }}
+                onClick={reset}
                 className="text-sm text-foreground-subtle hover:text-foreground-muted transition-colors underline underline-offset-4"
               >
-                Réinitialiser l&apos;analyse
+                R\u00E9initialiser l&apos;analyse
               </button>
             </div>
           </section>
         )}
-
       </main>
     </div>
   );

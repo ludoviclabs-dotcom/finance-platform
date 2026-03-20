@@ -1,526 +1,326 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Shield, TrendingDown, FileCheck, ChevronRight, ChevronLeft, Play } from "lucide-react";
+import {
+  ArrowLeft,
+  Shield,
+  TrendingDown,
+  FileCheck,
+  Upload,
+  FileSpreadsheet,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2,
+  X,
+} from "lucide-react";
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 
-/* ═══════════════════════════════════════════════════════════════ Types ══ */
+/* ═══════════════════════════════════════════════════════════ Types ══ */
 
-type Secteur = "Banque" | "Assurance" | "Gestion d'actifs" | "Fintech" | "Autre";
-type AppetenceRisque = "Faible" | "Moyenne" | "Élevée";
+type Status = "idle" | "uploading" | "success" | "error";
 
-interface FormData {
-  /* Step 1 */
-  secteur: Secteur;
-  chiffreAffaires: number;
-  effectif: number;
-  budgetIT: number;
-  budgetCyber: number;
-  /* Step 2 */
-  doraGouvernance: number;
-  doraIncidents: number;
-  doraTests: number;
-  doraTiers: number;
-  doraReporting: number;
-  /* Step 3 */
-  ransomwarePerte: number;
-  ransomwareProba: number;
-  fuitePerte: number;
-  fuiteProba: number;
-  fournisseurPerte: number;
-  fournisseurProba: number;
-  /* Step 4 */
-  cyberAssurance: boolean;
-  plafondIndemnisation: number;
-  franchise: number;
-  appetenceRisque: AppetenceRisque;
+interface RadarPoint {
+  chapter: string;
+  score: number;
+  max: number;
 }
 
-interface Metrics {
-  scoreDORA: number;
-  ratioCyberIT: number;
-  aleKE: number;
+interface CyberResult {
+  filename: string;
+  sheets: string[];
+  sheet_count: number;
+  maturity_index: number;
+  ale: number;
+  var95: number;
+  ratio_cyber_it: number;
+  dora_scores: Record<string, number>;
+  radar_data: RadarPoint[];
 }
 
-/* ══════════════════════════════════════════════════════════ Constants ══ */
+/* ═══════════════════════════════════════════════════════ Helpers ══ */
 
-const STEP_LABELS = [
-  "Profil entité",
-  "Conformité DORA",
-  "Scénarios de risque",
-  "Assurance & appétence",
-];
-
-const SECTEURS: Secteur[] = ["Banque", "Assurance", "Gestion d'actifs", "Fintech", "Autre"];
-const APPETENCES: AppetenceRisque[] = ["Faible", "Moyenne", "Élevée"];
-const DORA_LEVEL_LABELS = ["Non initié", "Partiel", "En progression", "Avancé", "Conforme"];
-
-type DoraKey =
-  | "doraGouvernance"
-  | "doraIncidents"
-  | "doraTests"
-  | "doraTiers"
-  | "doraReporting";
-
-const DORA_DOMAINS: { key: DoraKey; label: string }[] = [
-  { key: "doraGouvernance", label: "Gouvernance des risques TIC" },
-  { key: "doraIncidents",   label: "Gestion des incidents" },
-  { key: "doraTests",       label: "Tests de résilience (TLPT)" },
-  { key: "doraTiers",       label: "Gestion des tiers TIC" },
-  { key: "doraReporting",   label: "Reporting réglementaire" },
-];
-
-const defaultFormData: FormData = {
-  secteur: "Banque",
-  chiffreAffaires: 100000,
-  effectif: 500,
-  budgetIT: 5000,
-  budgetCyber: 500,
-  doraGouvernance: 2,
-  doraIncidents: 2,
-  doraTests: 1,
-  doraTiers: 2,
-  doraReporting: 1,
-  ransomwarePerte: 2000,
-  ransomwareProba: 15,
-  fuitePerte: 800,
-  fuiteProba: 25,
-  fournisseurPerte: 1500,
-  fournisseurProba: 10,
-  cyberAssurance: false,
-  plafondIndemnisation: 0,
-  franchise: 0,
-  appetenceRisque: "Faible",
-};
-
-/* ═══════════════════════════════════════════════════════ Computations ══ */
-
-function computeMetrics(d: FormData): Metrics {
-  const avgDora = (d.doraGouvernance + d.doraIncidents + d.doraTests + d.doraTiers + d.doraReporting) / 5;
-  const scoreDORA = avgDora * 25;
-  const ratioCyberIT = d.budgetIT > 0 ? (d.budgetCyber / d.budgetIT) * 100 : 0;
-  const aleKE =
-    (d.ransomwareProba / 100) * d.ransomwarePerte +
-    (d.fuiteProba / 100) * d.fuitePerte +
-    (d.fournisseurProba / 100) * d.fournisseurPerte;
-  return { scoreDORA, ratioCyberIT, aleKE };
-}
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 function fmtKE(ke: number): string {
-  if (ke >= 1000) {
-    return (ke / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " M€";
-  }
-  return Math.round(ke).toLocaleString("fr-FR") + " K€";
+  if (Math.abs(ke) >= 1_000)
+    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " M\u20AC";
+  return Math.round(ke).toLocaleString("fr-FR") + " K\u20AC";
 }
 
-type BadgeResult = { cls: string; label: string };
+function fmtPct(pct: number, dec = 1): string {
+  return pct.toLocaleString("fr-FR", { maximumFractionDigits: dec }) + " %";
+}
 
-function doraBadge(score: number): BadgeResult {
+type BadgeVariant = { cls: string; label: string };
+
+function maturityBadge(score: number): BadgeVariant {
   if (score >= 75) return { cls: "badge badge-success", label: "Conforme" };
   if (score >= 50) return { cls: "badge badge-warning", label: "En vigilance" };
   return { cls: "badge badge-danger", label: "Non conforme" };
 }
 
-function ratioBadge(ratio: number): BadgeResult {
-  if (ratio >= 12) return { cls: "badge badge-success", label: "Adéquat ENISA" };
-  if (ratio >= 7)  return { cls: "badge badge-warning", label: "Sous-optimal" };
-  return { cls: "badge badge-danger", label: "Insuffisant" };
+function maturityColor(score: number): string {
+  if (score >= 75) return "text-success";
+  if (score >= 50) return "text-warning";
+  return "text-danger";
 }
 
-function aleBadge(ale: number): BadgeResult {
-  if (ale < 200)  return { cls: "badge badge-success", label: "Gérable" };
-  if (ale < 1000) return { cls: "badge badge-warning", label: "Significatif" };
+function maturityCssColor(score: number): string {
+  if (score >= 75) return "var(--color-success)";
+  if (score >= 50) return "var(--color-warning)";
+  return "var(--color-danger)";
+}
+
+function aleBadge(ale: number): BadgeVariant {
+  if (ale < 200) return { cls: "badge badge-success", label: "G\u00E9rable" };
+  if (ale < 1_000) return { cls: "badge badge-warning", label: "Significatif" };
   return { cls: "badge badge-danger", label: "Critique" };
 }
 
-function generateInterpretation(m: Metrics, d: FormData): string {
-  const parts: string[] = [];
-
-  if (m.scoreDORA < 50) {
-    parts.push(
-      `Votre score DORA de ${Math.round(m.scoreDORA)}/100 place votre organisation en zone de non-conformité. ` +
-      `L'ACPR et la BCE peuvent exiger un plan correctif dans les 6 mois suivant le prochain cycle de supervision.`
-    );
-  } else if (m.scoreDORA < 75) {
-    parts.push(
-      `Votre score DORA de ${Math.round(m.scoreDORA)}/100 indique une conformité partielle. ` +
-      `Des progrès sont attendus sur les domaines les moins matures avant la prochaine évaluation.`
-    );
-  } else {
-    parts.push(
-      `Votre score DORA de ${Math.round(m.scoreDORA)}/100 reflète une bonne maîtrise des exigences. ` +
-      `Maintenez la cadence pour conserver ce niveau lors des exercices TIBER-EU.`
-    );
-  }
-
-  if (m.ratioCyberIT < 7) {
-    parts.push(
-      `Le ratio Cyber/IT de ${m.ratioCyberIT.toFixed(1)} % est en deçà du seuil recommandé par l'ENISA (12 %). ` +
-      `Un rééquilibrage du budget est nécessaire pour couvrir les exigences des articles 8 à 10 DORA.`
-    );
-  } else if (m.ratioCyberIT < 12) {
-    parts.push(
-      `Le ratio Cyber/IT de ${m.ratioCyberIT.toFixed(1)} % est en progression, mais reste sous l'objectif ENISA de 12 % pour les entités financières.`
-    );
-  } else {
-    parts.push(
-      `Le ratio Cyber/IT de ${m.ratioCyberIT.toFixed(1)} % est conforme aux recommandations ENISA. Votre allocation budgétaire cyber est cohérente avec votre exposition.`
-    );
-  }
-
-  const aleStr = fmtKE(m.aleKE);
-  if (m.aleKE > 1000) {
-    parts.push(
-      `L'ALE agrégée de ${aleStr} dépasse 1 M€. Une provision IAS 37 doit être évaluée avec vos commissaires aux comptes si la probabilité de matérialisation est jugée probable.` +
-      (d.cyberAssurance
-        ? ` Votre police cyber (plafond ${fmtKE(d.plafondIndemnisation)}, franchise ${fmtKE(d.franchise)}) couvre partiellement cette exposition.`
-        : " Aucune cyber-assurance déclarée — l'intégralité de l'ALE reste à la charge de l'entité.")
-    );
-  } else {
-    parts.push(
-      `L'ALE agrégée de ${aleStr} reste dans une zone gérable. Vérifiez la couverture assurantielle au regard de ce montant et des franchises en place.`
-    );
-  }
-
-  return parts.join(" ");
+function varBadge(v: number): BadgeVariant {
+  if (v < 500) return { cls: "badge badge-success", label: "Acceptable" };
+  if (v < 2_000) return { cls: "badge badge-warning", label: "\u00C0 surveiller" };
+  return { cls: "badge badge-danger", label: "\u00C9lev\u00E9" };
 }
 
-/* ════════════════════════════════════════════════════ Sub-components ══ */
-
-function StepIndicator({ current }: { current: number }) {
-  return (
-    <div className="flex mb-8">
-      {STEP_LABELS.map((label, i) => {
-        const step = i + 1;
-        const isCompleted = step < current;
-        const isCurrent = step === current;
-        const isLast = step === STEP_LABELS.length;
-        return (
-          <div key={step} className={`flex flex-col ${!isLast ? "flex-1" : ""}`}>
-            <div className="flex items-center">
-              <div
-                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
-                  isCompleted
-                    ? "bg-success text-white"
-                    : isCurrent
-                    ? "bg-accent text-white"
-                    : "bg-surface-raised border border-border text-foreground-subtle"
-                }`}
-              >
-                {isCompleted ? "✓" : step}
-              </div>
-              {!isLast && (
-                <div
-                  className={`flex-1 h-px ml-2 transition-colors ${
-                    step < current ? "bg-success" : "bg-border"
-                  }`}
-                />
-              )}
-            </div>
-            <span
-              className={`text-xs mt-1.5 hidden sm:block whitespace-nowrap ${
-                isCurrent ? "text-foreground font-medium" : "text-foreground-subtle"
-              }`}
-            >
-              {label}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
+function ratioBadge(ratio: number): BadgeVariant {
+  if (ratio >= 12) return { cls: "badge badge-success", label: "Ad\u00E9quat ENISA" };
+  if (ratio >= 7) return { cls: "badge badge-warning", label: "Sous-optimal" };
+  return { cls: "badge badge-danger", label: "Insuffisant" };
 }
 
-const INPUT_CLS =
-  "w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:border-border-strong transition-colors";
+/* ═══════════════════════════════════════════════════ Sub-components ══ */
 
-function FormField({
-  label,
-  id,
-  value,
-  onChange,
-  unit,
-}: {
-  label: string;
-  id: string;
-  value: number;
-  onChange: (val: number) => void;
-  unit?: string;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-foreground">
-        {label}
-        {unit && (
-          <span className="ml-1 text-xs font-normal text-foreground-subtle">({unit})</span>
-        )}
-      </label>
-      <input
-        id={id}
-        type="number"
-        min={0}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className={INPUT_CLS}
-      />
-    </div>
-  );
-}
+function MaturityGauge({ score }: { score: number }) {
+  const pct = Math.min(Math.max(score, 0), 100);
+  const color = maturityCssColor(score);
 
-function SliderField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (val: number) => void;
-}) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-sm font-medium text-foreground">{label}</span>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="tabnum text-sm font-semibold text-accent">{value}/4</span>
-          <span className="badge badge-neutral text-xs">{DORA_LEVEL_LABELS[value]}</span>
-        </div>
+    <div className="card-raised p-6 sm:p-8 flex flex-col gap-5">
+      <div className="flex items-center justify-between">
+        <p className="data-label">Indice de maturit\u00E9 DORA</p>
+        {(() => {
+          const b = maturityBadge(score);
+          return <span className={b.cls}>{b.label}</span>;
+        })()}
       </div>
-      <input
-        type="range"
-        min={0}
-        max={4}
-        step={1}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full cursor-pointer accent-[var(--color-accent)] h-2"
-      />
-      <div className="flex justify-between text-xs text-foreground-subtle">
-        <span>Non initié</span>
-        <span>Conforme</span>
+
+      <div className="flex items-end gap-3">
+        <span
+          className={`tabnum font-bold ${maturityColor(score)}`}
+          style={{ fontSize: "var(--text-5xl)", lineHeight: 1 }}
+        >
+          {Math.round(score)}
+        </span>
+        <span className="text-sm text-foreground-subtle mb-1">/ 100</span>
       </div>
+
+      {/* Bar gauge */}
+      <div className="relative h-3 w-full rounded-full bg-surface-raised overflow-hidden">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
+          style={{ width: `${pct}%`, backgroundColor: color }}
+        />
+        <div
+          className="absolute top-0 h-full w-px bg-foreground-subtle opacity-40"
+          style={{ left: "50%" }}
+        />
+        <div
+          className="absolute top-0 h-full w-px bg-foreground-subtle opacity-40"
+          style={{ left: "75%" }}
+        />
+      </div>
+      <div className="flex justify-between text-xs text-foreground-subtle tabnum">
+        <span>0</span>
+        <span>50</span>
+        <span>75</span>
+        <span>100</span>
+      </div>
+
+      <p className="text-xs text-foreground-muted leading-relaxed border-t border-border pt-4">
+        Moyenne des 6 chapitres DORA ramen\u00E9e sur 100. Un score inf\u00E9rieur \u00E0 50
+        expose l&apos;entit\u00E9 \u00E0 des mesures correctrices lors du prochain cycle de
+        supervision ACPR/BCE.
+      </p>
     </div>
   );
 }
 
-function ResultCard({
+function KpiCard({
   label,
   value,
   badge,
+  sub,
 }: {
   label: string;
   value: string;
-  badge: BadgeResult;
+  badge: BadgeVariant;
+  sub?: string;
 }) {
   return (
-    <div className="card p-6 flex flex-col gap-3">
+    <div className="card p-5 flex flex-col gap-3">
       <span className="data-label">{label}</span>
-      <span className="kpi-value tabnum">{value}</span>
-      <span className={badge.cls}>{badge.label}</span>
+      <span className="kpi-value tabnum" style={{ fontSize: "var(--text-2xl)" }}>
+        {value}
+      </span>
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className={badge.cls}>{badge.label}</span>
+        {sub && <span className="text-xs text-foreground-subtle">{sub}</span>}
+      </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ Page ══ */
-
-export default function GouvernanceCyberPage() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>(defaultFormData);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
-
-  function update(patch: Partial<FormData>) {
-    setFormData((prev) => ({ ...prev, ...patch }));
-  }
-
-  const metrics = computeMetrics(formData);
-
-  /* ── Step content ───────────────────────────────────────────────────── */
-
-  const stepContent: Record<number, React.ReactNode> = {
-    1: (
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="secteur" className="text-sm font-medium text-foreground">
-            Secteur d&apos;activité
-          </label>
-          <select
-            id="secteur"
-            value={formData.secteur}
-            onChange={(e) => update({ secteur: e.target.value as Secteur })}
-            className={INPUT_CLS}
-          >
-            {SECTEURS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <FormField
-            label="Chiffre d'affaires annuel"
-            id="ca"
-            value={formData.chiffreAffaires}
-            onChange={(val) => update({ chiffreAffaires: val })}
-            unit="K€"
-          />
-          <FormField
-            label="Effectif total"
-            id="effectif"
-            value={formData.effectif}
-            onChange={(val) => update({ effectif: val })}
-            unit="personnes"
-          />
-          <FormField
-            label="Budget IT annuel"
-            id="budgetIT"
-            value={formData.budgetIT}
-            onChange={(val) => update({ budgetIT: val })}
-            unit="K€"
-          />
-          <FormField
-            label="Budget cybersécurité actuel"
-            id="budgetCyber"
-            value={formData.budgetCyber}
-            onChange={(val) => update({ budgetCyber: val })}
-            unit="K€"
-          />
-        </div>
+function DoraRadar({ data }: { data: RadarPoint[] }) {
+  return (
+    <div className="card p-6 flex flex-col gap-4">
+      <p className="data-label">Radar DORA par chapitre</p>
+      <div className="w-full" style={{ height: 320 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
+            <PolarGrid stroke="var(--color-border)" />
+            <PolarAngleAxis
+              dataKey="chapter"
+              tick={{ fontSize: 11, fill: "var(--color-foreground-muted)" }}
+            />
+            <PolarRadiusAxis
+              angle={90}
+              domain={[0, 4]}
+              tick={{ fontSize: 10, fill: "var(--color-foreground-subtle)" }}
+              tickCount={5}
+            />
+            <Radar
+              name="Score"
+              dataKey="score"
+              stroke="var(--color-accent)"
+              fill="var(--color-accent)"
+              fillOpacity={0.2}
+              strokeWidth={2}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                borderRadius: 8,
+                fontSize: 12,
+              }}
+              formatter={(value: number) => [`${value} / 4`, "Score"]}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
       </div>
-    ),
-
-    2: (
-      <div className="flex flex-col gap-7">
-        <p className="text-sm text-foreground-muted leading-relaxed">
-          Évaluez le niveau de maturité de votre organisation sur chacun des 5 piliers DORA.
-          0 = Non initié · 4 = Pleinement conforme.
-        </p>
-        {DORA_DOMAINS.map((domain) => (
-          <SliderField
-            key={domain.key}
-            label={domain.label}
-            value={formData[domain.key]}
-            onChange={(val) => update({ [domain.key]: val } as Partial<FormData>)}
-          />
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 border-t border-border pt-4">
+        {data.map((d) => (
+          <div key={d.chapter} className="flex items-center justify-between gap-2">
+            <span className="text-xs text-foreground-muted">{d.chapter}</span>
+            <span className="tabnum text-xs font-semibold text-foreground">
+              {d.score} / 4
+            </span>
+          </div>
         ))}
       </div>
-    ),
+    </div>
+  );
+}
 
-    3: (
-      <div className="flex flex-col gap-8">
-        <p className="text-sm text-foreground-muted leading-relaxed">
-          Pour chaque scénario, estimez la perte financière directe probable et la probabilité
-          annuelle de survenance.
-        </p>
+/* ═════════════════════════════════════════════════════════ Page ══ */
 
-        {/* Ransomware */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-border">
-            <span className="h-2 w-2 rounded-full bg-danger shrink-0" />
-            <p className="text-sm font-semibold text-foreground">Ransomware / extorsion</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Perte probable" id="ransomwarePerte" value={formData.ransomwarePerte}
-              onChange={(val) => update({ ransomwarePerte: val })} unit="K€" />
-            <FormField label="Probabilité annuelle" id="ransomwareProba" value={formData.ransomwareProba}
-              onChange={(val) => update({ ransomwareProba: val })} unit="%" />
-          </div>
-        </div>
+export default function GouvernanceCyberPage() {
+  const [status, setStatus] = useState<Status>("idle");
+  const [result, setResult] = useState<CyberResult | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-        {/* Fuite de données */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-border">
-            <span className="h-2 w-2 rounded-full bg-warning shrink-0" />
-            <p className="text-sm font-semibold text-foreground">Fuite de données (data breach)</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Perte probable" id="fuitePerte" value={formData.fuitePerte}
-              onChange={(val) => update({ fuitePerte: val })} unit="K€" />
-            <FormField label="Probabilité annuelle" id="fuiteProba" value={formData.fuiteProba}
-              onChange={(val) => update({ fuiteProba: val })} unit="%" />
-          </div>
-        </div>
+  /* ── File handling ───────────────────────────────────────────── */
 
-        {/* Fournisseur TIC */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-border">
-            <span className="h-2 w-2 rounded-full bg-info shrink-0" />
-            <p className="text-sm font-semibold text-foreground">Défaillance fournisseur TIC critique</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Perte probable" id="fournisseurPerte" value={formData.fournisseurPerte}
-              onChange={(val) => update({ fournisseurPerte: val })} unit="K€" />
-            <FormField label="Probabilité annuelle" id="fournisseurProba" value={formData.fournisseurProba}
-              onChange={(val) => update({ fournisseurProba: val })} unit="%" />
-          </div>
-        </div>
-      </div>
-    ),
+  const processFile = useCallback(async (file: File) => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext !== "xlsx" && ext !== "xls") {
+      setStatus("error");
+      setErrorMsg("Format non support\u00E9. Veuillez importer un fichier Excel (.xlsx).");
+      return;
+    }
 
-    4: (
-      <div className="flex flex-col gap-6">
-        {/* Cyber-assurance */}
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium text-foreground">Cyber-assurance en vigueur</p>
-          <div className="flex gap-4">
-            {([true, false] as const).map((val) => (
-              <label key={String(val)} className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="cyberAssurance"
-                  checked={formData.cyberAssurance === val}
-                  onChange={() => update({ cyberAssurance: val })}
-                  className="accent-[var(--color-accent)] h-4 w-4"
-                />
-                <span className="text-sm text-foreground">{val ? "Oui" : "Non"}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+    setSelectedFile(file);
+    setStatus("uploading");
+    setErrorMsg("");
 
-        {formData.cyberAssurance && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pl-4 border-l-2 border-accent">
-            <FormField label="Plafond d'indemnisation" id="plafond" value={formData.plafondIndemnisation}
-              onChange={(val) => update({ plafondIndemnisation: val })} unit="K€" />
-            <FormField label="Franchise" id="franchise" value={formData.franchise}
-              onChange={(val) => update({ franchise: val })} unit="K€" />
-          </div>
-        )}
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-        {/* Appétence au risque */}
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="appetence" className="text-sm font-medium text-foreground">
-            Appétence au risque cyber
-          </label>
-          <select
-            id="appetence"
-            value={formData.appetenceRisque}
-            onChange={(e) => update({ appetenceRisque: e.target.value as AppetenceRisque })}
-            className={INPUT_CLS}
-          >
-            {APPETENCES.map((a) => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-          </select>
-          <p className="text-xs text-foreground-subtle leading-relaxed">
-            Niveau de risque résiduel que le conseil d&apos;administration est prêt à accepter avant
-            mesures de traitement.
-          </p>
-        </div>
-      </div>
-    ),
-  };
+      const res = await fetch(`${API_BASE_URL}/cyber/analyze`, {
+        method: "POST",
+        body: formData,
+      });
 
-  /* ── Render ─────────────────────────────────────────────────────────── */
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(body.detail || `Erreur ${res.status}`);
+      }
+
+      const data: CyberResult = await res.json();
+      setResult(data);
+      setStatus("success");
+    } catch (err) {
+      setStatus("error");
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Une erreur inattendue est survenue lors de l\u2019analyse.",
+      );
+    }
+  }, []);
+
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragActive(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) processFile(file);
+    },
+    [processFile],
+  );
+
+  const onFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) processFile(file);
+    },
+    [processFile],
+  );
+
+  const reset = useCallback(() => {
+    setStatus("idle");
+    setResult(null);
+    setSelectedFile(null);
+    setErrorMsg("");
+    if (inputRef.current) inputRef.current.value = "";
+  }, []);
+
+  /* ── Render ──────────────────────────────────────────────────── */
 
   return (
     <div className="flex flex-col min-h-svh bg-background">
-
       {/* Nav */}
       <header className="sticky top-0 z-50 bg-surface border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link href="/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-muted hover:text-foreground transition-colors">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 text-sm text-foreground-muted hover:text-foreground transition-colors"
+          >
             <ArrowLeft className="h-4 w-4" />
             Dashboard
           </Link>
@@ -529,33 +329,34 @@ export default function GouvernanceCyberPage() {
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 w-full py-12 flex flex-col gap-16">
-
-        {/* ══ PART A — Editorial ══════════════════════════════════════════ */}
+        {/* ══ SECTION A — Introduction \u00E9ditoriale ═══════════════════════ */}
         <section className="flex flex-col gap-10">
-
-          {/* Hero */}
           <div className="flex flex-col gap-4">
             <span className="badge badge-info self-start">Module 1 sur 8</span>
-            <h1 className="text-foreground">Gouvernance cyber-financière</h1>
-            <p className="text-foreground-muted max-w-2xl" style={{ fontSize: "var(--text-lg)" }}>
-              Mesurez votre exposition, votre conformité DORA et la provision IAS 37 associée.
+            <h1 className="text-foreground">Gouvernance cyber-financi\u00E8re</h1>
+            <p
+              className="text-foreground-muted max-w-2xl"
+              style={{ fontSize: "var(--text-lg)" }}
+            >
+              Mesurez votre conformit\u00E9 DORA, quantifiez votre exposition cyber (ALE, VaR)
+              et visualisez votre maturit\u00E9 par chapitre en importent votre fichier de
+              param\u00E9trage.
             </p>
           </div>
 
-          {/* Ce que ce module analyse */}
           <div className="flex flex-col gap-5">
             <p className="data-label">Ce que ce module analyse</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 {
                   icon: Shield,
-                  title: "Conformité DORA",
-                  detail: "26 articles, score sur 100 — gouvernance, tests, tiers TIC.",
+                  title: "Conformit\u00E9 DORA",
+                  detail: "6 chapitres, score sur 100 \u2014 gouvernance, incidents, tests, tiers, TIC, reporting.",
                 },
                 {
                   icon: TrendingDown,
                   title: "Risque financier cyber",
-                  detail: "ALE annualisée, VaR 95 %, provision IAS 37 recommandée.",
+                  detail: "ALE annualis\u00E9e, VaR 95 %, calcul FAIR PERT sur vos sc\u00E9narios.",
                 },
                 {
                   icon: FileCheck,
@@ -574,37 +375,36 @@ export default function GouvernanceCyberPage() {
             </div>
           </div>
 
-          {/* Indicateurs clés */}
           <div className="flex flex-col gap-4">
-            <p className="data-label">Indicateurs clés à surveiller</p>
+            <p className="data-label">Indicateurs cl\u00E9s \u00E0 surveiller</p>
             <ul className="flex flex-col gap-3">
               {[
                 {
-                  title: "Score DORA /100",
+                  title: "Indice de maturit\u00E9 DORA /100",
                   detail:
-                    "Mesure l'alignement sur les 26 articles DORA. Un score < 60 expose l'entité à des mesures correctrices de l'ACPR ou de la BCE lors du prochain cycle de supervision.",
+                    "Moyenne des 6 chapitres DORA. Un score < 50 expose l\u2019entit\u00E9 \u00E0 des mesures correctrices de l\u2019ACPR.",
                 },
                 {
-                  title: "Ratio Cyber/IT (%)",
+                  title: "ALE \u2014 Annualized Loss Expectancy",
                   detail:
-                    "Budget cybersécurité rapporté au budget IT total. L'ENISA recommande un seuil de 12 % pour les entités financières systémiques (EIS) dans le cadre de DORA article 8.",
+                    "Esp\u00E9rance de perte annuelle agr\u00E9g\u00E9e sur les sc\u00E9narios FAIR PERT d\u00E9clar\u00E9s.",
                 },
                 {
                   title: "VaR 95 % annuelle",
                   detail:
-                    "Perte maximale au 95e percentile sur un an, calculée par simulation Monte-Carlo sur les scénarios déclarés. Sert de base pour la prime d'assurance cyber et le capital économique alloué.",
+                    "Perte maximale au 95\u1D49 percentile sur un an. Sert de base pour la prime d\u2019assurance cyber.",
                 },
                 {
-                  title: "Provision IAS 37",
+                  title: "Ratio Cyber/IT (%)",
                   detail:
-                    "Obligation probable découlant d'incidents passés ou anticipés. Doit figurer aux états financiers si l'outflow est probable et peut être estimé de façon fiable — cf. IAS 37.14.",
+                    "L\u2019ENISA recommande un seuil de 12 % pour les entit\u00E9s financi\u00E8res syst\u00E9miques.",
                 },
               ].map(({ title, detail }) => (
                 <li key={title} className="flex gap-3 items-start">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0 mt-[7px]" />
                   <div>
                     <span className="text-sm font-semibold text-foreground">{title}</span>
-                    <span className="text-sm text-foreground-muted"> — {detail}</span>
+                    <span className="text-sm text-foreground-muted"> \u2014 {detail}</span>
                   </div>
                 </li>
               ))}
@@ -612,95 +412,165 @@ export default function GouvernanceCyberPage() {
           </div>
         </section>
 
-        {/* ══ PART B — Wizard ════════════════════════════════════════════ */}
+        {/* ══ SECTION B — Upload Excel ═══════════════════════════════════ */}
         <section className="flex flex-col gap-4">
-          <p className="data-label">Saisie des données</p>
+          <p className="data-label">Importer votre fichier</p>
 
-          <div className="card-raised p-6 sm:p-8">
-            <StepIndicator current={currentStep} />
+          <div className="card-raised p-6 sm:p-8 flex flex-col gap-6">
+            {(status === "idle" || status === "error") && (
+              <>
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragActive(true);
+                  }}
+                  onDragLeave={() => setDragActive(false)}
+                  onDrop={onDrop}
+                  onClick={() => inputRef.current?.click()}
+                  className={`relative flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed p-10 sm:p-14 cursor-pointer transition-colors ${
+                    dragActive
+                      ? "border-accent bg-accent/5"
+                      : "border-border hover:border-border-strong hover:bg-surface-raised/50"
+                  }`}
+                >
+                  <input
+                    ref={inputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={onFileChange}
+                    className="hidden"
+                  />
+                  <div className="h-12 w-12 rounded-full bg-surface-raised flex items-center justify-center">
+                    <Upload className="h-6 w-6 text-accent" />
+                  </div>
+                  <div className="text-center flex flex-col gap-1">
+                    <p className="text-sm font-medium text-foreground">
+                      Glissez-d\u00E9posez votre fichier Excel ici
+                    </p>
+                    <p className="text-xs text-foreground-subtle">
+                      ou{" "}
+                      <span className="text-accent font-medium underline underline-offset-2">
+                        parcourez vos fichiers
+                      </span>{" "}
+                      \u2014 .xlsx uniquement \u2014 onglets attendus : PARAM\u00C8TRES, FAIR PERT, DORA
+                    </p>
+                  </div>
+                </div>
 
-            {/* Step title */}
-            <div className="mb-7">
-              <h2 className="text-foreground" style={{ fontSize: "var(--text-xl)" }}>
-                Étape {currentStep} — {STEP_LABELS[currentStep - 1]}
-              </h2>
-            </div>
+                {status === "error" && (
+                  <div className="flex items-center gap-3 rounded-md bg-danger-bg border border-danger/20 px-4 py-3">
+                    <AlertTriangle className="h-4 w-4 text-danger shrink-0" />
+                    <p className="text-sm text-danger">{errorMsg}</p>
+                    <button
+                      type="button"
+                      onClick={reset}
+                      className="ml-auto text-danger/60 hover:text-danger transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
 
-            {/* Step content */}
-            {stepContent[currentStep]}
+            {status === "uploading" && (
+              <div className="flex flex-col items-center gap-5 py-10">
+                <Loader2 className="h-10 w-10 text-accent animate-spin" />
+                <div className="text-center flex flex-col gap-1">
+                  <p className="text-sm font-medium text-foreground">
+                    Analyse en cours\u2026
+                  </p>
+                  <p className="text-xs text-foreground-subtle">
+                    <FileSpreadsheet className="inline h-3.5 w-3.5 mr-1 -mt-px" />
+                    {selectedFile?.name}
+                  </p>
+                </div>
+                <div className="w-48 h-1.5 rounded-full bg-surface-raised overflow-hidden">
+                  <div className="h-full bg-accent rounded-full animate-pulse w-2/3" />
+                </div>
+              </div>
+            )}
 
-            {/* Navigation */}
-            <div className="flex items-center justify-between mt-10 pt-6 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setCurrentStep((s) => s - 1)}
-                disabled={currentStep === 1}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground-muted border border-border rounded-md hover:text-foreground hover:border-border-strong transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Précédent
-              </button>
-
-              {currentStep < STEP_LABELS.length ? (
+            {status === "success" && result && (
+              <div className="flex items-center gap-4 rounded-md bg-success-bg border border-success/20 px-4 py-3">
+                <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {result.filename}
+                  </p>
+                  <p className="text-xs text-foreground-subtle">
+                    {result.sheet_count} onglet{result.sheet_count > 1 ? "s" : ""} d\u00E9tect\u00E9{result.sheet_count > 1 ? "s" : ""} :{" "}
+                    {result.sheets.join(", ")}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setCurrentStep((s) => s + 1)}
-                  className="flex items-center gap-2 px-5 py-2 bg-accent text-white text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
+                  onClick={reset}
+                  className="text-xs text-foreground-subtle hover:text-foreground transition-colors underline underline-offset-2"
                 >
-                  Suivant
-                  <ChevronRight className="h-4 w-4" />
+                  Remplacer
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setHasSubmitted(true)}
-                  className="flex items-center gap-2 px-5 py-2 bg-accent text-white text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
-                >
-                  <Play className="h-4 w-4" />
-                  Lancer l&apos;analyse
-                </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* ══ PART C — Results ══════════════════════════════════════════ */}
-        {hasSubmitted && (
-          <section className="flex flex-col gap-6">
+        {/* ══ SECTION C — Dashboard ══════════════════════════════════════ */}
+        {status === "success" && result && (
+          <section className="flex flex-col gap-8">
             <div className="flex items-center justify-between">
-              <p className="data-label">Résultats de l&apos;analyse</p>
-              <span className="badge badge-success">Analyse terminée</span>
+              <p className="data-label">R\u00E9sultats de l&apos;analyse</p>
+              <span className="badge badge-success">Analyse termin\u00E9e</span>
             </div>
 
-            {/* 3 KPI cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <ResultCard
-                label="Score de conformité DORA"
-                value={`${Math.round(metrics.scoreDORA).toLocaleString("fr-FR")} / 100`}
-                badge={doraBadge(metrics.scoreDORA)}
+            {/* Maturity gauge */}
+            <MaturityGauge score={result.maturity_index} />
+
+            {/* KPI grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <KpiCard
+                label="ALE agr\u00E9g\u00E9e"
+                value={fmtKE(result.ale)}
+                badge={aleBadge(result.ale)}
+                sub="esp\u00E9rance annuelle"
               />
-              <ResultCard
+              <KpiCard
+                label="VaR 95 %"
+                value={fmtKE(result.var95)}
+                badge={varBadge(result.var95)}
+                sub="perte maximale"
+              />
+              <KpiCard
                 label="Ratio Cyber / IT"
-                value={`${metrics.ratioCyberIT.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`}
-                badge={ratioBadge(metrics.ratioCyberIT)}
-              />
-              <ResultCard
-                label="ALE agrégée (3 scénarios)"
-                value={fmtKE(metrics.aleKE)}
-                badge={aleBadge(metrics.aleKE)}
+                value={fmtPct(result.ratio_cyber_it)}
+                badge={ratioBadge(result.ratio_cyber_it)}
+                sub="seuil ENISA 12 %"
               />
             </div>
+
+            {/* Radar chart */}
+            <DoraRadar data={result.radar_data} />
 
             {/* Interpretation */}
             <div className="card p-6 flex flex-col gap-3">
-              <p className="data-label">Interprétation</p>
+              <p className="data-label">Interpr\u00E9tation</p>
               <p className="text-sm text-foreground-muted leading-relaxed">
-                {generateInterpretation(metrics, formData)}
+                L&apos;indice de maturit\u00E9 de {Math.round(result.maturity_index)}/100 place
+                votre organisation en{" "}
+                <span className={`font-semibold ${maturityColor(result.maturity_index)}`}>
+                  {maturityBadge(result.maturity_index).label.toLowerCase()}
+                </span>
+                . L&apos;ALE agr\u00E9g\u00E9e de {fmtKE(result.ale)} et la VaR 95 % de{" "}
+                {fmtKE(result.var95)} doivent \u00EAtre mises en regard de votre couverture
+                d&apos;assurance cyber.
+                {result.ratio_cyber_it < 12
+                  ? ` Le ratio Cyber/IT de ${fmtPct(result.ratio_cyber_it)} est en de\u00E7\u00E0 du seuil ENISA de 12 %.`
+                  : ` Le ratio Cyber/IT de ${fmtPct(result.ratio_cyber_it)} est conforme aux recommandations ENISA.`}
               </p>
               <p className="text-xs text-foreground-subtle leading-relaxed border-t border-border pt-3 mt-1">
-                Ces résultats sont générés à titre indicatif sur la base des données saisies.
-                Ils ne constituent pas un avis d&apos;expert réglementaire. Consultez votre correspondant
-                DORA et vos commissaires aux comptes pour toute décision de provision ou de mise en conformité.
+                Ces r\u00E9sultats sont g\u00E9n\u00E9r\u00E9s \u00E0 titre indicatif sur la base
+                des donn\u00E9es extraites de votre fichier. Ils ne constituent pas un avis d&apos;expert
+                r\u00E9glementaire. Consultez votre correspondant DORA et vos commissaires aux comptes.
               </p>
             </div>
 
@@ -708,19 +578,14 @@ export default function GouvernanceCyberPage() {
             <div className="flex justify-end">
               <button
                 type="button"
-                onClick={() => {
-                  setHasSubmitted(false);
-                  setCurrentStep(1);
-                  setFormData(defaultFormData);
-                }}
+                onClick={reset}
                 className="text-sm text-foreground-subtle hover:text-foreground-muted transition-colors underline underline-offset-4"
               >
-                Réinitialiser l&apos;analyse
+                R\u00E9initialiser l&apos;analyse
               </button>
             </div>
           </section>
         )}
-
       </main>
     </div>
   );

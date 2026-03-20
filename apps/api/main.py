@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,10 +11,15 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# CORS — allow frontend dev servers
+# CORS — read allowed origins from env, fallback to dev servers
+_default_origins = "http://localhost:3000,http://localhost:3001"
+allowed_origins = [
+    o.strip() for o in os.environ.get("ALLOWED_ORIGINS", _default_origins).split(",") if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

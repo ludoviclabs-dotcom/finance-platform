@@ -23,6 +23,7 @@ type Status = "idle" | "uploading" | "success" | "error";
 interface AnalysisResult {
   filename: string;
   sheets: string[];
+  sheet_count?: number;
   zScore: number;
   croissanceCA: number;
   margeEBE: number;

@@ -65,8 +65,8 @@ const API_BASE_URL =
 
 function fmtKE(ke: number): string {
   if (Math.abs(ke) >= 1_000)
-    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " M\u20AC";
-  return Math.round(ke).toLocaleString("fr-FR") + " K\u20AC";
+    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " M\€";
+  return Math.round(ke).toLocaleString("fr-FR") + " K\€";
 }
 
 function fmtPct(pct: number, dec = 1): string {
@@ -78,13 +78,13 @@ type BadgeVariant = { cls: string; label: string };
 function eclBadge(ecl: number, encours: number): BadgeVariant {
   const ratio = encours > 0 ? ecl / encours : 0;
   if (ratio < 0.01) return { cls: "badge badge-success", label: "< 1 % EAD" };
-  if (ratio < 0.03) return { cls: "badge badge-warning", label: "1\u20133 % EAD" };
+  if (ratio < 0.03) return { cls: "badge badge-warning", label: "1\–3 % EAD" };
   return { cls: "badge badge-danger", label: "> 3 % EAD" };
 }
 
 function cet1Badge(cet1: number): BadgeVariant {
-  if (cet1 > 13) return { cls: "badge badge-success", label: "Bien capitalis\u00E9" };
-  if (cet1 > 10.5) return { cls: "badge badge-warning", label: "Ad\u00E9quat" };
+  if (cet1 > 13) return { cls: "badge badge-success", label: "Bien capitalisé" };
+  if (cet1 > 10.5) return { cls: "badge badge-warning", label: "Adéquat" };
   return { cls: "badge badge-danger", label: "Sous buffer SREP" };
 }
 
@@ -124,7 +124,7 @@ function KpiCard({
 function StageBarChart({ stages }: { stages: StageBreakdown[] }) {
   return (
     <div className="card p-6 flex flex-col gap-4">
-      <p className="data-label">R\u00E9partition des encours par Stage IFRS 9</p>
+      <p className="data-label">Répartition des encours par Stage IFRS 9</p>
       <div className="w-full" style={{ height: 280 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -288,7 +288,7 @@ export default function CreditRiskPage() {
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (ext !== "xlsx" && ext !== "xls") {
       setStatus("error");
-      setErrorMsg("Format non support\u00E9. Veuillez importer un fichier Excel (.xlsx).");
+      setErrorMsg("Format non supporté. Veuillez importer un fichier Excel (.xlsx).");
       return;
     }
 
@@ -318,7 +318,7 @@ export default function CreditRiskPage() {
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : "Une erreur inattendue est survenue lors de l\u2019analyse.",
+          : "Une erreur inattendue est survenue lors de l\’analyse.",
       );
     }
   }, []);
@@ -368,19 +368,19 @@ export default function CreditRiskPage() {
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 w-full py-12 flex flex-col gap-16">
-        {/* ══ SECTION A — Introduction \u00E9ditoriale ═══════════════════════ */}
+        {/* ══ SECTION A — Introduction éditoriale ═══════════════════════ */}
         <section className="flex flex-col gap-10">
           <div className="flex flex-col gap-4">
             <span className="badge badge-info self-start">Module 4 sur 8</span>
             <h1 className="text-foreground">
-              Cr\u00E9dit Risk Bancaire \u2014 IFRS 9 / B\u00E2le IV
+              Crédit Risk Bancaire — IFRS 9 / Bâle IV
             </h1>
             <p
               className="text-foreground-muted max-w-2xl"
               style={{ fontSize: "var(--text-lg)" }}
             >
-              Calculez l&apos;ECL par stage IFRS 9, les RWA B\u00E2le IV et le ratio CET1
-              pro forma en importent votre fichier de portefeuille cr\u00E9dit.
+              Calculez l&apos;ECL par stage IFRS 9, les RWA Bâle IV et le ratio CET1
+              pro forma en importent votre fichier de portefeuille crédit.
             </p>
           </div>
 
@@ -392,19 +392,19 @@ export default function CreditRiskPage() {
                   icon: BarChart2,
                   title: "ECL IFRS 9 par stage",
                   detail:
-                    "Stage 1 (12 mois), Stage 2 (lifetime), Stage 3 (en d\u00E9faut). Allocation et taux de couverture.",
+                    "Stage 1 (12 mois), Stage 2 (lifetime), Stage 3 (en défaut). Allocation et taux de couverture.",
                 },
                 {
                   icon: AlertTriangleIcon,
-                  title: "RWA & CET1 B\u00E2le IV",
+                  title: "RWA & CET1 Bâle IV",
                   detail:
-                    "Actifs pond\u00E9r\u00E9s par le risque. Impact CET1 pro forma apr\u00E8s provisionnement complet IFRS 9.",
+                    "Actifs pondérés par le risque. Impact CET1 pro forma après provisionnement complet IFRS 9.",
                 },
                 {
                   icon: TrendingDown,
                   title: "Output Floor 72,5 %",
                   detail:
-                    "Plancher B\u00E2le IV sur les RWA : les mod\u00E8les internes ne peuvent r\u00E9duire les RWA en de\u00E7\u00E0 de 72,5 % de l\u2019approche standard.",
+                    "Plancher Bâle IV sur les RWA : les modèles internes ne peuvent réduire les RWA en deçà de 72,5 % de l\’approche standard.",
                 },
               ].map(({ icon: Icon, title, detail }) => (
                 <div key={title} className="card p-5 flex flex-col gap-3">
@@ -423,23 +423,23 @@ export default function CreditRiskPage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <p className="data-label">Indicateurs cl\u00E9s \u00E0 surveiller</p>
+            <p className="data-label">Indicateurs clés à surveiller</p>
             <ul className="flex flex-col gap-3">
               {[
                 {
-                  title: "ECL \u2014 Expected Credit Loss (IFRS 9)",
+                  title: "ECL — Expected Credit Loss (IFRS 9)",
                   detail:
-                    "Perte attendue sur cr\u00E9ances. Stage 1 : PD 12 mois \u00D7 LGD \u00D7 EAD. Stage 2 : PD lifetime. Stage 3 : LGD \u00D7 EAD.",
+                    "Perte attendue sur créances. Stage 1 : PD 12 mois × LGD × EAD. Stage 2 : PD lifetime. Stage 3 : LGD × EAD.",
                 },
                 {
-                  title: "RWA \u2014 Risk-Weighted Assets (B\u00E2le IV)",
+                  title: "RWA — Risk-Weighted Assets (Bâle IV)",
                   detail:
-                    "Base de calcul des fonds propres. Output floor \u00E0 72,5 % de l\u2019approche standard \u00E0 partir de 2028.",
+                    "Base de calcul des fonds propres. Output floor à 72,5 % de l\’approche standard à partir de 2028.",
                 },
                 {
                   title: "Ratio CET1 pro forma",
                   detail:
-                    "CET1 apr\u00E8s d\u00E9duction de l\u2019ECL. Seuil SREP typique entre 10,5 % et 12,5 %.",
+                    "CET1 après déduction de l\’ECL. Seuil SREP typique entre 10,5 % et 12,5 %.",
                 },
               ].map(({ title, detail }) => (
                 <li key={title} className="flex gap-3 items-start">
@@ -450,7 +450,7 @@ export default function CreditRiskPage() {
                     </span>
                     <span className="text-sm text-foreground-muted">
                       {" "}
-                      \u2014 {detail}
+                      — {detail}
                     </span>
                   </div>
                 </li>
@@ -492,14 +492,14 @@ export default function CreditRiskPage() {
                   </div>
                   <div className="text-center flex flex-col gap-1">
                     <p className="text-sm font-medium text-foreground">
-                      Glissez-d\u00E9posez votre fichier Excel ici
+                      Glissez-déposez votre fichier Excel ici
                     </p>
                     <p className="text-xs text-foreground-subtle">
                       ou{" "}
                       <span className="text-accent font-medium underline underline-offset-2">
                         parcourez vos fichiers
                       </span>{" "}
-                      \u2014 .xlsx uniquement \u2014 onglets : 1-Portefeuille, 2-ECL IFRS 9, 4-CET1 B\u00E2le IV
+                      — .xlsx uniquement — onglets : 1-Portefeuille, 2-ECL IFRS 9, 4-CET1 Bâle IV
                     </p>
                   </div>
                 </div>
@@ -525,7 +525,7 @@ export default function CreditRiskPage() {
                 <Loader2 className="h-10 w-10 text-accent animate-spin" />
                 <div className="text-center flex flex-col gap-1">
                   <p className="text-sm font-medium text-foreground">
-                    Analyse en cours\u2026
+                    Analyse en cours…
                   </p>
                   <p className="text-xs text-foreground-subtle">
                     <FileSpreadsheet className="inline h-3.5 w-3.5 mr-1 -mt-px" />
@@ -546,7 +546,7 @@ export default function CreditRiskPage() {
                     {result.filename}
                   </p>
                   <p className="text-xs text-foreground-subtle">
-                    {result.sheet_count} onglet{result.sheet_count > 1 ? "s" : ""} d\u00E9tect\u00E9{result.sheet_count > 1 ? "s" : ""}
+                    {result.sheet_count} onglet{result.sheet_count > 1 ? "s" : ""} détecté{result.sheet_count > 1 ? "s" : ""}
                   </p>
                 </div>
                 <button
@@ -565,8 +565,8 @@ export default function CreditRiskPage() {
         {status === "success" && result && (
           <section className="flex flex-col gap-8">
             <div className="flex items-center justify-between">
-              <p className="data-label">R\u00E9sultats de l&apos;analyse</p>
-              <span className="badge badge-success">Analyse termin\u00E9e</span>
+              <p className="data-label">Résultats de l&apos;analyse</p>
+              <span className="badge badge-success">Analyse terminée</span>
             </div>
 
             {/* KPI grid */}
@@ -580,10 +580,10 @@ export default function CreditRiskPage() {
                 label="Provision ECL Totale"
                 value={fmtKE(result.ecl_total)}
                 badge={eclBadge(result.ecl_total, result.encours_total)}
-                sub={`${fmtPct(result.encours_total > 0 ? (result.ecl_total / result.encours_total) * 100 : 0)} de l\u2019EAD`}
+                sub={`${fmtPct(result.encours_total > 0 ? (result.ecl_total / result.encours_total) * 100 : 0)} de l\’EAD`}
               />
               <KpiCard
-                label="RWA B\u00E2le IV"
+                label="RWA Bâle IV"
                 value={fmtKE(result.rwa)}
                 badge={{ cls: "badge badge-neutral", label: `Floor ${result.output_floor} %` }}
                 sub="output floor"
@@ -601,7 +601,7 @@ export default function CreditRiskPage() {
                     {cet1Badge(result.cet1_pro_forma).label}
                   </span>
                   <span className="text-xs text-foreground-subtle">
-                    vs {fmtPct(result.cet1_ratio)} report\u00E9
+                    vs {fmtPct(result.cet1_ratio)} reporté
                   </span>
                 </div>
               </div>
@@ -615,31 +615,31 @@ export default function CreditRiskPage() {
 
             {/* Interpretation */}
             <div className="card p-6 flex flex-col gap-3">
-              <p className="data-label">Interpr\u00E9tation</p>
+              <p className="data-label">Interprétation</p>
               <p className="text-sm text-foreground-muted leading-relaxed">
                 L&apos;ECL total IFRS 9 de{" "}
                 <span className="font-semibold text-foreground">
                   {fmtKE(result.ecl_total)}
                 </span>{" "}
-                repr\u00E9sente{" "}
+                représente{" "}
                 {fmtPct(
                   result.encours_total > 0
                     ? (result.ecl_total / result.encours_total) * 100
                     : 0,
                 )}{" "}
-                de l&apos;encours total. Apr\u00E8s provisionnement complet, le ratio CET1
-                pro forma s&apos;\u00E9tablit \u00E0{" "}
+                de l&apos;encours total. Après provisionnement complet, le ratio CET1
+                pro forma s&apos;établit à{" "}
                 <span className={`font-semibold ${cet1Color(result.cet1_pro_forma)}`}>
                   {fmtPct(result.cet1_pro_forma)}
                 </span>{" "}
                 {result.cet1_pro_forma > 10.5
                   ? "au-dessus du seuil SREP de 10,5 %."
-                  : "\u2014 attention, en dessous du seuil SREP de 10,5 %. Un renforcement des fonds propres est recommand\u00E9."}
+                  : "— attention, en dessous du seuil SREP de 10,5 %. Un renforcement des fonds propres est recommandé."}
               </p>
               <p className="text-xs text-foreground-subtle leading-relaxed border-t border-border pt-3 mt-1">
-                Ce module utilise les donn\u00E9es extraites de votre fichier Excel. L&apos;output floor
-                B\u00E2le IV de {result.output_floor} % sera pleinement appliqu\u00E9 \u00E0 partir de
-                2028. Consultez votre risk management pour tout calcul r\u00E9glementaire officiel.
+                Ce module utilise les données extraites de votre fichier Excel. L&apos;output floor
+                Bâle IV de {result.output_floor} % sera pleinement appliqué à partir de
+                2028. Consultez votre risk management pour tout calcul réglementaire officiel.
               </p>
             </div>
 
@@ -650,7 +650,7 @@ export default function CreditRiskPage() {
                 onClick={reset}
                 className="text-sm text-foreground-subtle hover:text-foreground-muted transition-colors underline underline-offset-4"
               >
-                R\u00E9initialiser l&apos;analyse
+                Réinitialiser l&apos;analyse
               </button>
             </div>
           </section>

@@ -53,8 +53,8 @@ const API_BASE_URL =
 
 function fmtKE(ke: number): string {
   if (Math.abs(ke) >= 1_000)
-    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " M\u20AC";
-  return Math.round(ke).toLocaleString("fr-FR") + " K\u20AC";
+    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " M\€";
+  return Math.round(ke).toLocaleString("fr-FR") + " K\€";
 }
 
 function fmtPct(pct: number, dec = 1): string {
@@ -82,19 +82,19 @@ function maturityCssColor(score: number): string {
 }
 
 function aleBadge(ale: number): BadgeVariant {
-  if (ale < 200) return { cls: "badge badge-success", label: "G\u00E9rable" };
+  if (ale < 200) return { cls: "badge badge-success", label: "Gérable" };
   if (ale < 1_000) return { cls: "badge badge-warning", label: "Significatif" };
   return { cls: "badge badge-danger", label: "Critique" };
 }
 
 function varBadge(v: number): BadgeVariant {
   if (v < 500) return { cls: "badge badge-success", label: "Acceptable" };
-  if (v < 2_000) return { cls: "badge badge-warning", label: "\u00C0 surveiller" };
-  return { cls: "badge badge-danger", label: "\u00C9lev\u00E9" };
+  if (v < 2_000) return { cls: "badge badge-warning", label: "À surveiller" };
+  return { cls: "badge badge-danger", label: "Élevé" };
 }
 
 function ratioBadge(ratio: number): BadgeVariant {
-  if (ratio >= 12) return { cls: "badge badge-success", label: "Ad\u00E9quat ENISA" };
+  if (ratio >= 12) return { cls: "badge badge-success", label: "Adéquat ENISA" };
   if (ratio >= 7) return { cls: "badge badge-warning", label: "Sous-optimal" };
   return { cls: "badge badge-danger", label: "Insuffisant" };
 }
@@ -108,7 +108,7 @@ function MaturityGauge({ score }: { score: number }) {
   return (
     <div className="card-raised p-6 sm:p-8 flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <p className="data-label">Indice de maturit\u00E9 DORA</p>
+        <p className="data-label">Indice de maturité DORA</p>
         {(() => {
           const b = maturityBadge(score);
           return <span className={b.cls}>{b.label}</span>;
@@ -148,8 +148,8 @@ function MaturityGauge({ score }: { score: number }) {
       </div>
 
       <p className="text-xs text-foreground-muted leading-relaxed border-t border-border pt-4">
-        Moyenne des 6 chapitres DORA ramen\u00E9e sur 100. Un score inf\u00E9rieur \u00E0 50
-        expose l&apos;entit\u00E9 \u00E0 des mesures correctrices lors du prochain cycle de
+        Moyenne des 6 chapitres DORA ramenée sur 100. Un score inférieur à 50
+        expose l&apos;entité à des mesures correctrices lors du prochain cycle de
         supervision ACPR/BCE.
       </p>
     </div>
@@ -249,7 +249,7 @@ export default function GouvernanceCyberPage() {
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (ext !== "xlsx" && ext !== "xls") {
       setStatus("error");
-      setErrorMsg("Format non support\u00E9. Veuillez importer un fichier Excel (.xlsx).");
+      setErrorMsg("Format non supporté. Veuillez importer un fichier Excel (.xlsx).");
       return;
     }
 
@@ -279,7 +279,7 @@ export default function GouvernanceCyberPage() {
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : "Une erreur inattendue est survenue lors de l\u2019analyse.",
+          : "Une erreur inattendue est survenue lors de l\’analyse.",
       );
     }
   }, []);
@@ -329,18 +329,18 @@ export default function GouvernanceCyberPage() {
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 w-full py-12 flex flex-col gap-16">
-        {/* ══ SECTION A — Introduction \u00E9ditoriale ═══════════════════════ */}
+        {/* ══ SECTION A — Introduction éditoriale ═══════════════════════ */}
         <section className="flex flex-col gap-10">
           <div className="flex flex-col gap-4">
             <span className="badge badge-info self-start">Module 1 sur 8</span>
-            <h1 className="text-foreground">Gouvernance cyber-financi\u00E8re</h1>
+            <h1 className="text-foreground">Gouvernance cyber-financière</h1>
             <p
               className="text-foreground-muted max-w-2xl"
               style={{ fontSize: "var(--text-lg)" }}
             >
-              Mesurez votre conformit\u00E9 DORA, quantifiez votre exposition cyber (ALE, VaR)
-              et visualisez votre maturit\u00E9 par chapitre en importent votre fichier de
-              param\u00E9trage.
+              Mesurez votre conformité DORA, quantifiez votre exposition cyber (ALE, VaR)
+              et visualisez votre maturité par chapitre en importent votre fichier de
+              paramétrage.
             </p>
           </div>
 
@@ -350,13 +350,13 @@ export default function GouvernanceCyberPage() {
               {[
                 {
                   icon: Shield,
-                  title: "Conformit\u00E9 DORA",
-                  detail: "6 chapitres, score sur 100 \u2014 gouvernance, incidents, tests, tiers, TIC, reporting.",
+                  title: "Conformité DORA",
+                  detail: "6 chapitres, score sur 100 — gouvernance, incidents, tests, tiers, TIC, reporting.",
                 },
                 {
                   icon: TrendingDown,
                   title: "Risque financier cyber",
-                  detail: "ALE annualis\u00E9e, VaR 95 %, calcul FAIR PERT sur vos sc\u00E9narios.",
+                  detail: "ALE annualisée, VaR 95 %, calcul FAIR PERT sur vos scénarios.",
                 },
                 {
                   icon: FileCheck,
@@ -376,35 +376,35 @@ export default function GouvernanceCyberPage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <p className="data-label">Indicateurs cl\u00E9s \u00E0 surveiller</p>
+            <p className="data-label">Indicateurs clés à surveiller</p>
             <ul className="flex flex-col gap-3">
               {[
                 {
-                  title: "Indice de maturit\u00E9 DORA /100",
+                  title: "Indice de maturité DORA /100",
                   detail:
-                    "Moyenne des 6 chapitres DORA. Un score < 50 expose l\u2019entit\u00E9 \u00E0 des mesures correctrices de l\u2019ACPR.",
+                    "Moyenne des 6 chapitres DORA. Un score < 50 expose l\’entité à des mesures correctrices de l\’ACPR.",
                 },
                 {
-                  title: "ALE \u2014 Annualized Loss Expectancy",
+                  title: "ALE — Annualized Loss Expectancy",
                   detail:
-                    "Esp\u00E9rance de perte annuelle agr\u00E9g\u00E9e sur les sc\u00E9narios FAIR PERT d\u00E9clar\u00E9s.",
+                    "Espérance de perte annuelle agrégée sur les scénarios FAIR PERT déclarés.",
                 },
                 {
                   title: "VaR 95 % annuelle",
                   detail:
-                    "Perte maximale au 95\u1D49 percentile sur un an. Sert de base pour la prime d\u2019assurance cyber.",
+                    "Perte maximale au 95ᵉ percentile sur un an. Sert de base pour la prime d\’assurance cyber.",
                 },
                 {
                   title: "Ratio Cyber/IT (%)",
                   detail:
-                    "L\u2019ENISA recommande un seuil de 12 % pour les entit\u00E9s financi\u00E8res syst\u00E9miques.",
+                    "L\’ENISA recommande un seuil de 12 % pour les entités financières systémiques.",
                 },
               ].map(({ title, detail }) => (
                 <li key={title} className="flex gap-3 items-start">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0 mt-[7px]" />
                   <div>
                     <span className="text-sm font-semibold text-foreground">{title}</span>
-                    <span className="text-sm text-foreground-muted"> \u2014 {detail}</span>
+                    <span className="text-sm text-foreground-muted"> — {detail}</span>
                   </div>
                 </li>
               ))}
@@ -445,14 +445,14 @@ export default function GouvernanceCyberPage() {
                   </div>
                   <div className="text-center flex flex-col gap-1">
                     <p className="text-sm font-medium text-foreground">
-                      Glissez-d\u00E9posez votre fichier Excel ici
+                      Glissez-déposez votre fichier Excel ici
                     </p>
                     <p className="text-xs text-foreground-subtle">
                       ou{" "}
                       <span className="text-accent font-medium underline underline-offset-2">
                         parcourez vos fichiers
                       </span>{" "}
-                      \u2014 .xlsx uniquement \u2014 onglets attendus : PARAM\u00C8TRES, FAIR PERT, DORA
+                      — .xlsx uniquement — onglets attendus : PARAMÈTRES, FAIR PERT, DORA
                     </p>
                   </div>
                 </div>
@@ -478,7 +478,7 @@ export default function GouvernanceCyberPage() {
                 <Loader2 className="h-10 w-10 text-accent animate-spin" />
                 <div className="text-center flex flex-col gap-1">
                   <p className="text-sm font-medium text-foreground">
-                    Analyse en cours\u2026
+                    Analyse en cours…
                   </p>
                   <p className="text-xs text-foreground-subtle">
                     <FileSpreadsheet className="inline h-3.5 w-3.5 mr-1 -mt-px" />
@@ -499,7 +499,7 @@ export default function GouvernanceCyberPage() {
                     {result.filename}
                   </p>
                   <p className="text-xs text-foreground-subtle">
-                    {result.sheet_count} onglet{result.sheet_count > 1 ? "s" : ""} d\u00E9tect\u00E9{result.sheet_count > 1 ? "s" : ""} :{" "}
+                    {result.sheet_count} onglet{result.sheet_count > 1 ? "s" : ""} détecté{result.sheet_count > 1 ? "s" : ""} :{" "}
                     {result.sheets.join(", ")}
                   </p>
                 </div>
@@ -519,8 +519,8 @@ export default function GouvernanceCyberPage() {
         {status === "success" && result && (
           <section className="flex flex-col gap-8">
             <div className="flex items-center justify-between">
-              <p className="data-label">R\u00E9sultats de l&apos;analyse</p>
-              <span className="badge badge-success">Analyse termin\u00E9e</span>
+              <p className="data-label">Résultats de l&apos;analyse</p>
+              <span className="badge badge-success">Analyse terminée</span>
             </div>
 
             {/* Maturity gauge */}
@@ -529,10 +529,10 @@ export default function GouvernanceCyberPage() {
             {/* KPI grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <KpiCard
-                label="ALE agr\u00E9g\u00E9e"
+                label="ALE agrégée"
                 value={fmtKE(result.ale)}
                 badge={aleBadge(result.ale)}
-                sub="esp\u00E9rance annuelle"
+                sub="espérance annuelle"
               />
               <KpiCard
                 label="VaR 95 %"
@@ -553,24 +553,24 @@ export default function GouvernanceCyberPage() {
 
             {/* Interpretation */}
             <div className="card p-6 flex flex-col gap-3">
-              <p className="data-label">Interpr\u00E9tation</p>
+              <p className="data-label">Interprétation</p>
               <p className="text-sm text-foreground-muted leading-relaxed">
-                L&apos;indice de maturit\u00E9 de {Math.round(result.maturity_index)}/100 place
+                L&apos;indice de maturité de {Math.round(result.maturity_index)}/100 place
                 votre organisation en{" "}
                 <span className={`font-semibold ${maturityColor(result.maturity_index)}`}>
                   {maturityBadge(result.maturity_index).label.toLowerCase()}
                 </span>
-                . L&apos;ALE agr\u00E9g\u00E9e de {fmtKE(result.ale)} et la VaR 95 % de{" "}
-                {fmtKE(result.var95)} doivent \u00EAtre mises en regard de votre couverture
+                . L&apos;ALE agrégée de {fmtKE(result.ale)} et la VaR 95 % de{" "}
+                {fmtKE(result.var95)} doivent être mises en regard de votre couverture
                 d&apos;assurance cyber.
                 {result.ratio_cyber_it < 12
-                  ? ` Le ratio Cyber/IT de ${fmtPct(result.ratio_cyber_it)} est en de\u00E7\u00E0 du seuil ENISA de 12 %.`
+                  ? ` Le ratio Cyber/IT de ${fmtPct(result.ratio_cyber_it)} est en deçà du seuil ENISA de 12 %.`
                   : ` Le ratio Cyber/IT de ${fmtPct(result.ratio_cyber_it)} est conforme aux recommandations ENISA.`}
               </p>
               <p className="text-xs text-foreground-subtle leading-relaxed border-t border-border pt-3 mt-1">
-                Ces r\u00E9sultats sont g\u00E9n\u00E9r\u00E9s \u00E0 titre indicatif sur la base
-                des donn\u00E9es extraites de votre fichier. Ils ne constituent pas un avis d&apos;expert
-                r\u00E9glementaire. Consultez votre correspondant DORA et vos commissaires aux comptes.
+                Ces résultats sont générés à titre indicatif sur la base
+                des données extraites de votre fichier. Ils ne constituent pas un avis d&apos;expert
+                réglementaire. Consultez votre correspondant DORA et vos commissaires aux comptes.
               </p>
             </div>
 
@@ -581,7 +581,7 @@ export default function GouvernanceCyberPage() {
                 onClick={reset}
                 className="text-sm text-foreground-subtle hover:text-foreground-muted transition-colors underline underline-offset-4"
               >
-                R\u00E9initialiser l&apos;analyse
+                Réinitialiser l&apos;analyse
               </button>
             </div>
           </section>

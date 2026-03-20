@@ -54,16 +54,16 @@ function fmtPct(pct: number, dec = 1): string {
 
 function fmtKE(ke: number): string {
   if (Math.abs(ke) >= 1_000)
-    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " M\u20AC";
-  return Math.round(ke).toLocaleString("fr-FR") + " K\u20AC";
+    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " M\€";
+  return Math.round(ke).toLocaleString("fr-FR") + " K\€";
 }
 
 type BadgeVariant = { cls: string; label: string };
 
 function zScoreBadge(z: number): BadgeVariant {
-  if (z > 2.99) return { cls: "badge badge-success", label: "Zone s\u00FBre" };
+  if (z > 2.99) return { cls: "badge badge-success", label: "Zone sûre" };
   if (z > 1.81) return { cls: "badge badge-warning", label: "Zone grise" };
-  return { cls: "badge badge-danger", label: "Zone de d\u00E9tresse" };
+  return { cls: "badge badge-danger", label: "Zone de détresse" };
 }
 
 function zScoreColor(z: number): string {
@@ -75,14 +75,14 @@ function zScoreColor(z: number): string {
 function kpiBadge(value: number, thresholds: [number, number]): BadgeVariant {
   const [warn, good] = thresholds;
   if (value >= good) return { cls: "badge badge-success", label: "Bon" };
-  if (value >= warn) return { cls: "badge badge-warning", label: "Mod\u00E9r\u00E9" };
+  if (value >= warn) return { cls: "badge badge-warning", label: "Modéré" };
   return { cls: "badge badge-danger", label: "Attention" };
 }
 
 function endettementBadge(ratio: number): BadgeVariant {
   if (ratio < 50) return { cls: "badge badge-success", label: "Faible" };
-  if (ratio < 100) return { cls: "badge badge-warning", label: "Mod\u00E9r\u00E9" };
-  return { cls: "badge badge-danger", label: "\u00C9lev\u00E9" };
+  if (ratio < 100) return { cls: "badge badge-warning", label: "Modéré" };
+  return { cls: "badge badge-danger", label: "Élevé" };
 }
 
 /* ═══════════════════════════════════════════════════ Sub-components ══ */
@@ -136,8 +136,8 @@ function ZScoreGauge({ score }: { score: number }) {
       </div>
 
       <p className="text-xs text-foreground-muted leading-relaxed border-t border-border pt-4">
-        Le Z-Score Altman Z&apos;&apos; mesure le risque de d\u00E9faillance \u00E0 2 ans pour les
-        entreprises non cot\u00E9es. Un score entre 1,81 et 2,99 requiert une surveillance accrue.
+        Le Z-Score Altman Z&apos;&apos; mesure le risque de défaillance à 2 ans pour les
+        entreprises non cotées. Un score entre 1,81 et 2,99 requiert une surveillance accrue.
       </p>
     </div>
   );
@@ -184,7 +184,7 @@ export default function AnalyseEntreprisePage() {
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (ext !== "xlsx" && ext !== "xls") {
       setStatus("error");
-      setErrorMsg("Format non support\u00E9. Veuillez importer un fichier Excel (.xlsx).");
+      setErrorMsg("Format non supporté. Veuillez importer un fichier Excel (.xlsx).");
       return;
     }
 
@@ -214,7 +214,7 @@ export default function AnalyseEntreprisePage() {
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : "Une erreur inattendue est survenue lors de l\u2019analyse.",
+          : "Une erreur inattendue est survenue lors de l\’analyse.",
       );
     }
   }, []);
@@ -264,17 +264,17 @@ export default function AnalyseEntreprisePage() {
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 w-full py-12 flex flex-col gap-16">
-        {/* ══ SECTION A — Introduction \u00E9ditoriale ═══════════════════════ */}
+        {/* ══ SECTION A — Introduction éditoriale ═══════════════════════ */}
         <section className="flex flex-col gap-10">
           <div className="flex flex-col gap-4">
             <span className="badge badge-info self-start">Module 3 sur 8</span>
-            <h1 className="text-foreground">Analyse Financi\u00E8re d&apos;Entreprise</h1>
+            <h1 className="text-foreground">Analyse Financière d&apos;Entreprise</h1>
             <p
               className="text-foreground-muted max-w-2xl"
               style={{ fontSize: "var(--text-lg)" }}
             >
-              \u00C9valuez la sant\u00E9 financi\u00E8re et calculez le Z-Score d&apos;Altman en
-              important votre balance g\u00E9n\u00E9rale.
+              Évaluez la santé financière et calculez le Z-Score d&apos;Altman en
+              important votre balance générale.
             </p>
           </div>
 
@@ -284,21 +284,21 @@ export default function AnalyseEntreprisePage() {
               {[
                 {
                   icon: TrendingUp,
-                  title: "Performance op\u00E9rationnelle",
+                  title: "Performance opérationnelle",
                   detail:
-                    "Marges EBITDA, EBIT et nette \u2014 \u00E9volution et benchmark sectoriel pour \u00E9valuer l\u2019efficacit\u00E9 op\u00E9rationnelle.",
+                    "Marges EBITDA, EBIT et nette — évolution et benchmark sectoriel pour évaluer l\’efficacité opérationnelle.",
                 },
                 {
                   icon: Building2,
-                  title: "Structure financi\u00E8re",
+                  title: "Structure financière",
                   detail:
-                    "Gearing, dette nette/EBITDA, BFR en jours \u2014 solidit\u00E9 du bilan et capacit\u00E9 de remboursement.",
+                    "Gearing, dette nette/EBITDA, BFR en jours — solidité du bilan et capacité de remboursement.",
                 },
                 {
                   icon: Target,
-                  title: "Scoring & cr\u00E9ation de valeur",
+                  title: "Scoring & création de valeur",
                   detail:
-                    "Z-Score Altman Z\u2019\u2019 (solvabilit\u00E9), ROE (rentabilit\u00E9 fonds propres) et EVA (valeur \u00E9conomique ajout\u00E9e).",
+                    "Z-Score Altman Z\’\’ (solvabilité), ROE (rentabilité fonds propres) et EVA (valeur économique ajoutée).",
                 },
               ].map(({ icon: Icon, title, detail }) => (
                 <div key={title} className="card p-5 flex flex-col gap-3">
@@ -347,14 +347,14 @@ export default function AnalyseEntreprisePage() {
                   </div>
                   <div className="text-center flex flex-col gap-1">
                     <p className="text-sm font-medium text-foreground">
-                      Glissez-d\u00E9posez votre fichier Excel ici
+                      Glissez-déposez votre fichier Excel ici
                     </p>
                     <p className="text-xs text-foreground-subtle">
                       ou{" "}
                       <span className="text-accent font-medium underline underline-offset-2">
                         parcourez vos fichiers
                       </span>{" "}
-                      \u2014 .xlsx uniquement
+                      — .xlsx uniquement
                     </p>
                   </div>
                 </div>
@@ -382,7 +382,7 @@ export default function AnalyseEntreprisePage() {
                 <Loader2 className="h-10 w-10 text-accent animate-spin" />
                 <div className="text-center flex flex-col gap-1">
                   <p className="text-sm font-medium text-foreground">
-                    Analyse en cours\u2026
+                    Analyse en cours…
                   </p>
                   <p className="text-xs text-foreground-subtle">
                     <FileSpreadsheet className="inline h-3.5 w-3.5 mr-1 -mt-px" />
@@ -405,7 +405,7 @@ export default function AnalyseEntreprisePage() {
                     {result.filename}
                   </p>
                   <p className="text-xs text-foreground-subtle">
-                    {result.sheet_count} onglet{result.sheets.length > 1 ? "s" : ""} d\u00E9tect\u00E9{result.sheets.length > 1 ? "s" : ""} :{" "}
+                    {result.sheet_count} onglet{result.sheets.length > 1 ? "s" : ""} détecté{result.sheets.length > 1 ? "s" : ""} :{" "}
                     {result.sheets.join(", ")}
                   </p>
                 </div>
@@ -421,12 +421,12 @@ export default function AnalyseEntreprisePage() {
           </div>
         </section>
 
-        {/* ══ SECTION C — Dashboard de r\u00E9sultats ════════════════════════ */}
+        {/* ══ SECTION C — Dashboard de résultats ════════════════════════ */}
         {status === "success" && result && (
           <section className="flex flex-col gap-8">
             <div className="flex items-center justify-between">
-              <p className="data-label">R\u00E9sultats de l&apos;analyse</p>
-              <span className="badge badge-success">Analyse termin\u00E9e</span>
+              <p className="data-label">Résultats de l&apos;analyse</p>
+              <span className="badge badge-success">Analyse terminée</span>
             </div>
 
             {/* Z-Score gauge — prominent */}
@@ -456,16 +456,16 @@ export default function AnalyseEntreprisePage() {
                 label="ROE"
                 value={fmtPct(roeVal(result))}
                 badge={kpiBadge(roeVal(result), [8, 15])}
-                sub="r\u00E9sultat / CP"
+                sub="résultat / CP"
               />
             </div>
 
-            {/* Ratios compl\u00E9mentaires */}
+            {/* Ratios complémentaires */}
             <div className="card p-6 flex flex-col gap-4">
-              <p className="data-label">Ratios compl\u00E9mentaires</p>
+              <p className="data-label">Ratios complémentaires</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-4">
                 {[
-                  { label: "Tr\u00E9sorerie nette", value: fmtKE(tresorerieNette(result)) },
+                  { label: "Trésorerie nette", value: fmtKE(tresorerieNette(result)) },
                   { label: "BFR en jours", value: `${bfrJours(result)} j` },
                   { label: "Marge EBE", value: fmtPct(margeEBE(result)) },
                 ].map(({ label, value }) => (
@@ -480,34 +480,34 @@ export default function AnalyseEntreprisePage() {
             {/* Placeholder graphique */}
             <div className="card p-6 flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <p className="data-label">\u00C9volution de la tr\u00E9sorerie</p>
-                <span className="badge badge-neutral">Bient\u00F4t disponible</span>
+                <p className="data-label">Évolution de la trésorerie</p>
+                <span className="badge badge-neutral">Bientôt disponible</span>
               </div>
               <div className="flex flex-col items-center justify-center gap-3 py-12 rounded-lg border border-dashed border-border bg-surface-raised/30">
                 <BarChart3 className="h-10 w-10 text-foreground-subtle opacity-40" />
                 <p className="text-sm text-foreground-subtle">
-                  Le graphique d&apos;\u00E9volution sera disponible apr\u00E8s connexion \u00E0 l&apos;API.
+                  Le graphique d&apos;évolution sera disponible après connexion à l&apos;API.
                 </p>
               </div>
             </div>
 
             {/* Disclaimer */}
             <div className="card p-6 flex flex-col gap-3">
-              <p className="data-label">Interpr\u00E9tation</p>
+              <p className="data-label">Interprétation</p>
               <p className="text-sm text-foreground-muted leading-relaxed">
                 Le Z-Score de {zScore(result).toFixed(2)} place l&apos;entreprise en{" "}
                 <span className={`font-semibold ${zScoreColor(zScore(result))}`}>
                   {zScoreBadge(zScore(result)).label.toLowerCase()}
                 </span>
                 . La marge EBE de {fmtPct(margeEBE(result))} et un ratio d&apos;endettement
-                de {fmtPct(ratioEndettement(result), 0)} sugg\u00E8rent une structure financi\u00E8re
-                qui n\u00E9cessite une surveillance active. Le ROE de {fmtPct(roeVal(result))} reste
-                {roeVal(result) >= 8 ? " satisfaisant" : " en de\u00E7\u00E0 du co\u00FBt des fonds propres"}.
+                de {fmtPct(ratioEndettement(result), 0)} suggèrent une structure financière
+                qui nécessite une surveillance active. Le ROE de {fmtPct(roeVal(result))} reste
+                {roeVal(result) >= 8 ? " satisfaisant" : " en deçà du coût des fonds propres"}.
               </p>
               <p className="text-xs text-foreground-subtle leading-relaxed border-t border-border pt-3 mt-1">
-                Le Z-Score Altman est un mod\u00E8le statistique de pr\u00E9diction \u2014 il ne se
-                substitue pas \u00E0 une analyse de cr\u00E9dit compl\u00E8te. Les r\u00E9sultats
-                d\u00E9pendent de la qualit\u00E9 des donn\u00E9es extraites de votre fichier
+                Le Z-Score Altman est un modèle statistique de prédiction — il ne se
+                substitue pas à une analyse de crédit complète. Les résultats
+                dépendent de la qualité des données extraites de votre fichier
                 Excel (onglet : {result.source_sheet}).
               </p>
             </div>
@@ -519,7 +519,7 @@ export default function AnalyseEntreprisePage() {
                 onClick={reset}
                 className="text-sm text-foreground-subtle hover:text-foreground-muted transition-colors underline underline-offset-4"
               >
-                R\u00E9initialiser l&apos;analyse
+                Réinitialiser l&apos;analyse
               </button>
             </div>
           </section>

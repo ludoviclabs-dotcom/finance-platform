@@ -50,8 +50,8 @@ const API_BASE_URL =
 
 function fmtKE(ke: number): string {
   if (Math.abs(ke) >= 1_000)
-    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " M\u20AC";
-  return Math.round(ke).toLocaleString("fr-FR") + " K\u20AC";
+    return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " M\€";
+  return Math.round(ke).toLocaleString("fr-FR") + " K\€";
 }
 
 function fmtPct(pct: number, dec = 1): string {
@@ -68,7 +68,7 @@ function etrMoyenBadge(etr: number): BadgeVariant {
 
 function topUpBadge(topUp: number): BadgeVariant {
   if (topUp === 0) return { cls: "badge badge-success", label: "Aucun" };
-  if (topUp < 5_000) return { cls: "badge badge-warning", label: "Mod\u00E9r\u00E9" };
+  if (topUp < 5_000) return { cls: "badge badge-warning", label: "Modéré" };
   return { cls: "badge badge-danger", label: "Significatif" };
 }
 
@@ -108,7 +108,7 @@ function KpiCard({
 function JurisdictionTable({ rows }: { rows: JurisdictionRow[] }) {
   return (
     <div className="card p-6 flex flex-col gap-4">
-      <p className="data-label">D\u00E9tail par juridiction</p>
+      <p className="data-label">Détail par juridiction</p>
 
       {/* Desktop table */}
       <div className="hidden sm:block overflow-x-auto">
@@ -122,7 +122,7 @@ function JurisdictionTable({ rows }: { rows: JurisdictionRow[] }) {
                 Revenu GloBE
               </th>
               <th className="text-right py-2 px-4 text-foreground-subtle font-medium text-xs uppercase tracking-wider">
-                IS pay\u00E9
+                IS payé
               </th>
               <th className="text-right py-2 px-4 text-foreground-subtle font-medium text-xs uppercase tracking-wider">
                 ETR
@@ -239,7 +239,7 @@ export default function Pilier2GlobePage() {
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (ext !== "xlsx" && ext !== "xls") {
       setStatus("error");
-      setErrorMsg("Format non support\u00E9. Veuillez importer un fichier Excel (.xlsx).");
+      setErrorMsg("Format non supporté. Veuillez importer un fichier Excel (.xlsx).");
       return;
     }
 
@@ -269,7 +269,7 @@ export default function Pilier2GlobePage() {
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : "Une erreur inattendue est survenue lors de l\u2019analyse.",
+          : "Une erreur inattendue est survenue lors de l\’analyse.",
       );
     }
   }, []);
@@ -319,17 +319,17 @@ export default function Pilier2GlobePage() {
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 w-full py-12 flex flex-col gap-16">
-        {/* ══ SECTION A — Introduction \u00E9ditoriale ═══════════════════════ */}
+        {/* ══ SECTION A — Introduction éditoriale ═══════════════════════ */}
         <section className="flex flex-col gap-10">
           <div className="flex flex-col gap-4">
             <span className="badge badge-info self-start">Module 2 sur 8</span>
-            <h1 className="text-foreground">Fiscalit\u00E9 Pilier 2 GloBE</h1>
+            <h1 className="text-foreground">Fiscalité Pilier 2 GloBE</h1>
             <p
               className="text-foreground-muted max-w-2xl"
               style={{ fontSize: "var(--text-lg)" }}
             >
               Calculez l&apos;ETR par juridiction, estimez le top-up tax IIR et identifiez les
-              pays sous le seuil minimum de 15 % en importent votre fichier de donn\u00E9es
+              pays sous le seuil minimum de 15 % en importent votre fichier de données
               fiscales.
             </p>
           </div>
@@ -342,19 +342,19 @@ export default function Pilier2GlobePage() {
                   icon: Globe,
                   title: "Calcul ETR GloBE",
                   detail:
-                    "Taux effectif d\u2019imposition par juridiction selon les r\u00E8gles OCDE \u2014 IS qualifi\u00E9 / revenu GloBE qualifi\u00E9.",
+                    "Taux effectif d\’imposition par juridiction selon les règles OCDE — IS qualifié / revenu GloBE qualifié.",
                 },
                 {
                   icon: Calculator,
                   title: "Top-up Tax IIR / QDMTT",
                   detail:
-                    "Imp\u00F4t compl\u00E9mentaire si ETR < 15 %. Collect\u00E9 par l\u2019UPE (IIR) ou localement (QDMTT).",
+                    "Impôt complémentaire si ETR < 15 %. Collecté par l\’UPE (IIR) ou localement (QDMTT).",
                 },
                 {
                   icon: ShieldCheck,
                   title: "Safe Harbours",
                   detail:
-                    "De minimis, ETR simplifi\u00E9 (TSH) et UTPR safe harbour \u2014 exclusions du calcul compl\u00E9mentaire.",
+                    "De minimis, ETR simplifié (TSH) et UTPR safe harbour — exclusions du calcul complémentaire.",
                 },
               ].map(({ icon: Icon, title, detail }) => (
                 <div key={title} className="card p-5 flex flex-col gap-3">
@@ -369,35 +369,35 @@ export default function Pilier2GlobePage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <p className="data-label">Indicateurs cl\u00E9s \u00E0 surveiller</p>
+            <p className="data-label">Indicateurs clés à surveiller</p>
             <ul className="flex flex-col gap-3">
               {[
                 {
                   title: "ETR GloBE par juridiction",
                   detail:
-                    "Rapport IS qualifi\u00E9 / revenu GloBE. Si ETR < 15 %, un imp\u00F4t compl\u00E9mentaire est d\u00FB sauf safe harbour applicable.",
+                    "Rapport IS qualifié / revenu GloBE. Si ETR < 15 %, un impôt complémentaire est dû sauf safe harbour applicable.",
                 },
                 {
-                  title: "Top-up Tax estim\u00E9 (IIR)",
+                  title: "Top-up Tax estimé (IIR)",
                   detail:
-                    "Imp\u00F4t compl\u00E9mentaire : (15 % \u2212 ETR) \u00D7 revenu GloBE. Peut \u00EAtre neutralis\u00E9 par un QDMTT local.",
+                    "Impôt complémentaire : (15 % \− ETR) × revenu GloBE. Peut être neutralisé par un QDMTT local.",
                 },
                 {
                   title: "Exemption de minimis",
                   detail:
-                    "Juridiction exclue si CA < 10 M\u20AC et revenu GloBE < 1 M\u20AC (art. 5.6 OCDE GloBE Model Rules).",
+                    "Juridiction exclue si CA < 10 M\€ et revenu GloBE < 1 M\€ (art. 5.6 OCDE GloBE Model Rules).",
                 },
                 {
-                  title: "QDMTT \u2014 Domestic Top-up Tax",
+                  title: "QDMTT — Domestic Top-up Tax",
                   detail:
-                    "Imp\u00F4t national de compl\u00E9ment permettant \u00E0 la juridiction sous seuil de capter l\u2019imp\u00F4t localement.",
+                    "Impôt national de complément permettant à la juridiction sous seuil de capter l\’impôt localement.",
                 },
               ].map(({ title, detail }) => (
                 <li key={title} className="flex gap-3 items-start">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0 mt-[7px]" />
                   <div>
                     <span className="text-sm font-semibold text-foreground">{title}</span>
-                    <span className="text-sm text-foreground-muted"> \u2014 {detail}</span>
+                    <span className="text-sm text-foreground-muted"> — {detail}</span>
                   </div>
                 </li>
               ))}
@@ -438,14 +438,14 @@ export default function Pilier2GlobePage() {
                   </div>
                   <div className="text-center flex flex-col gap-1">
                     <p className="text-sm font-medium text-foreground">
-                      Glissez-d\u00E9posez votre fichier Excel ici
+                      Glissez-déposez votre fichier Excel ici
                     </p>
                     <p className="text-xs text-foreground-subtle">
                       ou{" "}
                       <span className="text-accent font-medium underline underline-offset-2">
                         parcourez vos fichiers
                       </span>{" "}
-                      \u2014 .xlsx uniquement \u2014 onglets attendus : 4-ETR Juridictionnel, 6-Top-up Tax
+                      — .xlsx uniquement — onglets attendus : 4-ETR Juridictionnel, 6-Top-up Tax
                     </p>
                   </div>
                 </div>
@@ -471,7 +471,7 @@ export default function Pilier2GlobePage() {
                 <Loader2 className="h-10 w-10 text-accent animate-spin" />
                 <div className="text-center flex flex-col gap-1">
                   <p className="text-sm font-medium text-foreground">
-                    Analyse en cours\u2026
+                    Analyse en cours…
                   </p>
                   <p className="text-xs text-foreground-subtle">
                     <FileSpreadsheet className="inline h-3.5 w-3.5 mr-1 -mt-px" />
@@ -492,8 +492,8 @@ export default function Pilier2GlobePage() {
                     {result.filename}
                   </p>
                   <p className="text-xs text-foreground-subtle">
-                    {result.sheet_count} onglet{result.sheet_count > 1 ? "s" : ""} \u2014{" "}
-                    {result.nb_jurisdictions} juridiction{result.nb_jurisdictions > 1 ? "s" : ""} d\u00E9tect\u00E9e{result.nb_jurisdictions > 1 ? "s" : ""}
+                    {result.sheet_count} onglet{result.sheet_count > 1 ? "s" : ""} —{" "}
+                    {result.nb_jurisdictions} juridiction{result.nb_jurisdictions > 1 ? "s" : ""} détectée{result.nb_jurisdictions > 1 ? "s" : ""}
                   </p>
                 </div>
                 <button
@@ -512,8 +512,8 @@ export default function Pilier2GlobePage() {
         {status === "success" && result && (
           <section className="flex flex-col gap-8">
             <div className="flex items-center justify-between">
-              <p className="data-label">R\u00E9sultats de l&apos;analyse</p>
-              <span className="badge badge-success">Analyse termin\u00E9e</span>
+              <p className="data-label">Résultats de l&apos;analyse</p>
+              <span className="badge badge-success">Analyse terminée</span>
             </div>
 
             {/* KPI grid */}
@@ -522,10 +522,10 @@ export default function Pilier2GlobePage() {
                 label="Top-up Tax Total"
                 value={fmtKE(result.top_up_total)}
                 badge={topUpBadge(result.top_up_total)}
-                sub="IIR estim\u00E9"
+                sub="IIR estimé"
               />
               <KpiCard
-                label="ETR moyen pond\u00E9r\u00E9"
+                label="ETR moyen pondéré"
                 value={fmtPct(result.etr_moyen)}
                 badge={etrMoyenBadge(result.etr_moyen)}
                 sub="toutes juridictions"
@@ -537,7 +537,7 @@ export default function Pilier2GlobePage() {
                 sub="sous seuil GloBE"
               />
               <KpiCard
-                label="Juridictions analys\u00E9es"
+                label="Juridictions analysées"
                 value={String(result.nb_jurisdictions)}
                 badge={{ cls: "badge badge-neutral", label: "Total" }}
                 sub={`source : ${result.source_sheet}`}
@@ -549,34 +549,34 @@ export default function Pilier2GlobePage() {
 
             {/* Interpretation */}
             <div className="card p-6 flex flex-col gap-3">
-              <p className="data-label">Interpr\u00E9tation</p>
+              <p className="data-label">Interprétation</p>
               <p className="text-sm text-foreground-muted leading-relaxed">
                 {result.nb_sous_seuil === 0 ? (
                   <>
-                    L&apos;ETR moyen pond\u00E9r\u00E9 de {fmtPct(result.etr_moyen)} est
-                    sup\u00E9rieur au taux minimum global de 15 %. Aucun imp\u00F4t
-                    compl\u00E9mentaire IIR n&apos;est estim\u00E9 sur les{" "}
-                    {result.nb_jurisdictions} juridictions analys\u00E9es.
+                    L&apos;ETR moyen pondéré de {fmtPct(result.etr_moyen)} est
+                    supérieur au taux minimum global de 15 %. Aucun impôt
+                    complémentaire IIR n&apos;est estimé sur les{" "}
+                    {result.nb_jurisdictions} juridictions analysées.
                   </>
                 ) : (
                   <>
                     {result.nb_sous_seuil} juridiction{result.nb_sous_seuil > 1 ? "s" : ""}{" "}
-                    pr\u00E9sente{result.nb_sous_seuil > 1 ? "nt" : ""} un ETR inf\u00E9rieur
-                    \u00E0 15 %, g\u00E9n\u00E9rant un imp\u00F4t compl\u00E9mentaire IIR
-                    estim\u00E9 \u00E0{" "}
+                    présente{result.nb_sous_seuil > 1 ? "nt" : ""} un ETR inférieur
+                    à 15 %, générant un impôt complémentaire IIR
+                    estimé à{" "}
                     <span className="font-semibold text-danger">
                       {fmtKE(result.top_up_total)}
                     </span>
-                    . L&apos;adoption d&apos;un QDMTT dans les juridictions concern\u00E9es
-                    permettrait de capter l&apos;imp\u00F4t localement.
+                    . L&apos;adoption d&apos;un QDMTT dans les juridictions concernées
+                    permettrait de capter l&apos;impôt localement.
                   </>
                 )}
               </p>
               <p className="text-xs text-foreground-subtle leading-relaxed border-t border-border pt-3 mt-1">
-                Ces r\u00E9sultats sont g\u00E9n\u00E9r\u00E9s \u00E0 titre indicatif sur la base
-                des donn\u00E9es extraites de votre fichier et des r\u00E8gles GloBE OCDE 2024.
+                Ces résultats sont générés à titre indicatif sur la base
+                des données extraites de votre fichier et des règles GloBE OCDE 2024.
                 Ils ne constituent pas un avis fiscal. Consultez votre directeur fiscal pour toute
-                d\u00E9cision de provisionnement Pilier 2.
+                décision de provisionnement Pilier 2.
               </p>
             </div>
 
@@ -587,7 +587,7 @@ export default function Pilier2GlobePage() {
                 onClick={reset}
                 className="text-sm text-foreground-subtle hover:text-foreground-muted transition-colors underline underline-offset-4"
               >
-                R\u00E9initialiser l&apos;analyse
+                Réinitialiser l&apos;analyse
               </button>
             </div>
           </section>

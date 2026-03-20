@@ -157,8 +157,8 @@ function StageBarChart({ stages }: { stages: StageBreakdown[] }) {
                 borderRadius: 8,
                 fontSize: 12,
               }}
-              formatter={(value: number, name: string) => [
-                fmtKE(value),
+              formatter={(value, name: string) => [
+                fmtKE(value as number),
                 name === "ead" ? "EAD" : "ECL",
               ]}
             />

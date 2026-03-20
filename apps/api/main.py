@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import health, calculate, excel, report, clients, entreprise, cyber, pilier2
+from routers import health, calculate, excel, report, clients, entreprise, cyber, pilier2, creditrisk
 
 app = FastAPI(
     title="Finance Platform API",
@@ -44,3 +44,4 @@ app.include_router(clients.router, prefix="/clients", tags=["clients"])
 app.include_router(entreprise.router, prefix="/entreprise", tags=["entreprise"])
 app.include_router(cyber.router, prefix="/cyber", tags=["cyber"])
 app.include_router(pilier2.router, prefix="/pilier2", tags=["pilier2"])
+app.include_router(creditrisk.router, prefix="/creditrisk", tags=["creditrisk"])

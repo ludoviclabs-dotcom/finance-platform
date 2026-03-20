@@ -11,15 +11,25 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# CORS — read allowed origins from env, fallback to dev servers
+# ---------------------------------------------------------------------------
+# CORS — dynamic origin validation
+# ---------------------------------------------------------------------------
+# 1. Explicit origins from env var (comma-separated), fallback to localhost
+# 2. Any https://*.vercel.app origin is always accepted (preview deploys)
+# ---------------------------------------------------------------------------
 _default_origins = "http://localhost:3000,http://localhost:3001"
-allowed_origins = [
-    o.strip() for o in os.environ.get("ALLOWED_ORIGINS", _default_origins).split(",") if o.strip()
+_explicit_origins = [
+    o.strip()
+    for o in os.environ.get("ALLOWED_ORIGINS", _default_origins).split(",")
+    if o.strip()
 ]
 
+# CORSMiddleware: explicit list + regex for all Vercel preview URLs.
+# allow_origin_regex lets us keep allow_credentials=True (unlike origins=["*"]).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=_explicit_origins,
+    allow_origin_regex=r"^https://[a-z0-9\-]+\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

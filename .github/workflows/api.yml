@@ -26,10 +26,13 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Verify FastAPI app imports
-        run: python -c "from main import app; print('OK: app loaded')"
+        run: |
+          python -c "from main import app; print('OK: app loaded')"
 
       - name: Verify models import
-        run: python -c "from models.ma import MAInput, MAOutput; print('OK: models loaded')"
+        run: |
+          python -c "from models.ma import MAInput, MAOutput; print('OK: models loaded')"
 
       - name: Verify services import
-        run: python -c "from services.ma_service import compute_ma; print('OK: services loaded')"
+        run: |
+          python -c "from services.ma_service import compute_ma; print('OK: services loaded')"

@@ -1,757 +1,853 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useMemo } from 'react';
 import {
-  ArrowLeft, Shield, Target, Radar,
-  ChevronRight, ChevronLeft, Play,
-} from "lucide-react";
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  CartesianGrid, Legend, RadarChart, Radar, PolarGrid,
+  PolarAngleAxis, PolarRadiusAxis, PieChart, Pie, Cell,
+  LineChart, Line, AreaChart, Area, ReferenceLine,
+} from 'recharts';
+import type { ValueType } from 'recharts/types/component/DefaultTooltipContent';
+import type {
+  DefenseSystem, SystemScores, TCOInput,
+  CPEInput, WargameInput, WargameAttacker, WargameDefender, WargameTarget,
+  CriticalMaterial, StockEntry, Doctrine,
+} from '@/lib/types/defense';
+import { calculateTCO, calculateCPE, runWargame, calculateSurgeTimeline } from '@/lib/calculs/defense';
 
-/* ═══════════════════════════════════════════════════════════════ Types ══ */
-
-type Mission  = "ISR / Surveillance" | "Frappe de précision" | "Lutte anti-drone (C-UAS)" | "Appui logistique";
-type Theatre  = "Europe de l'Est" | "Moyen-Orient" | "Mer de Chine méridionale" | "Sahel";
-type Categorie = "MALE" | "TUAV" | "Munition rôdeuse" | "Mini-drone";
-
-interface Systeme {
-  id: string;
-  nom: string;
-  origine: string;
-  categorie: Categorie;
-  prixUnit: number; // K€
-  coutEfficacite: number; // 1–10
-  autonomie: number;
-  precision: number;
-  discretion: number;
-  resilience: number;
-  resume: string;
-}
-
-interface FormData {
-  /* Step 1 — Contexte */
-  mission: Mission;
-  theatre: Theatre;
-  budget: number; // K€
-  /* Step 2 — Sélection & pondération */
-  idA: string;
-  idB: string;
-  idC: string;
-  poidsCout: number;      // %
-  poidsAutonomie: number;
-  poidsPrecision: number;
-  poidsDiscretion: number;
-  poidsResilience: number;
-}
-
-interface SystemeScore {
-  sys: Systeme;
-  scoreGlobal: number;
-  unitesAcquerables: number;
-}
-
-interface Metrics {
-  scores: [SystemeScore, SystemeScore, SystemeScore];
-  classement: [SystemeScore, SystemeScore, SystemeScore];
-  totalPoids: number;
-  recommandation: string;
-}
-
-/* ══════════════════════════════════════════════════════════ Constants ══ */
-
-const STEP_LABELS = ["Contexte opérationnel", "Systèmes & pondération"];
-
-const MISSIONS: Mission[] = [
-  "ISR / Surveillance",
-  "Frappe de précision",
-  "Lutte anti-drone (C-UAS)",
-  "Appui logistique",
+// ================================================================
+// DONNÉES — 17 systèmes
+// ================================================================
+const SYSTEMS: DefenseSystem[] = [
+  {
+    id: 'fpv', name: 'Drone FPV kamikaze', country: 'Ukraine/Russie', countryCode: 'UA',
+    manufacturer: 'Artisanal', category: 'FPV', status: 'Combat_Proven',
+    specs: { mass_kg: 1.2, max_speed_kmh: 140, range_km: 10, endurance_hours: 0.3, payload_kg: 1, warhead_kg: 0.8, propulsion: 'Electric', guidance: ['FPV vid\u00E9o'] },
+    costs: { unit_cost_usd: 500, unit_cost_display: '500$', learning_rate: 0.95 },
+    scores: { cost: 10, range: 1, precision: 5, stealth: 9, ai_autonomy: 1, ew_resistance: 2, scalability: 10, combat_proven: 10 },
+    operational: { combat_proven: true, conflicts_used: ['Ukraine 2022-2025'], operators: ['Ukraine', 'Russie'], total_produced: 2000000, attrition_rate: 100 },
+    supply_chain: { critical_components: 2, max_dependency_pct: 70, main_dependency_country: 'Chine', weak_point: 'Composants \u00E9lectroniques grand public' },
+    description: 'FPV artisanal \u00E0 charge explosive. Co\u00FBt < 500$, pilotage vid\u00E9o temps r\u00E9el. Massification tactique.',
+  },
+  {
+    id: 'lancet3', name: 'Lancet-3M', country: 'Russie', countryCode: 'RU',
+    manufacturer: 'ZALA Aero (Kalashnikov)', category: 'Loitering_Munition', status: 'Combat_Proven',
+    specs: { mass_kg: 12, max_speed_kmh: 300, range_km: 70, endurance_hours: 0.7, payload_kg: 5, warhead_kg: 3, propulsion: 'Electric', guidance: ['EO/IR', 'IA reconnaissance cible'] },
+    costs: { unit_cost_usd: 35000, unit_cost_display: '35K$', learning_rate: 0.88 },
+    scores: { cost: 9, range: 5, precision: 8, stealth: 7, ai_autonomy: 3, ew_resistance: 4, scalability: 8, combat_proven: 9 },
+    operational: { combat_proven: true, conflicts_used: ['Ukraine 2022-2025', 'Syrie'], operators: ['Russie'], total_produced: 50000, attrition_rate: 100 },
+    supply_chain: { critical_components: 5, max_dependency_pct: 40, main_dependency_country: 'Chine', weak_point: 'Optronique, processeurs IA' },
+    description: 'Munition r\u00F4deuse de croisi\u00E8re. Guidance EO + IA, t\u00EAte militaire 3kg, massification par le co\u00FBt.',
+  },
+  {
+    id: 'switchblade600', name: 'Switchblade 600', country: 'USA', countryCode: 'US',
+    manufacturer: 'AeroVironment', category: 'Loitering_Munition', status: 'Operational',
+    specs: { mass_kg: 23, max_speed_kmh: 185, range_km: 80, endurance_hours: 0.7, payload_kg: 15, warhead_kg: 6, propulsion: 'Electric', guidance: ['EO/IR', 'GPS/INS', 'Datalink chiffr\u00E9'] },
+    costs: { unit_cost_usd: 100000, unit_cost_display: '100K$', learning_rate: 0.85 },
+    scores: { cost: 7, range: 6, precision: 8, stealth: 8, ai_autonomy: 2, ew_resistance: 7, scalability: 6, combat_proven: 6 },
+    operational: { combat_proven: true, conflicts_used: ['Ukraine 2023'], operators: ['USA', 'Ukraine'], total_produced: 5000 },
+    supply_chain: { critical_components: 8, max_dependency_pct: 15, main_dependency_country: 'USA', weak_point: 'Warhead anti-tank certifi\u00E9' },
+    description: 'Munition r\u00F4deuse anti-blind\u00E9, man-portable. Lien de donn\u00E9es chiffr\u00E9, r\u00E9sistant au brouillage.',
+  },
+  {
+    id: 'harop', name: 'Harop (IAI)', country: 'Isra\u00EBl', countryCode: 'IL',
+    manufacturer: 'IAI', category: 'Loitering_Munition', status: 'Combat_Proven',
+    specs: { mass_kg: 135, max_speed_kmh: 400, range_km: 1000, endurance_hours: 9, payload_kg: 23, warhead_kg: 16, propulsion: 'Piston', guidance: ['EO', 'Radar passif', 'Anti-radiation'] },
+    costs: { unit_cost_usd: 500000, unit_cost_display: '500K$', learning_rate: 0.82 },
+    scores: { cost: 6, range: 7, precision: 9, stealth: 7, ai_autonomy: 3, ew_resistance: 8, scalability: 5, combat_proven: 8 },
+    operational: { combat_proven: true, conflicts_used: ['Haut-Karabakh 2020', 'Inde-Pakistan'], operators: ['Isra\u00EBl', 'Inde', 'Azerba\u00EFdjan'], total_produced: 2000 },
+    supply_chain: { critical_components: 10, max_dependency_pct: 25, main_dependency_country: 'Isra\u00EBl', weak_point: 'Capteur radar passif sp\u00E9cialis\u00E9' },
+    description: 'Munition r\u00F4deuse longue endurance (9h, 1000km). Guidage radar passif ou EO. Anti-radiation et C-RAM.',
+  },
+  {
+    id: 'shahed136', name: 'Shahed-136 / Geran-2', country: 'Iran/Russie', countryCode: 'IR',
+    manufacturer: 'HESA / Alabuga', category: 'Loitering_Munition', status: 'Combat_Proven',
+    specs: { mass_kg: 200, max_speed_kmh: 185, range_km: 2000, endurance_hours: 4, payload_kg: 40, warhead_kg: 36, propulsion: 'Piston', guidance: ['INS', 'GPS', 'EO terminal'] },
+    costs: { unit_cost_usd: 40000, unit_cost_display: '40K$', learning_rate: 0.90 },
+    scores: { cost: 9, range: 8, precision: 5, stealth: 6, ai_autonomy: 1, ew_resistance: 3, scalability: 9, combat_proven: 9 },
+    operational: { combat_proven: true, conflicts_used: ['Ukraine 2022-2025'], operators: ['Iran', 'Russie', 'Houthis'], total_produced: 100000, attrition_rate: 100 },
+    supply_chain: { critical_components: 3, max_dependency_pct: 50, main_dependency_country: 'Chine', weak_point: 'Moteur MD550, composants GPS civils' },
+    description: 'Munition r\u00F4deuse longue port\u00E9e (~2000km). Navigation INS+GPS, massification contre infrastructures.',
+  },
+  {
+    id: 'hero400', name: 'Hero-400EC', country: 'Isra\u00EBl', countryCode: 'IL',
+    manufacturer: 'UVision', category: 'Loitering_Munition', status: 'Operational',
+    specs: { mass_kg: 40, max_speed_kmh: 240, range_km: 150, endurance_hours: 2, payload_kg: 10, warhead_kg: 8, propulsion: 'Electric', guidance: ['EO/IR', 'GPS', 'Datalink'] },
+    costs: { unit_cost_usd: 200000, unit_cost_display: '200K$', learning_rate: 0.84 },
+    scores: { cost: 7, range: 6, precision: 9, stealth: 7, ai_autonomy: 2, ew_resistance: 7, scalability: 6, combat_proven: 5 },
+    operational: { combat_proven: false, operators: ['Isra\u00EBl', 'Allemagne', 'Singapour'], total_produced: 3000 },
+    supply_chain: { critical_components: 7, max_dependency_pct: 20, main_dependency_country: 'Isra\u00EBl', weak_point: 'T\u00EAte militaire polyvalente' },
+    description: 'Munition r\u00F4deuse tactique multi-r\u00F4le. Adopt\u00E9e par la Bundeswehr et les forces singapouriennes.',
+  },
+  {
+    id: 'tb2', name: 'Bayraktar TB2', country: 'T\u00FCrkiye', countryCode: 'TR',
+    manufacturer: 'Baykar', category: 'MALE', status: 'Combat_Proven',
+    specs: { mass_kg: 700, max_speed_kmh: 222, range_km: 150, endurance_hours: 24, ceiling_m: 7600, payload_kg: 150, propulsion: 'Piston', guidance: ['EO/IR', 'Laser', 'GPS'] },
+    costs: { unit_cost_usd: 5000000, unit_cost_display: '5M$', mco_annual_pct: 8, learning_rate: 0.85, training_cost_usd: 200000 },
+    scores: { cost: 6, range: 6, precision: 7, stealth: 5, ai_autonomy: 2, ew_resistance: 5, scalability: 7, combat_proven: 10 },
+    operational: { combat_proven: true, conflicts_used: ['Haut-Karabakh 2020', 'Libye 2020', 'Ukraine 2022'], operators: ['T\u00FCrkiye', 'Ukraine', 'Azerba\u00EFdjan', 'Qatar', 'Niger', 'Maroc'], total_produced: 500 },
+    supply_chain: { critical_components: 12, max_dependency_pct: 30, main_dependency_country: 'Canada/UK', weak_point: 'Moteur Rotax, optronique WESCAM' },
+    description: 'MALE tactique polyvalent, v\u00E9t\u00E9ran du Haut-Karabakh et de l\'Ukraine. Missile MAM-C/L, autonomie 24h.',
+  },
+  {
+    id: 'mq9', name: 'MQ-9B SkyGuardian', country: 'USA', countryCode: 'US',
+    manufacturer: 'General Atomics', category: 'MALE', status: 'Operational',
+    specs: { mass_kg: 2223, max_speed_kmh: 480, range_km: 1850, endurance_hours: 40, ceiling_m: 15000, payload_kg: 2177, propulsion: 'Turboprop', guidance: ['Multi-spectral', 'SAR', 'SIGINT', 'Satcom'] },
+    costs: { unit_cost_usd: 30000000, unit_cost_display: '30M$', mco_annual_pct: 12, learning_rate: 0.82, training_cost_usd: 2000000 },
+    scores: { cost: 3, range: 9, precision: 9, stealth: 4, ai_autonomy: 3, ew_resistance: 9, scalability: 3, combat_proven: 9 },
+    operational: { combat_proven: true, conflicts_used: ['Afghanistan', 'Irak', 'Syrie', 'Libye'], operators: ['USA', 'UK', 'France', 'Italie', 'Japon'], total_produced: 400 },
+    supply_chain: { critical_components: 25, max_dependency_pct: 10, main_dependency_country: 'USA', weak_point: 'Moteur TPE331, certification STANAG' },
+    description: 'MALE de r\u00E9f\u00E9rence OTAN (40h, 1850km). Capteurs multi-spectraux, liaisons satcom, guerre \u00E9lectronique avanc\u00E9e.',
+  },
+  {
+    id: 'akinci', name: 'Bayraktar Ak\u0131nc\u0131', country: 'T\u00FCrkiye', countryCode: 'TR',
+    manufacturer: 'Baykar', category: 'UCAV', status: 'Operational',
+    specs: { mass_kg: 3300, max_speed_kmh: 361, range_km: 300, endurance_hours: 24, ceiling_m: 12200, payload_kg: 1350, propulsion: 'Turboprop', guidance: ['AESA radar', 'EO/IR', 'SIGINT', 'Satcom'] },
+    costs: { unit_cost_usd: 15000000, unit_cost_display: '15M$', mco_annual_pct: 10, learning_rate: 0.83, training_cost_usd: 1000000 },
+    scores: { cost: 5, range: 8, precision: 8, stealth: 5, ai_autonomy: 3, ew_resistance: 7, scalability: 5, combat_proven: 6 },
+    operational: { combat_proven: false, operators: ['T\u00FCrkiye', 'Pakistan'], total_produced: 30 },
+    supply_chain: { critical_components: 18, max_dependency_pct: 25, main_dependency_country: 'Ukraine/T\u00FCrkiye', weak_point: 'Moteur AI-450C ukrainien' },
+    description: 'UCAV lourd avec radar AESA. Emporte missiles de croisi\u00E8re SOM-J et munitions guid\u00E9es.',
+  },
+  {
+    id: 'eurodrone', name: 'Eurodrone (MALE RPAS)', country: 'Europe', countryCode: 'EU',
+    manufacturer: 'Airbus DS', category: 'MALE', status: 'Development',
+    specs: { mass_kg: 5000, max_speed_kmh: 500, range_km: 2000, endurance_hours: 40, ceiling_m: 13700, payload_kg: 2300, propulsion: 'Turboprop', guidance: ['Multi-sensor', 'Satcom dual-band', 'STANAG'] },
+    costs: { unit_cost_usd: 80000000, unit_cost_display: '80M$', mco_annual_pct: 15, learning_rate: 0.80, training_cost_usd: 5000000 },
+    scores: { cost: 2, range: 9, precision: 8, stealth: 5, ai_autonomy: 3, ew_resistance: 10, scalability: 2, combat_proven: 0 },
+    operational: { combat_proven: false, operators: ['France', 'Allemagne', 'Espagne', 'Italie'], total_produced: 0 },
+    supply_chain: { critical_components: 30, max_dependency_pct: 5, main_dependency_country: 'Europe', weak_point: 'Int\u00E9gration OCCAR multi-nations' },
+    description: 'Programme OCCAR franco-germano-hispano-italien. Certification STANAG, conformit\u00E9 espace a\u00E9rien civil.',
+  },
+  {
+    id: 'ironbeam', name: 'Iron Beam', country: 'Isra\u00EBl', countryCode: 'IL',
+    manufacturer: 'Rafael', category: 'C-UAS_Laser', status: 'Testing',
+    specs: { mass_kg: 5000, range_km: 7, propulsion: 'None', guidance: ['Tracking EO/IR', 'Radar'] },
+    costs: { unit_cost_usd: 50000000, unit_cost_display: '50M$ (syst\u00E8me)', learning_rate: 0.80 },
+    scores: { cost: 8, range: 3, precision: 9, stealth: 1, ai_autonomy: 4, ew_resistance: 10, scalability: 7, combat_proven: 3 },
+    operational: { combat_proven: true, conflicts_used: ['Gaza 2024 (tests op\u00E9rationnels)'], operators: ['Isra\u00EBl'] },
+    supply_chain: { critical_components: 15, max_dependency_pct: 15, main_dependency_country: 'Isra\u00EBl', weak_point: 'Source laser haute puissance' },
+    description: 'Laser C-UAS haute \u00E9nergie. Co\u00FBt par tir ~3.50$. Interception drones et roquettes \u00E0 courte port\u00E9e.',
+  },
+  {
+    id: 'leonidas', name: 'Leonidas (HPM)', country: 'USA', countryCode: 'US',
+    manufacturer: 'Epirus', category: 'C-UAS_EW', status: 'Testing',
+    specs: { mass_kg: 800, range_km: 1, propulsion: 'None', guidance: ['Directional HPM'] },
+    costs: { unit_cost_usd: 10000000, unit_cost_display: '10M$ (syst\u00E8me)', learning_rate: 0.82 },
+    scores: { cost: 7, range: 1, precision: 6, stealth: 2, ai_autonomy: 3, ew_resistance: 10, scalability: 8, combat_proven: 2 },
+    operational: { combat_proven: false, operators: ['USA'], total_produced: 10 },
+    supply_chain: { critical_components: 8, max_dependency_pct: 10, main_dependency_country: 'USA', weak_point: 'Composants micro-ondes haute puissance' },
+    description: 'Arme \u00E0 micro-ondes haute puissance (HPM). Neutralise essaims de drones instantan\u00E9ment. Co\u00FBt par tir ~1$.',
+  },
+  {
+    id: 'seababy', name: 'Sea Baby', country: 'Ukraine', countryCode: 'UA',
+    manufacturer: 'SBU / HUR', category: 'Naval_USV', status: 'Combat_Proven',
+    specs: { mass_kg: 1000, max_speed_kmh: 80, range_km: 800, payload_kg: 850, warhead_kg: 850, propulsion: 'Hybrid', guidance: ['GPS', 'Starlink', 'EO'] },
+    costs: { unit_cost_usd: 250000, unit_cost_display: '250K$', learning_rate: 0.88 },
+    scores: { cost: 8, range: 7, precision: 6, stealth: 7, ai_autonomy: 2, ew_resistance: 5, scalability: 7, combat_proven: 9 },
+    operational: { combat_proven: true, conflicts_used: ['Mer Noire 2023-2025'], operators: ['Ukraine'], total_produced: 200 },
+    supply_chain: { critical_components: 5, max_dependency_pct: 40, main_dependency_country: 'Occident', weak_point: 'Moteur jet-ski, Starlink' },
+    description: 'USV kamikaze ukrainien. A neutralis\u00E9 le croiseur Moskva et d\u00E9ni\u00E9 la mer Noire \u00E0 la flotte russe.',
+  },
+  {
+    id: 'magura', name: 'MAGURA V5', country: 'Ukraine', countryCode: 'UA',
+    manufacturer: 'HUR / SBU', category: 'Naval_USV', status: 'Combat_Proven',
+    specs: { mass_kg: 500, max_speed_kmh: 78, range_km: 800, payload_kg: 300, warhead_kg: 250, propulsion: 'Electric', guidance: ['GPS', 'Starlink', 'EO/IR'] },
+    costs: { unit_cost_usd: 200000, unit_cost_display: '200K$', learning_rate: 0.88 },
+    scores: { cost: 8, range: 7, precision: 7, stealth: 8, ai_autonomy: 2, ew_resistance: 5, scalability: 7, combat_proven: 8 },
+    operational: { combat_proven: true, conflicts_used: ['Mer Noire 2024-2025'], operators: ['Ukraine'], total_produced: 150 },
+    supply_chain: { critical_components: 5, max_dependency_pct: 40, main_dependency_country: 'Occident', weak_point: 'Batteries, liaison Starlink' },
+    description: 'USV naval furtif avec missiles Neptune R. A coul\u00E9 des patrouilleurs et endommag\u00E9 des navires russes.',
+  },
+  {
+    id: 'fury', name: 'Fury (CCA)', country: 'USA', countryCode: 'US',
+    manufacturer: 'Anduril', category: 'Loyal_Wingman', status: 'Development',
+    specs: { mass_kg: 2500, max_speed_kmh: 1000, range_km: 3000, endurance_hours: 5, ceiling_m: 15000, payload_kg: 500, propulsion: 'Turbojet', guidance: ['IA autonome', 'Satcom', 'Mesh network'] },
+    costs: { unit_cost_usd: 10000000, unit_cost_display: '10M$', learning_rate: 0.82 },
+    scores: { cost: 5, range: 9, precision: 8, stealth: 8, ai_autonomy: 4, ew_resistance: 8, scalability: 5, combat_proven: 0 },
+    operational: { combat_proven: false, operators: ['USA (USAF CCA)'], total_produced: 5 },
+    supply_chain: { critical_components: 20, max_dependency_pct: 10, main_dependency_country: 'USA', weak_point: 'IA combat certifi\u00E9e, moteur abordable' },
+    description: 'Loyal Wingman programme CCA. Autonomie IA compl\u00E8te, op\u00E9ration en essaim avec chasseur pilot\u00E9.',
+  },
+  {
+    id: 'kizilelma', name: 'Bayraktar K\u0131z\u0131lelma', country: 'T\u00FCrkiye', countryCode: 'TR',
+    manufacturer: 'Baykar', category: 'UCAV', status: 'Testing',
+    specs: { mass_kg: 6000, max_speed_kmh: 900, range_km: 930, endurance_hours: 5, ceiling_m: 10700, payload_kg: 1500, propulsion: 'Turbofan', guidance: ['AESA', 'EO/IR', 'Datalink'] },
+    costs: { unit_cost_usd: 20000000, unit_cost_display: '20M$', mco_annual_pct: 10, learning_rate: 0.83 },
+    scores: { cost: 4, range: 8, precision: 8, stealth: 6, ai_autonomy: 3, ew_resistance: 7, scalability: 4, combat_proven: 0 },
+    operational: { combat_proven: false, operators: ['T\u00FCrkiye'], total_produced: 3 },
+    supply_chain: { critical_components: 20, max_dependency_pct: 20, main_dependency_country: 'Ukraine/T\u00FCrkiye', weak_point: 'Moteur AI-322F ukrainien' },
+    description: 'UCAV furtif embarqu\u00E9 (TCG Anadolu). Appontage autonome, capacit\u00E9 air-air et air-sol.',
+  },
+  {
+    id: 'themis', name: 'THeMIS UGV', country: 'Estonie', countryCode: 'EE',
+    manufacturer: 'Milrem Robotics', category: 'UGV', status: 'Operational',
+    specs: { mass_kg: 1630, max_speed_kmh: 20, range_km: 50, endurance_hours: 12, payload_kg: 750, propulsion: 'Hybrid', guidance: ['GPS', 'LiDAR', 'IA navigation'] },
+    costs: { unit_cost_usd: 500000, unit_cost_display: '500K$', mco_annual_pct: 5, learning_rate: 0.85 },
+    scores: { cost: 6, range: 3, precision: 7, stealth: 5, ai_autonomy: 3, ew_resistance: 6, scalability: 6, combat_proven: 4 },
+    operational: { combat_proven: true, conflicts_used: ['Ukraine 2024 (tests)'], operators: ['Estonie', 'Pays-Bas', 'UK', 'Norv\u00E8ge'], total_produced: 100 },
+    supply_chain: { critical_components: 10, max_dependency_pct: 20, main_dependency_country: 'Europe', weak_point: 'Batteries, IA navigation' },
+    description: 'Robot terrestre modulaire. Transport logistique, ISR, RCWS. D\u00E9ploy\u00E9 dans plusieurs arm\u00E9es OTAN.',
+  },
 ];
 
-const THEATRES: Theatre[] = [
-  "Europe de l'Est",
-  "Moyen-Orient",
-  "Mer de Chine méridionale",
-  "Sahel",
+// ─── MATIÈRES CRITIQUES ───────────────────────────────────────
+const MATERIALS: CriticalMaterial[] = [
+  { id: 'gallium', name: 'Gallium', defense_usage: 'Semi-conducteurs GaN, radars AESA, EW', world_production_tons: 600, china_share_pct: 98, west_share_pct: 1, risk_level: 'Critical', substitution_delay_months: 36, alternative: 'GaAs (performances r\u00E9duites)' },
+  { id: 'germanium', name: 'Germanium', defense_usage: 'Optique IR, fibres optiques, capteurs', world_production_tons: 140, china_share_pct: 68, west_share_pct: 10, risk_level: 'Critical', substitution_delay_months: 24, alternative: 'Silicium (partiel)' },
+  { id: 'tungsten', name: 'Tungst\u00E8ne', defense_usage: 'P\u00E9n\u00E9trateurs cin\u00E9tiques, blindage', world_production_tons: 84000, china_share_pct: 84, west_share_pct: 5, risk_level: 'Critical', substitution_delay_months: 18, alternative: 'Uranium appauvri (controvers\u00E9)' },
+  { id: 'cobalt', name: 'Cobalt', defense_usage: 'Batteries Li-ion, superalliages turbines', world_production_tons: 190000, china_share_pct: 75, west_share_pct: 5, risk_level: 'High', substitution_delay_months: 24, alternative: 'Batteries LFP (sans cobalt)' },
+  { id: 'titanium', name: 'Titane', defense_usage: 'Cellules a\u00E9ronautiques, moteurs', world_production_tons: 240000, china_share_pct: 32, west_share_pct: 25, risk_level: 'High', substitution_delay_months: 18, alternative: 'Composites carbone (partiel)' },
+  { id: 'ree', name: 'Terres rares (NdFeB)', defense_usage: 'Moteurs drones, guidage, \u00E9lectronique', world_production_tons: 300000, china_share_pct: 70, west_share_pct: 15, risk_level: 'Critical', substitution_delay_months: 48, alternative: 'Aimants ferrite (10x plus lourd)' },
+  { id: 'lithium', name: 'Lithium', defense_usage: 'Batteries drones, v\u00E9hicules, stockage', world_production_tons: 130000, china_share_pct: 60, west_share_pct: 25, risk_level: 'High', substitution_delay_months: 12, alternative: 'Sodium-ion (\u00E9mergent)' },
 ];
 
-/* Pondérations par défaut selon la mission — littérales pour la lisibilité */
-const DEFAULT_POIDS: Record<Mission, [number, number, number, number, number]> = {
-  "ISR / Surveillance":     [10, 35, 10, 30, 15],
-  "Frappe de précision":    [15, 20, 35, 15, 15],
-  "Lutte anti-drone (C-UAS)": [30, 15, 30, 10, 15],
-  "Appui logistique":       [35, 40,  5, 10, 10],
+// ─── STOCKS & PRODUCTION ──────────────────────────────────────
+const STOCKS: StockEntry[] = [
+  { id: 's1', country: 'USA', system_name: 'Switchblade 600', system_id: 'switchblade600', estimated_stock: 3000, monthly_production: 200, annual_production: 2400, surge_capacity_18m: 6000, monthly_wartime_consumption: 500, months_of_stock_wartime: 6, limiting_factor: 'T\u00EAtes militaires anti-char', confidence_level: 4 },
+  { id: 's2', country: 'Russie', system_name: 'Lancet-3M', system_id: 'lancet3', estimated_stock: 15000, monthly_production: 3000, annual_production: 36000, surge_capacity_18m: 80000, monthly_wartime_consumption: 5000, months_of_stock_wartime: 3, limiting_factor: 'Composants \u00E9lectroniques', confidence_level: 3 },
+  { id: 's3', country: 'Iran/Russie', system_name: 'Shahed-136', system_id: 'shahed136', estimated_stock: 20000, monthly_production: 4000, annual_production: 48000, surge_capacity_18m: 120000, monthly_wartime_consumption: 3000, months_of_stock_wartime: 7, limiting_factor: 'Moteurs MD550', confidence_level: 2 },
+  { id: 's4', country: 'Ukraine', system_name: 'FPV kamikaze', system_id: 'fpv', estimated_stock: 200000, monthly_production: 100000, annual_production: 1200000, surge_capacity_18m: 3000000, monthly_wartime_consumption: 80000, months_of_stock_wartime: 2.5, limiting_factor: 'Op\u00E9rateurs form\u00E9s', confidence_level: 3 },
+  { id: 's5', country: 'USA', system_name: 'MQ-9B', system_id: 'mq9', estimated_stock: 300, monthly_production: 3, annual_production: 36, surge_capacity_18m: 70, limiting_factor: 'Moteurs certifi\u00E9s + optronique', confidence_level: 5 },
+  { id: 's6', country: 'Isra\u00EBl', system_name: 'Harop', system_id: 'harop', estimated_stock: 500, monthly_production: 20, annual_production: 240, surge_capacity_18m: 600, monthly_wartime_consumption: 50, months_of_stock_wartime: 10, limiting_factor: 'Capteurs radar passif', confidence_level: 3 },
+];
+
+// ─── DOCTRINES ────────────────────────────────────────────────
+const DOCTRINES: Doctrine[] = [
+  { country: 'USA', countryCode: 'US', dronization_level: 8, employment_concept: 'Pr\u00E9cision', budget_2025_bds: 842000, pct_gdp_2025: 3.4, drone_share_pct: 6, objective_2030_pct: 15, strategic_focus: 'CCA Loyal Wingman, essaims IA, pr\u00E9cision OTAN', key_systems: ['mq9', 'switchblade600', 'fury'] },
+  { country: 'Chine', countryCode: 'CN', dronization_level: 7, employment_concept: 'Masse + Pr\u00E9cision', budget_2025_bds: 296000, pct_gdp_2025: 1.6, drone_share_pct: 8, objective_2030_pct: 20, strategic_focus: 'A2/AD, essaims navals, IA combat autonome', key_systems: [] },
+  { country: 'Russie', countryCode: 'RU', dronization_level: 7, employment_concept: 'Masse', budget_2025_bds: 109000, pct_gdp_2025: 6.7, drone_share_pct: 12, objective_2030_pct: 25, strategic_focus: 'Massification FPV/Lancet, attrition par saturation', key_systems: ['lancet3', 'shahed136', 'fpv'] },
+  { country: 'T\u00FCrkiye', countryCode: 'TR', dronization_level: 9, employment_concept: 'Hybride', budget_2025_bds: 41000, pct_gdp_2025: 1.9, drone_share_pct: 15, objective_2030_pct: 30, strategic_focus: 'Export massif, gamme compl\u00E8te FPV \u00E0 UCAV, souverainet\u00E9', key_systems: ['tb2', 'akinci', 'kizilelma'] },
+  { country: 'Isra\u00EBl', countryCode: 'IL', dronization_level: 9, employment_concept: 'Pr\u00E9cision', budget_2025_bds: 28000, pct_gdp_2025: 5.5, drone_share_pct: 18, objective_2030_pct: 30, strategic_focus: 'C-UAS laser, loitering munitions, IA autonome', key_systems: ['harop', 'hero400', 'ironbeam'] },
+  { country: 'France', countryCode: 'FR', dronization_level: 5, employment_concept: 'Pr\u00E9cision', budget_2025_bds: 56000, pct_gdp_2025: 2.1, drone_share_pct: 3, objective_2030_pct: 10, strategic_focus: 'Eurodrone, SCAF, souverainet\u00E9 europ\u00E9enne', key_systems: ['eurodrone'] },
+  { country: 'Ukraine', countryCode: 'UA', dronization_level: 10, employment_concept: 'Masse', budget_2025_bds: 15000, pct_gdp_2025: 26, drone_share_pct: 35, objective_2030_pct: 50, strategic_focus: 'FPV massifi\u00E9s, USV navals, innovation terrain', key_systems: ['fpv', 'seababy', 'magura'] },
+  { country: 'Iran', countryCode: 'IR', dronization_level: 7, employment_concept: 'Masse + Proxy', budget_2025_bds: 10000, pct_gdp_2025: 2.5, drone_share_pct: 20, objective_2030_pct: 35, strategic_focus: 'Export proxies (Houthis, Hezbollah), saturation', key_systems: ['shahed136'] },
+];
+
+// ================================================================
+// HELPERS UI
+// ================================================================
+const fmt = (n: number, d = 0) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: d }).format(n);
+const fmtUSD = (n: number) => {
+  if (n >= 1_000_000_000) return `${fmt(n / 1_000_000_000, 1)} Md$`;
+  if (n >= 1_000_000) return `${fmt(n / 1_000_000, 1)} M$`;
+  if (n >= 1_000) return `${fmt(n / 1_000, 0)} K$`;
+  return `${fmt(n, 0)}$`;
+};
+const fmtPct = (n: number) => `${fmt(n * 100, 1)}%`;
+const tooltipFmt = (v: ValueType | undefined) => `${Number(v ?? 0).toLocaleString('fr-FR')}`;
+
+const COLORS = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'];
+const RISK_COLORS: Record<string, string> = { Critical: '#ef4444', High: '#f59e0b', Medium: '#3b82f6', Low: '#22c55e' };
+const STATUS_COLORS: Record<string, string> = {
+  Combat_Proven: '#22c55e', Operational: '#3b82f6', Testing: '#f59e0b',
+  Development: '#8b5cf6', Concept: '#6b7280', Prototype: '#06b6d4', Retired: '#374151',
 };
 
-/* Catalogue de systèmes */
-const CATALOGUE: Systeme[] = [
-  {
-    id: "tb2",
-    nom: "Bayraktar TB2",
-    origine: "Türkiye",
-    categorie: "MALE",
-    prixUnit: 5_000,
-    coutEfficacite: 6, autonomie: 8, precision: 7, discretion: 5, resilience: 5,
-    resume: "MALE tactique polyvalent, vétéran du Haut-Karabakh et de l'Ukraine. Missile MAM-C/L, autonomie 24h, plafond 7600m.",
-  },
-  {
-    id: "lancet3",
-    nom: "Lancet-3",
-    origine: "Russie",
-    categorie: "Munition rôdeuse",
-    prixUnit: 35,
-    coutEfficacite: 9, autonomie: 5, precision: 8, discretion: 7, resilience: 4,
-    resume: "Munition rôdeuse de croisière (~40km). Guidance électro-optique, tête militaire 3kg, massification possible par le coût.",
-  },
-  {
-    id: "switchblade600",
-    nom: "Switchblade 600",
-    origine: "USA",
-    categorie: "Munition rôdeuse",
-    prixUnit: 100,
-    coutEfficacite: 7, autonomie: 6, precision: 8, discretion: 8, resilience: 7,
-    resume: "Munition rôdeuse anti-blindé (~40km). Warhead anti-tank, man-portable, lien de données chiffré, résistant au brouillage.",
-  },
-  {
-    id: "harop",
-    nom: "Harop (IAI)",
-    origine: "Israël",
-    categorie: "Munition rôdeuse",
-    prixUnit: 500,
-    coutEfficacite: 6, autonomie: 7, precision: 9, discretion: 7, resilience: 8,
-    resume: "Loitering munition longue endurance (9h, 1000km). Guidage radar passif ou EO. Défense anti-radiation et C-RAM.",
-  },
-  {
-    id: "mq9",
-    nom: "MQ-9B SkyGuardian",
-    origine: "USA",
-    categorie: "MALE",
-    prixUnit: 30_000,
-    coutEfficacite: 3, autonomie: 9, precision: 9, discretion: 4, resilience: 9,
-    resume: "MALE de référence OTAN (40h, 1850km). Capteurs multi-spectraux, liaisons satcom, résistance à la guerre électronique avancée.",
-  },
-  {
-    id: "eurodrone",
-    nom: "Eurodrone (MALE EU)",
-    origine: "Europe",
-    categorie: "MALE",
-    prixUnit: 80_000,
-    coutEfficacite: 2, autonomie: 10, precision: 8, discretion: 5, resilience: 10,
-    resume: "Programme OCCAR franco-germano-hispano-italien. Certification STANAG, conformité espace aérien civil, liaison satcom dual-band.",
-  },
-  {
-    id: "shahed136",
-    nom: "Shahed-136 / Geran-2",
-    origine: "Iran / Russie",
-    categorie: "Munition rôdeuse",
-    prixUnit: 40,
-    coutEfficacite: 9, autonomie: 8, precision: 5, discretion: 6, resilience: 3,
-    resume: "Munition rôdeuse à longue portée (~2000km). Navigation inertielle + GPS, faible empreinte radar, utilisé massivement contre infrastructures.",
-  },
-  {
-    id: "fpv",
-    nom: "Drone FPV kamikaze",
-    origine: "Générique (UA/RU)",
-    categorie: "Mini-drone",
-    prixUnit: 1,
-    coutEfficacite: 10, autonomie: 2, precision: 5, discretion: 9, resilience: 2,
-    resume: "FPV artisanal à charge explosive (~1kg). Portée 5–15km, coût < 1 K€, pilotage vidéo temps réel. Massification tactique.",
-  },
+const SCORE_AXES: { key: keyof SystemScores; label: string }[] = [
+  { key: 'cost', label: 'Co\u00FBt' }, { key: 'range', label: 'Port\u00E9e' },
+  { key: 'precision', label: 'Pr\u00E9cision' }, { key: 'stealth', label: 'Furtivit\u00E9' },
+  { key: 'ai_autonomy', label: 'IA' }, { key: 'ew_resistance', label: 'R\u00E9s. EW' },
+  { key: 'scalability', label: 'Scalabilit\u00E9' }, { key: 'combat_proven', label: 'Combat' },
 ];
 
-/* Couleurs fixes pour positions A / B / C — littérales pour le scanner Tailwind */
-const POS_DOT: Record<number, string> = { 0: "bg-accent",  1: "bg-warning",  2: "bg-success"  };
-const POS_TXT: Record<number, string> = { 0: "text-accent", 1: "text-warning", 2: "text-success" };
-const POS_BAR: Record<number, string> = { 0: "bg-accent",  1: "bg-warning",  2: "bg-success"  };
-const POS_LBL: Record<number, string> = { 0: "A", 1: "B", 2: "C" };
+// ================================================================
+// TABS
+// ================================================================
+const TABS = [
+  { id: 1, label: 'Dashboard' },
+  { id: 2, label: 'Catalogue' },
+  { id: 3, label: 'Comparateur' },
+  { id: 4, label: 'TCO' },
+  { id: 5, label: 'Co\u00FBt/Effet' },
+  { id: 6, label: 'Wargame' },
+  { id: 7, label: 'Supply Chain' },
+  { id: 8, label: 'Stocks & Doctrines' },
+];
 
-const CRITERES = [
-  { key: "coutEfficacite", label: "Coût-efficacité",    desc: "Rapport performance / coût unitaire",            poidKey: "poidsCout"       },
-  { key: "autonomie",      label: "Autonomie",           desc: "Endurance, rayon d'action, portée",             poidKey: "poidsAutonomie"  },
-  { key: "precision",      label: "Précision / létalité", desc: "Efficacité de frappe ou qualité capteurs ISR", poidKey: "poidsPrecision"  },
-  { key: "discretion",     label: "Discrétion",          desc: "Signature acoustique, radar, thermique",        poidKey: "poidsDiscretion" },
-  { key: "resilience",     label: "Résilience EW",       desc: "Résistance brouillage GPS, liaisons, leurres", poidKey: "poidsResilience" },
-] as const;
-
-const defaultFormData: FormData = {
-  mission: "Frappe de précision",
-  theatre: "Europe de l'Est",
-  budget: 50_000,
-  idA: "tb2",
-  idB: "lancet3",
-  idC: "switchblade600",
-  poidsCout:      15,
-  poidsAutonomie: 20,
-  poidsPrecision: 35,
-  poidsDiscretion: 15,
-  poidsResilience: 15,
-};
-
-/* ═══════════════════════════════════════════════════════ Computations ══ */
-
-function computeMetrics(d: FormData): Metrics {
-  const totalPoids =
-    d.poidsCout + d.poidsAutonomie + d.poidsPrecision + d.poidsDiscretion + d.poidsResilience;
-  const div = totalPoids > 0 ? totalPoids : 100;
-
-  function scoreFor(sys: Systeme): number {
-    return (
-      sys.coutEfficacite * d.poidsCout      / div +
-      sys.autonomie      * d.poidsAutonomie  / div +
-      sys.precision      * d.poidsPrecision  / div +
-      sys.discretion     * d.poidsDiscretion / div +
-      sys.resilience     * d.poidsResilience / div
-    );
-  }
-
-  const getSys = (id: string) => CATALOGUE.find((s) => s.id === id) ?? CATALOGUE[0];
-
-  const sA = getSys(d.idA);
-  const sB = getSys(d.idB);
-  const sC = getSys(d.idC);
-
-  const toSS = (sys: Systeme): SystemeScore => ({
-    sys,
-    scoreGlobal: scoreFor(sys),
-    unitesAcquerables: sys.prixUnit > 0 ? Math.floor(d.budget / sys.prixUnit) : 0,
-  });
-
-  const scores: [SystemeScore, SystemeScore, SystemeScore] = [toSS(sA), toSS(sB), toSS(sC)];
-  const classement = [...scores].sort((a, b) => b.scoreGlobal - a.scoreGlobal) as
-    [SystemeScore, SystemeScore, SystemeScore];
-
-  /* Recommandation doctrinale */
-  const winner = classement[0];
-  const missionLc = d.mission.toLowerCase();
-  let rec = `Dans le contexte "${d.theatre}" pour une mission "${d.mission}", `;
-  rec += `le système ${winner.sys.nom} (${winner.sys.origine}) obtient le score pondéré le plus élevé `;
-  rec += `(${winner.scoreGlobal.toFixed(2)}/10). `;
-
-  if (winner.sys.categorie === "MALE") {
-    rec += `En tant que drone MALE, il offre une persistance opérationnelle supérieure au détriment du coût unitaire. `;
-    rec += `Le budget de ${(d.budget / 1_000).toFixed(0)} M€ permet d'acquérir ${winner.unitesAcquerables} appareil${winner.unitesAcquerables > 1 ? "s" : ""}. `;
-    rec += `Recommandé pour un engagement durable nécessitant ISR continu ou frappe de précision sur cibles de haute valeur.`;
-  } else if (winner.sys.categorie === "Munition rôdeuse") {
-    rec += `En tant que munition rôdeuse, il permet une massification tactique : `;
-    rec += `${winner.unitesAcquerables.toLocaleString("fr-FR")} unités avec le budget alloué. `;
-    if (missionLc.includes("frappe") || missionLc.includes("c-uas")) {
-      rec += `Cette saturation est particulièrement pertinente pour submerger les défenses adverses ou la C-RAM. `;
-    }
-    rec += `La doctrine d'emploi recommande des essaims par salves pour compenser la vulnérabilité aux contre-mesures EW.`;
-  } else {
-    rec += `Avec ${winner.unitesAcquerables.toLocaleString("fr-FR")} unités acquérables, `;
-    rec += `la saturation tactique compense les limites en endurance. `;
-    rec += `Usage recommandé en appui rapproché et reconnaissance de contact.`;
-  }
-
-  return { scores, classement, totalPoids, recommandation: rec };
-}
-
-function fmtKE(ke: number): string {
-  if (ke >= 1_000_000) return (ke / 1_000_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " Md€";
-  if (ke >= 1_000)     return (ke / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " M€";
-  if (ke < 1)          return (ke * 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " €";
-  return ke.toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " K€";
-}
-
-type BadgeResult = { cls: string; label: string };
-
-function scoreBadge(score: number): BadgeResult {
-  if (score >= 7.5) return { cls: "badge badge-success", label: "Excellent" };
-  if (score >= 6.0) return { cls: "badge badge-warning", label: "Satisfaisant" };
-  return { cls: "badge badge-danger", label: "Insuffisant" };
-}
-
-/* ════════════════════════════════════════════════════ Sub-components ══ */
-
-function StepIndicator({ current }: { current: number }) {
-  return (
-    <div className="flex mb-8">
-      {STEP_LABELS.map((label, i) => {
-        const step = i + 1;
-        const isCompleted = step < current;
-        const isCurrent   = step === current;
-        const isLast      = step === STEP_LABELS.length;
-        return (
-          <div key={step} className={`flex flex-col ${!isLast ? "flex-1" : ""}`}>
-            <div className="flex items-center">
-              <div
-                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
-                  isCompleted ? "bg-success text-white"
-                  : isCurrent ? "bg-accent text-white"
-                  : "bg-surface-raised border border-border text-foreground-subtle"
-                }`}
-              >
-                {isCompleted ? "✓" : step}
-              </div>
-              {!isLast && (
-                <div className={`flex-1 h-px ml-2 transition-colors ${step < current ? "bg-success" : "bg-border"}`} />
-              )}
-            </div>
-            <span className={`text-xs mt-1.5 hidden sm:block whitespace-nowrap ${isCurrent ? "text-foreground font-medium" : "text-foreground-subtle"}`}>
-              {label}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-const INPUT_CLS =
-  "w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:border-border-strong transition-colors";
-
-/* ═══════════════════════════════════════════════════════════════ Page ══ */
-
+// ================================================================
+// PAGE
+// ================================================================
 export default function DefenseDronesPage() {
-  const [currentStep, setCurrentStep]   = useState(1);
-  const [formData, setFormData]         = useState<FormData>(defaultFormData);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [activeTab, setActiveTab] = useState(1);
 
-  function update(patch: Partial<FormData>) {
-    setFormData((prev) => ({ ...prev, ...patch }));
-  }
+  // Comparateur state
+  const [compA, setCompA] = useState('tb2');
+  const [compB, setCompB] = useState('lancet3');
 
-  function applyMissionDefaults(mission: Mission) {
-    const [c, a, p, d, r] = DEFAULT_POIDS[mission];
-    update({ mission, poidsCout: c, poidsAutonomie: a, poidsPrecision: p, poidsDiscretion: d, poidsResilience: r });
-  }
+  // TCO state
+  const [tcoSystem, setTcoSystem] = useState('tb2');
+  const [tcoQty, setTcoQty] = useState(50);
+  const [tcoYears, setTcoYears] = useState(15);
 
-  const metrics = computeMetrics(formData);
+  // CPE state
+  const [cpeSystem, setCpeSystem] = useState('lancet3');
+  const [cpeTargetValue, setCpeTargetValue] = useState(5000000);
+  const [cpePHit, setCpePHit] = useState(0.7);
+  const [cpePKill, setCpePKill] = useState(0.8);
 
-  /* ── Step content ───────────────────────────────────────────────────── */
+  // Wargame state
+  const [wgAttackers, setWgAttackers] = useState<WargameAttacker[]>([
+    { systemId: 'shahed136', name: 'Shahed-136', quantity: 100, unitCost: 40000, pHit: 0.6, pKill: 0.8 },
+    { systemId: 'lancet3', name: 'Lancet-3M', quantity: 50, unitCost: 35000, pHit: 0.7, pKill: 0.85 },
+  ]);
+  const [wgDefenders, setWgDefenders] = useState<WargameDefender[]>([
+    { systemId: 'ironbeam', name: 'Iron Beam', quantity: 4, unitCost: 3, pIntercept: 0.90, maxEngagements: 30 },
+  ]);
+  const [wgTargets] = useState<WargameTarget[]>([
+    { name: 'Centre de commandement', value: 50000000, quantity: 1, hardness: 0.3 },
+    { name: 'D\u00E9p\u00F4t logistique', value: 20000000, quantity: 3, hardness: 0.1 },
+  ]);
 
-  const stepContent: Record<number, React.ReactNode> = {
+  // ─── Computed ───────────────────────────────────────────────
+  const sysA = SYSTEMS.find(s => s.id === compA) ?? SYSTEMS[0];
+  const sysB = SYSTEMS.find(s => s.id === compB) ?? SYSTEMS[1];
 
-    /* ── Étape 1 — Contexte opérationnel ─────────────────────────────── */
-    1: (
-      <div className="flex flex-col gap-6">
-        <p className="text-sm text-foreground-muted leading-relaxed">
-          Définissez le contexte opérationnel. La mission sélectionnée initialise
-          automatiquement les pondérations des critères d&apos;évaluation,
-          que vous pourrez ajuster à l&apos;étape suivante.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="mission" className="text-sm font-medium text-foreground">Mission principale</label>
-            <select
-              id="mission"
-              value={formData.mission}
-              onChange={(e) => applyMissionDefaults(e.target.value as Mission)}
-              className={INPUT_CLS}
-            >
-              {MISSIONS.map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
-            <p className="text-xs text-foreground-subtle">
-              Détermine les pondérations initiales des 5 critères d&apos;évaluation.
-            </p>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="theatre" className="text-sm font-medium text-foreground">Théâtre d&apos;opérations</label>
-            <select
-              id="theatre"
-              value={formData.theatre}
-              onChange={(e) => update({ theatre: e.target.value as Theatre })}
-              className={INPUT_CLS}
-            >
-              {THEATRES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="budget" className="text-sm font-medium text-foreground">
-            Budget d&apos;acquisition
-            <span className="ml-1 text-xs font-normal text-foreground-subtle">(K€)</span>
-          </label>
-          <input
-            id="budget"
-            type="number"
-            min={1}
-            step={1000}
-            value={formData.budget}
-            onChange={(e) => update({ budget: Number(e.target.value) })}
-            className={INPUT_CLS}
-          />
-          <p className="text-xs text-foreground-subtle">
-            Enveloppe allouée pour l&apos;acquisition — détermine le nombre d&apos;unités achetables par système.
-          </p>
-        </div>
+  const radarData = SCORE_AXES.map(ax => ({
+    axis: ax.label, [sysA.name]: sysA.scores[ax.key], [sysB.name]: sysB.scores[ax.key],
+  }));
 
-        {/* Aperçu pondérations selon mission */}
-        <div className="card p-4 flex flex-col gap-3">
-          <p className="data-label">Pondérations initiales — mission &laquo;{formData.mission}&raquo;</p>
-          <div className="flex flex-col gap-2">
-            {CRITERES.map(({ label, poidKey }) => {
-              const val = formData[poidKey] as number;
-              return (
-                <div key={poidKey} className="flex items-center gap-3">
-                  <span className="text-xs text-foreground-muted w-36 shrink-0">{label}</span>
-                  <div className="flex-1 h-1.5 bg-surface-raised rounded-full overflow-hidden">
-                    <div className="h-full bg-accent rounded-full" style={{ width: `${val}%` }} />
-                  </div>
-                  <span className="tabnum text-xs font-medium text-foreground w-8 text-right">{val} %</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    ),
-
-    /* ── Étape 2 — Systèmes & pondération ────────────────────────────── */
-    2: (
-      <div className="flex flex-col gap-6">
-        <p className="text-sm text-foreground-muted leading-relaxed">
-          Sélectionnez trois systèmes à comparer et affinez les pondérations selon vos
-          priorités opérationnelles. La somme des pondérations est normalisée automatiquement.
-        </p>
-
-        {/* Sélection des 3 systèmes */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {(["idA", "idB", "idC"] as const).map((key, i) => {
-            const sys = CATALOGUE.find((s) => s.id === formData[key]) ?? CATALOGUE[0];
-            return (
-              <div key={key} className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className={`h-5 w-5 rounded-full text-xs font-bold flex items-center justify-center shrink-0 text-white ${POS_DOT[i]}`}>
-                    {POS_LBL[i]}
-                  </span>
-                  <label className="text-sm font-medium text-foreground">Système {POS_LBL[i]}</label>
-                </div>
-                <select
-                  value={formData[key]}
-                  onChange={(e) => update({ [key]: e.target.value } as Partial<FormData>)}
-                  className={INPUT_CLS}
-                >
-                  {CATALOGUE.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.nom} ({s.origine})
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-foreground-subtle leading-relaxed">{sys.resume}</p>
-                <p className="text-xs text-foreground-subtle">
-                  Prix unitaire : <span className="font-semibold text-foreground">{fmtKE(sys.prixUnit)}</span>
-                  {" · "}Catégorie : <span className="font-medium">{sys.categorie}</span>
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Sliders de pondération */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <p className="data-label">Pondération des critères</p>
-            <span className={`text-xs font-medium ${metrics.totalPoids === 100 ? "text-success" : "text-warning"}`}>
-              Total : {metrics.totalPoids} % {metrics.totalPoids !== 100 ? "(normalisé)" : ""}
-            </span>
-          </div>
-          <div className="flex flex-col gap-4">
-            {CRITERES.map(({ label, desc, poidKey }) => (
-              <div key={poidKey} className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-foreground">{label}</label>
-                  <span className="tabnum text-sm font-semibold text-foreground">{formData[poidKey]} %</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={50}
-                  step={5}
-                  value={formData[poidKey] as number}
-                  onChange={(e) => update({ [poidKey]: Number(e.target.value) } as Partial<FormData>)}
-                  className="w-full accent-accent"
-                />
-                <p className="text-xs text-foreground-subtle">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
+  const tcoSys = SYSTEMS.find(s => s.id === tcoSystem) ?? SYSTEMS[0];
+  const tcoInput: TCOInput = {
+    unitCost: tcoSys.costs.unit_cost_usd, quantity: tcoQty,
+    learningRate: tcoSys.costs.learning_rate ?? 0.85,
+    mcoAnnualPct: tcoSys.costs.mco_annual_pct ?? 0,
+    trainingCostPerUnit: tcoSys.costs.training_cost_usd ?? 0,
+    attritionRateAnnual: tcoSys.operational.attrition_rate ?? 2,
+    yearsOfService: tcoYears, inflationRate: 0.035,
+    isConsumable: ['FPV', 'Loitering_Munition'].includes(tcoSys.category),
   };
+  const tcoResult = useMemo(() => calculateTCO(tcoInput), [tcoSystem, tcoQty, tcoYears]);
 
-  /* ── Render ─────────────────────────────────────────────────────────── */
+  const cpeSys = SYSTEMS.find(s => s.id === cpeSystem) ?? SYSTEMS[1];
+  const cpeInput: CPEInput = { munitionCost: cpeSys.costs.unit_cost_usd, pHit: cpePHit, pKillGivenHit: cpePKill, targetValue: cpeTargetValue };
+  const cpeResult = useMemo(() => calculateCPE(cpeInput), [cpeSystem, cpeTargetValue, cpePHit, cpePKill]);
+
+  const wgInput: WargameInput = { attackSystems: wgAttackers, defenseSystems: wgDefenders, targets: wgTargets };
+  const wgResult = useMemo(() => runWargame(wgInput), [wgAttackers, wgDefenders, wgTargets]);
+
+  // ─── KPI Dashboard ──────────────────────────────────────────
+  const totalSystems = SYSTEMS.length;
+  const combatProvenCount = SYSTEMS.filter(s => s.operational.combat_proven).length;
+  const avgCostScore = SYSTEMS.reduce((s, sys) => s + sys.scores.cost, 0) / totalSystems;
+  const avgAIScore = SYSTEMS.reduce((s, sys) => s + sys.scores.ai_autonomy, 0) / totalSystems;
+  const maxDep = Math.max(...SYSTEMS.map(s => s.supply_chain.max_dependency_pct));
+  const categoryDist = SYSTEMS.reduce((acc, s) => { acc[s.category] = (acc[s.category] || 0) + 1; return acc; }, {} as Record<string, number>);
 
   return (
-    <div className="flex flex-col min-h-svh bg-background">
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-6">
+      {/* HEADER */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">D\u00E9fense & Drones — Simulateur Strat\u00E9gique</h1>
+        <p className="text-gray-400 mt-1">{totalSystems} syst\u00E8mes · 7 mat\u00E9riaux critiques · 8 doctrines · Donn\u00E9es OSINT Mars 2026</p>
+      </div>
 
-      <header className="sticky top-0 z-50 bg-surface border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 text-sm text-foreground-muted hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </Link>
-          <span className="badge badge-neutral">Module 7 sur 8</span>
-        </div>
-      </header>
+      {/* TABS */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setActiveTab(t.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === t.id ? 'bg-emerald-600 text-white shadow' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
+            }`}>{t.label}</button>
+        ))}
+      </div>
 
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 w-full py-12 flex flex-col gap-16">
+      <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
 
-        {/* ══ PART A — Éditoriale ════════════════════════════════════════ */}
-        <section className="flex flex-col gap-10">
-
-          <div className="flex flex-col gap-4">
-            <span className="badge badge-info self-start">Module 7 sur 8</span>
-            <h1 className="text-foreground">Défense &amp; Drones — Analyse coût-efficacité</h1>
-            <p className="text-foreground-muted max-w-2xl" style={{ fontSize: "var(--text-lg)" }}>
-              Comparez trois systèmes de drones sur cinq critères pondérés selon la mission
-              et le théâtre d&apos;opérations. Calculez le score global et la recommandation
-              doctrinale en fonction du budget alloué.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-5">
-            <p className="data-label">Ce que ce module analyse</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* ═══ 1. DASHBOARD ═══ */}
+        {activeTab === 1 && (
+          <section>
+            <h2 className="text-xl font-bold mb-4">Vue d&apos;ensemble</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {[
-                {
-                  icon: Shield,
-                  title: "Scoring multicritère",
-                  detail: "5 critères pondérés : coût-efficacité, autonomie, précision/létalité, discrétion (signature), résilience à la guerre électronique. Pondérations ajustables selon la mission.",
-                },
-                {
-                  icon: Target,
-                  title: "Catalogue de 8 systèmes",
-                  detail: "Bayraktar TB2, Lancet-3, Switchblade 600, Harop, MQ-9B, Eurodrone, Shahed-136, FPV kamikaze. Données issues de sources ouvertes (OSINT).",
-                },
-                {
-                  icon: Radar,
-                  title: "Recommandation doctrinale",
-                  detail: "Score global pondéré, nombre d'unités achetables dans le budget, et recommandation d'emploi selon le type de système (MALE, munition rôdeuse, mini-drone).",
-                },
-              ].map(({ icon: Icon, title, detail }) => (
-                <div key={title} className="card p-5 flex flex-col gap-3">
-                  <Icon className="h-5 w-5 text-accent" strokeWidth={1.75} />
-                  <div>
-                    <p className="text-sm font-semibold text-foreground mb-1">{title}</p>
-                    <p className="text-xs text-foreground-muted leading-relaxed">{detail}</p>
-                  </div>
+                { label: 'Syst\u00E8mes', val: `${totalSystems}`, sub: `${combatProvenCount} combat proven` },
+                { label: 'Score co\u00FBt moyen', val: `${fmt(avgCostScore, 1)}/10`, sub: 'Scalabilit\u00E9 \u00E9conomique' },
+                { label: 'IA autonomie moy.', val: `${fmt(avgAIScore, 1)}/4`, sub: '\u00C9chelle OTAN' },
+                { label: 'D\u00E9pendance max', val: `${maxDep}%`, sub: 'Supply chain' },
+              ].map(k => (
+                <div key={k.label} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+                  <p className="text-xs text-gray-400 uppercase">{k.label}</p>
+                  <p className="text-2xl font-bold text-white mt-1">{k.val}</p>
+                  <p className="text-xs text-gray-500 mt-1">{k.sub}</p>
                 </div>
               ))}
             </div>
-          </div>
 
-          <div className="flex flex-col gap-4">
-            <p className="data-label">Critères d&apos;évaluation</p>
-            <ul className="flex flex-col gap-3">
+            {/* Distribution par catégorie */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold text-gray-300 mb-3">R\u00E9partition par cat\u00E9gorie</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={Object.entries(categoryDist).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value }))}
+                        cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={2} dataKey="value"
+                        label={({ name, percent }: { name?: string; percent?: number }) => `${(name ?? '').split(' ')[0]} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                        labelLine={false}>
+                        {Object.keys(categoryDist).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip formatter={(v: ValueType | undefined) => tooltipFmt(v)} contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-300 mb-3">Scores moyens par cat\u00E9gorie</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={Object.entries(categoryDist).map(([cat]) => {
+                      const sys = SYSTEMS.filter(s => s.category === cat);
+                      const avg = (key: keyof SystemScores) => sys.reduce((s, x) => s + x.scores[key], 0) / sys.length;
+                      return { cat: cat.replace(/_/g, ' ').substring(0, 12), cost: +avg('cost').toFixed(1), precision: +avg('precision').toFixed(1), ew: +avg('ew_resistance').toFixed(1) };
+                    })}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                      <XAxis dataKey="cat" tick={{ fill: '#999', fontSize: 10 }} />
+                      <YAxis domain={[0, 10]} tick={{ fill: '#999' }} />
+                      <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                      <Legend />
+                      <Bar dataKey="cost" fill="#22c55e" name="Co\u00FBt" />
+                      <Bar dataKey="precision" fill="#3b82f6" name="Pr\u00E9cision" />
+                      <Bar dataKey="ew" fill="#f59e0b" name="R\u00E9s. EW" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ═══ 2. CATALOGUE ═══ */}
+        {activeTab === 2 && (
+          <section>
+            <h2 className="text-xl font-bold mb-4">Catalogue — {SYSTEMS.length} syst\u00E8mes</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-700 text-gray-400">
+                    {['Syst\u00E8me', 'Pays', 'Cat\u00E9gorie', 'Statut', 'Co\u00FBt unit.', 'Port\u00E9e', 'Co\u00FBt', 'Pr\u00E9c.', 'EW', 'IA'].map(h => (
+                      <th key={h} className="py-2 px-3 text-left text-xs">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {SYSTEMS.map(sys => (
+                    <tr key={sys.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                      <td className="py-2 px-3 font-semibold text-white">{sys.name}</td>
+                      <td className="py-2 px-3 text-gray-300">{sys.country}</td>
+                      <td className="py-2 px-3"><span className="px-2 py-0.5 rounded text-xs bg-gray-700">{sys.category.replace(/_/g, ' ')}</span></td>
+                      <td className="py-2 px-3"><span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: STATUS_COLORS[sys.status] + '30', color: STATUS_COLORS[sys.status] }}>{sys.status.replace(/_/g, ' ')}</span></td>
+                      <td className="py-2 px-3 tabular-nums text-emerald-400">{sys.costs.unit_cost_display}</td>
+                      <td className="py-2 px-3 tabular-nums">{fmt(sys.specs.range_km)} km</td>
+                      <td className="py-2 px-3 tabular-nums font-bold">{sys.scores.cost}/10</td>
+                      <td className="py-2 px-3 tabular-nums">{sys.scores.precision}/10</td>
+                      <td className="py-2 px-3 tabular-nums">{sys.scores.ew_resistance}/10</td>
+                      <td className="py-2 px-3 tabular-nums">{sys.scores.ai_autonomy}/4</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* ═══ 3. COMPARATEUR RADAR ═══ */}
+        {activeTab === 3 && (
+          <section>
+            <h2 className="text-xl font-bold mb-4">Comparateur — 8 axes</h2>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="text-xs text-gray-400">Syst\u00E8me A (bleu)</label>
+                <select value={compA} onChange={e => setCompA(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1">
+                  {SYSTEMS.map(s => <option key={s.id} value={s.id}>{s.name} ({s.country})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-400">Syst\u00E8me B (rouge)</label>
+                <select value={compB} onChange={e => setCompB(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1">
+                  {SYSTEMS.map(s => <option key={s.id} value={s.id}>{s.name} ({s.country})</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Radar */}
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={radarData}>
+                    <PolarGrid stroke="#333" />
+                    <PolarAngleAxis dataKey="axis" tick={{ fill: '#999', fontSize: 11 }} />
+                    <PolarRadiusAxis angle={90} domain={[0, 10]} tick={{ fill: '#666' }} />
+                    <Radar name={sysA.name} dataKey={sysA.name} stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} />
+                    <Radar name={sysB.name} dataKey={sysB.name} stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} />
+                    <Legend />
+                    <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Ratio asymétrique */}
+              <div className="flex flex-col gap-4">
+                <div className="bg-gray-800 rounded-xl p-6 text-center">
+                  <p className="text-sm text-gray-400">Ratio co\u00FBt unitaire</p>
+                  <p className="text-5xl font-black text-emerald-400 mt-2">
+                    {sysA.costs.unit_cost_usd > sysB.costs.unit_cost_usd
+                      ? `${fmt(sysA.costs.unit_cost_usd / sysB.costs.unit_cost_usd, 0)}\u00D7`
+                      : sysB.costs.unit_cost_usd > sysA.costs.unit_cost_usd
+                        ? `${fmt(sysB.costs.unit_cost_usd / sysA.costs.unit_cost_usd, 0)}\u00D7`
+                        : '1\u00D7'
+                    }
+                  </p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    {sysA.costs.unit_cost_display} vs {sysB.costs.unit_cost_display}
+                  </p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr className="border-b border-gray-700"><th className="py-2 text-left text-gray-400">Axe</th><th className="py-2 text-right text-blue-400">{sysA.name}</th><th className="py-2 text-right text-red-400">{sysB.name}</th></tr></thead>
+                    <tbody>
+                      {SCORE_AXES.map(ax => (
+                        <tr key={ax.key} className="border-b border-gray-800">
+                          <td className="py-1.5 text-gray-300">{ax.label}</td>
+                          <td className={`py-1.5 text-right tabular-nums font-semibold ${sysA.scores[ax.key] >= sysB.scores[ax.key] ? 'text-blue-400' : 'text-gray-500'}`}>{sysA.scores[ax.key]}</td>
+                          <td className={`py-1.5 text-right tabular-nums font-semibold ${sysB.scores[ax.key] >= sysA.scores[ax.key] ? 'text-red-400' : 'text-gray-500'}`}>{sysB.scores[ax.key]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ═══ 4. TCO ═══ */}
+        {activeTab === 4 && (
+          <section>
+            <h2 className="text-xl font-bold mb-4">Simulateur TCO — Co\u00FBt total de possession</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div>
+                <label className="text-xs text-gray-400">Syst\u00E8me</label>
+                <select value={tcoSystem} onChange={e => setTcoSystem(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1">
+                  {SYSTEMS.map(s => <option key={s.id} value={s.id}>{s.name} — {s.costs.unit_cost_display}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-400">Quantit\u00E9 : {tcoQty.toLocaleString('fr-FR')}</label>
+                <input type="range" min={1} max={10000} value={tcoQty} onChange={e => setTcoQty(+e.target.value)} className="w-full mt-1 accent-emerald-500" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400">Ann\u00E9es de service : {tcoYears}</label>
+                <input type="range" min={1} max={30} value={tcoYears} onChange={e => setTcoYears(+e.target.value)} className="w-full mt-1 accent-emerald-500" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               {[
-                { title: "Coût-efficacité", detail: "Rapport entre la performance opérationnelle et le coût unitaire d'acquisition. Un score élevé = système abordable pour les capacités offertes. Crucial pour les doctrines de massification." },
-                { title: "Autonomie", detail: "Endurance de vol, rayon d'action et portée effective. Déterminant pour les missions ISR prolongées ou les frappes lointaines. Les MALE excellent, les FPV sont très limités." },
-                { title: "Précision / létalité", detail: "Pour les missions de frappe : précision du guidage terminal et efficacité de la charge militaire. Pour l'ISR : résolution des capteurs et qualité du renseignement produit." },
-                { title: "Discrétion", detail: "Signature acoustique, radar (RCS) et thermique. Un score élevé = difficile à détecter. Les FPV et mini-drones sont furtifs par leur petite taille ; les MALE sont facilement trackés." },
-                { title: "Résilience EW", detail: "Résistance au brouillage GPS, leurrage de navigation inertielle et coupure des liaisons de données. Critique en Europe de l'Est (environnement EW dense). Les systèmes OTAN ont l'avantage." },
-              ].map(({ title, detail }) => (
-                <li key={title} className="flex gap-3 items-start">
-                  <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0 mt-[7px]" />
-                  <div>
-                    <span className="text-sm font-semibold text-foreground">{title}</span>
-                    <span className="text-sm text-foreground-muted"> — {detail}</span>
-                  </div>
-                </li>
+                { label: 'TCO Total', val: fmtUSD(tcoResult.totalTCO), color: 'text-white' },
+                { label: 'TCO / unit\u00E9', val: fmtUSD(tcoResult.tcoPerUnit), color: 'text-emerald-400' },
+                { label: 'TCO / an', val: fmtUSD(tcoResult.tcoPerYear), color: 'text-blue-400' },
+                { label: '\u00C9conomie learning', val: fmtUSD(tcoResult.savingsVsLinear), color: 'text-amber-400' },
+              ].map(k => (
+                <div key={k.label} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+                  <p className="text-xs text-gray-400">{k.label}</p>
+                  <p className={`text-xl font-bold mt-1 ${k.color}`}>{k.val}</p>
+                </div>
               ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* ══ PART B — Wizard ════════════════════════════════════════════ */}
-        <section className="flex flex-col gap-4">
-          <p className="data-label">Saisie des données</p>
-
-          <div className="card-raised p-6 sm:p-8">
-            <StepIndicator current={currentStep} />
-
-            <div className="mb-7">
-              <h2 className="text-foreground" style={{ fontSize: "var(--text-xl)" }}>
-                Étape {currentStep} — {STEP_LABELS[currentStep - 1]}
-              </h2>
             </div>
 
-            {stepContent[currentStep]}
-
-            <div className="flex items-center justify-between mt-10 pt-6 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setCurrentStep((s) => s - 1)}
-                disabled={currentStep === 1}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground-muted border border-border rounded-md hover:text-foreground hover:border-border-strong transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Précédent
-              </button>
-
-              {currentStep < STEP_LABELS.length ? (
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep((s) => s + 1)}
-                  className="flex items-center gap-2 px-5 py-2 bg-accent text-white text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
-                >
-                  Suivant
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setHasSubmitted(true)}
-                  className="flex items-center gap-2 px-5 py-2 bg-accent text-white text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
-                >
-                  <Play className="h-4 w-4" />
-                  Lancer l&apos;analyse
-                </button>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* TCO breakdown pie */}
+              <div>
+                <h3 className="font-semibold text-gray-300 mb-3">D\u00E9composition TCO</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={tcoResult.tcoBreakdown.filter(b => b.value > 0)} cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value"
+                        label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false}>
+                        {tcoResult.tcoBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+                      </Pie>
+                      <Tooltip formatter={(v: ValueType | undefined) => fmtUSD(Number(v ?? 0))} contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              {/* Learning curve */}
+              <div>
+                <h3 className="font-semibold text-gray-300 mb-3">Courbe d&apos;apprentissage (Wright)</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={tcoResult.learningCurveData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                      <XAxis dataKey="unit" tick={{ fill: '#999', fontSize: 10 }} />
+                      <YAxis tick={{ fill: '#999', fontSize: 10 }} tickFormatter={(v: number) => fmtUSD(v)} />
+                      <Tooltip formatter={(v: ValueType | undefined) => fmtUSD(Number(v ?? 0))} contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                      <Legend />
+                      <Line type="monotone" dataKey="cost" stroke="#3b82f6" name="Co\u00FBt unit\u00E9 N" dot={false} />
+                      <Line type="monotone" dataKey="avgCost" stroke="#22c55e" name="Co\u00FBt moyen" dot={false} strokeDasharray="5 5" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        {/* ══ PART C — Résultats ═════════════════════════════════════════ */}
-        {hasSubmitted && (
-          <section className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <p className="data-label">Résultats de l&apos;analyse</p>
-              <span className="badge badge-success">Analyse terminée</span>
+        {/* ═══ 5. CPE ═══ */}
+        {activeTab === 5 && (
+          <section>
+            <h2 className="text-xl font-bold mb-4">Co\u00FBt par Effet (CPE)</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div>
+                <label className="text-xs text-gray-400">Munition</label>
+                <select value={cpeSystem} onChange={e => setCpeSystem(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1">
+                  {SYSTEMS.filter(s => ['FPV', 'Loitering_Munition', 'Naval_USV'].includes(s.category)).map(s => <option key={s.id} value={s.id}>{s.name} — {s.costs.unit_cost_display}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-400">Valeur cible ($)</label>
+                <input type="number" value={cpeTargetValue} onChange={e => setCpeTargetValue(+e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400">P(touch\u00E9) : {(cpePHit * 100).toFixed(0)}%</label>
+                <input type="range" min={0.1} max={1} step={0.05} value={cpePHit} onChange={e => setCpePHit(+e.target.value)} className="w-full mt-1 accent-emerald-500" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400">P(kill|touch\u00E9) : {(cpePKill * 100).toFixed(0)}%</label>
+                <input type="range" min={0.1} max={1} step={0.05} value={cpePKill} onChange={e => setCpePKill(+e.target.value)} className="w-full mt-1 accent-emerald-500" />
+              </div>
             </div>
 
-            {/* Podium — 3 KPI cards classées */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {metrics.classement.map((ss, rank) => {
-                const originalIdx = metrics.scores.findIndex((s) => s.sys.id === ss.sys.id);
-                return (
-                  <div key={ss.sys.id} className="card p-6 flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className={`h-6 w-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 text-white ${POS_DOT[originalIdx]}`}>
-                        {POS_LBL[originalIdx]}
-                      </span>
-                      <span className="data-label">{rank === 0 ? "🥇 Recommandé" : rank === 1 ? "🥈 2ème" : "🥉 3ème"}</span>
-                    </div>
-                    <span className="text-base font-semibold text-foreground leading-tight">{ss.sys.nom}</span>
-                    <span className={`kpi-value tabnum ${POS_TXT[originalIdx]}`}>
-                      {ss.scoreGlobal.toFixed(2)}<span className="text-lg font-normal text-foreground-subtle">/10</span>
-                    </span>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={scoreBadge(ss.scoreGlobal).cls}>{scoreBadge(ss.scoreGlobal).label}</span>
-                      <span className="text-xs text-foreground-subtle">{ss.sys.categorie}</span>
-                    </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+              {[
+                { label: 'CPE', val: fmt(cpeResult.cpe, 4), color: cpeResult.isEconomicallyViable ? 'text-emerald-400' : 'text-red-400' },
+                { label: 'Ratio d\'\u00E9change', val: `${fmt(cpeResult.exchangeRatio, 0)}\u00D7`, color: 'text-blue-400' },
+                { label: 'Co\u00FBt / kill', val: fmtUSD(cpeResult.costPerKill), color: 'text-white' },
+                { label: 'Kills / 1M$', val: fmt(cpeResult.expectedKillsPerMillion, 1), color: 'text-amber-400' },
+                { label: 'Viable', val: cpeResult.isEconomicallyViable ? 'OUI' : 'NON', color: cpeResult.isEconomicallyViable ? 'text-emerald-400' : 'text-red-400' },
+              ].map(k => (
+                <div key={k.label} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+                  <p className="text-xs text-gray-400">{k.label}</p>
+                  <p className={`text-xl font-bold mt-1 ${k.color}`}>{k.val}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* CPE comparison across all munitions */}
+            <h3 className="font-semibold text-gray-300 mb-3">Comparaison CPE — toutes munitions vs cible \u00E0 {fmtUSD(cpeTargetValue)}</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={SYSTEMS.filter(s => ['FPV', 'Loitering_Munition', 'Naval_USV'].includes(s.category)).map(s => {
+                  const r = calculateCPE({ munitionCost: s.costs.unit_cost_usd, pHit: 0.7, pKillGivenHit: 0.8, targetValue: cpeTargetValue });
+                  return { name: s.name.substring(0, 15), ratio: +r.exchangeRatio.toFixed(0), cpe: +r.cpe.toFixed(4) };
+                })} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis type="number" tick={{ fill: '#999' }} />
+                  <YAxis dataKey="name" type="category" tick={{ fill: '#999', fontSize: 10 }} width={120} />
+                  <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                  <Bar dataKey="ratio" fill="#22c55e" name="Ratio d'\u00E9change" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+        )}
+
+        {/* ═══ 6. WARGAME ═══ */}
+        {activeTab === 6 && (
+          <section>
+            <h2 className="text-xl font-bold mb-4">Wargame — Simulation d&apos;engagement</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {/* Attaquants */}
+              <div className="bg-gray-800 rounded-lg p-4 border border-red-900/50">
+                <h3 className="text-red-400 font-semibold text-sm mb-3">Attaquant</h3>
+                {wgAttackers.map((a, i) => (
+                  <div key={i} className="mb-2 text-xs text-gray-300">
+                    <span className="font-semibold">{a.name}</span> \u00D7 {a.quantity} — {fmtUSD(a.unitCost)}/u
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Tableau des scores par critère */}
-            <div className="card p-6 flex flex-col gap-4">
-              <p className="data-label">Scores détaillés par critère</p>
-              <div className="flex flex-col gap-0">
-                {/* En-tête */}
-                <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 pb-2 border-b border-border">
-                  <span className="text-xs font-medium text-foreground-subtle">Critère</span>
-                  {metrics.scores.map((ss, i) => (
-                    <span key={ss.sys.id} className={`text-xs font-semibold text-center ${POS_TXT[i]}`}>
-                      {POS_LBL[i]}
-                    </span>
-                  ))}
-                </div>
-                {/* Lignes */}
-                {CRITERES.map(({ label, poidKey }) => {
-                  const poids = formData[poidKey] as number;
-                  const norm  = metrics.totalPoids > 0 ? poids / metrics.totalPoids * 100 : 0;
-                  return (
-                    <div key={poidKey} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 py-2.5 border-b border-border last:border-0 items-center">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-sm text-foreground">{label}</span>
-                        <span className="text-xs text-foreground-subtle">pond. {norm.toFixed(0)} %</span>
-                      </div>
-                      {metrics.scores.map((ss, i) => {
-                        const scoreKey = CRITERES.find((c) => c.poidKey === poidKey)!.key;
-                        const val = ss.sys[scoreKey] as number;
-                        return (
-                          <div key={ss.sys.id} className="flex flex-col items-center gap-1 w-12">
-                            <span className={`tabnum text-sm font-bold ${val >= 8 ? POS_TXT[i] : "text-foreground"}`}>{val}</span>
-                            <div className="w-full h-1 bg-surface-raised rounded-full overflow-hidden">
-                              <div className={`h-full rounded-full ${POS_BAR[i]}`} style={{ width: `${val * 10}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-                {/* Score global */}
-                <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 pt-3 items-center">
-                  <span className="text-sm font-semibold text-foreground">Score global pondéré</span>
-                  {metrics.scores.map((ss, i) => (
-                    <div key={ss.sys.id} className="flex flex-col items-center gap-1 w-12">
-                      <span className={`tabnum text-sm font-bold ${POS_TXT[i]}`}>{ss.scoreGlobal.toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
+                ))}
+                <p className="text-xs text-gray-500 mt-2">Co\u00FBt total : <span className="text-red-400 font-semibold">{fmtUSD(wgResult.totalAttackCost)}</span></p>
               </div>
-            </div>
-
-            {/* Budget & unités */}
-            <div className="card p-6 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <p className="data-label">Capacité d&apos;acquisition — budget {fmtKE(formData.budget)}</p>
-                <span className="badge badge-info">{formData.theatre}</span>
+              {/* Défenseurs */}
+              <div className="bg-gray-800 rounded-lg p-4 border border-blue-900/50">
+                <h3 className="text-blue-400 font-semibold text-sm mb-3">D\u00E9fenseur</h3>
+                {wgDefenders.map((d, i) => (
+                  <div key={i} className="mb-2 text-xs text-gray-300">
+                    <span className="font-semibold">{d.name}</span> \u00D7 {d.quantity} — P(int) {(d.pIntercept * 100).toFixed(0)}%
+                  </div>
+                ))}
+                <p className="text-xs text-gray-500 mt-2">Co\u00FBt total : <span className="text-blue-400 font-semibold">{fmtUSD(wgResult.totalDefenseCost)}</span></p>
               </div>
-              <div className="flex flex-col divide-y divide-border">
-                {metrics.scores.map((ss, i) => (
-                  <div key={ss.sys.id} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
-                    <span className={`h-2 w-2 rounded-full shrink-0 ${POS_DOT[i]}`} />
-                    <span className="text-sm font-medium text-foreground w-48">{ss.sys.nom}</span>
-                    <div className="flex gap-6 ml-auto text-right">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-foreground-subtle">Prix unitaire</span>
-                        <span className="tabnum text-sm text-foreground">{fmtKE(ss.sys.prixUnit)}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs text-foreground-subtle">Unités</span>
-                        <span className={`tabnum text-sm font-bold ${POS_TXT[i]}`}>
-                          {ss.unitesAcquerables.toLocaleString("fr-FR")}
-                        </span>
-                      </div>
-                    </div>
+              {/* Cibles */}
+              <div className="bg-gray-800 rounded-lg p-4 border border-amber-900/50">
+                <h3 className="text-amber-400 font-semibold text-sm mb-3">Cibles</h3>
+                {wgTargets.map((t, i) => (
+                  <div key={i} className="mb-2 text-xs text-gray-300">
+                    <span className="font-semibold">{t.name}</span> \u00D7 {t.quantity} — {fmtUSD(t.value)}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Recommandation doctrinale */}
-            <div className="card p-6 flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <p className="data-label">Recommandation doctrinale</p>
-                <span className="badge badge-warning">{formData.mission}</span>
-              </div>
-              <p className="text-sm text-foreground-muted leading-relaxed">
-                {metrics.recommandation}
-              </p>
-              <p className="text-xs text-foreground-subtle leading-relaxed border-t border-border pt-3 mt-1">
-                Ce module s&apos;appuie sur des données OSINT (sources ouvertes) et des scores
-                normalisés à des fins pédagogiques. Les performances réelles dépendent des variantes,
-                configurations, environnements et doctrines d&apos;emploi spécifiques. Ce simulateur
-                ne constitue pas une analyse opérationnelle ou un conseil d&apos;acquisition officiel.
-              </p>
+            {/* Résultat */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {[
+                { label: 'Menaces lanc\u00E9es', val: fmt(wgResult.threatsLaunched), color: 'text-red-400' },
+                { label: 'Intercept\u00E9es', val: fmt(wgResult.threatsIntercepted), color: 'text-blue-400' },
+                { label: 'P\u00E9n\u00E9trantes', val: fmt(wgResult.threatsPenetrating), color: 'text-amber-400' },
+                { label: 'Dommages estim\u00E9s', val: fmtUSD(wgResult.expectedDamageValue), color: 'text-white' },
+              ].map(k => (
+                <div key={k.label} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+                  <p className="text-xs text-gray-400">{k.label}</p>
+                  <p className={`text-xl font-bold mt-1 ${k.color}`}>{k.val}</p>
+                </div>
+              ))}
             </div>
 
-            {/* Reset */}
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setHasSubmitted(false);
-                  setCurrentStep(1);
-                  setFormData(defaultFormData);
-                }}
-                className="text-sm text-foreground-subtle hover:text-foreground-muted transition-colors underline underline-offset-4"
-              >
-                Réinitialiser l&apos;analyse
-              </button>
+            <div className="bg-gradient-to-r from-gray-800 to-gray-800/50 rounded-xl p-6 mb-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Ratio attaquant</p>
+                <p className="text-4xl font-black text-emerald-400">{fmt(wgResult.attackerRatio, 1)}\u00D7</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-400">Conclusion</p>
+                <p className="text-lg font-bold text-white">{wgResult.conclusion}</p>
+              </div>
+            </div>
+
+            {/* Entonnoir d'interception */}
+            {wgResult.phaseBreakdown.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-gray-300 mb-3">Entonnoir d&apos;interception</h3>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={wgResult.phaseBreakdown}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                      <XAxis dataKey="phase" tick={{ fill: '#999', fontSize: 10 }} />
+                      <YAxis tick={{ fill: '#999' }} />
+                      <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                      <Legend />
+                      <Bar dataKey="threatsIn" fill="#ef4444" name="Entr\u00E9e" />
+                      <Bar dataKey="intercepted" fill="#3b82f6" name="Intercept\u00E9es" />
+                      <Bar dataKey="threatsOut" fill="#f59e0b" name="Sortie" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ═══ 7. SUPPLY CHAIN ═══ */}
+        {activeTab === 7 && (
+          <section>
+            <h2 className="text-xl font-bold mb-4">Mati\u00E8res critiques — Supply Chain D\u00E9fense</h2>
+            <div className="overflow-x-auto mb-8">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-700 text-gray-400">
+                    {['Mati\u00E8re', 'Usage d\u00E9fense', 'Part Chine', 'Risque', 'D\u00E9lai subst.', 'Alternative'].map(h => (
+                      <th key={h} className="py-2 px-3 text-left text-xs">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {MATERIALS.map(m => (
+                    <tr key={m.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                      <td className="py-2 px-3 font-semibold text-white">{m.name}</td>
+                      <td className="py-2 px-3 text-gray-300 text-xs">{m.defense_usage}</td>
+                      <td className="py-2 px-3"><span className={`font-bold tabular-nums ${m.china_share_pct > 70 ? 'text-red-400' : m.china_share_pct > 50 ? 'text-amber-400' : 'text-gray-300'}`}>{m.china_share_pct}%</span></td>
+                      <td className="py-2 px-3"><span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: RISK_COLORS[m.risk_level] + '30', color: RISK_COLORS[m.risk_level] }}>{m.risk_level}</span></td>
+                      <td className="py-2 px-3 tabular-nums">{m.substitution_delay_months} mois</td>
+                      <td className="py-2 px-3 text-xs text-gray-400">{m.alternative}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Matrice risque */}
+            <h3 className="font-semibold text-gray-300 mb-3">Matrice de risque — Part Chine vs D\u00E9lai de substitution</h3>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={MATERIALS.map(m => ({ name: m.name, chine: m.china_share_pct, delai: m.substitution_delay_months }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis dataKey="name" tick={{ fill: '#999', fontSize: 10 }} />
+                  <YAxis yAxisId="left" tick={{ fill: '#999' }} label={{ value: '% Chine', angle: -90, position: 'insideLeft', fill: '#999' }} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fill: '#999' }} label={{ value: 'Mois', angle: 90, position: 'insideRight', fill: '#999' }} />
+                  <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                  <Legend />
+                  <Bar yAxisId="left" dataKey="chine" fill="#ef4444" name="Part Chine (%)" />
+                  <Bar yAxisId="right" dataKey="delai" fill="#f59e0b" name="D\u00E9lai substitution (mois)" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </section>
         )}
 
-      </main>
+        {/* ═══ 8. STOCKS & DOCTRINES ═══ */}
+        {activeTab === 8 && (
+          <section>
+            <h2 className="text-xl font-bold mb-4">Stocks & Capacit\u00E9 de production</h2>
+            <div className="overflow-x-auto mb-8">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-700 text-gray-400">
+                    {['Pays', 'Syst\u00E8me', 'Stock est.', 'Prod./mois', 'Surge 18m', 'Stock guerre', 'Facteur limitant'].map(h => (
+                      <th key={h} className="py-2 px-3 text-left text-xs">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {STOCKS.map(s => (
+                    <tr key={s.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                      <td className="py-2 px-3 text-gray-300">{s.country}</td>
+                      <td className="py-2 px-3 font-semibold text-white">{s.system_name}</td>
+                      <td className="py-2 px-3 tabular-nums">{s.estimated_stock.toLocaleString('fr-FR')}</td>
+                      <td className="py-2 px-3 tabular-nums">{s.monthly_production.toLocaleString('fr-FR')}</td>
+                      <td className="py-2 px-3 tabular-nums text-emerald-400">{s.surge_capacity_18m.toLocaleString('fr-FR')}</td>
+                      <td className="py-2 px-3">
+                        {s.months_of_stock_wartime != null && (
+                          <span className={`font-bold tabular-nums ${s.months_of_stock_wartime > 12 ? 'text-emerald-400' : s.months_of_stock_wartime > 6 ? 'text-amber-400' : 'text-red-400'}`}>
+                            {fmt(s.months_of_stock_wartime, 1)} mois
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2 px-3 text-xs text-gray-400">{s.limiting_factor}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h2 className="text-xl font-bold mb-4">Doctrines par pays</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {DOCTRINES.map(d => (
+                <div key={d.country} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-white">{d.country}</span>
+                    <span className="text-xs px-2 py-0.5 rounded bg-emerald-900/50 text-emerald-400">{d.employment_concept}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs mb-2">
+                    <div><p className="text-gray-500">Budget 2025</p><p className="font-semibold text-white">{fmtUSD(d.budget_2025_bds * 1_000_000)}</p></div>
+                    <div><p className="text-gray-500">% PIB</p><p className="font-semibold text-white">{d.pct_gdp_2025}%</p></div>
+                    <div><p className="text-gray-500">Part drones</p><p className="font-semibold text-emerald-400">{d.drone_share_pct}%</p></div>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500">Dronisation</span>
+                    <div className="flex-1 h-2 bg-gray-700 rounded-full">
+                      <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${d.dronization_level * 10}%` }} />
+                    </div>
+                    <span className="text-xs font-bold text-white">{d.dronization_level}/10</span>
+                  </div>
+                  <p className="text-xs text-gray-400">{d.strategic_focus}</p>
+                  <p className="text-xs text-gray-500 mt-1">Objectif 2030 : <span className="text-amber-400 font-semibold">{d.objective_2030_pct}%</span> dronisation</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+      </div>
     </div>
   );
 }

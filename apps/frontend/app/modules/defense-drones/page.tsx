@@ -12,11 +12,12 @@ import type {
   DefenseSystem, SystemScores, TCOInput,
   CPEInput, WargameInput, WargameAttacker, WargameDefender, WargameTarget,
   CriticalMaterial, StockEntry, Doctrine,
+  Mission, Theatre,
 } from '@/lib/types/defense';
 import { calculateTCO, calculateCPE, runWargame, calculateSurgeTimeline } from '@/lib/calculs/defense';
 
 // ================================================================
-// DONNÉES — 17 systèmes
+// DONNEES — 17 systemes
 // ================================================================
 const SYSTEMS: DefenseSystem[] = [
   {
@@ -191,7 +192,7 @@ const SYSTEMS: DefenseSystem[] = [
   },
 ];
 
-// ─── MATIÈRES CRITIQUES ───────────────────────────────────────
+// --- MATIERES CRITIQUES ---
 const MATERIALS: CriticalMaterial[] = [
   { id: 'gallium', name: 'Gallium', defense_usage: 'Semi-conducteurs GaN, radars AESA, EW', world_production_tons: 600, china_share_pct: 98, west_share_pct: 1, risk_level: 'Critical', substitution_delay_months: 36, alternative: 'GaAs (performances r\u00E9duites)' },
   { id: 'germanium', name: 'Germanium', defense_usage: 'Optique IR, fibres optiques, capteurs', world_production_tons: 140, china_share_pct: 68, west_share_pct: 10, risk_level: 'Critical', substitution_delay_months: 24, alternative: 'Silicium (partiel)' },
@@ -202,7 +203,7 @@ const MATERIALS: CriticalMaterial[] = [
   { id: 'lithium', name: 'Lithium', defense_usage: 'Batteries drones, v\u00E9hicules, stockage', world_production_tons: 130000, china_share_pct: 60, west_share_pct: 25, risk_level: 'High', substitution_delay_months: 12, alternative: 'Sodium-ion (\u00E9mergent)' },
 ];
 
-// ─── STOCKS & PRODUCTION ──────────────────────────────────────
+// --- STOCKS & PRODUCTION ---
 const STOCKS: StockEntry[] = [
   { id: 's1', country: 'USA', system_name: 'Switchblade 600', system_id: 'switchblade600', estimated_stock: 3000, monthly_production: 200, annual_production: 2400, surge_capacity_18m: 6000, monthly_wartime_consumption: 500, months_of_stock_wartime: 6, limiting_factor: 'T\u00EAtes militaires anti-char', confidence_level: 4 },
   { id: 's2', country: 'Russie', system_name: 'Lancet-3M', system_id: 'lancet3', estimated_stock: 15000, monthly_production: 3000, annual_production: 36000, surge_capacity_18m: 80000, monthly_wartime_consumption: 5000, months_of_stock_wartime: 3, limiting_factor: 'Composants \u00E9lectroniques', confidence_level: 3 },
@@ -212,7 +213,7 @@ const STOCKS: StockEntry[] = [
   { id: 's6', country: 'Isra\u00EBl', system_name: 'Harop', system_id: 'harop', estimated_stock: 500, monthly_production: 20, annual_production: 240, surge_capacity_18m: 600, monthly_wartime_consumption: 50, months_of_stock_wartime: 10, limiting_factor: 'Capteurs radar passif', confidence_level: 3 },
 ];
 
-// ─── DOCTRINES ────────────────────────────────────────────────
+// --- DOCTRINES ---
 const DOCTRINES: Doctrine[] = [
   { country: 'USA', countryCode: 'US', dronization_level: 8, employment_concept: 'Pr\u00E9cision', budget_2025_bds: 842000, pct_gdp_2025: 3.4, drone_share_pct: 6, objective_2030_pct: 15, strategic_focus: 'CCA Loyal Wingman, essaims IA, pr\u00E9cision OTAN', key_systems: ['mq9', 'switchblade600', 'fury'] },
   { country: 'Chine', countryCode: 'CN', dronization_level: 7, employment_concept: 'Masse + Pr\u00E9cision', budget_2025_bds: 296000, pct_gdp_2025: 1.6, drone_share_pct: 8, objective_2030_pct: 20, strategic_focus: 'A2/AD, essaims navals, IA combat autonome', key_systems: [] },
@@ -252,6 +253,72 @@ const SCORE_AXES: { key: keyof SystemScores; label: string }[] = [
 ];
 
 // ================================================================
+// WIZARD SCORING
+// ================================================================
+const MISSION_WEIGHTS: Record<Mission, Partial<Record<keyof SystemScores, number>>> = {
+  'ISR / Surveillance': { range: 2.0, precision: 1.5, stealth: 1.0, cost: 0.8, ew_resistance: 1.0, scalability: 0.8, combat_proven: 0.8, ai_autonomy: 1.0 },
+  'Frappe de pr\u00E9cision': { precision: 2.0, stealth: 1.5, ew_resistance: 1.5, range: 1.0, cost: 0.8, scalability: 0.7, combat_proven: 1.0, ai_autonomy: 0.8 },
+  'Lutte anti-drone (C-UAS)': { ew_resistance: 2.0, cost: 1.5, scalability: 1.5, precision: 1.0, range: 0.5, stealth: 0.5, combat_proven: 1.0, ai_autonomy: 1.2 },
+  'Appui logistique': { range: 1.8, cost: 1.5, scalability: 1.0, precision: 0.5, stealth: 0.5, ew_resistance: 0.8, combat_proven: 0.8, ai_autonomy: 1.0 },
+};
+
+const THEATRE_BONUSES: Record<Theatre, Partial<Record<keyof SystemScores, number>>> = {
+  "Europe de l'Est": { combat_proven: 1.5, scalability: 1.3, cost: 1.2, ew_resistance: 1.0, range: 1.0, precision: 1.0, stealth: 1.0, ai_autonomy: 1.0 },
+  'Moyen-Orient': { ew_resistance: 1.5, precision: 1.3, combat_proven: 1.2, cost: 1.0, range: 1.0, stealth: 1.0, scalability: 1.0, ai_autonomy: 1.0 },
+  'Mer de Chine m\u00E9ridionale': { range: 1.5, stealth: 1.3, ew_resistance: 1.2, precision: 1.0, cost: 1.0, scalability: 1.0, combat_proven: 1.0, ai_autonomy: 1.0 },
+  'Sahel': { cost: 1.5, scalability: 1.2, range: 1.0, precision: 1.0, stealth: 1.0, ew_resistance: 1.0, combat_proven: 1.0, ai_autonomy: 1.0 },
+};
+
+function getWizardScore(sys: DefenseSystem, mission: Mission, theatre: Theatre): number {
+  const mw = MISSION_WEIGHTS[mission];
+  const tb = THEATRE_BONUSES[theatre];
+  let total = 0;
+  let weightSum = 0;
+  for (const ax of SCORE_AXES) {
+    const mWeight = mw[ax.key] ?? 1.0;
+    const tBonus = tb[ax.key] ?? 1.0;
+    const combinedWeight = mWeight * tBonus;
+    total += sys.scores[ax.key] * combinedWeight;
+    weightSum += combinedWeight;
+  }
+  return total / weightSum;
+}
+
+// ================================================================
+// MISSIONS & THEATRES for wizard
+// ================================================================
+const MISSIONS: Mission[] = ['ISR / Surveillance', 'Frappe de pr\u00E9cision', 'Lutte anti-drone (C-UAS)', 'Appui logistique'];
+const THEATRES: Theatre[] = ["Europe de l'Est", 'Moyen-Orient', 'Mer de Chine m\u00E9ridionale', 'Sahel'];
+
+const MISSION_ICONS: Record<Mission, string> = {
+  'ISR / Surveillance': '\u{1F50D}',
+  'Frappe de pr\u00E9cision': '\u{1F3AF}',
+  'Lutte anti-drone (C-UAS)': '\u{1F6E1}',
+  'Appui logistique': '\u{1F69A}',
+};
+
+const THEATRE_ICONS: Record<Theatre, string> = {
+  "Europe de l'Est": '\u{1F30D}',
+  'Moyen-Orient': '\u{2600}',
+  'Mer de Chine m\u00E9ridionale': '\u{1F30A}',
+  'Sahel': '\u{1F3DC}',
+};
+
+const MISSION_DESCRIPTIONS: Record<Mission, string> = {
+  'ISR / Surveillance': 'Reconnaissance, surveillance persistante, collecte de renseignements',
+  'Frappe de pr\u00E9cision': 'Engagement de cibles de haute valeur avec un minimum de dommages collat\u00E9raux',
+  'Lutte anti-drone (C-UAS)': 'D\u00E9fense contre les essaims de drones et menaces a\u00E9riennes non conventionnelles',
+  'Appui logistique': 'Transport de mat\u00E9riel, ravitaillement, \u00E9vacuation sanitaire',
+};
+
+const THEATRE_DESCRIPTIONS: Record<Theatre, string> = {
+  "Europe de l'Est": 'Conflit conventionnel, guerre de tranch\u00E9es, guerre \u00E9lectronique intense',
+  'Moyen-Orient': 'Environnement d\u00E9sertique, menaces asym\u00E9triques, pr\u00E9cision chirurgicale',
+  'Mer de Chine m\u00E9ridionale': 'Contr\u00F4le maritime, A2/AD, longue port\u00E9e, furtivit\u00E9',
+  'Sahel': 'Vaste zone, budget limit\u00E9, endurance et autonomie essentielles',
+};
+
+// ================================================================
 // TABS
 // ================================================================
 const TABS = [
@@ -270,6 +337,15 @@ const TABS = [
 // ================================================================
 export default function DefenseDronesPage() {
   const [activeTab, setActiveTab] = useState(1);
+
+  // Wizard state
+  const [dashStep, setDashStep] = useState(0);
+  const [selectedMission, setSelectedMission] = useState<Mission>('ISR / Surveillance');
+  const [selectedTheatre, setSelectedTheatre] = useState<Theatre>("Europe de l'Est");
+  const [wizardBudget, setWizardBudget] = useState(500_000_000);
+  const [selectedDoctrine, setSelectedDoctrine] = useState('USA');
+  const [categoryFilters, setCategoryFilters] = useState<Set<string>>(new Set());
+  const [statusFilters, setStatusFilters] = useState<Set<string>>(new Set());
 
   // Comparateur state
   const [compA, setCompA] = useState('tb2');
@@ -299,7 +375,7 @@ export default function DefenseDronesPage() {
     { name: 'D\u00E9p\u00F4t logistique', value: 20000000, quantity: 3, hardness: 0.1 },
   ]);
 
-  // ─── Computed ───────────────────────────────────────────────
+  // --- Computed ---
   const sysA = SYSTEMS.find(s => s.id === compA) ?? SYSTEMS[0];
   const sysB = SYSTEMS.find(s => s.id === compB) ?? SYSTEMS[1];
 
@@ -326,13 +402,105 @@ export default function DefenseDronesPage() {
   const wgInput: WargameInput = { attackSystems: wgAttackers, defenseSystems: wgDefenders, targets: wgTargets };
   const wgResult = useMemo(() => runWargame(wgInput), [wgAttackers, wgDefenders, wgTargets]);
 
-  // ─── KPI Dashboard ──────────────────────────────────────────
+  // --- KPI Dashboard (used by old dashboard & wizard step 3) ---
   const totalSystems = SYSTEMS.length;
   const combatProvenCount = SYSTEMS.filter(s => s.operational.combat_proven).length;
   const avgCostScore = SYSTEMS.reduce((s, sys) => s + sys.scores.cost, 0) / totalSystems;
   const avgAIScore = SYSTEMS.reduce((s, sys) => s + sys.scores.ai_autonomy, 0) / totalSystems;
   const maxDep = Math.max(...SYSTEMS.map(s => s.supply_chain.max_dependency_pct));
   const categoryDist = SYSTEMS.reduce((acc, s) => { acc[s.category] = (acc[s.category] || 0) + 1; return acc; }, {} as Record<string, number>);
+
+  // --- Wizard computed ---
+  const allCategories = useMemo(() => [...new Set(SYSTEMS.map(s => s.category))], []);
+  const allStatuses = useMemo(() => [...new Set(SYSTEMS.map(s => s.status))], []);
+
+  const wizardFilteredSystems = useMemo(() => {
+    return SYSTEMS.filter(sys => {
+      if (categoryFilters.size > 0 && !categoryFilters.has(sys.category)) return false;
+      if (statusFilters.size > 0 && !statusFilters.has(sys.status)) return false;
+      if (sys.costs.unit_cost_usd > wizardBudget) return false;
+      return true;
+    });
+  }, [categoryFilters, statusFilters, wizardBudget]);
+
+  const wizardScoredSystems = useMemo(() => {
+    return wizardFilteredSystems
+      .map(sys => ({
+        system: sys,
+        score: getWizardScore(sys, selectedMission, selectedTheatre),
+      }))
+      .sort((a, b) => b.score - a.score);
+  }, [wizardFilteredSystems, selectedMission, selectedTheatre]);
+
+  const wizardTop3 = useMemo(() => wizardScoredSystems.slice(0, 3), [wizardScoredSystems]);
+
+  const wizardRadarData = useMemo(() => {
+    if (wizardTop3.length === 0) return [];
+    return SCORE_AXES.map(ax => {
+      const entry: Record<string, string | number> = { axis: ax.label };
+      wizardTop3.forEach(({ system }) => {
+        entry[system.name] = system.scores[ax.key];
+      });
+      return entry;
+    });
+  }, [wizardTop3]);
+
+  const wizardDoctrine = useMemo(() => {
+    return DOCTRINES.find(d => d.country === selectedDoctrine) ?? DOCTRINES[0];
+  }, [selectedDoctrine]);
+
+  const wizardDoctrineAlignment = useMemo(() => {
+    if (wizardScoredSystems.length === 0) return 0;
+    const docSystems = wizardDoctrine.key_systems;
+    const matchingInFiltered = wizardFilteredSystems.filter(s => docSystems.includes(s.id)).length;
+    const totalDocSystems = docSystems.length || 1;
+    return Math.min(1, matchingInFiltered / totalDocSystems);
+  }, [wizardDoctrine, wizardFilteredSystems, wizardScoredSystems]);
+
+  const wizardBudgetUtilization = useMemo(() => {
+    if (wizardScoredSystems.length === 0) return 0;
+    const totalCostTop = wizardTop3.reduce((sum, { system }) => sum + system.costs.unit_cost_usd, 0);
+    return Math.min(1, totalCostTop / wizardBudget);
+  }, [wizardTop3, wizardBudget, wizardScoredSystems]);
+
+  const fmtBudgetSlider = (val: number) => {
+    if (val >= 1_000_000_000) return `${(val / 1_000_000_000).toFixed(1)} Md$`;
+    if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(0)} M$`;
+    return `${(val / 1_000).toFixed(0)} K$`;
+  };
+
+  const toggleCategoryFilter = (cat: string) => {
+    setCategoryFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+  };
+
+  const toggleStatusFilter = (st: string) => {
+    setStatusFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(st)) next.delete(st); else next.add(st);
+      return next;
+    });
+  };
+
+  const resetWizard = () => {
+    setDashStep(0);
+    setSelectedMission('ISR / Surveillance');
+    setSelectedTheatre("Europe de l'Est");
+    setWizardBudget(500_000_000);
+    setSelectedDoctrine('USA');
+    setCategoryFilters(new Set());
+    setStatusFilters(new Set());
+  };
+
+  const WIZARD_STEPS = [
+    { num: 0, label: 'Accueil' },
+    { num: 1, label: 'Contexte' },
+    { num: 2, label: 'Filtres' },
+    { num: 3, label: 'R\u00E9sultats' },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6">
@@ -354,69 +522,503 @@ export default function DefenseDronesPage() {
 
       <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
 
-        {/* ═══ 1. DASHBOARD ═══ */}
+        {/* ======= 1. DASHBOARD (WIZARD) ======= */}
         {activeTab === 1 && (
           <section>
-            <h2 className="text-xl font-bold mb-4">Vue d&apos;ensemble</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              {[
-                { label: 'Syst\u00E8mes', val: `${totalSystems}`, sub: `${combatProvenCount} combat proven` },
-                { label: 'Score co\u00FBt moyen', val: `${fmt(avgCostScore, 1)}/10`, sub: 'Scalabilit\u00E9 \u00E9conomique' },
-                { label: 'IA autonomie moy.', val: `${fmt(avgAIScore, 1)}/4`, sub: '\u00C9chelle OTAN' },
-                { label: 'D\u00E9pendance max', val: `${maxDep}%`, sub: 'Supply chain' },
-              ].map(k => (
-                <div key={k.label} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-                  <p className="text-xs text-gray-400 uppercase">{k.label}</p>
-                  <p className="text-2xl font-bold text-white mt-1">{k.val}</p>
-                  <p className="text-xs text-gray-500 mt-1">{k.sub}</p>
+            {/* Step indicator */}
+            <div className="flex items-center justify-center gap-2 mb-8">
+              {WIZARD_STEPS.map((step, idx) => (
+                <div key={step.num} className="flex items-center">
+                  <button
+                    onClick={() => { if (step.num <= dashStep) setDashStep(step.num); }}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      dashStep === step.num
+                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50'
+                        : dashStep > step.num
+                          ? 'bg-emerald-900/50 text-emerald-400 cursor-pointer hover:bg-emerald-800/50'
+                          : 'bg-gray-800 text-gray-500 cursor-default'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      dashStep >= step.num ? 'bg-emerald-500/30' : 'bg-gray-700'
+                    }`}>{step.num}</span>
+                    {step.label}
+                  </button>
+                  {idx < WIZARD_STEPS.length - 1 && (
+                    <div className={`w-8 h-0.5 mx-1 ${dashStep > step.num ? 'bg-emerald-600' : 'bg-gray-700'}`} />
+                  )}
                 </div>
               ))}
             </div>
 
-            {/* Distribution par catégorie */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* ===== STEP 0: Welcome ===== */}
+            {dashStep === 0 && (
+              <div className="flex flex-col items-center justify-center min-h-[500px] text-center">
+                <div className="relative mb-8">
+                  <div className="absolute -inset-4 bg-emerald-500/10 rounded-full blur-xl animate-pulse" />
+                  <div className="relative text-6xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-emerald-300 to-cyan-400 bg-clip-text text-transparent">
+                    DEFENCE & DRONES
+                  </div>
+                </div>
+                <h2 className="text-3xl font-bold text-white mb-3">Simulateur Strat\u00E9gique</h2>
+                <p className="text-gray-400 text-lg mb-8 max-w-2xl">
+                  Analysez {totalSystems} syst\u00E8mes d&apos;armes autonomes, comparez les doctrines de {DOCTRINES.length} nations,
+                  \u00E9valuez les vuln\u00E9rabilit\u00E9s de {MATERIALS.length} mat\u00E9riaux critiques et simulez des sc\u00E9narios d&apos;engagement.
+                </p>
+
+                <div className="grid grid-cols-3 gap-6 mb-10 max-w-xl w-full">
+                  {[
+                    { val: `${totalSystems}`, label: 'Syst\u00E8mes', sub: `${combatProvenCount} combat proven` },
+                    { val: '7', label: 'Mat\u00E9riaux critiques', sub: '4 en risque critique' },
+                    { val: '8', label: 'Doctrines', sub: 'OTAN + adversaires' },
+                  ].map(item => (
+                    <div key={item.label} className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+                      <p className="text-3xl font-black text-emerald-400">{item.val}</p>
+                      <p className="text-sm font-semibold text-white mt-1">{item.label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{item.sub}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-gray-800/30 border border-gray-700/30 rounded-xl p-6 mb-8 max-w-2xl text-left">
+                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">Capacit\u00E9s du simulateur</h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {[
+                      'Analyse multi-crit\u00E8res par mission et th\u00E9\u00E2tre',
+                      'Scoring contextuel pond\u00E9r\u00E9',
+                      'Comparaison radar 8 axes',
+                      'Calcul TCO avec courbe de Wright',
+                      'Simulation wargame attaque/d\u00E9fense',
+                      'Analyse supply chain critique',
+                    ].map(cap => (
+                      <div key={cap} className="flex items-start gap-2">
+                        <span className="text-emerald-500 mt-0.5 shrink-0">&#9654;</span>
+                        <span className="text-gray-300">{cap}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setDashStep(1)}
+                  className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-lg transition-all shadow-lg shadow-emerald-900/50 hover:shadow-emerald-800/50 hover:scale-105"
+                >
+                  Commencer l&apos;analyse
+                </button>
+              </div>
+            )}
+
+            {/* ===== STEP 1: Context ===== */}
+            {dashStep === 1 && (
               <div>
-                <h3 className="font-semibold text-gray-300 mb-3">R\u00E9partition par cat\u00E9gorie</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={Object.entries(categoryDist).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value }))}
-                        cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={2} dataKey="value"
-                        label={({ name, percent }: { name?: string; percent?: number }) => `${(name ?? '').split(' ')[0]} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                        labelLine={false}>
-                        {Object.keys(categoryDist).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                      </Pie>
-                      <Tooltip formatter={(v: ValueType | undefined) => tooltipFmt(v)} contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
+                <h2 className="text-xl font-bold mb-2">S\u00E9lection du contexte op\u00E9rationnel</h2>
+                <p className="text-gray-400 text-sm mb-6">D\u00E9finissez la mission, le th\u00E9\u00E2tre d&apos;op\u00E9rations et l&apos;enveloppe budg\u00E9taire.</p>
+
+                {/* Mission */}
+                <div className="mb-8">
+                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">Type de mission</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {MISSIONS.map(m => (
+                      <button
+                        key={m}
+                        onClick={() => setSelectedMission(m)}
+                        className={`p-4 rounded-xl border text-left transition-all ${
+                          selectedMission === m
+                            ? 'bg-emerald-900/40 border-emerald-500 shadow-lg shadow-emerald-900/30'
+                            : 'bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800'
+                        }`}
+                      >
+                        <div className="text-2xl mb-2">{MISSION_ICONS[m]}</div>
+                        <p className={`font-semibold text-sm ${selectedMission === m ? 'text-emerald-400' : 'text-white'}`}>{m}</p>
+                        <p className="text-xs text-gray-500 mt-1">{MISSION_DESCRIPTIONS[m]}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Theatre */}
+                <div className="mb-8">
+                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">Th\u00E9\u00E2tre d&apos;op\u00E9rations</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {THEATRES.map(t => (
+                      <button
+                        key={t}
+                        onClick={() => setSelectedTheatre(t)}
+                        className={`p-4 rounded-xl border text-left transition-all ${
+                          selectedTheatre === t
+                            ? 'bg-emerald-900/40 border-emerald-500 shadow-lg shadow-emerald-900/30'
+                            : 'bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800'
+                        }`}
+                      >
+                        <div className="text-2xl mb-2">{THEATRE_ICONS[t]}</div>
+                        <p className={`font-semibold text-sm ${selectedTheatre === t ? 'text-emerald-400' : 'text-white'}`}>{t}</p>
+                        <p className="text-xs text-gray-500 mt-1">{THEATRE_DESCRIPTIONS[t]}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Budget slider */}
+                <div className="mb-8">
+                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">Enveloppe budg\u00E9taire unitaire max</h3>
+                  <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs text-gray-500">10 M$</span>
+                      <span className="text-2xl font-black text-emerald-400">{fmtBudgetSlider(wizardBudget)}</span>
+                      <span className="text-xs text-gray-500">10 Md$</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={10_000_000}
+                      max={10_000_000_000}
+                      step={10_000_000}
+                      value={wizardBudget}
+                      onChange={e => setWizardBudget(+e.target.value)}
+                      className="w-full accent-emerald-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Syst\u00E8mes dont le co\u00FBt unitaire d\u00E9passe ce seuil seront exclus de l&apos;analyse.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Nav */}
+                <div className="flex justify-between">
+                  <button onClick={() => setDashStep(0)} className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg transition-colors border border-gray-700">
+                    Retour
+                  </button>
+                  <button onClick={() => setDashStep(2)} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-emerald-900/30">
+                    Suivant
+                  </button>
                 </div>
               </div>
+            )}
+
+            {/* ===== STEP 2: Doctrine & Filters ===== */}
+            {dashStep === 2 && (
               <div>
-                <h3 className="font-semibold text-gray-300 mb-3">Scores moyens par cat\u00E9gorie</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={Object.entries(categoryDist).map(([cat]) => {
-                      const sys = SYSTEMS.filter(s => s.category === cat);
-                      const avg = (key: keyof SystemScores) => sys.reduce((s, x) => s + x.scores[key], 0) / sys.length;
-                      return { cat: cat.replace(/_/g, ' ').substring(0, 12), cost: +avg('cost').toFixed(1), precision: +avg('precision').toFixed(1), ew: +avg('ew_resistance').toFixed(1) };
-                    })}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                      <XAxis dataKey="cat" tick={{ fill: '#999', fontSize: 10 }} />
-                      <YAxis domain={[0, 10]} tick={{ fill: '#999' }} />
-                      <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
-                      <Legend />
-                      <Bar dataKey="cost" fill="#22c55e" name="Co\u00FBt" />
-                      <Bar dataKey="precision" fill="#3b82f6" name="Pr\u00E9cision" />
-                      <Bar dataKey="ew" fill="#f59e0b" name="R\u00E9s. EW" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <h2 className="text-xl font-bold mb-2">Doctrine & filtres</h2>
+                <p className="text-gray-400 text-sm mb-6">Affinez l&apos;analyse en s\u00E9lectionnant une doctrine de r\u00E9f\u00E9rence et en filtrant les cat\u00E9gories.</p>
+
+                {/* Doctrine selector */}
+                <div className="mb-8">
+                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">Doctrine de r\u00E9f\u00E9rence</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {DOCTRINES.map(d => (
+                      <button
+                        key={d.country}
+                        onClick={() => setSelectedDoctrine(d.country)}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          selectedDoctrine === d.country
+                            ? 'bg-emerald-900/40 border-emerald-500'
+                            : 'bg-gray-800/50 border-gray-700 hover:border-gray-600'
+                        }`}
+                      >
+                        <p className={`font-semibold text-sm ${selectedDoctrine === d.country ? 'text-emerald-400' : 'text-white'}`}>{d.country}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{d.employment_concept}</p>
+                        <div className="flex items-center gap-1 mt-2">
+                          <div className="flex-1 h-1.5 bg-gray-700 rounded-full">
+                            <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${d.dronization_level * 10}%` }} />
+                          </div>
+                          <span className="text-[10px] text-gray-400">{d.dronization_level}/10</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Category filters */}
+                <div className="mb-8">
+                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">
+                    Cat\u00E9gories <span className="text-gray-500 font-normal">(vide = toutes)</span>
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {allCategories.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => toggleCategoryFilter(cat)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                          categoryFilters.has(cat)
+                            ? 'bg-emerald-900/50 border-emerald-500 text-emerald-400'
+                            : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                        }`}
+                      >
+                        {cat.replace(/_/g, ' ')}
+                        {categoryFilters.has(cat) && <span className="ml-1">&#10003;</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Status filters */}
+                <div className="mb-8">
+                  <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3">
+                    Statut <span className="text-gray-500 font-normal">(vide = tous)</span>
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {allStatuses.map(st => (
+                      <button
+                        key={st}
+                        onClick={() => toggleStatusFilter(st)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                          statusFilters.has(st)
+                            ? 'border-emerald-500 text-emerald-400'
+                            : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                        }`}
+                        style={{
+                          backgroundColor: statusFilters.has(st)
+                            ? (STATUS_COLORS[st] ?? '#22c55e') + '20'
+                            : undefined,
+                        }}
+                      >
+                        <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: STATUS_COLORS[st] }} />
+                        {st.replace(/_/g, ' ')}
+                        {statusFilters.has(st) && <span className="ml-1">&#10003;</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Summary */}
+                <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4 mb-8">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase mb-2">R\u00E9sum\u00E9 des s\u00E9lections</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 text-xs">Mission</p>
+                      <p className="text-white font-semibold">{selectedMission}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Th\u00E9\u00E2tre</p>
+                      <p className="text-white font-semibold">{selectedTheatre}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Budget max</p>
+                      <p className="text-emerald-400 font-semibold">{fmtBudgetSlider(wizardBudget)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Doctrine</p>
+                      <p className="text-white font-semibold">{selectedDoctrine}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    {wizardFilteredSystems.length} syst\u00E8me{wizardFilteredSystems.length > 1 ? 's' : ''} correspondant{wizardFilteredSystems.length > 1 ? 's' : ''} aux crit\u00E8res
+                  </p>
+                </div>
+
+                {/* Nav */}
+                <div className="flex justify-between">
+                  <button onClick={() => setDashStep(1)} className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg transition-colors border border-gray-700">
+                    Pr\u00E9c\u00E9dent
+                  </button>
+                  <button onClick={() => setDashStep(3)} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-emerald-900/30">
+                    Voir les r\u00E9sultats
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* ===== STEP 3: Results ===== */}
+            {dashStep === 3 && (
+              <div>
+                <h2 className="text-xl font-bold mb-2">R\u00E9sultats de l&apos;analyse</h2>
+                <p className="text-gray-400 text-sm mb-6">
+                  {selectedMission} / {selectedTheatre} / Budget \u2264 {fmtBudgetSlider(wizardBudget)} / Doctrine {selectedDoctrine}
+                </p>
+
+                {/* KPI cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                  <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+                    <p className="text-xs text-gray-400 uppercase">Syst\u00E8mes retenus</p>
+                    <p className="text-2xl font-bold text-white mt-1">{wizardScoredSystems.length}</p>
+                    <p className="text-xs text-gray-500 mt-1">sur {totalSystems} au total</p>
+                  </div>
+                  <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+                    <p className="text-xs text-gray-400 uppercase">Utilisation budget</p>
+                    <p className="text-2xl font-bold text-emerald-400 mt-1">{fmtPct(wizardBudgetUtilization)}</p>
+                    <p className="text-xs text-gray-500 mt-1">co\u00FBt top 3 / budget</p>
+                  </div>
+                  <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+                    <p className="text-xs text-gray-400 uppercase">Meilleur syst\u00E8me</p>
+                    <p className="text-2xl font-bold text-cyan-400 mt-1 truncate">
+                      {wizardTop3.length > 0 ? wizardTop3[0].system.name : 'N/A'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {wizardTop3.length > 0 ? `Score: ${wizardTop3[0].score.toFixed(2)}` : '-'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+                    <p className="text-xs text-gray-400 uppercase">Alignement doctrinal</p>
+                    <p className={`text-2xl font-bold mt-1 ${wizardDoctrineAlignment >= 0.5 ? 'text-emerald-400' : wizardDoctrineAlignment > 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                      {fmtPct(wizardDoctrineAlignment)}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">doctrine {selectedDoctrine}</p>
+                  </div>
+                </div>
+
+                {wizardScoredSystems.length === 0 ? (
+                  <div className="text-center py-16">
+                    <p className="text-2xl text-gray-500 mb-4">Aucun syst\u00E8me ne correspond aux crit\u00E8res</p>
+                    <p className="text-gray-600 text-sm mb-6">Essayez d&apos;augmenter le budget ou de retirer des filtres.</p>
+                    <button onClick={() => setDashStep(2)} className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg border border-gray-700">
+                      Modifier les filtres
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Filtered systems table */}
+                    <div className="mb-8">
+                      <h3 className="font-semibold text-gray-300 mb-3">Classement des syst\u00E8mes</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-gray-700 text-gray-400">
+                              {['#', 'Syst\u00E8me', 'Pays', 'Cat\u00E9gorie', 'Co\u00FBt unit.', 'Score', 'Co\u00FBt', 'Pr\u00E9c.', 'EW', 'Port\u00E9e'].map(h => (
+                                <th key={h} className="py-2 px-3 text-left text-xs">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {wizardScoredSystems.map(({ system: sys, score }, idx) => (
+                              <tr key={sys.id} className={`border-b border-gray-800 hover:bg-gray-800/50 ${idx < 3 ? 'bg-emerald-900/10' : ''}`}>
+                                <td className="py-2 px-3 text-gray-500 font-mono text-xs">{idx + 1}</td>
+                                <td className="py-2 px-3 font-semibold text-white">
+                                  {idx === 0 && <span className="text-emerald-400 mr-1">&#9733;</span>}
+                                  {sys.name}
+                                </td>
+                                <td className="py-2 px-3 text-gray-300">{sys.country}</td>
+                                <td className="py-2 px-3"><span className="px-2 py-0.5 rounded text-xs bg-gray-700">{sys.category.replace(/_/g, ' ')}</span></td>
+                                <td className="py-2 px-3 tabular-nums text-emerald-400">{sys.costs.unit_cost_display}</td>
+                                <td className="py-2 px-3 tabular-nums font-bold text-cyan-400">{score.toFixed(2)}</td>
+                                <td className="py-2 px-3 tabular-nums">{sys.scores.cost}/10</td>
+                                <td className="py-2 px-3 tabular-nums">{sys.scores.precision}/10</td>
+                                <td className="py-2 px-3 tabular-nums">{sys.scores.ew_resistance}/10</td>
+                                <td className="py-2 px-3 tabular-nums">{fmt(sys.specs.range_km)} km</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Charts row */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                      {/* Radar chart top 3 */}
+                      {wizardTop3.length > 0 && (
+                        <div>
+                          <h3 className="font-semibold text-gray-300 mb-3">
+                            Radar — Top {Math.min(3, wizardTop3.length)}
+                          </h3>
+                          <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <RadarChart data={wizardRadarData}>
+                                <PolarGrid stroke="#333" />
+                                <PolarAngleAxis dataKey="axis" tick={{ fill: '#999', fontSize: 11 }} />
+                                <PolarRadiusAxis angle={90} domain={[0, 10]} tick={{ fill: '#666' }} />
+                                {wizardTop3.map(({ system }, i) => (
+                                  <Radar
+                                    key={system.id}
+                                    name={system.name}
+                                    dataKey={system.name}
+                                    stroke={COLORS[i]}
+                                    fill={COLORS[i]}
+                                    fillOpacity={0.15}
+                                  />
+                                ))}
+                                <Legend />
+                                <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                              </RadarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Bar chart all filtered by score */}
+                      <div>
+                        <h3 className="font-semibold text-gray-300 mb-3">Scores contextuels</h3>
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={wizardScoredSystems.slice(0, 10).map(({ system, score }) => ({
+                                name: system.name.length > 14 ? system.name.substring(0, 14) + '...' : system.name,
+                                score: +score.toFixed(2),
+                              }))}
+                              layout="vertical"
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                              <XAxis type="number" domain={[0, 10]} tick={{ fill: '#999' }} />
+                              <YAxis dataKey="name" type="category" tick={{ fill: '#999', fontSize: 10 }} width={120} />
+                              <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }} />
+                              <Bar dataKey="score" fill="#22c55e" name="Score contextuel" radius={[0, 4, 4, 0]}>
+                                {wizardScoredSystems.slice(0, 10).map((_, i) => (
+                                  <Cell key={i} fill={i < 3 ? '#22c55e' : i < 6 ? '#3b82f6' : '#6b7280'} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Doctrinal recommendation */}
+                    <div className="bg-gradient-to-r from-emerald-900/30 to-gray-800/50 rounded-xl p-6 mb-8 border border-emerald-900/30">
+                      <h3 className="font-semibold text-emerald-400 mb-3">Recommandation doctrinale — {selectedDoctrine}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <p className="text-xs text-gray-500">Concept d&apos;emploi</p>
+                          <p className="text-white font-semibold">{wizardDoctrine.employment_concept}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Budget d\u00E9fense 2025</p>
+                          <p className="text-white font-semibold">{fmtUSD(wizardDoctrine.budget_2025_bds * 1_000_000)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Objectif dronisation 2030</p>
+                          <p className="text-emerald-400 font-semibold">{wizardDoctrine.objective_2030_pct}%</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-300 mb-3">{wizardDoctrine.strategic_focus}</p>
+                      {wizardDoctrine.key_systems.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Syst\u00E8mes cl\u00E9s de la doctrine :</p>
+                          <div className="flex flex-wrap gap-2">
+                            {wizardDoctrine.key_systems.map(sysId => {
+                              const sys = SYSTEMS.find(s => s.id === sysId);
+                              const isInFiltered = wizardFilteredSystems.some(s => s.id === sysId);
+                              return (
+                                <span
+                                  key={sysId}
+                                  className={`px-2 py-1 rounded text-xs font-medium ${
+                                    isInFiltered
+                                      ? 'bg-emerald-900/50 text-emerald-400 border border-emerald-700'
+                                      : 'bg-gray-800 text-gray-500 border border-gray-700'
+                                  }`}
+                                >
+                                  {sys?.name ?? sysId} {isInFiltered ? '(retenu)' : '(exclu)'}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Nav */}
+                <div className="flex justify-between">
+                  <button onClick={() => setDashStep(2)} className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg transition-colors border border-gray-700">
+                    Pr\u00E9c\u00E9dent
+                  </button>
+                  <button onClick={resetWizard} className="px-6 py-2 bg-red-900/50 hover:bg-red-900/70 text-red-400 font-medium rounded-lg transition-colors border border-red-800/50">
+                    R\u00E9initialiser
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
         )}
 
-        {/* ═══ 2. CATALOGUE ═══ */}
+        {/* ======= 2. CATALOGUE ======= */}
         {activeTab === 2 && (
           <section>
             <h2 className="text-xl font-bold mb-4">Catalogue — {SYSTEMS.length} syst\u00E8mes</h2>
@@ -450,7 +1052,7 @@ export default function DefenseDronesPage() {
           </section>
         )}
 
-        {/* ═══ 3. COMPARATEUR RADAR ═══ */}
+        {/* ======= 3. COMPARATEUR RADAR ======= */}
         {activeTab === 3 && (
           <section>
             <h2 className="text-xl font-bold mb-4">Comparateur — 8 axes</h2>
@@ -485,7 +1087,7 @@ export default function DefenseDronesPage() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Ratio asymétrique */}
+              {/* Ratio asymetrique */}
               <div className="flex flex-col gap-4">
                 <div className="bg-gray-800 rounded-xl p-6 text-center">
                   <p className="text-sm text-gray-400">Ratio co\u00FBt unitaire</p>
@@ -520,7 +1122,7 @@ export default function DefenseDronesPage() {
           </section>
         )}
 
-        {/* ═══ 4. TCO ═══ */}
+        {/* ======= 4. TCO ======= */}
         {activeTab === 4 && (
           <section>
             <h2 className="text-xl font-bold mb-4">Simulateur TCO — Co\u00FBt total de possession</h2>
@@ -592,7 +1194,7 @@ export default function DefenseDronesPage() {
           </section>
         )}
 
-        {/* ═══ 5. CPE ═══ */}
+        {/* ======= 5. CPE ======= */}
         {activeTab === 5 && (
           <section>
             <h2 className="text-xl font-bold mb-4">Co\u00FBt par Effet (CPE)</h2>
@@ -651,7 +1253,7 @@ export default function DefenseDronesPage() {
           </section>
         )}
 
-        {/* ═══ 6. WARGAME ═══ */}
+        {/* ======= 6. WARGAME ======= */}
         {activeTab === 6 && (
           <section>
             <h2 className="text-xl font-bold mb-4">Wargame — Simulation d&apos;engagement</h2>
@@ -667,7 +1269,7 @@ export default function DefenseDronesPage() {
                 ))}
                 <p className="text-xs text-gray-500 mt-2">Co\u00FBt total : <span className="text-red-400 font-semibold">{fmtUSD(wgResult.totalAttackCost)}</span></p>
               </div>
-              {/* Défenseurs */}
+              {/* Defenseurs */}
               <div className="bg-gray-800 rounded-lg p-4 border border-blue-900/50">
                 <h3 className="text-blue-400 font-semibold text-sm mb-3">D\u00E9fenseur</h3>
                 {wgDefenders.map((d, i) => (
@@ -688,7 +1290,7 @@ export default function DefenseDronesPage() {
               </div>
             </div>
 
-            {/* Résultat */}
+            {/* Resultat */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               {[
                 { label: 'Menaces lanc\u00E9es', val: fmt(wgResult.threatsLaunched), color: 'text-red-400' },
@@ -737,7 +1339,7 @@ export default function DefenseDronesPage() {
           </section>
         )}
 
-        {/* ═══ 7. SUPPLY CHAIN ═══ */}
+        {/* ======= 7. SUPPLY CHAIN ======= */}
         {activeTab === 7 && (
           <section>
             <h2 className="text-xl font-bold mb-4">Mati\u00E8res critiques — Supply Chain D\u00E9fense</h2>
@@ -784,7 +1386,7 @@ export default function DefenseDronesPage() {
           </section>
         )}
 
-        {/* ═══ 8. STOCKS & DOCTRINES ═══ */}
+        {/* ======= 8. STOCKS & DOCTRINES ======= */}
         {activeTab === 8 && (
           <section>
             <h2 className="text-xl font-bold mb-4">Stocks & Capacit\u00E9 de production</h2>

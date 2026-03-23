@@ -15,6 +15,7 @@ import {
   Wallet,
   Menu,
   X,
+  Building2,
 } from "lucide-react";
 
 // ─── Navigation map ───────────────────────────────────────────────────────────
@@ -146,6 +147,20 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             onClick={onClose}
           />
         ))}
+
+        {/* Architecture overview */}
+        <div className="pt-4 pb-1.5 px-2">
+          <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">
+            Vue d&apos;ensemble
+          </p>
+        </div>
+        <NavLink
+          href="/architecture"
+          label="Architecture"
+          icon={Building2}
+          pathname={pathname}
+          onClick={onClose}
+        />
       </nav>
 
       {/* Footer */}

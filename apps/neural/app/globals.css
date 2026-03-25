@@ -1,0 +1,346 @@
+@import "tailwindcss";
+
+/* ─── Dark mode: data-theme attribute toggle ─────────────────────────────── */
+@variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEURAL DESIGN TOKENS
+   Brand: Bleu nuit, Violet IA, Blanc, Vert
+   Typo: Inter (body) + Space Grotesk (display)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── NEURAL Brand palette ───────────────────────────────────────────────── */
+  --neural-midnight:     #0A1628;
+  --neural-navy:         #111D35;
+  --neural-violet:       #7C3AED;
+  --neural-violet-dark:  #6D28D9;
+  --neural-violet-light: #A78BFA;
+  --neural-green:        #10B981;
+  --neural-green-dark:   #059669;
+  --neural-white:        #FFFFFF;
+
+  /* ── Semantic surfaces ──────────────────────────────────────────────────── */
+  --color-background:      #FFFFFF;
+  --color-surface:         #FFFFFF;
+  --color-surface-raised:  #F9FAFB;
+
+  /* ── Semantic text ──────────────────────────────────────────────────────── */
+  --color-foreground:        #0A1628;
+  --color-foreground-muted:  #64748B;
+  --color-foreground-subtle: #94A3B8;
+
+  /* ── Borders & rings ────────────────────────────────────────────────────── */
+  --color-border:       #E2E8F0;
+  --color-border-strong: #CBD5E1;
+  --color-ring:         #7C3AED;
+
+  /* ── Status ─────────────────────────────────────────────────────────────── */
+  --color-success:     #10B981;
+  --color-success-bg:  #ECFDF5;
+  --color-warning:     #F59E0B;
+  --color-warning-bg:  #FFFBEB;
+  --color-danger:      #EF4444;
+  --color-danger-bg:   #FEF2F2;
+  --color-info:        #7C3AED;
+  --color-info-bg:     #F5F3FF;
+
+  /* ── Radius tokens ──────────────────────────────────────────────────────── */
+  --radius-xs:   0.125rem;
+  --radius-sm:   0.25rem;
+  --radius:      0.375rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-2xl:  1.5rem;
+  --radius-full: 9999px;
+
+  /* ── Shadows (light) ────────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.10), 0 1px 2px -1px rgb(0 0 0 / 0.10);
+  --shadow:    0 4px 6px -1px rgb(0 0 0 / 0.10), 0 2px 4px -2px rgb(0 0 0 / 0.10);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.10), 0 4px 6px -4px rgb(0 0 0 / 0.10);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.10), 0 8px 10px -6px rgb(0 0 0 / 0.10);
+
+  /* ── Fluid type scale (clamp, 390px–1280px viewport) ────────────────────── */
+  --text-2xs:  clamp(0.625rem,  0.60rem + 0.13vw, 0.688rem);
+  --text-xs:   clamp(0.688rem,  0.65rem + 0.19vw, 0.75rem);
+  --text-sm:   clamp(0.813rem,  0.77rem + 0.22vw, 0.875rem);
+  --text-base: clamp(0.938rem,  0.88rem + 0.29vw, 1rem);
+  --text-lg:   clamp(1.063rem,  1.00rem + 0.34vw, 1.125rem);
+  --text-xl:   clamp(1.188rem,  1.10rem + 0.45vw, 1.313rem);
+  --text-2xl:  clamp(1.375rem,  1.25rem + 0.63vw, 1.625rem);
+  --text-3xl:  clamp(1.75rem,   1.55rem + 1.01vw, 2.125rem);
+  --text-4xl:  clamp(2.125rem,  1.85rem + 1.38vw, 2.75rem);
+  --text-5xl:  clamp(2.75rem,   2.30rem + 2.25vw, 3.75rem);
+  --text-6xl:  clamp(3.5rem,    2.80rem + 3.50vw, 5rem);
+
+  /* ── Line heights ───────────────────────────────────────────────────────── */
+  --leading-tight:   1.2;
+  --leading-snug:    1.375;
+  --leading-normal:  1.6;
+  --leading-relaxed: 1.75;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] {
+  --color-background:        #0A1628;
+  --color-surface:           #111D35;
+  --color-surface-raised:    #1A2744;
+
+  --color-foreground:        #F1F5F9;
+  --color-foreground-muted:  #94A3B8;
+  --color-foreground-subtle: #64748B;
+
+  --color-border:            #1E3050;
+  --color-border-strong:     #2D4266;
+
+  --color-success:           #34D399;
+  --color-success-bg:        #052E16;
+  --color-warning:           #FBBF24;
+  --color-warning-bg:        #1C1400;
+  --color-danger:            #F87171;
+  --color-danger-bg:         #200A09;
+  --color-info:              #A78BFA;
+  --color-info-bg:           #1A1033;
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.30);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.40), 0 1px 2px -1px rgb(0 0 0 / 0.40);
+  --shadow:    0 4px 6px -1px rgb(0 0 0 / 0.40), 0 2px 4px -2px rgb(0 0 0 / 0.40);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.50), 0 8px 10px -6px rgb(0 0 0 / 0.50);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TAILWIND v4 THEME MAPPING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme inline {
+  /* ── Fonts ──────────────────────────────────────────────────────────────── */
+  --font-sans: var(--font-inter, "Inter"), ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: var(--font-space-grotesk, "Space Grotesk"), ui-sans-serif,
+    system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono",
+    Menlo, Consolas, monospace;
+
+  /* ── Semantic colors ────────────────────────────────────────────────────── */
+  --color-background:        var(--color-background);
+  --color-surface:           var(--color-surface);
+  --color-surface-raised:    var(--color-surface-raised);
+  --color-foreground:        var(--color-foreground);
+  --color-foreground-muted:  var(--color-foreground-muted);
+  --color-foreground-subtle: var(--color-foreground-subtle);
+  --color-border:            var(--color-border);
+  --color-border-strong:     var(--color-border-strong);
+  --color-ring:              var(--color-ring);
+  --color-success:           var(--color-success);
+  --color-success-bg:        var(--color-success-bg);
+  --color-warning:           var(--color-warning);
+  --color-warning-bg:        var(--color-warning-bg);
+  --color-danger:            var(--color-danger);
+  --color-danger-bg:         var(--color-danger-bg);
+  --color-info:              var(--color-info);
+  --color-info-bg:           var(--color-info-bg);
+
+  /* ── NEURAL brand colors ────────────────────────────────────────────────── */
+  --color-neural-midnight:     #0A1628;
+  --color-neural-navy:         #111D35;
+  --color-neural-violet:       #7C3AED;
+  --color-neural-violet-dark:  #6D28D9;
+  --color-neural-violet-light: #A78BFA;
+  --color-neural-green:        #10B981;
+  --color-neural-green-dark:   #059669;
+
+  /* ── Radius ─────────────────────────────────────────────────────────────── */
+  --radius-xs:   var(--radius-xs);
+  --radius-sm:   var(--radius-sm);
+  --radius:      var(--radius);
+  --radius-md:   var(--radius-md);
+  --radius-lg:   var(--radius-lg);
+  --radius-xl:   var(--radius-xl);
+  --radius-2xl:  var(--radius-2xl);
+  --radius-full: var(--radius-full);
+
+  /* ── Shadows ────────────────────────────────────────────────────────────── */
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow:    var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-border);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* ─── Typography ──────────────────────────────────────────────────────────── */
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+  color: var(--color-foreground);
+}
+
+h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  color: var(--color-foreground);
+}
+
+h1 { font-size: var(--text-5xl); }
+h2 { font-size: var(--text-4xl); }
+h3 { font-size: var(--text-2xl); }
+h4 { font-size: var(--text-xl); }
+h5 { font-size: var(--text-lg); }
+h6 { font-size: var(--text-base); }
+
+a {
+  color: var(--neural-violet);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+a:hover {
+  color: var(--neural-violet-dark);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--neural-violet) 20%, transparent);
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-foreground-subtle);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPONENT PATTERNS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.card-raised {
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ─── Status badges ───────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  line-height: 1.5;
+}
+
+.badge-success { background: var(--color-success-bg); color: var(--color-success); }
+.badge-warning { background: var(--color-warning-bg); color: var(--color-warning); }
+.badge-danger  { background: var(--color-danger-bg);  color: var(--color-danger);  }
+.badge-info    { background: var(--color-info-bg);    color: var(--color-info);    }
+
+/* ─── NEURAL-specific gradients ───────────────────────────────────────────── */
+
+.bg-gradient-neural {
+  background: linear-gradient(135deg, var(--neural-midnight) 0%, var(--neural-navy) 50%, #1a1040 100%);
+}
+
+.bg-gradient-cta {
+  background: linear-gradient(135deg, var(--neural-violet) 0%, var(--neural-violet-light) 100%);
+}
+
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255 255 255 / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255 255 255 / 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+/* ─── Financial data utilities ────────────────────────────────────────────── */
+
+.tabnum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.data-label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-foreground-muted);
+}

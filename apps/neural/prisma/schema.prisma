@@ -1,0 +1,322 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==========================================
+// AUTH
+// ==========================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(CLIENT)
+
+  accounts       Account[]
+  sessions       Session[]
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  CONSULTANT
+  CLIENT
+  VIEWER
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ==========================================
+// BUSINESS
+// ==========================================
+
+model Organization {
+  id      String  @id @default(cuid())
+  name    String
+  sector  Sector
+  size    OrgSize
+  revenue String?
+  website String?
+
+  users     User[]
+  contracts Contract[]
+  agents    DeployedAgent[]
+  leads     Lead[]
+
+  stripeCustomerId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Sector {
+  TRANSPORT
+  LUXE
+  AERONAUTIQUE
+  SAAS
+  BANQUE
+  ASSURANCE
+  OTHER
+}
+
+enum OrgSize {
+  SOLO
+  PME
+  ETI
+  GRAND_GROUPE
+  ENTERPRISE
+}
+
+model Contract {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  forfait       Forfait
+  status        ContractStatus
+  startDate     DateTime
+  endDate       DateTime?
+  monthlyAmount Float
+  setupAmount   Float
+
+  branches Branch[]
+  agents   DeployedAgent[]
+  invoices Invoice[]
+
+  stripeSubscriptionId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Forfait {
+  STARTER
+  BUSINESS
+  ENTERPRISE
+  PREMIUM
+  HIGH_VALUE
+  POC
+}
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+}
+
+enum Branch {
+  SI
+  RH
+  MARKETING
+  COMMUNICATION
+  COMPTABILITE
+  FINANCE
+  SUPPLY_CHAIN
+}
+
+model DeployedAgent {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  branch      Branch
+  sector      Sector
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  contractId     String
+  contract       Contract     @relation(fields: [contractId], references: [id])
+
+  status AgentStatus
+
+  totalQueries      Int    @default(0)
+  totalTokens       BigInt @default(0)
+  avgResponseTime   Float?
+  satisfactionScore Float?
+
+  config Json?
+
+  deployedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+enum AgentStatus {
+  DEVELOPMENT
+  TESTING
+  DEPLOYED
+  PAUSED
+  RETIRED
+}
+
+model Invoice {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id])
+
+  amount Float
+  status InvoiceStatus
+  period String
+
+  stripeInvoiceId String?  @unique
+  paidAt          DateTime?
+
+  createdAt DateTime @default(now())
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// ==========================================
+// CRM / LEADS
+// ==========================================
+
+model Lead {
+  id        String  @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String
+  phone     String?
+  jobTitle  String?
+  company   String
+
+  sector         Sector?
+  orgSize        OrgSize?
+  branches       Branch[]
+  estimatedUsers Int?
+  budget         String?
+
+  status LeadStatus @default(NEW)
+  source LeadSource
+  score  Int        @default(0)
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  notes LeadNote[]
+
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE_FORM
+  WEBSITE_CHAT
+  WEBSITE_SIMULATOR
+  WEBSITE_AUDIT_QUIZ
+  LINKEDIN
+  REFERRAL
+  EVENT
+  COLD_OUTBOUND
+  PARTNER
+  OTHER
+}
+
+model LeadNote {
+  id      String @id @default(cuid())
+  leadId  String
+  lead    Lead   @relation(fields: [leadId], references: [id])
+  content String
+  author  String
+
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// CONTENT
+// ==========================================
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  firstName String?
+  sector    Sector?
+
+  subscribedAt   DateTime  @default(now())
+  unsubscribedAt DateTime?
+}
+
+model AuditQuizResult {
+  id      String  @id @default(cuid())
+  email   String
+  company String
+  sector  Sector?
+
+  dataMaturity    Int
+  techMaturity    Int
+  cultureMaturity Int
+  processMaturity Int
+  overallScore    Int
+
+  recommendedForfait  Forfait?
+  recommendedBranches Branch[]
+
+  answers Json
+
+  createdAt DateTime @default(now())
+}

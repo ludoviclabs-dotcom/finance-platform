@@ -119,6 +119,19 @@
   border-color: var(--color-border);
 }
 
+/* Theme transition */
+html {
+  color-scheme: dark light;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Global focus-visible ring */
+:focus-visible {
+  outline: 2px solid var(--carbon-emerald);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;

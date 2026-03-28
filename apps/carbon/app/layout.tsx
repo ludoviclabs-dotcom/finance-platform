@@ -1,40 +1,52 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter, Space_Grotesk, Manrope } from "next/font/google";
+import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  preload: true,
 });
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space-grotesk",
   display: "swap",
+  preload: true,
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+  preload: false, // secondary font, non-critical
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://carbonco.fr"),
   title: {
-    default: "CarbonCo — Pilotage ESG & CSRD pour l'Entreprise",
+    default: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
     template: "%s | CarbonCo",
   },
   description:
-    "CarbonCo est la plateforme SaaS B2B de pilotage ESG. " +
-    "Collectez, analysez et reportez vos données extra-financières. " +
-    "Conformité ESRS, Taxonomie, Scope 3, CBAM. Copilote IA intégré.",
+    "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
+    "et générez vos rapports ESG en quelques clics. Hébergement souverain.",
   keywords: [
     "ESG",
     "CSRD",
     "ESRS",
     "empreinte carbone",
     "reporting extra-financier",
-    "Scope 3",
+    "Scope 1 2 3",
     "Taxonomie verte",
     "CBAM",
     "RSE",
     "SaaS B2B",
+    "conformité ESG",
+    "pilotage ESG",
+    "rapport ESG IA",
   ],
   authors: [{ name: "CarbonCo" }],
   creator: "CarbonCo",
@@ -43,14 +55,38 @@ export const metadata: Metadata = {
     locale: "fr_FR",
     url: "https://carbonco.fr",
     siteName: "CarbonCo",
-    title: "CarbonCo — Pilotage ESG & CSRD pour l'Entreprise",
+    title: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
     description:
-      "La plateforme qui transforme votre reporting ESG en avantage concurrentiel. " +
-      "ESRS natif, Copilote IA, Audit trail, Scope 3 automatisé.",
+      "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
+      "et générez vos rapports ESG en quelques clics. Hébergement souverain.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "CarbonCo — Plateforme ESG & CSRD",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
+    description:
+      "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
+      "et générez vos rapports ESG en quelques clics.",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
+  },
+  alternates: {
+    canonical: "https://carbonco.fr",
   },
 };
 
@@ -63,10 +99,18 @@ export default function RootLayout({
     <html
       lang="fr"
       data-theme="dark"
-      className={`${inter.variable} ${spaceGrotesk.variable}`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${manrope.variable}`}
     >
       <body className="min-h-screen font-sans antialiased">
-        {children}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-carbon-emerald focus:text-white focus:text-sm focus:font-medium"
+        >
+          Aller au contenu principal
+        </a>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

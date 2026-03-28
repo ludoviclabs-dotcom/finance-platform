@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+/* ─── Dark mode: data-theme attribute toggle ─────────────────────────────── */
+@variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARBONCO DESIGN TOKENS
+   Brand: Vert forêt, Blanc, Slate, Emeraude
+   Typo: Inter (body) + Space Grotesk (display)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── CarbonCo Brand palette ─────────────────────────────────────────────── */
+  --carbon-forest:       #14532D;
+  --carbon-emerald:      #059669;
+  --carbon-emerald-light:#34D399;
+  --carbon-slate:        #0F172A;
+  --carbon-navy:         #1E293B;
+  --carbon-white:        #FFFFFF;
+  --carbon-mist:         #F0FDF4;
+
+  /* ── Semantic surfaces ──────────────────────────────────────────────────── */
+  --color-background:      #FFFFFF;
+  --color-surface:         #FFFFFF;
+  --color-surface-raised:  #F9FAFB;
+
+  /* ── Semantic text ──────────────────────────────────────────────────────── */
+  --color-foreground:        #0F172A;
+  --color-foreground-muted:  #64748B;
+  --color-foreground-subtle: #94A3B8;
+
+  /* ── Borders ────────────────────────────────────────────────────────────── */
+  --color-border:       #E2E8F0;
+  --color-border-strong: #CBD5E1;
+  --color-ring:         #059669;
+
+  /* ── Status ─────────────────────────────────────────────────────────────── */
+  --color-success:     #059669;
+  --color-success-bg:  #ECFDF5;
+  --color-warning:     #D97706;
+  --color-warning-bg:  #FFFBEB;
+  --color-danger:      #DC2626;
+  --color-danger-bg:   #FEF2F2;
+
+  /* ── Radius ─────────────────────────────────────────────────────────────── */
+  --radius-sm:   0.25rem;
+  --radius:      0.375rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-2xl:  1.5rem;
+  --radius-full: 9999px;
+
+  /* ── Fluid type scale ───────────────────────────────────────────────────── */
+  --text-sm:   clamp(0.813rem, 0.77rem + 0.22vw, 0.875rem);
+  --text-base: clamp(0.938rem, 0.88rem + 0.29vw, 1rem);
+  --text-lg:   clamp(1.063rem, 1.00rem + 0.34vw, 1.125rem);
+  --text-xl:   clamp(1.188rem, 1.10rem + 0.45vw, 1.313rem);
+  --text-2xl:  clamp(1.375rem, 1.25rem + 0.63vw, 1.625rem);
+  --text-3xl:  clamp(1.75rem,  1.55rem + 1.01vw, 2.125rem);
+  --text-4xl:  clamp(2.125rem, 1.85rem + 1.38vw, 2.75rem);
+  --text-5xl:  clamp(2.75rem,  2.30rem + 2.25vw, 3.75rem);
+}
+
+[data-theme="dark"] {
+  --color-background:        #0F172A;
+  --color-surface:           #1E293B;
+  --color-surface-raised:    #293548;
+
+  --color-foreground:        #F1F5F9;
+  --color-foreground-muted:  #94A3B8;
+  --color-foreground-subtle: #64748B;
+
+  --color-border:            #1E3A2F;
+  --color-border-strong:     #2D5240;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TAILWIND v4 THEME MAPPING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme inline {
+  --font-sans: var(--font-inter, "Inter"), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk, "Space Grotesk"), ui-sans-serif, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --color-background:        var(--color-background);
+  --color-surface:           var(--color-surface);
+  --color-foreground:        var(--color-foreground);
+  --color-foreground-muted:  var(--color-foreground-muted);
+  --color-border:            var(--color-border);
+  --color-ring:              var(--color-ring);
+  --color-success:           var(--color-success);
+  --color-success-bg:        var(--color-success-bg);
+  --color-warning:           var(--color-warning);
+  --color-danger:            var(--color-danger);
+
+  --color-carbon-forest:        #14532D;
+  --color-carbon-emerald:       #059669;
+  --color-carbon-emerald-light: #34D399;
+  --color-carbon-slate:         #0F172A;
+  --color-carbon-navy:          #1E293B;
+  --color-carbon-mist:          #F0FDF4;
+
+  --radius-sm:   var(--radius-sm);
+  --radius:      var(--radius);
+  --radius-lg:   var(--radius-lg);
+  --radius-xl:   var(--radius-xl);
+  --radius-2xl:  var(--radius-2xl);
+  --radius-full: var(--radius-full);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  border-color: var(--color-border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* ─── CarbonCo gradients ──────────────────────────────────────────────────── */
+
+.bg-gradient-carbon {
+  background: linear-gradient(135deg, #0F172A 0%, #14532D 50%, #064E3B 100%);
+}
+
+.bg-gradient-esg {
+  background: linear-gradient(135deg, #059669 0%, #34D399 100%);
+}
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}

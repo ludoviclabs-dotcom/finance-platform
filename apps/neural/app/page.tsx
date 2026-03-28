@@ -1,3 +1,8 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import { AnimatePresence } from "framer-motion";
+import { SplashScreen } from "@/components/splash/splash-screen";
 import { Hero } from "@/components/sections/hero";
 import { StatsBanner } from "@/components/sections/stats-banner";
 import { ProblemSolution } from "@/components/sections/problem-solution";
@@ -11,19 +16,37 @@ import { FAQAccordion } from "@/components/sections/faq-accordion";
 import { CTASection } from "@/components/sections/cta-section";
 
 export default function HomePage() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleEnter = useCallback(() => {
+    setShowSplash(false);
+  }, []);
+
   return (
     <>
-      <Hero />
-      <StatsBanner />
-      <ProblemSolution />
-      <BranchesGrid />
-      <SectorsGrid />
-      <SectorBranchMatrix />
-      <PricingPreview />
-      <Testimonials />
-      <BlogPreview />
-      <FAQAccordion />
-      <CTASection />
+      <AnimatePresence mode="wait">
+        {showSplash && <SplashScreen key="splash" onEnter={handleEnter} />}
+      </AnimatePresence>
+
+      <div
+        style={{
+          // Prevent scroll while splash is visible
+          overflow: showSplash ? "hidden" : undefined,
+          height: showSplash ? "100vh" : undefined,
+        }}
+      >
+        <Hero />
+        <StatsBanner />
+        <ProblemSolution />
+        <BranchesGrid />
+        <SectorsGrid />
+        <SectorBranchMatrix />
+        <PricingPreview />
+        <Testimonials />
+        <BlogPreview />
+        <FAQAccordion />
+        <CTASection />
+      </div>
     </>
   );
 }

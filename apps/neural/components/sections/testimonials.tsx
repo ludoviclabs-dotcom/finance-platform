@@ -1,3 +1,7 @@
+"use client";
+
+import { useReveal } from "@/lib/use-reveal";
+
 const testimonials = [
   {
     quote:
@@ -5,6 +9,8 @@ const testimonials = [
     author: "Marie D.",
     role: "DAF",
     company: "Groupe Transport Île-de-France",
+    metric: "120h",
+    metricLabel: "économisées/mois",
   },
   {
     quote:
@@ -12,6 +18,8 @@ const testimonials = [
     author: "Thomas L.",
     role: "DSI",
     company: "Maison de luxe parisienne",
+    metric: "94%",
+    metricLabel: "d'adoption",
   },
   {
     quote:
@@ -19,28 +27,60 @@ const testimonials = [
     author: "Sophie R.",
     role: "Directrice Innovation",
     company: "Néo-banque B2B",
+    metric: "+340%",
+    metricLabel: "ROI an 1",
   },
 ];
 
 export function Testimonials() {
-  return (
-    <section className="bg-surface-raised py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className="text-center font-display text-4xl font-bold">
-          Ils nous font confiance
-        </h2>
+  const sectionRef = useReveal();
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {testimonials.map((t) => (
-            <div key={t.author} className="card p-6">
-              <p className="text-sm italic text-foreground-muted leading-relaxed">
-                &ldquo;{t.quote}&rdquo;
-              </p>
-              <div className="mt-6">
-                <p className="font-semibold">{t.author}</p>
-                <p className="text-xs text-foreground-subtle">
-                  {t.role}, {t.company}
+  return (
+    <section ref={sectionRef} className="section-raised py-28 px-8 md:px-12">
+      <div className="mx-auto max-w-[1440px]">
+        <div className="reveal text-center mb-4">
+          <span className="text-xs font-bold text-neural-violet uppercase tracking-widest">Témoignages</span>
+        </div>
+        <div className="reveal text-center" style={{ animationDelay: "0.05s" }}>
+          <h2 className="font-display font-extrabold text-4xl md:text-5xl tracking-tighter">
+            Ils nous font confiance
+          </h2>
+        </div>
+
+        <div className="mt-14 grid gap-6 md:grid-cols-3">
+          {testimonials.map((t, i) => (
+            <div
+              key={t.author}
+              className="reveal rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-7 transition-all hover:border-neural-violet/20 hover:shadow-lg"
+              style={{ animationDelay: `${0.1 + i * 0.08}s` }}
+            >
+              {/* Metric badge */}
+              <div className="mb-5 inline-flex items-center gap-2 rounded-xl bg-neural-violet/10 px-3 py-2">
+                <span className="font-display text-lg font-bold text-neural-violet">{t.metric}</span>
+                <span className="text-xs text-[var(--color-foreground-muted)]">{t.metricLabel}</span>
+              </div>
+
+              {/* Quote */}
+              <div className="relative">
+                <span className="absolute -top-2 -left-1 text-4xl text-neural-violet/20 font-serif leading-none">&ldquo;</span>
+                <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed pl-4">
+                  {t.quote}
                 </p>
+              </div>
+
+              {/* Author */}
+              <div className="mt-6 pt-5 border-t border-[var(--color-border)]">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-neural-violet/10 flex items-center justify-center">
+                    <span className="text-sm font-bold text-neural-violet">{t.author[0]}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">{t.author}</p>
+                    <p className="text-xs text-[var(--color-foreground-subtle)]">
+                      {t.role}, {t.company}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           ))}

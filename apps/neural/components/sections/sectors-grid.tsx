@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { useReveal } from "@/lib/use-reveal";
 
 const sectors = [
   { id: "transport",    label: "Transport",    emoji: "\u{1F686}", desc: "Optimisation logistique, maintenance prédictive, conformité OIV" },
@@ -10,34 +14,42 @@ const sectors = [
 ];
 
 export function SectorsGrid() {
+  const sectionRef = useReveal();
+
   return (
-    <section className="bg-surface-raised py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="font-display text-4xl font-bold">
+    <section ref={sectionRef} className="section-raised py-28 px-8 md:px-12">
+      <div className="mx-auto max-w-[1440px]">
+        <div className="reveal text-center mb-4">
+          <span className="text-xs font-bold text-neural-violet uppercase tracking-widest">Expertise sectorielle</span>
+        </div>
+        <div className="reveal text-center" style={{ animationDelay: "0.05s" }}>
+          <h2 className="font-display font-extrabold text-4xl md:text-5xl tracking-tighter">
             6 secteurs d&apos;expertise
           </h2>
-          <p className="mt-4 text-lg text-foreground-muted">
-            Des agents calibrés pour les spécificités réglementaires et métier
-            de votre industrie
+          <p className="mt-4 text-lg text-[var(--color-foreground-muted)] max-w-2xl mx-auto">
+            Des agents calibrés pour les spécificités réglementaires et métier de votre industrie
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {sectors.map((sector) => (
-            <Link
-              key={sector.id}
-              href={`/secteurs/${sector.id}`}
-              className="card group p-6 transition-all hover:border-neural-violet/30 hover:shadow-md"
-            >
-              <span className="text-4xl">{sector.emoji}</span>
-              <h3 className="mt-3 font-display text-lg font-semibold">
-                {sector.label}
-              </h3>
-              <p className="mt-2 text-sm text-foreground-muted">
-                {sector.desc}
-              </p>
-            </Link>
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {sectors.map((sector, i) => (
+            <div key={sector.id} className="reveal" style={{ animationDelay: `${0.1 + i * 0.06}s` }}>
+              <Link href={`/secteurs/${sector.id}`} className="block h-full">
+                <motion.div
+                  whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)" }}
+                  transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                  className="card-interactive p-7 h-full"
+                >
+                  <span className="text-4xl">{sector.emoji}</span>
+                  <h3 className="mt-4 font-display text-lg font-bold">
+                    {sector.label}
+                  </h3>
+                  <p className="mt-2 text-sm text-[var(--color-foreground-muted)] leading-relaxed">
+                    {sector.desc}
+                  </p>
+                </motion.div>
+              </Link>
+            </div>
           ))}
         </div>
       </div>

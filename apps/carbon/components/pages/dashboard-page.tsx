@@ -20,6 +20,13 @@ import { ChartCard } from "@/components/ui/chart-card";
 import { SectionTitle } from "@/components/ui/section-title";
 import { monthlyEmissions, scopeDetails, recentActivity, aiSuggestions } from "@/lib/data";
 import { staggerContainer, pageVariants } from "@/lib/animations";
+import { DashboardContextBar } from "@/components/dashboard/dashboard-context-bar";
+import { ProactiveInsights } from "@/components/dashboard/proactive-insights";
+import { RegulatoryAlertBanner } from "@/components/dashboard/regulatory-alert-banner";
+import { ActionPlanSuggestions } from "@/components/dashboard/action-plan-suggestions";
+import { DeadlinesWidget } from "@/components/dashboard/deadlines-widget";
+import { DataSourcesWidget } from "@/components/dashboard/data-sources-widget";
+import { AIDraftNotification } from "@/components/dashboard/ai-draft-notification";
 
 /* ── helpers ── */
 const scopeBreakdown = scopeDetails.map((s) => ({
@@ -106,6 +113,7 @@ export function DashboardPage() {
   const [onboardingStep, setOnboardingStep] = useState<number | null>(1);
   const [showOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<"Ce mois" | "Ce trimestre" | "Cette année" | "2025" | "2024">("Cette année");
 
   // Simule un chargement initial avec skeletons
   useEffect(() => {
@@ -174,7 +182,24 @@ export function DashboardPage() {
   }
 
   return (
-    <motion.div {...pageVariants} className="p-6 space-y-6">
+    <motion.div {...pageVariants} className="space-y-0">
+      {/* ── Alerte réglementaire ── */}
+      <div className="pt-4">
+        <RegulatoryAlertBanner />
+      </div>
+
+      {/* ── Context bar : période + méthodologie + export ── */}
+      <DashboardContextBar period={period} onPeriodChange={setPeriod} />
+
+      {/* ── Insights proactifs ── */}
+      <div className="px-6">
+        <ProactiveInsights />
+      </div>
+
+      {/* ── Notification IA brouillon (flottant) ── */}
+      <AIDraftNotification />
+
+      <div className="px-6 pb-6 space-y-6">
 
       {/* ── Onboarding overlay ── */}
       <AnimatePresence>
@@ -224,7 +249,7 @@ export function DashboardPage() {
       {/* ── Titre ── */}
       <SectionTitle
         title="Tableau de bord ESG — Acme Corp."
-        subtitle={`Vue d'ensemble · Données au ${new Date().toLocaleDateString("fr-FR")}`}
+        subtitle={`Vue d'ensemble · ${period} · Données au ${new Date().toLocaleDateString("fr-FR")}`}
       />
 
       {/* ── IA Proactive insights ── */}
@@ -600,6 +625,17 @@ export function DashboardPage() {
           </div>
         </ChartCard>
       </motion.div>
+
+      {/* ── Plan d'action IA ── */}
+      <ActionPlanSuggestions />
+
+      {/* ── Widgets : Échéances + Sources ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DeadlinesWidget />
+        <DataSourcesWidget />
+      </div>
+
+      </div>{/* end px-6 pb-6 */}
     </motion.div>
   );
 }

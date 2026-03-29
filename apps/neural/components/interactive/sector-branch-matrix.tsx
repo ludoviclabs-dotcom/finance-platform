@@ -40,15 +40,16 @@ export function SectorBranchMatrix() {
   const liveCells = countLiveCells();
 
   return (
-    <section className="bg-surface-raised py-20">
-      <div className="container mx-auto max-w-7xl px-4">
+    <section className="section-raised py-28 px-8 md:px-12">
+      <div className="mx-auto max-w-[1440px]">
         <div className="text-center">
-          <h2 className="font-display text-4xl font-bold">
+          <span className="text-xs font-bold text-neural-violet uppercase tracking-widest">Framework</span>
+          <h2 className="mt-4 font-display font-extrabold text-4xl md:text-5xl tracking-tighter">
             42 combinaisons.{" "}
             <span className="text-neural-violet">168 agents.</span>{" "}
             Un framework.
           </h2>
-          <p className="mt-4 text-lg text-foreground-muted">
+          <p className="mt-4 text-lg text-[var(--color-foreground-muted)]">
             Survolez une cellule pour découvrir les agents spécialisés
           </p>
           <div className="mt-3 flex items-center justify-center gap-4 text-sm">

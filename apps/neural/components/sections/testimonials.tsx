@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useReveal } from "@/lib/use-reveal";
 
 const testimonials = [
@@ -11,6 +12,7 @@ const testimonials = [
     company: "Groupe Transport Île-de-France",
     metric: "120h",
     metricLabel: "économisées/mois",
+    avatar: "/images/avatar-testimonial.png",
   },
   {
     quote:
@@ -20,6 +22,7 @@ const testimonials = [
     company: "Maison de luxe parisienne",
     metric: "94%",
     metricLabel: "d'adoption",
+    avatar: "/images/avatar-testimonial.png",
   },
   {
     quote:
@@ -29,6 +32,7 @@ const testimonials = [
     company: "Néo-banque B2B",
     metric: "+340%",
     metricLabel: "ROI an 1",
+    avatar: "/images/avatar-testimonial.png",
   },
 ];
 
@@ -71,8 +75,14 @@ export function Testimonials() {
               {/* Author */}
               <div className="mt-6 pt-5 border-t border-[var(--color-border)]">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-neural-violet/10 flex items-center justify-center">
-                    <span className="text-sm font-bold text-neural-violet">{t.author[0]}</span>
+                  <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-[var(--color-border)]">
+                    <Image
+                      src={t.avatar}
+                      alt={t.author}
+                      width={36}
+                      height={36}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
                     <p className="font-semibold text-sm">{t.author}</p>

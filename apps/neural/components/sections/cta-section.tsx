@@ -31,7 +31,7 @@ export function CTASection() {
         <div className="reveal mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row" style={{ animationDelay: "0.2s" }}>
           <Link
             href="/contact"
-            className="group inline-flex items-center rounded-xl bg-neural-violet px-8 py-4 text-lg font-semibold shadow-xl shadow-neural-violet/25 transition-all hover:bg-neural-violet-dark hover:shadow-2xl hover:shadow-neural-violet/30 hover:scale-105"
+            className="group inline-flex items-center rounded-xl bg-neural-violet px-8 py-4 text-lg font-semibold text-white shadow-xl shadow-neural-violet/25 transition-all hover:bg-neural-violet-dark hover:text-white hover:shadow-2xl hover:shadow-neural-violet/30 hover:scale-105"
           >
             <Calendar className="mr-2 h-5 w-5" />
             Réserver mon audit gratuit

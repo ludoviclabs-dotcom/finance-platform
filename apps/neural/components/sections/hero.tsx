@@ -148,8 +148,8 @@ export function Hero() {
               className="relative flex items-center justify-center"
             >
               {/* Glow behind android */}
-              <div className="absolute inset-0 rounded-3xl bg-neural-violet/10 blur-[60px]" />
-              <div className="absolute -inset-8 rounded-3xl bg-gradient-to-br from-neural-violet/15 via-transparent to-neural-green/8 blur-[40px]" />
+              <div className="absolute inset-0 rounded-3xl bg-neural-violet/5 blur-[40px]" />
+              <div className="absolute -inset-8 rounded-3xl bg-gradient-to-br from-neural-violet/10 via-transparent to-neural-green/5 blur-[30px]" />
 
               {/* Android image */}
               <div className="relative">
@@ -165,8 +165,9 @@ export function Hero() {
                     priority
                     className="relative z-10 rounded-2xl object-cover drop-shadow-2xl"
                     style={{
-                      maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
-                      WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+                      maskImage: "linear-gradient(to bottom, black 85%, transparent 100%)",
+                      WebkitMaskImage: "linear-gradient(to bottom, black 85%, transparent 100%)",
+                      filter: "brightness(1.1) contrast(1.05)",
                     }}
                   />
                 </motion.div>

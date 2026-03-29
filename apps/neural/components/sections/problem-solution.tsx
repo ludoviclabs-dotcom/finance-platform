@@ -4,17 +4,17 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useReveal } from "@/lib/use-reveal";
 
 const problems = [
-  ["POC qui ne passent jamais en production", "Investissement perdu, équipes démoralisées"],
-  ["Adoption faible par les équipes", "Outils déployés mais jamais utilisés au quotidien"],
-  ["ROI impossible à mesurer", "Aucun KPI défini en amont, pas de données de comparaison"],
-  ["Coûts qui explosent sans valeur tangible", "Budgets IA consommés sans impact métier démontrable"],
+  ["Des expérimentations sans lendemain", "La majorité des preuves de concept n'atteignent jamais la production — leur potentiel s'évanouit au seuil de l'opérationnel."],
+  ["Une adoption qui ne se décrète pas", "Déployer un outil ne suffit pas. Sans ancrage dans les pratiques, l'intelligence artificielle reste lettre morte."],
+  ["Un retour sur investissement insaisissable", "Faute de métriques établies en amont, la valeur créée demeure invisible — et la direction reste sceptique."],
+  ["Des budgets absorbés sans contrepartie", "Les enveloppes allouées à l'IA fondent sans que l'entreprise puisse en percevoir l'effet sur ses résultats."],
 ];
 
 const solutions = [
-  ["Agents intégrés dans vos processus existants", "Zéro rupture — l'IA s'insère dans vos outils actuels"],
-  ["Formation et accompagnement au changement", "Adoption mesurée à chaque étape du déploiement"],
-  ["KPIs définis avant le déploiement", "ROI contractualisé : heures, erreurs, satisfaction"],
-  ["Forfaits prévisibles, ROI mesuré mensuellement", "Dashboard temps réel + rapport mensuel chiffré"],
+  ["Une intégration native dans vos flux existants", "Nos agents s'insèrent dans vos systèmes sans rupture — ils épousent vos processus plutôt que de les bouleverser."],
+  ["Un accompagnement au changement rigoureux", "L'adoption ne s'improvise pas. Nous mesurons l'appropriation à chaque jalon et ajustons en continu."],
+  ["Des indicateurs de succès définis avant tout déploiement", "Le retour sur investissement est contractualisé dès la phase d'audit — heures économisées, taux d'erreur, satisfaction."],
+  ["Une visibilité financière totale, mois après mois", "Forfaits transparents, tableau de bord en temps réel et rapport mensuel chiffré : aucune surprise budgétaire."],
 ];
 
 export function ProblemSolution() {
@@ -28,10 +28,10 @@ export function ProblemSolution() {
         </div>
         <div className="reveal text-center mb-16" style={{ animationDelay: "0.05s" }}>
           <h2 className="font-display font-extrabold text-4xl md:text-5xl tracking-tighter">
-            Pourquoi <span className="text-[var(--color-danger)]">80%</span> des projets IA échouent ?
+            Ce que révèle le silence des <span className="text-[var(--color-danger)]">80%</span>
           </h2>
           <p className="mt-4 text-lg text-[var(--color-foreground-muted)] max-w-2xl mx-auto">
-            Les chiffres sont implacables. Mais l&apos;échec n&apos;est jamais une fatalité quand l&apos;approche est structurée.
+            Quatre écueils concentrent l&apos;essentiel des échecs. Les reconnaître, c&apos;est déjà choisir une autre trajectoire.
           </p>
         </div>
 

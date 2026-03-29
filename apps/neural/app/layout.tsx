@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk, Playfair_Display } from "next/font/google";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { NeuralProvider } from "@/lib/neural-hub/context";
 import "./globals.css";
 
 const inter = Inter({
@@ -95,11 +96,13 @@ export default function RootLayout({
       className={`${inter.variable} ${spaceGrotesk.variable} ${playfair.variable}`}
     >
       <body className="min-h-screen font-sans antialiased">
-        <div className="relative flex min-h-screen flex-col">
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+        <NeuralProvider>
+          <div className="relative flex min-h-screen flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </NeuralProvider>
       </body>
     </html>
   );

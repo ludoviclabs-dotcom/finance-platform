@@ -76,7 +76,14 @@ export function Hero() {
                 className="mt-7 font-display text-[3.2rem] font-extrabold leading-[0.95] tracking-tighter sm:text-[3.8rem] lg:text-[4.2rem] xl:text-[4.8rem]"
               >
                 L&apos;IA qui{" "}
-                <span className="bg-gradient-cta bg-clip-text text-transparent">
+                <span
+                  style={{
+                    background: "linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
                   fonctionne vraiment
                 </span>{" "}
                 en entreprise

@@ -11,7 +11,7 @@ const stats = [
 ];
 
 function CountUp({ target, suffix }: { target: number; suffix: string }) {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState<number | null>(null);
   const ref = useRef<HTMLSpanElement>(null);
   const started = useRef(false);
 
@@ -20,6 +20,7 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
     started.current = true;
     const duration = 1500;
     const start = performance.now();
+    setCount(0);
     const step = (now: number) => {
       const progress = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
@@ -42,7 +43,7 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
 
   return (
     <span ref={ref} className="tabnum">
-      {count}{suffix}
+      {count === null ? "—" : `${count}${suffix}`}
     </span>
   );
 }

@@ -323,6 +323,10 @@ a:hover {
   animation: pulse-slow 4s ease-in-out infinite;
 }
 
+@keyframes flowDash {
+  to { stroke-dashoffset: -14; }
+}
+
 /* ─── Scroll reveal animation ────────────────────────────────────────────── */
 
 @keyframes reveal-up {

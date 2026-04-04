@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "reactflow/dist/style.css";
 
 /* ─── Dark mode: data-theme attribute toggle ─────────────────────────────── */
 @variant dark (&:where([data-theme=dark], [data-theme=dark] *));

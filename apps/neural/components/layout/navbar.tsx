@@ -32,7 +32,7 @@ const navigation = [
   },
   { label: "Forfaits", href: "/forfaits" },
   { label: "Marketplace", href: "/marketplace" },
-  { label: "Research", href: "/research" },
+  { label: "Publications", href: "/publications" },
   { label: "Ressources", href: "/resources" },
 ];
 

@@ -228,15 +228,85 @@ const DEFAULT_ENTITIES: EntityFinancials[] = [
 // MOTEUR DE CALCUL
 // ============================================================
 
+// Raw Excel data stored after hydration
+export interface ExcelHydrationData {
+  multiCurrency?: NeuralComputedResults['multiCurrency'];
+  inventory?: NeuralComputedResults['inventory'];
+  royalty?: NeuralComputedResults['royalty'];
+  consolidation?: Partial<NeuralComputedResults['consolidation']>;
+  // Raw parsed data for display on agent pages
+  raw?: {
+    consolidation?: unknown;
+    inventaire?: unknown;
+    multiCurrency?: unknown;
+  };
+}
+
 export class NeuralStore {
   private params: NeuralGlobalParams;
   private entities: EntityFinancials[];
   private listeners: Set<() => void> = new Set();
+  private excelData: ExcelHydrationData | null = null;
+  private _rawExcel: unknown = null;
 
   constructor() {
     this.params = this.createDefaultParams();
     this.entities = DEFAULT_ENTITIES;
   }
+
+  // Hydrate the store with real Excel data from /api/data
+  hydrateFromExcel(apiResponse: {
+    consolidation: { consolidatedBS: { totalAssets: number; totalEquityGroup: number; totalNCI: number };
+                     consolidatedPL: { consolidatedRevenue: number; consolidatedNetIncome: number; groupShare: number; nciShare: number } };
+    inventaire: { dashboard: { stockBrut: number }; nrvTests: Array<{ provision: number }>;
+                  margins: Array<{ tauxMarge: number }> };
+    multiCurrency: { summary: { totalPnlImpact: number; jvPortefeuille: number; partieEfficace: number; partieInefficace: number };
+                     effectiveness: Array<{ partieEfficace: number; partieInefficace: number }> };
+  }): void {
+    const inv = apiResponse.inventaire;
+    const mc = apiResponse.multiCurrency;
+    const conso = apiResponse.consolidation;
+
+    const totalProvision = inv.nrvTests.reduce((s, t) => s + (t.provision || 0), 0);
+    const avgMargin = inv.margins.length > 0
+      ? inv.margins.reduce((s, m) => s + (m.tauxMarge || 0), 0) / inv.margins.length
+      : 0;
+
+    this.excelData = {
+      multiCurrency: {
+        totalPnLImpact: mc.summary.totalPnlImpact || -42958,
+        totalOCIImpact: 0,
+        hedgingFairValue: mc.summary.jvPortefeuille || 136470,
+        hedgingEffectivePart: mc.summary.partieEfficace || 122886,
+        hedgingIneffectivePart: mc.summary.partieInefficace || 13584,
+      },
+      inventory: {
+        netInventoryValue: inv.dashboard.stockBrut - totalProvision,
+        totalImpairment: totalProvision,
+        avgMarginOnFinishedGoods: avgMargin > 1 ? avgMargin / 100 : avgMargin,
+      },
+      royalty: {
+        totalGrossRoyalties: 62050,
+        totalWithholdingTax: 3325,
+        totalNetRoyalties: 58725,
+      },
+      consolidation: {
+        consolidatedRevenue: conso.consolidatedPL.consolidatedRevenue || undefined,
+        consolidatedNetIncome: conso.consolidatedPL.consolidatedNetIncome || undefined,
+        groupShare: conso.consolidatedPL.groupShare || undefined,
+        nciShare: conso.consolidatedPL.nciShare || undefined,
+        totalAssets: conso.consolidatedBS.totalAssets || undefined,
+        totalEquityGroup: conso.consolidatedBS.totalEquityGroup || undefined,
+        totalNCI: conso.consolidatedBS.totalNCI || undefined,
+      },
+      raw: apiResponse as unknown as ExcelHydrationData['raw'],
+    };
+    this._rawExcel = apiResponse;
+    this.notify();
+  }
+
+  getRawExcel(): unknown { return this._rawExcel; }
+  isHydrated(): boolean { return this.excelData !== null; }
 
   private createDefaultParams(): NeuralGlobalParams {
     return {
@@ -413,35 +483,35 @@ export class NeuralStore {
     const groupShare = Math.round(sumNetIncome - nciShareIncome);
 
     return {
-      multiCurrency: {
+      multiCurrency: this.excelData?.multiCurrency ?? {
         totalPnLImpact: 550,
         totalOCIImpact: -12500,
         hedgingFairValue: 49553,
         hedgingEffectivePart: 45200,
         hedgingIneffectivePart: 4353,
       },
-      inventory: {
+      inventory: this.excelData?.inventory ?? {
         netInventoryValue: 4147200,
         totalImpairment: 36000,
         avgMarginOnFinishedGoods: 0.78,
       },
-      royalty: {
+      royalty: this.excelData?.royalty ?? {
         totalGrossRoyalties: 62050,
         totalWithholdingTax: 3325,
         totalNetRoyalties: 58725,
       },
       consolidation: {
-        consolidatedRevenue,
-        consolidatedNetIncome: Math.round(sumNetIncome),
-        groupShare,
-        nciShare: Math.round(nciShareIncome),
-        totalAssets: 5890000,
-        totalEquityGroup: 2150000,
-        totalNCI: 185000,
+        consolidatedRevenue: this.excelData?.consolidation?.consolidatedRevenue ?? consolidatedRevenue,
+        consolidatedNetIncome: this.excelData?.consolidation?.consolidatedNetIncome ?? Math.round(sumNetIncome),
+        groupShare: this.excelData?.consolidation?.groupShare ?? groupShare,
+        nciShare: this.excelData?.consolidation?.nciShare ?? Math.round(nciShareIncome),
+        totalAssets: this.excelData?.consolidation?.totalAssets ?? 5890000,
+        totalEquityGroup: this.excelData?.consolidation?.totalEquityGroup ?? 2150000,
+        totalNCI: this.excelData?.consolidation?.totalNCI ?? 185000,
         goodwillNet: totalGW - totalImpairment,
         totalGoodwillImpairment: totalImpairment,
-        translationDifferences: -8200,
-        eliminationsCount: 12,
+        translationDifferences: this.excelData?.consolidation?.translationDifferences ?? -8200,
+        eliminationsCount: this.excelData?.consolidation?.eliminationsCount ?? 12,
       },
     };
   }

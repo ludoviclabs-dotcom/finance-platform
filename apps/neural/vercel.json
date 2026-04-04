@@ -1,6 +1,6 @@
 {
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npx next build",
   "outputDirectory": ".next",
   "functions": {
     "app/api/**/*.ts": {

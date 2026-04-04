@@ -16,6 +16,7 @@ import {
   Sparkles,
   FileBarChart,
   BarChart3,
+  Coins,
 } from 'lucide-react';
 
 const ICONS: Record<string, React.ElementType> = {
@@ -31,6 +32,7 @@ const ICONS: Record<string, React.ElementType> = {
   sparkles: Sparkles,
   'file-text': FileBarChart,
   'bar-chart': BarChart3,
+  coins: Coins,
 };
 
 export interface CustomNodeData {

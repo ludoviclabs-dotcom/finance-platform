@@ -1,165 +1,152 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
-
-const WorkflowDiagram = dynamic(() => import('@/components/workflow/WorkflowDiagram'), { ssr: false });
 import {
   ArrowRight,
   Building2,
-  Coins,
-  Package,
-  TrendingUp,
-  Globe,
+  Users,
   Shield,
   Layers,
-  Download,
-  ChevronRight,
-  Zap,
+  Coins,
+  Globe,
+  TrendingUp,
+  Gem,
+  Sparkles,
+  Package,
+  Receipt,
+  UserCheck,
+  BarChart3,
+  GraduationCap,
 } from 'lucide-react';
-import { useNeural } from '@/lib/neural-hub/context';
 
-const AGENTS = [
+/* ── Branches (hub cards) ── */
+const BRANCHES = [
   {
-    id: 'consolidation',
-    href: '/agents/consolidation',
+    id: 'finance',
+    href: '/secteurs/luxe/finance',
     icon: Building2,
-    accent: 'neural-violet',
-    accentRing: 'ring-neural-violet/30',
-    accentBg: 'bg-neural-violet/10',
+    gradient: 'from-neural-violet/20 via-neural-violet/5 to-transparent',
+    borderHover: 'hover:border-neural-violet/40',
     accentText: 'text-neural-violet',
-    title: 'Consolidation Groupe',
-    subtitle: 'NEURAL_Consolidation_Groupe',
-    normes: ['IFRS 10', 'IFRS 3', 'IAS 36', 'IAS 21'],
+    accentBg: 'bg-neural-violet/10',
+    title: 'Finance & Comptabilité IFRS',
+    subtitle: '4 agents interconnectés',
     description:
-      'Consolide les états financiers des 7 entités du groupe Maison Aurelia. Calcul automatique du goodwill, tests de dépréciation IAS 36, éliminations intercompagnies et conversion multi-devises.',
-    features: [
-      'Périmètre de consolidation dynamique (IG, MEE)',
-      'Goodwill IFRS 3 — méthode partielle ou complète',
-      'Tests de dépréciation IAS 36 — DCF + valeur terminale',
-      'Bilan & P&L consolidés avec part NCI',
+      'Consolidation groupe, inventaire haute couture, gestion multi-devises et comptabilité des redevances. Normes IFRS 10, 3, IAS 2, 21, 36, IFRS 9.',
+    agents: [
+      { icon: Building2, name: 'Consolidation Groupe', status: 'live' },
+      { icon: Package, name: 'Inventaire Luxe', status: 'coming' },
+      { icon: Globe, name: 'Multi-Currency IAS 21', status: 'coming' },
+      { icon: Receipt, name: 'Royalty Accounting', status: 'coming' },
     ],
-    kpiLabel: 'CA consolidé',
-    kpiKey: 'consolidatedRevenue' as const,
-    kpiUnit: 'K€',
-    status: 'live',
+    stats: [
+      { label: 'Entités consolidées', value: '8' },
+      { label: 'Devises gérées', value: '7' },
+      { label: 'Normes IFRS', value: '10+' },
+    ],
+    ctaLabel: 'Explorer les simulateurs Finance',
   },
   {
-    id: 'inventaire-luxe',
-    href: '/agents/inventaire-luxe',
-    icon: Package,
-    accent: 'emerald-400',
-    accentRing: 'ring-emerald-400/30',
-    accentBg: 'bg-emerald-500/10',
+    id: 'rh',
+    href: '/secteurs/luxe/rh',
+    icon: Users,
+    gradient: 'from-emerald-500/20 via-emerald-500/5 to-transparent',
+    borderHover: 'hover:border-emerald-400/40',
     accentText: 'text-emerald-400',
-    title: 'Inventaire Luxe',
-    subtitle: 'NEURAL_Inventaire_Luxe',
-    normes: ['IAS 2', 'IFRS 15', 'IAS 36'],
+    accentBg: 'bg-emerald-500/10',
+    title: 'Ressources Humaines',
+    subtitle: '3 agents spécialisés luxe',
     description:
-      'Valorisation des stocks multi-maisons (maroquinerie, joaillerie, horlogerie). Calcul au coût amorti, test de dépréciation NRV, élimination des marges internes sur produits finis.',
-    features: [
-      'Ventilation par catégorie : matières, en-cours, produits finis',
-      'Test NRV (Net Realisable Value) automatique',
-      'Élimination des marges intra-groupe sur stocks aval',
-      'Reporting par maison et par devise',
+      'Gestion des talents artisanaux, benchmark de rémunération sectoriel et onboarding personnalisé par maison. Conçu pour les métiers rares du luxe.',
+    agents: [
+      { icon: UserCheck, name: 'Artisan Talent', status: 'coming' },
+      { icon: BarChart3, name: 'Comp & Benchmark', status: 'coming' },
+      { icon: GraduationCap, name: 'Onboarding Luxe', status: 'coming' },
     ],
-    kpiLabel: 'Valeur nette stocks',
-    kpiValue: '4 147',
-    kpiUnit: 'K€',
-    status: 'coming',
-  },
-  {
-    id: 'multi-currency',
-    href: '/agents/multi-currency',
-    icon: Globe,
-    accent: 'blue-400',
-    accentRing: 'ring-blue-400/30',
-    accentBg: 'bg-blue-500/10',
-    accentText: 'text-blue-400',
-    title: 'Multi-Currency IAS 21',
-    subtitle: 'NEURAL_MultiCurrency_IAS21',
-    normes: ['IAS 21', 'IFRS 9', 'IAS 39'],
-    description:
-      'Gestion centralisée des taux de change pour les 7 devises du groupe. Calcul des écarts de conversion, comptabilité de couverture IFRS 9, impact P&L et OCI.',
-    features: [
-      '12 mois de taux EUR/USD/GBP/JPY/CHF/CNY/AED',
-      'Écarts de conversion clôture vs. moyen vs. historique',
-      'Couverture de flux de trésorerie — part efficace/inefficace',
-      'Impact automatique sur le bilan consolidé',
+    stats: [
+      { label: 'Métiers référencés', value: '30+' },
+      { label: 'Pays couverts', value: '7' },
+      { label: 'Maisons configurables', value: '15+' },
     ],
-    kpiLabel: 'Impact P&L change',
-    kpiValue: '+550',
-    kpiUnit: 'K€',
-    status: 'coming',
+    ctaLabel: 'Explorer les outils RH',
   },
 ];
 
-const STATS = [
-  { label: 'Entités consolidées', value: '7', icon: Building2 },
-  { label: 'Devises gérées', value: '7', icon: Coins },
-  { label: 'Normes IFRS couvertes', value: '8', icon: Shield },
-  { label: 'Agents interconnectés', value: '3', icon: Layers },
+const GLOBAL_STATS = [
+  { label: 'Agents IA', value: '7', icon: Layers },
+  { label: 'Fichiers Excel connectés', value: '7', icon: Sparkles },
+  { label: 'Normes & Standards', value: '15+', icon: Shield },
+  { label: 'Branches métier', value: '2', icon: TrendingUp },
 ];
 
-export default function SecteursLuxePage() {
-  const { results, flow } = useNeural();
-  const conso = results.consolidation;
-
+export default function LuxeHubPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-foreground)]">
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden border-b border-[var(--color-border)] bg-gradient-to-b from-neural-violet/5 to-transparent px-6 pb-16 pt-32 md:px-12">
-        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-neural-violet/8 blur-[120px]" />
-        <div className="absolute right-0 bottom-0 h-64 w-64 rounded-full bg-emerald-500/5 blur-[100px]" />
+      <section className="relative overflow-hidden border-b border-[var(--color-border)] px-6 pb-20 pt-32 md:px-12">
+        {/* Background effects */}
+        <div className="absolute inset-0 bg-gradient-to-b from-neural-violet/5 via-transparent to-transparent" />
+        <div className="absolute -left-60 -top-60 h-[500px] w-[500px] rounded-full bg-neural-violet/8 blur-[150px]" />
+        <div className="absolute right-0 bottom-0 h-80 w-80 rounded-full bg-emerald-500/5 blur-[120px]" />
+        <div className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-500/3 blur-[100px]" />
 
         <div className="relative mx-auto max-w-[1440px]">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">👜</span>
-              <span className="text-xs font-bold text-neural-violet uppercase tracking-widest">
-                Secteur Luxe — Maison Aurelia
-              </span>
+            {/* Badge */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neural-violet/10 border border-neural-violet/20">
+                <Gem className="h-5 w-5 text-neural-violet" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-neural-violet uppercase tracking-[0.2em]">
+                  Secteur Luxe
+                </span>
+                <p className="text-[11px] text-[var(--color-foreground-subtle)]">Maison Aurelia</p>
+              </div>
             </div>
 
-            <h1 className="font-display font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tighter max-w-3xl">
-              Agents IA pour le{' '}
+            {/* Headline */}
+            <h1 className="font-display font-extrabold text-4xl md:text-5xl lg:text-6xl xl:text-7xl tracking-tighter max-w-4xl leading-[0.95]">
+              <span className="text-[var(--color-foreground)]">L&apos;intelligence</span>
+              <br />
               <span
                 style={{
-                  background: 'linear-gradient(135deg, #a78bfa 0%, #c4b5fd 50%, #10b981 100%)',
+                  background: 'linear-gradient(135deg, #a78bfa 0%, #c4b5fd 30%, #34d399 70%, #10b981 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
                 }}
               >
-                secteur Luxe
+                augmentée
               </span>
+              <br />
+              <span className="text-[var(--color-foreground)]">du luxe</span>
             </h1>
 
-            <p className="mt-5 text-lg text-[var(--color-foreground-muted)] max-w-2xl leading-relaxed">
-              Trois simulateurs IFRS interconnectés, calibrés pour les spécificités du luxe :
-              consolidation multi-maisons, valorisation d&apos;inventaire haute couture et gestion
-              multi-devises sur 7 pays.
+            <p className="mt-6 text-lg md:text-xl text-[var(--color-foreground-muted)] max-w-2xl leading-relaxed">
+              7 agents IA spécialisés, répartis en 2 branches métier, connectés à vos données
+              Excel en temps réel. Finance IFRS et Ressources Humaines — conçus pour les
+              spécificités des maisons de luxe.
             </p>
           </motion.div>
 
-          {/* Stats bar */}
+          {/* Global stats */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4"
           >
-            {STATS.map((stat, i) => (
+            {GLOBAL_STATS.map(stat => (
               <div
                 key={stat.label}
-                className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
+                className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-sm px-4 py-3"
               >
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-neural-violet/10">
                   <stat.icon className="h-4 w-4 text-neural-violet" />
@@ -174,189 +161,171 @@ export default function SecteursLuxePage() {
         </div>
       </section>
 
-      {/* ── Data flow banner ── */}
-      <section className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 md:px-12">
+      {/* ── Branches ── */}
+      <section className="px-6 py-20 md:px-12">
         <div className="mx-auto max-w-[1440px]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <p className="text-sm font-semibold text-[var(--color-foreground-muted)]">
-              Flux de données temps réel entre agents
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 text-blue-400 font-medium">
-              MultiCurrency
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mb-12"
+          >
+            <span className="text-xs font-bold text-neural-violet uppercase tracking-[0.15em]">
+              Branches métier
             </span>
-            <ChevronRight className="h-3 w-3 text-[var(--color-foreground-subtle)]" />
-            <span className="text-[var(--color-foreground-muted)]">Taux clôture + P&L change</span>
-            <ChevronRight className="h-3 w-3 text-[var(--color-foreground-subtle)]" />
-            <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 text-emerald-400 font-medium">
-              Inventaire Luxe
-            </span>
-            <ChevronRight className="h-3 w-3 text-[var(--color-foreground-subtle)]" />
-            <span className="text-[var(--color-foreground-muted)]">Stocks valorisés + marges internes</span>
-            <ChevronRight className="h-3 w-3 text-[var(--color-foreground-subtle)]" />
-            <span className="rounded-lg bg-neural-violet/10 border border-neural-violet/20 px-3 py-1.5 text-neural-violet font-medium">
-              Consolidation
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Agent cards ── */}
-      <section className="px-6 py-16 md:px-12">
-        <div className="mx-auto max-w-[1440px]">
-          <div className="mb-10">
-            <span className="text-xs font-bold text-neural-violet uppercase tracking-widest">
-              Simulateurs
-            </span>
-            <h2 className="mt-2 font-display font-extrabold text-3xl md:text-4xl tracking-tight">
-              3 agents, un écosystème
+            <h2 className="mt-3 font-display font-extrabold text-3xl md:text-4xl tracking-tight">
+              Choisissez votre domaine
             </h2>
-            <p className="mt-2 text-[var(--color-foreground-muted)]">
-              Chaque agent se spécialise sur un domaine IFRS et alimente les autres en données.
+            <p className="mt-2 text-[var(--color-foreground-muted)] max-w-xl">
+              Chaque branche regroupe des agents IA spécialisés, interconnectés via le Neural Data Hub.
+            </p>
+          </motion.div>
+
+          <div className="grid gap-8 lg:grid-cols-2">
+            {BRANCHES.map((branch, i) => (
+              <motion.div
+                key={branch.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 + i * 0.15 }}
+              >
+                <Link href={branch.href} className="block group">
+                  <div className={`relative h-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden transition-all duration-300 ${branch.borderHover} hover:shadow-2xl hover:shadow-neural-violet/5`}>
+                    {/* Gradient top */}
+                    <div className={`absolute inset-x-0 top-0 h-40 bg-gradient-to-b ${branch.gradient} opacity-60`} />
+
+                    <div className="relative p-8">
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                          <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${branch.accentBg} border border-[var(--color-border)]`}>
+                            <branch.icon className={`h-7 w-7 ${branch.accentText}`} />
+                          </div>
+                          <div>
+                            <h3 className="font-display text-2xl font-bold">{branch.title}</h3>
+                            <p className={`text-sm ${branch.accentText} font-medium`}>{branch.subtitle}</p>
+                          </div>
+                        </div>
+                        <ArrowRight className={`h-5 w-5 ${branch.accentText} opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1`} />
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed mb-6">
+                        {branch.description}
+                      </p>
+
+                      {/* Agent mini-cards */}
+                      <div className="grid grid-cols-2 gap-2 mb-6">
+                        {branch.agents.map(agent => (
+                          <div
+                            key={agent.name}
+                            className="flex items-center gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2"
+                          >
+                            <agent.icon className={`h-4 w-4 ${branch.accentText} shrink-0`} />
+                            <span className="text-xs font-medium truncate">{agent.name}</span>
+                            {agent.status === 'live' && (
+                              <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Stats bar */}
+                      <div className="flex gap-6 pt-5 border-t border-[var(--color-border)]">
+                        {branch.stats.map(stat => (
+                          <div key={stat.label}>
+                            <p className={`font-display text-lg font-bold ${branch.accentText}`}>{stat.value}</p>
+                            <p className="text-[10px] text-[var(--color-foreground-subtle)] uppercase tracking-wider">{stat.label}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* CTA */}
+                      <div className={`mt-6 flex items-center justify-center gap-2 w-full rounded-xl ${branch.accentBg} border border-[var(--color-border)] px-4 py-3 text-sm font-semibold ${branch.accentText} transition-all group-hover:gap-3`}>
+                        {branch.ctaLabel}
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Architecture overview ── */}
+      <section className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-[1440px]">
+          <div className="text-center mb-12">
+            <span className="text-xs font-bold text-neural-violet uppercase tracking-[0.15em]">
+              Architecture
+            </span>
+            <h2 className="mt-3 font-display font-extrabold text-3xl tracking-tight">
+              Données interconnectées
+            </h2>
+            <p className="mt-2 text-[var(--color-foreground-muted)] max-w-lg mx-auto">
+              Tous les agents partagent un flux de données commun. Les taux de change,
+              marges et KPIs se propagent automatiquement entre branches.
             </p>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            {AGENTS.map((agent, i) => {
-              // Compute KPI from live store for consolidation
-              let kpiDisplay = agent.kpiValue ?? '—';
-              if (agent.kpiKey && conso[agent.kpiKey] !== undefined) {
-                kpiDisplay = conso[agent.kpiKey].toLocaleString('fr-FR');
-              }
-
-              return (
-                <motion.div
-                  key={agent.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 + i * 0.1 }}
-                >
-                  <div className={`group relative h-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 transition-all hover:border-${agent.accent}/30 hover:shadow-lg hover:shadow-${agent.accent}/5`}>
-                    {/* Status badge */}
-                    <div className="absolute top-4 right-4">
-                      {agent.status === 'live' ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-400">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          Opérationnel
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-yellow-400">
-                          <Zap className="h-2.5 w-2.5" />
-                          Bientôt
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Icon */}
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${agent.accentBg} mb-4`}>
-                      <agent.icon className={`h-6 w-6 ${agent.accentText}`} />
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="font-display text-xl font-bold mb-0.5">{agent.title}</h3>
-                    <p className="text-[11px] font-mono text-[var(--color-foreground-subtle)] mb-3">
-                      {agent.subtitle}
-                    </p>
-
-                    {/* Normes tags */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {agent.normes.map(n => (
-                        <span
-                          key={n}
-                          className="rounded-md bg-[var(--color-surface-raised)] border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-foreground-muted)]"
-                        >
-                          {n}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed mb-5">
-                      {agent.description}
-                    </p>
-
-                    {/* Features */}
-                    <ul className="space-y-2 mb-6">
-                      {agent.features.map(f => (
-                        <li key={f} className="flex items-start gap-2 text-xs text-[var(--color-foreground-muted)]">
-                          <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${agent.accentBg} ring-2 ${agent.accentRing}`} />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* KPI */}
-                    <div className="rounded-xl bg-[var(--color-surface-raised)] border border-[var(--color-border)] px-4 py-3 mb-5">
-                      <p className="text-[10px] text-[var(--color-foreground-subtle)] uppercase tracking-wider mb-0.5">
-                        {agent.kpiLabel}
-                      </p>
-                      <p className={`font-display text-2xl font-bold ${agent.accentText}`}>
-                        {kpiDisplay}
-                        <span className="text-sm font-normal text-[var(--color-foreground-muted)] ml-1">
-                          {agent.kpiUnit}
-                        </span>
-                      </p>
-                    </div>
-
-                    {/* CTA */}
-                    {agent.status === 'live' ? (
-                      <Link
-                        href={agent.href}
-                        className={`flex items-center justify-center gap-2 w-full rounded-xl ${agent.accentBg} border border-${agent.accent}/20 px-4 py-2.5 text-sm font-semibold ${agent.accentText} transition-all hover:bg-${agent.accent}/20 group-hover:gap-3`}
-                      >
-                        Ouvrir le simulateur
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                      </Link>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2 w-full rounded-xl bg-[var(--color-surface-raised)] border border-[var(--color-border)] px-4 py-2.5 text-sm font-medium text-[var(--color-foreground-subtle)] cursor-default">
-                        Disponible prochainement
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Export section ── */}
-      <section className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-12 md:px-12">
-        <div className="mx-auto max-w-[1440px]">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h3 className="font-display font-bold text-lg">Export des données</h3>
-              <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
-                Téléchargez les fichiers Excel interconnectés — les taux de change et marges
-                se propagent automatiquement entre les fichiers.
-              </p>
+          {/* Flow visualization */}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-2">
+            {/* Sources */}
+            <div className="flex flex-col gap-2">
+              <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-400 text-center">
+                7 Fichiers Excel
+              </div>
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-4 py-2 text-[10px] text-[var(--color-foreground-subtle)] text-center">
+                ERP / Taux BCE / Stocks
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="/api/export/consolidation"
-                className="inline-flex items-center gap-2 rounded-xl border border-neural-violet/30 bg-neural-violet/10 px-5 py-2.5 text-sm font-medium text-neural-violet hover:bg-neural-violet/20 transition-all"
-              >
-                <Download className="h-4 w-4" />
-                Consolidation (.xlsx)
-              </a>
-              <a
-                href="/api/export/full-pack"
-                className="inline-flex items-center gap-2 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-2.5 text-sm font-medium text-yellow-400 hover:bg-yellow-500/20 transition-all"
-              >
-                <Download className="h-4 w-4" />
-                Pack Complet (.zip)
-              </a>
+
+            <ArrowRight className="h-4 w-4 text-[var(--color-foreground-subtle)] rotate-90 md:rotate-0" />
+
+            {/* Neural Hub */}
+            <div className="rounded-xl border-2 border-neural-violet/30 bg-neural-violet/5 px-6 py-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <div className="w-2 h-2 bg-neural-violet rounded-full animate-pulse" />
+                <span className="text-sm font-bold text-neural-violet">Neural Data Hub</span>
+              </div>
+              <p className="text-[10px] text-[var(--color-foreground-subtle)]">API /api/data — temps réel</p>
+            </div>
+
+            <ArrowRight className="h-4 w-4 text-[var(--color-foreground-subtle)] rotate-90 md:rotate-0" />
+
+            {/* Branches */}
+            <div className="flex flex-col gap-2">
+              <div className="rounded-lg border border-neural-violet/20 bg-neural-violet/10 px-4 py-2 text-xs font-medium text-neural-violet text-center">
+                Finance — 4 agents
+              </div>
+              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-xs font-medium text-emerald-400 text-center">
+                RH — 3 agents
+              </div>
+            </div>
+
+            <ArrowRight className="h-4 w-4 text-[var(--color-foreground-subtle)] rotate-90 md:rotate-0" />
+
+            {/* Outputs */}
+            <div className="flex flex-col gap-2">
+              <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-4 py-2 text-xs font-medium text-yellow-400 text-center">
+                Dashboard / Export
+              </div>
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-4 py-2 text-[10px] text-[var(--color-foreground-subtle)] text-center">
+                Excel / ZIP / PDF
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Architecture — Interactive Workflow ── */}
-      <section className="px-6 py-16 md:px-12">
-        <div className="mx-auto max-w-[1440px]">
-          <WorkflowDiagram />
+      {/* ── Footer note ── */}
+      <section className="border-t border-[var(--color-border)] px-6 py-8 md:px-12">
+        <div className="mx-auto max-w-[1440px] text-center">
+          <p className="text-xs text-[var(--color-foreground-subtle)]">
+            NEURAL — Intelligence Augmentée pour les Maisons de Luxe · Données connectées en temps réel via Excel
+          </p>
         </div>
       </section>
     </div>

@@ -12,7 +12,6 @@ import ReactFlow, {
   useReactFlow,
   ReactFlowProvider,
 } from 'reactflow';
-import 'reactflow/dist/style.css';
 import CustomNode, { type CustomNodeData } from './CustomNode';
 import AnimatedEdge from './AnimatedEdge';
 import DetailPanel from './DetailPanel';

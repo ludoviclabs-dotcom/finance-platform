@@ -1,7 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
+
+const TalentWorkflowDiagram = dynamic(
+  () => import('@/components/workflow/TalentWorkflowDiagram'),
+  { ssr: false }
+);
 import {
   ArrowLeft,
   ArrowRight,
@@ -339,6 +345,13 @@ export default function LuxeRHPage() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── Talent Workflow Diagram ── */}
+      <section className="border-t border-[var(--color-border)] bg-gradient-to-b from-[#0A1628] to-[#080F1E] px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-[1440px]">
+          <TalentWorkflowDiagram />
         </div>
       </section>
 

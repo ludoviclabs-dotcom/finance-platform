@@ -1,7 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
+
+const TransportWorkflowStepper = dynamic(
+  () => import('@/components/workflow/TransportWorkflowStepper'),
+  { ssr: false }
+);
 import {
   ArrowRight,
   Truck,
@@ -378,6 +384,20 @@ export default function TransportPage() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── Workflow Stepper ── */}
+      <section className="border-t border-[var(--color-border)] px-6 py-20 md:px-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/[0.03] via-transparent to-neural-violet/[0.02]" />
+        <div className="relative mx-auto max-w-[1440px]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <TransportWorkflowStepper />
+          </motion.div>
         </div>
       </section>
 

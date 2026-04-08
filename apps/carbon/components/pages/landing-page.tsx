@@ -68,6 +68,420 @@ function CountUp({ target, suffix = "", decimals = 0, duration = 1800 }: { targe
   );
 }
 
+/* ── Dashboard Hotspot types ── */
+interface HotspotPosition { x: number; y: number; }
+
+interface DashboardHotspot {
+  id: string;
+  label: string;
+  description: string;
+  hotspotPosition: HotspotPosition;
+  labelPosition: HotspotPosition;
+  side: "left" | "right";
+  color: string;
+}
+
+const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
+  {
+    id: "scopes",
+    label: "Scopes 1, 2, 3",
+    description: "Visualisation en temps reel de vos emissions par scope selon le GHG Protocol. Ventilation automatique par poste et site.",
+    hotspotPosition: { x: 28, y: 35 },
+    labelPosition: { x: 8, y: 20 },
+    side: "left",
+    color: "#16a34a",
+  },
+  {
+    id: "kpis",
+    label: "KPIs Carbone",
+    description: "Indicateurs cles : total tCO2e, evolution Year-over-Year, trajectoire SBTi, benchmark sectoriel.",
+    hotspotPosition: { x: 50, y: 18 },
+    labelPosition: { x: 50, y: 4 },
+    side: "right",
+    color: "#0891b2",
+  },
+  {
+    id: "postes",
+    label: "Postes d'emission",
+    description: "Detail par poste (energie, transport, achats, numerique...) avec ventilation automatique et facteurs ADEME/IEA.",
+    hotspotPosition: { x: 72, y: 40 },
+    labelPosition: { x: 92, y: 28 },
+    side: "right",
+    color: "#7c3aed",
+  },
+  {
+    id: "actions",
+    label: "Plan d'action IA",
+    description: "Recommandations generees par le copilote NEURAL pour reduire vos emissions prioritaires, chiffrees et priorisees.",
+    hotspotPosition: { x: 70, y: 68 },
+    labelPosition: { x: 92, y: 72 },
+    side: "right",
+    color: "#ea580c",
+  },
+  {
+    id: "rapports",
+    label: "Rapports CSRD",
+    description: "Generation automatique de rapports conformes CSRD, CDP, Bilan Carbone. Format auditeur pret pour signature.",
+    hotspotPosition: { x: 30, y: 72 },
+    labelPosition: { x: 8, y: 78 },
+    side: "left",
+    color: "#16a34a",
+  },
+];
+
+/* ── Hotspot Label sub-component ── */
+function HotspotLabel({ hotspot, isActive, onHover, index }: { hotspot: DashboardHotspot; isActive: boolean; onHover: (id: string | null) => void; index: number }) {
+  return (
+    <motion.div
+      className="absolute z-20 hidden md:block"
+      style={{ left: `${hotspot.labelPosition.x}%`, top: `${hotspot.labelPosition.y}%`, transform: "translate(-50%, -50%)" }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.8 + index * 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+      onMouseEnter={() => onHover(hotspot.id)}
+      onMouseLeave={() => onHover(null)}
+    >
+      <motion.div
+        className="flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer border transition-all duration-300 select-none whitespace-nowrap"
+        style={isActive
+          ? { background: `${hotspot.color}ee`, borderColor: hotspot.color, color: "#fff", boxShadow: `0 8px 24px ${hotspot.color}40` }
+          : { background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)" }
+        }
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <span className="relative flex h-2.5 w-2.5">
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ background: isActive ? "#fff" : hotspot.color }}
+          />
+          <span
+            className="relative inline-flex rounded-full h-2.5 w-2.5"
+            style={{ background: isActive ? "#fff" : hotspot.color }}
+          />
+        </span>
+        <span className="text-sm font-semibold tracking-wide">{hotspot.label}</span>
+      </motion.div>
+
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute mt-2 px-4 py-3 rounded-xl text-xs leading-relaxed max-w-[240px] shadow-xl"
+            style={{
+              background: "rgba(15,23,42,0.95)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.8)",
+              ...(hotspot.side === "left" ? { left: 0 } : { right: 0 }),
+            }}
+          >
+            {hotspot.description}
+            <div
+              className="absolute -top-1.5 w-3 h-3 rotate-45"
+              style={{
+                background: "rgba(15,23,42,0.95)",
+                borderLeft: "1px solid rgba(255,255,255,0.1)",
+                borderTop: "1px solid rgba(255,255,255,0.1)",
+                ...(hotspot.side === "left" ? { left: 24 } : { right: 24 }),
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+/* ── Connection Line SVG sub-component ── */
+function ConnectionLineSVG({ hotspot, isActive, index, width, height }: { hotspot: DashboardHotspot; isActive: boolean; index: number; width: number; height: number }) {
+  const startX = (hotspot.hotspotPosition.x / 100) * width;
+  const startY = (hotspot.hotspotPosition.y / 100) * height;
+  const endX = (hotspot.labelPosition.x / 100) * width;
+  const endY = (hotspot.labelPosition.y / 100) * height;
+  const gradId = `line-grad-${hotspot.id}`;
+
+  return (
+    <svg className="absolute inset-0 z-10 pointer-events-none hidden md:block" width={width} height={height}>
+      <defs>
+        <linearGradient id={gradId} x1={startX} y1={startY} x2={endX} y2={endY} gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={isActive ? hotspot.color : "#ffffff"} stopOpacity={isActive ? 0.8 : 0.25} />
+          <stop offset="100%" stopColor={isActive ? hotspot.color : "#ffffff"} stopOpacity={isActive ? 0.4 : 0.08} />
+        </linearGradient>
+      </defs>
+      <motion.line
+        x1={startX} y1={startY} x2={endX} y2={endY}
+        stroke={`url(#${gradId})`}
+        strokeWidth={isActive ? 1.5 : 1}
+        strokeDasharray={isActive ? "none" : "4 4"}
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.6 + index * 0.15, ease: "easeInOut" }}
+      />
+      <motion.circle
+        cx={startX} cy={startY}
+        r={isActive ? 6 : 4}
+        fill={isActive ? hotspot.color : `${hotspot.color}99`}
+        stroke={isActive ? "#fff" : "rgba(255,255,255,0.3)"}
+        strokeWidth={isActive ? 2 : 1}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.5 + index * 0.15, type: "spring", stiffness: 300 }}
+      />
+      {isActive && (
+        <motion.circle
+          cx={startX} cy={startY} r={6}
+          fill="none" stroke={hotspot.color} strokeWidth={1}
+          initial={{ r: 6, opacity: 0.6 }}
+          animate={{ r: 18, opacity: 0 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+        />
+      )}
+    </svg>
+  );
+}
+
+/* ── Dashboard Showcase (Interactive Hotspots) ── */
+function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
+  const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const updateSize = useCallback(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setContainerSize({ width: rect.width, height: rect.height });
+    }
+  }, []);
+
+  useEffect(() => {
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [updateSize]);
+
+  return (
+    <section className="py-32 px-8 md:px-12 bg-[#f9f9fb] overflow-hidden">
+      <div className="max-w-[1440px] mx-auto">
+        <Reveal className="text-center mb-4">
+          <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Explorer le dashboard</span>
+        </Reveal>
+        <Reveal className="text-center mb-4" delay={0.05}>
+          <h2 className="font-extrabold text-4xl md:text-5xl tracking-tighter text-black">
+            Votre Bilan Carbone,{" "}
+            <span style={{ background: "linear-gradient(135deg, #16a34a 0%, #059669 40%, #0891b2 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              en un coup d&apos;oeil.
+            </span>
+          </h2>
+        </Reveal>
+        <Reveal delay={0.1} className="text-center mb-16">
+          <p className="text-lg text-neutral-500 max-w-2xl mx-auto">
+            Survolez les zones cles pour decouvrir chaque dimension de votre empreinte carbone.
+          </p>
+        </Reveal>
+
+        {/* Interactive dashboard container */}
+        <Reveal delay={0.15} className="max-w-5xl mx-auto">
+          <div
+            ref={containerRef}
+            className="relative rounded-2xl overflow-hidden shadow-2xl border border-neutral-200 bg-neutral-950"
+          >
+            {/* Browser chrome bar */}
+            <div className="absolute top-0 left-0 right-0 h-10 bg-neutral-900 flex items-center px-4 gap-2 z-30">
+              <span className="w-3 h-3 rounded-full bg-red-400/70" />
+              <span className="w-3 h-3 rounded-full bg-yellow-400/70" />
+              <span className="w-3 h-3 rounded-full bg-green-400/70" />
+              <span className="flex-1 mx-4 bg-neutral-800 rounded-md h-5 text-xs text-neutral-500 flex items-center px-3">app.carbonco.fr/dashboard</span>
+            </div>
+
+            {/* Dashboard content area */}
+            <div className="pt-10 bg-[#0F172A] min-h-[420px] md:min-h-[520px] relative">
+              {/* Simulated dashboard UI */}
+              <div className="absolute inset-0 pt-10 p-6 md:p-8">
+                {/* Top KPI row */}
+                <div className="grid grid-cols-4 gap-3 mb-5">
+                  {[
+                    { label: "Total tCO2e", value: "12 847", change: "-12%", color: "#16a34a" },
+                    { label: "Scope 1", value: "3 210", change: "-8%", color: "#0891b2" },
+                    { label: "Scope 2", value: "2 415", change: "-18%", color: "#7c3aed" },
+                    { label: "Scope 3", value: "7 222", change: "-9%", color: "#ea580c" },
+                  ].map((kpi) => (
+                    <div key={kpi.label} className="bg-white/5 border border-white/10 rounded-xl p-3 md:p-4">
+                      <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider mb-1">{kpi.label}</div>
+                      <div className="text-sm md:text-xl font-extrabold text-white">{kpi.value}</div>
+                      <div className="text-[10px] md:text-xs font-bold mt-0.5" style={{ color: kpi.color }}>{kpi.change} YoY</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Main content grid */}
+                <div className="grid grid-cols-3 gap-3 mb-5">
+                  {/* Left: Scope chart placeholder */}
+                  <div className="col-span-1 bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 min-h-[140px] md:min-h-[200px]">
+                    <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider mb-3">Repartition Scopes</div>
+                    <div className="flex items-end gap-2 h-[70px] md:h-[120px]">
+                      {[
+                        { h: "55%", color: "#0891b2" },
+                        { h: "40%", color: "#7c3aed" },
+                        { h: "80%", color: "#ea580c" },
+                      ].map((bar, i) => (
+                        <motion.div
+                          key={i}
+                          className="flex-1 rounded-t-md"
+                          style={{ background: bar.color, height: bar.h }}
+                          initial={{ height: 0 }}
+                          animate={{ height: bar.h }}
+                          transition={{ duration: 0.8, delay: 1 + i * 0.15 }}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      {["S1", "S2", "S3"].map((s) => (
+                        <span key={s} className="text-[9px] md:text-[10px] text-white/30 flex-1 text-center">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Center: Postes table */}
+                  <div className="col-span-1 bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 min-h-[140px] md:min-h-[200px]">
+                    <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider mb-3">Postes d&apos;emission</div>
+                    <div className="space-y-2">
+                      {[
+                        { name: "Energie", pct: 28, color: "#16a34a" },
+                        { name: "Transport", pct: 34, color: "#0891b2" },
+                        { name: "Achats", pct: 22, color: "#7c3aed" },
+                        { name: "Numerique", pct: 16, color: "#ea580c" },
+                      ].map((p) => (
+                        <div key={p.name}>
+                          <div className="flex justify-between text-[9px] md:text-[10px] text-white/50 mb-1">
+                            <span>{p.name}</span>
+                            <span>{p.pct}%</span>
+                          </div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <motion.div
+                              className="h-full rounded-full"
+                              style={{ background: p.color }}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${p.pct}%` }}
+                              transition={{ duration: 0.8, delay: 1.2 }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right: AI suggestions */}
+                  <div className="col-span-1 bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 min-h-[140px] md:min-h-[200px]">
+                    <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider mb-3">Actions IA</div>
+                    <div className="space-y-2">
+                      {[
+                        { text: "Migrer vers electricite verte", impact: "-840 tCO2e", priority: "Haute" },
+                        { text: "Optimiser flotte vehicules", impact: "-520 tCO2e", priority: "Moyenne" },
+                        { text: "Reduire deplacements pro", impact: "-310 tCO2e", priority: "Haute" },
+                      ].map((a) => (
+                        <div key={a.text} className="bg-white/5 rounded-lg p-2">
+                          <div className="text-[9px] md:text-[10px] text-white/70 font-medium">{a.text}</div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[8px] md:text-[9px] font-bold text-green-400">{a.impact}</span>
+                            <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/40">{a.priority}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom: rapport bar */}
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider">Rapports CSRD</div>
+                    <div className="text-xs md:text-sm text-white/70 mt-0.5">3 rapports prets · E1, S1, G1</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] md:text-[10px] px-3 py-1.5 rounded-full bg-green-600/20 text-green-400 font-bold border border-green-500/30">Telecharger PDF</span>
+                    <span className="text-[9px] md:text-[10px] px-3 py-1.5 rounded-full bg-white/5 text-white/40 border border-white/10">Excel</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Connection lines SVG overlay */}
+              {containerSize.width > 0 && DASHBOARD_HOTSPOTS.map((hotspot, index) => (
+                <ConnectionLineSVG
+                  key={`line-${hotspot.id}`}
+                  hotspot={hotspot}
+                  isActive={activeHotspot === hotspot.id}
+                  index={index}
+                  width={containerSize.width}
+                  height={containerSize.height}
+                />
+              ))}
+
+              {/* Hotspot labels */}
+              {DASHBOARD_HOTSPOTS.map((hotspot, index) => (
+                <HotspotLabel
+                  key={hotspot.id}
+                  hotspot={hotspot}
+                  isActive={activeHotspot === hotspot.id}
+                  onHover={setActiveHotspot}
+                  index={index}
+                />
+              ))}
+            </div>
+          </div>
+        </Reveal>
+
+        {/* Mobile: feature list (replaces hotspots) */}
+        <div className="md:hidden mt-8 space-y-3 max-w-5xl mx-auto">
+          {DASHBOARD_HOTSPOTS.map((hotspot) => (
+            <Reveal key={hotspot.id} delay={0.05}>
+              <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-white border border-neutral-200 shadow-sm">
+                <span className="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: hotspot.color }} />
+                <div>
+                  <p className="text-sm font-semibold text-black">{hotspot.label}</p>
+                  <p className="text-xs text-neutral-500 mt-0.5">{hotspot.description}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* Feature cards under dashboard */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-12 md:mt-16 max-w-5xl mx-auto">
+          {[
+            { icon: "🔗", title: "Collecte automatisee", desc: "Import depuis vos ERP, APIs et fichiers existants" },
+            { icon: "📐", title: "Calcul GHG Protocol", desc: "Methodologie certifiee Scopes 1, 2, 3" },
+            { icon: "🤖", title: "IA Recommandations", desc: "Plans d'action personnalises et priorises" },
+            { icon: "📄", title: "Rapports conformes", desc: "CSRD, CDP, Bilan Carbone en 1 clic" },
+          ].map((f, i) => (
+            <Reveal key={f.title} delay={0.08 * i}>
+              <div className="flex flex-col items-center text-center p-4 md:p-6 rounded-2xl bg-white border border-neutral-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default">
+                <div className="w-12 h-12 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center mb-3">
+                  <span className="text-xl">{f.icon}</span>
+                </div>
+                <h4 className="text-black font-semibold text-sm md:text-base mb-1">{f.title}</h4>
+                <p className="text-neutral-500 text-xs md:text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <Reveal delay={0.3} className="text-center mt-12">
+          <button onClick={onEnterApp} className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
+            Explorer le dashboard →
+          </button>
+          <p className="text-xs text-neutral-400 mt-3">Essai gratuit 14 jours · Aucune carte requise</p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════ */
 export function LandingPage({ onEnterApp }: LandingPageProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -476,38 +890,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
         </section>
 
-        {/* ══ 5. SCREENSHOT ══ */}
-        <section className="py-32 px-8 md:px-12 bg-[#f9f9fb]">
-          <div className="max-w-[1440px] mx-auto">
-            <Reveal className="text-center mb-16">
-              <h2 className="font-extrabold text-4xl md:text-5xl tracking-tighter text-black">
-                Un tableau de bord pensé pour les équipes RSE
-              </h2>
-              <p className="text-lg text-neutral-500 mt-4 max-w-xl mx-auto">Tout ce dont votre directrice RSE et votre CFO ont besoin, en un seul endroit.</p>
-            </Reveal>
-            <Reveal delay={0.15} className="max-w-5xl mx-auto">
-              <div className="rounded-2xl overflow-hidden shadow-2xl border border-neutral-200 relative bg-neutral-950">
-                <div className="absolute top-0 left-0 right-0 h-10 bg-neutral-900 flex items-center px-4 gap-2">
-                  <span className="w-3 h-3 rounded-full bg-red-400/70" />
-                  <span className="w-3 h-3 rounded-full bg-yellow-400/70" />
-                  <span className="w-3 h-3 rounded-full bg-green-400/70" />
-                  <span className="flex-1 mx-4 bg-neutral-800 rounded-md h-5 text-xs text-neutral-500 flex items-center px-3">app.carbonco.fr/dashboard</span>
-                </div>
-                <div className="pt-10 bg-[#0F172A] min-h-[340px] flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/neural-android.webp" alt="Dashboard CarbonCo ESG" className="w-full object-cover opacity-60" />
-                  <div className="absolute inset-0 pt-10 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-green-400 text-xs font-bold uppercase tracking-widest mb-2">Dashboard ESG</div>
-                      <div className="text-white text-2xl font-extrabold">CarbonCo — Vue Entreprise</div>
-                      <div className="text-neutral-400 text-sm mt-2">Données temps réel · ESRS 2025 · Scope 1-2-3</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-          </div>
-        </section>
+        {/* ══ 5. DASHBOARD INTERACTIF — HOTSPOTS ══ */}
+        <DashboardShowcase onEnterApp={onEnterApp} />
 
         {/* ══ 6. COMMENT ÇA MARCHE — timeline connectée ══ */}
         <section id="how" className="py-32 px-8 md:px-12 bg-white">

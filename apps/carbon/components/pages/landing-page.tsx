@@ -265,7 +265,7 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
   }, [updateSize]);
 
   return (
-    <section id="dashboard-showcase" className="py-32 px-8 md:px-12 bg-[#f9f9fb] overflow-hidden scroll-mt-20">
+    <section className="py-32 px-8 md:px-12 bg-[#f9f9fb] overflow-hidden">
       <div className="max-w-[1440px] mx-auto">
         <Reveal className="text-center mb-4">
           <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Explorer le dashboard</span>
@@ -532,7 +532,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           <div className="text-2xl font-extrabold tracking-tighter text-black">Carbon<span className="text-green-600">&</span>Co</div>
 
           <div className="hidden md:flex items-center gap-8">
-            {[["#intro","Accueil"],["#about","Pourquoi CarbonCo"],["#features","Fonctionnalités"],["#dashboard-showcase","Dashboard"],["#pricing","Tarifs"],["#video-section","Démo"]].map(([href,label]) => (
+            {[["#hero","Accueil"],["#about","Pourquoi CarbonCo"],["#features","Fonctionnalités"],["#how","Comment ça marche"],["#pricing","Tarifs"],["#video-section","Démo"]].map(([href,label]) => (
               <a key={href} href={href} className="text-sm font-semibold text-neutral-500 hover:text-black transition-colors tracking-wide">{label}</a>
             ))}
           </div>
@@ -561,7 +561,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
 
         <div className="md:hidden overflow-hidden transition-all duration-300 ease-in-out" style={{ maxHeight: mobileMenuOpen ? 500 : 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)" }}>
           <div className="flex flex-col px-8 pb-6 pt-2 border-t border-neutral-100">
-            {[["#intro","Accueil"],["#about","Pourquoi CarbonCo"],["#features","Fonctionnalités"],["#dashboard-showcase","Dashboard"],["#pricing","Tarifs"]].map(([href,label]) => (
+            {[["#hero","Accueil"],["#about","Pourquoi CarbonCo"],["#features","Fonctionnalités"],["#how","Comment ça marche"],["#pricing","Tarifs"]].map(([href,label]) => (
               <a key={href} href={href} className="text-sm font-semibold text-neutral-600 py-3 border-b border-neutral-100 hover:text-black transition-colors" onClick={() => setMobileMenuOpen(false)}>{label}</a>
             ))}
             <div className="flex gap-3 mt-4">
@@ -572,132 +572,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
         </div>
       </nav>
 
-      <main className="pt-0">
-
-        {/* ══ 0. CINEMATIC INTRO — Écran d'accueil immersif ══ */}
-        <section id="intro" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-neutral-950 pt-20">
-          {/* Ambient glow */}
-          <div className="absolute inset-0 pointer-events-none" style={{
-            backgroundImage: "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(22,163,74,0.12) 0%, transparent 70%), radial-gradient(ellipse 40% 30% at 30% 60%, rgba(8,145,178,0.08) 0%, transparent 60%), radial-gradient(ellipse 35% 25% at 70% 30%, rgba(5,150,105,0.06) 0%, transparent 50%)"
-          }} />
-
-          {/* Main content */}
-          <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-4xl mx-auto">
-            <Reveal>
-              <h1 className="font-extrabold text-[3rem] sm:text-[4.5rem] md:text-[5.5rem] leading-[0.92] tracking-tighter text-white mb-6">
-                Vos données ESG
-                <br />
-                <span className="relative inline-block mt-2">
-                  <span className="relative z-10 px-4 py-1" style={{
-                    background: "linear-gradient(135deg, #16a34a 0%, #059669 50%, #0891b2 100%)",
-                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-                  }}>
-                    en actions.
-                  </span>
-                  <span className="absolute inset-0 rounded-xl" style={{
-                    background: "linear-gradient(135deg, rgba(22,163,74,0.15) 0%, rgba(8,145,178,0.1) 100%)",
-                  }} />
-                </span>
-              </h1>
-            </Reveal>
-
-            <Reveal delay={0.1}>
-              <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed mb-10">
-                Collecte automatisée, conformité CSRD garantie, rapports générés en un clic.
-                <br className="hidden md:block" />
-                Votre plateforme ESG pilotée par l&apos;IA.
-              </p>
-            </Reveal>
-
-            <Reveal delay={0.2}>
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <button
-                  onClick={onEnterApp}
-                  className="group flex items-center gap-3 bg-white text-black px-8 py-4 rounded-2xl font-bold text-base hover:bg-neutral-100 transition-all cursor-pointer shadow-lg shadow-white/10"
-                >
-                  Essai gratuit — 14 jours
-                  <span className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center group-hover:translate-x-1 transition-transform">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                  </span>
-                </button>
-                <a
-                  href="#dashboard-showcase"
-                  className="text-sm font-semibold text-neutral-500 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  Explorer le dashboard
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </a>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* Monitor frame with dashboard preview */}
-          <Reveal delay={0.3} className="relative z-10 w-full max-w-4xl mx-auto mt-16 px-6">
-            <div className="relative">
-              {/* Screen */}
-              <div className="rounded-t-2xl overflow-hidden border border-neutral-700/50 bg-[#0F172A] shadow-2xl shadow-green-900/10">
-                {/* Browser bar */}
-                <div className="h-9 bg-neutral-900/80 flex items-center px-4 gap-2 border-b border-neutral-800">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-                  <span className="flex-1 mx-3 bg-neutral-800/60 rounded-md h-5 text-[10px] text-neutral-600 flex items-center px-3">app.carbonco.fr/dashboard</span>
-                </div>
-                {/* Mini dashboard preview */}
-                <div className="p-4 md:p-6 min-h-[200px] md:min-h-[280px]">
-                  <div className="grid grid-cols-4 gap-2 md:gap-3 mb-4">
-                    {[
-                      { label: "Total tCO2e", value: "12 847", color: "#16a34a" },
-                      { label: "Scope 1", value: "3 210", color: "#0891b2" },
-                      { label: "Scope 2", value: "2 415", color: "#7c3aed" },
-                      { label: "Scope 3", value: "7 222", color: "#ea580c" },
-                    ].map((k) => (
-                      <div key={k.label} className="bg-white/5 border border-white/10 rounded-lg p-2 md:p-3">
-                        <div className="text-[8px] md:text-[10px] text-white/30 uppercase tracking-wider">{k.label}</div>
-                        <div className="text-xs md:text-base font-extrabold text-white mt-0.5">{k.value}</div>
-                        <div className="text-[8px] md:text-[9px] font-bold mt-0.5" style={{ color: k.color }}>-12% YoY</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 md:gap-3">
-                    {["Scopes 1, 2, 3", "Postes d'émission", "Actions IA"].map((title, i) => (
-                      <div key={title} className="bg-white/5 border border-white/10 rounded-lg p-2 md:p-3 min-h-[60px] md:min-h-[100px]">
-                        <div className="text-[8px] md:text-[10px] text-white/30 uppercase tracking-wider mb-2">{title}</div>
-                        <div className="flex items-end gap-1 h-[30px] md:h-[50px]">
-                          {[40, 60, 80].map((h, j) => (
-                            <motion.div
-                              key={j}
-                              className="flex-1 rounded-t-sm"
-                              style={{ background: ["#0891b2", "#7c3aed", "#ea580c"][(i + j) % 3] }}
-                              initial={{ height: 0 }}
-                              animate={{ height: `${h - i * 10}%` }}
-                              transition={{ duration: 0.8, delay: 0.8 + j * 0.1 + i * 0.15 }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              {/* Monitor stand */}
-              <div className="flex justify-center">
-                <div className="w-24 h-5 bg-gradient-to-b from-neutral-700 to-neutral-800 rounded-b-sm" />
-              </div>
-              <div className="flex justify-center">
-                <div className="w-40 h-2 bg-neutral-800 rounded-b-xl" />
-              </div>
-            </div>
-          </Reveal>
-
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10">
-            <span className="text-[11px] text-neutral-600 font-medium tracking-wide uppercase">Découvrir</span>
-            <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}>
-              <svg className="w-5 h-5 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </motion.div>
-          </div>
-        </section>
+      <main className="pt-20">
 
         {/* ══ 1. HERO ══ */}
         <section id="hero" className="relative min-h-[95vh] flex items-center px-8 md:px-12 overflow-hidden bg-white">

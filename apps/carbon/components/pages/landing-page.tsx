@@ -86,8 +86,8 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
     id: "scopes",
     label: "Scopes 1, 2, 3",
     description: "Visualisation en temps reel de vos emissions par scope selon le GHG Protocol. Ventilation automatique par poste et site.",
-    hotspotPosition: { x: 28, y: 35 },
-    labelPosition: { x: 8, y: 20 },
+    hotspotPosition: { x: 30, y: 38 },
+    labelPosition: { x: 7, y: 28 },
     side: "left",
     color: "#16a34a",
   },
@@ -95,8 +95,8 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
     id: "kpis",
     label: "KPIs Carbone",
     description: "Indicateurs cles : total tCO2e, evolution Year-over-Year, trajectoire SBTi, benchmark sectoriel.",
-    hotspotPosition: { x: 50, y: 18 },
-    labelPosition: { x: 50, y: 4 },
+    hotspotPosition: { x: 50, y: 20 },
+    labelPosition: { x: 50, y: 6 },
     side: "right",
     color: "#0891b2",
   },
@@ -104,8 +104,8 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
     id: "postes",
     label: "Postes d'emission",
     description: "Detail par poste (energie, transport, achats, numerique...) avec ventilation automatique et facteurs ADEME/IEA.",
-    hotspotPosition: { x: 72, y: 40 },
-    labelPosition: { x: 92, y: 28 },
+    hotspotPosition: { x: 68, y: 42 },
+    labelPosition: { x: 93, y: 30 },
     side: "right",
     color: "#7c3aed",
   },
@@ -113,8 +113,8 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
     id: "actions",
     label: "Plan d'action IA",
     description: "Recommandations generees par le copilote NEURAL pour reduire vos emissions prioritaires, chiffrees et priorisees.",
-    hotspotPosition: { x: 70, y: 68 },
-    labelPosition: { x: 92, y: 72 },
+    hotspotPosition: { x: 68, y: 65 },
+    labelPosition: { x: 93, y: 68 },
     side: "right",
     color: "#ea580c",
   },
@@ -286,10 +286,10 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
 
         {/* Interactive dashboard container */}
         <Reveal delay={0.15} className="max-w-5xl mx-auto">
-          <div
-            ref={containerRef}
-            className="relative rounded-2xl overflow-hidden shadow-2xl border border-neutral-200 bg-neutral-950"
-          >
+          {/* Outer wrapper: holds ref + hotspot overlays, NOT overflow-hidden */}
+          <div ref={containerRef} className="relative px-16 md:px-24">
+            {/* Inner: the actual browser frame with overflow-hidden */}
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-neutral-200 bg-neutral-950">
             {/* Browser chrome bar */}
             <div className="absolute top-0 left-0 right-0 h-10 bg-neutral-900 flex items-center px-4 gap-2 z-30">
               <span className="w-3 h-3 rounded-full bg-red-400/70" />
@@ -409,30 +409,32 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
                 </div>
               </div>
 
-              {/* Connection lines SVG overlay */}
-              {containerSize.width > 0 && DASHBOARD_HOTSPOTS.map((hotspot, index) => (
-                <ConnectionLineSVG
-                  key={`line-${hotspot.id}`}
-                  hotspot={hotspot}
-                  isActive={activeHotspot === hotspot.id}
-                  index={index}
-                  width={containerSize.width}
-                  height={containerSize.height}
-                />
-              ))}
-
-              {/* Hotspot labels */}
-              {DASHBOARD_HOTSPOTS.map((hotspot, index) => (
-                <HotspotLabel
-                  key={hotspot.id}
-                  hotspot={hotspot}
-                  isActive={activeHotspot === hotspot.id}
-                  onHover={setActiveHotspot}
-                  index={index}
-                />
-              ))}
             </div>
-          </div>
+            </div>{/* end inner overflow-hidden frame */}
+
+            {/* Connection lines SVG overlay — outside overflow-hidden */}
+            {containerSize.width > 0 && DASHBOARD_HOTSPOTS.map((hotspot, index) => (
+              <ConnectionLineSVG
+                key={`line-${hotspot.id}`}
+                hotspot={hotspot}
+                isActive={activeHotspot === hotspot.id}
+                index={index}
+                width={containerSize.width}
+                height={containerSize.height}
+              />
+            ))}
+
+            {/* Hotspot labels — outside overflow-hidden */}
+            {DASHBOARD_HOTSPOTS.map((hotspot, index) => (
+              <HotspotLabel
+                key={hotspot.id}
+                hotspot={hotspot}
+                isActive={activeHotspot === hotspot.id}
+                onHover={setActiveHotspot}
+                index={index}
+              />
+            ))}
+          </div>{/* end outer ref wrapper */}
         </Reveal>
 
         {/* Mobile: feature list (replaces hotspots) */}
@@ -710,9 +712,10 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 Votre reporting ESG ressemble à ça ?
               </h2>
               <p className="text-lg text-neutral-600 max-w-3xl mx-auto leading-relaxed">
-                Depuis janvier 2025, la <strong className="text-black">directive CSRD</strong> s&apos;applique à plus de <strong className="text-black">50 000 entreprises européennes</strong>.
-                En mars 2026, l&apos;EFRAG a publié les guidelines finales ESRS Set 1 — y compris les catégories Scope 3 étendues (cat.&nbsp;8, 11, 15).
-                Pourtant, <strong className="text-black">72% des entreprises assujetties</strong> n&apos;ont toujours pas de processus structuré de collecte.
+                Depuis 2025, toutes les <strong className="text-black">grandes entreprises et ETI européennes</strong> doivent publier un rapport ESG détaillé
+                — y compris sur les émissions indirectes de leurs fournisseurs, leurs serveurs ou leurs locaux.
+                Les nouvelles règles se durcissent chaque année.
+                Pourtant, <strong className="text-black">7 entreprises sur 10</strong> n&apos;ont toujours aucun processus fiable pour collecter ces données.
               </p>
             </Reveal>
             <Reveal className="text-center mb-16" delay={0.1}>

@@ -244,6 +244,278 @@ function ConnectionLineSVG({ hotspot, isActive, index, width, height }: { hotspo
   );
 }
 
+/* ── Hero Monitor — tout se passe dans l'écran ── */
+function HeroMonitor({ onEnterApp }: { onEnterApp: () => void }) {
+  const [screenView, setScreenView] = useState<"marketing" | "dashboard">("marketing");
+
+  return (
+    <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-neutral-950 px-6 py-24">
+      {/* Ambient glow */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(22,163,74,0.10) 0%, transparent 70%), radial-gradient(ellipse 40% 35% at 70% 30%, rgba(8,145,178,0.07) 0%, transparent 60%)"
+      }} />
+
+      {/* Logo above monitor */}
+      <Reveal className="relative z-10 mb-8 text-center">
+        <div className="text-3xl font-extrabold tracking-tighter text-white">Carbon<span className="text-green-500">&amp;</span>Co</div>
+        <p className="text-sm text-neutral-500 mt-1 tracking-wide">Plateforme ESG & CSRD augmentée par l&apos;IA</p>
+      </Reveal>
+
+      {/* ═══ THE MONITOR ═══ */}
+      <Reveal delay={0.15} className="relative z-10 w-full max-w-5xl mx-auto">
+        <div className="relative">
+          {/* Screen bezel */}
+          <div className="rounded-2xl overflow-hidden border-2 border-neutral-700/60 bg-[#0F172A] shadow-[0_0_80px_rgba(22,163,74,0.08),0_25px_60px_rgba(0,0,0,0.5)]">
+            {/* Browser chrome */}
+            <div className="h-10 bg-neutral-900 flex items-center px-4 gap-2 border-b border-neutral-800">
+              <span className="w-3 h-3 rounded-full bg-red-400/70" />
+              <span className="w-3 h-3 rounded-full bg-yellow-400/70" />
+              <span className="w-3 h-3 rounded-full bg-green-400/70" />
+              <span className="flex-1 mx-4 bg-neutral-800 rounded-md h-6 text-xs text-neutral-500 flex items-center px-3">
+                {screenView === "marketing" ? "carbonco.fr" : "app.carbonco.fr/dashboard"}
+              </span>
+              {screenView === "dashboard" && (
+                <button
+                  onClick={() => setScreenView("marketing")}
+                  className="text-[10px] text-neutral-500 hover:text-white transition-colors px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 cursor-pointer"
+                >
+                  ← Retour
+                </button>
+              )}
+            </div>
+
+            {/* ═══ SCREEN CONTENT — transitions inside ═══ */}
+            <div className="relative min-h-[420px] md:min-h-[520px] overflow-hidden">
+              <AnimatePresence mode="wait">
+                {screenView === "marketing" ? (
+                  /* ─── SLIDE 1: Message marketing ─── */
+                  <motion.div
+                    key="marketing"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, y: -30 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 flex flex-col items-center justify-center p-6 md:p-12 text-center"
+                    style={{
+                      backgroundImage: "radial-gradient(ellipse 70% 60% at 50% 40%, rgba(22,163,74,0.08) 0%, transparent 70%)"
+                    }}
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 mb-6"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                      <span className="text-[10px] md:text-xs font-bold text-green-400 uppercase tracking-widest">ESRS 2025 · IA · Souverain</span>
+                    </motion.div>
+
+                    <motion.h1
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="font-extrabold text-3xl sm:text-5xl md:text-6xl leading-[0.92] tracking-tighter text-white mb-5"
+                    >
+                      Votre conformité
+                      <br />
+                      CSRD,{" "}
+                      <span style={{
+                        background: "linear-gradient(135deg, #16a34a 0%, #059669 50%, #0891b2 100%)",
+                        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+                      }}>
+                        automatisée.
+                      </span>
+                    </motion.h1>
+
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="text-sm md:text-lg text-neutral-400 max-w-xl mb-8 leading-relaxed"
+                    >
+                      Collectez, analysez et générez vos rapports ESRS en quelques clics.
+                      <br className="hidden md:block" />
+                      Hébergement souverain, IA conforme EU AI Act.
+                    </motion.p>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 }}
+                      className="flex flex-col sm:flex-row items-center gap-3"
+                    >
+                      <button
+                        onClick={() => setScreenView("dashboard")}
+                        className="group flex items-center gap-3 bg-white text-black px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold text-sm md:text-base hover:bg-neutral-100 transition-all cursor-pointer shadow-lg shadow-white/10"
+                      >
+                        Explorer le dashboard
+                        <span className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-black text-white flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                          <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                        </span>
+                      </button>
+                      <button
+                        onClick={onEnterApp}
+                        className="text-sm font-semibold text-neutral-500 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+                      >
+                        Essai gratuit — 14 jours
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                      </button>
+                    </motion.div>
+
+                    {/* Trust badges inside screen */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8 }}
+                      className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-8 text-[10px] md:text-xs text-neutral-500"
+                    >
+                      {["Aucune carte bancaire", "Conforme ESRS 2025", "Hébergement OVH France"].map((t) => (
+                        <span key={t} className="flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
+                          {t}
+                        </span>
+                      ))}
+                    </motion.div>
+                  </motion.div>
+                ) : (
+                  /* ─── SLIDE 2: Dashboard UI ─── */
+                  <motion.div
+                    key="dashboard"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 p-4 md:p-6 overflow-y-auto"
+                  >
+                    {/* KPI row */}
+                    <div className="grid grid-cols-4 gap-2 md:gap-3 mb-4">
+                      {[
+                        { label: "Total tCO2e", value: "12 847", change: "-12%", color: "#16a34a" },
+                        { label: "Scope 1", value: "3 210", change: "-8%", color: "#0891b2" },
+                        { label: "Scope 2", value: "2 415", change: "-18%", color: "#7c3aed" },
+                        { label: "Scope 3", value: "7 222", change: "-9%", color: "#ea580c" },
+                      ].map((kpi) => (
+                        <motion.div
+                          key={kpi.label}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                          className="bg-white/5 border border-white/10 rounded-xl p-2.5 md:p-4"
+                        >
+                          <div className="text-[9px] md:text-xs text-white/40 uppercase tracking-wider mb-1">{kpi.label}</div>
+                          <div className="text-sm md:text-xl font-extrabold text-white">{kpi.value}</div>
+                          <div className="text-[9px] md:text-xs font-bold mt-0.5" style={{ color: kpi.color }}>{kpi.change} YoY</div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Main grid */}
+                    <div className="grid grid-cols-3 gap-2 md:gap-3 mb-4">
+                      {/* Scopes chart */}
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 min-h-[140px] md:min-h-[200px]">
+                        <div className="text-[9px] md:text-xs text-white/40 uppercase tracking-wider mb-3">Répartition Scopes</div>
+                        <div className="flex items-end gap-2 h-[70px] md:h-[120px]">
+                          {[
+                            { h: "55%", color: "#0891b2" },
+                            { h: "40%", color: "#7c3aed" },
+                            { h: "80%", color: "#ea580c" },
+                          ].map((bar, i) => (
+                            <motion.div
+                              key={i}
+                              className="flex-1 rounded-t-md"
+                              style={{ background: bar.color }}
+                              initial={{ height: 0 }}
+                              animate={{ height: bar.h }}
+                              transition={{ duration: 0.8, delay: 0.3 + i * 0.15 }}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          {["S1", "S2", "S3"].map((s) => (
+                            <span key={s} className="text-[9px] md:text-[10px] text-white/30 flex-1 text-center">{s}</span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Postes */}
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 min-h-[140px] md:min-h-[200px]">
+                        <div className="text-[9px] md:text-xs text-white/40 uppercase tracking-wider mb-3">Postes d&apos;émission</div>
+                        <div className="space-y-2">
+                          {[
+                            { name: "Énergie", pct: 28, color: "#16a34a" },
+                            { name: "Transport", pct: 34, color: "#0891b2" },
+                            { name: "Achats", pct: 22, color: "#7c3aed" },
+                            { name: "Numérique", pct: 16, color: "#ea580c" },
+                          ].map((p) => (
+                            <div key={p.name}>
+                              <div className="flex justify-between text-[9px] md:text-[10px] text-white/50 mb-1">
+                                <span>{p.name}</span><span>{p.pct}%</span>
+                              </div>
+                              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <motion.div className="h-full rounded-full" style={{ background: p.color }} initial={{ width: 0 }} animate={{ width: `${p.pct}%` }} transition={{ duration: 0.8, delay: 0.5 }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Actions IA */}
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 min-h-[140px] md:min-h-[200px]">
+                        <div className="text-[9px] md:text-xs text-white/40 uppercase tracking-wider mb-3">Actions IA</div>
+                        <div className="space-y-2">
+                          {[
+                            { text: "Migrer vers électricité verte", impact: "-840 tCO2e" },
+                            { text: "Optimiser flotte véhicules", impact: "-520 tCO2e" },
+                            { text: "Réduire déplacements pro", impact: "-310 tCO2e" },
+                          ].map((a) => (
+                            <motion.div key={a.text} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }} className="bg-white/5 rounded-lg p-2">
+                              <div className="text-[9px] md:text-[10px] text-white/70 font-medium">{a.text}</div>
+                              <div className="text-[8px] md:text-[9px] font-bold text-green-400 mt-1">{a.impact}</div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom bar */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 flex items-center justify-between">
+                      <div>
+                        <div className="text-[9px] md:text-xs text-white/40 uppercase tracking-wider">Rapports CSRD</div>
+                        <div className="text-xs md:text-sm text-white/70 mt-0.5">3 rapports prêts · E1, S1, G1</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={onEnterApp} className="text-[9px] md:text-[10px] px-3 py-1.5 rounded-full bg-green-600/20 text-green-400 font-bold border border-green-500/30 cursor-pointer hover:bg-green-600/30 transition-colors">
+                          Accéder à la plateforme →
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Monitor stand */}
+          <div className="flex justify-center">
+            <div className="w-28 h-6 bg-gradient-to-b from-neutral-700 to-neutral-800 rounded-b-sm" />
+          </div>
+          <div className="flex justify-center">
+            <div className="w-44 h-2.5 bg-neutral-800 rounded-b-xl" />
+          </div>
+        </div>
+      </Reveal>
+
+      {/* Scroll indicator */}
+      <div className="relative z-10 mt-10 flex flex-col items-center gap-2">
+        <span className="text-[11px] text-neutral-600 font-medium tracking-wide uppercase">Défiler</span>
+        <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}>
+          <svg className="w-5 h-5 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 /* ── Dashboard Showcase (Interactive Hotspots) ── */
 function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
@@ -574,101 +846,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
 
       <main className="pt-20">
 
-        {/* ══ 1. HERO ══ */}
-        <section id="hero" className="relative min-h-[95vh] flex items-center px-8 md:px-12 overflow-hidden bg-white">
-          {/* Mesh background */}
-          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, rgba(22,163,74,0.06) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(8,145,178,0.05) 0%, transparent 50%)" }} />
-
-          <div className="grid lg:grid-cols-2 gap-16 items-center w-full max-w-[1440px] mx-auto py-24">
-            {/* Left */}
-            <Reveal className="z-10">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-200 mb-8">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-bold text-green-700 tracking-wide uppercase">Plateforme ESG & CSRD augmentée par l&apos;IA</span>
-              </div>
-
-              <h1 className="font-extrabold text-[3.8rem] md:text-[5rem] leading-[0.92] tracking-tighter mb-6">
-                <span className="text-black">Votre conformité</span>
-                <br />
-                <span className="text-black">CSRD,</span>{" "}
-                <span style={{ background: "linear-gradient(135deg, #16a34a 0%, #059669 40%, #0891b2 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                  automatisée.
-                </span>
-              </h1>
-
-              <p className="text-xl text-neutral-500 max-w-lg mb-10 leading-relaxed">
-                Collectez, analysez et générez vos rapports ESRS en quelques clics — pas en quelques mois.
-                Hébergement souverain, IA conforme EU AI Act.
-              </p>
-
-              <div className="flex flex-wrap gap-4 mb-10">
-                <button onClick={onEnterApp} className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
-                  Démarrer gratuitement — 14 jours
-                </button>
-                <a href="#video-section" className="flex items-center gap-2.5 bg-neutral-100 text-black px-7 py-4 rounded-full font-bold text-base transition-all duration-200 hover:bg-neutral-200 hover:scale-105">
-                  <span className="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0">
-                    <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
-                  </span>
-                  Voir la démo en 2 min
-                </a>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-400">
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Aucune carte bancaire</span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Conforme ESRS 2025</span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Hébergement OVH France</span>
-              </div>
-            </Reveal>
-
-            {/* Right — robot + badges flottants */}
-            <Reveal delay={0.2} className="relative flex justify-center lg:justify-end mt-8 lg:mt-0">
-              <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(22,163,74,0.18) 0%, rgba(8,145,178,0.10) 50%, transparent 80%)", filter: "blur(28px)" }} />
-
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="relative w-full max-w-sm md:max-w-lg aspect-square rounded-3xl overflow-hidden shadow-2xl bg-neutral-100"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/neural-android.webp" alt="NEURAL — Assistant IA CarbonCo" className="w-full h-full object-cover" />
-              </motion.div>
-
-              {/* Badge disponibilité */}
-              <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute -bottom-4 left-0 lg:-left-6 bg-white rounded-2xl px-5 py-4 shadow-xl border border-neutral-100 z-20">
-                <div className="text-2xl font-extrabold text-black">99.9%</div>
-                <div className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">SLA Garanti</div>
-              </motion.div>
-
-              {/* Badge IA active */}
-              <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, delay: 1.5, repeat: Infinity, ease: "easeInOut" }} className="absolute top-6 left-0 lg:-left-8 bg-white rounded-2xl px-4 py-3 shadow-xl border border-neutral-100 z-20 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10 1l2.928 6.472L20 8.354l-5.072 4.572L16.18 20 10 16.472 3.82 20l1.252-7.074L0 8.354l7.072-.882L10 1z" /></svg>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-black">NEURAL Actif</div>
-                  <div className="text-xs text-neutral-500">v2.4 · ESRS native</div>
-                </div>
-              </motion.div>
-
-              {/* Badge rapport généré */}
-              <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3.5, delay: 0.8, repeat: Infinity, ease: "easeInOut" }} className="absolute top-1/2 -right-2 lg:-right-8 bg-green-600 rounded-2xl px-4 py-3 shadow-xl z-20 flex items-center gap-2">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                <div>
-                  <div className="text-xs font-bold text-white">Rapport E1 généré</div>
-                  <div className="text-xs text-green-200">Il y a 3 minutes</div>
-                </div>
-              </motion.div>
-            </Reveal>
-          </div>
-
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10">
-            <span className="text-xs text-neutral-400 tracking-widest uppercase font-medium">Défiler</span>
-            <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}>
-              <svg className="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </motion.div>
-          </div>
-        </section>
+        {/* ══ 1. HERO — TOUT DANS LE MONITEUR ══ */}
+        <HeroMonitor onEnterApp={onEnterApp} />
 
         {/* ══ 2. TRUST BAR — LOGOS + STATS CountUp ══ */}
         <section className="py-14 bg-white border-y border-neutral-100">
@@ -893,132 +1072,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
         </section>
 
-        {/* ══ 5a. ÉCRAN CINÉMATIQUE — intro dashboard ══ */}
-        <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-neutral-950">
-          {/* Ambient glow */}
-          <div className="absolute inset-0 pointer-events-none" style={{
-            backgroundImage: "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(22,163,74,0.12) 0%, transparent 70%), radial-gradient(ellipse 40% 30% at 30% 60%, rgba(8,145,178,0.08) 0%, transparent 60%), radial-gradient(ellipse 35% 25% at 70% 30%, rgba(5,150,105,0.06) 0%, transparent 50%)"
-          }} />
-
-          {/* Content */}
-          <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-4xl mx-auto">
-            <Reveal>
-              <h2 className="font-extrabold text-[3rem] sm:text-[4.5rem] md:text-[5.5rem] leading-[0.92] tracking-tighter text-white mb-6">
-                Vos données ESG
-                <br />
-                <span className="relative inline-block mt-2">
-                  <span className="relative z-10 px-4 py-1" style={{
-                    background: "linear-gradient(135deg, #16a34a 0%, #059669 50%, #0891b2 100%)",
-                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-                  }}>
-                    en actions.
-                  </span>
-                  <span className="absolute inset-0 rounded-xl" style={{
-                    background: "linear-gradient(135deg, rgba(22,163,74,0.15) 0%, rgba(8,145,178,0.1) 100%)",
-                  }} />
-                </span>
-              </h2>
-            </Reveal>
-
-            <Reveal delay={0.1}>
-              <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed mb-10">
-                Collecte automatisée, conformité CSRD garantie, rapports générés en un clic.
-                <br className="hidden md:block" />
-                Votre plateforme ESG pilotée par l&apos;IA.
-              </p>
-            </Reveal>
-
-            <Reveal delay={0.2}>
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <button
-                  onClick={onEnterApp}
-                  className="group flex items-center gap-3 bg-white text-black px-8 py-4 rounded-2xl font-bold text-base hover:bg-neutral-100 transition-all cursor-pointer shadow-lg shadow-white/10"
-                >
-                  Essai gratuit — 14 jours
-                  <span className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center group-hover:translate-x-1 transition-transform">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                  </span>
-                </button>
-                <a
-                  href="#dashboard-showcase"
-                  className="text-sm font-semibold text-neutral-500 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  Explorer le dashboard
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </a>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* Monitor frame with dashboard preview */}
-          <Reveal delay={0.3} className="relative z-10 w-full max-w-4xl mx-auto mt-16 px-6">
-            <div className="relative">
-              {/* Screen */}
-              <div className="rounded-t-2xl overflow-hidden border border-neutral-700/50 bg-[#0F172A] shadow-2xl shadow-green-900/10">
-                {/* Browser bar */}
-                <div className="h-9 bg-neutral-900/80 flex items-center px-4 gap-2 border-b border-neutral-800">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-                  <span className="flex-1 mx-3 bg-neutral-800/60 rounded-md h-5 text-[10px] text-neutral-600 flex items-center px-3">app.carbonco.fr/dashboard</span>
-                </div>
-                {/* Mini dashboard preview */}
-                <div className="p-4 md:p-6 min-h-[200px] md:min-h-[280px]">
-                  <div className="grid grid-cols-4 gap-2 md:gap-3 mb-4">
-                    {[
-                      { label: "Total tCO2e", value: "12 847", color: "#16a34a" },
-                      { label: "Scope 1", value: "3 210", color: "#0891b2" },
-                      { label: "Scope 2", value: "2 415", color: "#7c3aed" },
-                      { label: "Scope 3", value: "7 222", color: "#ea580c" },
-                    ].map((k) => (
-                      <div key={k.label} className="bg-white/5 border border-white/10 rounded-lg p-2 md:p-3">
-                        <div className="text-[8px] md:text-[10px] text-white/30 uppercase tracking-wider">{k.label}</div>
-                        <div className="text-xs md:text-base font-extrabold text-white mt-0.5">{k.value}</div>
-                        <div className="text-[8px] md:text-[9px] font-bold mt-0.5" style={{ color: k.color }}>-12% YoY</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 md:gap-3">
-                    {["Scopes 1, 2, 3", "Postes d'émission", "Actions IA"].map((title, i) => (
-                      <div key={title} className="bg-white/5 border border-white/10 rounded-lg p-2 md:p-3 min-h-[60px] md:min-h-[100px]">
-                        <div className="text-[8px] md:text-[10px] text-white/30 uppercase tracking-wider mb-2">{title}</div>
-                        <div className="flex items-end gap-1 h-[30px] md:h-[50px]">
-                          {[40, 60, 80].map((h, j) => (
-                            <motion.div
-                              key={j}
-                              className="flex-1 rounded-t-sm"
-                              style={{ background: ["#0891b2", "#7c3aed", "#ea580c"][(i + j) % 3] }}
-                              initial={{ height: 0 }}
-                              animate={{ height: `${h - i * 10}%` }}
-                              transition={{ duration: 0.8, delay: 0.8 + j * 0.1 + i * 0.15 }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              {/* Monitor stand */}
-              <div className="flex justify-center">
-                <div className="w-24 h-5 bg-gradient-to-b from-neutral-700 to-neutral-800 rounded-b-sm" />
-              </div>
-              <div className="flex justify-center">
-                <div className="w-40 h-2 bg-neutral-800 rounded-b-xl" />
-              </div>
-            </div>
-          </Reveal>
-
-          {/* Scroll indicator */}
-          <div className="mt-12 mb-8 flex flex-col items-center gap-2 z-10">
-            <span className="text-[11px] text-neutral-600 font-medium tracking-wide uppercase">Découvrir</span>
-            <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}>
-              <svg className="w-5 h-5 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* ══ 5b. DASHBOARD INTERACTIF — HOTSPOTS ══ */}
+        {/* ══ 5. DASHBOARD INTERACTIF — HOTSPOTS ══ */}
         <DashboardShowcase onEnterApp={onEnterApp} />
 
         {/* ══ 6. COMMENT ÇA MARCHE — timeline connectée ══ */}

@@ -11,6 +11,7 @@ export type Page =
   | "copilot"
   | "reports"
   | "ingest"
+  | "upload"
   | "pricing";
 
 export interface ChatMessage {

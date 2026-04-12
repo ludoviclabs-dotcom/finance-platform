@@ -12,6 +12,7 @@
     "@ai-sdk/anthropic": "^3.0.69",
     "@ai-sdk/react": "^3.0.160",
     "@anthropic-ai/sdk": "^0.39.0",
+    "@vercel/blob": "^2.3.3",
     "ai": "^6.0.158",
     "framer-motion": "^12.6.3",
     "jspdf": "^4.2.1",

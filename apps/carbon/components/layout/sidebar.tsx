@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Target, BookOpen, Bot,
   FileBarChart, CreditCard, Leaf, LogOut,
   ChevronLeft, ChevronRight, X, Scale,
-  Users, Package, Banknote, Sparkles, ShieldCheck, Database,
+  Users, Package, Banknote, Sparkles, ShieldCheck, Database, Upload,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -45,6 +45,7 @@ const navItems: {
     id: "reports", href: "/reports", label: "Rapports", icon: <FileBarChart className="w-5 h-5" />,
     badge: { text: "1 brouillon", color: "bg-[var(--color-warning)]/15 text-[var(--color-warning)]" },
   },
+  { id: "upload", href: "/upload", label: "Import Excel", icon: <Upload className="w-5 h-5" /> },
   { id: "ingest", href: "/ingest", label: "Synchronisation", icon: <Database className="w-5 h-5" /> },
   { id: "pricing", href: "/pricing", label: "Offres", icon: <CreditCard className="w-5 h-5" /> },
 ];

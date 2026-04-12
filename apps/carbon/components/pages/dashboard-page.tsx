@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -21,6 +21,8 @@ import { SectionTitle } from "@/components/ui/section-title";
 import { monthlyEmissions, scopeDetails, recentActivity, aiSuggestions } from "@/lib/data";
 import { staggerContainer, pageVariants } from "@/lib/animations";
 import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
+import { useEsgSnapshot } from "@/lib/hooks/use-esg-snapshot";
+import { useFinanceSnapshot } from "@/lib/hooks/use-finance-snapshot";
 import { DashboardContextBar } from "@/components/dashboard/dashboard-context-bar";
 import { ProactiveInsights } from "@/components/dashboard/proactive-insights";
 import { RegulatoryAlertBanner } from "@/components/dashboard/regulatory-alert-banner";
@@ -113,31 +115,54 @@ export function DashboardPage() {
   const [emailPreview, setEmailPreview] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<number | null>(1);
   const [showOnboarding] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<"Ce mois" | "Ce trimestre" | "Cette année" | "2025" | "2024">("Cette année");
 
-  const snapshot = useCarbonSnapshot();
+  const carbonSnap = useCarbonSnapshot();
+  const esgSnap = useEsgSnapshot();
+  const financeSnap = useFinanceSnapshot();
 
-  // Live KPIs from /carbon/snapshot when the backend returns non-zero data;
-  // otherwise fall back to mocks so the dashboard keeps working offline.
-  const liveCarbon = snapshot.status === "ready" ? snapshot.data.carbon : null;
+  // Loading: block render on Carbon (primary) only. ESG and Finance degrade
+  // gracefully to mocks when they fail, Carbon is the KPI backbone.
+  const loading = carbonSnap.status === "loading";
+  const carbonError = carbonSnap.status === "error" ? carbonSnap.error : null;
+
+  // --- Carbon (scopes + intensity + company) ---
+  const liveCarbon = carbonSnap.status === "ready" ? carbonSnap.data.carbon : null;
+  const liveCompany = carbonSnap.status === "ready" ? carbonSnap.data.company : null;
   const liveCompanyName =
-    snapshot.status === "ready" && snapshot.data.company.name && snapshot.data.company.name !== "Entreprise non renseignee"
-      ? snapshot.data.company.name
+    liveCompany?.name && liveCompany.name !== "Entreprise non renseignee"
+      ? liveCompany.name
       : null;
+  const numOrNull = (v: unknown): number | null =>
+    typeof v === "number" && Number.isFinite(v) ? v : null;
   const pick = (live: number | null | undefined, fallback: number) =>
     typeof live === "number" && live > 0 ? live : fallback;
   const scope1Value = pick(liveCarbon?.scope1Tco2e, scopeDetails[0].total);
   const scope2Value = pick(liveCarbon?.scope2LbTco2e, scopeDetails[1].total);
   const scope3Value = pick(liveCarbon?.scope3Tco2e, scopeDetails[2].total);
-  const totalValue = pick(liveCarbon?.totalS123Tco2e, scope1Value + scope2Value + scope3Value);
-  const isLive = snapshot.status === "ready" && liveCarbon !== null && (liveCarbon.totalS123Tco2e ?? 0) > 0;
+  const totalValue = pick(
+    liveCarbon?.totalS123Tco2e,
+    scope1Value + scope2Value + scope3Value
+  );
+  const intensityRevenue = numOrNull(liveCarbon?.intensityRevenueTco2ePerMEur);
+  const isLive =
+    carbonSnap.status === "ready" &&
+    liveCarbon !== null &&
+    (liveCarbon.totalS123Tco2e ?? 0) > 0;
 
-  // Simule un chargement initial avec skeletons
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 1400);
-    return () => clearTimeout(t);
-  }, []);
+  // --- ESG score ---
+  const esgScoreGlobal =
+    esgSnap.status === "ready" ? numOrNull(esgSnap.data.scores.scoreGlobal) : null;
+  const esgMaterielsCount =
+    esgSnap.status === "ready"
+      ? esgSnap.data.materialite.enjeuxMateriels
+      : null;
+  const esgScoreDisplay = esgScoreGlobal ?? 62;
+  const esgScoreLive = esgScoreGlobal !== null;
+
+  // --- Benchmark sector ---
+  const liveBenchmark =
+    financeSnap.status === "ready" ? financeSnap.data.benchmark.indicateurs : null;
 
   const filteredActivity = recentActivity.filter((a) => {
     if (activityFilter === "Tout") return true;
@@ -270,6 +295,17 @@ export function DashboardPage() {
         subtitle={`Vue d'ensemble · ${period} · Données au ${new Date().toLocaleDateString("fr-FR")}${isLive ? " · Source : classeurs Excel" : ""}`}
       />
 
+      {/* ── Bandeau erreur API Carbon ── */}
+      {carbonError && (
+        <div className="flex items-center gap-2 p-3 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/5">
+          <AlertTriangle className="w-4 h-4 text-[var(--color-warning)] flex-shrink-0" />
+          <p className="text-xs text-[var(--color-foreground-muted)]">
+            Impossible de charger le snapshot Carbon en direct — affichage de
+            données d&apos;exemple. <span className="opacity-60">({carbonError})</span>
+          </p>
+        </div>
+      )}
+
       {/* ── IA Proactive insights ── */}
       {visibleInsights.length > 0 && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
@@ -347,19 +383,33 @@ export function DashboardPage() {
         className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-sm font-semibold text-[var(--color-foreground)]">Score de conformité ESRS</p>
-            <p className="text-xs text-[var(--color-foreground-muted)]">12 standards · mise à jour automatique</p>
+            <p className="text-sm font-semibold text-[var(--color-foreground)]">
+              Score de conformité ESRS
+              {esgScoreLive && (
+                <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-carbon-emerald-light">Live</span>
+              )}
+            </p>
+            <p className="text-xs text-[var(--color-foreground-muted)]">
+              {esgMaterielsCount != null
+                ? `${esgMaterielsCount} enjeux matériels · mise à jour automatique`
+                : "12 standards · mise à jour automatique"}
+            </p>
           </div>
-          <span className="text-2xl font-extrabold text-carbon-emerald-light">62 <span className="text-base font-medium text-[var(--color-foreground-muted)]">/ 100</span></span>
+          <span className="text-2xl font-extrabold text-carbon-emerald-light">
+            {Math.round(esgScoreDisplay)}{" "}
+            <span className="text-base font-medium text-[var(--color-foreground-muted)]">/ 100</span>
+          </span>
         </div>
         <div className="relative h-3 rounded-full bg-[var(--color-background)] overflow-hidden">
-          <motion.div initial={{ width: 0 }} animate={{ width: "62%" }}
+          <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, Math.max(0, esgScoreDisplay))}%` }}
             transition={{ duration: 1.2, ease: "easeOut", delay: 0.5 }}
             className="h-full rounded-full bg-gradient-to-r from-[#059669] to-[#0891b2]" />
         </div>
         <div className="flex justify-between text-[10px] text-[var(--color-foreground-subtle)] mt-1.5">
           <span>8 conformes · 3 en cours · 1 non démarré</span>
-          <span className="text-carbon-emerald-light">Objectif : 80 · +18 pts nécessaires</span>
+          <span className="text-carbon-emerald-light">
+            Objectif : 80 · {Math.max(0, 80 - Math.round(esgScoreDisplay))} pts nécessaires
+          </span>
         </div>
       </motion.div>
 
@@ -424,7 +474,11 @@ export function DashboardPage() {
 
       {/* ── Benchmark sectoriel ── */}
       <ChartCard title="Benchmark sectoriel"
-        subtitle="Votre performance vs. médiane industrie · Intensité carbone : 42 tCO₂e/M€ (secteur : 58)"
+        subtitle={
+          intensityRevenue != null
+            ? `Votre performance vs. médiane industrie · Intensité carbone : ${intensityRevenue.toFixed(1)} tCO₂e/M€`
+            : "Votre performance vs. médiane industrie · Intensité carbone : 42 tCO₂e/M€ (secteur : 58)"
+        }
         tooltip={{ source: "Base de données CDP 2024 · secteur industrie manufacturière", updated: "Mars 2025", method: "Comparaison par intensité carbone normalisée au CA" }}>
         <div className="grid md:grid-cols-2 gap-6 items-center">
           <div className="h-64">
@@ -440,11 +494,27 @@ export function DashboardPage() {
             </ResponsiveContainer>
           </div>
           <div className="space-y-4">
-            {[
-              { label: "Intensité carbone", vous: "42 tCO₂e/M€", secteur: "58 tCO₂e/M€", status: "top", color: "text-[var(--color-success)]" },
-              { label: "Part Scope 3", vous: "62%", secteur: "45%", status: "attention", color: "text-orange-400" },
-              { label: "Conformité ESRS", vous: "62/100", secteur: "48/100", status: "top", color: "text-[var(--color-success)]" },
-            ].map((row) => (
+            {(liveBenchmark && liveBenchmark.length > 0
+              ? liveBenchmark.slice(0, 3).map((row) => {
+                  const vousNum = numOrNull(row.valeurClient);
+                  const secteurNum = numOrNull(row.medianneSecteur);
+                  const isTop = row.position === "Leader" || row.position === "Bon";
+                  return {
+                    label: row.label,
+                    vous: vousNum != null ? vousNum.toLocaleString("fr-FR") : "—",
+                    secteur:
+                      secteurNum != null ? secteurNum.toLocaleString("fr-FR") : "—",
+                    status: isTop ? "top" : "attention",
+                    color: isTop ? "text-[var(--color-success)]" : "text-orange-400",
+                    positionLabel: row.position ?? (isTop ? "Top 25%" : "À améliorer"),
+                  };
+                })
+              : [
+                  { label: "Intensité carbone", vous: "42 tCO₂e/M€", secteur: "58 tCO₂e/M€", status: "top", color: "text-[var(--color-success)]", positionLabel: "Top 25%" },
+                  { label: "Part Scope 3", vous: "62%", secteur: "45%", status: "attention", color: "text-orange-400", positionLabel: "À améliorer" },
+                  { label: "Conformité ESRS", vous: "62/100", secteur: "48/100", status: "top", color: "text-[var(--color-success)]", positionLabel: "Top 25%" },
+                ]
+            ).map((row) => (
               <div key={row.label} className="flex items-center gap-4 p-3 rounded-xl bg-[var(--color-background)] border border-[var(--color-border)]">
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-[var(--color-foreground)]">{row.label}</p>
@@ -456,7 +526,7 @@ export function DashboardPage() {
                 <span className={`text-xs font-bold px-2 py-1 rounded-full ${
                   row.status === "top" ? "bg-[var(--color-success)]/15 text-[var(--color-success)]" : "bg-orange-500/15 text-orange-400"
                 }`}>
-                  {row.status === "top" ? "Top 25%" : "À améliorer"}
+                  {row.positionLabel}
                 </span>
               </div>
             ))}

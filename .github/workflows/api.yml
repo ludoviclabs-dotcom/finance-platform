@@ -27,9 +27,25 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Verify FastAPI app imports
+      - name: Install dev tools
+        run: pip install ruff
+
+      - name: Lint (ruff)
+        run: ruff check . --select=E,F,I --ignore=E501
+
+      - name: Verify FastAPI app loads (all routers)
         run: |
-          python -c "from main import app; print('OK: app loaded')"
+          python -c "
+          from main import app
+          routes = [r.path for r in app.routes]
+          print(f'OK: app loaded with {len(routes)} routes')
+          # Verify key route prefixes are registered
+          prefixes = {'/health', '/calculate', '/excel', '/report', '/clients',
+                      '/entreprise', '/cyber', '/pilier2', '/creditrisk'}
+          for p in prefixes:
+              assert any(p in r for r in routes), f'Missing route prefix: {p}'
+          print(f'OK: all {len(prefixes)} route prefixes verified')
+          "
 
       - name: Verify models import
         run: |
@@ -37,4 +53,11 @@ jobs:
 
       - name: Verify services import
         run: |
-          python -c "from services.ma_service import compute_ma; print('OK: services loaded')"
+          python -c "
+          from services.ma_service import compute_ma
+          from services.cyber_service import analyze_cyber
+          from services.pilier2_service import analyze_pilier2
+          from services.creditrisk_service import analyze_creditrisk
+          from services.entreprise_service import analyze_entreprise
+          print('OK: all services loaded')
+          "

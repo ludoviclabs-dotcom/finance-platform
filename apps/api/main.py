@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routers import health, excel, report, clients, entreprise, cyber, pilier2, creditrisk, carbon, vsme, esg, finance
+from routers import health, excel, report, clients, entreprise, cyber, pilier2, creditrisk, carbon, vsme, esg, finance, ingest
 
 try:
     from routers import ma
@@ -75,3 +75,4 @@ app.include_router(carbon.router, prefix="/carbon", tags=["carbon"])
 app.include_router(vsme.router, prefix="/vsme", tags=["vsme"])
 app.include_router(esg.router, prefix="/esg", tags=["esg"])
 app.include_router(finance.router, prefix="/finance", tags=["finance"])
+app.include_router(ingest.router, tags=["ingest"])

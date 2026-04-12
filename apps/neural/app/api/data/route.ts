@@ -12,7 +12,9 @@ import { parseArtisanTalent } from '@/lib/neural-hub/parsers/parse-artisan-talen
 import { parseCompBenchmark } from '@/lib/neural-hub/parsers/parse-comp-benchmark';
 import { parseOnboarding } from '@/lib/neural-hub/parsers/parse-onboarding';
 
-export const dynamic = 'force-dynamic';
+// Revalidate every hour — Excel files are static between deploys.
+// Next.js also invalidates the cache automatically on each new deployment.
+export const revalidate = 3600;
 
 export async function GET() {
   try {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   FileText,
@@ -10,9 +11,16 @@ import {
   Shield,
   BarChart3,
   Globe,
+  Sparkles,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { SectionTitle } from "@/components/ui/section-title";
 import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
+import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
+import { useVsmeSnapshot } from "@/lib/hooks/use-vsme-snapshot";
+import { useEsgSnapshot } from "@/lib/hooks/use-esg-snapshot";
+import { exportEsgSynthesisPdf } from "@/lib/pdf-export";
 
 const reports = [
   {
@@ -73,12 +81,88 @@ const statusConfig = {
 };
 
 export function ReportsPage() {
+  const carbonSnap = useCarbonSnapshot();
+  const vsmeSnap = useVsmeSnapshot();
+  const esgSnap = useEsgSnapshot();
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  const anyLoading =
+    carbonSnap.status === "loading" ||
+    vsmeSnap.status === "loading" ||
+    esgSnap.status === "loading";
+  const anyReady =
+    carbonSnap.status === "ready" ||
+    vsmeSnap.status === "ready" ||
+    esgSnap.status === "ready";
+
+  const handleExport = () => {
+    setExportError(null);
+    setExporting(true);
+    try {
+      exportEsgSynthesisPdf({
+        carbon: carbonSnap.status === "ready" ? carbonSnap.data : null,
+        vsme: vsmeSnap.status === "ready" ? vsmeSnap.data : null,
+        esg: esgSnap.status === "ready" ? esgSnap.data : null,
+      });
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : "Erreur inattendue");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <motion.div {...pageVariants} className="p-6 space-y-6">
       <SectionTitle
         title="Rapports & Exports"
         subtitle="Générez et exportez vos rapports réglementaires ESG"
       />
+
+      {/* ── Hero export ── */}
+      <div className="rounded-2xl border border-carbon-emerald/30 bg-gradient-to-br from-carbon-emerald/10 to-cyan-500/5 p-6 flex items-start gap-4">
+        <div className="w-12 h-12 rounded-xl bg-carbon-emerald/20 flex items-center justify-center flex-shrink-0">
+          <Sparkles className="w-6 h-6 text-carbon-emerald" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="font-display text-lg font-bold text-[var(--color-foreground)] mb-1">
+            Export synthèse ESG — PDF
+          </h2>
+          <p className="text-sm text-[var(--color-foreground-muted)] mb-3">
+            Génère un rapport PDF multi-pages : indicateurs carbone, VSME, double matérialité
+            et avertissements, à partir des dernières données synchronisées.
+          </p>
+          {exportError && (
+            <div className="mb-3 flex items-center gap-2 p-2 rounded-lg bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>{exportError}</span>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting || anyLoading || !anyReady}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {exporting || anyLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {anyLoading ? "Chargement des données…" : "Génération…"}
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                Télécharger la synthèse PDF
+              </>
+            )}
+          </button>
+          {!anyReady && !anyLoading && (
+            <p className="mt-2 text-xs text-[var(--color-foreground-muted)]">
+              Aucun snapshot disponible — vérifiez la connexion à l&apos;API.
+            </p>
+          )}
+        </div>
+      </div>
 
       {/* Stats */}
       <motion.div

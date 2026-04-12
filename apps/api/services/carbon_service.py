@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import os
 import json
+import os
 import re
 import subprocess
 from datetime import datetime, timezone
@@ -428,13 +428,10 @@ def _evaluate_excel_formula(
 
     if expr.startswith(("SUM(", "MAX(", "MIN(")) and expr.endswith(")"):
         function_name = expr[:3]
-        inner = expr[4:-1]
         if expr.startswith("MAX("):
             function_name = "MAX"
-            inner = expr[4:-1]
         elif expr.startswith("MIN("):
             function_name = "MIN"
-            inner = expr[4:-1]
         parts = _split_excel_args(expr[4:-1])
         values: list[float] = []
         for part in parts:

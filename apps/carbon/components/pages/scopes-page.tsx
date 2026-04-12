@@ -18,6 +18,7 @@ import { ChartCard } from "@/components/ui/chart-card";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { scopeDetails } from "@/lib/data";
 import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
+import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
 
 const scopeIcons = [
   <Factory key="s1" className="w-6 h-6" />,
@@ -29,6 +30,17 @@ const scopeColors = ["#059669", "#0891B2", "#7C3AED"];
 
 export function ScopesPage() {
   const [selectedScope, setSelectedScope] = useState(0);
+  const snapshot = useCarbonSnapshot();
+
+  const pick = (live: number | null | undefined, fallback: number) =>
+    typeof live === "number" && live > 0 ? live : fallback;
+
+  const liveCarbon = snapshot.status === "ready" ? snapshot.data.carbon : null;
+  const scope1Total = pick(liveCarbon?.scope1Tco2e, scopeDetails[0].total);
+  const scope2Total = pick(liveCarbon?.scope2LbTco2e, scopeDetails[1].total);
+  const scope3Total = pick(liveCarbon?.scope3Tco2e, scopeDetails[2].total);
+  const liveTotals = [scope1Total, scope2Total, scope3Total];
+
   const scope = scopeDetails[selectedScope];
 
   return (
@@ -72,7 +84,7 @@ export function ScopesPage() {
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-display font-bold text-[var(--color-foreground)]">
-                <AnimatedCounter value={s.total} />
+                <AnimatedCounter value={liveTotals[i]} />
               </span>
               <span className="text-sm text-[var(--color-foreground-muted)]">{s.unit}</span>
             </div>
@@ -140,7 +152,7 @@ export function ScopesPage() {
           <ChartCard title="Détail par catégorie" subtitle="Part et volume de chaque source">
             <div className="space-y-3">
               {scope.categories.map((cat) => {
-                const pct = ((cat.value / scope.total) * 100).toFixed(1);
+                const pct = ((cat.value / liveTotals[selectedScope]) * 100).toFixed(1);
                 return (
                   <div
                     key={cat.name}

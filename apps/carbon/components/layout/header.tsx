@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Bell, Search, RefreshCw, Download, X, ChevronRight, Sun, Moon } from "lucide-react";
+import { Bell, Search, RefreshCw, Download, X, ChevronRight, Sun, Moon, LogOut } from "lucide-react";
 
 interface HeaderProps {
   title: string;
   subtitle?: string;
+  onLogout?: () => void;
+  userEmail?: string;
+  demoHint?: string;
 }
 
 const NOTIFICATIONS = [
@@ -16,7 +19,7 @@ const NOTIFICATIONS = [
 
 const PERIODS = ["Ce mois", "Ce trimestre", "Cette année"] as const;
 
-export function Header({ title, subtitle }: HeaderProps) {
+export function Header({ title, subtitle, onLogout, userEmail, demoHint }: HeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [period, setPeriod] = useState<typeof PERIODS[number]>("Ce mois");
   const [refreshing, setRefreshing] = useState(false);
@@ -175,13 +178,38 @@ export function Header({ title, subtitle }: HeaderProps) {
             )}
           </div>
 
-          {/* Avatar */}
-          <button
-            aria-label="Paramètres du compte"
-            className="w-9 h-9 rounded-full bg-carbon-emerald/20 flex items-center justify-center text-carbon-emerald-light font-bold text-xs cursor-pointer hover:ring-2 hover:ring-carbon-emerald/40 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-emerald/60"
-          >
-            ML
-          </button>
+          {/* Avatar + logout */}
+          {onLogout ? (
+            <div className="flex items-center gap-1.5">
+              <div
+                title={userEmail}
+                className="w-9 h-9 rounded-full bg-carbon-emerald/20 flex items-center justify-center text-carbon-emerald-light font-bold text-xs cursor-default select-none"
+                aria-label={`Connecté en tant que ${userEmail}`}
+              >
+                {userEmail ? userEmail[0].toUpperCase() : "U"}
+              </div>
+              <button
+                type="button"
+                onClick={onLogout}
+                aria-label="Se déconnecter"
+                title="Se déconnecter"
+                className={iconBtnClass}
+              >
+                <LogOut className="w-4 h-4" aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              {demoHint && (
+                <span className="hidden lg:block text-[10px] text-[var(--color-foreground-subtle)] font-mono bg-[var(--color-background)] border border-[var(--color-border)] rounded px-2 py-1">
+                  démo : {demoHint}
+                </span>
+              )}
+              <div className="w-9 h-9 rounded-full bg-carbon-emerald/20 flex items-center justify-center text-carbon-emerald-light font-bold text-xs cursor-default select-none">
+                ?
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

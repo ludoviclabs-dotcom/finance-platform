@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routers import health, calculate, excel, report, clients, entreprise, cyber, pilier2, creditrisk
+from routers import health, ma, excel, report, clients, entreprise, cyber, pilier2, creditrisk, carbon
 
 # ---------------------------------------------------------------------------
 # Request body size limit (10 MB)
@@ -57,7 +57,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(health.router)
-app.include_router(calculate.router, prefix="/calculate", tags=["calculate"])
+app.include_router(ma.router, prefix="/ma", tags=["ma"])
 app.include_router(excel.router, prefix="/excel", tags=["excel"])
 app.include_router(report.router, prefix="/report", tags=["report"])
 app.include_router(clients.router, prefix="/clients", tags=["clients"])
@@ -65,3 +65,4 @@ app.include_router(entreprise.router, prefix="/entreprise", tags=["entreprise"])
 app.include_router(cyber.router, prefix="/cyber", tags=["cyber"])
 app.include_router(pilier2.router, prefix="/pilier2", tags=["pilier2"])
 app.include_router(creditrisk.router, prefix="/creditrisk", tags=["creditrisk"])
+app.include_router(carbon.router, prefix="/carbon", tags=["carbon"])

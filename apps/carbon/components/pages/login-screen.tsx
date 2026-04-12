@@ -2,20 +2,29 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Leaf, ArrowRight, Eye, EyeOff, Shield, Lock, CheckCircle } from "lucide-react";
+import { Leaf, ArrowRight, Eye, EyeOff, Shield, Lock, CheckCircle, AlertCircle } from "lucide-react";
 
 interface LoginScreenProps {
-  onLogin: () => void;
+  onLogin: (email: string, password: string) => { ok: boolean; error?: string };
+  onDemo: () => void;
 }
 
-export function LoginScreen({ onLogin }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin();
+    setError(null);
+    setLoading(true);
+    const result = onLogin(email, password);
+    setLoading(false);
+    if (!result.ok) {
+      setError(result.error ?? "Erreur de connexion.");
+    }
   };
 
   return (
@@ -208,12 +217,21 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 Se souvenir de moi sur cet appareil
               </label>
 
+              {/* Message d'erreur */}
+              {error && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <span className="text-xs text-red-400">{error}</span>
+                </div>
+              )}
+
               {/* Bouton connexion */}
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-xl bg-gradient-esg text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all hover:scale-[1.01] cursor-pointer shadow-lg shadow-green-900/30"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl bg-gradient-esg text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all hover:scale-[1.01] cursor-pointer shadow-lg shadow-green-900/30 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Se connecter
+                {loading ? "Connexion…" : "Se connecter"}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -230,10 +248,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             <p className="text-xs text-white/40 mb-3">Pas encore client ?</p>
             <button
               type="button"
-              onClick={onLogin}
+              onClick={onDemo}
               className="w-full py-3 rounded-xl border border-white/20 text-white font-semibold text-sm hover:bg-white/10 transition-all hover:scale-[1.01] cursor-pointer flex items-center justify-center gap-2"
             >
-              Demander une démonstration personnalisée
+              Accès démo (sans compte)
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

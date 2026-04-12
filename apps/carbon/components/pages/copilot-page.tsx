@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, Send, User, Sparkles, Lightbulb } from "lucide-react";
 import { SectionTitle } from "@/components/ui/section-title";
 import { aiResponses } from "@/lib/data";
 import { pageVariants } from "@/lib/animations";
+import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
 import type { ChatMessage } from "@/lib/types";
 
 const quickPrompts = [
@@ -15,7 +16,37 @@ const quickPrompts = [
   { label: "Taxonomie verte", query: "taxonomie", icon: "🌿" },
 ];
 
+const fmt = (n: number | null | undefined, fallback: string) =>
+  typeof n === "number" && n > 0 ? n.toLocaleString("fr-FR") : fallback;
+
 export function CopilotPage() {
+  const snapshot = useCarbonSnapshot();
+
+  // Build live responses once the snapshot is ready, otherwise fall back to static strings
+  const liveResponses = useMemo(() => {
+    if (snapshot.status !== "ready") return aiResponses;
+    const { carbon, taxonomy, cbam, energy } = snapshot.data;
+
+    const s1 = fmt(carbon.scope1Tco2e, "1 336");
+    const s2 = fmt(carbon.scope2LbTco2e, "934");
+    const s3 = fmt(carbon.scope3Tco2e, "3 685");
+    const total = fmt(carbon.totalS123Tco2e, "5 955");
+    const pS1 = fmt(carbon.shareScope1Pct, "22");
+    const pS2 = fmt(carbon.shareScope2Pct, "16");
+    const pS3 = fmt(carbon.shareScope3Pct, "62");
+    const taxoCA = fmt(taxonomy.turnoverAlignedPct, "35");
+    const taxoCapex = fmt(taxonomy.capexAlignedPct, "28");
+    const cbamCost = fmt(cbam.estimatedCostEur, "48 000");
+    const enr = fmt(energy.renewableSharePct, "38");
+
+    return {
+      ...aiResponses,
+      scope: `Vos émissions totales s'élèvent à **${total} tCO₂e** sur l'exercice.\n\n- **Scope 1** : ${s1} tCO₂e (${pS1}%) — émissions directes\n- **Scope 2** : ${s2} tCO₂e (${pS2}%) — énergie indirecte\n- **Scope 3** : ${s3} tCO₂e (${pS3}%) — chaîne de valeur\n\nLe Scope 3 reste votre principal levier de réduction. Part d'énergies renouvelables actuelle : **${enr}%**.`,
+      taxonomie: `La **Taxonomie européenne** définit 6 objectifs environnementaux.\n\nVos activités éligibles :\n- Chiffre d'affaires aligné : **${taxoCA}%**\n- CapEx aligné : **${taxoCapex}%**\n\n**Prochaine étape** : documenter les critères DNSH (Do No Significant Harm) pour vos principales activités éligibles.`,
+      cbam: `Le **CBAM** (Carbon Border Adjustment Mechanism) entre en phase transitoire.\n\n**Coût estimé sur vos importations** : **${cbamCost} €**\n\n**Actions requises :**\n1. Identifier les importations couvertes (acier, aluminium, ciment, engrais)\n2. Collecter les données d'émissions intégrées auprès de vos fournisseurs hors-UE\n3. Déclarer trimestriellement via le registre CBAM`,
+    };
+  }, [snapshot.status, snapshot.data]);
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -57,7 +88,7 @@ export function CopilotPage() {
         ...prev,
         {
           role: "assistant",
-          content: aiResponses[responseKey] || aiResponses.default,
+          content: liveResponses[responseKey] || liveResponses.default,
           timestamp: new Date(),
         },
       ]);

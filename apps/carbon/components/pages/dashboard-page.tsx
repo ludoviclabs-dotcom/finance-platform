@@ -20,6 +20,7 @@ import { ChartCard } from "@/components/ui/chart-card";
 import { SectionTitle } from "@/components/ui/section-title";
 import { monthlyEmissions, scopeDetails, recentActivity, aiSuggestions } from "@/lib/data";
 import { staggerContainer, pageVariants } from "@/lib/animations";
+import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
 import { DashboardContextBar } from "@/components/dashboard/dashboard-context-bar";
 import { ProactiveInsights } from "@/components/dashboard/proactive-insights";
 import { RegulatoryAlertBanner } from "@/components/dashboard/regulatory-alert-banner";
@@ -115,6 +116,23 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<"Ce mois" | "Ce trimestre" | "Cette année" | "2025" | "2024">("Cette année");
 
+  const snapshot = useCarbonSnapshot();
+
+  // Live KPIs from /carbon/snapshot when the backend returns non-zero data;
+  // otherwise fall back to mocks so the dashboard keeps working offline.
+  const liveCarbon = snapshot.status === "ready" ? snapshot.data.carbon : null;
+  const liveCompanyName =
+    snapshot.status === "ready" && snapshot.data.company.name && snapshot.data.company.name !== "Entreprise non renseignee"
+      ? snapshot.data.company.name
+      : null;
+  const pick = (live: number | null | undefined, fallback: number) =>
+    typeof live === "number" && live > 0 ? live : fallback;
+  const scope1Value = pick(liveCarbon?.scope1Tco2e, scopeDetails[0].total);
+  const scope2Value = pick(liveCarbon?.scope2LbTco2e, scopeDetails[1].total);
+  const scope3Value = pick(liveCarbon?.scope3Tco2e, scopeDetails[2].total);
+  const totalValue = pick(liveCarbon?.totalS123Tco2e, scope1Value + scope2Value + scope3Value);
+  const isLive = snapshot.status === "ready" && liveCarbon !== null && (liveCarbon.totalS123Tco2e ?? 0) > 0;
+
   // Simule un chargement initial avec skeletons
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 1400);
@@ -131,7 +149,7 @@ export function DashboardPage() {
 
   const visibleSuggestions = aiSuggestions.filter((s) => !dismissedSuggestions.has(s.id));
   const visibleInsights = proactiveInsights.filter((i) => !dismissedInsights.has(i.id));
-  const progressToTarget = Math.min(100, ((TARGET_EMISSIONS - (TARGET_EMISSIONS - totalEmissions)) / TARGET_EMISSIONS) * 100);
+  const progressToTarget = Math.min(100, ((TARGET_EMISSIONS - (TARGET_EMISSIONS - totalValue)) / TARGET_EMISSIONS) * 100);
 
   const handleSync = (id: string) => {
     setSyncingId(id);
@@ -248,8 +266,8 @@ export function DashboardPage() {
 
       {/* ── Titre ── */}
       <SectionTitle
-        title="Tableau de bord ESG — Acme Corp."
-        subtitle={`Vue d'ensemble · ${period} · Données au ${new Date().toLocaleDateString("fr-FR")}`}
+        title={`Tableau de bord ESG — ${liveCompanyName ?? "Acme Corp."}`}
+        subtitle={`Vue d'ensemble · ${period} · Données au ${new Date().toLocaleDateString("fr-FR")}${isLive ? " · Source : classeurs Excel" : ""}`}
       />
 
       {/* ── IA Proactive insights ── */}
@@ -290,12 +308,12 @@ export function DashboardPage() {
         {/* Total — mis en avant */}
         <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface)] to-carbon-emerald/5 p-4 shadow-sm"
           style={{ borderLeft: "3px solid #059669" }}>
-          <KpiCard label="Émissions totales" value={totalEmissions} unit="tCO₂e" change={-5.8}
+          <KpiCard label="Émissions totales" value={totalValue} unit="tCO₂e" change={-5.8}
             icon={<Factory className="w-5 h-5" />} />
           <div className="mt-3">
             <div className="flex justify-between text-[10px] text-[var(--color-foreground-subtle)] mb-1">
               <span>Objectif 2025 : {TARGET_EMISSIONS.toLocaleString("fr-FR")} t</span>
-              <span className="text-[var(--color-success)]">−{(totalEmissions - TARGET_EMISSIONS).toLocaleString("fr-FR")} t restants</span>
+              <span className="text-[var(--color-success)]">−{(totalValue - TARGET_EMISSIONS).toLocaleString("fr-FR")} t restants</span>
             </div>
             <div className="h-1.5 rounded-full bg-[var(--color-background)] overflow-hidden">
               <motion.div initial={{ width: 0 }} animate={{ width: `${progressToTarget}%` }}
@@ -306,19 +324,19 @@ export function DashboardPage() {
         </div>
 
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4" style={{ borderLeft: "3px solid #059669" }}>
-          <KpiCard label="Scope 1 — Direct" value={scopeDetails[0].total} unit="tCO₂e"
+          <KpiCard label="Scope 1 — Direct" value={scope1Value} unit="tCO₂e"
             change={scopeDetails[0].trend} icon={<Factory className="w-5 h-5" />} />
           <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-2">vs objectif SBTi : <span className="text-[var(--color-success)]">−8% 🟢</span></p>
         </div>
 
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4" style={{ borderLeft: "3px solid #0891B2" }}>
-          <KpiCard label="Scope 2 — Énergie" value={scopeDetails[1].total} unit="tCO₂e"
+          <KpiCard label="Scope 2 — Énergie" value={scope2Value} unit="tCO₂e"
             change={scopeDetails[1].trend} icon={<Zap className="w-5 h-5" />} />
           <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-2">vs objectif SBTi : <span className="text-orange-400">−2% 🟠</span></p>
         </div>
 
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4" style={{ borderLeft: "3px solid #7C3AED" }}>
-          <KpiCard label="Scope 3 — Chaîne" value={scopeDetails[2].total} unit="tCO₂e"
+          <KpiCard label="Scope 3 — Chaîne" value={scope3Value} unit="tCO₂e"
             change={scopeDetails[2].trend} icon={<Truck className="w-5 h-5" />} />
           <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-2">vs objectif SBTi : <span className="text-red-400">+4% 🔴</span></p>
         </div>

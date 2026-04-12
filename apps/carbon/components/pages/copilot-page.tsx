@@ -1,108 +1,89 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, Send, User, Sparkles, Lightbulb } from "lucide-react";
+import { Bot, Send, User, Sparkles, Lightbulb, AlertTriangle } from "lucide-react";
 import { SectionTitle } from "@/components/ui/section-title";
-import { aiResponses } from "@/lib/data";
 import { pageVariants } from "@/lib/animations";
 import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
-import type { ChatMessage } from "@/lib/types";
+import { useVsmeSnapshot } from "@/lib/hooks/use-vsme-snapshot";
+import { useEsgSnapshot } from "@/lib/hooks/use-esg-snapshot";
+import { useFinanceSnapshot } from "@/lib/hooks/use-finance-snapshot";
 
 const quickPrompts = [
-  { label: "Bilan carbone", query: "scope", icon: "🏭" },
-  { label: "Conformité ESRS", query: "esrs", icon: "📋" },
-  { label: "CBAM", query: "cbam", icon: "🌍" },
-  { label: "Taxonomie verte", query: "taxonomie", icon: "🌿" },
+  { label: "Bilan carbone Scope 1, 2 et 3", icon: "🏭" },
+  { label: "Conformité ESRS / CSRD", icon: "📋" },
+  { label: "Coût CBAM estimé", icon: "🌍" },
+  { label: "Alignement Taxonomie UE", icon: "🌿" },
+  { label: "Enjeux matériels prioritaires", icon: "⚖️" },
+  { label: "Plan SBTi et trajectoire 1,5°C", icon: "📉" },
 ];
 
-const fmt = (n: number | null | undefined, fallback: string) =>
-  typeof n === "number" && n > 0 ? n.toLocaleString("fr-FR") : fallback;
-
 export function CopilotPage() {
-  const snapshot = useCarbonSnapshot();
+  const carbonSnap = useCarbonSnapshot();
+  const vsmeSnap = useVsmeSnapshot();
+  const esgSnap = useEsgSnapshot();
+  const financeSnap = useFinanceSnapshot();
 
-  // Build live responses once the snapshot is ready, otherwise fall back to static strings
-  const liveResponses = useMemo(() => {
-    if (snapshot.status !== "ready") return aiResponses;
-    const { carbon, taxonomy, cbam, energy } = snapshot.data;
+  const snapshots = useMemo(
+    () => ({
+      carbon: carbonSnap.status === "ready" ? carbonSnap.data : null,
+      vsme: vsmeSnap.status === "ready" ? vsmeSnap.data : null,
+      esg: esgSnap.status === "ready" ? esgSnap.data : null,
+      finance: financeSnap.status === "ready" ? financeSnap.data : null,
+    }),
+    [carbonSnap, vsmeSnap, esgSnap, financeSnap],
+  );
 
-    const s1 = fmt(carbon.scope1Tco2e, "1 336");
-    const s2 = fmt(carbon.scope2LbTco2e, "934");
-    const s3 = fmt(carbon.scope3Tco2e, "3 685");
-    const total = fmt(carbon.totalS123Tco2e, "5 955");
-    const pS1 = fmt(carbon.shareScope1Pct, "22");
-    const pS2 = fmt(carbon.shareScope2Pct, "16");
-    const pS3 = fmt(carbon.shareScope3Pct, "62");
-    const taxoCA = fmt(taxonomy.turnoverAlignedPct, "35");
-    const taxoCapex = fmt(taxonomy.capexAlignedPct, "28");
-    const cbamCost = fmt(cbam.estimatedCostEur, "48 000");
-    const enr = fmt(energy.renewableSharePct, "38");
+  const readyCount =
+    (snapshots.carbon ? 1 : 0) +
+    (snapshots.vsme ? 1 : 0) +
+    (snapshots.esg ? 1 : 0) +
+    (snapshots.finance ? 1 : 0);
 
-    return {
-      ...aiResponses,
-      scope: `Vos émissions totales s'élèvent à **${total} tCO₂e** sur l'exercice.\n\n- **Scope 1** : ${s1} tCO₂e (${pS1}%) — émissions directes\n- **Scope 2** : ${s2} tCO₂e (${pS2}%) — énergie indirecte\n- **Scope 3** : ${s3} tCO₂e (${pS3}%) — chaîne de valeur\n\nLe Scope 3 reste votre principal levier de réduction. Part d'énergies renouvelables actuelle : **${enr}%**.`,
-      taxonomie: `La **Taxonomie européenne** définit 6 objectifs environnementaux.\n\nVos activités éligibles :\n- Chiffre d'affaires aligné : **${taxoCA}%**\n- CapEx aligné : **${taxoCapex}%**\n\n**Prochaine étape** : documenter les critères DNSH (Do No Significant Harm) pour vos principales activités éligibles.`,
-      cbam: `Le **CBAM** (Carbon Border Adjustment Mechanism) entre en phase transitoire.\n\n**Coût estimé sur vos importations** : **${cbamCost} €**\n\n**Actions requises :**\n1. Identifier les importations couvertes (acier, aluminium, ciment, engrais)\n2. Collecter les données d'émissions intégrées auprès de vos fournisseurs hors-UE\n3. Déclarer trimestriellement via le registre CBAM`,
-    };
-  }, [snapshot.status, snapshot.data]);
+  const anyLoading =
+    carbonSnap.status === "loading" ||
+    vsmeSnap.status === "loading" ||
+    esgSnap.status === "loading" ||
+    financeSnap.status === "loading";
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: "assistant",
-      content: aiResponses.default,
-      timestamp: new Date(),
-    },
-  ]);
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/copilot",
+        body: () => ({ snapshots }),
+      }),
+    [snapshots],
+  );
+
+  const { messages, sendMessage, status, error, stop } = useChat({
+    transport,
+  });
+
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, status]);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
+  const busy = status === "submitted" || status === "streaming";
 
-    const userMsg: ChatMessage = { role: "user", content: text, timestamp: new Date() };
-    setMessages((prev) => [...prev, userMsg]);
+  const handleSend = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || busy) return;
+    sendMessage({ text: trimmed });
     setInput("");
-    setIsTyping(true);
-
-    // Match keywords to responses
-    const lower = text.toLowerCase();
-    let responseKey = "default";
-    if (lower.includes("scope") || lower.includes("émission") || lower.includes("carbone"))
-      responseKey = "scope";
-    else if (lower.includes("esrs") || lower.includes("csrd") || lower.includes("norme"))
-      responseKey = "esrs";
-    else if (lower.includes("cbam") || lower.includes("frontière"))
-      responseKey = "cbam";
-    else if (lower.includes("taxonomie") || lower.includes("alignement"))
-      responseKey = "taxonomie";
-
-    setTimeout(() => {
-      setIsTyping(false);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: liveResponses[responseKey] || liveResponses.default,
-          timestamp: new Date(),
-        },
-      ]);
-    }, 1200 + Math.random() * 800);
   };
 
   const renderMarkdown = (text: string) => {
     return text.split("\n").map((line, i) => {
-      // Bold
       const formatted = line.replace(
         /\*\*(.*?)\*\*/g,
-        '<strong class="text-[var(--color-foreground)] font-semibold">$1</strong>'
+        '<strong class="text-[var(--color-foreground)] font-semibold">$1</strong>',
       );
-      // List items
       if (line.startsWith("- ")) {
         return (
           <li
@@ -112,13 +93,21 @@ export function CopilotPage() {
           />
         );
       }
-      // Numbered list
       if (/^\d+\.\s/.test(line)) {
         return (
           <li
             key={i}
             className="ml-4 list-decimal"
             dangerouslySetInnerHTML={{ __html: formatted.replace(/^\d+\.\s/, "") }}
+          />
+        );
+      }
+      if (line.startsWith("## ")) {
+        return (
+          <h3
+            key={i}
+            className="font-display font-bold text-[var(--color-foreground)] mt-2 mb-1"
+            dangerouslySetInnerHTML={{ __html: formatted.slice(3) }}
           />
         );
       }
@@ -129,19 +118,52 @@ export function CopilotPage() {
 
   return (
     <motion.div {...pageVariants} className="flex flex-col h-[calc(100vh-4rem)]">
-      <div className="p-6 pb-0">
+      <div className="p-6 pb-3">
         <SectionTitle
           title="Copilote IA"
-          subtitle="Votre assistant ESG propulsé par l'intelligence artificielle"
+          subtitle="Assistant ESG propulsé par Claude Sonnet 4.6, ancré sur vos données temps réel"
         />
+        <div className="mt-3 flex items-center gap-2 flex-wrap text-xs">
+          <span
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold ${
+              readyCount === 4
+                ? "bg-[var(--color-success-bg)] text-[var(--color-success)]"
+                : readyCount > 0
+                  ? "bg-amber-50 text-amber-600"
+                  : "bg-[var(--color-border)] text-[var(--color-foreground-muted)]"
+            }`}
+          >
+            <Sparkles className="w-3 h-3" />
+            {readyCount}/4 snapshots chargés
+          </span>
+          {anyLoading && (
+            <span className="text-[var(--color-foreground-muted)]">
+              Chargement des données…
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Chat area */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        {messages.length === 0 && (
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-carbon-emerald/20 flex items-center justify-center flex-shrink-0 text-carbon-emerald">
+              <Bot className="w-4 h-4" />
+            </div>
+            <div className="max-w-[75%] rounded-xl px-4 py-3 text-sm leading-relaxed bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-foreground-muted)]">
+              Bonjour 👋 je suis votre copilote ESG. Posez-moi une question sur vos
+              scopes carbone, votre matérialité ESRS, vos indicateurs VSME, votre
+              alignement Taxonomie UE, ou n&apos;importe quel sujet CSRD — je
+              répondrai en m&apos;appuyant uniquement sur vos données réelles.
+            </div>
+          </div>
+        )}
+
         <AnimatePresence>
-          {messages.map((msg, i) => (
+          {messages.map((msg) => (
             <motion.div
-              key={i}
+              key={msg.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
@@ -166,13 +188,21 @@ export function CopilotPage() {
                     : "bg-carbon-emerald text-white"
                 }`}
               >
-                {msg.role === "assistant" ? renderMarkdown(msg.content) : msg.content}
+                {msg.parts.map((part, i) =>
+                  part.type === "text" ? (
+                    msg.role === "assistant" ? (
+                      <div key={i}>{renderMarkdown(part.text)}</div>
+                    ) : (
+                      <span key={i}>{part.text}</span>
+                    )
+                  ) : null,
+                )}
               </div>
             </motion.div>
           ))}
         </AnimatePresence>
 
-        {isTyping && (
+        {status === "submitted" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -188,6 +218,14 @@ export function CopilotPage() {
             </div>
           </motion.div>
         )}
+
+        {error && (
+          <div className="flex gap-2 items-center p-3 rounded-xl bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span>Erreur : {error.message}</span>
+          </div>
+        )}
+
         <div ref={bottomRef} />
       </div>
 
@@ -195,14 +233,18 @@ export function CopilotPage() {
       <div className="px-6 pb-2">
         <div className="flex items-center gap-2 mb-2">
           <Lightbulb className="w-3.5 h-3.5 text-[var(--color-foreground-subtle)]" />
-          <span className="text-xs text-[var(--color-foreground-subtle)]">Suggestions rapides</span>
+          <span className="text-xs text-[var(--color-foreground-subtle)]">
+            Suggestions rapides
+          </span>
         </div>
         <div className="flex gap-2 flex-wrap">
           {quickPrompts.map((prompt) => (
             <button
-              key={prompt.query}
-              onClick={() => sendMessage(prompt.label)}
-              className="px-3 py-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-xs text-[var(--color-foreground-muted)] hover:border-carbon-emerald/30 hover:text-carbon-emerald-light transition-colors cursor-pointer"
+              key={prompt.label}
+              type="button"
+              onClick={() => handleSend(prompt.label)}
+              disabled={busy}
+              className="px-3 py-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-xs text-[var(--color-foreground-muted)] hover:border-carbon-emerald/30 hover:text-carbon-emerald-light transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {prompt.icon} {prompt.label}
             </button>
@@ -215,7 +257,7 @@ export function CopilotPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            sendMessage(input);
+            handleSend(input);
           }}
           className="flex gap-2"
         >
@@ -223,18 +265,31 @@ export function CopilotPage() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Posez une question sur vos données ESG..."
-              className="w-full px-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-foreground-subtle)] focus:outline-none focus:border-carbon-emerald focus:ring-1 focus:ring-carbon-emerald/30"
+              placeholder="Posez une question sur vos données ESG…"
+              disabled={busy}
+              className="w-full px-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-foreground-subtle)] focus:outline-none focus:border-carbon-emerald focus:ring-1 focus:ring-carbon-emerald/30 disabled:opacity-60"
             />
             <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-foreground-subtle)]" />
           </div>
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className="px-4 py-3 rounded-xl bg-carbon-emerald text-white font-medium text-sm hover:bg-carbon-emerald/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          >
-            <Send className="w-4 h-4" />
-          </button>
+          {busy ? (
+            <button
+              type="button"
+              onClick={() => stop()}
+              title="Arrêter la génération"
+              className="px-4 py-3 rounded-xl bg-[var(--color-danger)] text-white font-medium text-sm hover:opacity-90 transition-colors cursor-pointer"
+            >
+              Stop
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!input.trim()}
+              title="Envoyer"
+              className="px-4 py-3 rounded-xl bg-carbon-emerald text-white font-medium text-sm hover:bg-carbon-emerald/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          )}
         </form>
       </div>
     </motion.div>

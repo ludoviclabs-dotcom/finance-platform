@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
-from fastapi import APIRouter, HTTPException, UploadFile, File
 
 from services.entreprise_service import analyze_entreprise
 from utils.excel_reader import CorruptFileError

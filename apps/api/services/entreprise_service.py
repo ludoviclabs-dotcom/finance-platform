@@ -11,7 +11,7 @@ from typing import Any
 
 from fastapi import UploadFile
 
-from utils.excel_reader import ExcelReader, SheetNotFoundError
+from utils.excel_reader import ExcelReader
 
 # ---------------------------------------------------------------------------
 # Sheet name resolution — try common French labels, then fall back to first

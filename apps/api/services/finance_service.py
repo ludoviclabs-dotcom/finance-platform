@@ -206,7 +206,6 @@ def build_finance_snapshot() -> FinanceSnapshotResponse:
 
     # SFDR PAI — source: Liaison_Donnees for GES values
     total_ges = r("CC_FIN_Total_GES")
-    ca_net = r("CC_FIN_CA_Net")
     intensite_ca = r("CC_FIN_Intensite_CA")
     part_enr = r("CC_FIN_Part_ENR")
 

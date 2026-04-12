@@ -7,20 +7,20 @@ from typing import Any
 
 from openpyxl import load_workbook
 
-from models.vsme import (
-    VsmeCompletudeSnapshot,
-    VsmeEnvironSnapshot,
-    VsmeGovSnapshot,
-    VsmeProfileSnapshot,
-    VsmeSocialSnapshot,
-    VsmeSnapshotResponse,
-)
 from models.esg import (
     EsgQcControl,
     EsgScoreSnapshot,
     EsgSnapshotResponse,
     MaterialiteIssue,
     MaterialiteSnapshot,
+)
+from models.vsme import (
+    VsmeCompletudeSnapshot,
+    VsmeEnvironSnapshot,
+    VsmeGovSnapshot,
+    VsmeProfileSnapshot,
+    VsmeSnapshotResponse,
+    VsmeSocialSnapshot,
 )
 
 # ---------------------------------------------------------------------------

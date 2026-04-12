@@ -136,8 +136,6 @@ async def analyze_pilier2(file: UploadFile) -> dict[str, Any]:
             # Fallback: try first sheet
             jurisdictions_raw = _extract_jurisdictions(reader, sheets[0]) if sheets else []
 
-        # --- Top-up Tax sheet (informational) ---
-        topup_sheet = _find_sheet(reader, _TOPUP_CANDIDATES)
     finally:
         reader.close()
 

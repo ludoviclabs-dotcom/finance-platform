@@ -4,7 +4,21 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routers import health, excel, report, clients, entreprise, cyber, pilier2, creditrisk, carbon, vsme, esg, finance, ingest
+from routers import (
+    carbon,
+    clients,
+    creditrisk,
+    cyber,
+    entreprise,
+    esg,
+    excel,
+    finance,
+    health,
+    ingest,
+    pilier2,
+    report,
+    vsme,
+)
 
 try:
     from routers import ma

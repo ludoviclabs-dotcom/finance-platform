@@ -5,14 +5,13 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from services.carbon_service import build_carbon_snapshot, CarbonServiceError
-from services.esg_service import build_vsme_snapshot, build_esg_snapshot
+from services.carbon_service import CarbonServiceError, build_carbon_snapshot
+from services.esg_service import build_esg_snapshot, build_vsme_snapshot
 from services.finance_service import build_finance_snapshot
 from services.snapshot_cache import (
-    write_snapshot,
-    read_snapshot,
     cache_status,
     invalidate,
+    write_snapshot,
 )
 
 router = APIRouter()

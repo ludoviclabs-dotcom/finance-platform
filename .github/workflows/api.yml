@@ -40,8 +40,9 @@ jobs:
           routes = [r.path for r in app.routes]
           print(f'OK: app loaded with {len(routes)} routes')
           # Verify key route prefixes are registered
-          prefixes = {'/health', '/calculate', '/excel', '/report', '/clients',
-                      '/entreprise', '/cyber', '/pilier2', '/creditrisk'}
+          prefixes = {'/health', '/excel', '/report', '/clients',
+                      '/entreprise', '/cyber', '/pilier2', '/creditrisk',
+                      '/carbon', '/vsme', '/esg', '/finance', '/ingest'}
           for p in prefixes:
               assert any(p in r for r in routes), f'Missing route prefix: {p}'
           print(f'OK: all {len(prefixes)} route prefixes verified')
@@ -54,7 +55,7 @@ jobs:
       - name: Verify services import
         run: |
           python -c "
-          from services.ma_service import compute_ma
+          from services.ma_service import analyze_ma
           from services.cyber_service import analyze_cyber
           from services.pilier2_service import analyze_pilier2
           from services.creditrisk_service import analyze_creditrisk

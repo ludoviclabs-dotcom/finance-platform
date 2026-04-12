@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 snapshot_cache.py — Lecture-write cache for all domain snapshots.
 
@@ -12,6 +10,8 @@ Strategy:
 
 This decouples Excel I/O (slow, ~1-3 s) from API reads (instant JSON).
 """
+
+from __future__ import annotations
 
 import json
 import os

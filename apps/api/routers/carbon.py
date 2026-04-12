@@ -3,7 +3,11 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from models.carbon import CarbonSnapshotResponse, CarbonValidationResponse
-from services.carbon_service import CarbonServiceError, build_carbon_snapshot, validate_master_workbooks
+from services.carbon_service import (
+    CarbonServiceError,
+    build_carbon_snapshot,
+    validate_master_workbooks,
+)
 from services.snapshot_cache import read_snapshot, write_snapshot
 
 router = APIRouter()

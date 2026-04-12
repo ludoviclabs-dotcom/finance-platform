@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Target, BookOpen, Bot,
   FileBarChart, CreditCard, Leaf, LogOut,
   ChevronLeft, ChevronRight, X, Scale,
-  Users, Package, Banknote, Sparkles,
+  Users, Package, Banknote, Sparkles, ShieldCheck,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -33,6 +33,7 @@ const navItems: {
     badge: { text: "3 alertes", color: "bg-red-500/15 text-red-400" },
   },
   { id: "materialite", href: "/materialite", label: "Matérialité", icon: <Scale className="w-5 h-5" /> },
+  { id: "qc", href: "/qc", label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
   { id: "social", href: "/social", label: "Social", icon: <Users className="w-5 h-5" /> },
   { id: "dpp", href: "/dpp", label: "DPP produits", icon: <Package className="w-5 h-5" /> },
   { id: "finance", href: "/finance", label: "Finance / DPP", icon: <Banknote className="w-5 h-5" /> },

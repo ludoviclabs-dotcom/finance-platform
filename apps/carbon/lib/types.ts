@@ -4,6 +4,7 @@ export type Page =
   | "esrs"
   | "vsme"
   | "materialite"
+  | "qc"
   | "social"
   | "dpp"
   | "finance"

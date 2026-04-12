@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Command } from "lucide-react";
 
@@ -27,35 +28,33 @@ const SHORTCUTS: Shortcut[] = [
 const categories = [...new Set(SHORTCUTS.map((s) => s.category))];
 
 interface KeyboardShortcutsProps {
-  onNavigate: (page: string) => void;
   onExport?: () => void;
   onRefresh?: () => void;
 }
 
-export function KeyboardShortcuts({ onNavigate, onExport, onRefresh }: KeyboardShortcutsProps) {
+export function KeyboardShortcuts({ onExport, onRefresh }: KeyboardShortcutsProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const pageMap: Record<string, string> = {
-      "1": "dashboard",
-      "2": "scopes",
-      "3": "esrs",
-      "4": "copilot",
-      "5": "reports",
-      "6": "pricing",
+      "1": "/dashboard",
+      "2": "/scopes",
+      "3": "/esrs",
+      "4": "/copilot",
+      "5": "/reports",
+      "6": "/pricing",
     };
 
     const handler = (e: KeyboardEvent) => {
       const isMeta = e.metaKey || e.ctrlKey;
 
-      // ? → show shortcuts panel
       if (e.key === "?" && !isMeta) {
         e.preventDefault();
         setOpen((v) => !v);
         return;
       }
 
-      // Esc → close panel
       if (e.key === "Escape") {
         setOpen(false);
         return;
@@ -63,21 +62,18 @@ export function KeyboardShortcuts({ onNavigate, onExport, onRefresh }: KeyboardS
 
       if (!isMeta) return;
 
-      // ⌘1-6 → navigate
       if (pageMap[e.key]) {
         e.preventDefault();
-        onNavigate(pageMap[e.key]);
+        router.push(pageMap[e.key]);
         return;
       }
 
-      // ⌘E → export
       if (e.key === "e" || e.key === "E") {
         e.preventDefault();
         onExport?.();
         return;
       }
 
-      // ⌘R → refresh (prevent browser reload)
       if (e.key === "r" || e.key === "R") {
         e.preventDefault();
         onRefresh?.();
@@ -87,7 +83,7 @@ export function KeyboardShortcuts({ onNavigate, onExport, onRefresh }: KeyboardS
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [onNavigate, onExport, onRefresh]);
+  }, [router, onExport, onRefresh]);
 
   return (
     <>

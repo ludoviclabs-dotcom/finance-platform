@@ -1,4 +1,15 @@
-export type Page = "dashboard" | "scopes" | "esrs" | "copilot" | "reports" | "pricing";
+export type Page =
+  | "dashboard"
+  | "scopes"
+  | "esrs"
+  | "vsme"
+  | "materialite"
+  | "social"
+  | "dpp"
+  | "finance"
+  | "copilot"
+  | "reports"
+  | "pricing";
 
 export interface ChatMessage {
   role: "user" | "assistant";

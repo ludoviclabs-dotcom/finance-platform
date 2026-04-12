@@ -1,48 +1,57 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Target, BookOpen, Bot,
   FileBarChart, CreditCard, Leaf, LogOut,
-  ChevronLeft, ChevronRight, X,
+  ChevronLeft, ChevronRight, X, Scale,
+  Users, Package, Banknote, Sparkles,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
 interface SidebarProps {
-  currentPage: Page;
-  onNavigate: (page: Page) => void;
   collapsed: boolean;
   onToggle: () => void;
+  onLogout?: () => void;
 }
 
 const navItems: {
   id: Page;
+  href: string;
   label: string;
   icon: React.ReactNode;
   badge?: { text: string; color: string };
 }[] = [
-  { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { id: "scopes", label: "Scopes 1-2-3", icon: <Target className="w-5 h-5" /> },
+  { id: "dashboard", href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+  { id: "scopes", href: "/scopes", label: "Scopes 1-2-3", icon: <Target className="w-5 h-5" /> },
+  { id: "vsme", href: "/vsme", label: "VSME", icon: <Sparkles className="w-5 h-5" />, badge: { text: "Nouveau", color: "bg-carbon-emerald/15 text-carbon-emerald-light" } },
   {
-    id: "esrs", label: "ESRS / CSRD", icon: <BookOpen className="w-5 h-5" />,
+    id: "esrs", href: "/esrs", label: "ESRS / CSRD", icon: <BookOpen className="w-5 h-5" />,
     badge: { text: "3 alertes", color: "bg-red-500/15 text-red-400" },
   },
+  { id: "materialite", href: "/materialite", label: "Matérialité", icon: <Scale className="w-5 h-5" /> },
+  { id: "social", href: "/social", label: "Social", icon: <Users className="w-5 h-5" /> },
+  { id: "dpp", href: "/dpp", label: "DPP produits", icon: <Package className="w-5 h-5" /> },
+  { id: "finance", href: "/finance", label: "Finance / DPP", icon: <Banknote className="w-5 h-5" /> },
   {
-    id: "copilot", label: "Copilote IA", icon: <Bot className="w-5 h-5" />,
-    badge: { text: "Nouveau", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
+    id: "copilot", href: "/copilot", label: "Copilote IA", icon: <Bot className="w-5 h-5" />,
+    badge: { text: "IA", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
   },
   {
-    id: "reports", label: "Rapports", icon: <FileBarChart className="w-5 h-5" />,
+    id: "reports", href: "/reports", label: "Rapports", icon: <FileBarChart className="w-5 h-5" />,
     badge: { text: "1 brouillon", color: "bg-[var(--color-warning)]/15 text-[var(--color-warning)]" },
   },
-  { id: "pricing", label: "Offres", icon: <CreditCard className="w-5 h-5" /> },
+  { id: "pricing", href: "/pricing", label: "Offres", icon: <CreditCard className="w-5 h-5" /> },
 ];
 
 const ESG_SCORE = 62;
 
-export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, onLogout }: SidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const pathname = usePathname();
 
   const circumference = 2 * Math.PI * 16;
   const dashOffset = circumference - (ESG_SCORE / 100) * circumference;
@@ -124,13 +133,13 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: Sideba
         {/* Nav */}
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
-            const active = currentPage === item.id;
+            const active = pathname === item.href || pathname?.startsWith(item.href + "/");
             return (
-              <button
+              <Link
                 key={item.id}
-                onClick={() => onNavigate(item.id)}
+                href={item.href}
                 title={collapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                   active
                     ? "bg-carbon-emerald/15 text-carbon-emerald-light"
                     : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-raised)]"
@@ -139,7 +148,7 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: Sideba
                 <span className="flex-shrink-0">{item.icon}</span>
                 {!collapsed && (
                   <>
-                    <span className="flex-1 text-left">{item.label}</span>
+                    <span className="flex-1 text-left truncate">{item.label}</span>
                     {item.badge ? (
                       <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${item.badge.color}`}>
                         {item.badge.text}
@@ -150,11 +159,10 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: Sideba
                     ) : null}
                   </>
                 )}
-                {/* Badge compact en mode réduit */}
                 {collapsed && item.badge && (
                   <span className="absolute left-8 top-1 w-2 h-2 rounded-full bg-red-500" />
                 )}
-              </button>
+              </Link>
             );
           })}
         </nav>
@@ -166,11 +174,13 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: Sideba
             {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             {!collapsed && <span className="text-xs">Réduire</span>}
           </button>
-          <button onClick={() => setShowLogoutConfirm(true)} title="Déconnexion"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--color-foreground-muted)] hover:text-red-400 hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer">
-            <LogOut className="w-5 h-5" />
-            {!collapsed && <span className="text-xs">Déconnexion</span>}
-          </button>
+          {onLogout && (
+            <button onClick={() => setShowLogoutConfirm(true)} title="Déconnexion"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--color-foreground-muted)] hover:text-red-400 hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer">
+              <LogOut className="w-5 h-5" />
+              {!collapsed && <span className="text-xs">Déconnexion</span>}
+            </button>
+          )}
         </div>
       </motion.aside>
 
@@ -198,7 +208,11 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle }: Sideba
                   className="flex-1 py-2.5 rounded-xl border border-[var(--color-border)] text-sm font-semibold text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer">
                   Annuler
                 </button>
-                <button onClick={() => setShowLogoutConfirm(false)}
+                <button
+                  onClick={() => {
+                    setShowLogoutConfirm(false);
+                    onLogout?.();
+                  }}
                   className="flex-1 py-2.5 rounded-xl bg-red-600 text-sm font-bold text-white hover:bg-red-700 transition-colors cursor-pointer">
                   Se déconnecter
                 </button>

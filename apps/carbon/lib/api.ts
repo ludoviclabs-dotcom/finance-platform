@@ -103,6 +103,219 @@ export interface CarbonValidation {
 }
 
 // ---------------------------------------------------------------------------
+// VSME snapshot — mirrors apps/api/models/vsme.py
+// ---------------------------------------------------------------------------
+
+export interface VsmeProfileSnapshot {
+  raisonSociale: unknown;
+  secteurNaf: unknown;
+  etp: unknown;
+  caNet: unknown;
+  anneeReporting: unknown;
+  pays: unknown;
+  perimetre: unknown;
+}
+
+export interface VsmeEnvironSnapshot {
+  scope1Tco2e: unknown;
+  scope2LbTco2e: unknown;
+  scope2MbTco2e: unknown;
+  scope3Tco2e: unknown;
+  totalGesTco2e: unknown;
+  intensiteCaGes: unknown;
+  energieMwh: unknown;
+  partEnrPct: unknown;
+  eauM3: unknown;
+  dechetsTonnes: unknown;
+  valorisationDechetsPct: unknown;
+  planReductionGes: unknown;
+}
+
+export interface VsmeSocialSnapshot {
+  effectifTotal: unknown;
+  pctCdi: unknown;
+  tauxRotation: unknown;
+  ltir: unknown;
+  formationHEtp: unknown;
+  ecartSalaireHf: unknown;
+  pctFemmesMgmt: unknown;
+  diversite: unknown;
+  dialogueSocial: unknown;
+  litigesSociaux: unknown;
+}
+
+export interface VsmeGovSnapshot {
+  antiCorruption: unknown;
+  formationEthique: unknown;
+  whistleblowing: unknown;
+  pctCaIndependants: unknown;
+  protectionDonnees: unknown;
+}
+
+export interface VsmeCompletudeSnapshot {
+  indicateursCompletes: number;
+  totalIndicateurs: number;
+  scorePct: number;
+  statut: string;
+}
+
+export interface VsmeSnapshot {
+  snapshotVersion: string;
+  generatedAt: string;
+  completude: VsmeCompletudeSnapshot;
+  profile: VsmeProfileSnapshot;
+  environnement: VsmeEnvironSnapshot;
+  social: VsmeSocialSnapshot;
+  gouvernance: VsmeGovSnapshot;
+  warnings: string[];
+}
+
+// ---------------------------------------------------------------------------
+// ESG snapshot — mirrors apps/api/models/esg.py
+// ---------------------------------------------------------------------------
+
+export interface MaterialiteIssue {
+  code: string;
+  label: string;
+  categorie: string;
+  normeEsrs: string;
+  scoreImpact: unknown;
+  scoreProbabilite: unknown;
+  scoreImpactTotal: unknown;
+  materiel: boolean | null;
+}
+
+export interface MaterialiteSnapshot {
+  enjeuxEvalues: number;
+  enjeuxMateriels: number;
+  enjeuxNonMateriels: number;
+  enjeuxMaterielsE: number;
+  enjeuxMaterielsS: number;
+  enjeuxMaterielsG: number;
+  issues: MaterialiteIssue[];
+}
+
+export interface EsgScoreSnapshot {
+  scoreGlobal: unknown;
+  scoreE: unknown;
+  scoreS: unknown;
+  scoreG: unknown;
+  enjeuxMateriels: unknown;
+  statut: string | null;
+}
+
+export interface EsgQcControl {
+  id: string;
+  label: string;
+  statut: "OK" | "WARNING" | "ERROR" | "INFO" | "UNKNOWN" | string | null;
+  criticite: "Bloquant" | "Avert." | "Info" | string | null;
+  action: string | null;
+}
+
+export interface EsgSnapshot {
+  snapshotVersion: string;
+  generatedAt: string;
+  scores: EsgScoreSnapshot;
+  materialite: MaterialiteSnapshot;
+  qcControls: EsgQcControl[];
+  warnings: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Finance snapshot — mirrors apps/api/models/finance.py
+// ---------------------------------------------------------------------------
+
+export interface FinanceClimatSnapshot {
+  prixEts: unknown;
+  expositionTotaleEur: unknown;
+  cagrPrixCarbone: unknown;
+  capexDecarbS12Eur: unknown;
+  capexDecarbS3Eur: unknown;
+  greenCapexPct: unknown;
+  statutAlignementParis: unknown;
+}
+
+export interface SfdrPaiSnapshot {
+  pai1_totalGes: unknown;
+  pai2_empreinteCarbone: unknown;
+  pai3_intensiteGes: unknown;
+  pai4_combustiblesFossilesPct: unknown;
+  pai5_partEnrNonRenouvelablePct: unknown;
+  pai6_intensiteEnergie: unknown;
+  pai7_biodiversite: unknown;
+  pai8_rejetsEau: unknown;
+  pai9_dechetsDangPct: unknown;
+  pai10_violationsUngc: unknown;
+  pai11_absenceConformiteUngc: unknown;
+  pai12_ecartSalaireHf: unknown;
+  pai13_diversiteGenreGouv: unknown;
+  pai14_armesControversees: unknown;
+  scoreEsgInvestisseur: unknown;
+}
+
+export interface BenchmarkIndicateur {
+  label: string;
+  valeurClient: unknown;
+  medianneSecteur: unknown;
+  top25Pct: unknown;
+  ecartPct: unknown;
+  position: "Leader" | "Bon" | "Moyen" | "À améliorer" | "N/A" | string | null;
+}
+
+export interface BenchmarkSnapshot {
+  secteurNaf: unknown;
+  indicateurs: BenchmarkIndicateur[];
+  nbLeader: number;
+  nbAAmeliorer: number;
+}
+
+export interface FinanceQcControl {
+  id: string;
+  label: string;
+  statut: "OK" | "WARNING" | "ERROR" | "INFO" | "UNKNOWN" | string | null;
+  criticite: "Bloquant" | "Avert." | "Info" | string | null;
+  action: string | null;
+}
+
+export interface FinanceSnapshot {
+  snapshotVersion: string;
+  generatedAt: string;
+  financeClimat: FinanceClimatSnapshot;
+  sfdrPai: SfdrPaiSnapshot;
+  benchmark: BenchmarkSnapshot;
+  qcControls: FinanceQcControl[];
+  warnings: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Ingest / cache status
+// ---------------------------------------------------------------------------
+
+export interface IngestDomainResult {
+  domain: "carbon" | "vsme" | "esg" | "finance" | string;
+  status: "ok" | "error" | string;
+  detail?: string | null;
+  cachedAt?: string | null;
+}
+
+export interface IngestResponse {
+  status: "ok" | "partial" | string;
+  domains: IngestDomainResult[];
+}
+
+export interface CacheDomainStatus {
+  exists: boolean;
+  cachedAt?: string;
+  ageSeconds?: number;
+  stale?: boolean;
+  error?: string;
+}
+
+export interface CacheStatusResponse {
+  domains: Record<string, CacheDomainStatus>;
+}
+
+// ---------------------------------------------------------------------------
 // Fetchers
 // ---------------------------------------------------------------------------
 
@@ -118,10 +331,60 @@ async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
   return (await res.json()) as T;
 }
 
+async function apiSend<T>(
+  method: "POST" | "DELETE",
+  path: string,
+  signal?: AbortSignal
+): Promise<T | null> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers: { Accept: "application/json" },
+    signal,
+  });
+  if (!res.ok) {
+    throw new Error(`API ${res.status} on ${path}`);
+  }
+  if (res.status === 204) return null;
+  return (await res.json()) as T;
+}
+
+// --- Carbon ---
 export function fetchCarbonSnapshot(signal?: AbortSignal): Promise<CarbonSnapshot> {
   return apiGet<CarbonSnapshot>("/carbon/snapshot", signal);
 }
 
 export function fetchCarbonValidation(signal?: AbortSignal): Promise<CarbonValidation> {
   return apiGet<CarbonValidation>("/carbon/validate", signal);
+}
+
+// --- VSME ---
+export function fetchVsmeSnapshot(signal?: AbortSignal): Promise<VsmeSnapshot> {
+  return apiGet<VsmeSnapshot>("/vsme/snapshot", signal);
+}
+
+// --- ESG ---
+export function fetchEsgSnapshot(signal?: AbortSignal): Promise<EsgSnapshot> {
+  return apiGet<EsgSnapshot>("/esg/snapshot", signal);
+}
+
+// --- Finance ---
+export function fetchFinanceSnapshot(signal?: AbortSignal): Promise<FinanceSnapshot> {
+  return apiGet<FinanceSnapshot>("/finance/snapshot", signal);
+}
+
+// --- Ingest / cache ---
+export function fetchCacheStatus(signal?: AbortSignal): Promise<CacheStatusResponse> {
+  return apiGet<CacheStatusResponse>("/ingest/status", signal);
+}
+
+export function triggerIngest(signal?: AbortSignal): Promise<IngestResponse> {
+  return apiSend<IngestResponse>("POST", "/ingest", signal) as Promise<IngestResponse>;
+}
+
+export function invalidateCache(
+  domain?: "carbon" | "vsme" | "esg" | "finance",
+  signal?: AbortSignal
+): Promise<null> {
+  const qs = domain ? `?domain=${domain}` : "";
+  return apiSend<null>("DELETE", `/ingest/cache${qs}`, signal) as Promise<null>;
 }

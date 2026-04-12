@@ -10,6 +10,7 @@ export type Page =
   | "finance"
   | "copilot"
   | "reports"
+  | "ingest"
   | "pricing";
 
 export interface ChatMessage {

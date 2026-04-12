@@ -6,7 +6,13 @@ import io
 import re
 from typing import Any
 
-import pandas as pd
+try:
+    import pandas as pd
+    _PANDAS_AVAILABLE = True
+except ImportError:
+    pd = None  # type: ignore[assignment]
+    _PANDAS_AVAILABLE = False
+
 from fastapi import UploadFile
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string, get_column_letter
@@ -164,12 +170,16 @@ class ExcelReader:
         ]
         return [dict(zip(headers, row)) for row in rows[1:]]
 
-    def get_range_as_dataframe(
-        self,
-        sheet_name: str,
-        range_str: str,
-    ) -> pd.DataFrame:
-        """Same as :meth:`get_range_as_dicts` but returns a ``DataFrame``."""
+    def get_range_as_dataframe(self, sheet_name: str, range_str: str):  # type: ignore[return]
+        """Same as :meth:`get_range_as_dicts` but returns a ``DataFrame``.
+
+        Raises:
+            ImportError: If pandas is not installed in the current environment.
+        """
+        if not _PANDAS_AVAILABLE:
+            raise ImportError(
+                "pandas is required for get_range_as_dataframe() but is not installed."
+            )
         return pd.DataFrame(self.get_range_as_dicts(sheet_name, range_str))
 
     # ------------------------------------------------------------------

@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { InteractiveDashboardMockup } from "../landing/mockup/interactive-dashboard-mockup";
+import { HOTSPOT_TO_SCREEN } from "../landing/mockup/mockup-data";
+import type { ScreenId } from "../landing/mockup/mockup-data";
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -86,7 +89,7 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
     id: "scopes",
     label: "Scopes 1, 2, 3",
     description: "Visualisation en temps reel de vos emissions par scope selon le GHG Protocol. Ventilation automatique par poste et site.",
-    hotspotPosition: { x: 30, y: 38 },
+    hotspotPosition: { x: 33, y: 40 },
     labelPosition: { x: 7, y: 28 },
     side: "left",
     color: "#16a34a",
@@ -95,7 +98,7 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
     id: "kpis",
     label: "KPIs Carbone",
     description: "Indicateurs cles : total tCO2e, evolution Year-over-Year, trajectoire SBTi, benchmark sectoriel.",
-    hotspotPosition: { x: 50, y: 20 },
+    hotspotPosition: { x: 53, y: 22 },
     labelPosition: { x: 50, y: 6 },
     side: "right",
     color: "#0891b2",
@@ -104,7 +107,7 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
     id: "postes",
     label: "Postes d'emission",
     description: "Detail par poste (energie, transport, achats, numerique...) avec ventilation automatique et facteurs ADEME/IEA.",
-    hotspotPosition: { x: 68, y: 42 },
+    hotspotPosition: { x: 71, y: 44 },
     labelPosition: { x: 93, y: 30 },
     side: "right",
     color: "#7c3aed",
@@ -113,7 +116,7 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
     id: "actions",
     label: "Plan d'action IA",
     description: "Recommandations generees par le copilote NEURAL pour reduire vos emissions prioritaires, chiffrees et priorisees.",
-    hotspotPosition: { x: 68, y: 65 },
+    hotspotPosition: { x: 71, y: 67 },
     labelPosition: { x: 93, y: 68 },
     side: "right",
     color: "#ea580c",
@@ -122,7 +125,7 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
     id: "rapports",
     label: "Rapports CSRD",
     description: "Generation automatique de rapports conformes CSRD, CDP, Bilan Carbone. Format auditeur pret pour signature.",
-    hotspotPosition: { x: 30, y: 72 },
+    hotspotPosition: { x: 33, y: 80 },
     labelPosition: { x: 8, y: 78 },
     side: "left",
     color: "#16a34a",
@@ -130,7 +133,7 @@ const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
 ];
 
 /* ── Hotspot Label sub-component ── */
-function HotspotLabel({ hotspot, isActive, onHover, index }: { hotspot: DashboardHotspot; isActive: boolean; onHover: (id: string | null) => void; index: number }) {
+function HotspotLabel({ hotspot, isActive, onHover, onClick, index }: { hotspot: DashboardHotspot; isActive: boolean; onHover: (id: string | null) => void; onClick: (id: string) => void; index: number }) {
   return (
     <motion.div
       className="absolute z-20 hidden md:block"
@@ -149,6 +152,7 @@ function HotspotLabel({ hotspot, isActive, onHover, index }: { hotspot: Dashboar
         }
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
+        onClick={() => onClick(hotspot.id)}
       >
         <span className="relative flex h-2.5 w-2.5">
           <span
@@ -247,7 +251,13 @@ function ConnectionLineSVG({ hotspot, isActive, index, width, height }: { hotspo
 /* ── Dashboard Showcase (Interactive Hotspots) ── */
 function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
+  const [activeScreen, setActiveScreen] = useState<ScreenId>("overview");
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+
+  const handleHotspotClick = useCallback((hotspotId: string) => {
+    const screen = HOTSPOT_TO_SCREEN[hotspotId];
+    if (screen) setActiveScreen(screen);
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const updateSize = useCallback(() => {
@@ -288,128 +298,62 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         <Reveal delay={0.15} className="max-w-5xl mx-auto">
           {/* Outer wrapper: holds ref + hotspot overlays, NOT overflow-hidden */}
           <div ref={containerRef} className="relative px-16 md:px-24">
-            {/* Inner: the actual browser frame with overflow-hidden */}
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-neutral-200 bg-neutral-950">
-            {/* Browser chrome bar */}
-            <div className="absolute top-0 left-0 right-0 h-10 bg-neutral-900 flex items-center px-4 gap-2 z-30">
-              <span className="w-3 h-3 rounded-full bg-red-400/70" />
-              <span className="w-3 h-3 rounded-full bg-yellow-400/70" />
-              <span className="w-3 h-3 rounded-full bg-green-400/70" />
-              <span className="flex-1 mx-4 bg-neutral-800 rounded-md h-5 text-xs text-neutral-500 flex items-center px-3">app.carbonco.fr/dashboard</span>
+            {/* Inner: premium device frame with overflow-hidden */}
+            <div
+              className="relative rounded-[20px] overflow-hidden bg-neutral-950"
+              style={{
+                boxShadow: `
+                  0 0 0 1px rgba(255,255,255,0.06),
+                  0 2px 4px rgba(0,0,0,0.08),
+                  0 8px 20px rgba(0,0,0,0.12),
+                  0 20px 48px rgba(0,0,0,0.16),
+                  0 40px 80px rgba(0,0,0,0.12)
+                `,
+              }}
+            >
+            {/* Premium browser chrome */}
+            <div className="absolute top-0 left-0 right-0 h-10 md:h-11 bg-gradient-to-b from-[#1e293b] to-[#171f2e] flex items-center px-4 gap-2 z-30 border-b border-white/[0.06]">
+              <div className="flex gap-1.5">
+                <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#ff5f57]/80" />
+                <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#febc2e]/80" />
+                <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#28c840]/80" />
+              </div>
+              <div className="flex gap-0.5 ml-2">
+                <span className="w-5 h-5 rounded flex items-center justify-center text-white/20">
+                  <svg width="10" height="10" viewBox="0 0 10 10"><path d="M6 2L3 5l3 3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </span>
+                <span className="w-5 h-5 rounded flex items-center justify-center text-white/20">
+                  <svg width="10" height="10" viewBox="0 0 10 10"><path d="M4 2l3 3-3 3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </span>
+              </div>
+              <div className="flex-1 flex items-center justify-center">
+                <div className="flex items-center gap-1.5 bg-black/30 rounded-lg px-3 py-1 md:py-1.5 max-w-[280px] w-full border border-white/[0.04]">
+                  <svg className="w-2.5 h-2.5 md:w-3 md:h-3 text-green-400 flex-shrink-0" viewBox="0 0 16 16" fill="none">
+                    <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-[9px] md:text-[10px] text-white/50 truncate">app.carbonco.fr/dashboard</span>
+                </div>
+              </div>
+              <div className="flex gap-1">
+                <span className="w-5 h-5 rounded flex items-center justify-center text-white/15">
+                  <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/></svg>
+                </span>
+              </div>
             </div>
 
             {/* Dashboard content area */}
-            <div className="pt-10 bg-[#0F172A] min-h-[420px] md:min-h-[520px] relative">
-              {/* Simulated dashboard UI */}
-              <div className="absolute inset-0 pt-10 p-6 md:p-8">
-                {/* Top KPI row */}
-                <div className="grid grid-cols-4 gap-3 mb-5">
-                  {[
-                    { label: "Total tCO2e", value: "12 847", change: "-12%", color: "#16a34a" },
-                    { label: "Scope 1", value: "3 210", change: "-8%", color: "#0891b2" },
-                    { label: "Scope 2", value: "2 415", change: "-18%", color: "#7c3aed" },
-                    { label: "Scope 3", value: "7 222", change: "-9%", color: "#ea580c" },
-                  ].map((kpi) => (
-                    <div key={kpi.label} className="bg-white/5 border border-white/10 rounded-xl p-3 md:p-4">
-                      <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider mb-1">{kpi.label}</div>
-                      <div className="text-sm md:text-xl font-extrabold text-white">{kpi.value}</div>
-                      <div className="text-[10px] md:text-xs font-bold mt-0.5" style={{ color: kpi.color }}>{kpi.change} YoY</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Main content grid */}
-                <div className="grid grid-cols-3 gap-3 mb-5">
-                  {/* Left: Scope chart placeholder */}
-                  <div className="col-span-1 bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 min-h-[140px] md:min-h-[200px]">
-                    <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider mb-3">Repartition Scopes</div>
-                    <div className="flex items-end gap-2 h-[70px] md:h-[120px]">
-                      {[
-                        { h: "55%", color: "#0891b2" },
-                        { h: "40%", color: "#7c3aed" },
-                        { h: "80%", color: "#ea580c" },
-                      ].map((bar, i) => (
-                        <motion.div
-                          key={i}
-                          className="flex-1 rounded-t-md"
-                          style={{ background: bar.color, height: bar.h }}
-                          initial={{ height: 0 }}
-                          animate={{ height: bar.h }}
-                          transition={{ duration: 0.8, delay: 1 + i * 0.15 }}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      {["S1", "S2", "S3"].map((s) => (
-                        <span key={s} className="text-[9px] md:text-[10px] text-white/30 flex-1 text-center">{s}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Center: Postes table */}
-                  <div className="col-span-1 bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 min-h-[140px] md:min-h-[200px]">
-                    <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider mb-3">Postes d&apos;emission</div>
-                    <div className="space-y-2">
-                      {[
-                        { name: "Energie", pct: 28, color: "#16a34a" },
-                        { name: "Transport", pct: 34, color: "#0891b2" },
-                        { name: "Achats", pct: 22, color: "#7c3aed" },
-                        { name: "Numerique", pct: 16, color: "#ea580c" },
-                      ].map((p) => (
-                        <div key={p.name}>
-                          <div className="flex justify-between text-[9px] md:text-[10px] text-white/50 mb-1">
-                            <span>{p.name}</span>
-                            <span>{p.pct}%</span>
-                          </div>
-                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                            <motion.div
-                              className="h-full rounded-full"
-                              style={{ background: p.color }}
-                              initial={{ width: 0 }}
-                              animate={{ width: `${p.pct}%` }}
-                              transition={{ duration: 0.8, delay: 1.2 }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Right: AI suggestions */}
-                  <div className="col-span-1 bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 min-h-[140px] md:min-h-[200px]">
-                    <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider mb-3">Actions IA</div>
-                    <div className="space-y-2">
-                      {[
-                        { text: "Migrer vers electricite verte", impact: "-840 tCO2e", priority: "Haute" },
-                        { text: "Optimiser flotte vehicules", impact: "-520 tCO2e", priority: "Moyenne" },
-                        { text: "Reduire deplacements pro", impact: "-310 tCO2e", priority: "Haute" },
-                      ].map((a) => (
-                        <div key={a.text} className="bg-white/5 rounded-lg p-2">
-                          <div className="text-[9px] md:text-[10px] text-white/70 font-medium">{a.text}</div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[8px] md:text-[9px] font-bold text-green-400">{a.impact}</span>
-                            <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/40">{a.priority}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom: rapport bar */}
-                <div className="bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-wider">Rapports CSRD</div>
-                    <div className="text-xs md:text-sm text-white/70 mt-0.5">3 rapports prets · E1, S1, G1</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] md:text-[10px] px-3 py-1.5 rounded-full bg-green-600/20 text-green-400 font-bold border border-green-500/30">Telecharger PDF</span>
-                    <span className="text-[9px] md:text-[10px] px-3 py-1.5 rounded-full bg-white/5 text-white/40 border border-white/10">Excel</span>
-                  </div>
-                </div>
+            <div className="pt-10 md:pt-11 bg-[#0F172A] min-h-[420px] md:min-h-[520px] relative">
+              <div className="absolute inset-0 pt-10 md:pt-11">
+                <InteractiveDashboardMockup
+                  activeScreen={activeScreen}
+                  onNavigate={setActiveScreen}
+                />
               </div>
-
             </div>
+
+            {/* Subtle screen reflection */}
+            <div className="absolute inset-0 pointer-events-none rounded-[20px]" style={{ background: "linear-gradient(165deg, rgba(255,255,255,0.025) 0%, transparent 35%)" }} />
             </div>{/* end inner overflow-hidden frame */}
 
             {/* Connection lines SVG overlay — outside overflow-hidden */}
@@ -431,10 +375,17 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
                 hotspot={hotspot}
                 isActive={activeHotspot === hotspot.id}
                 onHover={setActiveHotspot}
+                onClick={handleHotspotClick}
                 index={index}
               />
             ))}
           </div>{/* end outer ref wrapper */}
+
+          {/* Decorative device stand */}
+          <div className="hidden md:flex flex-col items-center">
+            <div className="w-16 h-4 bg-gradient-to-b from-neutral-300 to-neutral-400 rounded-b-md" style={{ clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)" }} />
+            <div className="w-28 h-1.5 bg-gradient-to-b from-neutral-400 to-neutral-500 rounded-b-lg" />
+          </div>
         </Reveal>
 
         {/* Mobile: feature list (replaces hotspots) */}

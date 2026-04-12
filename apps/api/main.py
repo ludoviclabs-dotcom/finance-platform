@@ -4,7 +4,12 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routers import health, ma, excel, report, clients, entreprise, cyber, pilier2, creditrisk, carbon
+from routers import health, excel, report, clients, entreprise, cyber, pilier2, creditrisk, carbon
+
+try:
+    from routers import ma
+except ImportError:
+    ma = None
 
 # ---------------------------------------------------------------------------
 # Request body size limit (10 MB)
@@ -57,7 +62,8 @@ app.add_middleware(
 
 # Routers
 app.include_router(health.router)
-app.include_router(ma.router, prefix="/ma", tags=["ma"])
+if ma is not None:
+    app.include_router(ma.router, prefix="/ma", tags=["ma"])
 app.include_router(excel.router, prefix="/excel", tags=["excel"])
 app.include_router(report.router, prefix="/report", tags=["report"])
 app.include_router(clients.router, prefix="/clients", tags=["clients"])

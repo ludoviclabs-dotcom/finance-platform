@@ -27,6 +27,8 @@ test-*-parser.ts
 
 # Generated data files (keep templates, not outputs)
 *.xlsx
+# Exception: Carbon master workbooks shipped with the API
+!apps/api/data/*.xlsx
 
 # Screenshots / media not part of the app
 *.png

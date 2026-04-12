@@ -16,7 +16,9 @@ class CarbonServiceError(Exception):
     """Base exception for Carbon backend service failures."""
 
 
-DEFAULT_WORKBOOK_ROOT = Path(r"C:\Users\Ludo\Desktop\IA projet entreprises\Carbon and Co")
+# Default: data/ sibling to this file (used on Vercel and in CI).
+# Override with CARBONCO_WORKBOOK_ROOT env var for local dev pointing to Desktop.
+DEFAULT_WORKBOOK_ROOT = Path(__file__).parent.parent / "data"
 
 WORKBOOK_FILES = {
     "carbon": "CarbonCo_Calcul_Carbone_v2.xlsx",

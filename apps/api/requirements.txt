@@ -1,6 +1,7 @@
-fastapi
-uvicorn
-pydantic
-python-multipart
-openpyxl
-pandas
+fastapi==0.135.3
+uvicorn==0.44.0
+pydantic==2.12.5
+python-multipart==0.0.26
+openpyxl==3.1.5
+pandas==3.0.2
+httpx==0.28.1

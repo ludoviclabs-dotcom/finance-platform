@@ -19,8 +19,8 @@ export default function LoginPage() {
 
   return (
     <LoginScreen
-      onLogin={(email, password) => {
-        const result = login(email, password);
+      onLogin={async (email, password) => {
+        const result = await login(email, password);
         if (result.ok) router.replace("/dashboard");
         return result;
       }}

@@ -5,7 +5,10 @@ import { motion } from "framer-motion";
 import { Leaf, ArrowRight, Eye, EyeOff, Shield, Lock, CheckCircle, AlertCircle } from "lucide-react";
 
 interface LoginScreenProps {
-  onLogin: (email: string, password: string) => { ok: boolean; error?: string };
+  onLogin: (
+    email: string,
+    password: string
+  ) => Promise<{ ok: boolean; error?: string }>;
   onDemo: () => void;
 }
 
@@ -16,14 +19,17 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const result = onLogin(email, password);
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error ?? "Erreur de connexion.");
+    try {
+      const result = await onLogin(email, password);
+      if (!result.ok) {
+        setError(result.error ?? "Erreur de connexion.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 

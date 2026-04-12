@@ -40,7 +40,7 @@ jobs:
           routes = [r.path for r in app.routes]
           print(f'OK: app loaded with {len(routes)} routes')
           # Verify key route prefixes are registered
-          prefixes = {'/health', '/excel', '/report', '/clients',
+          prefixes = {'/health', '/auth', '/excel', '/report', '/clients',
                       '/entreprise', '/cyber', '/pilier2', '/creditrisk',
                       '/carbon', '/vsme', '/esg', '/finance', '/ingest'}
           for p in prefixes:

@@ -316,13 +316,49 @@ export interface CacheStatusResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Auth types
+// ---------------------------------------------------------------------------
+
+export interface AuthUser {
+  email: string;
+  role: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  tokenType: string;
+  expiresAt: string;
+  user: AuthUser;
+}
+
+export interface MeResponse {
+  user: AuthUser;
+}
+
+// ---------------------------------------------------------------------------
+// Token holder — set by use-auth on login/rehydrate, read by every request
+// so protected endpoints (VSME/ESG/Finance/Carbon...) carry the bearer token
+// without threading it through hooks.
+// ---------------------------------------------------------------------------
+
+let _authToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  _authToken = token;
+}
+
+function authHeaders(): Record<string, string> {
+  return _authToken ? { Authorization: `Bearer ${_authToken}` } : {};
+}
+
+// ---------------------------------------------------------------------------
 // Fetchers
 // ---------------------------------------------------------------------------
 
 async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "GET",
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", ...authHeaders() },
     signal,
   });
   if (!res.ok) {
@@ -334,11 +370,18 @@ async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
 async function apiSend<T>(
   method: "POST" | "DELETE",
   path: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  body?: unknown
 ): Promise<T | null> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...authHeaders(),
+  };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
-    headers: { Accept: "application/json" },
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
     signal,
   });
   if (!res.ok) {
@@ -346,6 +389,31 @@ async function apiSend<T>(
   }
   if (res.status === 204) return null;
   return (await res.json()) as T;
+}
+
+// --- Auth ---
+export async function loginRequest(
+  email: string,
+  password: string,
+  signal?: AbortSignal
+): Promise<LoginResponse> {
+  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ email, password }),
+    signal,
+  });
+  if (res.status === 401) {
+    throw new Error("Email ou mot de passe incorrect.");
+  }
+  if (!res.ok) {
+    throw new Error(`API ${res.status} on /auth/login`);
+  }
+  return (await res.json()) as LoginResponse;
+}
+
+export function fetchMe(signal?: AbortSignal): Promise<MeResponse> {
+  return apiGet<MeResponse>("/auth/me", signal);
 }
 
 // --- Carbon ---

@@ -2,63 +2,113 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-// ---------------------------------------------------------------------------
-// Demo credentials — Phase 0 only.
-// Replace with a real auth backend before going to production.
-// ---------------------------------------------------------------------------
-const DEMO_CREDENTIALS = [
-  { email: "demo@carbonco.fr", password: "CarbonCo2024!" },
-  { email: "admin@carbonco.fr", password: "Admin2024!" },
-];
+import { fetchMe, loginRequest, setAuthToken } from "@/lib/api";
 
-const SESSION_KEY = "carbonco_session";
+const SESSION_KEY = "carbonco_session_v2";
 
 export type AuthState =
   | { status: "unauthenticated" }
-  | { status: "authenticated"; email: string };
+  | { status: "authenticated"; email: string; role: string };
 
 export type LoginResult =
   | { ok: true }
   | { ok: false; error: string };
 
+interface StoredSession {
+  token: string;
+  email: string;
+  role: string;
+  expiresAt: number;
+}
+
+function loadSession(): StoredSession | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredSession;
+    if (!parsed.token || Date.now() >= parsed.expiresAt) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    localStorage.removeItem(SESSION_KEY);
+    return null;
+  }
+}
+
+function saveSession(session: StoredSession): void {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+function clearSession(): void {
+  localStorage.removeItem(SESSION_KEY);
+}
+
 export function useAuth() {
   const [auth, setAuth] = useState<AuthState>({ status: "unauthenticated" });
   const [ready, setReady] = useState(false);
 
-  // Rehydrate from localStorage on mount (client-only)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(SESSION_KEY);
-      if (stored) {
-        const { email, expiresAt } = JSON.parse(stored) as { email: string; expiresAt: number };
-        if (Date.now() < expiresAt) {
-          setAuth({ status: "authenticated", email });
-        } else {
-          localStorage.removeItem(SESSION_KEY);
-        }
-      }
-    } catch {
-      localStorage.removeItem(SESSION_KEY);
+    const session = loadSession();
+    if (!session) {
+      setReady(true);
+      return;
     }
-    setReady(true);
+    setAuthToken(session.token);
+    setAuth({ status: "authenticated", email: session.email, role: session.role });
+
+    // Best-effort revalidation against /auth/me — if the token was revoked or
+    // the secret rotated, fall back to unauthenticated.
+    fetchMe()
+      .then((res) => {
+        setAuth({
+          status: "authenticated",
+          email: res.user.email,
+          role: res.user.role,
+        });
+      })
+      .catch(() => {
+        clearSession();
+        setAuthToken(null);
+        setAuth({ status: "unauthenticated" });
+      })
+      .finally(() => setReady(true));
   }, []);
 
-  const login = useCallback((email: string, password: string): LoginResult => {
-    const match = DEMO_CREDENTIALS.find(
-      (c) => c.email.toLowerCase() === email.trim().toLowerCase() && c.password === password
-    );
-    if (!match) {
-      return { ok: false, error: "Email ou mot de passe incorrect." };
-    }
-    // Session valid 8 hours
-    const session = { email: match.email, expiresAt: Date.now() + 8 * 60 * 60 * 1000 };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    setAuth({ status: "authenticated", email: match.email });
-    return { ok: true };
-  }, []);
+  const login = useCallback(
+    async (email: string, password: string): Promise<LoginResult> => {
+      try {
+        const res = await loginRequest(email, password);
+        const expiresAt = Date.parse(res.expiresAt);
+        const session: StoredSession = {
+          token: res.accessToken,
+          email: res.user.email,
+          role: res.user.role,
+          expiresAt: Number.isFinite(expiresAt)
+            ? expiresAt
+            : Date.now() + 8 * 60 * 60 * 1000,
+        };
+        saveSession(session);
+        setAuthToken(session.token);
+        setAuth({
+          status: "authenticated",
+          email: session.email,
+          role: session.role,
+        });
+        return { ok: true };
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Erreur de connexion.";
+        return { ok: false, error: message };
+      }
+    },
+    []
+  );
 
   const logout = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY);
+    clearSession();
+    setAuthToken(null);
     setAuth({ status: "unauthenticated" });
   }, []);
 

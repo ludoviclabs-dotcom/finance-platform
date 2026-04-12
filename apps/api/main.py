@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from routers import (
+    auth,
     carbon,
     clients,
     creditrisk,
@@ -76,6 +77,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(health.router)
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
 if ma is not None:
     app.include_router(ma.router, prefix="/ma", tags=["ma"])
 app.include_router(excel.router, prefix="/excel", tags=["excel"])

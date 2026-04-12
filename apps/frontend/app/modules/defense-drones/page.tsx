@@ -1,3 +1,10 @@
+// TODO(refactor): This file is ~1450 lines with 21 useState hooks.
+// Recommended decomposition:
+//   1. Extract simulation parameters into a useSimulationState hook
+//   2. Extract each scenario panel into its own component
+//   3. Extract chart sections into shared components
+//   4. Move drone/defense computation logic into a pure utility module
+
 'use client';
 
 import { useState, useMemo } from 'react';

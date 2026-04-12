@@ -1,3 +1,10 @@
+// TODO(refactor): This file is ~1500 lines with 15+ useState hooks.
+// Recommended decomposition:
+//   1. Extract upload/file-handling into a useFileUpload hook
+//   2. Extract each result section (bilan, SIG, ratios) into its own component
+//   3. Extract chart wrappers into shared components
+//   4. Move financial computation logic into a pure utility module
+
 'use client';
 
 import { useState, useMemo } from 'react';

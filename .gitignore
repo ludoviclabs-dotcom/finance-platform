@@ -13,3 +13,30 @@ yarn-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 .playwright-mcp/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Debug / temp scripts
+debug-*.ts
+test-debug*.ts
+test-*-parser.ts
+
+# Generated data files (keep templates, not outputs)
+*.xlsx
+
+# Screenshots / media not part of the app
+*.png
+!apps/*/public/**/*.png
+!apps/*/app/**/*.png
+*.mp4
+!apps/*/public/**/*.mp4
+
+# Claude Code worktrees
+.claude/worktrees/
+
+# Backup dirs
+*.bak/

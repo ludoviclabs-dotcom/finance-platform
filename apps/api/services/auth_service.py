@@ -31,10 +31,31 @@ from db.database import db_available, get_db
 
 logger = logging.getLogger(__name__)
 
-_JWT_SECRET = os.environ.get(
-    "AUTH_JWT_SECRET",
-    "dev-secret-change-me-in-production-0123456789abcdef",
-)
+_DEV_JWT_SECRET = "dev-secret-change-me-in-production-0123456789abcdef"
+_JWT_SECRET = os.environ.get("AUTH_JWT_SECRET", _DEV_JWT_SECRET)
+
+# Avertissement critique en production si le secret n'est pas défini.
+# VERCEL_ENV est défini automatiquement par Vercel ("production" / "preview" / "development").
+# On ne crash PAS le boot pour ne pas casser la prod, mais on logue très visiblement.
+if os.environ.get("VERCEL_ENV") == "production" and _JWT_SECRET == _DEV_JWT_SECRET:
+    logger.critical(
+        "═══════════════════════════════════════════════════════════════════════"
+    )
+    logger.critical(
+        "SECURITY WARNING : AUTH_JWT_SECRET non défini en production !"
+    )
+    logger.critical(
+        "Le secret de développement est utilisé — les tokens JWT sont triviaux à forger."
+    )
+    logger.critical(
+        "ACTION REQUISE : définir AUTH_JWT_SECRET dans les variables d'environnement Vercel."
+    )
+    logger.critical(
+        "Génération : openssl rand -hex 32"
+    )
+    logger.critical(
+        "═══════════════════════════════════════════════════════════════════════"
+    )
 _JWT_ALGORITHM = "HS256"
 _ACCESS_TTL_MINUTES = int(os.environ.get("AUTH_ACCESS_TTL_MINUTES", "15"))
 _REFRESH_TTL_DAYS = int(os.environ.get("AUTH_REFRESH_TTL_DAYS", "30"))

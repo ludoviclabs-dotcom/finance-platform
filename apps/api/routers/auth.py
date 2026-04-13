@@ -116,7 +116,16 @@ def require_admin(user: AuthUser = Depends(get_current_user)) -> AuthUser:
 # ---------------------------------------------------------------------------
 
 def _is_prod() -> bool:
+    """Detect production via Vercel's standard VERCEL_ENV variable.
+
+    Fail-secure : si VERCEL_ENV n'est pas "development", on considère prod
+    (preview deployments inclus) et on émet le cookie en Secure.
+    """
     import os
+    vercel_env = os.environ.get("VERCEL_ENV", "").lower()
+    if vercel_env:
+        return vercel_env != "development"
+    # Hors Vercel : retomber sur ENV pour le dev local
     return os.environ.get("ENV", "development").lower() in ("production", "prod")
 
 

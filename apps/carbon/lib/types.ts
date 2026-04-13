@@ -14,6 +14,7 @@ export type Page =
   | "upload"
   | "audit"
   | "history"
+  | "admin"
   | "pricing";
 
 export interface ChatMessage {

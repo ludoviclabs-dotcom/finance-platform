@@ -570,6 +570,70 @@ export function logAuditEvent(
 }
 
 // ---------------------------------------------------------------------------
+// Admin — companies & users (admin only)
+// ---------------------------------------------------------------------------
+
+export interface CompanyOut {
+  id: number;
+  name: string;
+  slug: string;
+  naf_code: string | null;
+  plan: string;
+  created_at: string;
+  user_count: number;
+}
+
+export interface UserOut {
+  id: number;
+  company_id: number;
+  company_name: string | null;
+  email: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+  last_login_at: string | null;
+}
+
+export interface CompanyCreate {
+  name: string;
+  slug: string;
+  naf_code?: string;
+  plan?: string;
+}
+
+export interface UserCreate {
+  company_id: number;
+  email: string;
+  password: string;
+  role?: string;
+}
+
+export function fetchCompanies(signal?: AbortSignal): Promise<CompanyOut[]> {
+  return apiGet<CompanyOut[]>("/admin/companies", signal);
+}
+
+export function createCompany(body: CompanyCreate, signal?: AbortSignal): Promise<CompanyOut> {
+  return apiSend<CompanyOut>("POST", "/admin/companies", signal, body) as Promise<CompanyOut>;
+}
+
+export function fetchUsers(companyId?: number, signal?: AbortSignal): Promise<UserOut[]> {
+  const qs = companyId ? `?company_id=${companyId}` : "";
+  return apiGet<UserOut[]>(`/admin/users${qs}`, signal);
+}
+
+export function createUser(body: UserCreate, signal?: AbortSignal): Promise<UserOut> {
+  return apiSend<UserOut>("POST", "/admin/users", signal, body) as Promise<UserOut>;
+}
+
+export function deleteUser(userId: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/admin/users/${userId}`, signal) as Promise<null>;
+}
+
+export function deleteCompany(companyId: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/admin/companies/${companyId}`, signal) as Promise<null>;
+}
+
+// ---------------------------------------------------------------------------
 // Snapshot history (PostgreSQL mode)
 // ---------------------------------------------------------------------------
 

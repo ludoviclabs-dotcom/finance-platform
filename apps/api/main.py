@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from db.migrations import run_migrations
 from routers import (
+    admin,
     audit,
     auth,
     carbon,
@@ -105,3 +106,4 @@ app.include_router(finance.router, prefix="/finance", tags=["finance"])
 app.include_router(ingest.router, tags=["ingest"])
 app.include_router(audit.router, prefix="/audit", tags=["audit"])
 app.include_router(history.router, prefix="/history", tags=["history"])
+app.include_router(admin.router, prefix="/admin", tags=["admin"])

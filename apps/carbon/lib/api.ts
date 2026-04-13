@@ -322,6 +322,7 @@ export interface CacheStatusResponse {
 export interface AuthUser {
   email: string;
   role: string;
+  company_id?: number;
 }
 
 export interface LoginResponse {
@@ -343,8 +344,16 @@ export interface MeResponse {
 
 let _authToken: string | null = null;
 
+// Callback appelé par l'intercepteur 401 pour déclencher la rotation du token
+// dans le hook use-auth sans créer de dépendance circulaire.
+let _onTokenExpired: (() => Promise<string | null>) | null = null;
+
 export function setAuthToken(token: string | null): void {
   _authToken = token;
+}
+
+export function setOnTokenExpired(cb: (() => Promise<string | null>) | null): void {
+  _onTokenExpired = cb;
 }
 
 function authHeaders(): Record<string, string> {
@@ -352,11 +361,31 @@ function authHeaders(): Record<string, string> {
 }
 
 // ---------------------------------------------------------------------------
-// Fetchers
+// Fetchers — avec retry automatique sur 401 (rotation silencieuse)
 // ---------------------------------------------------------------------------
 
+async function _fetchWithRetry(
+  input: RequestInfo,
+  init: RequestInit,
+): Promise<Response> {
+  let res = await fetch(input, { ...init, credentials: "include" });
+
+  // Si 401 et qu'un handler de rotation est enregistré, on tente une rotation
+  if (res.status === 401 && _onTokenExpired) {
+    const newToken = await _onTokenExpired();
+    if (newToken) {
+      const newHeaders = {
+        ...(init.headers as Record<string, string>),
+        Authorization: `Bearer ${newToken}`,
+      };
+      res = await fetch(input, { ...init, headers: newHeaders, credentials: "include" });
+    }
+  }
+  return res;
+}
+
 async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await _fetchWithRetry(`${API_BASE_URL}${path}`, {
     method: "GET",
     headers: { Accept: "application/json", ...authHeaders() },
     signal,
@@ -378,7 +407,7 @@ async function apiSend<T>(
     ...authHeaders(),
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await _fetchWithRetry(`${API_BASE_URL}${path}`, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -391,7 +420,10 @@ async function apiSend<T>(
   return (await res.json()) as T;
 }
 
-// --- Auth ---
+// ---------------------------------------------------------------------------
+// Auth endpoints
+// ---------------------------------------------------------------------------
+
 export async function loginRequest(
   email: string,
   password: string,
@@ -401,6 +433,7 @@ export async function loginRequest(
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ email, password }),
+    credentials: "include", // reçoit le cookie cc_refresh
     signal,
   });
   if (res.status === 401) {
@@ -410,6 +443,27 @@ export async function loginRequest(
     throw new Error(`API ${res.status} on /auth/login`);
   }
   return (await res.json()) as LoginResponse;
+}
+
+export async function refreshTokenRequest(signal?: AbortSignal): Promise<LoginResponse> {
+  const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+    credentials: "include", // envoie le cookie cc_refresh
+    signal,
+  });
+  if (!res.ok) {
+    throw new Error(`Refresh failed: ${res.status}`);
+  }
+  return (await res.json()) as LoginResponse;
+}
+
+export async function logoutRequest(signal?: AbortSignal): Promise<void> {
+  await fetch(`${API_BASE_URL}/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+    signal,
+  }).catch(() => {/* best-effort */});
 }
 
 export function fetchMe(signal?: AbortSignal): Promise<MeResponse> {

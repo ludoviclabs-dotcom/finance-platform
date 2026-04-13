@@ -1221,8 +1221,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             <div>
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Produit</h4>
               <ul className="space-y-3">
-                {["Dashboard ESG", "Copilote NEURAL", "Rapports automatisés", "ESRS Natif", "Connecteurs ERP", "Tarifs"].map((l) => (
-                  <li key={l}><a href="#" className="text-sm text-neutral-500 hover:text-black transition-colors">{l}</a></li>
+                {["Dashboard ESG", "Copilote IA", "Rapports automatisés", "ESRS Natif", "Connecteurs ERP", "Tarifs"].map((l) => (
+                  <li key={l} className="text-sm text-neutral-500">{l}</li>
                 ))}
               </ul>
             </div>
@@ -1230,16 +1230,19 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Ressources</h4>
               <ul className="space-y-3">
                 {["Guide ESRS 2025", "Blog RSE", "Webinaires", "Documentation API", "Cas clients", "Presse"].map((l) => (
-                  <li key={l}><a href="#" className="text-sm text-neutral-500 hover:text-black transition-colors">{l}</a></li>
+                  <li key={l} className="text-sm text-neutral-500">{l} <span className="text-xs text-neutral-400">· bientôt</span></li>
                 ))}
               </ul>
             </div>
             <div>
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Légal & Contact</h4>
               <ul className="space-y-3">
-                {["Mentions légales", "Politique de confidentialité", "CGU", "Cookies", "Contact commercial", "Support"].map((l) => (
-                  <li key={l}><a href="#" className="text-sm text-neutral-500 hover:text-black transition-colors">{l}</a></li>
-                ))}
+                <li><a href="/mentions-legales" className="text-sm text-neutral-500 hover:text-black transition-colors">Mentions légales</a></li>
+                <li><a href="/confidentialite" className="text-sm text-neutral-500 hover:text-black transition-colors">Politique de confidentialité</a></li>
+                <li><a href="/cgu" className="text-sm text-neutral-500 hover:text-black transition-colors">CGU</a></li>
+                <li><a href="/cookies" className="text-sm text-neutral-500 hover:text-black transition-colors">Cookies</a></li>
+                <li><a href="mailto:contact@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">Contact commercial</a></li>
+                <li><a href="mailto:support@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">Support</a></li>
               </ul>
             </div>
           </div>

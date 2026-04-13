@@ -677,6 +677,105 @@ export function fetchSnapshotVersion(
 }
 
 // ---------------------------------------------------------------------------
+// Alertes — règles de notification
+// ---------------------------------------------------------------------------
+
+export type AlertOperator = "gt" | "lt" | "gte" | "lte" | "eq";
+export type AlertChannel = "webhook" | "email";
+export type AlertDomain = "carbon" | "vsme" | "esg" | "finance";
+
+export interface AlertRuleOut {
+  id: number;
+  company_id: number;
+  name: string;
+  domain: AlertDomain;
+  field_path: string;
+  operator: AlertOperator;
+  threshold: number;
+  channel: AlertChannel;
+  destination: string;
+  is_active: boolean;
+  last_fired_at: string | null;
+  created_at: string;
+}
+
+export interface AlertRuleCreate {
+  name: string;
+  domain: AlertDomain;
+  field_path: string;
+  operator: AlertOperator;
+  threshold: number;
+  channel: AlertChannel;
+  destination: string;
+  is_active?: boolean;
+}
+
+export interface AlertRulePatch {
+  name?: string;
+  field_path?: string;
+  operator?: AlertOperator;
+  threshold?: number;
+  channel?: AlertChannel;
+  destination?: string;
+  is_active?: boolean;
+}
+
+export interface AlertFired {
+  rule_id: number;
+  rule_name: string;
+  domain: AlertDomain;
+  field_path: string;
+  current_value: number;
+  threshold: number;
+  operator: AlertOperator;
+  fired_at: string;
+}
+
+export interface AlertEvaluateResponse {
+  evaluated: number;
+  fired: number;
+  alerts: AlertFired[];
+}
+
+export interface AlertHistoryResponse {
+  total: number;
+  limit: number;
+  alerts: AlertFired[];
+}
+
+export function fetchAlertRules(signal?: AbortSignal): Promise<AlertRuleOut[]> {
+  return apiGet<AlertRuleOut[]>("/alerts/rules", signal);
+}
+
+export function createAlertRule(body: AlertRuleCreate, signal?: AbortSignal): Promise<AlertRuleOut> {
+  return apiSend<AlertRuleOut>("POST", "/alerts/rules", signal, body) as Promise<AlertRuleOut>;
+}
+
+export function patchAlertRule(id: number, body: AlertRulePatch, signal?: AbortSignal): Promise<AlertRuleOut> {
+  return _fetchWithRetry(`${API_BASE_URL}/alerts/rules/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+    signal,
+  }).then(async (res) => {
+    if (!res.ok) throw new Error(`API ${res.status} on PATCH /alerts/rules/${id}`);
+    return res.json() as Promise<AlertRuleOut>;
+  });
+}
+
+export function deleteAlertRule(id: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/alerts/rules/${id}`, signal) as Promise<null>;
+}
+
+export function evaluateAlerts(signal?: AbortSignal): Promise<AlertEvaluateResponse> {
+  return apiSend<AlertEvaluateResponse>("POST", "/alerts/evaluate", signal) as Promise<AlertEvaluateResponse>;
+}
+
+export function fetchAlertHistory(limit = 20, signal?: AbortSignal): Promise<AlertHistoryResponse> {
+  return apiGet<AlertHistoryResponse>(`/alerts/history?limit=${limit}`, signal);
+}
+
+// ---------------------------------------------------------------------------
 // DPP — Digital Product Passport
 // ---------------------------------------------------------------------------
 

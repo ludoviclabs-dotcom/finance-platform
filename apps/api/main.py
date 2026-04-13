@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from db.migrations import run_migrations
 from routers import (
     admin,
+    alerts,
     audit,
     auth,
     carbon,
@@ -109,3 +110,4 @@ app.include_router(audit.router, prefix="/audit", tags=["audit"])
 app.include_router(history.router, prefix="/history", tags=["history"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(dpp.router, prefix="/dpp", tags=["dpp"])
+app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])

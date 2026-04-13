@@ -1,5 +1,6 @@
 import { put } from "@vercel/blob";
 import { type NextRequest, NextResponse } from "next/server";
+import { requireRole, verifyBearerToken } from "@/lib/verify-jwt";
 
 // Domain → expected filename pattern
 const DOMAIN_FILENAMES: Record<string, string> = {
@@ -9,6 +10,11 @@ const DOMAIN_FILENAMES: Record<string, string> = {
 };
 
 const ALLOWED_EXTENSIONS = [".xlsx", ".xls"];
+const ALLOWED_MIMETYPES = [
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-excel",
+  "application/octet-stream",
+];
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 function ext(filename: string): string {
@@ -17,10 +23,13 @@ function ext(filename: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  // Auth check — read JWT from Authorization header
-  const auth = req.headers.get("authorization");
-  if (!auth?.startsWith("Bearer ")) {
+  // Auth check — verify JWT signature, not just header presence
+  const payload = await verifyBearerToken(req.headers.get("authorization"));
+  if (!payload) {
     return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+  }
+  if (!requireRole(payload, ["admin", "analyst"])) {
+    return NextResponse.json({ error: "Rôle insuffisant" }, { status: 403 });
   }
 
   let formData: FormData;
@@ -65,11 +74,25 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
+    // Validate MIME type
+    if (file.type && !ALLOWED_MIMETYPES.includes(file.type)) {
+      results.push({
+        domain,
+        status: "error",
+        detail: `Type MIME non autorisé : ${file.type}`,
+      });
+      continue;
+    }
+
     try {
-      const pathname = `workbooks/${domain}/${DOMAIN_FILENAMES[domain]}.xlsx`;
+      // Scoping multi-tenant : chaque company a son propre namespace
+      // Horodatage pour éviter les collisions et désactiver l'écrasement silencieux
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
+      const pathname = `workbooks/company-${payload.cid}/${domain}/${DOMAIN_FILENAMES[domain]}-${ts}.xlsx`;
       const blob = await put(pathname, file, {
         access: "public",
-        allowOverwrite: true,
+        allowOverwrite: false,
+        addRandomSuffix: true,
       });
       results.push({ domain, status: "ok", url: blob.url, filename: file.name });
     } catch (e) {

@@ -5,12 +5,9 @@ from fastapi.responses import Response
 
 from db.tenant import get_company_id
 from services.audit_service import log_event
-from services.pdf_service import TEMPLATE_GENERATORS, generate_pdf_by_template
 from services.snapshot_cache import read_snapshot
 
 router = APIRouter()
-
-_VALID_TEMPLATES = list(TEMPLATE_GENERATORS.keys())
 
 
 @router.post("/generate")
@@ -27,10 +24,14 @@ async def generate_report(
       - csrd                    : Rapport CSRD structuré par ESRS (E1, S1, G1)
       - vsme                    : Rapport VSME PME complet
     """
-    if domain not in _VALID_TEMPLATES:
+    # Lazy import pour éviter de charger matplotlib au bootstrap de l'API
+    from services.pdf_service import TEMPLATE_GENERATORS, generate_pdf_by_template
+
+    valid_templates = list(TEMPLATE_GENERATORS.keys())
+    if domain not in valid_templates:
         raise HTTPException(
             status_code=400,
-            detail=f"Template '{domain}' non supporté. Disponibles : {_VALID_TEMPLATES}",
+            detail=f"Template '{domain}' non supporté. Disponibles : {valid_templates}",
         )
 
     # Charger les snapshots depuis le cache

@@ -163,8 +163,7 @@ export function DashboardPage() {
   // --- Alerts ---
   const alertSummary = consolidated.status === "ready" ? consolidated.data.alerts : null;
 
-  // --- Benchmark sector (no longer from financeSnap — use static fallback) ---
-  const liveBenchmark = null;
+  // --- Benchmark sector: static fallback (live data not yet available) ---
 
   const filteredActivity = recentActivity.filter((a) => {
     if (activityFilter === "Tout") return true;
@@ -497,27 +496,11 @@ export function DashboardPage() {
             </ResponsiveContainer>
           </div>
           <div className="space-y-4">
-            {(liveBenchmark && liveBenchmark.length > 0
-              ? liveBenchmark.slice(0, 3).map((row) => {
-                  const vousNum = numOrNull(row.valeurClient);
-                  const secteurNum = numOrNull(row.medianneSecteur);
-                  const isTop = row.position === "Leader" || row.position === "Bon";
-                  return {
-                    label: row.label,
-                    vous: vousNum != null ? vousNum.toLocaleString("fr-FR") : "—",
-                    secteur:
-                      secteurNum != null ? secteurNum.toLocaleString("fr-FR") : "—",
-                    status: isTop ? "top" : "attention",
-                    color: isTop ? "text-[var(--color-success)]" : "text-orange-400",
-                    positionLabel: row.position ?? (isTop ? "Top 25%" : "À améliorer"),
-                  };
-                })
-              : [
-                  { label: "Intensité carbone", vous: "42 tCO₂e/M€", secteur: "58 tCO₂e/M€", status: "top", color: "text-[var(--color-success)]", positionLabel: "Top 25%" },
-                  { label: "Part Scope 3", vous: "62%", secteur: "45%", status: "attention", color: "text-orange-400", positionLabel: "À améliorer" },
-                  { label: "Conformité ESRS", vous: "62/100", secteur: "48/100", status: "top", color: "text-[var(--color-success)]", positionLabel: "Top 25%" },
-                ]
-            ).map((row) => (
+            {[
+              { label: "Intensité carbone", vous: "42 tCO₂e/M€", secteur: "58 tCO₂e/M€", status: "top", color: "text-[var(--color-success)]", positionLabel: "Top 25%" },
+              { label: "Part Scope 3", vous: "62%", secteur: "45%", status: "attention", color: "text-orange-400", positionLabel: "À améliorer" },
+              { label: "Conformité ESRS", vous: "62/100", secteur: "48/100", status: "top", color: "text-[var(--color-success)]", positionLabel: "Top 25%" },
+            ].map((row) => (
               <div key={row.label} className="flex items-center gap-4 p-3 rounded-xl bg-[var(--color-background)] border border-[var(--color-border)]">
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-[var(--color-foreground)]">{row.label}</p>

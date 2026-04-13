@@ -1057,6 +1057,160 @@ export function fetchDashboardHealth(signal?: AbortSignal): Promise<{ companyId:
  * Request server-side PDF generation from FastAPI.
  * Returns a Blob that can be downloaded via URL.createObjectURL.
  */
+// ---------------------------------------------------------------------------
+// Strategic Mapping — Value Mapping ESG
+// ---------------------------------------------------------------------------
+
+export type MappingSegment = "pme" | "eti" | "grand_groupe" | "generic";
+export type MappingPersona = "dg" | "daf" | "investisseur" | "donneur_ordre" | "generic";
+export type MappingHorizon = "court_terme" | "moyen_terme" | "long_terme" | "generic";
+
+export interface SourceRef {
+  title: string;
+  publisher: string;
+  year: number;
+  url: string | null;
+}
+
+export interface MappingMeta {
+  version: string;
+  lastReviewedAt: string;
+  nextReviewScheduled: string;
+  regulatoryBaseline: string[];
+  contentOwner: string;
+}
+
+export interface HeroContent {
+  title: string;
+  subtitle: string;
+  summary: string;
+}
+
+export interface ExecutiveMessage {
+  persona: MappingPersona;
+  personaLabel: string;
+  headline: string;
+  supporting: string[];
+}
+
+export interface BudgetRange {
+  segment: MappingSegment;
+  low: number;
+  high: number;
+  unit: string;
+  note: string | null;
+}
+
+export interface InvestmentPillar {
+  id: string;
+  label: string;
+  description: string;
+  implies: string[];
+  budgetRanges: BudgetRange[];
+  segments: MappingSegment[];
+  qualitative: boolean;
+  sources: SourceRef[];
+}
+
+export interface BeforeAfterItem {
+  category: string;
+  before: string;
+  after: string;
+  impactTag: string | null;
+}
+
+export interface ValueChainStep {
+  order: number;
+  label: string;
+  description: string;
+  precisionNote: string | null;
+}
+
+export interface FinancialGain {
+  id: string;
+  label: string;
+  description: string;
+  magnitude: string | null;
+  qualitative: boolean;
+  segments: MappingSegment[];
+  personas: MappingPersona[];
+  sources: SourceRef[];
+}
+
+export interface PositiveExternality {
+  id: string;
+  label: string;
+  category: string;
+  description: string;
+  qualitative: boolean;
+  segments: MappingSegment[];
+  sources: SourceRef[];
+}
+
+export interface CarbonCoLever {
+  id: string;
+  benefit: string;
+  capability: string;
+  moduleRef: string | null;
+}
+
+export interface MappingGroundedKpis {
+  companyName: string | null;
+  totalS123Tco2e: number | null;
+  esgScoreGlobal: number | null;
+  vsmeCompletion: number | null;
+  greenCapexPct: number | null;
+  reportingYear: number | null;
+  dataAvailable: boolean;
+  source: string;
+}
+
+export interface FiltersApplied {
+  segment: MappingSegment;
+  persona: MappingPersona;
+  horizon: MappingHorizon;
+}
+
+export interface StrategicMappingResponse {
+  meta: MappingMeta;
+  filters: FiltersApplied;
+  hero: HeroContent;
+  executiveMessages: ExecutiveMessage[];
+  investments: InvestmentPillar[];
+  beforeAfter: BeforeAfterItem[];
+  valueChain: ValueChainStep[];
+  financialGains: FinancialGain[];
+  externalities: PositiveExternality[];
+  carbonCoLevers: CarbonCoLever[];
+  groundedKpis: MappingGroundedKpis | null;
+}
+
+export interface StrategicMappingParams {
+  segment?: MappingSegment;
+  persona?: MappingPersona;
+  horizon?: MappingHorizon;
+}
+
+export function fetchStrategicMapping(
+  params: StrategicMappingParams = {},
+  signal?: AbortSignal
+): Promise<StrategicMappingResponse> {
+  const qs = new URLSearchParams();
+  if (params.segment) qs.set("segment", params.segment);
+  if (params.persona) qs.set("persona", params.persona);
+  if (params.horizon) qs.set("horizon", params.horizon);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return apiGet<StrategicMappingResponse>(`/strategic-mapping/adhesion-volontaire${query}`, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Report PDF — server-side generation
+// ---------------------------------------------------------------------------
+
+/**
+ * Request server-side PDF generation from FastAPI.
+ * Returns a Blob that can be downloaded via URL.createObjectURL.
+ */
 export async function generateReportPdf(
   domain: "esg-synthesis" | "csrd" | "vsme" = "esg-synthesis",
   signal?: AbortSignal

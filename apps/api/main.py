@@ -27,6 +27,7 @@ from routers import (
     ingest,
     pilier2,
     report,
+    strategic_mapping,
     vsme,
 )
 
@@ -115,3 +116,4 @@ app.include_router(dpp.router, prefix="/dpp", tags=["dpp"])
 app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(copilot.router, prefix="/copilot", tags=["copilot"])
+app.include_router(strategic_mapping.router, prefix="/strategic-mapping", tags=["strategic-mapping"])

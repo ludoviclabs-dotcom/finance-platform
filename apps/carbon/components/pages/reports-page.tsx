@@ -17,11 +17,9 @@ import {
 } from "lucide-react";
 import { SectionTitle } from "@/components/ui/section-title";
 import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
-import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
-import { useVsmeSnapshot } from "@/lib/hooks/use-vsme-snapshot";
-import { useEsgSnapshot } from "@/lib/hooks/use-esg-snapshot";
 import { exportEsgSynthesisPdf } from "@/lib/pdf-export";
 import { generateReportPdf } from "@/lib/api";
+import { useConsolidatedSnapshot } from "@/lib/hooks/use-consolidated-snapshot";
 
 const reports = [
   {
@@ -81,31 +79,46 @@ const statusConfig = {
   draft: { label: "Brouillon", color: "text-[var(--color-warning)]", bg: "bg-[var(--color-warning-bg)]", Icon: Clock },
 };
 
+type TemplateId = "esg-synthesis" | "csrd" | "vsme";
+
+const TEMPLATES: Array<{ id: TemplateId; label: string; description: string; color: string }> = [
+  {
+    id: "esg-synthesis",
+    label: "Synthèse ESG",
+    description: "Multi-domaine Carbon + VSME + ESG avec graphiques",
+    color: "bg-carbon-emerald",
+  },
+  {
+    id: "csrd",
+    label: "Rapport CSRD",
+    description: "Structuré ESRS : E1 Changement climatique, S1 Effectifs, G1 Éthique",
+    color: "bg-cyan-600",
+  },
+  {
+    id: "vsme",
+    label: "Rapport VSME",
+    description: "Standard Volontaire PME (EFRAG) — profil, environnement, social, gouvernance",
+    color: "bg-purple-600",
+  },
+];
+
 export function ReportsPage() {
-  const carbonSnap = useCarbonSnapshot();
-  const vsmeSnap = useVsmeSnapshot();
-  const esgSnap = useEsgSnapshot();
+  const consolidated = useConsolidatedSnapshot();
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [exportingServer, setExportingServer] = useState(false);
+  const [exportingTemplate, setExportingTemplate] = useState<TemplateId | null>(null);
 
-  const anyLoading =
-    carbonSnap.status === "loading" ||
-    vsmeSnap.status === "loading" ||
-    esgSnap.status === "loading";
-  const anyReady =
-    carbonSnap.status === "ready" ||
-    vsmeSnap.status === "ready" ||
-    esgSnap.status === "ready";
+  const isLoading = consolidated.status === "loading";
+  const isReady = consolidated.status === "ready";
 
   const handleExport = () => {
     setExportError(null);
     setExporting(true);
     try {
       exportEsgSynthesisPdf({
-        carbon: carbonSnap.status === "ready" ? carbonSnap.data : null,
-        vsme: vsmeSnap.status === "ready" ? vsmeSnap.data : null,
-        esg: esgSnap.status === "ready" ? esgSnap.data : null,
+        carbon: null,
+        vsme: null,
+        esg: null,
       });
     } catch (e) {
       setExportError(e instanceof Error ? e.message : "Erreur inattendue");
@@ -114,21 +127,21 @@ export function ReportsPage() {
     }
   };
 
-  const handleServerExport = async () => {
+  const handleServerExport = async (template: TemplateId) => {
     setExportError(null);
-    setExportingServer(true);
+    setExportingTemplate(template);
     try {
-      const blob = await generateReportPdf("esg-synthesis");
+      const blob = await generateReportPdf(template);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "carbonco-synthese-esg.pdf";
+      a.download = `carbonco-${template}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
       setExportError(e instanceof Error ? e.message : "Erreur serveur");
     } finally {
-      setExportingServer(false);
+      setExportingTemplate(null);
     }
   };
 
@@ -140,67 +153,80 @@ export function ReportsPage() {
       />
 
       {/* ── Hero export ── */}
-      <div className="rounded-2xl border border-carbon-emerald/30 bg-gradient-to-br from-carbon-emerald/10 to-cyan-500/5 p-6 flex items-start gap-4">
-        <div className="w-12 h-12 rounded-xl bg-carbon-emerald/20 flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-6 h-6 text-carbon-emerald" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h2 className="font-display text-lg font-bold text-[var(--color-foreground)] mb-1">
-            Export synthèse ESG — PDF
-          </h2>
-          <p className="text-sm text-[var(--color-foreground-muted)] mb-3">
-            Génère un rapport PDF multi-pages : indicateurs carbone, VSME, double matérialité
-            et avertissements, à partir des dernières données synchronisées.
-          </p>
-          {exportError && (
-            <div className="mb-3 flex items-center gap-2 p-2 rounded-lg bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span>{exportError}</span>
-            </div>
-          )}
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              type="button"
-              onClick={handleExport}
-              disabled={exporting || anyLoading || !anyReady}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {exporting || anyLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  {anyLoading ? "Chargement…" : "Génération…"}
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  PDF (navigateur)
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={handleServerExport}
-              disabled={exportingServer || anyLoading}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-carbon-emerald/50 text-carbon-emerald text-sm font-semibold hover:bg-carbon-emerald/10 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {exportingServer ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Génération serveur…
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  PDF (serveur)
-                </>
-              )}
-            </button>
+      <div className="rounded-2xl border border-carbon-emerald/30 bg-gradient-to-br from-carbon-emerald/10 to-cyan-500/5 p-6">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-carbon-emerald/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-6 h-6 text-carbon-emerald" />
           </div>
-          {!anyReady && !anyLoading && (
-            <p className="mt-2 text-xs text-[var(--color-foreground-muted)]">
-              Aucun snapshot disponible — vérifiez la connexion à l&apos;API.
+          <div>
+            <h2 className="font-display text-lg font-bold text-[var(--color-foreground)] mb-1">
+              Génération de rapports PDF
+            </h2>
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              3 templates disponibles — données en direct depuis les snapshots synchronisés.
+              {isReady && consolidated.data.company.name && (
+                <span className="ml-1 text-carbon-emerald font-medium">
+                  {consolidated.data.company.name}
+                  {consolidated.data.company.reportingYear ? ` · ${consolidated.data.company.reportingYear}` : ""}
+                </span>
+              )}
             </p>
-          )}
+          </div>
+        </div>
+
+        {exportError && (
+          <div className="mb-4 flex items-center gap-2 p-2 rounded-lg bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span>{exportError}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {TEMPLATES.map((tpl) => {
+            const isExporting = exportingTemplate === tpl.id;
+            return (
+              <button
+                key={tpl.id}
+                type="button"
+                onClick={() => handleServerExport(tpl.id)}
+                disabled={isLoading || exportingTemplate !== null}
+                className="flex items-start gap-3 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-carbon-emerald/40 hover:bg-carbon-emerald/5 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <div className={`w-8 h-8 rounded-lg ${tpl.color} bg-opacity-20 flex items-center justify-center flex-shrink-0`}>
+                  {isExporting ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  ) : (
+                    <Download className="w-4 h-4 text-white" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[var(--color-foreground)]">{tpl.label}</p>
+                  <p className="text-xs text-[var(--color-foreground-muted)] mt-0.5">{tpl.description}</p>
+                  {isExporting && (
+                    <p className="text-xs text-carbon-emerald mt-1 font-medium">Génération en cours…</p>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {!isReady && !isLoading && (
+          <p className="mt-3 text-xs text-[var(--color-foreground-muted)]">
+            Aucun snapshot disponible — vérifiez la connexion à l&apos;API ou déclenchez un ingest.
+          </p>
+        )}
+
+        <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting || isLoading}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-xs text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:border-[var(--color-border-strong)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {exporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+            Aperçu navigateur (jsPDF)
+          </button>
         </div>
       </div>
 

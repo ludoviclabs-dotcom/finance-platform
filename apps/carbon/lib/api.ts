@@ -923,6 +923,133 @@ export async function validateExcel(
 }
 
 // ---------------------------------------------------------------------------
+// Dashboard consolidé
+// ---------------------------------------------------------------------------
+
+export interface DomainHealth {
+  available: boolean;
+  stale: boolean;
+  cachedAt: string | null;
+  ageSeconds: number | null;
+}
+
+export interface CarbonKpis {
+  scope1Tco2e: number | null;
+  scope2LbTco2e: number | null;
+  scope3Tco2e: number | null;
+  totalS123Tco2e: number | null;
+  intensityRevenueTco2ePerMEur: number | null;
+  intensityFteTco2ePerFte: number | null;
+  turnoverAlignedPct: number | null;
+  capexAlignedPct: number | null;
+  renewableSharePct: number | null;
+  targetReductionS12Pct: number | null;
+  estimatedCbamCostEur: number | null;
+}
+
+export interface VsmeKpis {
+  scorePct: number | null;
+  indicateursCompletes: number | null;
+  totalIndicateurs: number | null;
+  statut: string | null;
+  effectifTotal: number | null;
+  ltir: number | null;
+  ecartSalaireHf: number | null;
+  pctFemmesMgmt: number | null;
+}
+
+export interface EsgKpis {
+  scoreGlobal: number | null;
+  scoreE: number | null;
+  scoreS: number | null;
+  scoreG: number | null;
+  enjeuxMateriels: number | null;
+  statut: string | null;
+}
+
+export interface FinanceKpis {
+  expositionTotaleEur: number | null;
+  greenCapexPct: number | null;
+  statutAlignementParis: string | null;
+  pai1_totalGes: number | null;
+}
+
+export interface DeltaKpis {
+  totalS123Tco2e: number | null;
+  totalS123Tco2ePct: number | null;
+  scoreGlobal: number | null;
+  scorePct: number | null;
+  greenCapexPct: number | null;
+}
+
+export interface AlertSummary {
+  totalActive: number;
+  firedSinceLastCheck: number;
+  domains: string[];
+}
+
+export interface ConsolidatedCompany {
+  name: string | null;
+  reportingYear: unknown;
+  sectorActivity: string | null;
+  fte: number | null;
+  revenueNetEur: number | null;
+}
+
+export interface ConsolidatedSnapshot {
+  generatedAt: string;
+  company: ConsolidatedCompany;
+  carbon: CarbonKpis;
+  vsme: VsmeKpis;
+  esg: EsgKpis;
+  finance: FinanceKpis;
+  deltas: DeltaKpis;
+  health: Record<string, DomainHealth>;
+  alerts: AlertSummary;
+  rawCarbon: Record<string, unknown> | null;
+  rawVsme: Record<string, unknown> | null;
+  rawEsg: Record<string, unknown> | null;
+  rawFinance: Record<string, unknown> | null;
+}
+
+export function fetchConsolidatedSnapshot(signal?: AbortSignal): Promise<ConsolidatedSnapshot> {
+  return apiGet<ConsolidatedSnapshot>("/dashboard/consolidated", signal);
+}
+
+// ---------------------------------------------------------------------------
+// Copilote — outils grounded
+// ---------------------------------------------------------------------------
+
+export interface CopilotToolSource {
+  domain: string;
+  cachedAt: string | null;
+  ageSeconds: number | null;
+  available: boolean;
+}
+
+export interface CopilotToolsBundle {
+  generatedAt: string;
+  carbon: { source: CopilotToolSource; totalS123Tco2e?: number | null; scope1Tco2e?: number | null; scope2LbTco2e?: number | null; scope3Tco2e?: number | null; company?: string | null; reportingYear?: unknown };
+  vsme: { source: CopilotToolSource; scorePct?: number | null; indicateursCompletes?: number | null; totalIndicateurs?: number | null; statut?: string | null; raisonSociale?: string | null };
+  esg: { source: CopilotToolSource; scoreGlobal?: number | null; scoreE?: number | null; scoreS?: number | null; scoreG?: number | null; enjeuxMateriels?: number; top5Issues?: unknown[] };
+  finance: { source: CopilotToolSource; expositionTotaleEur?: number | null; greenCapexPct?: number | null; statutAlignementParis?: string | null };
+  alertStatus: { totalActive: number; recentFired: unknown[]; domains: string[] };
+  dataHealth: { checkedAt: string; domains: Record<string, { available: boolean; stale: boolean; cachedAt: string | null; ageSeconds: number | null }>; allAvailable: boolean; anyStale: boolean };
+}
+
+export function fetchCopilotTools(signal?: AbortSignal): Promise<CopilotToolsBundle> {
+  return apiGet<CopilotToolsBundle>("/copilot/tools", signal);
+}
+
+export function fetchCompareSnapshot(signal?: AbortSignal): Promise<ConsolidatedSnapshot> {
+  return apiGet<ConsolidatedSnapshot>("/dashboard/compare", signal);
+}
+
+export function fetchDashboardHealth(signal?: AbortSignal): Promise<{ companyId: number; domains: Record<string, DomainHealth> }> {
+  return apiGet("/dashboard/health", signal);
+}
+
+// ---------------------------------------------------------------------------
 // Report PDF — server-side generation
 // ---------------------------------------------------------------------------
 
@@ -931,7 +1058,7 @@ export async function validateExcel(
  * Returns a Blob that can be downloaded via URL.createObjectURL.
  */
 export async function generateReportPdf(
-  domain: "esg-synthesis" = "esg-synthesis",
+  domain: "esg-synthesis" | "csrd" | "vsme" = "esg-synthesis",
   signal?: AbortSignal
 ): Promise<Blob> {
   const res = await fetch(`${API_BASE_URL}/report/generate?domain=${domain}`, {

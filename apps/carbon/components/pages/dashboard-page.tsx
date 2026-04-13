@@ -20,9 +20,7 @@ import { ChartCard } from "@/components/ui/chart-card";
 import { SectionTitle } from "@/components/ui/section-title";
 import { monthlyEmissions, scopeDetails, recentActivity, aiSuggestions } from "@/lib/data";
 import { staggerContainer, pageVariants } from "@/lib/animations";
-import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
-import { useEsgSnapshot } from "@/lib/hooks/use-esg-snapshot";
-import { useFinanceSnapshot } from "@/lib/hooks/use-finance-snapshot";
+import { useConsolidatedSnapshot } from "@/lib/hooks/use-consolidated-snapshot";
 import { DashboardContextBar } from "@/components/dashboard/dashboard-context-bar";
 import { ProactiveInsights } from "@/components/dashboard/proactive-insights";
 import { RegulatoryAlertBanner } from "@/components/dashboard/regulatory-alert-banner";
@@ -117,26 +115,27 @@ export function DashboardPage() {
   const [showOnboarding] = useState(false);
   const [period, setPeriod] = useState<"Ce mois" | "Ce trimestre" | "Cette année" | "2025" | "2024">("Cette année");
 
-  const carbonSnap = useCarbonSnapshot();
-  const esgSnap = useEsgSnapshot();
-  const financeSnap = useFinanceSnapshot();
+  const consolidated = useConsolidatedSnapshot();
 
-  // Loading: block render on Carbon (primary) only. ESG and Finance degrade
-  // gracefully to mocks when they fail, Carbon is the KPI backbone.
-  const loading = carbonSnap.status === "loading";
-  const carbonError = carbonSnap.status === "error" ? carbonSnap.error : null;
+  // Loading: block render until consolidated snapshot is ready.
+  const loading = consolidated.status === "loading";
+  const carbonError = consolidated.status === "error" ? consolidated.error : null;
 
-  // --- Carbon (scopes + intensity + company) ---
-  const liveCarbon = carbonSnap.status === "ready" ? carbonSnap.data.carbon : null;
-  const liveCompany = carbonSnap.status === "ready" ? carbonSnap.data.company : null;
-  const liveCompanyName =
-    liveCompany?.name && liveCompany.name !== "Entreprise non renseignee"
-      ? liveCompany.name
-      : null;
+  // Helpers
   const numOrNull = (v: unknown): number | null =>
     typeof v === "number" && Number.isFinite(v) ? v : null;
   const pick = (live: number | null | undefined, fallback: number) =>
     typeof live === "number" && live > 0 ? live : fallback;
+
+  // --- Carbon KPIs ---
+  const liveCarbon = consolidated.status === "ready" ? consolidated.data.carbon : null;
+  const liveCompanyName =
+    consolidated.status === "ready" &&
+    consolidated.data.company.name &&
+    consolidated.data.company.name !== "Entreprise non renseignee"
+      ? consolidated.data.company.name
+      : null;
+
   const scope1Value = pick(liveCarbon?.scope1Tco2e, scopeDetails[0].total);
   const scope2Value = pick(liveCarbon?.scope2LbTco2e, scopeDetails[1].total);
   const scope3Value = pick(liveCarbon?.scope3Tco2e, scopeDetails[2].total);
@@ -146,23 +145,26 @@ export function DashboardPage() {
   );
   const intensityRevenue = numOrNull(liveCarbon?.intensityRevenueTco2ePerMEur);
   const isLive =
-    carbonSnap.status === "ready" &&
+    consolidated.status === "ready" &&
     liveCarbon !== null &&
     (liveCarbon.totalS123Tco2e ?? 0) > 0;
 
   // --- ESG score ---
-  const esgScoreGlobal =
-    esgSnap.status === "ready" ? numOrNull(esgSnap.data.scores.scoreGlobal) : null;
-  const esgMaterielsCount =
-    esgSnap.status === "ready"
-      ? esgSnap.data.materialite.enjeuxMateriels
-      : null;
+  const liveEsg = consolidated.status === "ready" ? consolidated.data.esg : null;
+  const esgScoreGlobal = numOrNull(liveEsg?.scoreGlobal);
+  const esgMaterielsCount = liveEsg?.enjeuxMateriels ?? null;
   const esgScoreDisplay = esgScoreGlobal ?? 62;
   const esgScoreLive = esgScoreGlobal !== null;
 
-  // --- Benchmark sector ---
-  const liveBenchmark =
-    financeSnap.status === "ready" ? financeSnap.data.benchmark.indicateurs : null;
+  // --- Deltas T vs T-1 ---
+  const deltas = consolidated.status === "ready" ? consolidated.data.deltas : null;
+  const deltaTotalCo2 = deltas?.totalS123Tco2ePct ?? null;
+
+  // --- Alerts ---
+  const alertSummary = consolidated.status === "ready" ? consolidated.data.alerts : null;
+
+  // --- Benchmark sector (no longer from financeSnap — use static fallback) ---
+  const liveBenchmark = null;
 
   const filteredActivity = recentActivity.filter((a) => {
     if (activityFilter === "Tout") return true;
@@ -292,7 +294,7 @@ export function DashboardPage() {
       {/* ── Titre ── */}
       <SectionTitle
         title={`Tableau de bord ESG — ${liveCompanyName ?? "Acme Corp."}`}
-        subtitle={`Vue d'ensemble · ${period} · Données au ${new Date().toLocaleDateString("fr-FR")}${isLive ? " · Source : classeurs Excel" : ""}`}
+        subtitle={`Vue d'ensemble · ${period} · Données au ${new Date().toLocaleDateString("fr-FR")}${isLive ? " · Source : classeurs Excel" : ""}${alertSummary && alertSummary.totalActive > 0 ? ` · ${alertSummary.totalActive} règle${alertSummary.totalActive > 1 ? "s" : ""} d'alerte active${alertSummary.totalActive > 1 ? "s" : ""}` : ""}`}
       />
 
       {/* ── Bandeau erreur API Carbon ── */}
@@ -344,7 +346,8 @@ export function DashboardPage() {
         {/* Total — mis en avant */}
         <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface)] to-carbon-emerald/5 p-4 shadow-sm"
           style={{ borderLeft: "3px solid #059669" }}>
-          <KpiCard label="Émissions totales" value={totalValue} unit="tCO₂e" change={-5.8}
+          <KpiCard label="Émissions totales" value={totalValue} unit="tCO₂e"
+            change={deltaTotalCo2 ?? -5.8}
             icon={<Factory className="w-5 h-5" />} />
           <div className="mt-3">
             <div className="flex justify-between text-[10px] text-[var(--color-foreground-subtle)] mb-1">

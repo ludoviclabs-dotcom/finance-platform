@@ -13,8 +13,10 @@ from routers import (
     auth,
     carbon,
     clients,
+    copilot,
     creditrisk,
     cyber,
+    dashboard,
     dpp,
     entreprise,
     esg,
@@ -111,3 +113,5 @@ app.include_router(history.router, prefix="/history", tags=["history"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(dpp.router, prefix="/dpp", tags=["dpp"])
 app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
+app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(copilot.router, prefix="/copilot", tags=["copilot"])

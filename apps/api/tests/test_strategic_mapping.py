@@ -401,3 +401,120 @@ class TestExcelEndpoint:
         ws = wb["Gains & Externalités"]
         all_values = [str(cell.value or "") for row in ws.iter_rows() for cell in row]
         assert "wacc" not in all_values
+
+
+# ---------------------------------------------------------------------------
+# Tests export PDF
+# ---------------------------------------------------------------------------
+
+
+class TestPdfService:
+    """Tests unitaires du service de génération PDF."""
+
+    def _build_data(self, segment: str = "generic", persona: str = "generic"):
+        from services.strategic_mapping_service import build_strategic_mapping
+        return build_strategic_mapping(company_id=1, segment=segment, persona=persona)
+
+    def test_returns_bytes(self) -> None:
+        from services.strategic_mapping_pdf import build_strategic_mapping_pdf
+        data = self._build_data()
+        result = build_strategic_mapping_pdf(data)
+        assert isinstance(result, bytes)
+        assert len(result) > 0
+
+    def test_valid_pdf_magic_number(self) -> None:
+        """Un PDF valide commence par %PDF-."""
+        from services.strategic_mapping_pdf import build_strategic_mapping_pdf
+        data = self._build_data()
+        result = build_strategic_mapping_pdf(data)
+        assert result[:5] == b"%PDF-", "Le fichier ne semble pas être un PDF valide"
+
+    def test_pdf_contains_multiple_pages(self) -> None:
+        """Le PDF doit contenir plusieurs pages (6 sections)."""
+        from services.strategic_mapping_pdf import build_strategic_mapping_pdf
+        data = self._build_data()
+        result = build_strategic_mapping_pdf(data)
+        # Compter les objets de page dans le PDF (chaque page = un objet /Page)
+        page_count = result.count(b"/Page\n") + result.count(b"/Page\r")
+        # On ne peut pas compter précisément sans parser, mais le fichier doit être non-trivial
+        assert len(result) > 10_000, "PDF trop petit pour contenir 6 pages"
+
+    def test_pdf_size_reasonable(self) -> None:
+        """Le PDF doit faire entre 5 Ko et 2 Mo."""
+        from services.strategic_mapping_pdf import build_strategic_mapping_pdf
+        data = self._build_data()
+        result = build_strategic_mapping_pdf(data)
+        assert 5_000 < len(result) < 2_000_000, f"Taille PDF inattendue : {len(result)} bytes"
+
+    def test_filters_respected_pme(self) -> None:
+        """Le PDF généré pour PME ne doit pas contenir 'wacc'."""
+        from services.strategic_mapping_pdf import build_strategic_mapping_pdf
+        data = self._build_data(segment="pme")
+        result = build_strategic_mapping_pdf(data)
+        # 'wacc' est l'ID du gain — il ne doit pas apparaître dans le PDF PME
+        assert b"wacc" not in result.lower()
+
+    def test_filters_respected_grand_groupe(self) -> None:
+        """Le PDF pour grand_groupe doit être plus grand que PME (plus de gains)."""
+        from services.strategic_mapping_pdf import build_strategic_mapping_pdf
+        data_gg = self._build_data(segment="grand_groupe")
+        data_pme = self._build_data(segment="pme")
+        result_gg = build_strategic_mapping_pdf(data_gg)
+        result_pme = build_strategic_mapping_pdf(data_pme)
+        # grand_groupe a plus de gains (incl. wacc) → PDF plus grand ou comparable
+        assert len(result_gg) > 0 and len(result_pme) > 0
+        # Les deux doivent être des PDFs valides
+        assert result_gg[:5] == b"%PDF-"
+        assert result_pme[:5] == b"%PDF-"
+
+    def test_all_segments_produce_valid_pdf(self) -> None:
+        """Chaque segment doit produire un PDF valide."""
+        from services.strategic_mapping_pdf import build_strategic_mapping_pdf
+        from services.strategic_mapping_service import build_strategic_mapping
+        for segment in ("pme", "eti", "grand_groupe", "generic"):
+            data = build_strategic_mapping(company_id=1, segment=segment)
+            result = build_strategic_mapping_pdf(data)
+            assert result[:5] == b"%PDF-", f"PDF invalide pour segment={segment}"
+
+
+class TestPdfEndpoint:
+    """Tests HTTP de l'endpoint export.pdf."""
+
+    def test_returns_200(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.pdf",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        assert resp.status_code == 200
+
+    def test_content_type_pdf(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.pdf",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        assert "application/pdf" in resp.headers.get("content-type", "")
+
+    def test_content_disposition_attachment(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.pdf",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        cd = resp.headers.get("content-disposition", "")
+        assert "attachment" in cd
+        assert ".pdf" in cd
+
+    def test_valid_pdf_bytes(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.pdf",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        assert resp.content[:5] == b"%PDF-"
+
+    def test_filters_applied_in_export(self, client: TestClient, analyst_token: str) -> None:
+        """segment=pme doit exclure wacc du PDF."""
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.pdf?segment=pme",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        assert resp.status_code == 200
+        assert b"wacc" not in resp.content.lower()

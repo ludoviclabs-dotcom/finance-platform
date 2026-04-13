@@ -9,6 +9,9 @@ Endpoints :
 
   GET /strategic-mapping/adhesion-volontaire/export.xlsx
       Mêmes paramètres — retourne le classeur Excel en téléchargement.
+
+  GET /strategic-mapping/adhesion-volontaire/export.pdf
+      Mêmes paramètres — retourne le PDF board-ready en téléchargement.
 """
 
 from __future__ import annotations
@@ -26,6 +29,7 @@ from models.strategic_mapping import (
     StrategicMappingResponse,
 )
 from services.strategic_mapping_excel import build_strategic_mapping_xlsx
+from services.strategic_mapping_pdf import build_strategic_mapping_pdf
 from services.strategic_mapping_service import build_strategic_mapping
 
 logger = logging.getLogger(__name__)
@@ -79,5 +83,32 @@ def export_adhesion_volontaire_xlsx(
     return Response(
         content=xlsx_bytes,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/adhesion-volontaire/export.pdf")
+def export_adhesion_volontaire_pdf(
+    segment: Segment = Query(default="generic"),
+    persona: Persona = Query(default="generic"),
+    horizon: Horizon = Query(default="generic"),
+    company_id: int = Depends(get_company_id),
+) -> Response:
+    """
+    Retourne le PDF board-ready Value Mapping ESG en téléchargement.
+
+    Même contenu que l'endpoint JSON, filtré selon les mêmes paramètres.
+    """
+    data = build_strategic_mapping(
+        company_id=company_id,
+        segment=segment,
+        persona=persona,
+        horizon=horizon,
+    )
+    pdf_bytes = build_strategic_mapping_pdf(data)
+    filename = f"value-mapping-esg-{segment}-{persona}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

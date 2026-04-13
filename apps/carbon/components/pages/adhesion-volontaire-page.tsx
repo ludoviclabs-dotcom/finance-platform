@@ -135,7 +135,15 @@ export function AdhesionVolontairePage() {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors shrink-0"
               >
                 <Download className="w-3.5 h-3.5" />
-                Télécharger .xlsx
+                .xlsx
+              </a>
+              <a
+                href={`${API_BASE_URL}/strategic-mapping/adhesion-volontaire/export.pdf?segment=${segment}&persona=${persona}&horizon=${horizon}`}
+                download
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors shrink-0"
+              >
+                <Download className="w-3.5 h-3.5" />
+                .pdf
               </a>
             </div>
           </div>

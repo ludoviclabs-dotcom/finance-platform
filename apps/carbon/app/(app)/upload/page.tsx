@@ -13,8 +13,18 @@ import {
   Leaf,
   Scale,
   Banknote,
+  Eye,
+  ShieldCheck,
+  Info,
 } from "lucide-react";
-import { triggerIngest } from "@/lib/api";
+import {
+  triggerIngest,
+  previewExcel,
+  validateExcel,
+  type ExcelPreviewResponse,
+  type ExcelValidateResponse,
+  type ValidationIssue,
+} from "@/lib/api";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -27,6 +37,10 @@ interface DomainFile {
   status: "idle" | "ok" | "error";
   detail?: string;
   url?: string;
+  preview?: ExcelPreviewResponse;
+  validation?: ExcelValidateResponse;
+  previewing?: boolean;
+  validating?: boolean;
 }
 
 interface UploadResult {
@@ -39,6 +53,9 @@ interface UploadResult {
     detail?: string;
   }>;
 }
+
+// 5 steps: 0=Sélection 1=Prévisualisation 2=Validation 3=Upload 4=Résultat
+const STEPS = ["Sélection", "Aperçu", "Validation", "Envoi", "Résultat"] as const;
 
 // ---------------------------------------------------------------------------
 // Config
@@ -78,8 +95,6 @@ const DOMAINS: {
   },
 ];
 
-const STEPS = ["Sélection", "Vérification", "Résultat"] as const;
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -92,12 +107,40 @@ function formatSize(bytes: number): string {
 
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  // Try localStorage key used by use-auth hook
   return localStorage.getItem("cc_token") ?? sessionStorage.getItem("cc_token");
 }
 
 // ---------------------------------------------------------------------------
-// Drop zone for a single domain
+// Issue badge
+// ---------------------------------------------------------------------------
+
+function IssueBadge({ issue }: { issue: ValidationIssue }) {
+  const cfg =
+    issue.level === "error"
+      ? { bg: "bg-[var(--color-danger-bg)]", text: "text-[var(--color-danger)]", Icon: XCircle }
+      : issue.level === "warning"
+        ? { bg: "bg-amber-50 dark:bg-amber-900/20", text: "text-amber-600 dark:text-amber-400", Icon: AlertTriangle }
+        : { bg: "bg-[var(--color-surface-raised)]", text: "text-[var(--color-foreground-muted)]", Icon: Info };
+  const { bg, text, Icon } = cfg;
+  return (
+    <div className={`flex items-start gap-2 px-3 py-2 rounded-lg ${bg}`}>
+      <Icon className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${text}`} />
+      <div className="flex-1 min-w-0">
+        <p className={`text-xs font-medium ${text}`}>{issue.message}</p>
+        {(issue.sheet || issue.field) && (
+          <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-0.5">
+            {issue.sheet && <span>Feuille : <span className="font-mono">{issue.sheet}</span></span>}
+            {issue.sheet && issue.field && " · "}
+            {issue.field && <span>Champ : <span className="font-mono">{issue.field}</span></span>}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Drop zone
 // ---------------------------------------------------------------------------
 
 function DomainDropZone({
@@ -142,6 +185,8 @@ function DomainDropZone({
         type="file"
         accept=".xlsx,.xls"
         className="hidden"
+        aria-label={`Sélectionner ${domain.label}`}
+        title={`Sélectionner ${domain.label}`}
         onChange={(e) => onChange(e.target.files?.[0] ?? null)}
       />
       <div className="flex items-start gap-3">
@@ -173,11 +218,141 @@ function DomainDropZone({
 }
 
 // ---------------------------------------------------------------------------
+// Preview panel for one file
+// ---------------------------------------------------------------------------
+
+function PreviewPanel({ state, domain }: { state: DomainFile; domain: (typeof DOMAINS)[number] }) {
+  const pr = state.preview;
+  if (state.previewing) {
+    return (
+      <div className="flex items-center gap-2 p-4 text-xs text-[var(--color-foreground-muted)]">
+        <Loader2 className="w-4 h-4 animate-spin" /> Analyse en cours…
+      </div>
+    );
+  }
+  if (!pr) return null;
+
+  return (
+    <div className="space-y-2">
+      {/* Meta */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-[var(--color-foreground-muted)]">
+          <span className="font-semibold">{pr.sheet_count}</span> feuille{pr.sheet_count > 1 ? "s" : ""}
+        </span>
+        <span className="text-xs text-[var(--color-foreground-muted)]">
+          <span className="font-semibold">{pr.named_ranges.length}</span> plage{pr.named_ranges.length > 1 ? "s" : ""} nommée{pr.named_ranges.length > 1 ? "s" : ""}
+        </span>
+        {pr.detected_domain && (
+          <span className="text-xs px-2 py-0.5 rounded-full bg-carbon-emerald/15 text-carbon-emerald-light font-semibold">
+            Domaine détecté : {pr.detected_domain}
+          </span>
+        )}
+      </div>
+
+      {/* Sheet list */}
+      <div className="space-y-2">
+        {pr.sheets.map((sheet) => (
+          <div key={sheet.name} className="rounded-lg border border-[var(--color-border)] overflow-hidden">
+            <div className="px-3 py-2 bg-[var(--color-surface-raised)] flex items-center justify-between">
+              <span className="text-xs font-semibold text-[var(--color-foreground)]">{sheet.name}</span>
+              <span className="text-[10px] text-[var(--color-foreground-muted)]">
+                {sheet.row_count ?? "?"} lignes · {sheet.col_count ?? "?"} col.
+              </span>
+            </div>
+            {sheet.headers.length > 0 && (
+              <div className="p-2 overflow-x-auto">
+                <table className="text-[10px] text-[var(--color-foreground-muted)] w-full">
+                  <thead>
+                    <tr>
+                      {sheet.headers.slice(0, 6).map((h, i) => (
+                        <th key={i} className="text-left px-1.5 py-1 font-semibold truncate max-w-[100px]">
+                          {h || <span className="text-[var(--color-foreground-subtle)] italic">vide</span>}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sheet.sample_rows.slice(0, 3).map((row, ri) => (
+                      <tr key={ri} className={ri % 2 === 0 ? "bg-[var(--color-surface)]" : ""}>
+                        {(row as unknown[]).slice(0, 6).map((cell, ci) => (
+                          <td key={ci} className="px-1.5 py-1 truncate max-w-[100px]">
+                            {cell !== null && cell !== undefined ? String(cell) : ""}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Validation panel for one file
+// ---------------------------------------------------------------------------
+
+function ValidationPanel({ state }: { state: DomainFile }) {
+  const val = state.validation;
+  if (state.validating) {
+    return (
+      <div className="flex items-center gap-2 p-4 text-xs text-[var(--color-foreground-muted)]">
+        <Loader2 className="w-4 h-4 animate-spin" /> Validation en cours…
+      </div>
+    );
+  }
+  if (!val) return null;
+
+  const statusCfg = {
+    ok: { bg: "bg-[var(--color-success-bg)]", text: "text-[var(--color-success)]", label: "Valide" },
+    warning: { bg: "bg-amber-50 dark:bg-amber-900/20", text: "text-amber-600 dark:text-amber-400", label: "Avertissements" },
+    error: { bg: "bg-[var(--color-danger-bg)]", text: "text-[var(--color-danger)]", label: "Erreurs bloquantes" },
+  }[val.status];
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusCfg.bg} ${statusCfg.text}`}>
+          {statusCfg.label}
+        </span>
+        {val.sheets_found.length > 0 && (
+          <span className="text-[10px] text-[var(--color-foreground-muted)]">
+            {val.sheets_found.length} feuilles trouvées
+          </span>
+        )}
+        {val.named_ranges_found.length > 0 && (
+          <span className="text-[10px] text-[var(--color-foreground-muted)]">
+            {val.named_ranges_found.length} plages nommées
+          </span>
+        )}
+      </div>
+
+      {val.issues.length === 0 ? (
+        <div className="flex items-center gap-2 text-xs text-[var(--color-success)]">
+          <CheckCircle2 className="w-4 h-4" />
+          Aucun problème détecté
+        </div>
+      ) : (
+        <div className="space-y-1.5">
+          {val.issues.map((issue, i) => (
+            <IssueBadge key={i} issue={issue} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
 export default function UploadPage() {
-  const [step, setStep] = useState<0 | 1 | 2>(0);
+  const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [files, setFiles] = useState<Record<DomainKey, DomainFile>>({
     carbon: { file: null, status: "idle" },
     esg: { file: null, status: "idle" },
@@ -192,18 +367,70 @@ export default function UploadPage() {
   const [ingestDone, setIngestDone] = useState(false);
   const [ingestError, setIngestError] = useState<string | null>(null);
 
-  const selectedCount = Object.values(files).filter((f) => f.file !== null).length;
+  const selectedFiles = DOMAINS.filter((d) => files[d.key].file !== null);
+  const selectedCount = selectedFiles.length;
   const canProceed = selectedCount > 0;
+
+  // Has blocking errors in any validated file
+  const hasBlockingErrors = selectedFiles.some(
+    (d) => files[d.key].validation?.status === "error",
+  );
 
   const handleFileChange = (domain: DomainKey, file: File | null) => {
     setFiles((prev) => ({ ...prev, [domain]: { file, status: "idle" } }));
   };
 
-  // Step 0 → 1 : validation visuelle
-  const handleReview = () => setStep(1);
+  // Step 0 → 1 : launch preview for selected files
+  const handleGoPreview = async () => {
+    // Mark as previewing
+    setFiles((prev) => {
+      const next = { ...prev };
+      for (const d of DOMAINS) {
+        if (prev[d.key].file) next[d.key] = { ...prev[d.key], previewing: true };
+      }
+      return next;
+    });
+    setStep(1);
 
-  // Step 1 → upload
+    // Fetch previews in parallel
+    await Promise.all(
+      DOMAINS.filter((d) => files[d.key].file).map(async (d) => {
+        try {
+          const pr = await previewExcel(files[d.key].file!, d.key);
+          setFiles((prev) => ({ ...prev, [d.key]: { ...prev[d.key], previewing: false, preview: pr } }));
+        } catch {
+          setFiles((prev) => ({ ...prev, [d.key]: { ...prev[d.key], previewing: false } }));
+        }
+      }),
+    );
+  };
+
+  // Step 1 → 2 : launch validation for selected files
+  const handleGoValidate = async () => {
+    setFiles((prev) => {
+      const next = { ...prev };
+      for (const d of DOMAINS) {
+        if (prev[d.key].file) next[d.key] = { ...prev[d.key], validating: true };
+      }
+      return next;
+    });
+    setStep(2);
+
+    await Promise.all(
+      DOMAINS.filter((d) => files[d.key].file).map(async (d) => {
+        try {
+          const val = await validateExcel(files[d.key].file!, d.key);
+          setFiles((prev) => ({ ...prev, [d.key]: { ...prev[d.key], validating: false, validation: val } }));
+        } catch {
+          setFiles((prev) => ({ ...prev, [d.key]: { ...prev[d.key], validating: false } }));
+        }
+      }),
+    );
+  };
+
+  // Step 2 → 3 → 4 : upload
   const handleUpload = async () => {
+    setStep(3);
     setUploading(true);
     setUploadError(null);
 
@@ -222,7 +449,6 @@ export default function UploadPage() {
       const data: UploadResult = await res.json();
       setUploadResult(data);
 
-      // Update per-domain status
       setFiles((prev) => {
         const next = { ...prev };
         for (const r of data.files) {
@@ -234,7 +460,7 @@ export default function UploadPage() {
         return next;
       });
 
-      setStep(2);
+      setStep(4);
     } catch (e) {
       setUploadError(e instanceof Error ? e.message : "Erreur réseau");
     } finally {
@@ -242,7 +468,7 @@ export default function UploadPage() {
     }
   };
 
-  // Step 2 : trigger re-ingest
+  // Step 4 : trigger re-ingest
   const handleIngest = async () => {
     setIngesting(true);
     setIngestError(null);
@@ -274,12 +500,12 @@ export default function UploadPage() {
           Import des workbooks Excel
         </h1>
         <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
-          Uploadez vos 3 classeurs Excel maîtres pour mettre à jour tous les snapshots.
+          Uploadez vos classeurs Excel maîtres — l&apos;assistant vérifie la structure avant l&apos;envoi.
         </p>
       </div>
 
       {/* Stepper */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-wrap">
         {STEPS.map((label, i) => (
           <div key={label} className="flex items-center gap-1">
             <div
@@ -306,7 +532,7 @@ export default function UploadPage() {
         <div className="space-y-3">
           <p className="text-xs text-[var(--color-foreground-muted)]">
             Glissez-déposez ou cliquez pour sélectionner chaque workbook. Vous pouvez n&apos;en
-            uploader qu&apos;un seul si seul un domaine a changé.
+            importer qu&apos;un seul si seul un domaine a changé.
           </p>
           {DOMAINS.map((d) => (
             <DomainDropZone
@@ -322,61 +548,35 @@ export default function UploadPage() {
             </span>
             <button
               type="button"
-              onClick={handleReview}
+              onClick={handleGoPreview}
               disabled={!canProceed}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              Vérifier <ChevronRight className="w-4 h-4" />
+              Prévisualiser <Eye className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Step 1 : Vérification ── */}
+      {/* ── Step 1 : Prévisualisation ── */}
       {step === 1 && (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
-            <div className="px-5 py-3 border-b border-[var(--color-border)]">
-              <h3 className="text-sm font-semibold text-[var(--color-foreground)]">
-                Récapitulatif avant envoi
-              </h3>
-            </div>
-            <div className="divide-y divide-[var(--color-border)]">
-              {DOMAINS.map((d) => {
-                const f = files[d.key];
-                const Icon = d.Icon;
-                return (
-                  <div key={d.key} className="p-4 flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${d.color} flex-shrink-0`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[var(--color-foreground)]">{d.label}</p>
-                      {f.file ? (
-                        <p className="text-xs text-[var(--color-foreground-muted)]">
-                          {f.file.name} · {formatSize(f.file.size)}
-                        </p>
-                      ) : (
-                        <p className="text-xs text-[var(--color-foreground-subtle)] italic">
-                          Non sélectionné — domaine ignoré
-                        </p>
-                      )}
-                    </div>
-                    {f.file ? (
-                      <FileSpreadsheet className="w-4 h-4 text-[var(--color-success)] flex-shrink-0" />
-                    ) : (
-                      <span className="text-[10px] text-[var(--color-foreground-subtle)]">—</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {uploadError && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              {uploadError}
-            </div>
-          )}
+          {selectedFiles.map((d) => {
+            const state = files[d.key];
+            const Icon = d.Icon;
+            return (
+              <div key={d.key} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+                <div className="px-5 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
+                  <Icon className={`w-4 h-4 ${d.color}`} />
+                  <h3 className="text-sm font-semibold text-[var(--color-foreground)] flex-1">{d.label}</h3>
+                  <span className="text-xs text-[var(--color-foreground-muted)]">{state.file?.name}</span>
+                </div>
+                <div className="p-4">
+                  <PreviewPanel state={state} domain={d} />
+                </div>
+              </div>
+            );
+          })}
 
           <div className="flex items-center gap-3">
             <button
@@ -388,22 +588,100 @@ export default function UploadPage() {
             </button>
             <button
               type="button"
-              onClick={handleUpload}
-              disabled={uploading}
+              onClick={handleGoValidate}
+              disabled={selectedFiles.some((d) => files[d.key].previewing)}
               className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {uploading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Upload en cours…</>
-              ) : (
-                <><Upload className="w-4 h-4" /> Envoyer {selectedCount} fichier{selectedCount > 1 ? "s" : ""}</>
+              <ShieldCheck className="w-4 h-4" /> Valider la structure
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 2 : Validation ── */}
+      {step === 2 && (
+        <div className="space-y-4">
+          {selectedFiles.map((d) => {
+            const state = files[d.key];
+            const Icon = d.Icon;
+            return (
+              <div key={d.key} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+                <div className="px-5 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
+                  <Icon className={`w-4 h-4 ${d.color}`} />
+                  <h3 className="text-sm font-semibold text-[var(--color-foreground)] flex-1">{d.label}</h3>
+                  {state.validation && (
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                      state.validation.status === "ok"
+                        ? "bg-[var(--color-success-bg)] text-[var(--color-success)]"
+                        : state.validation.status === "warning"
+                          ? "bg-amber-50 text-amber-600"
+                          : "bg-[var(--color-danger-bg)] text-[var(--color-danger)]"
+                    }`}>
+                      {state.validation.status === "ok" ? "OK" : state.validation.status === "warning" ? "Warnings" : "Erreurs"}
+                    </span>
+                  )}
+                </div>
+                <div className="p-4">
+                  <ValidationPanel state={state} />
+                </div>
+              </div>
+            );
+          })}
+
+          {hasBlockingErrors && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs">
+              <XCircle className="w-4 h-4 flex-shrink-0" />
+              Des erreurs bloquantes ont été détectées. Corrigez les fichiers Excel avant de continuer.
+            </div>
+          )}
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="px-4 py-2.5 rounded-xl border border-[var(--color-border)] text-sm font-semibold text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer"
+            >
+              Retour
+            </button>
+            <button
+              type="button"
+              onClick={handleUpload}
+              disabled={hasBlockingErrors || selectedFiles.some((d) => files[d.key].validating)}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <Upload className="w-4 h-4" />
+              Envoyer {selectedCount} fichier{selectedCount > 1 ? "s" : ""}
+              {!hasBlockingErrors && selectedFiles.some((d) => files[d.key].validation?.status === "warning") && (
+                <span className="ml-1 text-xs opacity-75">(avec warnings)</span>
               )}
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Step 2 : Résultat ── */}
-      {step === 2 && uploadResult && (
+      {/* ── Step 3 : Upload en cours ── */}
+      {step === 3 && (
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-carbon-emerald/15 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-carbon-emerald animate-spin" />
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-semibold text-[var(--color-foreground)]">Upload en cours…</p>
+            <p className="text-xs text-[var(--color-foreground-muted)] mt-1">
+              Envoi de {selectedCount} fichier{selectedCount > 1 ? "s" : ""} vers Vercel Blob
+            </p>
+          </div>
+          {uploadError && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              {uploadError}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Step 4 : Résultat ── */}
+      {step === 4 && uploadResult && (
         <div className="space-y-4">
           {/* Upload results */}
           <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
@@ -463,8 +741,7 @@ export default function UploadPage() {
                   Recalculer les snapshots
                 </h3>
                 <p className="text-xs text-[var(--color-foreground-muted)] mb-3">
-                  Les fichiers ont été uploadés. Déclenchez maintenant le recalcul pour mettre à
-                  jour tous les indicateurs du tableau de bord.
+                  Les fichiers ont été uploadés. Déclenchez le recalcul pour mettre à jour tous les indicateurs.
                 </p>
                 {ingestError && (
                   <div className="mb-2 flex items-center gap-2 text-xs text-[var(--color-danger)]">

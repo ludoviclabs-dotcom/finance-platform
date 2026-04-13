@@ -14,6 +14,7 @@ from routers import (
     clients,
     creditrisk,
     cyber,
+    dpp,
     entreprise,
     esg,
     excel,
@@ -107,3 +108,4 @@ app.include_router(ingest.router, tags=["ingest"])
 app.include_router(audit.router, prefix="/audit", tags=["audit"])
 app.include_router(history.router, prefix="/history", tags=["history"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
+app.include_router(dpp.router, prefix="/dpp", tags=["dpp"])

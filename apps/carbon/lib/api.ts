@@ -677,6 +677,153 @@ export function fetchSnapshotVersion(
 }
 
 // ---------------------------------------------------------------------------
+// DPP — Digital Product Passport
+// ---------------------------------------------------------------------------
+
+export type EsprStatus = "pending" | "eligible" | "compliant" | "non_compliant";
+
+export interface ProductOut {
+  id: number;
+  company_id: number;
+  name: string;
+  sku: string | null;
+  sector: string | null;
+  pcf_kgco2e: number | null;
+  recyclability_pct: number | null;
+  lifespan_years: number | null;
+  supply_chain: Record<string, unknown> | null;
+  espr_status: EsprStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductCreate {
+  name: string;
+  sku?: string;
+  sector?: string;
+  pcf_kgco2e?: number;
+  recyclability_pct?: number;
+  lifespan_years?: number;
+  supply_chain?: Record<string, unknown>;
+  espr_status?: EsprStatus;
+}
+
+export interface ProductPatch {
+  name?: string;
+  sku?: string;
+  sector?: string;
+  pcf_kgco2e?: number;
+  recyclability_pct?: number;
+  lifespan_years?: number;
+  supply_chain?: Record<string, unknown>;
+  espr_status?: EsprStatus;
+}
+
+export function fetchProducts(signal?: AbortSignal): Promise<ProductOut[]> {
+  return apiGet<ProductOut[]>("/dpp/products", signal);
+}
+
+export function fetchProduct(id: number, signal?: AbortSignal): Promise<ProductOut> {
+  return apiGet<ProductOut>(`/dpp/products/${id}`, signal);
+}
+
+export function createProduct(body: ProductCreate, signal?: AbortSignal): Promise<ProductOut> {
+  return apiSend<ProductOut>("POST", "/dpp/products", signal, body) as Promise<ProductOut>;
+}
+
+export function patchProduct(id: number, body: ProductPatch, signal?: AbortSignal): Promise<ProductOut> {
+  // PATCH not in apiSend helper — use _fetchWithRetry directly
+  return _fetchWithRetry(`${API_BASE_URL}/dpp/products/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+    signal,
+  }).then(async (res) => {
+    if (!res.ok) throw new Error(`API ${res.status} on PATCH /dpp/products/${id}`);
+    return res.json() as Promise<ProductOut>;
+  });
+}
+
+export function deleteProduct(id: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/dpp/products/${id}`, signal) as Promise<null>;
+}
+
+// ---------------------------------------------------------------------------
+// Excel preview & validation
+// ---------------------------------------------------------------------------
+
+export interface SheetPreview {
+  name: string;
+  row_count: number | null;
+  col_count: number | null;
+  headers: string[];
+  sample_rows: unknown[][];
+}
+
+export interface ExcelPreviewResponse {
+  filename: string;
+  domain: string | null;
+  sheet_count: number;
+  sheets: SheetPreview[];
+  named_ranges: string[];
+  detected_domain: string | null;
+}
+
+export interface ValidationIssue {
+  level: "error" | "warning" | "info";
+  message: string;
+  sheet?: string | null;
+  field?: string | null;
+}
+
+export interface ExcelValidateResponse {
+  filename: string;
+  domain: string | null;
+  status: "ok" | "warning" | "error";
+  issues: ValidationIssue[];
+  named_ranges_found: string[];
+  named_ranges_missing: string[];
+  sheets_found: string[];
+  sheets_missing: string[];
+}
+
+export async function previewExcel(
+  file: File,
+  domain?: string,
+  signal?: AbortSignal,
+): Promise<ExcelPreviewResponse> {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (domain) fd.append("domain", domain);
+  const res = await _fetchWithRetry(`${API_BASE_URL}/excel/preview`, {
+    method: "POST",
+    headers: { Accept: "application/json", ...authHeaders() },
+    body: fd,
+    signal,
+  });
+  if (!res.ok) throw new Error(`Preview failed: ${res.status}`);
+  return (await res.json()) as ExcelPreviewResponse;
+}
+
+export async function validateExcel(
+  file: File,
+  domain?: string,
+  signal?: AbortSignal,
+): Promise<ExcelValidateResponse> {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (domain) fd.append("domain", domain);
+  const res = await _fetchWithRetry(`${API_BASE_URL}/excel/validate`, {
+    method: "POST",
+    headers: { Accept: "application/json", ...authHeaders() },
+    body: fd,
+    signal,
+  });
+  if (!res.ok) throw new Error(`Validation failed: ${res.status}`);
+  return (await res.json()) as ExcelValidateResponse;
+}
+
+// ---------------------------------------------------------------------------
 // Report PDF — server-side generation
 // ---------------------------------------------------------------------------
 

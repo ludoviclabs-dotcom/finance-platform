@@ -8,46 +8,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { staggerItem } from "@/lib/animations";
 import { fetchAiContext } from "@/lib/api";
 import type { AiContextResponse, MappingHorizon, MappingPersona, MappingSegment } from "@/lib/api";
+import { SafeMarkdown } from "@/components/ui/safe-markdown";
 
 interface AiVariantPanelProps {
   segment: MappingSegment;
   persona: MappingPersona;
   horizon: MappingHorizon;
-}
-
-function renderMarkdown(text: string) {
-  return text.split("\n").map((line, i) => {
-    const formatted = line.replace(
-      /\*\*(.*?)\*\*/g,
-      '<strong class="text-[var(--color-foreground)] font-semibold">$1</strong>',
-    );
-    if (line.startsWith("- ")) {
-      return (
-        <li
-          key={i}
-          className="ml-4 list-disc text-sm text-[var(--color-foreground-muted)]"
-          dangerouslySetInnerHTML={{ __html: formatted.slice(2) }}
-        />
-      );
-    }
-    if (line.startsWith("**") && line.endsWith("**") && line.length > 4) {
-      return (
-        <p
-          key={i}
-          className="font-semibold text-[var(--color-foreground)] leading-snug"
-          dangerouslySetInnerHTML={{ __html: formatted }}
-        />
-      );
-    }
-    if (line.trim() === "") return <div key={i} className="h-2" />;
-    return (
-      <p
-        key={i}
-        className="text-sm text-[var(--color-foreground-muted)]"
-        dangerouslySetInnerHTML={{ __html: formatted }}
-      />
-    );
-  });
 }
 
 export function AiVariantPanel({ segment, persona, horizon }: AiVariantPanelProps) {
@@ -219,7 +185,7 @@ export function AiVariantPanel({ segment, persona, horizon }: AiVariantPanelProp
 
                     {lastAssistantText && (
                       <div className="rounded-lg bg-[var(--color-background)] border border-[var(--color-border)] p-4 space-y-1">
-                        {renderMarkdown(lastAssistantText)}
+                        <SafeMarkdown>{lastAssistantText}</SafeMarkdown>
                       </div>
                     )}
 

@@ -9,6 +9,7 @@ import {
   ChevronRight, ChevronDown, Database, Activity, RefreshCw,
 } from "lucide-react";
 import { SectionTitle } from "@/components/ui/section-title";
+import { SafeMarkdown } from "@/components/ui/safe-markdown";
 import { pageVariants } from "@/lib/animations";
 import { fetchCopilotTools, type CopilotToolsBundle } from "@/lib/api";
 
@@ -201,34 +202,6 @@ export function CopilotPage() {
       ).length
     : 0;
 
-  const renderMarkdown = (text: string) => {
-    return text.split("\n").map((line, i) => {
-      const formatted = line.replace(
-        /\*\*(.*?)\*\*/g,
-        '<strong class="text-[var(--color-foreground)] font-semibold">$1</strong>',
-      );
-      if (line.startsWith("- ")) {
-        return (
-          <li key={i} className="ml-4 list-disc"
-            dangerouslySetInnerHTML={{ __html: formatted.slice(2) }} />
-        );
-      }
-      if (/^\d+\.\s/.test(line)) {
-        return (
-          <li key={i} className="ml-4 list-decimal"
-            dangerouslySetInnerHTML={{ __html: formatted.replace(/^\d+\.\s/, "") }} />
-        );
-      }
-      if (line.startsWith("## ")) {
-        return (
-          <h3 key={i} className="font-display font-bold text-[var(--color-foreground)] mt-2 mb-1"
-            dangerouslySetInnerHTML={{ __html: formatted.slice(3) }} />
-        );
-      }
-      if (!line.trim()) return <br key={i} />;
-      return <p key={i} dangerouslySetInnerHTML={{ __html: formatted }} />;
-    });
-  };
 
   return (
     <motion.div {...pageVariants} className="flex flex-col h-[calc(100vh-4rem)]">
@@ -301,7 +274,7 @@ export function CopilotPage() {
                 {msg.parts.map((part, i) =>
                   part.type === "text" ? (
                     msg.role === "assistant" ? (
-                      <div key={i}>{renderMarkdown(part.text)}</div>
+                      <SafeMarkdown key={i}>{part.text}</SafeMarkdown>
                     ) : (
                       <span key={i}>{part.text}</span>
                     )

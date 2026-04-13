@@ -352,6 +352,14 @@ export function setAuthToken(token: string | null): void {
   _authToken = token;
 }
 
+/**
+ * Retourne le token d'accès courant (en mémoire uniquement).
+ * Utilisé par les routes Next API qui doivent forwarder l'auth (ex: /api/upload).
+ */
+export function getAuthToken(): string | null {
+  return _authToken;
+}
+
 export function setOnTokenExpired(cb: (() => Promise<string | null>) | null): void {
   _onTokenExpired = cb;
 }

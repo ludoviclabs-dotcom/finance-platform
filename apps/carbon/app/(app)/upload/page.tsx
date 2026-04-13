@@ -18,6 +18,7 @@ import {
   Info,
 } from "lucide-react";
 import {
+  getAuthToken,
   triggerIngest,
   previewExcel,
   validateExcel,
@@ -105,10 +106,6 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} Mo`;
 }
 
-function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("cc_token") ?? sessionStorage.getItem("cc_token");
-}
 
 // ---------------------------------------------------------------------------
 // Issue badge

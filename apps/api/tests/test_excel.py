@@ -8,7 +8,6 @@ from __future__ import annotations
 import io
 
 import openpyxl
-import pytest
 from fastapi.testclient import TestClient
 
 

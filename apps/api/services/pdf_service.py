@@ -162,8 +162,8 @@ class _Builder:
 
         self._section("1. Indicateurs carbone")
         self._paragraph(
-            f"Bilan GES multi-scope. Données issues du workbook Carbone maître, "
-            f"validées selon le protocole GHG."
+            "Bilan GES multi-scope. Données issues du workbook Carbone maître, "
+            "validées selon le protocole GHG."
         )
         kpis = [
             ("Scope 1", _fmt(c.get("scope1Tco2e"), "tCO\u2082e", 0)),

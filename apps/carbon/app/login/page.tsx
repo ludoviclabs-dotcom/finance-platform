@@ -24,7 +24,10 @@ export default function LoginPage() {
         if (result.ok) router.replace("/dashboard");
         return result;
       }}
-      onDemo={() => router.replace("/dashboard")}
+      onDemo={async () => {
+          const result = await login("demo@carbonco.fr", "CarbonCo2024!");
+          if (result.ok) router.replace("/dashboard");
+        }}
     />
   );
 }

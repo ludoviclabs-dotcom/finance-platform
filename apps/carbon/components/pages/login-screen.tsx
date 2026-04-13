@@ -178,56 +178,69 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
 
           {/* Card formulaire */}
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               {/* Email */}
               <div>
-                <label className="block text-sm text-white/70 mb-1.5 font-medium">Email professionnel</label>
+                <label htmlFor="login-email" className="block text-sm text-white/80 mb-1.5 font-medium">
+                  Email professionnel
+                </label>
                 <input
+                  id="login-email"
+                  name="email"
                   type="email"
+                  required
+                  autoComplete="email"
+                  inputMode="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="vous@entreprise.fr"
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-colors"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? "login-error" : undefined}
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/40 transition-colors"
                 />
               </div>
 
               {/* Mot de passe */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm text-white/70 font-medium">Mot de passe</label>
-                  <button type="button" className="text-xs text-green-400 hover:text-green-300 cursor-pointer transition-colors">
-                    Mot de passe oublié ?
-                  </button>
-                </div>
+                <label htmlFor="login-password" className="block text-sm text-white/80 mb-1.5 font-medium">
+                  Mot de passe
+                </label>
                 <div className="relative">
                   <input
+                    id="login-password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
+                    required
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 pr-11 transition-colors"
+                    aria-invalid={error ? "true" : undefined}
+                    aria-describedby={error ? "login-error" : undefined}
+                    className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/40 pr-11 transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 cursor-pointer transition-colors"
+                    aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    aria-pressed={Boolean(showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              {/* Se souvenir */}
-              <label className="flex items-center gap-2 text-xs text-white/50 cursor-pointer">
-                <input type="checkbox" className="rounded border-white/20 accent-green-500" />
-                Se souvenir de moi sur cet appareil
-              </label>
-
               {/* Message d'erreur */}
               {error && (
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-                  <span className="text-xs text-red-400">{error}</span>
+                <div
+                  id="login-error"
+                  role="alert"
+                  aria-live="polite"
+                  className="flex items-center gap-2 p-3 rounded-xl bg-red-500/15 border border-red-500/30"
+                >
+                  <AlertCircle className="w-4 h-4 text-red-300 flex-shrink-0" />
+                  <span className="text-xs text-red-200">{error}</span>
                 </div>
               )}
 
@@ -235,18 +248,12 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-gradient-esg text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all hover:scale-[1.01] cursor-pointer shadow-lg shadow-green-900/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full py-3.5 rounded-xl bg-gradient-esg text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all hover:scale-[1.01] cursor-pointer shadow-lg shadow-green-900/30 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-transparent"
               >
                 {loading ? "Connexion…" : "Se connecter"}
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>
             </form>
-
-            {/* 2FA mention */}
-            <div className="mt-5 flex items-center gap-2 p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-              <Shield className="w-4 h-4 text-green-400 flex-shrink-0" />
-              <span className="text-xs text-white/40">Authentification à 2 facteurs disponible dans les paramètres de sécurité</span>
-            </div>
           </div>
 
           {/* CTA démo secondaire */}

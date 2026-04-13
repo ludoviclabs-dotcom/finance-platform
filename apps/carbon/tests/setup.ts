@@ -1,7 +1,7 @@
 /**
  * Vitest setup — mock fetch globalement pour éviter les vraies requêtes HTTP.
  */
-import { vi } from "vitest";
+import { beforeEach, vi } from "vitest";
 
 // Mock global fetch
 global.fetch = vi.fn();

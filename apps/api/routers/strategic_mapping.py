@@ -23,6 +23,7 @@ from fastapi.responses import Response
 
 from db.tenant import get_company_id
 from models.strategic_mapping import (
+    AiContextResponse,
     Horizon,
     Persona,
     Segment,
@@ -30,7 +31,7 @@ from models.strategic_mapping import (
 )
 from services.strategic_mapping_excel import build_strategic_mapping_xlsx
 from services.strategic_mapping_pdf import build_strategic_mapping_pdf
-from services.strategic_mapping_service import build_strategic_mapping
+from services.strategic_mapping_service import build_ai_context, build_strategic_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -112,3 +113,27 @@ def export_adhesion_volontaire_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/adhesion-volontaire/ai-context", response_model=AiContextResponse)
+def get_ai_context(
+    segment: Segment = Query(default="generic"),
+    persona: Persona = Query(default="generic"),
+    horizon: Horizon = Query(default="generic"),
+    company_id: int = Depends(get_company_id),
+) -> AiContextResponse:
+    """
+    Retourne le contexte compact destiné au LLM pour la génération de variantes.
+
+    - baseHeadline / baseSupporting : message exécutif du persona sélectionné
+      (fallback sur persona "dg" si "generic").
+    - allowedFacts : uniquement les gains financiers quantifiés (magnitude non-null)
+      filtrés par segment et persona — seules données que le LLM est autorisé à citer.
+    """
+    data = build_strategic_mapping(
+        company_id=company_id,
+        segment=segment,
+        persona=persona,
+        horizon=horizon,
+    )
+    return build_ai_context(data=data, persona=persona)

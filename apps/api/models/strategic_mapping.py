@@ -161,3 +161,19 @@ class StrategicMappingResponse(BaseModel):
     externalities: list[PositiveExternality] = Field(default_factory=list)
     carbonCoLevers: list[CarbonCoLever] = Field(default_factory=list)
     groundedKpis: GroundedKpis | None = None
+
+
+class AiContextFact(BaseModel):
+    """Un fait vérifiable que le LLM est autorisé à citer."""
+    id: str
+    label: str
+    magnitude: str  # toujours non-null ici — seuls les gains quantifiés passent
+
+
+class AiContextResponse(BaseModel):
+    """Contexte compact transmis au LLM pour la génération de variantes."""
+    persona: Persona
+    personaLabel: str
+    baseHeadline: str
+    baseSupporting: list[str] = Field(default_factory=list)
+    allowedFacts: list[AiContextFact] = Field(default_factory=list)

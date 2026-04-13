@@ -1203,6 +1203,32 @@ export function fetchStrategicMapping(
   return apiGet<StrategicMappingResponse>(`/strategic-mapping/adhesion-volontaire${query}`, signal);
 }
 
+export interface AiContextFact {
+  id: string;
+  label: string;
+  magnitude: string;
+}
+
+export interface AiContextResponse {
+  persona: MappingPersona;
+  personaLabel: string;
+  baseHeadline: string;
+  baseSupporting: string[];
+  allowedFacts: AiContextFact[];
+}
+
+export function fetchAiContext(
+  params: StrategicMappingParams = {},
+  signal?: AbortSignal
+): Promise<AiContextResponse> {
+  const qs = new URLSearchParams();
+  if (params.segment) qs.set("segment", params.segment);
+  if (params.persona) qs.set("persona", params.persona);
+  if (params.horizon) qs.set("horizon", params.horizon);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return apiGet<AiContextResponse>(`/strategic-mapping/adhesion-volontaire/ai-context${query}`, signal);
+}
+
 // ---------------------------------------------------------------------------
 // Report PDF — server-side generation
 // ---------------------------------------------------------------------------

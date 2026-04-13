@@ -12,6 +12,7 @@ import { InvestmentAndValueChain } from "@/components/strategic-mapping/investme
 import { BeforeAfterPanel } from "@/components/strategic-mapping/before-after-panel";
 import { ImpactPanel } from "@/components/strategic-mapping/impact-panel";
 import { CarbonCoLeverPanel } from "@/components/strategic-mapping/carbonco-lever";
+import { AiVariantPanel } from "@/components/strategic-mapping/ai-variant-panel";
 
 export function AdhesionVolontairePage() {
   const [segment, setSegment] = useState<MappingSegment>("generic");
@@ -98,6 +99,9 @@ export function AdhesionVolontairePage() {
             </div>
           </motion.div>
         )}
+
+        {/* Bloc 2b — Variante IA du message exécutif */}
+        <AiVariantPanel segment={segment} persona={persona} horizon={horizon} />
 
         {/* Bloc 3 — Investissements + chaîne de valeur */}
         <InvestmentAndValueChain

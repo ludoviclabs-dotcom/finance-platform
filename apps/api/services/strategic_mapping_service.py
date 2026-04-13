@@ -20,6 +20,8 @@ from __future__ import annotations
 import logging
 
 from models.strategic_mapping import (
+    AiContextFact,
+    AiContextResponse,
     BeforeAfterItem,
     BudgetRange,
     CarbonCoLever,
@@ -679,4 +681,43 @@ def build_strategic_mapping(
         externalities=_filter_externalities(_EXTERNALITIES, segment),
         carbonCoLevers=_CARBONCO_LEVERS,
         groundedKpis=grounded,
+    )
+
+
+def build_ai_context(
+    data: StrategicMappingResponse,
+    persona: Persona = "generic",
+) -> AiContextResponse:
+    """
+    Extrait le contexte compact destiné au LLM pour la génération de variantes.
+
+    - Sélectionne le message exécutif du persona (fallback sur "dg" si generic).
+    - N'expose que les gains financiers quantifiés (magnitude non-null) comme
+      faits autorisés — le LLM ne peut pas inventer de chiffres hors de cette liste.
+    """
+    # Message exécutif de référence
+    msg: ExecutiveMessage | None = None
+    if data.executiveMessages:
+        if persona != "generic":
+            msg = next((m for m in data.executiveMessages if m.persona == persona), None)
+        if msg is None:
+            # Fallback : DG ou premier message disponible
+            msg = next(
+                (m for m in data.executiveMessages if m.persona == "dg"),
+                data.executiveMessages[0],
+            )
+
+    # Faits quantifiés uniquement
+    allowed_facts = [
+        AiContextFact(id=g.id, label=g.label, magnitude=g.magnitude)
+        for g in data.financialGains
+        if not g.qualitative and g.magnitude is not None
+    ]
+
+    return AiContextResponse(
+        persona=msg.persona if msg else persona,
+        personaLabel=msg.personaLabel if msg else persona,
+        baseHeadline=msg.headline if msg else "",
+        baseSupporting=msg.supporting if msg else [],
+        allowedFacts=allowed_facts,
     )

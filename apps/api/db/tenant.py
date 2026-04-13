@@ -17,7 +17,7 @@ Logique :
 
 from __future__ import annotations
 
-from fastapi import Depends, Request
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 
 from services.auth_service import decode_token

@@ -334,6 +334,7 @@ def evaluate_rules(
     Retourne la liste des alertes déclenchées.
     """
     from datetime import datetime, timezone
+
     from services.snapshot_cache import read_snapshot
 
     # Charger les snapshots disponibles

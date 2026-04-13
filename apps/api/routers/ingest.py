@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from db.tenant import get_company_id
+from services.audit_service import log_event
 from services.carbon_service import CarbonServiceError, build_carbon_snapshot
 from services.esg_service import build_esg_snapshot, build_vsme_snapshot
 from services.finance_service import build_finance_snapshot
-from services.audit_service import log_event
 from services.snapshot_cache import (
     cache_status,
     invalidate,

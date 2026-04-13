@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr
 
+from services.audit_service import log_event
 from services.auth_service import (
     AuthUser,
     authenticate,
@@ -29,7 +30,6 @@ from services.auth_service import (
     revoke_refresh_token,
     rotate_refresh_token,
 )
-from services.audit_service import log_event
 
 router = APIRouter()
 

@@ -10,13 +10,13 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from typing import Any
 
 from db.database import db_available, get_db
-from services.snapshot_cache import read_snapshot_history, DEFAULT_COMPANY_ID
+from services.snapshot_cache import DEFAULT_COMPANY_ID, read_snapshot_history
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ async def get_snapshot_version(
 ) -> SnapshotVersionDetail:
     """Return the full snapshot data for a specific historical version."""
     if domain not in VALID_DOMAINS:
-        raise HTTPException(status_code=400, detail=f"Domaine invalide.")
+        raise HTTPException(status_code=400, detail="Domaine invalide.")
 
     if not db_available():
         raise HTTPException(status_code=503, detail="Historique non disponible — PostgreSQL non configuré.")

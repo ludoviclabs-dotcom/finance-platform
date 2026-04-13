@@ -98,6 +98,7 @@ async def preview_excel(
     try:
         # Need read_only=False to access named_ranges + dimensions
         import io
+
         from openpyxl import load_workbook as _load
 
         contents = await file.read()
@@ -205,6 +206,7 @@ async def validate_excel(
 
     try:
         import io
+
         from openpyxl import load_workbook as _load
 
         contents = await file.read()

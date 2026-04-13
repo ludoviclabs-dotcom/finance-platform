@@ -4,10 +4,8 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
 from services.audit_service import log_event
-from services.esg_service import build_esg_snapshot
 from services.carbon_service import build_carbon_snapshot
-from services.esg_service import build_vsme_snapshot
-from services.finance_service import build_finance_snapshot
+from services.esg_service import build_esg_snapshot, build_vsme_snapshot
 from services.pdf_service import generate_esg_synthesis_pdf
 from services.snapshot_cache import read_snapshot
 

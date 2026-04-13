@@ -251,3 +251,153 @@ class TestStrategicMappingEndpoint:
         data = resp.json()
         # groundedKpis peut être null (pas de snapshot en CI) ou un objet
         assert "groundedKpis" in data
+
+
+# ---------------------------------------------------------------------------
+# Tests export Excel
+# ---------------------------------------------------------------------------
+
+
+class TestExcelService:
+    """Tests unitaires du service de génération Excel."""
+
+    def _build_data(self, segment: str = "generic", persona: str = "generic"):
+        from services.strategic_mapping_service import build_strategic_mapping
+        return build_strategic_mapping(company_id=1, segment=segment, persona=persona)
+
+    def test_returns_bytes(self) -> None:
+        from services.strategic_mapping_excel import build_strategic_mapping_xlsx
+        data = self._build_data()
+        result = build_strategic_mapping_xlsx(data)
+        assert isinstance(result, bytes)
+        assert len(result) > 0
+
+    def test_valid_xlsx_magic_number(self) -> None:
+        """Un fichier xlsx est un zip — commence par PK\\x03\\x04."""
+        from services.strategic_mapping_excel import build_strategic_mapping_xlsx
+        data = self._build_data()
+        result = build_strategic_mapping_xlsx(data)
+        assert result[:4] == b"PK\x03\x04", "Le fichier ne semble pas être un xlsx valide"
+
+    def test_contains_all_sheets(self) -> None:
+        """Les 6 onglets attendus doivent être présents."""
+        from io import BytesIO
+        from openpyxl import load_workbook
+        from services.strategic_mapping_excel import build_strategic_mapping_xlsx
+        data = self._build_data()
+        wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
+        expected_sheets = {
+            "Synthèse",
+            "Investissements",
+            "Chaîne de valeur",
+            "Avant-Après",
+            "Gains & Externalités",
+            "Leviers Carbon & Co",
+        }
+        assert expected_sheets == set(wb.sheetnames)
+
+    def test_synthese_contains_hero_title(self) -> None:
+        """L'onglet Synthèse doit contenir le titre du hero."""
+        from io import BytesIO
+        from openpyxl import load_workbook
+        from services.strategic_mapping_excel import build_strategic_mapping_xlsx
+        data = self._build_data()
+        wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
+        ws = wb["Synthèse"]
+        cell_value = ws["A1"].value
+        assert cell_value and "adhésion" in cell_value.lower()
+
+    def test_filters_respected_pme_excludes_wacc(self) -> None:
+        """PME : la feuille Gains ne doit pas contenir l'ID 'wacc'."""
+        from io import BytesIO
+        from openpyxl import load_workbook
+        from services.strategic_mapping_excel import build_strategic_mapping_xlsx
+        data = self._build_data(segment="pme")
+        wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
+        ws = wb["Gains & Externalités"]
+        all_values = [str(cell.value or "") for row in ws.iter_rows() for cell in row]
+        assert "wacc" not in all_values
+
+    def test_filters_respected_grand_groupe_includes_wacc(self) -> None:
+        """Grand groupe : la feuille Gains doit contenir l'ID 'wacc'."""
+        from io import BytesIO
+        from openpyxl import load_workbook
+        from services.strategic_mapping_excel import build_strategic_mapping_xlsx
+        data = self._build_data(segment="grand_groupe")
+        wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
+        ws = wb["Gains & Externalités"]
+        all_values = [str(cell.value or "") for row in ws.iter_rows() for cell in row]
+        assert "wacc" in all_values
+
+    def test_sources_preserved_in_gains_sheet(self) -> None:
+        """Les publishers des sources doivent apparaître dans l'onglet Gains."""
+        from io import BytesIO
+        from openpyxl import load_workbook
+        from services.strategic_mapping_excel import build_strategic_mapping_xlsx
+        data = self._build_data()
+        wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
+        ws = wb["Gains & Externalités"]
+        all_text = " ".join(str(cell.value or "") for row in ws.iter_rows() for cell in row)
+        # Au moins une source connue doit apparaître
+        assert "Banque de France" in all_text or "LMA" in all_text or "ADEME" in all_text
+
+    def test_avant_apres_sheet_has_correct_columns(self) -> None:
+        """L'onglet Avant-Après doit avoir 4 colonnes."""
+        from io import BytesIO
+        from openpyxl import load_workbook
+        from services.strategic_mapping_excel import build_strategic_mapping_xlsx
+        data = self._build_data()
+        wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
+        ws = wb["Avant-Après"]
+        headers = [ws.cell(row=1, column=c).value for c in range(1, 5)]
+        assert headers[0] == "Catégorie"
+        assert headers[2] is not None  # "Sans démarche (avant)"
+        assert headers[3] is not None  # "Avec démarche (après)"
+
+
+class TestExcelEndpoint:
+    """Tests HTTP de l'endpoint export.xlsx."""
+
+    def test_returns_200(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.xlsx",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        assert resp.status_code == 200
+
+    def test_content_type_xlsx(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.xlsx",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        assert "spreadsheetml" in resp.headers.get("content-type", "")
+
+    def test_content_disposition_attachment(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.xlsx",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        cd = resp.headers.get("content-disposition", "")
+        assert "attachment" in cd
+        assert ".xlsx" in cd
+
+    def test_valid_xlsx_bytes(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.xlsx",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        assert resp.content[:4] == b"PK\x03\x04"
+
+    def test_filters_applied_in_export(self, client: TestClient, analyst_token: str) -> None:
+        """Le filtre segment=pme doit exclure wacc du classeur."""
+        from io import BytesIO
+        from openpyxl import load_workbook
+        resp = client.get(
+            "/strategic-mapping/adhesion-volontaire/export.xlsx?segment=pme",
+            headers={"Authorization": f"Bearer {analyst_token}"},
+        )
+        assert resp.status_code == 200
+        wb = load_workbook(BytesIO(resp.content))
+        ws = wb["Gains & Externalités"]
+        all_values = [str(cell.value or "") for row in ws.iter_rows() for cell in row]
+        assert "wacc" not in all_values

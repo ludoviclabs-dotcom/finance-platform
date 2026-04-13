@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Quote, Loader2, AlertTriangle } from "lucide-react";
+import { Quote, Loader2, AlertTriangle, Download } from "lucide-react";
 import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
 import { useStrategicMapping } from "@/lib/hooks/use-strategic-mapping";
+import { API_BASE_URL } from "@/lib/api";
 import type { MappingSegment, MappingPersona, MappingHorizon } from "@/lib/api";
 import { MappingHero } from "@/components/strategic-mapping/mapping-hero";
 import { InvestmentAndValueChain } from "@/components/strategic-mapping/investment-and-value-chain";
@@ -116,7 +117,7 @@ export function AdhesionVolontairePage() {
         {/* Bloc 6 — Carbon & Co levers */}
         <CarbonCoLeverPanel levers={data.carbonCoLevers} />
 
-        {/* Footer sources */}
+        {/* Footer sources + export */}
         <motion.div variants={staggerItem}>
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex flex-wrap items-center justify-between gap-3">
             <div className="text-xs text-[var(--color-foreground-muted)]">
@@ -124,9 +125,19 @@ export function AdhesionVolontairePage() {
               {" · "}Dernière révision : {data.meta.lastReviewedAt}
               {" · "}Prochaine révision prévue : {data.meta.nextReviewScheduled}
             </div>
-            <span className="text-xs text-[var(--color-foreground-muted)]">
-              {data.meta.contentOwner} — Sources vérifiées · Gains formulés en potentiel conditionnel
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-[var(--color-foreground-muted)]">
+                {data.meta.contentOwner} — Sources vérifiées · Gains formulés en potentiel conditionnel
+              </span>
+              <a
+                href={`${API_BASE_URL}/strategic-mapping/adhesion-volontaire/export.xlsx?segment=${segment}&persona=${persona}&horizon=${horizon}`}
+                download
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors shrink-0"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Télécharger .xlsx
+              </a>
+            </div>
           </div>
         </motion.div>
 

@@ -456,3 +456,85 @@ export function invalidateCache(
   const qs = domain ? `?domain=${domain}` : "";
   return apiSend<null>("DELETE", `/ingest/cache${qs}`, signal) as Promise<null>;
 }
+
+// ---------------------------------------------------------------------------
+// Audit journal
+// ---------------------------------------------------------------------------
+
+export type AuditEventType =
+  | "ingest"
+  | "upload"
+  | "cache_clear"
+  | "login"
+  | "export"
+  | "validation"
+  | "error";
+
+export type AuditEventStatus = "ok" | "warning" | "error";
+
+export interface AuditEvent {
+  id: string;
+  timestamp: string;
+  type: AuditEventType;
+  title: string;
+  status: AuditEventStatus;
+  detail?: string | null;
+  user?: string | null;
+  meta?: Record<string, unknown> | null;
+}
+
+export interface AuditListResponse {
+  total: number;
+  events: AuditEvent[];
+}
+
+export interface LogEventRequest {
+  type: AuditEventType;
+  title: string;
+  detail?: string;
+  status?: AuditEventStatus;
+  meta?: Record<string, unknown>;
+  user?: string;
+}
+
+export function fetchAuditEvents(
+  opts?: { limit?: number; type?: AuditEventType },
+  signal?: AbortSignal
+): Promise<AuditListResponse> {
+  const params = new URLSearchParams();
+  if (opts?.limit) params.set("limit", String(opts.limit));
+  if (opts?.type) params.set("type", opts.type);
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  return apiGet<AuditListResponse>(`/audit/events${qs}`, signal);
+}
+
+export function logAuditEvent(
+  body: LogEventRequest,
+  signal?: AbortSignal
+): Promise<AuditEvent> {
+  return apiSend<AuditEvent>("POST", "/audit/event", signal, body) as Promise<AuditEvent>;
+}
+
+// ---------------------------------------------------------------------------
+// Report PDF — server-side generation
+// ---------------------------------------------------------------------------
+
+/**
+ * Request server-side PDF generation from FastAPI.
+ * Returns a Blob that can be downloaded via URL.createObjectURL.
+ */
+export async function generateReportPdf(
+  domain: "esg-synthesis" = "esg-synthesis",
+  signal?: AbortSignal
+): Promise<Blob> {
+  const res = await fetch(`${API_BASE_URL}/report/generate?domain=${domain}`, {
+    method: "POST",
+    headers: { Accept: "application/pdf", ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => res.statusText);
+    throw new Error(`PDF generation failed (${res.status}): ${detail}`);
+  }
+  return res.blob();
+}

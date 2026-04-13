@@ -21,6 +21,7 @@ import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
 import { useVsmeSnapshot } from "@/lib/hooks/use-vsme-snapshot";
 import { useEsgSnapshot } from "@/lib/hooks/use-esg-snapshot";
 import { exportEsgSynthesisPdf } from "@/lib/pdf-export";
+import { generateReportPdf } from "@/lib/api";
 
 const reports = [
   {
@@ -86,6 +87,7 @@ export function ReportsPage() {
   const esgSnap = useEsgSnapshot();
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [exportingServer, setExportingServer] = useState(false);
 
   const anyLoading =
     carbonSnap.status === "loading" ||
@@ -109,6 +111,24 @@ export function ReportsPage() {
       setExportError(e instanceof Error ? e.message : "Erreur inattendue");
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleServerExport = async () => {
+    setExportError(null);
+    setExportingServer(true);
+    try {
+      const blob = await generateReportPdf("esg-synthesis");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "carbonco-synthese-esg.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : "Erreur serveur");
+    } finally {
+      setExportingServer(false);
     }
   };
 
@@ -138,24 +158,44 @@ export function ReportsPage() {
               <span>{exportError}</span>
             </div>
           )}
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={exporting || anyLoading || !anyReady}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {exporting || anyLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                {anyLoading ? "Chargement des données…" : "Génération…"}
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4" />
-                Télécharger la synthèse PDF
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting || anyLoading || !anyReady}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {exporting || anyLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {anyLoading ? "Chargement…" : "Génération…"}
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  PDF (navigateur)
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleServerExport}
+              disabled={exportingServer || anyLoading}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-carbon-emerald/50 text-carbon-emerald text-sm font-semibold hover:bg-carbon-emerald/10 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {exportingServer ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Génération serveur…
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  PDF (serveur)
+                </>
+              )}
+            </button>
+          </div>
           {!anyReady && !anyLoading && (
             <p className="mt-2 text-xs text-[var(--color-foreground-muted)]">
               Aucun snapshot disponible — vérifiez la connexion à l&apos;API.

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from routers import (
+    audit,
     auth,
     carbon,
     clients,
@@ -92,3 +93,4 @@ app.include_router(vsme.router, prefix="/vsme", tags=["vsme"])
 app.include_router(esg.router, prefix="/esg", tags=["esg"])
 app.include_router(finance.router, prefix="/finance", tags=["finance"])
 app.include_router(ingest.router, tags=["ingest"])
+app.include_router(audit.router, prefix="/audit", tags=["audit"])

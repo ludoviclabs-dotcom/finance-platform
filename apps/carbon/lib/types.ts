@@ -12,6 +12,7 @@ export type Page =
   | "reports"
   | "ingest"
   | "upload"
+  | "audit"
   | "pricing";
 
 export interface ChatMessage {

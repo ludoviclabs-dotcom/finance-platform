@@ -114,9 +114,29 @@ export function ESRSPage() {
       const bucketIssues = buckets.get(id) ?? [];
       const total = bucketIssues.length;
       const materiels = bucketIssues.filter((i) => i.materiel === true).length;
-      // Progress = share of issues classified as material vs. total evaluated for that norm.
-      // When no issues are attached, we treat it as "not started" (0%).
-      const progress = total > 0 ? Math.round((materiels / total) * 100) : 0;
+      const evaluated = bucketIssues.filter((i) => i.scoreImpact != null).length;
+
+      // Progress basé sur le scoreImpactTotal moyen normalisé sur 0-5 → 0-100%
+      // Si scoreImpactTotal absent, on utilise scoreImpact seul
+      // Fallback final : ratio matériels/total
+      let progress = 0;
+      const scoredIssues = bucketIssues.filter(
+        (i) => typeof i.scoreImpactTotal === "number" || typeof i.scoreImpact === "number"
+      );
+      if (scoredIssues.length > 0) {
+        const avgScore =
+          scoredIssues.reduce((sum, i) => {
+            const s = typeof i.scoreImpactTotal === "number"
+              ? i.scoreImpactTotal
+              : (i.scoreImpact as number);
+            return sum + s;
+          }, 0) / scoredIssues.length;
+        // Échelle 0-5 → 0-100%
+        progress = Math.min(100, Math.round((avgScore / 5) * 100));
+      } else if (total > 0) {
+        progress = Math.round((materiels / total) * 100);
+      }
+
       return {
         id,
         name: meta.name,
@@ -124,7 +144,7 @@ export function ESRSPage() {
         progress,
         status: classifyStatus(progress),
         description: meta.description,
-        dataPoints: total,
+        dataPoints: evaluated || total,
         completedPoints: materiels,
         categorie: meta.categorie,
         materialIssues: bucketIssues.filter((i) => i.materiel === true),

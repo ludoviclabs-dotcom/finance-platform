@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from services.carbon_service import CarbonServiceError, build_carbon_snapshot
 from services.esg_service import build_esg_snapshot, build_vsme_snapshot
 from services.finance_service import build_finance_snapshot
+from services.audit_service import log_event
 from services.snapshot_cache import (
     cache_status,
     invalidate,
@@ -101,6 +102,17 @@ async def ingest() -> IngestResponse:
         results.append(IngestDomainResult(domain="finance", status="error", detail=str(exc)))
 
     all_ok = all(r.status == "ok" for r in results)
+    ok_domains = [r.domain for r in results if r.status == "ok"]
+    err_domains = [r.domain for r in results if r.status == "error"]
+
+    log_event(
+        event_type="ingest",
+        title=f"Recalcul snapshots — {len(ok_domains)}/{len(results)} domaines OK",
+        detail=f"OK: {', '.join(ok_domains)}" + (f" | Erreurs: {', '.join(err_domains)}" if err_domains else ""),
+        status="ok" if all_ok else "warning" if ok_domains else "error",
+        meta={"domains": [r.model_dump() for r in results]},
+    )
+
     return IngestResponse(
         status="ok" if all_ok else "partial",
         domains=results,
@@ -129,5 +141,10 @@ async def invalidate_cache(domain: str | None = None) -> None:
     """
     try:
         invalidate(domain)
+        log_event(
+            event_type="cache_clear",
+            title=f"Cache invalidé — {domain or 'tous les domaines'}",
+            status="ok",
+        )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc

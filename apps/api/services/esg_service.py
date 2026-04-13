@@ -317,8 +317,13 @@ def build_esg_snapshot() -> EsgSnapshotResponse:
         enjeuxMateriels=r("CC_ESG_Enjeux_Materiels"),
     )
 
-    # Matérialité
-    mat_range_map = {
+    # Matérialité — lecture impact (col F) et probabilité (col G) sur la feuille Materialite
+    # Rows: E1=10, E2=11, E3=12, E4=13, E5=14, S1=15, S2=16, S3=17, S4=18, G1=19
+    MAT_ROWS = {
+        "E1": 10, "E2": 11, "E3": 12, "E4": 13, "E5": 14,
+        "S1": 15, "S2": 16, "S3": 17, "S4": 18, "G1": 19,
+    }
+    mat_impact_map = {
         "E1": "CC_MAT_E1_Score_Impact",
         "E2": "CC_MAT_E2_Score_Impact",
         "E3": "CC_MAT_E3_Score_Impact",
@@ -332,11 +337,22 @@ def build_esg_snapshot() -> EsgSnapshotResponse:
     }
     issues: list[MaterialiteIssue] = []
     for code, label, cat, norme in MATERIALITE_ISSUES:
-        score = r(mat_range_map.get(code, ""))
-        materiel = (isinstance(score, (int, float)) and score >= 3) if score is not None else None
+        score_impact = r(mat_impact_map.get(code, ""))
+        # Probabilité : colonne G (pas encore de named range — lecture directe)
+        row = MAT_ROWS.get(code)
+        score_prob = _normalize(_read_cell(wb, "Materialite", f"G{row}")) if wb and row else None
+        # Score total = moyenne impact+probabilité si les deux sont dispo, sinon impact seul
+        if isinstance(score_impact, (int, float)) and isinstance(score_prob, (int, float)):
+            score_total = round((score_impact + score_prob) / 2, 2)
+        elif isinstance(score_impact, (int, float)):
+            score_total = float(score_impact)
+        else:
+            score_total = None
+        materiel = (isinstance(score_impact, (int, float)) and score_impact >= 3) if score_impact is not None else None
         issues.append(MaterialiteIssue(
             code=code, label=label, categorie=cat, normeEsrs=norme,
-            scoreImpact=score, materiel=materiel,
+            scoreImpact=score_impact, scoreProbabilite=score_prob,
+            scoreImpactTotal=score_total, materiel=materiel,
         ))
 
     nb_evalue = sum(1 for i in issues if i.scoreImpact is not None)

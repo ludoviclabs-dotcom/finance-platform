@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Quote, Loader2, AlertTriangle, Download } from "lucide-react";
+import { Quote, Loader2, AlertTriangle, Download, ExternalLink } from "lucide-react";
 import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
 import { useStrategicMapping } from "@/lib/hooks/use-strategic-mapping";
 import { API_BASE_URL } from "@/lib/api";
@@ -133,6 +133,15 @@ export function AdhesionVolontairePage() {
               <span className="text-xs text-[var(--color-foreground-muted)]">
                 {data.meta.contentOwner} — Sources vérifiées · Gains formulés en potentiel conditionnel
               </span>
+              <a
+                href="/value-mapping-esg"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-border)] text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-raised)] transition-colors shrink-0"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Page publique
+              </a>
               <a
                 href={`${API_BASE_URL}/strategic-mapping/adhesion-volontaire/export.xlsx?segment=${segment}&persona=${persona}&horizon=${horizon}`}
                 download

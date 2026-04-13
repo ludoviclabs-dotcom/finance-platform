@@ -1,9 +1,11 @@
+import logging
 import os
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from db.migrations import run_migrations
 from routers import (
     audit,
     auth,
@@ -16,11 +18,14 @@ from routers import (
     excel,
     finance,
     health,
+    history,
     ingest,
     pilier2,
     report,
     vsme,
 )
+
+logger = logging.getLogger(__name__)
 
 try:
     from routers import ma
@@ -37,6 +42,11 @@ app = FastAPI(
     description="Backend API for the finance analysis platform",
     version="0.1.0",
 )
+
+# Exécuter les migrations DDL au démarrage (idempotent, no-op si /tmp mode)
+@app.on_event("startup")
+async def startup_event() -> None:
+    run_migrations()
 
 # ---------------------------------------------------------------------------
 # Body size limiter — reject uploads > 10 MB before they hit route handlers
@@ -94,3 +104,4 @@ app.include_router(esg.router, prefix="/esg", tags=["esg"])
 app.include_router(finance.router, prefix="/finance", tags=["finance"])
 app.include_router(ingest.router, tags=["ingest"])
 app.include_router(audit.router, prefix="/audit", tags=["audit"])
+app.include_router(history.router, prefix="/history", tags=["history"])

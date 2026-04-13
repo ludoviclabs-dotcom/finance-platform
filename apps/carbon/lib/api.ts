@@ -516,6 +516,49 @@ export function logAuditEvent(
 }
 
 // ---------------------------------------------------------------------------
+// Snapshot history (PostgreSQL mode)
+// ---------------------------------------------------------------------------
+
+export interface SnapshotHistoryEntry {
+  id: number;
+  version: number;
+  generatedAt: string;
+  source: string;
+  summary: Record<string, unknown>;
+}
+
+export interface SnapshotHistoryResponse {
+  domain: string;
+  available: boolean;
+  entries: SnapshotHistoryEntry[];
+}
+
+export interface SnapshotVersionDetail {
+  id: number;
+  version: number;
+  domain: string;
+  generatedAt: string;
+  source: string;
+  data: Record<string, unknown>;
+}
+
+export function fetchSnapshotHistory(
+  domain: "carbon" | "vsme" | "esg" | "finance",
+  limit = 10,
+  signal?: AbortSignal
+): Promise<SnapshotHistoryResponse> {
+  return apiGet<SnapshotHistoryResponse>(`/history/${domain}?limit=${limit}`, signal);
+}
+
+export function fetchSnapshotVersion(
+  domain: "carbon" | "vsme" | "esg" | "finance",
+  entryId: number,
+  signal?: AbortSignal
+): Promise<SnapshotVersionDetail> {
+  return apiGet<SnapshotVersionDetail>(`/history/${domain}/${entryId}`, signal);
+}
+
+// ---------------------------------------------------------------------------
 // Report PDF — server-side generation
 // ---------------------------------------------------------------------------
 

@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from db.migrations import run_migrations
 from middleware.rate_limit import RateLimitMiddleware
+from middleware.request_logger import RequestLoggerMiddleware
 from routers import (
     admin,
     alerts,
@@ -84,6 +85,16 @@ _explicit_origins = [
 # CORSMiddleware: explicit list + regex scoped to our Vercel projects only.
 # allow_origin_regex lets us keep allow_credentials=True (unlike origins=["*"]).
 # Pattern matches: carbon-*, finance-platform-*, neural-* preview URLs.
+
+# ---------------------------------------------------------------------------
+# Request logger — logs JSON structurés par requête
+# ---------------------------------------------------------------------------
+# Ajouté en PREMIER dans le code → exécuté en DERNIER au retour de réponse
+# (Starlette inverse l'ordre), donc il capture la vraie durée totale et le
+# vrai status final (y compris les 429 émis par RateLimitMiddleware et les
+# 500 levés par les handlers).
+app.add_middleware(RequestLoggerMiddleware)
+
 # ---------------------------------------------------------------------------
 # Rate limiting — in-memory token bucket par route sensible
 # ---------------------------------------------------------------------------

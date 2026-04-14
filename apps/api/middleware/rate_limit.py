@@ -170,9 +170,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         if not allowed:
-            logger.info(
-                "Rate limit hit: prefix=%s id=%s retry_after=%ss",
-                prefix, identifier, retry_after,
+            # Import tardif pour éviter un cycle d'imports
+            from middleware.request_logger import log_obs_event
+            log_obs_event(
+                "rate_limit_hit",
+                prefix=prefix,
+                identifier=identifier,
+                retry_after_seconds=retry_after,
+                path=request.url.path,
             )
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,

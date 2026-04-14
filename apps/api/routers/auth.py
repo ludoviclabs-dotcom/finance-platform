@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr
 
+from middleware.request_logger import log_obs_event
 from services.audit_service import log_event
 from services.auth_service import (
     AuthUser,
@@ -160,6 +161,12 @@ def _clear_refresh_cookie(response: Response) -> None:
 async def login(body: LoginRequest, request: Request, response: Response) -> LoginResponse:
     user = authenticate(body.email, body.password)
     if user is None:
+        log_obs_event(
+            "auth_login_failed",
+            email=body.email,
+            ip=request.headers.get("x-forwarded-for", "unknown").split(",")[0].strip(),
+            user_agent=request.headers.get("user-agent"),
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email ou mot de passe incorrect.",

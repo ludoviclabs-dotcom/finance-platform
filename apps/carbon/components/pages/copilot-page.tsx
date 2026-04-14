@@ -11,7 +11,7 @@ import {
 import { SectionTitle } from "@/components/ui/section-title";
 import { SafeMarkdown } from "@/components/ui/safe-markdown";
 import { pageVariants } from "@/lib/animations";
-import { fetchCopilotTools, type CopilotToolsBundle } from "@/lib/api";
+import { fetchCopilotTools, getAuthToken, type CopilotToolsBundle } from "@/lib/api";
 
 const quickPrompts = [
   { label: "Bilan carbone Scope 1, 2 et 3", icon: "🏭" },
@@ -173,6 +173,12 @@ export function CopilotPage() {
     () =>
       new DefaultChatTransport({
         api: "/api/copilot",
+        headers: () => {
+          const token = getAuthToken();
+          const h: Record<string, string> = {};
+          if (token) h.Authorization = `Bearer ${token}`;
+          return h;
+        },
         body: () => ({ tools: tools ?? undefined }),
       }),
     [tools],

@@ -1,5 +1,8 @@
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 
+import { checkCopilotRateLimit } from "@/lib/rate-limit";
+import { verifyBearerToken } from "@/lib/verify-jwt";
+
 export const maxDuration = 60;
 
 interface DomainSource {
@@ -202,7 +205,37 @@ function buildSystemPrompt(tools: CopilotToolsBundle | null, legacy: LegacySnaps
 }
 
 export async function POST(req: Request) {
-  const body = await req.json() as {
+  const payload = await verifyBearerToken(req.headers.get("authorization"));
+  if (!payload) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  const identifier = `u:${payload.sub}`;
+  const rl = await checkCopilotRateLimit(identifier);
+  if (!rl.success) {
+    return new Response(
+      JSON.stringify({
+        error: "rate_limited",
+        message: "Trop de requêtes. Réessayez dans quelques instants.",
+        retryAfterSeconds: rl.retryAfterSeconds,
+      }),
+      {
+        status: 429,
+        headers: {
+          "content-type": "application/json",
+          "retry-after": String(rl.retryAfterSeconds),
+          "x-ratelimit-limit": String(rl.limit),
+          "x-ratelimit-remaining": String(rl.remaining),
+          "x-ratelimit-reset": String(rl.reset),
+        },
+      },
+    );
+  }
+
+  const body = (await req.json()) as {
     messages: UIMessage[];
     tools?: CopilotToolsBundle;
     snapshots?: LegacySnapshotContext;

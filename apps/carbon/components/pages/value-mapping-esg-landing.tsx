@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -142,12 +143,12 @@ function Navbar({ onCta }: { onCta: () => void }) {
           Carbon <span className="text-[var(--color-primary)]">&</span> Co
         </span>
         <div className="flex items-center gap-4">
-          <a
+          <Link
             href="/"
             className="text-sm text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
           >
             Accueil
-          </a>
+          </Link>
           <button
             type="button"
             onClick={onCta}

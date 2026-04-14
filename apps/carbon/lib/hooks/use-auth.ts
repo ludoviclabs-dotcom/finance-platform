@@ -58,15 +58,16 @@ export function useAuth() {
   const [auth, setAuth] = useState<AuthState>({ status: "unauthenticated" });
   const [ready, setReady] = useState(false);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const silentRefreshRef = useRef<() => Promise<string | null>>(async () => null);
 
   // ---------------------------------------------------------------------------
   // Planifier la rotation proactive (avant expiration)
   // ---------------------------------------------------------------------------
-  const scheduleRefresh = useCallback((expiresAt: number, refreshFn: () => Promise<string | null>) => {
+  const scheduleRefresh = useCallback((expiresAt: number) => {
     if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     const delay = Math.max(0, expiresAt - Date.now() - 60_000); // 1 min avant expiration
     refreshTimerRef.current = setTimeout(() => {
-      refreshFn();
+      void silentRefreshRef.current();
     }, delay);
   }, []);
 
@@ -84,7 +85,7 @@ export function useAuth() {
         role: session.role,
         companyId: session.companyId,
       });
-      scheduleRefresh(session.expiresAt, silentRefresh);
+      scheduleRefresh(session.expiresAt);
       return session.token;
     } catch {
       setAuthToken(null);
@@ -92,8 +93,11 @@ export function useAuth() {
       setAuth({ status: "unauthenticated" });
       return null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scheduleRefresh]);
+
+  useEffect(() => {
+    silentRefreshRef.current = silentRefresh;
+  }, [silentRefresh]);
 
   // ---------------------------------------------------------------------------
   // Hydratation au montage : tenter de rétablir la session via le cookie refresh
@@ -155,7 +159,7 @@ export function useAuth() {
           role: session.role,
           companyId: session.companyId,
         });
-        scheduleRefresh(session.expiresAt, silentRefresh);
+        scheduleRefresh(session.expiresAt);
         return { ok: true };
       } catch (err) {
         const message = err instanceof Error ? err.message : "Erreur de connexion.";

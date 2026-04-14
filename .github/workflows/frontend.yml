@@ -1,13 +1,13 @@
-name: Frontend CI
+name: Carbon Frontend CI
 
 on:
   push:
     paths:
-      - "apps/frontend/**"
+      - "apps/carbon/**"
       - ".github/workflows/frontend.yml"
   pull_request:
     paths:
-      - "apps/frontend/**"
+      - "apps/carbon/**"
       - ".github/workflows/frontend.yml"
 
 jobs:
@@ -15,16 +15,16 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/frontend
+        working-directory: apps/carbon
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
-          cache-dependency-path: apps/frontend/package-lock.json
+          cache-dependency-path: apps/carbon/package-lock.json
 
       - run: npm ci
 
@@ -36,3 +36,5 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          AUTH_JWT_SECRET: ci-build-dummy-secret-not-used-at-runtime

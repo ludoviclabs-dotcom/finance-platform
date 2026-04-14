@@ -50,6 +50,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname() ?? "/dashboard";
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     if (ready && auth.status !== "authenticated") {
@@ -57,9 +58,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [ready, auth.status, router]);
 
+  // Ferme le drawer mobile quand la route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   if (!ready || auth.status !== "authenticated") return null;
 
   const config = pageConfig[pathname] ?? { title: "CarbonCo", subtitle: "" };
+  const desktopMargin = sidebarCollapsed ? 72 : 256;
 
   return (
     <div id="main-content" className="min-h-screen bg-[var(--color-background)]">
@@ -69,11 +76,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         onLogout={logout}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
       />
 
       <div
-        className="transition-[margin] duration-300"
-        style={{ marginLeft: sidebarCollapsed ? 72 : 256 }}
+        className="transition-[margin] duration-300 lg:[margin-left:var(--sidebar-w)]"
+        style={{ ["--sidebar-w" as string]: `${desktopMargin}px` }}
       >
         <Header
           title={config.title}
@@ -81,6 +90,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           onLogout={logout}
           userEmail={auth.status === "authenticated" ? auth.email : undefined}
           demoHint={undefined}
+          onMobileMenuClick={() => setMobileOpen(true)}
         />
 
         <main className="overflow-y-auto" style={{ height: "calc(100vh - 4rem)" }}>

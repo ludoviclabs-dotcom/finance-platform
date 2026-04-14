@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Bell, Search, RefreshCw, Download, X, ChevronRight, Sun, Moon, LogOut } from "lucide-react";
+import { Bell, Search, RefreshCw, Download, X, ChevronRight, Sun, Moon, LogOut, Menu } from "lucide-react";
 
 interface HeaderProps {
   title: string;
@@ -9,6 +9,7 @@ interface HeaderProps {
   onLogout?: () => void;
   userEmail?: string;
   demoHint?: string;
+  onMobileMenuClick?: () => void;
 }
 
 const NOTIFICATIONS = [
@@ -19,7 +20,7 @@ const NOTIFICATIONS = [
 
 const PERIODS = ["Ce mois", "Ce trimestre", "Cette année"] as const;
 
-export function Header({ title, subtitle, onLogout, userEmail, demoHint }: HeaderProps) {
+export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobileMenuClick }: HeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [period, setPeriod] = useState<typeof PERIODS[number]>("Ce mois");
   const [refreshing, setRefreshing] = useState(false);
@@ -56,12 +57,22 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint }: Heade
   return (
     <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]" role="banner">
       {/* Main row */}
-      <div className="h-16 flex items-center justify-between px-6 gap-4">
+      <div className="h-16 flex items-center justify-between px-4 md:px-6 gap-2 md:gap-4">
         {/* Title + freshness */}
-        <div className="flex items-center gap-4 min-w-0">
+        <div className="flex items-center gap-2 md:gap-4 min-w-0">
+          {onMobileMenuClick && (
+            <button
+              type="button"
+              onClick={onMobileMenuClick}
+              className={`lg:hidden ${iconBtnClass}`}
+              aria-label="Ouvrir le menu de navigation"
+            >
+              <Menu className="w-4 h-4" aria-hidden="true" />
+            </button>
+          )}
           <div className="min-w-0">
-            <h1 className="font-display font-bold text-lg text-[var(--color-foreground)] leading-tight">{title}</h1>
-            {subtitle && <p className="text-xs text-[var(--color-foreground-muted)]">{subtitle}</p>}
+            <h1 className="font-display font-bold text-base md:text-lg text-[var(--color-foreground)] leading-tight truncate">{title}</h1>
+            {subtitle && <p className="hidden sm:block text-xs text-[var(--color-foreground-muted)] truncate">{subtitle}</p>}
           </div>
           <div className="hidden md:flex items-center gap-2 text-xs text-[var(--color-foreground-subtle)] whitespace-nowrap" aria-live="polite">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-success)] animate-pulse" aria-hidden="true" />
@@ -70,12 +81,12 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint }: Heade
         </div>
 
         {/* Right actions */}
-        <div className="flex items-center gap-2 flex-shrink-0" role="toolbar" aria-label="Actions du tableau de bord">
+        <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0" role="toolbar" aria-label="Actions du tableau de bord">
           {/* Search */}
           <button
             aria-label="Rechercher (Cmd+K)"
             className={
-              "flex items-center gap-2 px-3 h-9 rounded-lg border border-[var(--color-border)] " +
+              "hidden sm:flex items-center gap-2 px-3 h-9 rounded-lg border border-[var(--color-border)] " +
               "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] " +
               "hover:bg-[var(--color-surface-raised)] transition-colors text-xs font-medium cursor-pointer " +
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-emerald/60"
@@ -104,7 +115,7 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint }: Heade
             onClick={handleRefresh}
             aria-label="Actualiser les données"
             aria-busy={refreshing}
-            className={iconBtnClass}
+            className={`hidden md:flex ${iconBtnClass}`}
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} aria-hidden="true" />
           </button>
@@ -112,7 +123,7 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint }: Heade
           {/* Export */}
           <button
             aria-label="Exporter le tableau de bord"
-            className={iconBtnClass}
+            className={`hidden md:flex ${iconBtnClass}`}
           >
             <Download className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -214,7 +225,7 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint }: Heade
       </div>
 
       {/* Period selector row */}
-      <div className="px-6 pb-3 flex items-center gap-3">
+      <div className="hidden sm:flex px-6 pb-3 items-center gap-3">
         <span className="text-xs text-[var(--color-foreground-muted)]" id="period-label">Période :</span>
         <div
           role="radiogroup"

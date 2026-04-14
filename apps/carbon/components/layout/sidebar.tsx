@@ -16,6 +16,8 @@ interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
   onLogout?: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const navItems: {
@@ -56,20 +58,46 @@ const navItems: {
 
 const ESG_SCORE = 62;
 
-export function Sidebar({ collapsed, onToggle, onLogout }: SidebarProps) {
+export function Sidebar({
+  collapsed,
+  onToggle,
+  onLogout,
+  mobileOpen = false,
+  onMobileClose,
+}: SidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const pathname = usePathname();
 
   const circumference = 2 * Math.PI * 16;
   const dashOffset = circumference - (ESG_SCORE / 100) * circumference;
 
+  // Sur mobile on ignore le collapsed (toujours affiché en pleine largeur drawer)
+  const effectiveCollapsed = collapsed;
+
   return (
     <>
+      {/* Backdrop mobile */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onMobileClose}
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+
       <motion.aside
         initial={false}
-        animate={{ width: collapsed ? 72 : 256 }}
+        animate={{ width: effectiveCollapsed ? 72 : 256 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed left-0 top-0 h-screen border-r border-[var(--color-border)] bg-[var(--color-surface)] z-40 flex flex-col"
+        className={`fixed left-0 top-0 h-screen border-r border-[var(--color-border)] bg-[var(--color-surface)] z-50 flex flex-col transition-transform duration-300 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
+        aria-label="Navigation principale"
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 h-16 border-b border-[var(--color-border)]">
@@ -78,9 +106,19 @@ export function Sidebar({ collapsed, onToggle, onLogout }: SidebarProps) {
           </div>
           {!collapsed && (
             <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="font-display font-bold text-lg text-[var(--color-foreground)]">
+              className="font-display font-bold text-lg text-[var(--color-foreground)] flex-1">
               CarbonCo
             </motion.span>
+          )}
+          {onMobileClose && (
+            <button
+              type="button"
+              onClick={onMobileClose}
+              className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer"
+              aria-label="Fermer le menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           )}
         </div>
 
@@ -145,6 +183,7 @@ export function Sidebar({ collapsed, onToggle, onLogout }: SidebarProps) {
               <Link
                 key={item.id}
                 href={item.href}
+                onClick={() => onMobileClose?.()}
                 title={collapsed ? item.label : undefined}
                 className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                   active

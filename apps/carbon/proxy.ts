@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
 const securityHeaders: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
@@ -46,7 +45,7 @@ const CSP_ENFORCED = [
   "upgrade-insecure-requests",
 ].join("; ");
 
-export function middleware(request: NextRequest) {
+export function proxy() {
   const response = NextResponse.next();
 
   for (const [key, value] of Object.entries(securityHeaders)) {

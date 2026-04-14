@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 
+// Report-To group pointing to our internal collector endpoint
+const REPORT_TO_GROUP = JSON.stringify({
+  group: "csp-endpoint",
+  max_age: 10886400,
+  endpoints: [{ url: "/api/csp-report" }],
+});
+
 const securityHeaders: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -9,6 +16,7 @@ const securityHeaders: Record<string, string> = {
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
   "Cross-Origin-Opener-Policy": "same-origin",
   "Cross-Origin-Resource-Policy": "same-origin",
+  "Report-To": REPORT_TO_GROUP,
 };
 
 /**
@@ -43,6 +51,10 @@ const CSP_ENFORCED = [
   "form-action 'self'",
   "object-src 'none'",
   "upgrade-insecure-requests",
+  // Reporting : legacy report-uri (Chrome, Firefox, Safari ≤15)
+  //             + moderne report-to via le group défini dans Report-To header
+  "report-uri /api/csp-report",
+  "report-to csp-endpoint",
 ].join("; ");
 
 export function proxy() {
@@ -57,5 +69,7 @@ export function proxy() {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|images/).*)"],
+  // Exclut les assets Next et le endpoint de reporting CSP (inutile d'y
+  // injecter des headers, et évite de charger le proxy à chaque report).
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|images/|api/csp-report).*)"],
 };

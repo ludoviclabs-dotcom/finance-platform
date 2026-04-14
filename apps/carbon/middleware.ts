@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-/** Security headers applied to every response. */
 const securityHeaders: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -9,22 +8,31 @@ const securityHeaders: Record<string, string> = {
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-  // COOP/CORP : isolation cross-origin pour réduire la surface d'attaque
   "Cross-Origin-Opener-Policy": "same-origin",
   "Cross-Origin-Resource-Policy": "same-origin",
 };
 
 /**
- * Content Security Policy (report-only).
+ * Content Security Policy (enforced).
  *
- * Mode report-only pour 7-14 jours afin d'identifier les sources légitimes
- * (Vercel Analytics, AI Gateway, etc.) avant de basculer en mode enforced.
+ * Compromis pragmatique Next.js 16 + App Router :
+ *  - script-src garde 'unsafe-inline' car les pages sont statiquement rendues
+ *    et Next.js injecte ses scripts hydratation inline au build (le nonce par
+ *    requête exigerait de forcer toutes les pages en dynamique).
+ *  - style-src garde 'unsafe-inline' pour Tailwind 4 + framer-motion
+ *    (inévitable sans refonte CSS-in-JS).
+ *  - Le vrai gain sécurité vient de :
+ *      • object-src 'none'       — bloque les plugins Flash/Java legacy
+ *      • frame-ancestors 'none'  — bloque clickjacking
+ *      • base-uri 'self'         — bloque injection de <base>
+ *      • form-action 'self'      — bloque exfiltration via formulaires
+ *      • connect-src whitelist   — bloque exfiltration AJAX vers domaines arbitraires
+ *      • default-src 'self'      — tout le reste par défaut
  *
- * - 'unsafe-inline' style toléré pour Tailwind/framer-motion (à durcir avec nonce en P2)
- * - 'unsafe-eval' évité — Next.js 16 + Turbopack n'en a pas besoin en prod
- * - connect-src élargi pour le backend FastAPI + AI Gateway Vercel
+ * Durcissement futur (P3) : nonce + 'strict-dynamic' après bascule en rendu
+ * dynamique via `export const dynamic = 'force-dynamic'` sur les pages clés.
  */
-const CSP_REPORT_ONLY = [
+const CSP_ENFORCED = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
   "style-src 'self' 'unsafe-inline'",
@@ -44,12 +52,11 @@ export function middleware(request: NextRequest) {
   for (const [key, value] of Object.entries(securityHeaders)) {
     response.headers.set(key, value);
   }
-  response.headers.set("Content-Security-Policy-Report-Only", CSP_REPORT_ONLY);
+  response.headers.set("Content-Security-Policy", CSP_ENFORCED);
 
   return response;
 }
 
 export const config = {
-  // Apply to all routes except static files and Next.js internals
   matcher: ["/((?!_next/static|_next/image|favicon.ico|images/).*)"],
 };

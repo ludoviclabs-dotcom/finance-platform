@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from db.migrations import run_migrations
+from middleware.rate_limit import RateLimitMiddleware
 from routers import (
     admin,
     alerts,
@@ -83,6 +84,17 @@ _explicit_origins = [
 # CORSMiddleware: explicit list + regex scoped to our Vercel projects only.
 # allow_origin_regex lets us keep allow_credentials=True (unlike origins=["*"]).
 # Pattern matches: carbon-*, finance-platform-*, neural-* preview URLs.
+# ---------------------------------------------------------------------------
+# Rate limiting — in-memory token bucket par route sensible
+# ---------------------------------------------------------------------------
+# Ajouté AVANT CORS : Starlette exécute les middlewares dans l'ordre inverse
+# d'ajout, donc ce middleware s'exécute APRÈS CORS à la requête entrante,
+# et AVANT CORS au retour → les réponses 429 passent par CORS et reçoivent
+# bien les headers Access-Control-Allow-* (sinon le frontend voit un échec
+# CORS opaque au lieu du 429 lisible).
+# Désactivable via RATE_LIMIT_DISABLED=1 (tests intégration).
+app.add_middleware(RateLimitMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_explicit_origins,

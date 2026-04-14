@@ -62,3 +62,22 @@ jobs:
           from services.entreprise_service import analyze_entreprise
           print('OK: all services loaded')
           "
+
+  security-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: pip-audit (high+critical bloquant)
+        run: pip-audit -r requirements.txt --strict

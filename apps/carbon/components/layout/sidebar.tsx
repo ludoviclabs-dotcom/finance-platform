@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Target, BookOpen, Bot,
   FileBarChart, CreditCard, Leaf, LogOut,
   ChevronLeft, ChevronRight, X, Scale,
-  Users, Package, Banknote, Sparkles, ShieldCheck, Database, Upload, ClipboardList, History, Settings, Bell,
+  Sparkles, ShieldCheck, Database, Upload, ClipboardList, History, Settings, Bell,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -36,9 +36,7 @@ const navItems: {
   },
   { id: "materialite", href: "/materialite", label: "Matérialité", icon: <Scale className="w-5 h-5" /> },
   { id: "qc", href: "/qc", label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
-  { id: "social", href: "/social", label: "Social", icon: <Users className="w-5 h-5" /> },
-  { id: "dpp", href: "/dpp", label: "DPP produits", icon: <Package className="w-5 h-5" /> },
-  { id: "finance", href: "/finance", label: "Finance / DPP", icon: <Banknote className="w-5 h-5" /> },
+  // social, dpp, finance — archivés Sprint 1 Phase 0 (hors wedge CSRD fournisseurs)
   {
     id: "copilot", href: "/copilot", label: "Copilote IA", icon: <Bot className="w-5 h-5" />,
     badge: { text: "IA", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },

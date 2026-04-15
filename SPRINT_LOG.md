@@ -19,10 +19,10 @@
 - **Blocages** : aucun
 - **Demain** : Tâches 0.4–0.6 — Audit hébergement/SLA dans autres fichiers, requalification "12 ESRS natifs", lexique safe claims-dictionary.ts
 
-#### Mercredi — Jour 3
-- **Livré** :
-- **Blocages** :
-- **Demain** :
+#### Mercredi — Jour 3 (2026-04-15)
+- **Livré** : Tâches 0.4–0.9 — Nettoyage complet de tous les fichiers restants (login-screen, layout.tsx, opengraph-image, confidentialite, cgu). Suppression dernières mentions souverain/OVH/HDS/99.9%/120+ partout. Grille tarifaire pricing-page.tsx alignée (4→3 colonnes). Création `claims-dictionary.ts` — lexique safe réutilisable pour tout le code UI. Grep de vérification finale : 0 mention interdite dans tout le codebase.
+- **Blocages** : aucun
+- **Demain** : Tâches 0.10–0.11 — Pages `/couverture-esrs` et `/etat-du-produit` (transparence niveau de complétude réel)
 
 #### Jeudi — Jour 4
 - **Livré** :

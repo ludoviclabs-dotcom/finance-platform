@@ -42,9 +42,9 @@
 - **Demain** : Tâches 0.16–0.17 — Tests E2E Phase 0 + déploiement prod (push refonte-90j, vérification Vercel)
 
 #### Mardi — Jour 7
-- **Livré** :
-- **Blocages** :
-- **Demain** :
+- **Livré** : Tâche 0.16 — Tests E2E Phase 0 Playwright (13 tests, 5 suites) : homepage 0 mentions interdites, /couverture ≥12 lignes ESRS, /etat-du-produit 3 sections, pages archivées 404, footer liens transparence. 13/13 ✅ en local.
+- **Blocages** : aucun
+- **Demain** : Tâche 0.17 — Déploiement prod : push refonte-90j, PR refonte-90j → master, merge, vérification Vercel
 
 #### Mercredi — Jour 8
 - **Livré** :

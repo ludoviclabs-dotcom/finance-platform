@@ -29,10 +29,10 @@
 - **Blocages** : aucun
 - **Demain** : Tâche 0.12 — Audit faux succès silencieux (grep fallback/mock/placeholder dans tout l'app)
 
-#### Vendredi — Jour 5
-- **Livré** :
-- **Blocages** :
-- **Demain** :
+#### Vendredi — Jour 5 (2026-04-15)
+- **Livré** : Tâche 0.12 — Audit faux succès silencieux complet. 3 corrigés (dashboard, scopes, esrs — bandeau "Données de démonstration" avec lien vers import). 8 faux positifs légitimes identifiés. 2 éléments à surveiller en Phase 2 (ESG score 62, benchmark sectoriel). FAKE_SUCCESS_AUDIT.md créé.
+- **Blocages** : aucun
+- **Demain** : Tâches 0.13–0.14 — SmartEmptyState component + archivage pages hors-wedge (DPP, Social)
 
 ### Semaine 2
 

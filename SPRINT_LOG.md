@@ -36,10 +36,10 @@
 
 ### Semaine 2
 
-#### Lundi — Jour 6
-- **Livré** :
-- **Blocages** :
-- **Demain** :
+#### Lundi — Jour 6 (2026-04-15)
+- **Livré** : Tâches 0.13–0.15 — SmartEmptyState (3 variantes, compact/full, CTA). design-tokens.ts (source de vérité TS brandColors/statusColors/scopeColors/radii/shadows). Archivage social/dpp/finance → _archived/ (Next.js ignore _). Liens retirés du sidebar. npm run build ✅.
+- **Blocages** : aucun
+- **Demain** : Tâches 0.16–0.17 — Tests E2E Phase 0 + déploiement prod (push refonte-90j, vérification Vercel)
 
 #### Mardi — Jour 7
 - **Livré** :

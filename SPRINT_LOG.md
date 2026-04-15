@@ -9,10 +9,10 @@
 
 ### Semaine 1
 
-#### Lundi — Jour 1
-- **Livré** :
-- **Blocages** :
-- **Demain** :
+#### Lundi — Jour 1 (2026-04-15)
+- **Livré** : Tâche 0.1 — audit complet des claims (43 recensés : 28 à retirer, 14 à requalifier, 1 gardé). CLAIMS_AUDIT.md rempli. Setup branch refonte-90j + tag workbooks-baseline-v2025.0.
+- **Blocages** : aucun
+- **Demain** : Tâche 0.2 + 0.3 — retrait des 7 logos + 3 témoignages inventés, création des 3 scénarios sectoriels anonymisés dans data.ts
 
 #### Mardi — Jour 2
 - **Livré** :

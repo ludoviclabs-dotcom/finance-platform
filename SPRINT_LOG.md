@@ -14,10 +14,10 @@
 - **Blocages** : aucun
 - **Demain** : Tâche 0.2 + 0.3 — retrait des 7 logos + 3 témoignages inventés, création des 3 scénarios sectoriels anonymisés dans data.ts
 
-#### Mardi — Jour 2
-- **Livré** :
-- **Blocages** :
-- **Demain** :
+#### Mardi — Jour 2 (2026-04-15)
+- **Livré** : Tâches 0.2 + 0.3 — Suppression des 7 logos fictifs + 3 témoignages inventés. Remplacement par 3 scénarios sectoriels anonymisés (Industrie / Services / Agroalimentaire) avec tag "Scénario illustratif". Suppression de toutes les stats non vérifiées (120+ clients, 87%, 4.8/5). Nettoyage complet OVH/HDS/SLA 99.9%/SecNumCloud dans la landing. Plan "Souverain" supprimé de data.ts. Features des 3 plans requalifiées. Risque juridique immédiat éliminé.
+- **Blocages** : aucun
+- **Demain** : Tâches 0.4–0.6 — Audit hébergement/SLA dans autres fichiers, requalification "12 ESRS natifs", lexique safe claims-dictionary.ts
 
 #### Mercredi — Jour 3
 - **Livré** :

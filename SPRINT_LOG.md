@@ -24,10 +24,10 @@
 - **Blocages** : aucun
 - **Demain** : Tâches 0.10–0.11 — Pages `/couverture-esrs` et `/etat-du-produit` (transparence niveau de complétude réel)
 
-#### Jeudi — Jour 4
-- **Livré** :
-- **Blocages** :
-- **Demain** :
+#### Jeudi — Jour 4 (2026-04-15)
+- **Livré** : Tâches 0.10–0.11 — Page `/couverture` (Coverage Matrix 12 ESRS, 3 statuts Live/Beta/Planifié) et page `/etat-du-produit` (9 Live, 5 Beta, 8 Planned — chaque item ≥20 mots honnêtes). Liens dans le footer. Correction "Hébergé en France" → "Hébergé en EU". 
+- **Blocages** : aucun
+- **Demain** : Tâche 0.12 — Audit faux succès silencieux (grep fallback/mock/placeholder dans tout l'app)
 
 #### Vendredi — Jour 5
 - **Livré** :

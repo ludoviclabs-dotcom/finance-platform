@@ -1210,9 +1210,11 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             <div>
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Produit</h4>
               <ul className="space-y-3">
-                {["Dashboard ESG", "Copilote IA", "Rapports automatisés", "ESRS Natif", "Connecteurs ERP", "Tarifs"].map((l) => (
-                  <li key={l} className="text-sm text-neutral-500">{l}</li>
-                ))}
+                <li><a href="#features" className="text-sm text-neutral-500 hover:text-black transition-colors">Dashboard ESG</a></li>
+                <li><a href="#features" className="text-sm text-neutral-500 hover:text-black transition-colors">Copilote IA</a></li>
+                <li><a href="#pricing" className="text-sm text-neutral-500 hover:text-black transition-colors">Tarifs</a></li>
+                <li><a href="/couverture" className="text-sm text-neutral-500 hover:text-black transition-colors">Couverture ESRS</a></li>
+                <li><a href="/etat-du-produit" className="text-sm text-neutral-500 hover:text-black transition-colors">État du produit</a></li>
               </ul>
             </div>
             <div>
@@ -1237,7 +1239,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
           <div className="border-t border-neutral-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-neutral-400">© 2026 CarbonCo SAS. Tous droits réservés. Conformité ESRS 2025 · RGPD · EU AI Act.</p>
-            <p className="text-xs text-neutral-400">Conçu à Paris · Hébergé en France · Made with 💚</p>
+            <p className="text-xs text-neutral-400">Conçu à Paris · Hébergé en EU (Vercel/Neon) · Made with 💚</p>
           </div>
         </div>
       </footer>

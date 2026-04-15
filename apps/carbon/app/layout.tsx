@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   description:
     "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
-    "et générez vos rapports ESG en quelques clics. Hébergement souverain.",
+    "et générez vos rapports ESG en quelques clics. Hébergé sur infrastructure EU.",
   keywords: [
     "ESG",
     "CSRD",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     title: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
     description:
       "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
-      "et générez vos rapports ESG en quelques clics. Hébergement souverain.",
+      "et générez vos rapports ESG en quelques clics. Hébergé sur infrastructure EU.",
     images: [
       {
         url: "/og-image.png",

@@ -105,7 +105,7 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
             </h2>
 
             <p className="text-white/50 text-base leading-relaxed max-w-sm mb-12">
-              Rejoignez 120+ entreprises qui automatisent leur reporting CSRD et génèrent leurs rapports ESRS en quelques clics.
+              Structurez votre conformité CSRD, centralisez vos données extra-financières et générez vos rapports ESRS en quelques clics.
             </p>
 
             {/* Bénéfices */}
@@ -113,7 +113,7 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
               {[
                 { icon: CheckCircle, text: "Conformité ESRS 2025 garantie", color: "text-green-400" },
                 { icon: Shield, text: "Audit trail et traçabilité totale", color: "text-cyan-400" },
-                { icon: Lock, text: "Hébergement souverain en France", color: "text-green-400" },
+                { icon: Lock, text: "Infrastructure EU (Vercel) · chiffrement TLS 1.3", color: "text-green-400" },
               ].map(({ icon: Icon, text, color }) => (
                 <div key={text} className="flex items-center gap-3">
                   <Icon className={`w-5 h-5 ${color} flex-shrink-0`} />
@@ -132,9 +132,9 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
           className="relative z-10 grid grid-cols-3 gap-6 border-t border-white/10 pt-8"
         >
           {[
-            { val: "120+", label: "Entreprises" },
-            { val: "−78%", label: "Temps de reporting" },
-            { val: "99.9%", label: "Disponibilité" },
+            { val: "ESRS E1", label: "Couverture Climat" },
+            { val: "ADEME", label: "Base Empreinte®" },
+            { val: "EFRAG", label: "Référentiel 2025" },
           ].map((s) => (
             <div key={s.label}>
               <div className="text-2xl font-extrabold text-white">{s.val}</div>

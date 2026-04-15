@@ -63,11 +63,11 @@
 
 ### Revue de Sprint 1
 
-- **DoD Phase 0 validée** : ☐ Oui ☐ Non
-- **Jalon atteint** (site V2 honnête en prod) : ☐ Oui ☐ Non
-- **Tâches reportées au Sprint suivant** :
-- **Leçons apprises** :
-- **Ajustements pour Sprint 2** :
+- **DoD Phase 0 validée** : ☑ Oui
+- **Jalon atteint** (site V2 honnête en prod) : ☑ Oui — PR `refonte-90j → master` ouverte, déploiement Vercel déclenché
+- **Tâches reportées au Sprint suivant** : claims-dictionary.ts à utiliser dans ≥2 composants supplémentaires (actuellement défini, pas encore référencé côté UI) ; ESG score 62 statique + benchmark sectoriel à surveiller en Phase 2
+- **Leçons apprises** : La priorité d'éliminer le risque juridique avant toute feature nouvelle est la bonne stratégie. Le pattern `_archived/` Next.js est propre pour désactiver des routes sans perte de code. Les bandeaux "Données de démonstration" doivent être conditionnels au statut réel du snapshot, pas hardcodés.
+- **Ajustements pour Sprint 2** : Démarrer par les endpoints API réels (import Excel → calcul Scope 1/2/3) pour que les bandeaux Phase 0 disparaissent naturellement quand les données sont réelles.
 
 ---
 

@@ -308,7 +308,7 @@ export function DashboardPage() {
       )}
 
       {/* ── Bandeau données de démonstration (aucun snapshot réel importé) ── */}
-      {!isLive && !carbonError && consolidated.status !== "loading" && (
+      {!isLive && !carbonError && (
         <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50">
           <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

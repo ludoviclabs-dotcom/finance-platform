@@ -132,7 +132,7 @@ test.describe("Phase 0 — Page /etat-du-produit", () => {
     const html = await page.content();
     expect(html).toContain("Connecteurs ERP");
     // Ne pas prétendre que c'est live
-    expect(html).not.toMatch(/Live.*Connecteurs ERP natifs/s);
+    expect(html).not.toMatch(/Live[\s\S]*?Connecteurs ERP natifs/);
   });
 });
 

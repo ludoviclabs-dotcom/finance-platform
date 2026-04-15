@@ -18,7 +18,7 @@ export function PricingPage() {
         variants={staggerContainer}
         initial="initial"
         animate="animate"
-        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
       >
         {pricingPlans.map((plan) => (
           <motion.div

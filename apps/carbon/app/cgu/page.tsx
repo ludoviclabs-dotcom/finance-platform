@@ -70,7 +70,7 @@ export default function CguPage() {
         <p>
           CarbonCo met en œuvre des mesures techniques et organisationnelles appropriées
           (chiffrement TLS, hachage des mots de passe, journal d'audit, isolation
-          multi-tenant, hébergement souverain). L'utilisateur s'engage à ne pas tenter de
+          multi-tenant, hébergement EU (Vercel/Neon)). L'utilisateur s'engage à ne pas tenter de
           contourner ces mesures ni d'altérer le fonctionnement du service.
         </p>
       </Section>

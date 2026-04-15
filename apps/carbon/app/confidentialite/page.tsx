@@ -101,7 +101,7 @@ export default function ConfidentialitePage() {
           CarbonCo met en œuvre des mesures techniques et organisationnelles appropriées pour
           garantir la sécurité des données : chiffrement TLS en transit, mots de passe hachés,
           jetons JWT signés avec rotation de refresh, isolation multi-tenant, journal d'audit
-          des accès, hébergement souverain pour les données métier.
+          des accès, hébergement sur infrastructure EU (Vercel/Neon) pour les données métier.
         </p>
       </Section>
     </LegalLayout>

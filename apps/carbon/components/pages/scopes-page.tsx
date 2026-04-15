@@ -42,6 +42,7 @@ export function ScopesPage() {
   const liveTotals = [scope1Total, scope2Total, scope3Total];
 
   const scope = scopeDetails[selectedScope];
+  const isLive = snapshot.status === "ready" && liveCarbon !== null && (liveCarbon.totalS123Tco2e ?? 0) > 0;
 
   return (
     <motion.div {...pageVariants} className="p-6 space-y-6">
@@ -49,6 +50,21 @@ export function ScopesPage() {
         title="Analyse Scopes 1-2-3"
         subtitle="Détail de vos émissions par périmètre GHG Protocol"
       />
+
+      {/* Bandeau données de démonstration */}
+      {!isLive && snapshot.status !== "loading" && (
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50">
+          <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-xs text-blue-700 flex-1">
+            <strong>Données de démonstration</strong> — les chiffres affichés sont fictifs.
+            Importez votre classeur Excel via{" "}
+            <a href="/upload" className="underline font-semibold hover:text-blue-900">Import de données</a>{" "}
+            pour voir vos émissions réelles.
+          </p>
+        </div>
+      )}
 
       {/* Scope selector cards */}
       <motion.div

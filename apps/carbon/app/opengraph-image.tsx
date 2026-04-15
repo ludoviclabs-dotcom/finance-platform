@@ -48,7 +48,7 @@ export default function Image() {
             marginTop: "30px",
           }}
         >
-          ESRS - Scope 1 2 3 - Hebergement souverain
+          ESRS E1 - Scope 1 2 3 - Infrastructure EU
         </div>
       </div>
     ),

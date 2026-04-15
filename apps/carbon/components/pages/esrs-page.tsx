@@ -197,7 +197,7 @@ export function ESRSPage() {
         subtitle="Suivi de conformité aux 12 normes European Sustainability Reporting Standards"
       />
 
-      {/* Live badge / error banner */}
+      {/* Live badge / error banner / demo banner */}
       {isLive && (
         <div className="flex items-center gap-2 text-xs text-[var(--color-foreground-muted)]">
           <span className="inline-flex w-1.5 h-1.5 rounded-full bg-[var(--color-success)] animate-pulse" />
@@ -211,6 +211,19 @@ export function ESRSPage() {
             <span className="font-semibold">Snapshot ESG indisponible.</span>{" "}
             Affichage des données de démonstration. <span className="opacity-70">({esgError})</span>
           </div>
+        </div>
+      )}
+      {!isLive && !esgError && esgSnap.status !== "loading" && (
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50">
+          <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-xs text-blue-700 flex-1">
+            <strong>Données de démonstration</strong> — les taux de progression affichés sont fictifs.
+            Complétez votre{" "}
+            <a href="/materialite" className="underline font-semibold hover:text-blue-900">matrice de matérialité</a>{" "}
+            pour voir votre conformité ESRS réelle.
+          </p>
         </div>
       )}
 

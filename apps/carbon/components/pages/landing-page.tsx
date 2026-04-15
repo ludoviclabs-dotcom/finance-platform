@@ -549,7 +549,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
 
               <p className="text-xl text-neutral-500 max-w-lg mb-10 leading-relaxed">
                 Collectez, analysez et générez vos rapports ESRS en quelques clics — pas en quelques mois.
-                Hébergement souverain, IA conforme EU AI Act.
+                Hébergé sur infrastructure EU (Vercel), IA assistant CSRD.
               </p>
 
               <div className="flex flex-wrap gap-4 mb-10">
@@ -567,7 +567,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-400">
                 <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Aucune carte bancaire</span>
                 <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Conforme ESRS 2025</span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Hébergement OVH France</span>
+                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Infrastructure EU (Vercel/Neon)</span>
               </div>
             </Reveal>
 
@@ -586,8 +586,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
 
               {/* Badge disponibilité */}
               <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute -bottom-4 left-0 lg:-left-6 bg-white rounded-2xl px-5 py-4 shadow-xl border border-neutral-100 z-20">
-                <div className="text-2xl font-extrabold text-black">99.9%</div>
-                <div className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">SLA Garanti</div>
+                <div className="text-2xl font-extrabold text-black">ESRS E1</div>
+                <div className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Couverture Climat</div>
               </motion.div>
 
               {/* Badge IA active */}
@@ -621,31 +621,23 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
         </section>
 
-        {/* ══ 2. TRUST BAR — LOGOS + STATS CountUp ══ */}
+        {/* ══ 2. TRUST BAR — CONTEXTE RÉGLEMENTAIRE ══ */}
         <section className="py-14 bg-white border-y border-neutral-100">
           <div className="max-w-[1440px] mx-auto px-8 md:px-12">
-            <p className="text-xs uppercase tracking-widest text-neutral-400 font-semibold text-center mb-8">Ils nous font confiance</p>
-            <div className="flex items-center justify-center gap-10 md:gap-16 flex-wrap mb-12">
-              {["Vinci", "Société Générale", "Schneider Electric", "TotalEnergies", "Veolia", "Danone", "Michelin"].map((name) => (
-                <span key={name} className="text-base md:text-lg font-bold text-neutral-300 hover:text-neutral-600 transition-colors whitespace-nowrap cursor-default">
-                  {name}
-                </span>
-              ))}
-            </div>
+            <p className="text-xs uppercase tracking-widest text-neutral-400 font-semibold text-center mb-8">Conçu avec des experts CSRD &amp; ESG</p>
 
-            {/* Stats avec CountUp */}
+            {/* Indicateurs réglementaires */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-neutral-100 pt-10">
               {[
-                { target: 120, suffix: "+", label: "Entreprises clientes", decimals: 0 },
-                { target: 87, suffix: "%", label: "Réduction du temps de reporting", decimals: 0 },
-                { target: 4.8, suffix: "/5", label: "Satisfaction client", decimals: 1 },
-                { target: 12, suffix: " ESRS", label: "Standards intégrés nativement", decimals: 0 },
+                { value: "ESRS E1", label: "Couverture prioritaire Climat", note: "Module principal" },
+                { value: "EFRAG", label: "Référentiel de conformité", note: "Guidelines 2024" },
+                { value: "GHG", label: "Protocol Scope 1, 2 & 3", note: "Méthodologie bilan carbone" },
+                { value: "ADEME", label: "Base Empreinte® intégrée", note: "Facteurs d'émission FR" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
-                  <div className="text-4xl md:text-5xl font-extrabold text-black mb-1">
-                    <CountUp target={s.target} suffix={s.suffix} decimals={s.decimals} />
-                  </div>
-                  <div className="text-xs text-neutral-500 font-medium">{s.label}</div>
+                  <div className="text-3xl md:text-4xl font-extrabold text-black mb-1">{s.value}</div>
+                  <div className="text-xs text-neutral-700 font-semibold">{s.label}</div>
+                  <div className="text-xs text-neutral-400 mt-0.5">{s.note}</div>
                 </div>
               ))}
             </div>
@@ -825,7 +817,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             {/* Feature highlight secondaire */}
             <div className="grid md:grid-cols-3 gap-6 mt-8">
               {[
-                { emoji: "🔌", title: "Connecteurs ERP", desc: "SAP, Oracle, Sage, Cegid — intégration en 2 jours" },
+                { emoji: "🔌", title: "Import & API", desc: "Import Excel structuré · API REST · Connecteurs ERP en roadmap" },
                 { emoji: "🛡️", title: "Audit trail complet", desc: "Traçabilité totale de chaque donnée pour l'OTI" },
                 { emoji: "📊", title: "Benchmark sectoriel", desc: "Comparez-vous aux leaders de votre industrie" },
                 { emoji: "🌐", title: "Multi-sites & filiales", desc: "Consolidation automatique des données groupe" },
@@ -871,8 +863,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                       <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
                     ),
                     title: "Connectez vos sources",
-                    desc: "ERP (SAP, Oracle, Sage), API énergie, fichiers Excel, fournisseurs. CarbonCo agrège tout en quelques heures.",
-                    detail: "Support technique inclus · Connecteurs certifiés ISO 27001",
+                    desc: "Import Excel structuré, API énergie, fournisseurs. Connecteurs ERP (SAP, Oracle, Sage) en roadmap.",
+                    detail: "Support technique inclus · Import guidé pas à pas",
                   },
                   {
                     num: "02", color: "purple", icon: (
@@ -918,71 +910,70 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
         </section>
 
-        {/* ══ 7. TÉMOIGNAGES avec métriques ══ */}
+        {/* ══ 7. SCÉNARIOS SECTORIELS ══ */}
         <section className="py-32 px-8 md:px-12 bg-[#f9f9fb]">
           <div className="max-w-[1440px] mx-auto">
             <Reveal className="text-center mb-4">
-              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Ils témoignent</span>
+              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Cas d&apos;usage</span>
             </Reveal>
-            <Reveal className="text-center mb-16" delay={0.05}>
+            <Reveal className="text-center mb-4" delay={0.05}>
               <h2 className="font-extrabold text-4xl md:text-5xl tracking-tighter text-black">
-                Ce que disent nos clients
+                CarbonCo en situation réelle
               </h2>
+            </Reveal>
+            <Reveal className="text-center mb-16" delay={0.08}>
+              <p className="text-neutral-500 text-base max-w-2xl mx-auto">
+                Ces scénarios illustrent comment CarbonCo peut s&apos;adapter à différents secteurs. Ils sont indicatifs — chaque contexte est unique.
+              </p>
             </Reveal>
 
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 {
-                  quote: "Le reporting CSRD qui nous prenait 4 mois se fait maintenant en 3 semaines. Le copilote IA est particulièrement bluffant pour la collecte Scope 3.",
-                  name: "Marie L.",
-                  title: "Directrice RSE, Vinci",
-                  initials: "ML",
-                  metrics: [{ val: "−87%", label: "temps de reporting" }, { val: "100%", label: "conformité ESRS" }],
-                  stars: 5,
+                  sector: "Industrie",
+                  icon: "🏭",
+                  context: "ETI industrielle (~800 salariés, 3 sites de production). Fournisseur de donneurs d'ordre soumis à la CSRD.",
+                  challenge: "Collecter les émissions Scope 3 amont (achats matières premières, transport) et répondre aux questionnaires ESG de ses clients grands comptes.",
+                  fit: ["Import Excel des factures énergie", "Calcul Scope 3 fournisseurs", "Export rapport ESRS E1 pour client"],
+                  tag: "Scénario illustratif",
                 },
                 {
-                  quote: "L'intégration avec notre ERP SAP a été réalisée en 2 jours. Le niveau de détail dans le benchmark sectoriel nous permet de nous positionner clairement.",
-                  name: "Thomas M.",
-                  title: "CFO, Groupe Schneider",
-                  initials: "TM",
-                  metrics: [{ val: "2j", label: "intégration ERP" }, { val: "−34%", label: "émissions Scope 2" }],
-                  stars: 5,
+                  sector: "Services",
+                  icon: "🏢",
+                  context: "PME de services (~120 salariés, siège unique). Reporting CSRD volontaire pour répondre aux appels d'offres publics.",
+                  challenge: "Structurer un premier bilan carbone fiable sans expertise interne, avec un budget limité.",
+                  fit: ["Bilan carbone Scope 1 & 2 guidé", "Copilote IA pour les ESRS prioritaires", "Rapport synthétique PDF"],
+                  tag: "Scénario illustratif",
                 },
                 {
-                  quote: "Enfin une solution qui comprend vraiment les exigences ESRS E1 et G1. Notre commissaire aux comptes a validé nos données du premier coup.",
-                  name: "Sophie R.",
-                  title: "Responsable ESG, TotalEnergies",
-                  initials: "SR",
-                  metrics: [{ val: "1er", label: "audit validé d'emblée" }, { val: "4.9/5", label: "satisfaction équipe" }],
-                  stars: 5,
+                  sector: "Agroalimentaire",
+                  icon: "🌾",
+                  context: "ETI agroalimentaire (~300 salariés). Filière courte, forte exposition au risque climatique amont (E1 adaptation).",
+                  challenge: "Documenter l'exposition aux risques physiques climatiques et les émissions liées aux intrants agricoles (ESRS E1, E4).",
+                  fit: ["Cartographie risques climatiques", "Facteurs ADEME Base Empreinte®", "Couverture ESRS E1 prioritaire"],
+                  tag: "Scénario illustratif",
                 },
-              ].map((t) => (
-                <Reveal key={t.name} delay={0.08} className="bg-white rounded-2xl p-8 shadow-sm border border-neutral-100 flex flex-col hover:shadow-md transition-shadow">
-                  {/* Étoiles */}
-                  <div className="flex items-center gap-1 mb-4">
-                    {Array.from({ length: t.stars }).map((_, i) => (
-                      <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" /></svg>
-                    ))}
-                  </div>
-                  <div className="text-4xl text-green-200 font-serif leading-none mb-3">&ldquo;</div>
-                  <p className="text-neutral-700 text-sm leading-relaxed flex-1 mb-6">{t.quote}</p>
-                  {/* Métriques */}
-                  <div className="grid grid-cols-2 gap-3 mb-6 bg-green-50 rounded-xl p-3">
-                    {t.metrics.map((m) => (
-                      <div key={m.label} className="text-center">
-                        <div className="text-lg font-extrabold text-green-700">{m.val}</div>
-                        <div className="text-xs text-green-600/70">{m.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="border-t border-neutral-100 pt-5 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-bold">{t.initials}</span>
-                    </div>
+              ].map((s) => (
+                <Reveal key={s.sector} delay={0.08} className="bg-white rounded-2xl p-8 shadow-sm border border-neutral-100 flex flex-col hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="text-3xl">{s.icon}</span>
                     <div>
-                      <div className="font-bold text-sm text-black">{t.name}</div>
-                      <div className="text-xs text-neutral-500">{t.title}</div>
+                      <div className="font-bold text-lg text-black">{s.sector}</div>
+                      <span className="text-xs text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full">{s.tag}</span>
                     </div>
+                  </div>
+                  <p className="text-sm text-neutral-500 leading-relaxed mb-3"><span className="font-semibold text-neutral-700">Contexte : </span>{s.context}</p>
+                  <p className="text-sm text-neutral-500 leading-relaxed mb-5"><span className="font-semibold text-neutral-700">Enjeu : </span>{s.challenge}</p>
+                  <div className="mt-auto">
+                    <div className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-2">Ce que CarbonCo apporte</div>
+                    <ul className="space-y-1.5">
+                      {s.fit.map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-sm text-neutral-700">
+                          <svg className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </Reveal>
               ))}
@@ -1006,13 +997,13 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             </Reveal>
 
             <div className="grid md:grid-cols-3 gap-8 items-start max-w-5xl mx-auto">
-              {/* Essentials */}
+              {/* Starter */}
               <Reveal delay={0.1} className="bg-white rounded-2xl p-8 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Essentials</div>
+                <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Starter</div>
                 <div className="text-4xl font-extrabold text-black mb-1">490 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
-                <p className="text-neutral-500 text-sm mb-8">Pour les PME démarrant leur démarche ESG</p>
+                <p className="text-neutral-500 text-sm mb-8">Pour PME en reporting volontaire ou préparation CSRD</p>
                 <ul className="space-y-3 mb-8">
-                  {["3 utilisateurs", "Scopes 1 & 2", "5 ESRS standards", "Rapports PDF de base", "Support email 5j/7"].map((f) => (
+                  {["Scope 1 & 2", "ESRS E1 (Climat) — couverture prioritaire", "1 utilisateur", "Export PDF", "Support email (lun–ven, 9h–18h)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1031,9 +1022,9 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 </div>
                 <div className="text-xs font-bold text-green-600 uppercase tracking-widest mb-3">Business</div>
                 <div className="text-4xl font-extrabold text-black mb-1">1 290 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
-                <p className="text-neutral-500 text-sm mb-8">Pour les ETI avec des besoins ESG avancés</p>
+                <p className="text-neutral-500 text-sm mb-8">Pour ETI fournisseurs de grands comptes soumis à la CSRD</p>
                 <ul className="space-y-3 mb-8">
-                  {["Utilisateurs illimités", "Scope 3 inclus", "12 ESRS natifs", "Copilote NEURAL", "Benchmark sectoriel", "API & connecteurs ERP", "Support prioritaire 7j/7"].map((f) => (
+                  {["Scope 1, 2 & 3", "ESRS E1 approfondi + ESRS 1/2", "5 utilisateurs", "Copilote IA avec citations ESRS sourcées", "Audit trail & traçabilité", "API REST + import Excel structuré", "Support email prioritaire (lun–ven)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1049,9 +1040,9 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <Reveal delay={0.2} className="bg-neutral-950 rounded-2xl p-8 border border-neutral-800 shadow-sm hover:shadow-md transition-shadow">
                 <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Enterprise</div>
                 <div className="text-4xl font-extrabold text-white mb-1">Sur devis</div>
-                <p className="text-neutral-400 text-sm mb-8">Pour les grandes entreprises et groupes cotés</p>
+                <p className="text-neutral-400 text-sm mb-8">Pour grands groupes multi-sites — tarif selon périmètre</p>
                 <ul className="space-y-3 mb-8">
-                  {["Tout inclus + personnalisé", "Hébergement souverain dédié", "SLA 99.9% garanti", "CSM dédié", "Formation équipes", "XBRL & formats réglementaires", "Intégration SSO / SAML"].map((f) => (
+                  {["Scope 1, 2, 3 + CBAM", "ESRS E1 approfondi + autres ESRS en Beta", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "SBTi trajectoire", "Multi-sites & filiales", "SSO & RBAC", "Onboarding accompagné"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-300">
                       <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1125,7 +1116,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   { val: "2.4B", label: "Paramètres IA" },
                   { val: "0.3ms", label: "Latence réponse" },
                   { val: "−78%", label: "Empreinte carbone" },
-                  { val: "99.9%", label: "Disponibilité SLA" },
+                  { val: "ADEME", label: "Base Empreinte® intégrée" },
                 ].map((s) => (
                   <div key={s.label} className="bg-white/5 border border-white/10 rounded-3xl p-8 text-center hover:bg-white/10 transition-colors">
                     <div className="text-4xl font-extrabold text-white mb-2">{s.val}</div>
@@ -1145,21 +1136,19 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <p className="text-neutral-500 mt-3 text-base">Vos données extra-financières sont aussi sensibles que vos données financières. On les protège en conséquence.</p>
               <div className="mt-6 max-w-3xl mx-auto text-sm text-neutral-600 leading-relaxed space-y-3">
                 <p>
-                  En 2025, <strong className="text-neutral-800">83% des incidents de sécurité ciblant les entreprises européennes</strong> concernaient des données extra-financières et ESG — passées entre les mailles de systèmes non certifiés.
-                  L&apos;entrée en vigueur du <strong className="text-neutral-800">règlement européen sur la souveraineté numérique (Data Act, mars 2025)</strong> impose désormais que toute donnée liée à une obligation réglementaire — dont le reporting CSRD — soit hébergée <strong className="text-neutral-800">sur le territoire de l&apos;UE</strong>, avec traçabilité totale des accès.
+                  Le <strong className="text-neutral-800">règlement DORA et les exigences CSRD</strong> imposent une traçabilité totale des données extra-financières déclarées. Chaque chiffre publié dans votre rapport doit pouvoir être justifié devant un commissaire aux comptes ou un OTI (Organisme Tiers Indépendant).
                 </p>
                 <p>
-                  CarbonCo est conçu pour ce contexte : <strong className="text-neutral-800">infrastructure 100% française</strong> (OVH Cloud HDS), chiffrement de bout en bout AES-256, audit trail immuable et zéro transfert hors UE.
-                  Résultat : vos données de reporting sont conformes, souveraines — et inattaquables.
+                  CarbonCo est conçu pour ce contexte : <strong className="text-neutral-800">infrastructure hébergée en Europe</strong> (Vercel EU, base de données Neon), chiffrement TLS 1.3 en transit, AES-256 au repos, audit trail immuable et traitement prioritaire en UE via Vercel AI Gateway.
                 </p>
               </div>
             </Reveal>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
               {[
-                { icon: "🔒", title: "RGPD Compliant", desc: "Données hébergées exclusivement en France — OVH Cloud HDS" },
-                { icon: "🛡️", title: "SecNumCloud", desc: "Certification ANSSI en cours — Qualification Q3 2026" },
-                { icon: "✅", title: "SOC2 Type II", desc: "Audit annuel indépendant par EY — rapport disponible sur demande" },
-                { icon: "🌿", title: "ESRS 2025", desc: "12 standards ESRS mis à jour automatiquement avec les guidelines EFRAG" },
+                { icon: "🔒", title: "RGPD Conforme", desc: "Hébergement EU (Vercel/Neon) · chiffrement TLS 1.3 + AES-256 au repos" },
+                { icon: "🛡️", title: "Audit Trail", desc: "Traçabilité immuable de chaque donnée — prêt pour OTI et commissaire aux comptes" },
+                { icon: "✅", title: "Certifications", desc: "Roadmap sécurité en cours — certifications en évaluation (SOC2, ISO 27001)" },
+                { icon: "🌿", title: "EFRAG 2025", desc: "Couverture ESRS E1 prioritaire · guidelines EFRAG intégrées" },
               ].map((b) => (
                 <Reveal key={b.title} delay={0.08} className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm text-center hover:shadow-md transition-shadow">
                   <div className="text-3xl mb-3">{b.icon}</div>
@@ -1191,7 +1180,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               </span>
             </h2>
             <p className="text-xl text-neutral-400 max-w-2xl mx-auto mb-12 leading-relaxed">
-              Rejoignez 120+ entreprises qui ont déjà automatisé leur conformité CSRD avec CarbonCo.
+              Rejoignez les pionniers qui structurent leur conformité CSRD dès maintenant — avant que vos concurrents ne le fassent.
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
               <button onClick={onEnterApp} className="bg-white text-black px-12 py-5 rounded-full font-extrabold text-lg hover:bg-neutral-200 transition-colors cursor-pointer hover:scale-105 transition-transform">
@@ -1215,15 +1204,17 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <p className="text-sm text-neutral-500 mb-4 leading-relaxed">La conformité ESG & CSRD, simplifiée par l&apos;intelligence artificielle.</p>
               <div className="flex items-center gap-2 text-xs text-neutral-400">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
-                <span>Hébergement OVH France · ISO 27001</span>
+                <span>Infrastructure EU (Vercel/Neon) · Chiffrement TLS 1.3</span>
               </div>
             </div>
             <div>
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Produit</h4>
               <ul className="space-y-3">
-                {["Dashboard ESG", "Copilote IA", "Rapports automatisés", "ESRS Natif", "Connecteurs ERP", "Tarifs"].map((l) => (
-                  <li key={l} className="text-sm text-neutral-500">{l}</li>
-                ))}
+                <li><a href="#features" className="text-sm text-neutral-500 hover:text-black transition-colors">Dashboard ESG</a></li>
+                <li><a href="#features" className="text-sm text-neutral-500 hover:text-black transition-colors">Copilote IA</a></li>
+                <li><a href="#pricing" className="text-sm text-neutral-500 hover:text-black transition-colors">Tarifs</a></li>
+                <li><a href="/couverture" className="text-sm text-neutral-500 hover:text-black transition-colors">Couverture ESRS</a></li>
+                <li><a href="/etat-du-produit" className="text-sm text-neutral-500 hover:text-black transition-colors">État du produit</a></li>
               </ul>
             </div>
             <div>
@@ -1248,7 +1239,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
           <div className="border-t border-neutral-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-neutral-400">© 2026 CarbonCo SAS. Tous droits réservés. Conformité ESRS 2025 · RGPD · EU AI Act.</p>
-            <p className="text-xs text-neutral-400">Conçu à Paris · Hébergé en France · Made with 💚</p>
+            <p className="text-xs text-neutral-400">Conçu à Paris · Hébergé en EU (Vercel/Neon) · Made with 💚</p>
           </div>
         </div>
       </footer>

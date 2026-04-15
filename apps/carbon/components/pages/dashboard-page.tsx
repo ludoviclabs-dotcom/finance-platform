@@ -307,6 +307,20 @@ export function DashboardPage() {
         </div>
       )}
 
+      {/* ── Bandeau données de démonstration (aucun snapshot réel importé) ── */}
+      {!isLive && !carbonError && (
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50">
+          <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-xs text-blue-700 flex-1">
+            <strong>Données de démonstration</strong> — les chiffres affichés sont fictifs.
+            Pour voir vos données réelles, importez votre classeur Excel via{" "}
+            <a href="/upload" className="underline font-semibold hover:text-blue-900">Import de données</a>.
+          </p>
+        </div>
+      )}
+
       {/* ── IA Proactive insights ── */}
       {visibleInsights.length > 0 && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}

@@ -254,13 +254,13 @@ export const pricingPlans: PricingPlan[] = [
     name: "Starter",
     price: "490",
     period: "/ mois",
-    description: "Pour les PME débutant leur reporting ESG",
+    description: "Pour PME en reporting volontaire ou préparation CSRD",
     features: [
       "Scope 1 & 2",
-      "3 ESRS de base",
+      "ESRS E1 (Climat) — couverture prioritaire",
       "1 utilisateur",
       "Export PDF",
-      "Support email",
+      "Support email (lun–ven, 9h–18h)",
     ],
     highlighted: false,
   },
@@ -269,15 +269,15 @@ export const pricingPlans: PricingPlan[] = [
     name: "Business",
     price: "1 290",
     period: "/ mois",
-    description: "Pour les ETI avec obligations CSRD",
+    description: "Pour ETI fournisseurs de grands comptes soumis à la CSRD",
     features: [
       "Scope 1, 2 & 3",
-      "12 ESRS complets",
+      "ESRS E1 approfondi + ESRS 1/2",
       "5 utilisateurs",
-      "Copilote IA",
-      "Audit trail",
-      "API & intégrations",
-      "Support prioritaire",
+      "Copilote IA avec citations ESRS sourcées",
+      "Audit trail & traçabilité",
+      "API REST + import Excel structuré",
+      "Support email prioritaire (lun–ven)",
     ],
     highlighted: true,
     badge: "Populaire",
@@ -285,37 +285,20 @@ export const pricingPlans: PricingPlan[] = [
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "2 990",
-    period: "/ mois",
-    description: "Pour les grands groupes multi-sites",
+    price: "Sur devis",
+    period: "",
+    description: "Pour grands groupes multi-sites — tarif selon périmètre",
     features: [
       "Scope 1, 2, 3 + CBAM",
-      "12 ESRS + Taxonomie",
+      "ESRS E1 approfondi + autres ESRS en Beta",
       "Utilisateurs illimités",
-      "Copilote IA avancé",
+      "Copilote IA avec citations ESRS sourcées",
       "SBTi trajectoire",
       "Multi-sites & filiales",
       "SSO & RBAC",
-      "Onboarding dédié",
+      "Onboarding accompagné",
     ],
     highlighted: false,
-  },
-  {
-    id: "sovereign",
-    name: "Souverain",
-    price: "Sur devis",
-    period: "",
-    description: "Hébergement souverain, conformité renforcée",
-    features: [
-      "Tout Enterprise",
-      "Cloud souverain SecNumCloud",
-      "Données hébergées en France",
-      "SLA 99,95%",
-      "Auditabilité complète",
-      "Accompagnement réglementaire",
-    ],
-    highlighted: false,
-    badge: "🇫🇷 Souverain",
   },
 ];
 
@@ -360,7 +343,65 @@ export const aiResponses: Record<string, string> = {
   scope:
     "Vos émissions totales s'élèvent à **5 955 tCO₂e** sur les 12 derniers mois.\n\n- **Scope 1** : 1 336 tCO₂e (22%) — en baisse de 8,2%\n- **Scope 2** : 934 tCO₂e (16%) — en baisse de 12,5%\n- **Scope 3** : 3 685 tCO₂e (62%) — en baisse de 3,1%\n\nLe Scope 3 reste votre principal levier de réduction. Je recommande de cibler les achats de biens & services (1 250 tCO₂e) et le transport amont (680 tCO₂e).",
   esrs: "Votre conformité ESRS globale est de **63%**.\n\n**Points forts :**\n- ESRS 1 (Exigences générales) : 95% ✅\n- ESRS S1 (Effectifs) : 90% ✅\n\n**Priorités :**\n- ESRS S3 (Communautés) : 30% — démarrez la consultation des parties prenantes\n- ESRS S4 (Consommateurs) : 35% — collectez les données de satisfaction client\n- ESRS S2 (Chaîne de valeur) : 40% — lancez un questionnaire fournisseurs",
-  cbam: "Le **CBAM** (Carbon Border Adjustment Mechanism) entre en phase transitoire.\n\n**Actions requises :**\n1. Identifier les importations couvertes (acier, aluminium, ciment, engrais, électricité, hydrogène)\n2. Collecter les données d'émissions intégrées auprès de vos fournisseurs hors-UE\n3. Déclarer trimestriellement via le registre CBAM\n\nVotre exposition estimée : **~240 tCO₂e** sur les importations d'acier et d'aluminium.",
+  cbam: "Le **CBAM** (Carbon Border Adjustment Mechanism) entre en phase transitoire.\n\n**Actions requises :**\n1. Identifier les importations couvertes (acier, aluminium, ciment, engrais, électricité, hydrogène)\n2. Collecter les données d'émissions intégrées auprès de vos fournisseurs hors-UE\n3. Déclarer trimestriellement via le registre CBAM\n\n⚠️ *Exemple pédagogique — les chiffres ci-dessous sont fictifs et doivent être remplacés par vos données réelles.*\nExposition illustrative : ~240 tCO₂e sur des importations d'acier et d'aluminium.",
   taxonomie:
-    "La **Taxonomie européenne** définit 6 objectifs environnementaux.\n\nVos activités éligibles représentent **42% du CA** :\n- Atténuation climat : 35% aligné\n- Adaptation climat : 28% aligné\n- Eau : en cours d'évaluation\n\n**Prochaine étape** : documenter les critères DNSH (Do No Significant Harm) pour vos 3 principales activités éligibles.",
+    "La **Taxonomie européenne** définit 6 objectifs environnementaux.\n\n⚠️ *Exemple pédagogique — les pourcentages ci-dessous sont fictifs et doivent être calculés à partir de vos données financières réelles.*\n\nActivités potentiellement éligibles :\n- Atténuation climat : à évaluer selon vos activités\n- Adaptation climat : à évaluer selon votre exposition aux risques physiques\n- Eau & ressources marines : si applicable à votre secteur\n\n**Prochaine étape** : documenter les critères DNSH (Do No Significant Harm) pour vos principales activités éligibles.",
 };
+
+export type SectorScenario = {
+  id: string;
+  sector: string;
+  icon: string;
+  profile: string;
+  context: string;
+  challenge: string;
+  fit: string[];
+};
+
+export const sectorScenarios: SectorScenario[] = [
+  {
+    id: "industrie",
+    sector: "Industrie",
+    icon: "🏭",
+    profile: "ETI industrielle (~800 salariés, 3 sites de production)",
+    context:
+      "Fournisseur de donneurs d'ordre soumis à la CSRD. Obligée de répondre aux questionnaires ESG de ses clients grands comptes depuis 2025.",
+    challenge:
+      "Collecter les émissions Scope 3 amont (achats matières premières, transport fournisseurs) et structurer un premier rapport ESRS E1 auditabl.",
+    fit: [
+      "Import Excel des factures énergie (Scope 2)",
+      "Calcul Scope 3 fournisseurs via facteurs ADEME",
+      "Export rapport ESRS E1 pour client grand compte",
+    ],
+  },
+  {
+    id: "services",
+    sector: "Services",
+    icon: "🏢",
+    profile: "PME de services (~120 salariés, siège unique)",
+    context:
+      "Reporting CSRD volontaire pour répondre aux appels d'offres publics et différencier l'offre commerciale.",
+    challenge:
+      "Structurer un premier bilan carbone fiable sans expertise RSE interne, avec un budget limité.",
+    fit: [
+      "Bilan carbone Scope 1 & 2 guidé pas à pas",
+      "Copilote IA pour identifier les ESRS prioritaires",
+      "Rapport synthétique PDF prêt à partager",
+    ],
+  },
+  {
+    id: "agroalimentaire",
+    sector: "Agroalimentaire",
+    icon: "🌾",
+    profile: "ETI agroalimentaire (~300 salariés, filière courte)",
+    context:
+      "Forte exposition au risque climatique amont (sécheresses, rendements). Clients distributeurs demandant une déclaration ESRS E1.",
+    challenge:
+      "Documenter l'exposition aux risques physiques climatiques et les émissions liées aux intrants agricoles (ESRS E1 adaptation, ESRS E4).",
+    fit: [
+      "Cartographie des risques climatiques physiques",
+      "Facteurs d'émission ADEME Base Empreinte® agricoles",
+      "Couverture ESRS E1 prioritaire (atténuation + adaptation)",
+    ],
+  },
+];

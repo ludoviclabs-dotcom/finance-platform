@@ -16,6 +16,8 @@ import {
 import { SkeletonCard, SkeletonChart, SkeletonRow } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
 import { KpiCard } from "@/components/ui/kpi-card";
+import { KpiProvenanceDrawer } from "@/components/ui/kpi-provenance-drawer";
+import { AuditModeBanner } from "@/components/ui/audit-mode-toggle";
 import { ChartCard } from "@/components/ui/chart-card";
 import { SectionTitle } from "@/components/ui/section-title";
 import { monthlyEmissions, scopeDetails, recentActivity, aiSuggestions } from "@/lib/data";
@@ -177,6 +179,13 @@ export function DashboardPage() {
   const visibleInsights = proactiveInsights.filter((i) => !dismissedInsights.has(i.id));
   const progressToTarget = Math.min(100, ((TARGET_EMISSIONS - (TARGET_EMISSIONS - totalValue)) / TARGET_EMISSIONS) * 100);
 
+  // Phase 2 — Drawer de provenance (état partagé entre tous les KPIs)
+  const [provenance, setProvenance] = useState<{
+    code: string;
+    label: string;
+    unit: string;
+  } | null>(null);
+
   const handleSync = (id: string) => {
     setSyncingId(id);
     setTimeout(() => {
@@ -290,6 +299,9 @@ export function DashboardPage() {
         )}
       </AnimatePresence>
 
+      {/* ── Audit mode banner (Phase 2) ── */}
+      <AuditModeBanner />
+
       {/* ── Titre ── */}
       <SectionTitle
         title={`Tableau de bord ESG — ${liveCompanyName ?? "Acme Corp."}`}
@@ -373,24 +385,40 @@ export function DashboardPage() {
                 className="h-full rounded-full bg-gradient-to-r from-[#059669] to-[#0891b2]" />
             </div>
           </div>
+          <ProvenanceButton
+            onOpen={() => setProvenance({ code: "CC.GES.TOTAL_S123", label: "Émissions totales (S1+S2+S3)", unit: "tCO₂e" })}
+            factCode="CC.GES.TOTAL_S123"
+          />
         </div>
 
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4" style={{ borderLeft: "3px solid #059669" }}>
           <KpiCard label="Scope 1 — Direct" value={scope1Value} unit="tCO₂e"
             change={scopeDetails[0].trend} icon={<Factory className="w-5 h-5" />} />
           <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-2">vs objectif SBTi : <span className="text-[var(--color-success)]">−8% 🟢</span></p>
+          <ProvenanceButton
+            onOpen={() => setProvenance({ code: "CC.GES.SCOPE1", label: "Scope 1 — Direct", unit: "tCO₂e" })}
+            factCode="CC.GES.SCOPE1"
+          />
         </div>
 
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4" style={{ borderLeft: "3px solid #0891B2" }}>
           <KpiCard label="Scope 2 — Énergie" value={scope2Value} unit="tCO₂e"
             change={scopeDetails[1].trend} icon={<Zap className="w-5 h-5" />} />
           <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-2">vs objectif SBTi : <span className="text-orange-400">−2% 🟠</span></p>
+          <ProvenanceButton
+            onOpen={() => setProvenance({ code: "CC.GES.SCOPE2_LB", label: "Scope 2 — Énergie (location-based)", unit: "tCO₂e" })}
+            factCode="CC.GES.SCOPE2_LB"
+          />
         </div>
 
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4" style={{ borderLeft: "3px solid #7C3AED" }}>
           <KpiCard label="Scope 3 — Chaîne" value={scope3Value} unit="tCO₂e"
             change={scopeDetails[2].trend} icon={<Truck className="w-5 h-5" />} />
           <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-2">vs objectif SBTi : <span className="text-red-400">+4% 🔴</span></p>
+          <ProvenanceButton
+            onOpen={() => setProvenance({ code: "CC.GES.SCOPE3", label: "Scope 3 — Chaîne de valeur", unit: "tCO₂e" })}
+            factCode="CC.GES.SCOPE3"
+          />
         </div>
       </motion.div>
 
@@ -724,6 +752,36 @@ export function DashboardPage() {
       </div>
 
       </div>{/* end px-6 pb-6 */}
+
+      {/* ── Drawer provenance (Phase 2) ── */}
+      <KpiProvenanceDrawer
+        open={provenance !== null}
+        onClose={() => setProvenance(null)}
+        code={provenance?.code ?? ""}
+        label={provenance?.label ?? ""}
+        unit={provenance?.unit}
+      />
     </motion.div>
+  );
+}
+
+/** Bouton discret "Voir la provenance" pour les cartes KPI du dashboard. */
+function ProvenanceButton({
+  onOpen,
+  factCode,
+}: {
+  onOpen: () => void;
+  factCode: string;
+}) {
+  return (
+    <button
+      onClick={onOpen}
+      className="mt-2 inline-flex items-center gap-1 text-[10px] text-[var(--color-foreground-subtle)] hover:text-[var(--color-foreground)] transition-colors group/prov"
+      aria-label={`Voir la provenance de ${factCode}`}
+      data-testid={`provenance-trigger-${factCode}`}
+    >
+      <Info className="w-3 h-3 opacity-60 group-hover/prov:opacity-100 transition-opacity" aria-hidden />
+      <span className="underline underline-offset-2 decoration-dotted">Voir la provenance</span>
+    </button>
   );
 }

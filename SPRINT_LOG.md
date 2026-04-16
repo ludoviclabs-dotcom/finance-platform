@@ -119,7 +119,29 @@
 
 ## Sprint 3 — Phase 2 (Couche preuve frontend)
 
-_À remplir au démarrage du sprint._
+### Phase 2.A — Provenance Drawer + Data Quality Center (2026-04-17)
+
+- **Livré** :
+  - `lib/api.ts` : types `FactEvent`, `FactTrailResponse`, `ChainVerification` + fonctions `fetchFactTrail`, `fetchFactLatest`, `verifyFactsChain`.
+  - `lib/hooks/use-kpi-provenance.ts` : hook avec `enabled`/`refetch`/`durationMs` pour perf tracking.
+  - `lib/hooks/use-audit-mode.tsx` : contexte React + persistance localStorage `carbon:audit-mode`.
+  - `components/ui/kpi-provenance-drawer.tsx` : side panel framer-motion (spring damping 28, < 300ms d'ouverture), timeline vertical des events avec hash copiable, source_path, valeurs, état (loading/error/empty/success).
+  - `components/ui/kpi-with-provenance.tsx` : wrapper KpiCard + bouton provenance (option réutilisable future).
+  - `components/ui/audit-mode-toggle.tsx` : toggle header (Eye/EyeOff) + bandeau global `AuditModeBanner`.
+  - `components/ui/provenance-integrity-card.tsx` : carte `/qc` affichant résultat `/facts/verify` avec refresh CTA + fallback broken chain.
+  - `app/(app)/layout.tsx` : `<AuditModeProvider>` wrap global.
+  - `components/layout/header.tsx` : intégration `<AuditModeToggle />`.
+  - `components/pages/dashboard-page.tsx` : `<AuditModeBanner />` + 4 boutons provenance câblés (`CC.GES.TOTAL_S123`, `SCOPE1`, `SCOPE2_LB`, `SCOPE3`) + drawer partagé.
+  - `app/(app)/qc/page.tsx` : carte `ProvenanceIntegrityCard` ajoutée au-dessus des contrôles ESG/Finance.
+  - `e2e/tests/05-provenance.spec.ts` : 7 tests Playwright (toggle persistant, ≥4 boutons, ouverture drawer < 500ms, ESC + X ferment, `/qc` affiche carte intégrité, clic Revérifier appelle `/facts/verify`).
+- **Choix structurants** :
+  - **État drawer partagé** dans dashboard-page (1 state `provenance`) plutôt que state local par KPI — économise 4 handlers dupliqués.
+  - **ProvenanceButton inline** dans `dashboard-page.tsx` plutôt que remplacement complet des KpiCard pour préserver les éléments contextuels (barre de progression, delta SBTi).
+  - **Audit mode via Context** (pas query state) pour pouvoir l'injecter partout sans prop drilling.
+  - **localStorage clé versionnée** (`carbon:audit-mode`) — isolation par produit.
+- **Compilation** : TypeScript vert (0 erreur).
+- **Blocages** : aucun.
+- **Suivant** : merger PRs dans l'ordre 1.A → 1.B → 2, activer RLS en staging, démarrer Phase 3 (Workflow validation + export auditable).
 
 ---
 

@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Bell, Search, RefreshCw, Download, X, ChevronRight, Sun, Moon, LogOut, Menu } from "lucide-react";
 
+import { AuditModeToggle } from "@/components/ui/audit-mode-toggle";
+
 interface HeaderProps {
   title: string;
   subtitle?: string;
@@ -188,6 +190,9 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
               </>
             )}
           </div>
+
+          {/* Audit mode toggle (Phase 2) */}
+          <AuditModeToggle />
 
           {/* Avatar + logout */}
           {onLogout ? (

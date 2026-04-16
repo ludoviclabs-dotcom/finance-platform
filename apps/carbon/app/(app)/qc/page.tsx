@@ -15,6 +15,8 @@ import {
 import { useEsgSnapshot } from "@/lib/hooks/use-esg-snapshot";
 import { useFinanceSnapshot } from "@/lib/hooks/use-finance-snapshot";
 import type { EsgQcControl, FinanceQcControl } from "@/lib/api";
+import { ProvenanceIntegrityCard } from "@/components/ui/provenance-integrity-card";
+import { AuditModeBanner } from "@/components/ui/audit-mode-toggle";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -199,6 +201,9 @@ export default function QcPage() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Audit mode banner */}
+      <AuditModeBanner />
+
       {/* Header */}
       <div>
         <h1 className="font-display text-2xl font-bold text-[var(--color-foreground)] tracking-tight flex items-center gap-2">
@@ -209,6 +214,9 @@ export default function QcPage() {
           Agrégation des contrôles ESG et Finance avec drill-down, avertissements et actions correctives.
         </p>
       </div>
+
+      {/* Provenance integrity (Phase 2) */}
+      <ProvenanceIntegrityCard />
 
       {/* Errors */}
       {errors.length > 0 && (

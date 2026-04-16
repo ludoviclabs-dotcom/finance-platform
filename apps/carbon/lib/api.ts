@@ -1014,6 +1014,77 @@ export function templateDownloadUrl(domain: "carbon" = "carbon"): string {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 2 — Provenance API (/facts/*)
+// ---------------------------------------------------------------------------
+
+export interface FactEvent {
+  id: number;
+  company_id: number;
+  code: string;
+  value: number | null;
+  unit: string;
+  ef_id: number | null;
+  source_path: string;
+  computed_at: string;
+  hash_prev: string | null;
+  hash_self: string;
+  meta: Record<string, unknown> | null;
+}
+
+export interface FactTrailResponse {
+  code: string;
+  company_id: number;
+  events: FactEvent[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface FactLatest {
+  code: string;
+  company_id: number;
+  value: number | null;
+  unit: string;
+  ef_id: number | null;
+  source_path: string;
+  computed_at: string;
+  hash_self: string;
+}
+
+export interface ChainVerification {
+  ok: boolean;
+  broken_at: number | null;
+  checked: number;
+  company_id: number;
+}
+
+/** Récupère l'historique d'un KPI pour la company courante. */
+export function fetchFactTrail(
+  code: string,
+  options: { limit?: number; offset?: number; signal?: AbortSignal } = {},
+): Promise<FactTrailResponse> {
+  const { limit = 50, offset = 0, signal } = options;
+  const qs = `?limit=${limit}&offset=${offset}`;
+  return apiGet<FactTrailResponse>(
+    `/facts/${encodeURIComponent(code)}/trail${qs}`,
+    signal,
+  );
+}
+
+/** Dernière valeur connue d'un KPI (depuis facts_current). */
+export function fetchFactLatest(
+  code: string,
+  signal?: AbortSignal,
+): Promise<FactLatest> {
+  return apiGet<FactLatest>(`/facts/${encodeURIComponent(code)}`, signal);
+}
+
+/** Vérifie l'intégrité complète de la chaîne Merkle pour la company courante. */
+export function verifyFactsChain(signal?: AbortSignal): Promise<ChainVerification> {
+  return apiGet<ChainVerification>(`/facts/verify`, signal);
+}
+
+// ---------------------------------------------------------------------------
 // Dashboard consolidé
 // ---------------------------------------------------------------------------
 

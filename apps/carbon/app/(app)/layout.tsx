@@ -8,6 +8,7 @@ import { SkeletonCard, SkeletonChart, SkeletonRow } from "@/components/ui/skelet
 import { KeyboardShortcuts } from "@/components/ui/keyboard-shortcuts";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { AuditModeProvider } from "@/lib/hooks/use-audit-mode";
 
 const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/dashboard":   { title: "Tableau de bord",  subtitle: "Vue d'ensemble ESG" },
@@ -69,36 +70,38 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const desktopMargin = sidebarCollapsed ? 72 : 256;
 
   return (
-    <div id="main-content" className="min-h-screen bg-[var(--color-background)]">
-      <OfflineBanner />
-      <KeyboardShortcuts />
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        onLogout={logout}
-        mobileOpen={mobileOpen}
-        onMobileClose={() => setMobileOpen(false)}
-      />
-
-      <div
-        className="transition-[margin] duration-300 lg:[margin-left:var(--sidebar-w)]"
-        style={{ ["--sidebar-w" as string]: `${desktopMargin}px` }}
-      >
-        <Header
-          title={config.title}
-          subtitle={config.subtitle}
+    <AuditModeProvider>
+      <div id="main-content" className="min-h-screen bg-[var(--color-background)]">
+        <OfflineBanner />
+        <KeyboardShortcuts />
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
           onLogout={logout}
-          userEmail={auth.status === "authenticated" ? auth.email : undefined}
-          demoHint={undefined}
-          onMobileMenuClick={() => setMobileOpen(true)}
+          mobileOpen={mobileOpen}
+          onMobileClose={() => setMobileOpen(false)}
         />
 
-        <main className="overflow-y-auto" style={{ height: "calc(100vh - 4rem)" }}>
-          <Suspense fallback={<PageSkeleton />}>
-            {children}
-          </Suspense>
-        </main>
+        <div
+          className="transition-[margin] duration-300 lg:[margin-left:var(--sidebar-w)]"
+          style={{ ["--sidebar-w" as string]: `${desktopMargin}px` }}
+        >
+          <Header
+            title={config.title}
+            subtitle={config.subtitle}
+            onLogout={logout}
+            userEmail={auth.status === "authenticated" ? auth.email : undefined}
+            demoHint={undefined}
+            onMobileMenuClick={() => setMobileOpen(true)}
+          />
+
+          <main className="overflow-y-auto" style={{ height: "calc(100vh - 4rem)" }}>
+            <Suspense fallback={<PageSkeleton />}>
+              {children}
+            </Suspense>
+          </main>
+        </div>
       </div>
-    </div>
+    </AuditModeProvider>
   );
 }

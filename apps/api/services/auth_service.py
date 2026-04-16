@@ -69,6 +69,7 @@ class AuthUser(BaseModel):
     email: str
     role: str = "analyst"
     company_id: int = 1
+    user_id: int | None = None  # Phase 3.A — nécessaire pour traçabilité reviews/freezes
 
 
 # ---------------------------------------------------------------------------
@@ -170,6 +171,7 @@ def authenticate(email: str, password: str) -> Optional[AuthUser]:
             email=normalized,
             role=record["role"],
             company_id=record["company_id"],
+            user_id=record["id"],
         )
 
     # Fallback demo users
@@ -198,6 +200,8 @@ def create_access_token(user: AuthUser) -> tuple[str, datetime]:
         "cid": user.company_id,
         "exp": expires_at,
     }
+    if user.user_id is not None:
+        payload["uid"] = user.user_id
     token = jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALGORITHM)
     return token, expires_at
 
@@ -211,9 +215,16 @@ def decode_token(token: str) -> Optional[AuthUser]:
     email = payload.get("sub")
     role = payload.get("role", "analyst")
     company_id = payload.get("cid", 1)
+    uid_raw = payload.get("uid")
     if not isinstance(email, str):
         return None
-    return AuthUser(email=email, role=role, company_id=int(company_id))
+    try:
+        user_id = int(uid_raw) if uid_raw is not None else None
+    except (TypeError, ValueError):
+        user_id = None
+    return AuthUser(
+        email=email, role=role, company_id=int(company_id), user_id=user_id,
+    )
 
 
 # ---------------------------------------------------------------------------

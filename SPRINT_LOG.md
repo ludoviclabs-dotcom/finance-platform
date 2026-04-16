@@ -147,7 +147,31 @@
 
 ## Sprint 4 — Phase 3 (Workflow & export)
 
-_À remplir au démarrage du sprint._
+### Phase 3.A — Workflow validation backend (2026-04-17)
+
+- **Livré** :
+  - **Backend** : enum Postgres `datapoint_status` (5 valeurs) + table `datapoint_reviews` (migration 006) + enum `DatapointStatus` TS + matrice de transitions `_VALID_TRANSITIONS`.
+  - **Service** : `services/review_service.py` — `propose` (timeout auto +2h), `approve`, `reject` (motif obligatoire ≥3 chars), `freeze` (terminal), `move_to_review`, `inbox` (paginée, trié), `latest_by_code`, `count_by_status`, `promote_timed_out_reviews` (cron).
+  - **Router** : `routers/reviews.py` — `/reviews/inbox`, `/reviews/stats`, `/reviews/propose` (analyst), `/reviews/{id}/{approve|reject|move-to-review}` (analyst), `/reviews/{id}/freeze` (admin), `/reviews/by-code/{fact_code}`.
+  - **Auth** : `AuthUser.user_id` ajouté (optionnel, rétro-compat JWT). Peuplé depuis DB à authenticate et encodé dans JWT (`uid`) pour traçabilité reviews.
+  - **Migrations** : `run_migrations` auto-exécute 001-003, 005, 006 (hors 004 RLS manuel).
+  - **Frontend** : types API `ReviewItem`, `ReviewStatus`, `InboxResponse`, `ReviewStats` + 7 fonctions (`fetchReviewInbox`, `fetchReviewStats`, `fetchLatestReview`, `proposeReview`, `approveReview`, `rejectReview`, `freezeReview`).
+  - **Composants** : `ReviewStatusBadge` (5 variantes avec icône) + hook `useReviewStatus`/`useReviewStatusBatch`.
+  - **Page** : `/revue` (Inbox) avec stats grid 5 KPIs, 6 filtres de statut, actions valider/rejeter/geler contextuelles au statut, empty state, loading state.
+  - **Dashboard** : badge statut review inline sous chaque KPI (4 KPIs câblés : TOTAL_S123, SCOPE1, SCOPE2_LB, SCOPE3) — visible uniquement en mode audit.
+  - **Navigation** : lien "Inbox revue" ajouté à la sidebar + pageConfig `/revue` dans layout (app).
+  - **Tests** : `test_review_workflow.py` (11 tests — matrice transitions, constante timeout, lifecycle DB) + `07-review.spec.ts` (5 tests E2E Playwright — page /revue, stats, filtres, sidebar link, drawer compatible audit mode).
+- **Choix structurants** :
+  - Enum Postgres natif (pas TEXT + CHECK constraint) → intégrité fort au niveau SGBD + introspection facile.
+  - `reviewed_by` / `frozen_by` / `proposed_by` sont `REFERENCES users(id) ON DELETE SET NULL` → jamais de FK dangling même si user supprimé.
+  - Rôles : analyst peut `propose/approve/reject/move_to_review`, admin seul peut `freeze` (terminal, irréversible).
+  - Motif de rejet obligatoire (≥3 chars) — validation service + router.
+  - FROZEN = aucune transition sortante (terminal) — validé par `_VALID_TRANSITIONS["frozen"] == set()`.
+  - Badge dashboard en mode audit uniquement → pas de pollution visuelle pour utilisateurs non-OTI.
+- **Tests** : 57 passed, 15 skipped (DB absente) — 0 régression sur Phase 0/1.A/1.B/2.
+- **TypeScript** : 0 erreur.
+- **Blocages** : aucun.
+- **Suivant** : Phase 3.B (export ZIP signé + `/verify/{hash}` public + watermark PDF).
 
 ---
 

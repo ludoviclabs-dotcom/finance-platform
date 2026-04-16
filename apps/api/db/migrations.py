@@ -175,15 +175,19 @@ def run_migrations() -> None:
                 cur.execute(DDL)
         logger.info("Migrations PostgreSQL (DDL inline) exécutées avec succès")
 
-        # --- 2. Fichiers SQL 001-003 (Phase 1.B tables nouvelles, idempotent) ---
+        # --- 2. Fichiers SQL auto (tables nouvelles idempotentes, hors RLS) ---
+        #   001-003 : Phase 1.B (emission_factors, facts_events, facts_current)
+        #   005     : Phase 1.B — colonnes hash audit_events
+        #   006     : Phase 3.A — datapoint_reviews
+        #   004     : RLS policies — activation MANUELLE après audit callers.
         from pathlib import Path
         migrations_dir = Path(__file__).parent / "migrations"
+        MANUAL_ONLY_PREFIXES = {"004"}  # activation manuelle
         if migrations_dir.exists():
-            # Auto : tout fichier *.sql dont le préfixe numérique est < 004
             sql_files = sorted(migrations_dir.glob("*.sql"))
             for sql_file in sql_files:
                 prefix = sql_file.name[:3]
-                if not prefix.isdigit() or int(prefix) >= 4:
+                if not prefix.isdigit() or prefix in MANUAL_ONLY_PREFIXES:
                     logger.info("Migration %s — skippée (activation manuelle)", sql_file.name)
                     continue
                 try:

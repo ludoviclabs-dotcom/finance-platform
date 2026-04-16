@@ -16,6 +16,8 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/vsme":        { title: "VSME",             subtitle: "Standard volontaire PME — EFRAG" },
   "/esrs":        { title: "ESRS / CSRD",      subtitle: "Conformité réglementaire" },
   "/materialite": { title: "Double matérialité", subtitle: "Impacts × Risques × Opportunités" },
+  "/revue":       { title: "Inbox de validation", subtitle: "Workflow proposé → validé → figé" },
+  "/qc":          { title: "Contrôles qualité", subtitle: "Intégrité + drill-down" },
   "/social":      { title: "Social",           subtitle: "Effectifs, diversité, sécurité" },
   "/dpp":         { title: "DPP produits",     subtitle: "Digital Product Passport" },
   "/finance":     { title: "Finance / DPP",    subtitle: "SFDR, benchmark, taxonomie" },

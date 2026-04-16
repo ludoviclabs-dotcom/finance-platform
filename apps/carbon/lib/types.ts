@@ -5,6 +5,7 @@ export type Page =
   | "vsme"
   | "materialite"
   | "qc"
+  | "revue"
   | "social"
   | "dpp"
   | "finance"

@@ -1085,6 +1085,108 @@ export function verifyFactsChain(signal?: AbortSignal): Promise<ChainVerificatio
 }
 
 // ---------------------------------------------------------------------------
+// Phase 3.A — Review workflow (/reviews/*)
+// ---------------------------------------------------------------------------
+
+export type ReviewStatus =
+  | "proposed"
+  | "in_review"
+  | "validated"
+  | "frozen"
+  | "rejected";
+
+export interface ReviewItem {
+  id: number;
+  company_id: number;
+  fact_code: string;
+  fact_event_id: number | null;
+  status: ReviewStatus;
+  proposed_by: number | null;
+  proposed_at: string;
+  reviewed_by: number | null;
+  reviewed_at: string | null;
+  frozen_by: number | null;
+  frozen_at: string | null;
+  timeout_at: string | null;
+  comment: string | null;
+  reject_reason: string | null;
+  meta: Record<string, unknown> | null;
+}
+
+export interface InboxResponse {
+  items: ReviewItem[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ReviewStats {
+  counts: Record<string, number>;
+  total_active: number;
+}
+
+export function fetchReviewInbox(
+  options: { statuses?: ReviewStatus[]; limit?: number; offset?: number; signal?: AbortSignal } = {},
+): Promise<InboxResponse> {
+  const { statuses, limit = 50, offset = 0, signal } = options;
+  const statusesQs = statuses && statuses.length > 0
+    ? statuses.map((s) => `statuses=${encodeURIComponent(s)}`).join("&") + "&"
+    : "";
+  return apiGet<InboxResponse>(
+    `/reviews/inbox?${statusesQs}limit=${limit}&offset=${offset}`,
+    signal,
+  );
+}
+
+export function fetchReviewStats(signal?: AbortSignal): Promise<ReviewStats> {
+  return apiGet<ReviewStats>(`/reviews/stats`, signal);
+}
+
+export function fetchLatestReview(
+  factCode: string,
+  signal?: AbortSignal,
+): Promise<ReviewItem | null> {
+  return apiGet<ReviewItem | null>(
+    `/reviews/by-code/${encodeURIComponent(factCode)}`,
+    signal,
+  );
+}
+
+export function proposeReview(
+  body: { fact_code: string; fact_event_id?: number; comment?: string },
+  signal?: AbortSignal,
+): Promise<ReviewItem | null> {
+  return apiSend<ReviewItem>("POST", `/reviews/propose`, signal, body);
+}
+
+export function approveReview(
+  id: number,
+  comment: string | null,
+  signal?: AbortSignal,
+): Promise<ReviewItem | null> {
+  return apiSend<ReviewItem>("POST", `/reviews/${id}/approve`, signal, {
+    comment,
+  });
+}
+
+export function rejectReview(
+  id: number,
+  reason: string,
+  signal?: AbortSignal,
+): Promise<ReviewItem | null> {
+  return apiSend<ReviewItem>("POST", `/reviews/${id}/reject`, signal, {
+    reason,
+  });
+}
+
+export function freezeReview(
+  id: number,
+  signal?: AbortSignal,
+): Promise<ReviewItem | null> {
+  return apiSend<ReviewItem>("POST", `/reviews/${id}/freeze`, signal);
+}
+
+// ---------------------------------------------------------------------------
 // Dashboard consolidé
 // ---------------------------------------------------------------------------
 

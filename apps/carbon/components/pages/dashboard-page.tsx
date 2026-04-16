@@ -18,6 +18,9 @@ import { useToast } from "@/components/ui/toast";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { KpiProvenanceDrawer } from "@/components/ui/kpi-provenance-drawer";
 import { AuditModeBanner } from "@/components/ui/audit-mode-toggle";
+import { ReviewStatusBadge } from "@/components/ui/review-status-badge";
+import { useAuditMode } from "@/lib/hooks/use-audit-mode";
+import { useReviewStatusBatch } from "@/lib/hooks/use-review-status";
 import { ChartCard } from "@/components/ui/chart-card";
 import { SectionTitle } from "@/components/ui/section-title";
 import { monthlyEmissions, scopeDetails, recentActivity, aiSuggestions } from "@/lib/data";
@@ -185,6 +188,15 @@ export function DashboardPage() {
     label: string;
     unit: string;
   } | null>(null);
+
+  // Phase 3.A — Statuts de review batch pour les KPIs dashboard
+  const { enabled: auditModeEnabled } = useAuditMode();
+  const { byCode: reviewByCode } = useReviewStatusBatch([
+    "CC.GES.TOTAL_S123",
+    "CC.GES.SCOPE1",
+    "CC.GES.SCOPE2_LB",
+    "CC.GES.SCOPE3",
+  ]);
 
   const handleSync = (id: string) => {
     setSyncingId(id);
@@ -385,6 +397,7 @@ export function DashboardPage() {
                 className="h-full rounded-full bg-gradient-to-r from-[#059669] to-[#0891b2]" />
             </div>
           </div>
+          <ReviewBadgeInline code="CC.GES.TOTAL_S123" reviewByCode={reviewByCode} show={auditModeEnabled} />
           <ProvenanceButton
             onOpen={() => setProvenance({ code: "CC.GES.TOTAL_S123", label: "Émissions totales (S1+S2+S3)", unit: "tCO₂e" })}
             factCode="CC.GES.TOTAL_S123"
@@ -395,6 +408,7 @@ export function DashboardPage() {
           <KpiCard label="Scope 1 — Direct" value={scope1Value} unit="tCO₂e"
             change={scopeDetails[0].trend} icon={<Factory className="w-5 h-5" />} />
           <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-2">vs objectif SBTi : <span className="text-[var(--color-success)]">−8% 🟢</span></p>
+          <ReviewBadgeInline code="CC.GES.SCOPE1" reviewByCode={reviewByCode} show={auditModeEnabled} />
           <ProvenanceButton
             onOpen={() => setProvenance({ code: "CC.GES.SCOPE1", label: "Scope 1 — Direct", unit: "tCO₂e" })}
             factCode="CC.GES.SCOPE1"
@@ -405,6 +419,7 @@ export function DashboardPage() {
           <KpiCard label="Scope 2 — Énergie" value={scope2Value} unit="tCO₂e"
             change={scopeDetails[1].trend} icon={<Zap className="w-5 h-5" />} />
           <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-2">vs objectif SBTi : <span className="text-orange-400">−2% 🟠</span></p>
+          <ReviewBadgeInline code="CC.GES.SCOPE2_LB" reviewByCode={reviewByCode} show={auditModeEnabled} />
           <ProvenanceButton
             onOpen={() => setProvenance({ code: "CC.GES.SCOPE2_LB", label: "Scope 2 — Énergie (location-based)", unit: "tCO₂e" })}
             factCode="CC.GES.SCOPE2_LB"
@@ -415,6 +430,7 @@ export function DashboardPage() {
           <KpiCard label="Scope 3 — Chaîne" value={scope3Value} unit="tCO₂e"
             change={scopeDetails[2].trend} icon={<Truck className="w-5 h-5" />} />
           <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-2">vs objectif SBTi : <span className="text-red-400">+4% 🔴</span></p>
+          <ReviewBadgeInline code="CC.GES.SCOPE3" reviewByCode={reviewByCode} show={auditModeEnabled} />
           <ProvenanceButton
             onOpen={() => setProvenance({ code: "CC.GES.SCOPE3", label: "Scope 3 — Chaîne de valeur", unit: "tCO₂e" })}
             factCode="CC.GES.SCOPE3"
@@ -762,6 +778,26 @@ export function DashboardPage() {
         unit={provenance?.unit}
       />
     </motion.div>
+  );
+}
+
+/** Badge statut review inline — affiché uniquement en mode audit pour éviter l'encombrement. */
+function ReviewBadgeInline({
+  code,
+  reviewByCode,
+  show,
+}: {
+  code: string;
+  reviewByCode: Record<string, import("@/lib/api").ReviewItem | null>;
+  show: boolean;
+}) {
+  if (!show) return null;
+  const review = reviewByCode[code];
+  if (!review) return null;
+  return (
+    <div className="mt-2">
+      <ReviewStatusBadge status={review.status} />
+    </div>
   );
 }
 

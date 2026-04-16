@@ -9,6 +9,7 @@ import {
   FileBarChart, CreditCard, Leaf, LogOut,
   ChevronLeft, ChevronRight, X, Scale,
   Sparkles, ShieldCheck, Database, Upload, ClipboardList, History, Settings, Bell,
+  Inbox,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -36,6 +37,7 @@ const navItems: {
   },
   { id: "materialite", href: "/materialite", label: "Matérialité", icon: <Scale className="w-5 h-5" /> },
   { id: "qc", href: "/qc", label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
+  { id: "revue", href: "/revue", label: "Inbox revue", icon: <Inbox className="w-5 h-5" /> },
   // social, dpp, finance — archivés Sprint 1 Phase 0 (hors wedge CSRD fournisseurs)
   {
     id: "copilot", href: "/copilot", label: "Copilote IA", icon: <Bot className="w-5 h-5" />,

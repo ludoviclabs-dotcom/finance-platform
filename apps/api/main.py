@@ -23,6 +23,7 @@ from routers import (
     entreprise,
     esg,
     excel,
+    factors,
     finance,
     health,
     history,
@@ -138,5 +139,6 @@ app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(dpp.router, prefix="/dpp", tags=["dpp"])
 app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(factors.router, prefix="/factors", tags=["factors"])
 app.include_router(copilot.router, prefix="/copilot", tags=["copilot"])
 app.include_router(strategic_mapping.router, prefix="/strategic-mapping", tags=["strategic-mapping"])

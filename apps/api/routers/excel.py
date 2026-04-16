@@ -138,8 +138,8 @@ async def preview_excel(
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Fichier illisible : {exc}") from exc
 
-    # Named ranges
-    named_ranges = [nr.name for nr in wb.defined_names.definedName] if hasattr(wb, "defined_names") else []
+    # Named ranges (openpyxl 3.1+: defined_names est un DefinedNameDict itérable comme dict)
+    named_ranges = list(wb.defined_names) if hasattr(wb, "defined_names") else []
 
     # Sheet previews
     sheet_previews: list[SheetPreview] = []
@@ -275,8 +275,8 @@ async def validate_excel(
                 effective_domain = d
                 break
 
-    # Named ranges
-    named_ranges_found: list[str] = [nr.name for nr in wb.defined_names.definedName] if hasattr(wb, "defined_names") else []
+    # Named ranges (openpyxl 3.1+: defined_names est un DefinedNameDict itérable comme dict)
+    named_ranges_found: list[str] = list(wb.defined_names) if hasattr(wb, "defined_names") else []
     expected_nr = _EXPECTED_NAMED_RANGES.get(effective_domain or "", [])
     named_ranges_missing = [n for n in expected_nr if n not in named_ranges_found]
     for missing in named_ranges_missing:
@@ -467,7 +467,9 @@ async def ingest_uploaded(
 
     try:
         snapshot = build_carbon_snapshot_from_bytes(
-            contents, source_filename=file.filename
+            contents,
+            source_filename=file.filename,
+            company_id=user.company_id,
         )
     except CarbonServiceError as exc:
         logger.error("Carbon snapshot build failed for user %s: %s", user.email, exc)

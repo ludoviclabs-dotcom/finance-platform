@@ -8,10 +8,15 @@ Stratégie :
 Usage :
     from db.database import get_db, db_available
 
-    if db_available():
-        with get_db() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT ...")
+    # Sans tenant context (admin, scripts maintenance)
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT ...")
+
+    # AVEC tenant context (RLS isolation, mode standard pour les routes API) :
+    with get_db(company_id=42) as conn:
+        # toutes les requêtes sont automatiquement filtrées sur company_id=42
+        ...
 """
 
 from __future__ import annotations
@@ -44,10 +49,20 @@ def _get_connection():  # type: ignore[return]
 
 
 @contextmanager
-def get_db() -> Generator:
-    """Context manager — yields a psycopg2 connection, commits on exit, rolls back on error."""
+def get_db(company_id: int | None = None) -> Generator:
+    """Context manager — yields a psycopg2 connection.
+
+    Si `company_id` est fourni, la session exécute `SET LOCAL app.current_company_id = $1`
+    avant de yield, ce qui active les RLS policies pour l'isolation multi-tenant.
+
+    Commit on exit, rollback on error.
+    """
     conn = _get_connection()
     try:
+        if company_id is not None:
+            with conn.cursor() as cur:
+                # SET LOCAL : portée limitée à la transaction courante, auto-reset au commit/rollback
+                cur.execute("SET LOCAL app.current_company_id = %s", (str(int(company_id)),))
         yield conn
         conn.commit()
     except Exception:

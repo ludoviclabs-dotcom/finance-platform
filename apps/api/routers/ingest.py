@@ -53,7 +53,7 @@ async def ingest(company_id: int = Depends(get_company_id)) -> IngestResponse:
 
     # --- Carbon ---
     try:
-        carbon_data = build_carbon_snapshot()
+        carbon_data = build_carbon_snapshot(company_id=company_id)
         write_snapshot("carbon", carbon_data, company_id=company_id)
         results.append(IngestDomainResult(
             domain="carbon", status="ok",

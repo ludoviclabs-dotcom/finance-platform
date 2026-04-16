@@ -90,9 +90,30 @@
 - **Blocages** : aucun. Compilation Python + TypeScript verte.
 - **Suivant** : merger la PR Phase 1.A puis démarrer Phase 1.B selon SPRINT_2_CHECKLIST.md.
 
-### Phase 1.B — Couche preuve backend (13 jours, à démarrer)
+### Phase 1.B — Couche preuve backend (2026-04-17)
 
-_À remplir au démarrage du sprint. Voir [SPRINT_2_CHECKLIST.md](SPRINT_2_CHECKLIST.md)._
+- **Livré** :
+  - **J1** — Migration `001_emission_factors.sql` + script `seed_factors.py` avec 502 facteurs ADEME Base Empreinte v2025.0 embarqués (énergie/transport/matériaux/déchets/alimentation/réfrigérants/emballages/électronique/industrie/scope3 amont/aval). Tests : 14/14 ✅
+  - **J2** — `models/factors.py` (Pydantic v2) + `routers/factors.py` → `GET /factors` (pagination + filtres scope/category/version/q) + `GET /factors/{ef_code}`. Branché dans `main.py`.
+  - **J3** — Migration `002_facts_events.sql` (table append-only + hash Merkle chaîné SHA-256) + unique constraint `(company_id, code, computed_at)`. Tests hash : 30/30 ✅
+  - **J4** — `services/facts_service.py` : `compute_hash` déterministe (tuple ordonné avec formatage float `.6f`), `emit_fact` (lock `FOR UPDATE` anti-race), `emit_facts_bulk`, `get_trail`, `verify_chain` (server-side cursor O(N)), `refresh_facts_current`.
+  - **J5** — Migration `003_facts_current.sql` — vue matérialisée `DISTINCT ON (company_id, code)` + index unique pour `REFRESH CONCURRENTLY`.
+  - **J6** — `carbon_service.py` : mapping `SNAPSHOT_FIELD_TO_FACT_CODE` (25 KPIs quantitatifs), `_emit_carbon_facts` best-effort résilient (pas de crash si DB down), propagation `company_id` dans `build_carbon_snapshot()` / `build_carbon_snapshot_from_bytes()` / routes `/carbon/snapshot`, `/excel/ingest-uploaded`, `/ingest`.
+  - **J7** — Migration `004_rls_policies.sql` (ENABLE ROW LEVEL SECURITY + policies `tenant_isolation_*` sur snapshots, facts_events, audit_events, alert_rules, products). `get_db(company_id=...)` set `SET LOCAL app.current_company_id = $1` avant yield. Propagation dans `facts_service.emit_fact/get_trail/verify_chain` + `snapshot_cache.write/read/history`. **Non exécutée automatiquement** : `run_migrations()` skip `004_*.sql` — activation manuelle après audit complet des callers pour éviter casser la prod.
+  - **J8** — `tests/test_rls_isolation.py` — 4 tests (isolation A↔B, insert WITH CHECK violation, fail-safe sans tenant context). Skippés en CI sans DB.
+  - **J9** — `routers/facts.py` : `GET /facts/verify`, `GET /facts/{code}/trail`, `GET /facts/{code}` (depuis facts_current avec fallback facts_events). Auth via `get_current_user` (tous rôles).
+  - **J10** — Migration `005_audit_hash_columns.sql` (ajout `hash_prev`, `hash_self`) + script `scripts/migrate_audit_hash.py` backfill idempotent ordonné par `(company_id, created_at ASC, id ASC)`.
+  - **J11** — `tests/test_facts_integration.py` — cohérence mapping `SNAPSHOT_FIELD_TO_FACT_CODE` vs `SNAPSHOT_FIELD_TO_KEY`, résilience `_emit_carbon_facts` face aux échecs `emit_fact` / valeurs non-numériques / DB down + test perf `get_trail < 500ms` (skippé sans DB).
+- **Bonus veille** : fix pré-existant `wb.defined_names.definedName` → `list(wb.defined_names)` pour compatibilité openpyxl 3.1+ (débloqué 7 tests `test_excel.py` cassés depuis des mois).
+- **Bugs pré-existants flaggés (worktree séparé)** : `pdf_service.py` Helvetica encoding latin-1 (13 tests PDF échouent sur caractères Unicode).
+- **Choix structurants** :
+  - Migration 004 (RLS) **non automatique** : décorrélation de l'infrastructure (policies écrites, session setter opérationnel) et de l'activation. Permet de déployer Phase 1.B sans casser les callers qui ne passent pas encore tous `company_id`.
+  - `_emit_carbon_facts` **best-effort** : chaque `emit_fact` est wrappé try/except individuellement. Un KPI qui échoue ne bloque pas les autres ni l'écriture du snapshot.
+  - Refresh `facts_current` déclenché **par l'application** (pas trigger DB) pour éviter les verrous en cascade.
+  - 502 facteurs ADEME embarqués **dans le code** (pas de fichier XLSX en git) : versionnable, diffable, testable. Script prévoit lecture optionnelle de `data/factors/Facteurs_Emission.xlsx` si présent (priorité au fichier).
+- **Tests** : 46 passed, 12 skipped (DB absente). 0 régression sur Phase 0 et Phase 1.A.
+- **Blocages** : aucun.
+- **Suivant** : merger PR Phase 1.A, puis PR Phase 1.B, puis exécution manuelle migration 004 (RLS) en staging avant prod.
 
 ---
 

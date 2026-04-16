@@ -31,7 +31,7 @@ async def snapshot(company_id: int = Depends(get_company_id)) -> CarbonSnapshotR
     if cached:
         return CarbonSnapshotResponse(**cached)
     try:
-        result = build_carbon_snapshot()
+        result = build_carbon_snapshot(company_id=company_id)
         write_snapshot("carbon", result, company_id=company_id)
     except CarbonServiceError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc

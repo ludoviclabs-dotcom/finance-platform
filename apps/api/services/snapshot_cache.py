@@ -76,7 +76,7 @@ def _write_pg(
     source: str,
 ) -> dict[str, Any] | None:
     try:
-        with get_db() as conn:
+        with get_db(company_id=company_id) as conn:
             with conn.cursor() as cur:
                 # Calculer le prochain numéro de version
                 cur.execute(
@@ -156,7 +156,7 @@ def read_snapshot(domain: str, company_id: int = DEFAULT_COMPANY_ID) -> dict[str
 
 def _read_pg(domain: str, company_id: int) -> dict[str, Any] | None:
     try:
-        with get_db() as conn:
+        with get_db(company_id=company_id) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
@@ -213,7 +213,7 @@ def read_snapshot_history(
     if not db_available():
         return []
     try:
-        with get_db() as conn:
+        with get_db(company_id=company_id) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """

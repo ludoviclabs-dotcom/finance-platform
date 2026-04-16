@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import subprocess
@@ -11,6 +12,8 @@ from typing import Any
 
 from openpyxl import load_workbook
 from openpyxl.workbook.workbook import Workbook
+
+_logger = logging.getLogger(__name__)
 
 
 class CarbonServiceError(Exception):
@@ -121,6 +124,39 @@ FALLBACK_CELLS = {
     "CC_SBTI_Taux_S12": ("Trajectoire_SBTi", "B8"),
     "CC_SBTI_Taux_S3": ("Trajectoire_SBTi", "B9"),
 }
+
+# Mapping field_path → fact_code ADEME pour l'émission dans facts_events.
+# Ne contient QUE les KPIs quantitatifs (pas les champs textuels company.name, etc.).
+# Phase 1.B — J6 : chaque snapshot produit un event append-only par KPI.
+SNAPSHOT_FIELD_TO_FACT_CODE: dict[str, tuple[str, str]] = {
+    # (fact_code, unit)
+    "carbon.scope1Tco2e":                  ("CC.GES.SCOPE1", "tCO2e"),
+    "carbon.scope2LbTco2e":                ("CC.GES.SCOPE2_LB", "tCO2e"),
+    "carbon.scope2MbTco2e":                ("CC.GES.SCOPE2_MB", "tCO2e"),
+    "carbon.scope3Tco2e":                  ("CC.GES.SCOPE3", "tCO2e"),
+    "carbon.totalS123Tco2e":               ("CC.GES.TOTAL_S123", "tCO2e"),
+    "carbon.intensityRevenueTco2ePerMEur": ("CC.INTENSITE.CA", "tCO2e/M€"),
+    "carbon.intensityFteTco2ePerFte":      ("CC.INTENSITE.ETP", "tCO2e/ETP"),
+    "carbon.shareScope1Pct":               ("CC.PART.SCOPE1", "%"),
+    "carbon.shareScope2Pct":               ("CC.PART.SCOPE2", "%"),
+    "carbon.shareScope3Pct":               ("CC.PART.SCOPE3", "%"),
+    "energy.consumptionMWh":               ("CC.CONSO.ENERGIE", "MWh"),
+    "energy.renewableSharePct":            ("CC.PART.ENR", "%"),
+    "taxonomy.turnoverAlignedPct":         ("CC.TAXO.CA_ALIGNE", "%"),
+    "taxonomy.capexAlignedPct":            ("CC.TAXO.CAPEX_ALIGNE", "%"),
+    "taxonomy.opexAlignedPct":             ("CC.TAXO.OPEX_ALIGNE", "%"),
+    "cbam.estimatedCostEur":               ("CC.CBAM.COUT", "€"),
+    "sbti.baselineS12Tco2e":               ("CC.SBTI.BASELINE_S12", "tCO2e"),
+    "sbti.baselineS3Tco2e":                ("CC.SBTI.BASELINE_S3", "tCO2e"),
+    "sbti.targetReductionS12Pct":          ("CC.SBTI.TAUX_S12", "%"),
+    "sbti.targetReductionS3Pct":           ("CC.SBTI.TAUX_S3", "%"),
+    "company.revenueNetEur":               ("CC.CA.NET", "€"),
+    "company.fte":                         ("CC.ETP", "ETP"),
+    "company.surfaceSqm":                  ("CC.SURFACE", "m²"),
+    "company.capexTotalEur":               ("CC.CAPEX.TOTAL", "€"),
+    "company.opexEligibleTaxoEur":         ("CC.OPEX.TAXO_ELIGIBLE", "€"),
+}
+
 
 SNAPSHOT_FIELD_TO_KEY = {
     "company.name": "CC_Raison_Sociale",
@@ -702,6 +738,8 @@ def _build_snapshot_from_workbooks(
     initial_failures: list[str],
     initial_warnings: list[str],
     com_fallback_path: Path | None,
+    company_id: int | None = None,
+    source_label: str = "master",
 ) -> dict[str, Any]:
     """Shared core: extract snapshot fields from two openpyxl workbook objects.
 
@@ -794,6 +832,15 @@ def _build_snapshot_from_workbooks(
     elif warnings:
         validation_status = "warning"
 
+    # ── J6 : émission facts_events pour chaque KPI quantitatif ────────────
+    if company_id is not None and validation_status != "failed":
+        _emit_carbon_facts(
+            snapshot_data=snapshot_data,
+            company_id=company_id,
+            source_label=source_label,
+            source_filename=source_statuses["carbon"].get("filename", "unknown"),
+        )
+
     return {
         "snapshotVersion": "v1",
         "generatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -811,7 +858,71 @@ def _build_snapshot_from_workbooks(
     }
 
 
-def build_carbon_snapshot() -> dict[str, Any]:
+def _emit_carbon_facts(
+    *,
+    snapshot_data: dict[str, Any],
+    company_id: int,
+    source_label: str,
+    source_filename: str,
+) -> int:
+    """Émet un fact_event par KPI quantitatif non-nul. Retourne le nombre de facts créés.
+
+    Best-effort : en cas d'erreur (DB indisponible, etc.), on loggue et on continue.
+    L'utilisateur recevra quand même son snapshot, mais sans provenance.
+    """
+    try:
+        from services import facts_service  # import lazy pour éviter cycles
+    except ImportError:
+        _logger.warning("facts_service non disponible — pas d'émission facts.")
+        return 0
+
+    emitted = 0
+    for field_path, (fact_code, unit) in SNAPSHOT_FIELD_TO_FACT_CODE.items():
+        # Extraire la valeur du snapshot_data
+        cursor: Any = snapshot_data
+        for part in field_path.split("."):
+            cursor = cursor.get(part) if isinstance(cursor, dict) else None
+            if cursor is None:
+                break
+
+        if cursor is None:
+            continue
+        try:
+            value_f = float(cursor)
+        except (TypeError, ValueError):
+            continue
+
+        contract_key = SNAPSHOT_FIELD_TO_KEY.get(field_path, "?")
+        source_path = f"{source_label}:{source_filename}!{contract_key}"
+
+        try:
+            result = facts_service.emit_fact(
+                company_id=company_id,
+                code=fact_code,
+                value=value_f,
+                unit=unit,
+                ef_id=None,  # KPI composite, pas de facteur unique
+                source_path=source_path,
+                meta={"field_path": field_path, "contract_key": contract_key},
+            )
+            if result is not None:
+                emitted += 1
+        except Exception as exc:  # ne jamais casser l'ingest à cause des facts
+            _logger.warning("emit_fact %s échoué: %s", fact_code, exc)
+
+    # Refresh la vue matérialisée si au moins un fact a été émis
+    if emitted > 0:
+        try:
+            facts_service.refresh_facts_current()
+        except Exception as exc:
+            _logger.warning("refresh_facts_current échoué: %s", exc)
+
+    _logger.info("_emit_carbon_facts: %d facts émis pour company_id=%s (source=%s)",
+                 emitted, company_id, source_label)
+    return emitted
+
+
+def build_carbon_snapshot(company_id: int | None = None) -> dict[str, Any]:
     validation_result = validate_master_workbooks()
     paths = get_workbook_paths()
     carbon_path = paths["carbon"]
@@ -829,6 +940,8 @@ def build_carbon_snapshot() -> dict[str, Any]:
             initial_failures=list(validation_result["failures"]),
             initial_warnings=list(validation_result["warnings"]),
             com_fallback_path=carbon_path,
+            company_id=company_id,
+            source_label="master",
         )
     finally:
         workbook_values.close()
@@ -839,6 +952,7 @@ def build_carbon_snapshot_from_bytes(
     file_bytes: bytes,
     *,
     source_filename: str | None = None,
+    company_id: int | None = None,
 ) -> dict[str, Any]:
     """Build a carbon snapshot from an in-memory user-uploaded workbook.
 
@@ -889,6 +1003,8 @@ def build_carbon_snapshot_from_bytes(
             initial_failures=[],
             initial_warnings=[],
             com_fallback_path=None,
+            company_id=company_id,
+            source_label="upload",
         )
     finally:
         wb_values.close()

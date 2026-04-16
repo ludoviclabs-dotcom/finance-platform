@@ -158,15 +158,42 @@ CREATE INDEX IF NOT EXISTS idx_alert_rules_company ON alert_rules(company_id);
 
 
 def run_migrations() -> None:
-    """Execute DDL to create all tables if they don't exist. Safe to call on every startup."""
+    """Execute DDL to create all tables if they don't exist. Safe to call on every startup.
+
+    Étapes :
+      1. DDL inline (tables historiques : companies, users, snapshots, audit_events, products, alert_rules)
+      2. Fichiers SQL dans db/migrations/ préfixés 001-003 (Phase 1.B : facts backbone)
+         NOTE : 004_rls_policies.sql est EXCLUS — à activer manuellement après audit complet des callers.
+    """
     if not db_available():
         logger.info("PostgreSQL non disponible — migrations ignorées (mode /tmp JSON actif)")
         return
     try:
+        # --- 1. DDL inline historique ---
         with get_db() as conn:
             with conn.cursor() as cur:
                 cur.execute(DDL)
-        logger.info("Migrations PostgreSQL exécutées avec succès")
+        logger.info("Migrations PostgreSQL (DDL inline) exécutées avec succès")
+
+        # --- 2. Fichiers SQL 001-003 (Phase 1.B tables nouvelles, idempotent) ---
+        from pathlib import Path
+        migrations_dir = Path(__file__).parent / "migrations"
+        if migrations_dir.exists():
+            # Auto : tout fichier *.sql dont le préfixe numérique est < 004
+            sql_files = sorted(migrations_dir.glob("*.sql"))
+            for sql_file in sql_files:
+                prefix = sql_file.name[:3]
+                if not prefix.isdigit() or int(prefix) >= 4:
+                    logger.info("Migration %s — skippée (activation manuelle)", sql_file.name)
+                    continue
+                try:
+                    sql = sql_file.read_text(encoding="utf-8")
+                    with get_db() as conn:
+                        with conn.cursor() as cur:
+                            cur.execute(sql)
+                    logger.info("Migration %s exécutée", sql_file.name)
+                except Exception as exc:
+                    logger.warning("Migration %s échouée (peut être déjà appliquée) : %s", sql_file.name, exc)
     except Exception as exc:
         logger.error("Erreur migrations PostgreSQL : %s", exc)
         # Ne pas faire planter le démarrage de l'API — fallback /tmp reste actif

@@ -109,7 +109,7 @@ def emit_fact(
 
     ts = computed_at or datetime.now(tz=timezone.utc)
 
-    with get_db() as conn:
+    with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             # Récupérer le dernier hash pour cette company (verrou exclusif)
             cur.execute(
@@ -201,7 +201,7 @@ def get_trail(
     if not db_available():
         return []
 
-    with get_db() as conn:
+    with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
@@ -250,7 +250,7 @@ def verify_chain(company_id: int) -> ChainVerification:
     prev_hash: str | None = None
     checked = 0
 
-    with get_db() as conn:
+    with get_db(company_id=company_id) as conn:
         with conn.cursor("verify_cursor") as cur:
             cur.execute(
                 """

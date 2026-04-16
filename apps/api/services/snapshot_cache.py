@@ -51,15 +51,30 @@ def _cache_path(domain: str) -> Path:
 # Write
 # ---------------------------------------------------------------------------
 
-def write_snapshot(domain: str, data: dict[str, Any], company_id: int = DEFAULT_COMPANY_ID) -> None:
-    """Persist a snapshot. Writes to PostgreSQL if available, else /tmp JSON."""
+def write_snapshot(
+    domain: str,
+    data: dict[str, Any],
+    company_id: int = DEFAULT_COMPANY_ID,
+    *,
+    source: str = "ingest",
+) -> dict[str, Any] | None:
+    """Persist a snapshot. Writes to PostgreSQL if available, else /tmp JSON.
+
+    Returns a small dict with {id, version, generatedAt, source} when PG is
+    used, or None when falling back to /tmp JSON.
+    """
     if db_available():
-        _write_pg(domain, data, company_id)
-    else:
-        _write_file(domain, data)
+        return _write_pg(domain, data, company_id, source)
+    _write_file(domain, data)
+    return None
 
 
-def _write_pg(domain: str, data: dict[str, Any], company_id: int) -> None:
+def _write_pg(
+    domain: str,
+    data: dict[str, Any],
+    company_id: int,
+    source: str,
+) -> dict[str, Any] | None:
     try:
         with get_db() as conn:
             with conn.cursor() as cur:
@@ -73,11 +88,21 @@ def _write_pg(domain: str, data: dict[str, Any], company_id: int) -> None:
 
                 cur.execute(
                     """
-                    INSERT INTO snapshots (company_id, domain, version, data, generated_at)
-                    VALUES (%s, %s, %s, %s, now())
+                    INSERT INTO snapshots (company_id, domain, version, data, generated_at, source)
+                    VALUES (%s, %s, %s, %s, now(), %s)
+                    RETURNING id, generated_at
                     """,
-                    (company_id, domain, next_version, json.dumps(data, default=str)),
+                    (
+                        company_id,
+                        domain,
+                        next_version,
+                        json.dumps(data, default=str),
+                        source,
+                    ),
                 )
+                inserted = cur.fetchone()
+                inserted_id = inserted["id"] if inserted else None
+                inserted_at = inserted["generated_at"] if inserted else None
 
                 # Purger les anciens snapshots au-delà de MAX_HISTORY_PER_DOMAIN
                 cur.execute(
@@ -93,9 +118,16 @@ def _write_pg(domain: str, data: dict[str, Any], company_id: int) -> None:
                     """,
                     (company_id, domain, company_id, domain, MAX_HISTORY_PER_DOMAIN),
                 )
+        return {
+            "id": inserted_id,
+            "version": next_version,
+            "generatedAt": inserted_at.isoformat() if hasattr(inserted_at, "isoformat") else str(inserted_at) if inserted_at else None,
+            "source": source,
+        }
     except Exception as exc:
         logger.warning("Écriture PostgreSQL échouée pour %s, fallback /tmp : %s", domain, exc)
         _write_file(domain, data)
+        return None
 
 
 def _write_file(domain: str, data: dict[str, Any]) -> None:

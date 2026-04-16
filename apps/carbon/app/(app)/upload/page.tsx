@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Upload,
   CheckCircle2,
@@ -16,14 +17,17 @@ import {
   Eye,
   ShieldCheck,
   Info,
+  Download,
 } from "lucide-react";
 import {
   getAuthToken,
-  triggerIngest,
+  ingestUploaded,
   previewExcel,
+  templateDownloadUrl,
   validateExcel,
   type ExcelPreviewResponse,
   type ExcelValidateResponse,
+  type IngestUploadedResponse,
   type ValidationIssue,
 } from "@/lib/api";
 
@@ -349,6 +353,7 @@ function ValidationPanel({ state }: { state: DomainFile }) {
 // ---------------------------------------------------------------------------
 
 export default function UploadPage() {
+  const router = useRouter();
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [files, setFiles] = useState<Record<DomainKey, DomainFile>>({
     carbon: { file: null, status: "idle" },
@@ -363,6 +368,7 @@ export default function UploadPage() {
   const [ingesting, setIngesting] = useState(false);
   const [ingestDone, setIngestDone] = useState(false);
   const [ingestError, setIngestError] = useState<string | null>(null);
+  const [ingestResult, setIngestResult] = useState<IngestUploadedResponse | null>(null);
 
   const selectedFiles = DOMAINS.filter((d) => files[d.key].file !== null);
   const selectedCount = selectedFiles.length;
@@ -465,13 +471,22 @@ export default function UploadPage() {
     }
   };
 
-  // Step 4 : trigger re-ingest
+  // Step 4 : parse carbon user file → snapshot user_upload → redirect dashboard
   const handleIngest = async () => {
+    const carbonFile = files.carbon.file;
+    if (!carbonFile) {
+      setIngestError(
+        "Aucun classeur carbone sélectionné. Recommencez en joignant un fichier Carbon.",
+      );
+      return;
+    }
     setIngesting(true);
     setIngestError(null);
     try {
-      await triggerIngest();
+      const result = await ingestUploaded(carbonFile, "carbon");
+      setIngestResult(result);
       setIngestDone(true);
+      router.push("/dashboard");
     } catch (e) {
       setIngestError(e instanceof Error ? e.message : "Erreur inattendue");
     } finally {
@@ -486,19 +501,30 @@ export default function UploadPage() {
     setUploadError(null);
     setIngestDone(false);
     setIngestError(null);
+    setIngestResult(null);
   };
 
   return (
     <div className="p-6 space-y-6 max-w-2xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="font-display text-2xl font-bold text-[var(--color-foreground)] tracking-tight flex items-center gap-2">
-          <Upload className="w-6 h-6 text-carbon-emerald" />
-          Import des workbooks Excel
-        </h1>
-        <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
-          Uploadez vos classeurs Excel maîtres — l&apos;assistant vérifie la structure avant l&apos;envoi.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-[var(--color-foreground)] tracking-tight flex items-center gap-2">
+            <Upload className="w-6 h-6 text-carbon-emerald" />
+            Import des workbooks Excel
+          </h1>
+          <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
+            Uploadez vos classeurs Excel maîtres — l&apos;assistant vérifie la structure avant l&apos;envoi.
+          </p>
+        </div>
+        <a
+          href={templateDownloadUrl("carbon")}
+          download
+          data-testid="template-download"
+          className="inline-flex items-center gap-2 self-start rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-semibold text-[var(--color-foreground)] hover:bg-[var(--color-surface-raised)] transition-colors"
+        >
+          <Download className="w-4 h-4" /> Télécharger le template
+        </a>
       </div>
 
       {/* Stepper */}
@@ -727,41 +753,52 @@ export default function UploadPage() {
             </div>
           </div>
 
-          {/* Re-ingest trigger */}
-          {uploadResult.status !== "error" && (
-            <div className="rounded-2xl border border-carbon-emerald/30 bg-gradient-to-br from-carbon-emerald/10 to-cyan-500/5 p-5 flex items-start gap-4">
+          {/* Ingest : parse du fichier user + redirection dashboard */}
+          {uploadResult.status !== "error" && files.carbon.file && (
+            <div
+              data-testid="ingest-panel"
+              className="rounded-2xl border border-carbon-emerald/30 bg-gradient-to-br from-carbon-emerald/10 to-cyan-500/5 p-5 flex items-start gap-4"
+            >
               <div className="w-10 h-10 rounded-xl bg-carbon-emerald/20 flex items-center justify-center flex-shrink-0">
                 <RefreshCw className={`w-5 h-5 text-carbon-emerald ${ingesting ? "animate-spin" : ""}`} />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-[var(--color-foreground)] mb-1">
-                  Recalculer les snapshots
+                  Calculer votre snapshot carbone
                 </h3>
                 <p className="text-xs text-[var(--color-foreground-muted)] mb-3">
-                  Les fichiers ont été uploadés. Déclenchez le recalcul pour mettre à jour tous les indicateurs.
+                  Les indicateurs Scope 1/2/3 sont extraits de votre classeur puis persistés.
+                  Vous serez redirigé vers le dashboard dès que le snapshot est prêt.
                 </p>
                 {ingestError && (
-                  <div className="mb-2 flex items-center gap-2 text-xs text-[var(--color-danger)]">
-                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                    {ingestError}
+                  <div
+                    data-testid="ingest-error"
+                    className="mb-2 flex items-start gap-2 text-xs text-[var(--color-danger)]"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    <span className="whitespace-pre-wrap">{ingestError}</span>
                   </div>
                 )}
-                {ingestDone ? (
-                  <div className="flex items-center gap-2 text-xs text-[var(--color-success)] font-semibold">
+                {ingestDone && ingestResult ? (
+                  <div
+                    data-testid="ingest-success"
+                    className="flex items-center gap-2 text-xs text-[var(--color-success)] font-semibold"
+                  >
                     <CheckCircle2 className="w-4 h-4" />
-                    Snapshots recalculés avec succès
+                    Snapshot v{ingestResult.version ?? "?"} prêt — redirection vers le dashboard…
                   </div>
                 ) : (
                   <button
                     type="button"
+                    data-testid="ingest-button"
                     onClick={handleIngest}
                     disabled={ingesting}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {ingesting ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Recalcul en cours…</>
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Calcul en cours…</>
                     ) : (
-                      <><RefreshCw className="w-4 h-4" /> Resynchroniser maintenant</>
+                      <><RefreshCw className="w-4 h-4" /> Calculer et afficher le dashboard</>
                     )}
                   </button>
                 )}

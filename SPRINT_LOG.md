@@ -73,7 +73,26 @@
 
 ## Sprint 2 — Phase 1 (Couche preuve backend)
 
-_À remplir au démarrage du sprint._
+### Phase 1.A — Câblage ingest utilisateur (sous-phase tactique, 2026-04-16)
+
+- **Livré** :
+  - Backend : refactor `carbon_service.py` avec fonction pure `_build_snapshot_from_workbooks` consommant deux `Workbook` openpyxl — réutilisée par `build_carbon_snapshot()` (master, disque) et nouvelle `build_carbon_snapshot_from_bytes()` (user, BytesIO).
+  - Backend : endpoint `POST /excel/ingest-uploaded` avec validation STRICTE des named ranges canoniques `CC_*` (10 requis) et des sheets du workbook maître. Rejet 422 structuré (`named_ranges_missing`, `sheets_missing`, `hint`) si non conforme. Exige rôle `analyst` minimum.
+  - Backend : endpoint `GET /excel/template?domain=carbon` servant le classeur maître comme template de départ.
+  - Backend : `write_snapshot()` étendu avec param `source='user_upload'|'ingest'|'manual'`, INSERT enrichi (RETURNING id + generated_at). Tous les callers existants restent rétro-compatibles.
+  - Frontend : `ingestUploaded(file)` et `templateDownloadUrl()` ajoutés à `lib/api.ts`. Page `/upload` rebranchée : `handleIngest` appelle le nouvel endpoint avec le fichier utilisateur puis `router.push('/dashboard')` automatique. Bouton "Télécharger le template" en haut de la page.
+  - Tests : E2E `04-upload-ingest.spec.ts` — template download, parcours upload → ingest → dashboard sans bandeau démo, rejet fichier malformé/vide, rejet non-authentifié.
+  - Docs : `SPRINT_2_CHECKLIST.md` jour-par-jour pour Phase 1.B (facts_events + RLS + emission_factors). `docs/carbonco/PHASE1_INGESTION_PLAN.md` spec technique complète (schémas SQL, algo hash Merkle chaîné, policies RLS, endpoints).
+- **Choix structurants** :
+  - Validation **stricte** plutôt que permissive : un classeur sans les named ranges `CC_*` requis est rejeté côté API plutôt que donnant un snapshot partiel. Évite les dashboards "presque vides" trompeurs.
+  - Le fichier utilisateur n'est PAS stocké côté API (le stockage Vercel Blob via `/api/upload` reste séparé et archival). L'ingest lit le fichier en mémoire puis le libère.
+  - Pas de fallback Excel COM pour user uploads : complexité Windows inutile, les utilisateurs uploadent des classeurs calculés.
+- **Blocages** : aucun. Compilation Python + TypeScript verte.
+- **Suivant** : merger la PR Phase 1.A puis démarrer Phase 1.B selon SPRINT_2_CHECKLIST.md.
+
+### Phase 1.B — Couche preuve backend (13 jours, à démarrer)
+
+_À remplir au démarrage du sprint. Voir [SPRINT_2_CHECKLIST.md](SPRINT_2_CHECKLIST.md)._
 
 ---
 

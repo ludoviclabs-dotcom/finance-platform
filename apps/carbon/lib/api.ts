@@ -931,6 +931,89 @@ export async function validateExcel(
 }
 
 // ---------------------------------------------------------------------------
+// POST /excel/ingest-uploaded — calcul snapshot depuis le fichier utilisateur
+// ---------------------------------------------------------------------------
+
+export interface IngestUploadedKpis {
+  scope1Tco2e: number | null;
+  scope2LbTco2e: number | null;
+  scope2MbTco2e: number | null;
+  scope3Tco2e: number | null;
+  totalS123Tco2e: number | null;
+}
+
+export interface IngestUploadedResponse {
+  snapshotId: number | null;
+  version: number | null;
+  generatedAt: string;
+  domain: string;
+  source: "user_upload";
+  kpis: IngestUploadedKpis;
+  validation: {
+    status: "ok" | "warning" | "failed";
+    failures: string[];
+    warnings: string[];
+  };
+}
+
+export interface IngestUploadedError {
+  error:
+    | "invalid_workbook"
+    | "invalid_workbook_structure"
+    | "empty_workbook"
+    | "snapshot_validation_failed";
+  message: string;
+  named_ranges_missing?: string[];
+  sheets_missing?: string[];
+  failures?: string[];
+  warnings?: string[];
+  hint?: string;
+}
+
+export async function ingestUploaded(
+  file: File,
+  domain: "carbon" = "carbon",
+  signal?: AbortSignal,
+): Promise<IngestUploadedResponse> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("domain", domain);
+  const res = await _fetchWithRetry(`${API_BASE_URL}/excel/ingest-uploaded`, {
+    method: "POST",
+    headers: { Accept: "application/json", ...authHeaders() },
+    body: fd,
+    signal,
+  });
+  if (!res.ok) {
+    let payload: unknown;
+    try {
+      payload = await res.json();
+    } catch {
+      throw new Error(`Ingest failed: ${res.status}`);
+    }
+    const detail = (payload as { detail?: IngestUploadedError }).detail;
+    if (detail && typeof detail === "object" && "error" in detail) {
+      const parts: string[] = [detail.message ?? detail.error];
+      if (detail.named_ranges_missing?.length)
+        parts.push(`Plages nommées manquantes : ${detail.named_ranges_missing.join(", ")}`);
+      if (detail.sheets_missing?.length)
+        parts.push(`Feuilles manquantes : ${detail.sheets_missing.join(", ")}`);
+      if (detail.hint) parts.push(detail.hint);
+      const err = new Error(parts.join(" · "));
+      (err as Error & { detail: IngestUploadedError }).detail = detail;
+      throw err;
+    }
+    throw new Error(`Ingest failed: ${res.status}`);
+  }
+  return (await res.json()) as IngestUploadedResponse;
+}
+
+/** URL absolue du template officiel à télécharger côté navigateur. */
+export function templateDownloadUrl(domain: "carbon" = "carbon"): string {
+  return `${API_BASE_URL}/excel/template?domain=${domain}`;
+}
+
+// ---------------------------------------------------------------------------
 // Dashboard consolidé
 // ---------------------------------------------------------------------------
 

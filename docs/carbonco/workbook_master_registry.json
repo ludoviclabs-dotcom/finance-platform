@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-04-12",
+  "phase": "block-a",
+  "masters": [
+    {
+      "id": "carbon_master",
+      "filename": "CarbonCo_Calcul_Carbone_v2.xlsx",
+      "domain": "carbon",
+      "path": "C:\\Users\\Ludo\\Desktop\\IA projet entreprises\\Carbon and Co\\CarbonCo_Calcul_Carbone_v2.xlsx",
+      "size_bytes": 241120,
+      "sheet_count": 40,
+      "named_range_count": 98,
+      "has_claude_log": true,
+      "status": "master",
+      "notes": [
+        "Primary source of truth for shared enterprise and carbon KPIs",
+        "Canonical CC_* named ranges have been added for priority shared fields",
+        "Should remain the only source workbook consumed by future normalization"
+      ]
+    },
+    {
+      "id": "esg_social_master",
+      "filename": "CarbonCo_ESG_Social.xlsx",
+      "domain": "esg_social",
+      "path": "C:\\Users\\Ludo\\Desktop\\IA projet entreprises\\Carbon and Co\\CarbonCo_ESG_Social.xlsx",
+      "size_bytes": 42834,
+      "sheet_count": 14,
+      "named_range_count": 0,
+      "has_claude_log": true,
+      "status": "master",
+      "notes": [
+        "Structured workbook for VSME, materiality, ESRS S1-S4 and G1",
+        "Claude Log now exists and priority liaison source notes were corrected",
+        "Still needs named range governance if more ESG fields become shared product inputs"
+      ]
+    },
+    {
+      "id": "finance_dpp_master",
+      "filename": "CarbonCo_Finance_DPP_v1_3.xlsx",
+      "domain": "finance_dpp",
+      "path": "C:\\Users\\Ludo\\Desktop\\IA projet entreprises\\Carbon and Co\\CarbonCo_Finance_DPP_v1_3.xlsx",
+      "size_bytes": 42851,
+      "sheet_count": 10,
+      "named_range_count": 0,
+      "has_claude_log": true,
+      "status": "master",
+      "notes": [
+        "Workbook for Finance Climat, DPP, Benchmark and SFDR",
+        "Priority liaison source notes were corrected and total LB wording was clarified",
+        "Should stay aligned to the same CC_* contract as ESG Social"
+      ]
+    }
+  ],
+  "duplicate_or_archive_candidates": [
+    "CarbonCo_ESG_Social partie 2.xlsx",
+    "CarbonCo_ESG_Social_v1_3.xlsx",
+    "CarbonCo_Platform_v2_Planification.xlsx"
+  ],
+  "block_a_alerts": [
+    "Validator status is green on the current three masters",
+    "Named range counts in this registry reflect openpyxl parsing because that is the target backend ingestion layer",
+    "ESG Social and Finance still rely on liaison cells for shared imports and have no local CC_* ranges yet"
+  ]
+}

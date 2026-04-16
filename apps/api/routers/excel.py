@@ -2,11 +2,25 @@
 
 from __future__ import annotations
 
-from typing import Any
+import io
+import logging
+from typing import Any, Literal
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from openpyxl import load_workbook as _openpyxl_load
 from pydantic import BaseModel
 
+from routers.auth import require_analyst
+from services.auth_service import AuthUser
+from services.carbon_service import (
+    CANONICAL_CC_RANGES,
+    REQUIRED_SHEETS,
+    CarbonServiceError,
+    build_carbon_snapshot_from_bytes,
+    get_workbook_paths,
+)
+from services.snapshot_cache import write_snapshot
 from utils.excel_reader import (
     CorruptFileError,
     ExcelReader,
@@ -14,7 +28,25 @@ from utils.excel_reader import (
     SheetNotFoundError,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
+
+# Named ranges strictement requis pour /excel/ingest-uploaded (domaine carbon).
+# Aligné sur SNAPSHOT_FIELD_TO_KEY filtré aux REQUIRED_SNAPSHOT_FIELDS du
+# carbon_service, plus le Scope 2 MB (nécessaire pour le bandeau dashboard).
+_REQUIRED_CC_RANGES_CARBON: list[str] = [
+    "CC_Raison_Sociale",
+    "CC_Annee_Reporting",
+    "CC_CA_Net",
+    "CC_GES_Scope1",
+    "CC_GES_Scope2_LB",
+    "CC_GES_Scope3",
+    "CC_GES_Total_S123",
+    "CC_Conso_Energie_MWh",
+    "CC_Part_ENR",
+    "CC_Taxo_CA_Aligne",
+]
 
 _EXCEL_MIMES = {
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -344,3 +376,161 @@ async def read_range(
         except Exception:
             pass
     return {"sheet": sheet, "range": range_str, "row_count": len(data), "data": data}
+
+
+# ---------------------------------------------------------------------------
+# POST /ingest-uploaded — parse + snapshot depuis le fichier utilisateur
+# ---------------------------------------------------------------------------
+
+
+class IngestUploadedKpis(BaseModel):
+    scope1Tco2e: float | None = None
+    scope2LbTco2e: float | None = None
+    scope2MbTco2e: float | None = None
+    scope3Tco2e: float | None = None
+    totalS123Tco2e: float | None = None
+
+
+class IngestUploadedResponse(BaseModel):
+    snapshotId: int | None
+    version: int | None
+    generatedAt: str
+    domain: str
+    source: Literal["user_upload"]
+    kpis: IngestUploadedKpis
+    validation: dict[str, Any]
+
+
+def _strict_validate_carbon_workbook(contents: bytes) -> tuple[list[str], list[str]]:
+    """Return (named_ranges_missing, sheets_missing) for the uploaded carbon file."""
+    try:
+        wb = _openpyxl_load(io.BytesIO(contents), read_only=False, data_only=True)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": "invalid_workbook",
+                "message": f"Fichier illisible : {exc}",
+            },
+        ) from exc
+
+    defined_names = set(wb.defined_names) if hasattr(wb, "defined_names") else set()
+    sheet_names = set(wb.sheetnames)
+    wb.close()
+
+    named_ranges_missing = [n for n in _REQUIRED_CC_RANGES_CARBON if n not in defined_names]
+    # REQUIRED_SHEETS["carbon"] est un set — on garde un ordre stable pour la réponse
+    required_sheets = sorted(REQUIRED_SHEETS["carbon"])
+    sheets_missing = [s for s in required_sheets if s not in sheet_names]
+    return named_ranges_missing, sheets_missing
+
+
+@router.post("/ingest-uploaded", response_model=IngestUploadedResponse)
+async def ingest_uploaded(
+    file: UploadFile = File(..., description="Classeur Excel utilisateur (.xlsx)"),
+    domain: str = Form("carbon"),
+    user: AuthUser = Depends(require_analyst),
+) -> IngestUploadedResponse:
+    company_id = user.company_id
+    """Ingest strict : l'utilisateur uploade son classeur, on calcule le
+    snapshot puis on l'écrit avec source='user_upload'.
+
+    Rejette (422) toute structure non conforme au template maître (named
+    ranges CC_* et sheets canoniques requis).
+    """
+    if domain != "carbon":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Domaine '{domain}' non supporté en Phase 1.A. Utilisez 'carbon'.",
+        )
+    _check_mime(file)
+
+    contents = await file.read()
+    if len(contents) < 512:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "empty_workbook", "message": "Fichier trop petit ou vide."},
+        )
+
+    named_ranges_missing, sheets_missing = _strict_validate_carbon_workbook(contents)
+    if named_ranges_missing or sheets_missing:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": "invalid_workbook_structure",
+                "message": "Structure non conforme au template officiel.",
+                "named_ranges_missing": named_ranges_missing,
+                "sheets_missing": sheets_missing,
+                "hint": "Téléchargez le template officiel via GET /excel/template?domain=carbon et reportez-y vos données.",
+            },
+        )
+
+    try:
+        snapshot = build_carbon_snapshot_from_bytes(
+            contents, source_filename=file.filename
+        )
+    except CarbonServiceError as exc:
+        logger.error("Carbon snapshot build failed for user %s: %s", user.email, exc)
+        raise HTTPException(status_code=500, detail=f"Échec du calcul snapshot : {exc}") from exc
+
+    if snapshot["validation"]["status"] == "failed":
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": "snapshot_validation_failed",
+                "message": "Les données extraites ne satisfont pas les règles minimales.",
+                "failures": snapshot["validation"]["failures"],
+                "warnings": snapshot["validation"]["warnings"],
+            },
+        )
+
+    write_result = write_snapshot(
+        "carbon",
+        snapshot,
+        company_id=company_id,
+        source="user_upload",
+    )
+
+    carbon_kpis = snapshot.get("carbon", {}) or {}
+    return IngestUploadedResponse(
+        snapshotId=write_result["id"] if write_result else None,
+        version=write_result["version"] if write_result else None,
+        generatedAt=snapshot["generatedAt"],
+        domain="carbon",
+        source="user_upload",
+        kpis=IngestUploadedKpis(
+            scope1Tco2e=carbon_kpis.get("scope1Tco2e"),
+            scope2LbTco2e=carbon_kpis.get("scope2LbTco2e"),
+            scope2MbTco2e=carbon_kpis.get("scope2MbTco2e"),
+            scope3Tco2e=carbon_kpis.get("scope3Tco2e"),
+            totalS123Tco2e=carbon_kpis.get("totalS123Tco2e"),
+        ),
+        validation=snapshot["validation"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /template — télécharger le template officiel pour un domaine
+# ---------------------------------------------------------------------------
+
+
+@router.get("/template")
+async def download_template(domain: str = "carbon") -> FileResponse:
+    """Sert le classeur maître comme template de départ pour l'utilisateur."""
+    if domain != "carbon":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Template '{domain}' non disponible (seul 'carbon' en Phase 1.A).",
+        )
+    paths = get_workbook_paths()
+    template_path = paths[domain]
+    if not template_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Template introuvable côté serveur : {template_path.name}",
+        )
+    return FileResponse(
+        path=str(template_path),
+        filename=f"CarbonCo_Template_{domain}.xlsx",
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )

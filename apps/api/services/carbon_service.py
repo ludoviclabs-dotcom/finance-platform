@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 from datetime import datetime, timezone
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 
@@ -693,6 +694,123 @@ def _build_source_statuses(validation_result: dict[str, Any]) -> dict[str, dict[
     return statuses
 
 
+def _build_snapshot_from_workbooks(
+    workbook_values: Workbook,
+    workbook_formulas: Workbook,
+    *,
+    source_statuses: dict[str, dict[str, Any]],
+    initial_failures: list[str],
+    initial_warnings: list[str],
+    com_fallback_path: Path | None,
+) -> dict[str, Any]:
+    """Shared core: extract snapshot fields from two openpyxl workbook objects.
+
+    Used both by master ingestion (disk paths) and user-upload ingestion
+    (BytesIO). `com_fallback_path` enables the Windows Excel COM fallback
+    only when a master file path is available; user uploads pass None.
+    """
+    snapshot_data: dict[str, Any] = {
+        "company": {},
+        "carbon": {},
+        "energy": {},
+        "taxonomy": {},
+        "cbam": {},
+        "sbti": {},
+    }
+    failures = list(initial_failures)
+    warnings = list(initial_warnings)
+    missing_contract_keys: set[str] = set()
+    formula_eval_keys: set[str] = set()
+
+    for field_path, contract_key in SNAPSHOT_FIELD_TO_KEY.items():
+        value = _get_named_value(workbook_values, contract_key)
+        source_kind = "named_range"
+        if value is None:
+            fallback = FALLBACK_CELLS.get(contract_key)
+            if fallback is not None:
+                source_kind = "fallback_cell"
+                value = _get_cell_value(workbook_values, fallback[0], fallback[1])
+        if value is None:
+            try:
+                source_kind = "formula_eval"
+                value = _evaluate_contract_key(workbook_formulas, contract_key)
+            except Exception as exc:
+                warnings.append(f"Formula evaluation failed for {contract_key}: {exc}")
+        if value is None:
+            missing_contract_keys.add(contract_key)
+        normalized = _normalize_value(value)
+        _set_nested(snapshot_data, field_path, normalized)
+        if normalized is not None and source_kind == "fallback_cell":
+            warnings.append(f"Fallback cell used for {contract_key}")
+        elif normalized is not None and source_kind == "formula_eval":
+            formula_eval_keys.add(contract_key)
+
+    if missing_contract_keys and com_fallback_path is not None:
+        fallback_cells = {
+            key: FALLBACK_CELLS[key]
+            for key in sorted(missing_contract_keys)
+            if key in FALLBACK_CELLS
+        }
+        if fallback_cells:
+            try:
+                com_values = _collect_values_with_excel_com(com_fallback_path, fallback_cells)
+            except CarbonServiceError as exc:
+                warnings.append(str(exc))
+                com_values = {}
+            if com_values:
+                warnings.append("Excel desktop fallback used to resolve calculated workbook values.")
+            for field_path, contract_key in SNAPSHOT_FIELD_TO_KEY.items():
+                if contract_key not in com_values:
+                    continue
+                normalized = _normalize_value(com_values[contract_key])
+                _set_nested(snapshot_data, field_path, normalized)
+
+    if formula_eval_keys:
+        warnings.append(
+            "Formula evaluation fallback used for calculated workbook cells: "
+            + ", ".join(sorted(formula_eval_keys))
+        )
+
+    if snapshot_data["company"].get("name") is None:
+        snapshot_data["company"]["name"] = "Entreprise non renseignee"
+        warnings.append(
+            "Company name is empty in Paramètres!B4, default placeholder used in snapshot."
+        )
+
+    for field_path, contract_key in SNAPSHOT_FIELD_TO_KEY.items():
+        normalized = snapshot_data
+        for part in field_path.split("."):
+            normalized = normalized.get(part) if isinstance(normalized, dict) else None
+        if normalized is None:
+            message = f"Missing snapshot value for {field_path} via {contract_key}"
+            if field_path in REQUIRED_SNAPSHOT_FIELDS:
+                failures.append(message)
+            else:
+                warnings.append(message)
+
+    validation_status = "ok"
+    if failures:
+        validation_status = "failed"
+    elif warnings:
+        validation_status = "warning"
+
+    return {
+        "snapshotVersion": "v1",
+        "generatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "source": {
+            "carbonWorkbook": source_statuses["carbon"],
+            "esgWorkbook": source_statuses["esg"],
+            "financeWorkbook": source_statuses["finance"],
+        },
+        "validation": {
+            "status": validation_status,
+            "failures": failures,
+            "warnings": warnings,
+        },
+        **snapshot_data,
+    }
+
+
 def build_carbon_snapshot() -> dict[str, Any]:
     validation_result = validate_master_workbooks()
     paths = get_workbook_paths()
@@ -704,106 +822,74 @@ def build_carbon_snapshot() -> dict[str, Any]:
     workbook_values = _load_workbook(carbon_path, data_only=True)
     workbook_formulas = _load_workbook(carbon_path, data_only=False)
     try:
-        snapshot_data: dict[str, Any] = {
-            "company": {},
-            "carbon": {},
-            "energy": {},
-            "taxonomy": {},
-            "cbam": {},
-            "sbti": {},
-        }
-        warnings = list(validation_result["warnings"])
-        missing_contract_keys: set[str] = set()
-        formula_eval_keys: set[str] = set()
-
-        for field_path, contract_key in SNAPSHOT_FIELD_TO_KEY.items():
-            value = _get_named_value(workbook_values, contract_key)
-            source_kind = "named_range"
-            if value is None:
-                fallback = FALLBACK_CELLS.get(contract_key)
-                if fallback is not None:
-                    source_kind = "fallback_cell"
-                    value = _get_cell_value(workbook_values, fallback[0], fallback[1])
-            if value is None:
-                try:
-                    source_kind = "formula_eval"
-                    value = _evaluate_contract_key(workbook_formulas, contract_key)
-                except Exception as exc:
-                    warnings.append(f"Formula evaluation failed for {contract_key}: {exc}")
-            if value is None:
-                missing_contract_keys.add(contract_key)
-            normalized = _normalize_value(value)
-            _set_nested(snapshot_data, field_path, normalized)
-            if normalized is not None and source_kind == "fallback_cell":
-                warnings.append(f"Fallback cell used for {contract_key}")
-            elif normalized is not None and source_kind == "formula_eval":
-                formula_eval_keys.add(contract_key)
-
-        if missing_contract_keys:
-            fallback_cells = {
-                key: FALLBACK_CELLS[key]
-                for key in sorted(missing_contract_keys)
-                if key in FALLBACK_CELLS
-            }
-            if fallback_cells:
-                try:
-                    com_values = _collect_values_with_excel_com(carbon_path, fallback_cells)
-                except CarbonServiceError as exc:
-                    warnings.append(str(exc))
-                    com_values = {}
-                if com_values:
-                    warnings.append("Excel desktop fallback used to resolve calculated workbook values.")
-                for field_path, contract_key in SNAPSHOT_FIELD_TO_KEY.items():
-                    if contract_key not in com_values:
-                        continue
-                    normalized = _normalize_value(com_values[contract_key])
-                    _set_nested(snapshot_data, field_path, normalized)
-
-        if formula_eval_keys:
-            warnings.append(
-                "Formula evaluation fallback used for calculated workbook cells: "
-                + ", ".join(sorted(formula_eval_keys))
-            )
-
-        if snapshot_data["company"].get("name") is None:
-            snapshot_data["company"]["name"] = "Entreprise non renseignee"
-            warnings.append(
-                "Company name is empty in Paramètres!B4, default placeholder used in snapshot."
-            )
-
-        for field_path, contract_key in SNAPSHOT_FIELD_TO_KEY.items():
-            normalized = snapshot_data
-            for part in field_path.split("."):
-                normalized = normalized.get(part) if isinstance(normalized, dict) else None
-            if normalized is None:
-                message = f"Missing snapshot value for {field_path} via {contract_key}"
-                if field_path in REQUIRED_SNAPSHOT_FIELDS:
-                    validation_result["failures"].append(message)
-                else:
-                    warnings.append(message)
-
-        validation_status = "ok"
-        if validation_result["failures"]:
-            validation_status = "failed"
-        elif warnings:
-            validation_status = "warning"
-
-        source_statuses = _build_source_statuses(validation_result)
-        return {
-            "snapshotVersion": "v1",
-            "generatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "source": {
-                "carbonWorkbook": source_statuses["carbon"],
-                "esgWorkbook": source_statuses["esg"],
-                "financeWorkbook": source_statuses["finance"],
-            },
-            "validation": {
-                "status": validation_status,
-                "failures": validation_result["failures"],
-                "warnings": warnings,
-            },
-            **snapshot_data,
-        }
+        return _build_snapshot_from_workbooks(
+            workbook_values,
+            workbook_formulas,
+            source_statuses=_build_source_statuses(validation_result),
+            initial_failures=list(validation_result["failures"]),
+            initial_warnings=list(validation_result["warnings"]),
+            com_fallback_path=carbon_path,
+        )
     finally:
         workbook_values.close()
         workbook_formulas.close()
+
+
+def build_carbon_snapshot_from_bytes(
+    file_bytes: bytes,
+    *,
+    source_filename: str | None = None,
+) -> dict[str, Any]:
+    """Build a carbon snapshot from an in-memory user-uploaded workbook.
+
+    Callers (typically POST /excel/ingest-uploaded) must validate required
+    named ranges and sheets beforehand. No Excel COM fallback is attempted
+    for user uploads — BytesIO workbooks lose cached formula values only
+    when the producer saved without calculation, which is rare for the
+    expected template-based flow.
+    """
+    wb_values = load_workbook(BytesIO(file_bytes), read_only=True, data_only=True)
+    wb_formulas = load_workbook(BytesIO(file_bytes), read_only=True, data_only=False)
+    try:
+        defined_count = 0
+        try:
+            defined_count = sum(1 for _ in wb_values.defined_names)
+        except Exception:
+            defined_count = 0
+        source_statuses: dict[str, dict[str, Any]] = {
+            "carbon": {
+                "filename": source_filename or "user-upload.xlsx",
+                "status": "ok",
+                "path": "user-upload",
+                "sheet_count": len(wb_values.sheetnames),
+                "named_range_count": defined_count,
+                "has_claude_log": "Claude Log" in wb_values.sheetnames,
+            },
+            "esg": {
+                "filename": "n/a",
+                "status": "missing",
+                "path": "user-upload",
+                "sheet_count": None,
+                "named_range_count": None,
+                "has_claude_log": None,
+            },
+            "finance": {
+                "filename": "n/a",
+                "status": "missing",
+                "path": "user-upload",
+                "sheet_count": None,
+                "named_range_count": None,
+                "has_claude_log": None,
+            },
+        }
+        return _build_snapshot_from_workbooks(
+            wb_values,
+            wb_formulas,
+            source_statuses=source_statuses,
+            initial_failures=[],
+            initial_warnings=[],
+            com_fallback_path=None,
+        )
+    finally:
+        wb_values.close()
+        wb_formulas.close()

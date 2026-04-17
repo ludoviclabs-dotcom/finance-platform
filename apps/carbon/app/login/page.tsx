@@ -25,9 +25,11 @@ export default function LoginPage() {
         return result;
       }}
       onDemo={async () => {
-          const result = await login("demo@carbonco.fr", "CarbonCo2024!");
-          if (result.ok) router.replace("/dashboard");
-        }}
+        const result = await login("demo@carbonco.fr", "CarbonCo2024!");
+        if (result.ok) router.replace("/dashboard");
+        // Les identifiants démo existent dès que l'API a seedé les users (premier login).
+        // Si l'erreur persiste, voir /login — les identifiants sont créés automatiquement.
+      }}
     />
   );
 }

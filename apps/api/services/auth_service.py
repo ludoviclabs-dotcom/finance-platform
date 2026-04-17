@@ -106,9 +106,9 @@ def _ensure_default_users() -> None:
     try:
         with get_db() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM users")
+                cur.execute("SELECT COUNT(*) AS count FROM users")
                 row = cur.fetchone()
-                count = row[0] if row else 0
+                count = row["count"] if row else 0
                 if count == 0:
                     for email, data in _DEMO_USERS.items():
                         cur.execute(

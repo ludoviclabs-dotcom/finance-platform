@@ -16,6 +16,7 @@ audit_events, alert_rules, products.
 from __future__ import annotations
 
 import os
+import secrets
 from datetime import datetime, timezone
 
 import pytest
@@ -188,3 +189,171 @@ class TestRlsIsolation:
                 except Exception:
                     # Acceptable si le cast ::int crash — fail-safe : pas de fuite
                     pass
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Phase 4 — Suppliers & Matérialité (Migration 008b)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def _rls_phase4_active() -> bool:
+    """Retourne True si RLS est activée sur la table suppliers (migration 008b)."""
+    return _rls_enabled("suppliers")
+
+
+@pytest.fixture(scope="module")
+def ensure_rls_phase4_active():
+    """Skippe si la migration 008b n'a pas encore été appliquée."""
+    if not _rls_phase4_active():
+        pytest.skip(
+            "RLS non activée sur 'suppliers' — lancer migrations/008b_rls_suppliers.sql"
+        )
+
+
+@pytest.fixture(scope="module")
+def two_companies_p4():
+    """Crée 2 companies de test pour Phase 4. Cleanup en tear-down."""
+    ids: list[int] = []
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            for slug in ("rls-p4-a", "rls-p4-b"):
+                cur.execute(
+                    """
+                    INSERT INTO companies (name, slug, plan)
+                    VALUES (%s, %s, 'starter')
+                    ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
+                    RETURNING id
+                    """,
+                    (slug.upper(), slug),
+                )
+                ids.append(cur.fetchone()["id"])
+    yield ids
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM materialite_positions WHERE company_id = ANY(%s)", (ids,))
+            cur.execute("DELETE FROM supplier_questionnaire_tokens WHERE company_id = ANY(%s)", (ids,))
+            cur.execute("DELETE FROM supplier_answers WHERE company_id = ANY(%s)", (ids,))
+            cur.execute("DELETE FROM suppliers WHERE company_id = ANY(%s)", (ids,))
+            cur.execute("DELETE FROM companies WHERE id = ANY(%s)", (ids,))
+
+
+class TestRlsIsolationPhase4:
+    """Vérifie l'isolation des tables Phase 4 (suppliers, tokens, answers, materialite)."""
+
+    def test_rls_enabled_on_all_phase4_tables(self, ensure_rls_phase4_active) -> None:
+        tables = [
+            "suppliers",
+            "supplier_questionnaire_tokens",
+            "supplier_answers",
+            "materialite_positions",
+        ]
+        for table in tables:
+            assert _rls_enabled(table), f"RLS non activée sur '{table}'"
+
+    def test_suppliers_isolated_between_tenants(
+        self, ensure_rls_phase4_active, two_companies_p4
+    ) -> None:
+        cid_a, cid_b = two_companies_p4
+
+        with get_db(cid_b) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO suppliers (company_id, name) VALUES (%s,%s) RETURNING id",
+                    (cid_b, "Fournisseur Confidentiel B"),
+                )
+                sup_b_id = cur.fetchone()["id"]
+
+        # company A ne doit pas voir le supplier de company B
+        with get_db(cid_a) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id FROM suppliers WHERE id = %s", (sup_b_id,))
+                row = cur.fetchone()
+        assert row is None, f"FUITE RLS suppliers : company A voit le supplier {sup_b_id} de company B"
+
+        # company B voit bien son propre supplier
+        with get_db(cid_b) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id FROM suppliers WHERE id = %s", (sup_b_id,))
+                row = cur.fetchone()
+        assert row is not None
+
+    def test_materialite_positions_isolated(
+        self, ensure_rls_phase4_active, two_companies_p4
+    ) -> None:
+        cid_a, cid_b = two_companies_p4
+
+        with get_db(cid_b) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO materialite_positions (company_id, issue_code, x_proba, y_impact) "
+                    "VALUES (%s,%s,%s,%s) ON CONFLICT (company_id, issue_code) "
+                    "DO UPDATE SET x_proba=EXCLUDED.x_proba RETURNING id",
+                    (cid_b, "CC-1-P4TEST", 4.0, 4.5),
+                )
+                pos_b_id = cur.fetchone()["id"]
+
+        with get_db(cid_a) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id FROM materialite_positions WHERE id = %s", (pos_b_id,))
+                row = cur.fetchone()
+        assert row is None, f"FUITE RLS matérialité : company A voit la position {pos_b_id} de company B"
+
+    def test_security_definer_function_exists(self, ensure_rls_phase4_active) -> None:
+        """La fonction SECURITY DEFINER resolve_supplier_token doit exister en base."""
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT proname FROM pg_proc WHERE proname = 'resolve_supplier_token'"
+                )
+                row = cur.fetchone()
+        assert row is not None, (
+            "Fonction resolve_supplier_token() manquante — migration 008b non appliquée"
+        )
+
+    def test_security_definer_resolves_token_without_rls_context(
+        self, ensure_rls_phase4_active, two_companies_p4
+    ) -> None:
+        """SECURITY DEFINER doit résoudre un token même sans SET LOCAL company_id."""
+        cid_a, _ = two_companies_p4
+        token_hex = secrets.token_hex(32)
+
+        with get_db(cid_a) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO suppliers (company_id, name) VALUES (%s,%s) RETURNING id",
+                    (cid_a, "SecDef Test Supplier"),
+                )
+                sid = cur.fetchone()["id"]
+                cur.execute(
+                    "INSERT INTO supplier_questionnaire_tokens "
+                    "(supplier_id, company_id, token, expires_at) "
+                    "VALUES (%s,%s,%s, now() + interval '30 days') RETURNING id",
+                    (sid, cid_a, token_hex),
+                )
+
+        # Appel SANS company_id → RLS bloquerait une requête directe
+        # Mais la fonction SECURITY DEFINER doit réussir
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT * FROM public.resolve_supplier_token(%s)", (token_hex,)
+                )
+                row = cur.fetchone()
+
+        assert row is not None, "SECURITY DEFINER n'a pas résolu le token sans contexte tenant"
+        assert row["supplier_id"] == sid
+        assert row["company_id"] == cid_a
+        assert row["supplier_name"] == "SecDef Test Supplier"
+
+    def test_insert_supplier_wrong_company_rejected(
+        self, ensure_rls_phase4_active, two_companies_p4
+    ) -> None:
+        """WITH CHECK : insérer un supplier pour company B depuis le contexte A doit échouer."""
+        cid_a, cid_b = two_companies_p4
+        with pytest.raises(Exception):
+            with get_db(company_id=cid_a) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "INSERT INTO suppliers (company_id, name) VALUES (%s,%s)",
+                        (cid_b, "Tentative Injection"),
+                    )

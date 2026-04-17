@@ -162,8 +162,17 @@ def run_migrations() -> None:
 
     Étapes :
       1. DDL inline (tables historiques : companies, users, snapshots, audit_events, products, alert_rules)
-      2. Fichiers SQL dans db/migrations/ préfixés 001-003 (Phase 1.B : facts backbone)
-         NOTE : 004_rls_policies.sql est EXCLUS — à activer manuellement après audit complet des callers.
+      2. Fichiers SQL dans db/migrations/ préfixés 001-003, 005-008b :
+           001  emission_factors
+           002  facts_events
+           003  facts_current (vue matérialisée)
+           005  audit_events — colonnes hash
+           006  datapoint_reviews
+           007  export_packages
+           008  suppliers, tokens, answers, materialite_positions
+           008b RLS policies sur les tables Phase 4 + SECURITY DEFINER resolve_supplier_token()
+         NOTE : 004_rls_policies.sql est EXCLU (MANUAL_ONLY_PREFIXES) — à activer manuellement
+                après audit complet des callers (snapshots, facts_events, audit_events, products).
     """
     if not db_available():
         logger.info("PostgreSQL non disponible — migrations ignorées (mode /tmp JSON actif)")

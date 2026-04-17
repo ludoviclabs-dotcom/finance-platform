@@ -448,23 +448,24 @@ def list_tokens(supplier_id: int, company_id: int) -> list[TokenOut]:
 
 
 def resolve_token(token: str) -> dict[str, Any] | None:
-    """Return token + supplier + company context for public questionnaire. No auth required."""
+    """Return token + supplier + company context for public questionnaire. No auth required.
+
+    Utilise la fonction SECURITY DEFINER resolve_supplier_token() pour bypasser RLS :
+    les endpoints publics /q/{token} n'ont pas de JWT, donc pas de company_id dans
+    la session — une requête directe serait bloquée par les policies Phase 4.
+    """
     if _db_available():
         try:
             from db.database import get_db
+            # get_db() sans company_id — la fonction SECURITY DEFINER bypasse RLS
             with get_db() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-                        """
-                        SELECT sqt.*, s.name AS supplier_name, c.name AS company_name
-                        FROM supplier_questionnaire_tokens sqt
-                        JOIN suppliers s ON s.id = sqt.supplier_id
-                        JOIN companies c ON c.id = sqt.company_id
-                        WHERE sqt.token = %s
-                        """,
+                        "SELECT * FROM public.resolve_supplier_token(%s)",
                         (token,),
                     )
-                    return dict(cur.fetchone()) if cur.fetchone() else None
+                    row = cur.fetchone()
+                    return dict(row) if row else None
         except Exception as exc:
             logger.warning("resolve_token DB error: %s", exc)
 
@@ -494,7 +495,8 @@ def submit_answer(token: str, payload: SupplierAnswerCreate) -> SupplierAnswerOu
     if _db_available():
         try:
             from db.database import get_db
-            with get_db() as conn:
+            # Passer company_id pour que RLS accepte l'INSERT (migration 008b active)
+            with get_db(ctx["company_id"]) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         """
@@ -516,7 +518,7 @@ def submit_answer(token: str, payload: SupplierAnswerCreate) -> SupplierAnswerOu
                         ),
                     )
                     row = cur.fetchone()
-                    # Mark token as used
+                    # Mark token as used (même contexte RLS — company_id match garanti)
                     cur.execute(
                         "UPDATE supplier_questionnaire_tokens SET used_at = now() WHERE id = %s",
                         (ctx["id"],),

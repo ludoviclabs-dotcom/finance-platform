@@ -23,6 +23,7 @@ from routers import (
     entreprise,
     esg,
     excel,
+    export,
     facts,
     factors,
     finance,
@@ -33,6 +34,7 @@ from routers import (
     report,
     reviews,
     strategic_mapping,
+    verify,
     vsme,
 )
 
@@ -144,5 +146,7 @@ app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(factors.router, prefix="/factors", tags=["factors"])
 app.include_router(facts.router, prefix="/facts", tags=["facts"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
+app.include_router(export.router, prefix="/export", tags=["export"])
+app.include_router(verify.router, prefix="/verify", tags=["verify (public)"])
 app.include_router(copilot.router, prefix="/copilot", tags=["copilot"])
 app.include_router(strategic_mapping.router, prefix="/strategic-mapping", tags=["strategic-mapping"])

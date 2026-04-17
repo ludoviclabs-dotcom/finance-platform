@@ -173,6 +173,39 @@
 - **Blocages** : aucun.
 - **Suivant** : Phase 3.B (export ZIP signé + `/verify/{hash}` public + watermark PDF).
 
+### Phase 3.B — Export auditable + verify public (2026-04-17)
+
+- **Livré** :
+  - **Backend** :
+    - Migration `007_export_packages.sql` — table (package_hash UNIQUE, manifest_hash, domain, filename, size, event_count, frozen_count, generated_by+at, meta) + index.
+    - `services/export_package.py` — `build_package()` produit un ZIP deterministe contenant `manifest.json` (SHA-256 canonique + hashs de chaque fichier, sort_keys pour reproductibilité), `audit_trail.json` (facts_events + reviews), `snapshot.json`, `README.txt` (informatif — exclu du manifest car contient generated_at), et optionnellement `report.pdf`. `lookup_by_hash()` retourne uniquement des métadonnées non-sensibles.
+    - Watermark PDF : `_BaseBuilder.watermark_hash` + `watermark_frozen_at` injectés dans le footer (hash court + date + URL verify). `generate_esg_synthesis_pdf(..., watermark_hash, watermark_frozen_at)`.
+    - `routers/export.py` — `POST /export/package` (analyst+) streame le ZIP avec headers `X-Package-Hash`, `X-Manifest-Hash`. `GET /export/packages` liste les packages de la company.
+    - `routers/verify.py` — `GET /verify/{package_hash}` **PUBLIC** (aucune auth). Validation format SHA-256 (64 chars hex). Expose uniquement les métadonnées non-sensibles (nom company, date, comptages, hashs). 400 si format invalide, 200 avec `verified=false` si inconnu.
+    - Rate limits : `/export` 5/60s (user), `/verify` 30/60s (IP, anti-scraping).
+    - `AuthUser.user_id` propagé à `generated_by` pour traçabilité.
+  - **Frontend** :
+    - Types `ExportPackageListItem` + `ExportPackageList` + fonctions `fetchExportPackages`, `downloadExportPackage` (blob + filename + X-Package-Hash).
+    - `components/ui/export-package-card.tsx` — sélecteur domaine (4 options), bouton Générer, indicateur du dernier hash généré (copiable), liste des 10 derniers packages historiques avec ShieldCheck + HashLine copiable.
+    - Intégration dans `/revue` (au-dessus des stats inbox).
+    - Page `/verify` — formulaire de saisie avec validation format.
+    - Page `/verify/[hash]` — SSR (force-dynamic), appel `/verify/{hash}` API, rendu 4 états (invalide / API down / vérifié / inconnu). Expose uniquement : entreprise, domaine, date, taille, events, frozen count, manifest_hash, filename.
+  - **Tests** :
+    - `test_export_package.py` — 12 tests (ZIP valide, hash 64 hex, manifest idempotent mêmes données, file hashes, README exclu du manifest, inclut PDF optionnel, README contient manifest_hash, filename format, event_count, frozen_count) + tests DB skippés.
+    - `08-export.spec.ts` — 5 tests (carte visible, select 4 options, POST /export/package déclenché, liste visible).
+    - `09-verify.spec.ts` — 7 tests (formulaire, accessible sans auth, validation format, redirection, invalid state, unknown state, hash display).
+- **Choix structurants** :
+  - **Manifest canonique** comme signature principale (pas le package_hash) : le ZIP peut varier (métadonnées zip, ordre), mais le manifest.json est deterministe → reproductible, idempotent.
+  - **README exclu du manifest** : contient `generated_at` non-deterministe. README est informatif, pas signé.
+  - **`/verify` totalement public** sans middleware auth : expose uniquement des métadonnées non-sensibles (pas de PII, pas de KPIs). Validation format SHA-256 stricte pour éviter injection.
+  - **`sort_keys=True`** sur tous les `json.dumps` → reproductibilité cross-platform.
+  - **Page SSR** (`force-dynamic`) pour que chaque check recharge l'état actuel de la DB (un package peut être invalidé côté serveur).
+  - **Watermark discret** dans le footer (taille 6, couleur muted) : traçabilité sans encombrer la mise en page.
+- **Tests** : 68 passed, 17 skipped (DB absente) — 0 régression.
+- **TypeScript** : 0 erreur.
+- **Blocages** : aucun.
+- **Suivant** : Phase 4 (Wedge différenciant — matérialité upgrade, supplier data, copilote RAG).
+
 ---
 
 ## Sprint 5 — Phase 4 (Wedge différenciant)

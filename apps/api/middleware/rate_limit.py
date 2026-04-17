@@ -51,6 +51,8 @@ RULES: dict[str, RateRule] = {
     "/ingest": RateRule(limit=10, window_seconds=60, scope="user"),
     "/report": RateRule(limit=10, window_seconds=60, scope="user"),
     "/copilot": RateRule(limit=20, window_seconds=60, scope="user"),
+    "/export": RateRule(limit=5, window_seconds=60, scope="user"),   # génération ZIP coûteuse
+    "/verify": RateRule(limit=30, window_seconds=60, scope="ip"),    # public, anti-scraping
 }
 
 # ---------------------------------------------------------------------------

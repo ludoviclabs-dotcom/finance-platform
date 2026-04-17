@@ -27,6 +27,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 
 import { ReviewStatusBadge } from "@/components/ui/review-status-badge";
+import { ExportPackageCard } from "@/components/ui/export-package-card";
 import {
   approveReview,
   fetchReviewInbox,
@@ -125,6 +126,9 @@ export default function RevuePage() {
           Revoir et valider les datapoints proposés avant gel dans les rapports.
         </p>
       </div>
+
+      {/* Phase 3.B — Export auditable */}
+      <ExportPackageCard />
 
       {/* Stats grid */}
       {stats && (

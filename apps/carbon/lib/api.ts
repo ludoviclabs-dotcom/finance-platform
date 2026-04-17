@@ -1187,6 +1187,62 @@ export function freezeReview(
 }
 
 // ---------------------------------------------------------------------------
+// Phase 3.B — Export packages (/export/*) + verify (/verify/*)
+// ---------------------------------------------------------------------------
+
+export interface ExportPackageListItem {
+  id: number;
+  package_hash: string;
+  manifest_hash: string;
+  domain: string;
+  filename: string;
+  size_bytes: number;
+  event_count: number;
+  frozen_count: number;
+  generated_at: string;
+  generated_by: number | null;
+}
+
+export interface ExportPackageList {
+  items: ExportPackageListItem[];
+  total: number;
+}
+
+export function fetchExportPackages(
+  options: { limit?: number; offset?: number; signal?: AbortSignal } = {},
+): Promise<ExportPackageList> {
+  const { limit = 50, offset = 0, signal } = options;
+  return apiGet<ExportPackageList>(
+    `/export/packages?limit=${limit}&offset=${offset}`,
+    signal,
+  );
+}
+
+/** Télécharge le ZIP (déclenche un download navigateur). Retourne le blob + headers. */
+export async function downloadExportPackage(
+  domain: "consolidated" | "carbon" | "esg" | "finance" = "consolidated",
+  includePdf: boolean = true,
+): Promise<{ blob: Blob; filename: string; packageHash: string }> {
+  const res = await _fetchWithRetry(
+    `${API_BASE_URL}/export/package?domain=${domain}&include_pdf=${includePdf}`,
+    {
+      method: "POST",
+      headers: { ...authHeaders() },
+      credentials: "include",
+    },
+  );
+  if (!res.ok) {
+    throw new Error(`Export failed: ${res.status}`);
+  }
+  const blob = await res.blob();
+  const cd = res.headers.get("content-disposition") ?? "";
+  const match = cd.match(/filename="?([^"]+)"?/);
+  const filename = match?.[1] ?? "carbonco-export.zip";
+  const packageHash = res.headers.get("x-package-hash") ?? "";
+  return { blob, filename, packageHash };
+}
+
+// ---------------------------------------------------------------------------
 // Dashboard consolidé
 // ---------------------------------------------------------------------------
 

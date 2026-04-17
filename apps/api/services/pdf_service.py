@@ -208,6 +208,9 @@ class _BaseBuilder:
         self.pdf.set_margins(MARGIN, MARGIN, MARGIN)
         self.page_num = 0
         self.template_name = template_name
+        # Phase 3.B — watermark (hash + date de gel) injecté dans le footer si défini
+        self.watermark_hash: str | None = None
+        self.watermark_frozen_at: str | None = None
 
     def _new_page(self) -> None:
         self.pdf.add_page()
@@ -217,9 +220,21 @@ class _BaseBuilder:
         self.pdf.set_y(-14)
         self.pdf.set_font("Helvetica", "I", 8)
         self.pdf.set_text_color(*MUTED)
-        self.pdf.cell(0, 5, f"CarbonCo · {self.template_name} · Page {self.page_num}", align="L")
+        self.pdf.cell(0, 5, f"CarbonCo - {self.template_name} - Page {self.page_num}", align="L")
         self.pdf.set_x(MARGIN)
         self.pdf.cell(0, 5, datetime.now().strftime("%d/%m/%Y"), align="R")
+
+        # Phase 3.B — watermark audit : hash + date de gel (2 lignes supplémentaires)
+        if self.watermark_hash:
+            self.pdf.set_y(-9)
+            self.pdf.set_x(MARGIN)
+            self.pdf.set_font("Helvetica", "", 6)
+            short = f"{self.watermark_hash[:10]}...{self.watermark_hash[-4:]}"
+            label = f"Package hash: {short}"
+            if self.watermark_frozen_at:
+                label += f" - Gele le: {self.watermark_frozen_at}"
+            label += " - Verification: /verify/" + self.watermark_hash[:12] + "..."
+            self.pdf.cell(0, 3, label, align="L")
 
     def _section(self, title: str, color: tuple[int, int, int] = EMERALD) -> None:
         self.pdf.ln(4)
@@ -749,8 +764,15 @@ def generate_esg_synthesis_pdf(
     carbon: dict[str, Any] | None,
     vsme: dict[str, Any] | None,
     esg: dict[str, Any] | None,
+    watermark_hash: str | None = None,
+    watermark_frozen_at: str | None = None,
 ) -> bytes:
-    """Generate an ESG synthesis PDF and return its raw bytes. (Legacy + Template 1)"""
+    """Generate an ESG synthesis PDF and return its raw bytes. (Legacy + Template 1)
+
+    Phase 3.B : watermark optionnel dans le footer de chaque page avec
+    le package_hash + date de gel — garantit qu'un PDF extrait d'un ZIP
+    officiel reste traçable même hors du package.
+    """
     if not _FPDF_AVAILABLE:
         raise RuntimeError("fpdf2 n'est pas installé. Exécutez : pip install fpdf2")
 
@@ -774,6 +796,9 @@ def generate_esg_synthesis_pdf(
     )
 
     builder = _SynthesisBuilder()
+    if watermark_hash:
+        builder.watermark_hash = watermark_hash
+        builder.watermark_frozen_at = watermark_frozen_at
     builder.cover(
         str(company), year, generated_at,
         toc_lines=[

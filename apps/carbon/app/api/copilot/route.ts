@@ -85,7 +85,11 @@ function fmtNum(v: number | null | undefined, unit = ""): string {
   return unit ? `${formatted} ${unit}` : formatted;
 }
 
-function buildSystemPrompt(tools: CopilotToolsBundle | null, legacy: LegacySnapshotContext | null): string {
+function buildSystemPrompt(
+  tools: CopilotToolsBundle | null,
+  legacy: LegacySnapshotContext | null,
+  ragHits: Array<{ standard: string; topic: string; answer: string; source_ref: string }> | null = null,
+): string {
   const parts: string[] = [
     "Tu es CarbonCo Copilot, un assistant expert en reporting ESG, CSRD, VSME, Taxonomie UE, CBAM, SBTi et bilan carbone.",
     "Tu t'adresses à un responsable RSE / CFO francophone. Réponds toujours en français, de manière concise, structurée, factuelle.",
@@ -201,6 +205,29 @@ function buildSystemPrompt(tools: CopilotToolsBundle | null, legacy: LegacySnaps
     parts.push("", "_Aucune donnée disponible. Déclenchez un ingest depuis le Centre de données._");
   }
 
+  // --- RAG ESRS context (injected per-question) ---
+  if (ragHits && ragHits.length > 0) {
+    parts.push(
+      "",
+      "=== CORPUS ESRS PERTINENT (à citer explicitement dans ta réponse) ===",
+      "",
+      "Utilise ces extraits normatifs pour fonder tes réponses. Cite la référence entre parenthèses.",
+    );
+    ragHits.forEach((hit, i) => {
+      parts.push(
+        "",
+        `### [${i + 1}] ${hit.standard} — ${hit.topic}`,
+        hit.answer,
+        `*(Source : ${hit.source_ref})*`,
+      );
+    });
+    parts.push(
+      "",
+      "IMPORTANT : Lorsque tu utilises un de ces extraits dans ta réponse, "
+      + "ajoute la citation entre parenthèses, ex : (ESRS E1-6 §44-55).",
+    );
+  }
+
   return parts.join("\n");
 }
 
@@ -239,13 +266,16 @@ export async function POST(req: Request) {
     messages: UIMessage[];
     tools?: CopilotToolsBundle;
     snapshots?: LegacySnapshotContext;
+    ragHits?: Array<{ standard: string; topic: string; answer: string; source_ref: string }>;
   };
 
-  const { messages, tools, snapshots } = body;
+  const { messages, tools, snapshots, ragHits } = body;
+
+  const system = buildSystemPrompt(tools ?? null, snapshots ?? null, ragHits ?? null);
 
   const result = streamText({
     model: "anthropic/claude-sonnet-4.6",
-    system: buildSystemPrompt(tools ?? null, snapshots ?? null),
+    system,
     messages: await convertToModelMessages(messages),
   });
 

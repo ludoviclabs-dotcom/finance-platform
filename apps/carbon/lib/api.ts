@@ -1572,3 +1572,234 @@ export async function generateReportPdf(
   }
   return res.blob();
 }
+
+// ---------------------------------------------------------------------------
+// Phase 4 — Suppliers (fournisseurs)
+// ---------------------------------------------------------------------------
+
+export interface Supplier {
+  id: number;
+  company_id: number;
+  name: string;
+  contact_email: string | null;
+  contact_name: string | null;
+  country: string | null;
+  sector: string | null;
+  scope3_category: string | null;
+  spend_eur: number | null;
+  ghg_estimate_tco2e: number | null;
+  status: "active" | "pending" | "archived";
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  last_answer_at: string | null;
+}
+
+export interface SupplierCreate {
+  name: string;
+  contact_email?: string;
+  contact_name?: string;
+  country?: string;
+  sector?: string;
+  scope3_category?: string;
+  spend_eur?: number;
+  ghg_estimate_tco2e?: number;
+  notes?: string;
+}
+
+export interface SupplierUpdate extends Partial<SupplierCreate> {
+  status?: "active" | "pending" | "archived";
+}
+
+export interface SupplierToken {
+  id: number;
+  supplier_id: number;
+  token: string;
+  campaign: string | null;
+  expires_at: string | null;
+  used_at: string | null;
+  created_at: string;
+  url: string;
+}
+
+export interface SupplierAnswer {
+  id: number;
+  supplier_id: number;
+  company_id: number;
+  ghg_total_tco2e: number | null;
+  ghg_scope1: number | null;
+  ghg_scope2: number | null;
+  ghg_scope3: number | null;
+  methodology: string | null;
+  reporting_year: number | null;
+  has_sbti: boolean;
+  has_iso14001: boolean;
+  has_iso50001: boolean;
+  narrative: string | null;
+  submitted_at: string;
+}
+
+export interface SupplierAnswerCreate {
+  ghg_total_tco2e?: number;
+  ghg_scope1?: number;
+  ghg_scope2?: number;
+  ghg_scope3?: number;
+  methodology?: string;
+  reporting_year?: number;
+  has_sbti?: boolean;
+  has_iso14001?: boolean;
+  has_iso50001?: boolean;
+  narrative?: string;
+}
+
+export interface Scope3Summary {
+  total_suppliers: number;
+  suppliers_with_ghg: number;
+  total_ghg_tco2e: number;
+  by_category: Record<string, number>;
+  top20: Array<{
+    id: number;
+    name: string;
+    ghg_estimate_tco2e: number | null;
+    scope3_category: string | null;
+    country: string | null;
+    has_answer: boolean;
+  }>;
+}
+
+export interface PublicQuestionnaireContext {
+  supplier_name: string;
+  company_name: string;
+  campaign: string | null;
+  expires_at: string | null;
+  already_answered: boolean;
+}
+
+export function fetchSuppliers(signal?: AbortSignal): Promise<Supplier[]> {
+  return apiGet<Supplier[]>("/suppliers", signal);
+}
+
+export function fetchScope3Summary(signal?: AbortSignal): Promise<Scope3Summary> {
+  return apiGet<Scope3Summary>("/suppliers/scope3", signal);
+}
+
+export function createSupplier(payload: SupplierCreate): Promise<Supplier> {
+  return apiSend<Supplier>("POST", "/suppliers", undefined, payload) as Promise<Supplier>;
+}
+
+export async function updateSupplier(id: number, payload: SupplierUpdate): Promise<Supplier> {
+  const res = await fetch(`${API_BASE_URL}/suppliers/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`PATCH /suppliers/${id} failed (${res.status})`);
+  return res.json() as Promise<Supplier>;
+}
+
+export function deleteSupplier(id: number): Promise<null> {
+  return apiSend<null>("DELETE", `/suppliers/${id}`) as Promise<null>;
+}
+
+export function createSupplierToken(
+  supplierId: number,
+  payload: { campaign?: string; expires_days?: number }
+): Promise<SupplierToken> {
+  return apiSend<SupplierToken>("POST", `/suppliers/${supplierId}/tokens`, undefined, payload) as Promise<SupplierToken>;
+}
+
+export function fetchSupplierTokens(supplierId: number): Promise<SupplierToken[]> {
+  return apiGet<SupplierToken[]>(`/suppliers/${supplierId}/tokens`);
+}
+
+export function fetchSupplierAnswers(supplierId: number): Promise<SupplierAnswer[]> {
+  return apiGet<SupplierAnswer[]>(`/suppliers/${supplierId}/answers`);
+}
+
+export function fetchQuestionnaire(token: string): Promise<PublicQuestionnaireContext> {
+  return apiGet<PublicQuestionnaireContext>(`/suppliers/public/q/${token}`);
+}
+
+export function submitQuestionnaire(token: string, payload: SupplierAnswerCreate): Promise<SupplierAnswer> {
+  return apiSend<SupplierAnswer>("POST", `/suppliers/public/q/${token}`, undefined, payload) as Promise<SupplierAnswer>;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 — Materialité drag & drop
+// ---------------------------------------------------------------------------
+
+export interface IssuePosition {
+  code: string;
+  x: number;
+  y: number;
+}
+
+export interface ScoredIssue {
+  code: string;
+  label: string;
+  x: number;
+  y: number;
+  score: number;
+  materiel: boolean;
+  pillar: "E" | "S" | "G";
+}
+
+export interface MaterialiteScoreResponse {
+  sector: string | null;
+  issues: ScoredIssue[];
+  total_materiel: number;
+  total_issues: number;
+  score_moyen: number;
+  narrative: string;
+}
+
+export interface SectorPresetsResponse {
+  sectors: string[];
+  default: string;
+  issues: Record<string, string>;
+}
+
+export function fetchMaterialitePresets(signal?: AbortSignal): Promise<SectorPresetsResponse> {
+  return apiGet<SectorPresetsResponse>("/materialite/presets", signal);
+}
+
+export function fetchMaterialitePositions(signal?: AbortSignal): Promise<IssuePosition[]> {
+  return apiGet<IssuePosition[]>("/materialite/positions", signal);
+}
+
+export function saveMaterialitePositions(
+  positions: IssuePosition[],
+  sector?: string
+): Promise<null> {
+  return apiSend<null>("POST", "/materialite/positions", undefined, { positions, sector }) as Promise<null>;
+}
+
+export function computeMaterialiteScore(
+  positions: IssuePosition[],
+  sector?: string
+): Promise<MaterialiteScoreResponse> {
+  return apiSend<MaterialiteScoreResponse>("POST", "/materialite/score", undefined, { positions, sector }) as Promise<MaterialiteScoreResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 — ESRS RAG search
+// ---------------------------------------------------------------------------
+
+export interface RagHit {
+  id: string;
+  standard: string;
+  topic: string;
+  answer: string;
+  source_ref: string;
+  score: number;
+}
+
+export interface RagSearchResponse {
+  query: string;
+  hits: RagHit[];
+  total_corpus_size: number;
+}
+
+export function ragSearch(query: string, top_k = 5): Promise<RagSearchResponse> {
+  return apiSend<RagSearchResponse>("POST", "/copilot/rag-search", undefined, { query, top_k }) as Promise<RagSearchResponse>;
+}

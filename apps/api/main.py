@@ -30,10 +30,12 @@ from routers import (
     health,
     history,
     ingest,
+    materialite,
     pilier2,
     report,
     reviews,
     strategic_mapping,
+    suppliers,
     verify,
     vsme,
 )
@@ -150,3 +152,5 @@ app.include_router(export.router, prefix="/export", tags=["export"])
 app.include_router(verify.router, prefix="/verify", tags=["verify (public)"])
 app.include_router(copilot.router, prefix="/copilot", tags=["copilot"])
 app.include_router(strategic_mapping.router, prefix="/strategic-mapping", tags=["strategic-mapping"])
+app.include_router(suppliers.router, prefix="/suppliers", tags=["suppliers"])
+app.include_router(materialite.router, prefix="/materialite", tags=["materialite"])

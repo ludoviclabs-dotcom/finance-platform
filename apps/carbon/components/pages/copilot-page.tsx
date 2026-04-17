@@ -11,7 +11,7 @@ import {
 import { SectionTitle } from "@/components/ui/section-title";
 import { SafeMarkdown } from "@/components/ui/safe-markdown";
 import { pageVariants } from "@/lib/animations";
-import { fetchCopilotTools, getAuthToken, type CopilotToolsBundle } from "@/lib/api";
+import { fetchCopilotTools, getAuthToken, ragSearch, type CopilotToolsBundle, type RagHit } from "@/lib/api";
 
 const quickPrompts = [
   { label: "Bilan carbone Scope 1, 2 et 3", icon: "🏭" },
@@ -147,10 +147,48 @@ function SourcesPanel({ tools, loading, onRefresh }: {
 // Main copilot component
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// RAG citation badge
+// ---------------------------------------------------------------------------
+
+function RagCitationsBadge({ hits }: { hits: RagHit[] }) {
+  const [open, setOpen] = useState(false);
+  if (!hits.length) return null;
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 text-[10px] text-carbon-emerald font-semibold"
+      >
+        <Sparkles className="w-3 h-3" />
+        {hits.length} source{hits.length > 1 ? "s" : ""} ESRS
+        {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+      </button>
+      {open && (
+        <div className="mt-1.5 space-y-1.5">
+          {hits.map((h) => (
+            <div key={h.id} className="rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)] p-2.5 text-xs">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="font-mono font-bold text-carbon-emerald text-[10px]">{h.standard}</span>
+                <span className="text-[var(--color-foreground-muted)]">— {h.topic}</span>
+              </div>
+              <p className="text-[var(--color-foreground-muted)] line-clamp-2 text-[10px]">{h.answer.slice(0, 150)}…</p>
+              <p className="text-[9px] text-[var(--color-foreground-muted)] mt-0.5 italic">{h.source_ref}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CopilotPage() {
   const [tools, setTools] = useState<CopilotToolsBundle | null>(null);
   const [toolsLoading, setToolsLoading] = useState(true);
   const [toolsError, setToolsError] = useState<string | null>(null);
+  const [lastRagHits, setLastRagHits] = useState<RagHit[]>([]);
+  const ragHitsRef = useRef<RagHit[]>([]);
 
   const loadTools = useCallback(async () => {
     setToolsLoading(true);
@@ -179,7 +217,10 @@ export function CopilotPage() {
           if (token) h.Authorization = `Bearer ${token}`;
           return h;
         },
-        body: () => ({ tools: tools ?? undefined }),
+        body: () => ({
+          tools: tools ?? undefined,
+          ragHits: ragHitsRef.current.length > 0 ? ragHitsRef.current : undefined,
+        }),
       }),
     [tools],
   );
@@ -195,9 +236,18 @@ export function CopilotPage() {
 
   const busy = status === "submitted" || status === "streaming";
 
-  const handleSend = (text: string) => {
+  const handleSend = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || busy) return;
+    // Search ESRS corpus before sending
+    try {
+      const result = await ragSearch(trimmed, 4);
+      ragHitsRef.current = result.hits;
+      setLastRagHits(result.hits);
+    } catch {
+      ragHitsRef.current = [];
+      setLastRagHits([]);
+    }
     sendMessage({ text: trimmed });
     setInput("");
   };
@@ -262,33 +312,40 @@ export function CopilotPage() {
         )}
 
         <AnimatePresence>
-          {messages.map((msg) => (
-            <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                msg.role === "assistant"
-                  ? "bg-carbon-emerald/20 text-carbon-emerald"
-                  : "bg-[var(--color-surface-raised)] text-[var(--color-foreground-muted)]"
-              }`}>
-                {msg.role === "assistant" ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
-              </div>
-              <div className={`max-w-[75%] rounded-xl px-4 py-3 text-sm leading-relaxed ${
-                msg.role === "assistant"
-                  ? "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-foreground-muted)]"
-                  : "bg-carbon-emerald text-white"
-              }`}>
-                {msg.parts.map((part, i) =>
-                  part.type === "text" ? (
-                    msg.role === "assistant" ? (
-                      <SafeMarkdown key={i}>{part.text}</SafeMarkdown>
-                    ) : (
-                      <span key={i}>{part.text}</span>
-                    )
-                  ) : null,
-                )}
-              </div>
-            </motion.div>
-          ))}
+          {messages.map((msg, msgIdx) => {
+            const isLastAssistant = msg.role === "assistant" && msgIdx === messages.length - 1;
+            return (
+              <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  msg.role === "assistant"
+                    ? "bg-carbon-emerald/20 text-carbon-emerald"
+                    : "bg-[var(--color-surface-raised)] text-[var(--color-foreground-muted)]"
+                }`}>
+                  {msg.role === "assistant" ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                </div>
+                <div className={`max-w-[75%] rounded-xl px-4 py-3 text-sm leading-relaxed ${
+                  msg.role === "assistant"
+                    ? "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-foreground-muted)]"
+                    : "bg-carbon-emerald text-white"
+                }`}>
+                  {msg.parts.map((part, i) =>
+                    part.type === "text" ? (
+                      msg.role === "assistant" ? (
+                        <SafeMarkdown key={i}>{part.text}</SafeMarkdown>
+                      ) : (
+                        <span key={i}>{part.text}</span>
+                      )
+                    ) : null,
+                  )}
+                  {/* Show RAG citations on last assistant message */}
+                  {isLastAssistant && lastRagHits.length > 0 && (
+                    <RagCitationsBadge hits={lastRagHits} />
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
 
         {status === "submitted" && (

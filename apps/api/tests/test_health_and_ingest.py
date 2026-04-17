@@ -53,7 +53,8 @@ class TestAudit:
             },
             headers=auth(analyst_token),
         )
-        assert resp.status_code == 200
+        # POST retourne 201 Created (RFC 7231), ancien test s'attendait à 200.
+        assert resp.status_code == 201
         data = resp.json()
         assert data["title"] == "Test upload CI"
         assert data["type"] == "upload"

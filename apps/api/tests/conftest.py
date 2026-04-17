@@ -15,8 +15,35 @@ from fastapi.testclient import TestClient
 
 # Forcer le mode /tmp (pas de PostgreSQL en CI)
 os.environ.setdefault("DATABASE_URL", "")
+# Désactiver le rate limit en tests (évite les cascades 429 entre tests qui
+# enchaînent beaucoup de login/auth — pré-existant, pas un bug produit).
+os.environ.setdefault("RATE_LIMIT_DISABLED", "1")
 
 from main import app  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _reset_state_between_tests():
+    """Reset les buckets de rate-limit + les caches snapshot entre chaque test.
+
+    Évite la pollution d'état partagé causée par :
+      - Rate limit : buckets persistent en mémoire entre tests
+      - Snapshot cache /tmp : écrit par un test, lu par un autre
+    """
+    try:
+        from middleware import rate_limit as _rl
+        _rl._BUCKETS.clear()
+    except Exception:
+        pass
+    try:
+        from pathlib import Path
+        import shutil
+        cache_dir = Path(os.environ.get("CARBONCO_CACHE_DIR", "/tmp/carbonco_snapshots"))
+        if cache_dir.exists():
+            shutil.rmtree(cache_dir, ignore_errors=True)
+    except Exception:
+        pass
+    yield
 
 
 @pytest.fixture(scope="session")

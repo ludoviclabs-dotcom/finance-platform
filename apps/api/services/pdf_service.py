@@ -1,9 +1,9 @@
 """
-pdf_service.py — Génération PDF serveur via fpdf2 + matplotlib.
+pdf_service.py - Génération PDF serveur via fpdf2 + matplotlib.
 
 Templates disponibles :
   - esg-synthesis : Synthèse ESG multi-pages (Carbon + VSME + ESG)
-  - csrd          : Rapport CSRD structuré par ESRS (E1, S1, G1…)
+  - csrd          : Rapport CSRD structuré par ESRS (E1, S1, G1...)
   - vsme          : Rapport VSME PME complet avec graphiques
 
 Chaque template peut inclure des graphiques matplotlib embeddes.
@@ -58,7 +58,7 @@ LINE_H   = 6
 # ---------------------------------------------------------------------------
 
 def _mpl_scope_bar(scope1: float, scope2: float, scope3: float) -> bytes | None:
-    """Graphique barre empilée Scope 1+2+3 — retourne PNG bytes."""
+    """Graphique barre empilée Scope 1+2+3 - retourne PNG bytes."""
     if not _MPL_AVAILABLE:
         return None
     try:
@@ -86,7 +86,7 @@ def _mpl_scope_bar(scope1: float, scope2: float, scope3: float) -> bytes | None:
             loc="upper right", fontsize=7, framealpha=0,
             labelcolor="white", ncol=3,
         )
-        ax.set_title("Répartition GES (tCO₂e)", color="white", fontsize=9, pad=6)
+        ax.set_title("Répartition GES (tCO2e)", color="white", fontsize=9, pad=6)
 
         buf = io.BytesIO()
         fig.tight_layout()
@@ -99,7 +99,7 @@ def _mpl_scope_bar(scope1: float, scope2: float, scope3: float) -> bytes | None:
 
 
 def _mpl_esg_radar(score_e: float, score_s: float, score_g: float) -> bytes | None:
-    """Radar chart E/S/G — retourne PNG bytes."""
+    """Radar chart E/S/G - retourne PNG bytes."""
     if not _MPL_AVAILABLE:
         return None
     try:
@@ -136,7 +136,7 @@ def _mpl_esg_radar(score_e: float, score_s: float, score_g: float) -> bytes | No
 
 
 def _mpl_vsme_completion(score_pct: float) -> bytes | None:
-    """Graphique anneau de complétude VSME — retourne PNG bytes."""
+    """Graphique anneau de complétude VSME - retourne PNG bytes."""
     if not _MPL_AVAILABLE:
         return None
     try:
@@ -169,18 +169,59 @@ def _mpl_vsme_completion(score_pct: float) -> bytes | None:
 # Formatters
 # ---------------------------------------------------------------------------
 
+# Caractères Unicode courants qui cassent fpdf2 (police Helvetica latin-1).
+# Pour passer à une police TTF Unicode il faudrait embarquer une font file + licence ;
+# sanitizing à l'entrée est suffisant pour nos cas (rapports ESG FR standard).
+_UNICODE_FALLBACKS = {
+    "\u2014": "-",     # em dash
+    "\u2013": "-",     # en dash
+    "\u2022": "*",     # bullet
+    "\u2026": "...",   # horizontal ellipsis
+    "\u2082": "2",     # subscript 2 (CO2)
+    "\u2083": "3",     # subscript 3
+    "\u2019": "'",     # right single quote
+    "\u2018": "'",     # left single quote
+    "\u201c": '"',     # left double quote
+    "\u201d": '"',     # right double quote
+    "\u00a0": " ",     # non-breaking space (ok en latin-1 mais peut trip)
+    "\u202f": " ",     # narrow no-break space
+    "\u200b": "",      # zero-width space
+}
+
+
+def _ascii_safe(s: str) -> str:
+    """Remplace les caractères Unicode hors latin-1 par leurs équivalents ASCII.
+
+    Nécessaire car fpdf2 avec la police Helvetica bundlée ne supporte que
+    latin-1. Caractères inconnus : replacement par '?' (fallback permissif
+    plutôt que crash).
+    """
+    if not s:
+        return s
+    out = s
+    for bad, good in _UNICODE_FALLBACKS.items():
+        if bad in out:
+            out = out.replace(bad, good)
+    # Filet de sécurité : tout caractère >255 restant devient '?'
+    try:
+        out.encode("latin-1")
+        return out
+    except UnicodeEncodeError:
+        return out.encode("latin-1", errors="replace").decode("latin-1")
+
+
 def _fmt(v: Any, unit: str = "", decimals: int = 1) -> str:
     if v is None:
-        return "—"
+        return "-"
     if isinstance(v, bool):
         return "Oui" if v else "Non"
     if isinstance(v, (int, float)):
         try:
-            formatted = f"{v:,.{decimals}f}".replace(",", "\u202f").replace(".", ",")
-            return f"{formatted} {unit}".strip() if unit else formatted
+            formatted = f"{v:,.{decimals}f}".replace(",", " ").replace(".", ",")
+            return _ascii_safe(f"{formatted} {unit}".strip() if unit else formatted)
         except Exception:
-            return str(v)
-    return str(v).strip() or "—"
+            return _ascii_safe(str(v))
+    return _ascii_safe(str(v).strip()) or "-"
 
 
 def _fmtdate(iso: str | None) -> str:
@@ -201,16 +242,42 @@ class _BaseBuilder:
 
     def __init__(self, template_name: str = "CarbonCo ESG") -> None:
         if not _FPDF_AVAILABLE:
-            raise RuntimeError("fpdf2 n'est pas installé — ajoutez fpdf2 dans requirements.txt")
+            raise RuntimeError("fpdf2 n'est pas installé - ajoutez fpdf2 dans requirements.txt")
 
         self.pdf = FPDF(orientation="P", unit="mm", format="A4")
         self.pdf.set_auto_page_break(auto=True, margin=20)
         self.pdf.set_margins(MARGIN, MARGIN, MARGIN)
         self.page_num = 0
         self.template_name = template_name
-        # Phase 3.B — watermark (hash + date de gel) injecté dans le footer si défini
+        # Phase 3.B - watermark (hash + date de gel) injecté dans le footer si défini
         self.watermark_hash: str | None = None
         self.watermark_frozen_at: str | None = None
+
+        # Wrap cell/multi_cell pour sanitizer automatique des caractères Unicode
+        # qui ne passent pas dans la police Helvetica (latin-1 only).
+        _orig_cell = self.pdf.cell
+        _orig_multicell = self.pdf.multi_cell
+
+        def _safe_cell(*args, **kwargs):
+            args = tuple(
+                _ascii_safe(a) if isinstance(a, str) else a for a in args
+            )
+            for k in ("txt", "text"):
+                if k in kwargs and isinstance(kwargs[k], str):
+                    kwargs[k] = _ascii_safe(kwargs[k])
+            return _orig_cell(*args, **kwargs)
+
+        def _safe_multicell(*args, **kwargs):
+            args = tuple(
+                _ascii_safe(a) if isinstance(a, str) else a for a in args
+            )
+            for k in ("txt", "text"):
+                if k in kwargs and isinstance(kwargs[k], str):
+                    kwargs[k] = _ascii_safe(kwargs[k])
+            return _orig_multicell(*args, **kwargs)
+
+        self.pdf.cell = _safe_cell  # type: ignore[method-assign]
+        self.pdf.multi_cell = _safe_multicell  # type: ignore[method-assign]
 
     def _new_page(self) -> None:
         self.pdf.add_page()
@@ -224,7 +291,7 @@ class _BaseBuilder:
         self.pdf.set_x(MARGIN)
         self.pdf.cell(0, 5, datetime.now().strftime("%d/%m/%Y"), align="R")
 
-        # Phase 3.B — watermark audit : hash + date de gel (2 lignes supplémentaires)
+        # Phase 3.B - watermark audit : hash + date de gel (2 lignes supplémentaires)
         if self.watermark_hash:
             self.pdf.set_y(-9)
             self.pdf.set_x(MARGIN)
@@ -391,12 +458,12 @@ class _SynthesisBuilder(_BaseBuilder):
         gouv = vsme.get("gouvernance", {}) or {}
         completude = vsme.get("completude", {}) or {}
 
-        self._section("3. VSME — Standard volontaire PME")
+        self._section("3. VSME - Standard volontaire PME")
         score = completude.get("scorePct", 0) or 0
         done = completude.get("indicateursCompletes", 0)
         total = completude.get("totalIndicateurs", 0)
-        statut = completude.get("statut", "—")
-        self._paragraph(f"Complétude : {score:.0f}% — {done} / {total} indicateurs. Statut : {statut}.")
+        statut = completude.get("statut", "-")
+        self._paragraph(f"Complétude : {score:.0f}% - {done} / {total} indicateurs. Statut : {statut}.")
 
         for label, value in [
             ("Raison sociale", _fmt(profile.get("raisonSociale"))),
@@ -475,7 +542,7 @@ class _SynthesisBuilder(_BaseBuilder):
             ("Score Environnement", _fmt(scores.get("scoreE"), "/100", 0)),
             ("Score Social", _fmt(scores.get("scoreS"), "/100", 0)),
             ("Score Gouvernance", _fmt(scores.get("scoreG"), "/100", 0)),
-            ("Statut ESG", str(scores.get("statut") or "—")),
+            ("Statut ESG", str(scores.get("statut") or "-")),
         ]:
             self._row(label, value)
 
@@ -485,8 +552,8 @@ class _SynthesisBuilder(_BaseBuilder):
             self._section("Top 10 enjeux matériels")
             for issue in top_issues:
                 score_val = issue.get("scoreImpactTotal")
-                score_str = f"{score_val:.1f}" if isinstance(score_val, (int, float)) else "—"
-                self._row(f"{issue.get('code', '?')} — {issue.get('label', '?')}", score_str)
+                score_str = f"{score_val:.1f}" if isinstance(score_val, (int, float)) else "-"
+                self._row(f"{issue.get('code', '?')} - {issue.get('label', '?')}", score_str)
         self._footer()
 
     def build_warnings(self, warnings: list[str]) -> None:
@@ -495,7 +562,7 @@ class _SynthesisBuilder(_BaseBuilder):
         self._new_page()
         self._section("5. Avertissements et points d'attention")
         for w in warnings:
-            self._paragraph(f"• {w}")
+            self._paragraph(f"* {w}")
         self._footer()
 
 
@@ -514,10 +581,10 @@ class _CsrdBuilder(_BaseBuilder):
         sbti = carbon.get("sbti", {}) or {}
         tax = carbon.get("taxonomy", {}) or {}
 
-        self._section("ESRS E1 — Changement climatique", color=EMERALD)
+        self._section("ESRS E1 - Changement climatique", color=EMERALD)
         self._paragraph(
             "Standard ESRS E1 : Gestion et performance en matière de changement climatique. "
-            "Données validées selon le protocole GHG Corporation — Scopes 1, 2 et 3."
+            "Données validées selon le protocole GHG Corporation - Scopes 1, 2 et 3."
         )
 
         # Graphique Scopes
@@ -528,7 +595,7 @@ class _CsrdBuilder(_BaseBuilder):
             chart = _mpl_scope_bar(s1, s2, s3)
             self._embed_chart(chart, w=160, h=38)
 
-        self._section("E1-1 — Transition et atténuation")
+        self._section("E1-1 - Transition et atténuation")
         for label, value in [
             ("Réduction objectif S1+S2 (SBTi)", _fmt(sbti.get("targetReductionS12Pct"), "%")),
             ("Réduction objectif S3 (SBTi)", _fmt(sbti.get("targetReductionS3Pct"), "%")),
@@ -537,7 +604,7 @@ class _CsrdBuilder(_BaseBuilder):
             self._row(label, value)
 
         self.pdf.ln(2)
-        self._section("E1-5 — Énergie")
+        self._section("E1-5 - Énergie")
         for label, value in [
             ("Consommation totale", _fmt(energy.get("consumptionMWh"), "MWh", 0)),
             ("Part ENR", _fmt(energy.get("renewableSharePct"), "%")),
@@ -545,7 +612,7 @@ class _CsrdBuilder(_BaseBuilder):
             self._row(label, value)
 
         self.pdf.ln(2)
-        self._section("E1-6 — Émissions brutes Scope 1, 2, 3")
+        self._section("E1-6 - Émissions brutes Scope 1, 2, 3")
         for label, value in [
             ("Scope 1 (direct)", _fmt(c.get("scope1Tco2e"), "tCO\u2082e", 0)),
             ("Scope 2 (location-based)", _fmt(c.get("scope2LbTco2e"), "tCO\u2082e", 0)),
@@ -558,7 +625,7 @@ class _CsrdBuilder(_BaseBuilder):
             self._row(label, value)
 
         self.pdf.ln(2)
-        self._section("E1 — Taxonomie européenne")
+        self._section("E1 - Taxonomie européenne")
         for label, value in [
             ("CA aligné", _fmt(tax.get("turnoverAlignedPct"), "%")),
             ("CapEx aligné", _fmt(tax.get("capexAlignedPct"), "%")),
@@ -570,7 +637,7 @@ class _CsrdBuilder(_BaseBuilder):
     def build_s1(self, vsme: dict[str, Any]) -> None:
         self._new_page()
         social = vsme.get("social", {}) or {}
-        self._section("ESRS S1 — Effectifs propres", color=CYAN)
+        self._section("ESRS S1 - Effectifs propres", color=CYAN)
         self._paragraph(
             "Standard ESRS S1 : Propres effectifs de l'entreprise. "
             "Inclut les indicateurs sociaux clés (effectif, conditions de travail, égalité)."
@@ -591,7 +658,7 @@ class _CsrdBuilder(_BaseBuilder):
     def build_g1(self, vsme: dict[str, Any]) -> None:
         self._new_page()
         gouv = vsme.get("gouvernance", {}) or {}
-        self._section("ESRS G1 — Éthique et conduite des affaires", color=PURPLE)
+        self._section("ESRS G1 - Éthique et conduite des affaires", color=PURPLE)
         self._paragraph(
             "Standard ESRS G1 : Comportement en matière d'affaires. "
             "Inclut les politiques anti-corruption, éthique et protection des données."
@@ -627,9 +694,9 @@ class _CsrdBuilder(_BaseBuilder):
         )[:15]
         for issue in top:
             score_val = issue.get("scoreImpactTotal")
-            score_str = f"{score_val:.1f}" if isinstance(score_val, (int, float)) else "—"
+            score_str = f"{score_val:.1f}" if isinstance(score_val, (int, float)) else "-"
             cat = issue.get("categorie", "?")
-            self._row(f"[{cat[:1]}] {issue.get('code', '?')} — {issue.get('label', '?')}", score_str)
+            self._row(f"[{cat[:1]}] {issue.get('code', '?')} - {issue.get('label', '?')}", score_str)
         self._footer()
 
 
@@ -647,7 +714,7 @@ class _VsmeBuilder(_BaseBuilder):
         score = float(completude.get("scorePct") or 0)
         done = completude.get("indicateursCompletes", 0)
         total = completude.get("totalIndicateurs", 0)
-        statut = completude.get("statut", "—")
+        statut = completude.get("statut", "-")
 
         self._section("Score de complétude VSME")
 
@@ -677,7 +744,7 @@ class _VsmeBuilder(_BaseBuilder):
     def build_profile(self, vsme: dict[str, Any]) -> None:
         self._new_page()
         profile = vsme.get("profile", {}) or {}
-        self._section("A — Profil de l'entreprise")
+        self._section("A - Profil de l'entreprise")
         for label, value in [
             ("Raison sociale", _fmt(profile.get("raisonSociale"))),
             ("Secteur NAF", _fmt(profile.get("secteurNaf"))),
@@ -693,9 +760,9 @@ class _VsmeBuilder(_BaseBuilder):
     def build_environnement(self, vsme: dict[str, Any]) -> None:
         self._new_page()
         env = vsme.get("environnement", {}) or {}
-        self._section("B — Informations environnementales")
+        self._section("B - Informations environnementales")
         self._paragraph(
-            "Indicateurs environnementaux clés selon le standard VSME — Voluntary "
+            "Indicateurs environnementaux clés selon le standard VSME - Voluntary "
             "SME Reporting Standard (base EFRAG)."
         )
 
@@ -724,7 +791,7 @@ class _VsmeBuilder(_BaseBuilder):
     def build_social(self, vsme: dict[str, Any]) -> None:
         self._new_page()
         social = vsme.get("social", {}) or {}
-        self._section("C — Informations sociales")
+        self._section("C - Informations sociales")
         for label, value in [
             ("Effectif total", _fmt(social.get("effectifTotal"), "pers.", 0)),
             ("Part CDI", _fmt(social.get("pctCdi"), "%")),
@@ -743,7 +810,7 @@ class _VsmeBuilder(_BaseBuilder):
     def build_gouvernance(self, vsme: dict[str, Any]) -> None:
         self._new_page()
         gouv = vsme.get("gouvernance", {}) or {}
-        self._section("D — Informations de gouvernance")
+        self._section("D - Informations de gouvernance")
         for label, value in [
             ("Politique anti-corruption", _fmt(gouv.get("antiCorruption"))),
             ("Formation à l'éthique", _fmt(gouv.get("formationEthique"))),
@@ -756,7 +823,7 @@ class _VsmeBuilder(_BaseBuilder):
 
 
 # ---------------------------------------------------------------------------
-# Public API — 3 fonctions de génération + compatibilité legacy
+# Public API - 3 fonctions de génération + compatibilité legacy
 # ---------------------------------------------------------------------------
 
 
@@ -770,7 +837,7 @@ def generate_esg_synthesis_pdf(
     """Generate an ESG synthesis PDF and return its raw bytes. (Legacy + Template 1)
 
     Phase 3.B : watermark optionnel dans le footer de chaque page avec
-    le package_hash + date de gel — garantit qu'un PDF extrait d'un ZIP
+    le package_hash + date de gel - garantit qu'un PDF extrait d'un ZIP
     officiel reste traçable même hors du package.
     """
     if not _FPDF_AVAILABLE:
@@ -786,7 +853,7 @@ def generate_esg_synthesis_pdf(
         (carbon or {}).get("company", {}) or {}
     ).get("reportingYear") or (
         (vsme or {}).get("profile", {}) or {}
-    ).get("anneeReporting") or "—"
+    ).get("anneeReporting") or "-"
 
     generated_at = (
         (carbon or {}).get("generatedAt")
@@ -802,9 +869,9 @@ def generate_esg_synthesis_pdf(
     builder.cover(
         str(company), year, generated_at,
         toc_lines=[
-            "1. Indicateurs carbone — Scopes 1, 2 et 3",
+            "1. Indicateurs carbone - Scopes 1, 2 et 3",
             "2. Taxonomie européenne & SBTi",
-            "3. VSME — Standard volontaire PME",
+            "3. VSME - Standard volontaire PME",
             "4. Double matérialité & ESRS",
             "5. Avertissements et points d'attention",
         ],
@@ -846,7 +913,7 @@ def generate_csrd_pdf(
         (carbon or {}).get("company", {}) or {}
     ).get("reportingYear") or (
         (vsme or {}).get("profile", {}) or {}
-    ).get("anneeReporting") or "—"
+    ).get("anneeReporting") or "-"
 
     generated_at = (
         (carbon or {}).get("generatedAt") or (esg or {}).get("generatedAt") or ""
@@ -855,12 +922,12 @@ def generate_csrd_pdf(
     builder = _CsrdBuilder()
     builder.cover(
         str(company), year, generated_at,
-        subtitle="Rapport CSRD — ESRS E1, S1, G1 + Double matérialité",
+        subtitle="Rapport CSRD - ESRS E1, S1, G1 + Double matérialité",
         badge_color=CYAN,
         toc_lines=[
-            "ESRS E1 — Changement climatique",
-            "ESRS S1 — Effectifs propres",
-            "ESRS G1 — Éthique et conduite des affaires",
+            "ESRS E1 - Changement climatique",
+            "ESRS S1 - Effectifs propres",
+            "ESRS G1 - Éthique et conduite des affaires",
             "Analyse de double matérialité IRO",
         ],
     )
@@ -885,20 +952,20 @@ def generate_vsme_pdf(
 
     profile = (vsme or {}).get("profile", {}) or {}
     company = profile.get("raisonSociale") or "Entreprise"
-    year = profile.get("anneeReporting") or "—"
+    year = profile.get("anneeReporting") or "-"
     generated_at = (vsme or {}).get("generatedAt") or ""
 
     builder = _VsmeBuilder()
     builder.cover(
         str(company), year, generated_at,
-        subtitle="Rapport VSME — Standard Volontaire PME (EFRAG)",
+        subtitle="Rapport VSME - Standard Volontaire PME (EFRAG)",
         badge_color=PURPLE,
         toc_lines=[
             "Score de complétude VSME",
-            "A — Profil de l'entreprise",
-            "B — Informations environnementales",
-            "C — Informations sociales",
-            "D — Informations de gouvernance",
+            "A - Profil de l'entreprise",
+            "B - Informations environnementales",
+            "C - Informations sociales",
+            "D - Informations de gouvernance",
         ],
     )
 
@@ -913,7 +980,7 @@ def generate_vsme_pdf(
 
 
 # ---------------------------------------------------------------------------
-# Template router — dispatche vers le bon générateur
+# Template router - dispatche vers le bon générateur
 # ---------------------------------------------------------------------------
 
 TEMPLATE_GENERATORS = {

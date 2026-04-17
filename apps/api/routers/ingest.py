@@ -6,7 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from db.tenant import get_company_id
+from routers.auth import require_admin, require_analyst
 from services.audit_service import log_event
+from services.auth_service import AuthUser
 from services.carbon_service import CarbonServiceError, build_carbon_snapshot
 from services.esg_service import build_esg_snapshot, build_vsme_snapshot
 from services.finance_service import build_finance_snapshot
@@ -136,16 +138,20 @@ async def ingest_status(company_id: int = Depends(get_company_id)) -> CacheStatu
 @router.delete("/ingest/cache", status_code=204)
 async def invalidate_cache(
     domain: str | None = None,
-    company_id: int = Depends(get_company_id),
+    user: AuthUser = Depends(require_admin),
 ) -> None:
-    """Invalidate cached snapshot(s) for the current tenant."""
+    """Invalidate cached snapshot(s) for the current tenant.
+
+    Action destructrice — réservée admin (sinon n'importe quel anonyme
+    pouvait invalider le cache d'un tenant, DoS trivial).
+    """
     try:
-        invalidate(domain, company_id=company_id)
+        invalidate(domain, company_id=user.company_id)
         log_event(
             event_type="cache_clear",
-            title=f"Cache invalidé — {domain or 'tous les domaines'}",
+            title=f"Cache invalidé - {domain or 'tous les domaines'}",
             status="ok",
-            company_id=company_id,
+            company_id=user.company_id,
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc

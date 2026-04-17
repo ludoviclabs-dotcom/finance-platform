@@ -126,9 +126,9 @@ export function MethodologyModal({ open, onClose }: MethodologyModalProps) {
                   <div className="flex items-start gap-3">
                     <span className="text-amber-600 text-sm font-bold flex-shrink-0">⚖️</span>
                     <div>
-                      <p className="text-xs font-bold text-amber-800 mb-1">Disclaimer EU AI Act — Article 52</p>
+                      <p className="text-xs font-bold text-amber-800 mb-1">Disclaimer EU AI Act — usage responsable</p>
                       <p className="text-xs text-amber-700 leading-relaxed">
-                        Les suggestions et analyses générées par NEURAL sont des recommandations d&apos;aide à la décision. Elles doivent être validées par un expert avant tout usage dans un rapport officiel. CarbonCo est conforme au règlement UE 2024/1689 (EU AI Act) — système IA à risque limité.
+                        Les suggestions et analyses générées par NEURAL sont des recommandations d&apos;aide à la décision. Elles doivent être validées par un expert avant tout usage dans un rapport officiel. La classification du système au regard du règlement UE 2024/1689 (EU AI Act) est en cours d&apos;évaluation — non auditée à ce jour. L&apos;application générale de l&apos;AI Act intervient le 2 août 2026.
                       </p>
                     </div>
                   </div>

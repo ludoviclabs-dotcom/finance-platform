@@ -111,8 +111,8 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
             {/* Bénéfices */}
             <div className="space-y-4">
               {[
-                { icon: CheckCircle, text: "Conformité ESRS 2025 garantie", color: "text-green-400" },
-                { icon: Shield, text: "Audit trail et traçabilité totale", color: "text-cyan-400" },
+                { icon: CheckCircle, text: "Couverture prioritaire ESRS E1 + ESRS 1&2", color: "text-green-400" },
+                { icon: Shield, text: "Audit trail append-only · hash SHA-256 chaîné", color: "text-cyan-400" },
                 { icon: Lock, text: "Infrastructure EU (Vercel) · chiffrement TLS 1.3", color: "text-green-400" },
               ].map(({ icon: Icon, text, color }) => (
                 <div key={text} className="flex items-center gap-3">

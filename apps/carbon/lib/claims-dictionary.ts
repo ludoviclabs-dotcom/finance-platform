@@ -80,3 +80,37 @@ export const METHODOLOGY = {
   public: "Méthodologie de calcul publique et téléchargeable",
   workbook: "Classeur Excel de calcul open-source disponible sur demande",
 } as const;
+
+// ─── Audit trail / preuve auditable ───────────────────────────────────────
+// Phase 5.0 — Truth alignment : ces constantes remplacent toute formulation
+// "garantie", "conforme à", "100% compliant" qui n'est pas opposable.
+
+export const PROOF = {
+  /** Hash chain Merkle SHA-256 — vraie infra audit-grade Phase 1.B */
+  hash_chain: "Audit trail append-only · hash SHA-256 chaîné",
+  /** Export ZIP signé + portail vérification */
+  export_pack: "Rapports PDF + Evidence Pack ZIP signé",
+  /** Vérification publique sans compte */
+  verify_public: "Vérifiable publiquement via /verify/{hash} — sans aucun outil tiers",
+  /** Provenance par fact_id */
+  provenance: "Traçabilité par fact_id — chaque KPI relié à sa source primaire",
+} as const;
+
+// ─── Avertissements regulatoires ──────────────────────────────────────────
+
+export const DISCLAIMERS = {
+  ai_act_august_2026:
+    "L'application générale du règlement UE 2024/1689 (EU AI Act) intervient le 2 août 2026.",
+  csrd_omnibus:
+    "Périmètre CSRD réajusté par l'Omnibus du 26 février 2025 — voir /etat-du-produit.",
+  vsme_recommended:
+    "Standard VSME recommandé par la Commission depuis le 30 juillet 2025 pour les PME non cotées.",
+} as const;
+
+// ─── Réductions chiffrées ─────────────────────────────────────────────────
+// PAS DE % EN DUR sans étude pilote signée. Toujours qualifier "estimé/variable".
+
+export const SAVINGS = {
+  reporting_time: "Réduction du temps de reporting estimée — résultats variables selon taille",
+  collection_time: "Collecte assistée par copilote NEURAL — gain dépendant du périmètre",
+} as const;

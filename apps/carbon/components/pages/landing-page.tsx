@@ -718,13 +718,13 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 </div>
                 <ul className="space-y-4">
                   {[
-                    ["Données centralisées en temps réel", "Synchronisation ERP, API, Excel en continu"],
-                    ["Collecte automatisée par NEURAL", "−87% de temps de reporting en moyenne"],
-                    ["Audit trail et traçabilité totale", "Chaque donnée tracée avec sa source et méthode"],
-                    ["Conformité ESRS 2026 garantie", "12 standards ESRS + guidelines EFRAG mars 2026 intégrées"],
-                    ["Rapports générés en 1 clic", "PDF, Excel, format auditeur — prêt pour signature"],
-                    ["Scope 3 numérique automatisé", "Émissions serveurs, cloud & SaaS calculées via bases Boavizta & IEA"],
-                    ["Bilan énergétique des locaux intégré", "Chauffage, clim, éclairage — facteurs ADEME appliqués par zone et m²"],
+                    ["Données centralisées via import Excel structuré", "Modèle téléchargeable, named ranges contrôlés, validation stricte"],
+                    ["Collecte assistée par copilote NEURAL", "Réduction du temps de reporting estimée — résultats variables selon taille"],
+                    ["Audit trail append-only signé SHA-256", "Chaque donnée tracée avec sa source, méthode et hash de chaîne"],
+                    ["Couverture prioritaire ESRS E1 + ESRS 1&2", "Autres standards ESRS en développement actif — voir /etat-du-produit"],
+                    ["Rapports PDF + Evidence Pack ZIP signé", "Vérifiable publiquement via /verify/{hash} — sans aucun outil tiers"],
+                    ["Scope 3 fournisseurs via questionnaire public", "Liens partagés sans compte requis — réponses intégrées au bilan"],
+                    ["Facteurs d'émission ADEME Base Empreinte® 2025", "502 facteurs versionnés, traçabilité par fact_id"],
                   ].map(([title, sub]) => (
                     <li key={title} className="flex items-start gap-3 text-green-800">
                       <span className="mt-1 w-5 h-5 flex-shrink-0 rounded-full bg-green-200 flex items-center justify-center">
@@ -766,16 +766,16 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
                   ),
                   title: "Dashboard ESG temps réel",
-                  desc: "Visualisez vos KPIs carbone, eau, social et gouvernance sur un tableau de bord unifié. Alertes automatiques en cas d'anomalie.",
-                  highlights: ["Scope 1, 2 & 3", "Benchmark sectoriel", "Alertes intelligentes"],
+                  desc: "Visualisez vos KPIs carbone et gouvernance sur un tableau de bord unifié. Règles d'alerte configurables par seuil.",
+                  highlights: ["Scope 1, 2 & 3", "Comparatif indicatif", "Alertes par seuil"],
                 },
                 {
                   color: "purple", icon: (
                     <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" /></svg>
                   ),
                   title: "Copilote NEURAL",
-                  desc: "Posez vos questions en langage naturel. NEURAL analyse vos données, détecte les risques et suggère des plans d'action chiffrés.",
-                  highlights: ["Langage naturel", "Plans d'action IA", "Conforme EU AI Act"],
+                  desc: "Posez vos questions en langage naturel. NEURAL répond avec citations sourcées du corpus ESRS — l'utilisateur valide avant tout usage en rapport officiel.",
+                  highlights: ["Langage naturel", "Citations ESRS sourcées", "Classification AI Act en cours"],
                 },
                 {
                   color: "orange", icon: (
@@ -1238,7 +1238,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             </div>
           </div>
           <div className="border-t border-neutral-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-neutral-400">© 2026 CarbonCo SAS. Tous droits réservés. Conformité ESRS 2025 · RGPD · EU AI Act.</p>
+            <p className="text-xs text-neutral-400">© 2026 CarbonCo SAS. Tous droits réservés. RGPD · Hébergement EU · <a href="/etat-du-produit" className="hover:text-black underline">État réel du produit</a></p>
             <p className="text-xs text-neutral-400">Conçu à Paris · Hébergé en EU (Vercel/Neon) · Made with 💚</p>
           </div>
         </div>

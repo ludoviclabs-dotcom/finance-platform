@@ -78,9 +78,9 @@ const STATUS_SECTIONS: Array<{
           "Création de comptes utilisateurs avec rôles (Admin, Éditeur, Lecteur). Chaque action est tracée dans le journal d'audit avec l'identité de l'auteur. Isolation des données par organisation.",
       },
       {
-        title: "Authentification sécurisée JWT + 2FA",
+        title: "Authentification sécurisée par JWT signé",
         description:
-          "Authentification par email/mot de passe avec tokens JWT signés. Rotation automatique des refresh tokens. Journal de connexion consultable par les administrateurs.",
+          "Authentification par email/mot de passe avec tokens JWT signés HS256. Rotation des refresh tokens via cookie httpOnly. Journal de connexion consultable par les administrateurs. La double authentification (TOTP) est sur la roadmap — pas encore implémentée à ce jour.",
       },
     ],
   },

@@ -228,14 +228,20 @@ h4 { font-size: var(--text-xl); }
 h5 { font-size: var(--text-lg); }
 h6 { font-size: var(--text-base); }
 
-a {
-  color: var(--neural-violet);
-  text-decoration: none;
-  transition: color 150ms ease;
-}
-
-a:hover {
-  color: var(--neural-violet-dark);
+/* NOTE: anchor base color is wrapped in @layer base so Tailwind utilities
+   (like text-gray-300, text-white, etc.) can override it via @layer utilities.
+   Without this layer wrap, unlayered `a { color: violet }` would win over
+   any Tailwind text color class, breaking navbars, buttons, and inherited
+   colors throughout the app. */
+@layer base {
+  a {
+    color: var(--neural-violet);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+  a:hover {
+    color: var(--neural-violet-dark);
+  }
 }
 
 :focus-visible {

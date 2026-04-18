@@ -38,9 +38,8 @@
 .nhp-testimonials h1, .nhp-testimonials h2, .nhp-testimonials h3, .nhp-testimonials p,
 .nhp-live-data h1, .nhp-live-data h2, .nhp-live-data h3,
 .nhp-cta h1, .nhp-cta h2, .nhp-cta h3 {
+  /* Only reset color — letter-spacing & font-family are set by .h-display, .nhp-hero-title etc */
   color: inherit;
-  font-family: var(--font-space-grotesk, 'Space Grotesk'), sans-serif;
-  letter-spacing: -0.02em;
 }
 
 /* Kill the global `a { color: var(--neural-violet) }` inside our sections */

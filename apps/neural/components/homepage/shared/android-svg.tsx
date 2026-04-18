@@ -123,14 +123,38 @@ export function AndroidSvg({ className = "" }: { className?: string }) {
       <circle cx="280" cy="460" r="34"  fill="#7C3AED" opacity="0.22" />
       <circle cx="280" cy="460" r="24"  fill="#A78BFA" opacity="0.45" />
       <circle cx="280" cy="460" r="12"  fill="#EDE4FF" />
-      <circle cx="280" cy="460" r="36"  stroke="#A78BFA" strokeWidth="0.7" fill="none" opacity="0.6">
-        <animate attributeName="r" values="36;42;36" dur="3s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="3s" repeatCount="indefinite" />
-      </circle>
-      <circle cx="280" cy="460" r="44"  stroke="#A78BFA" strokeWidth="0.4"
-        fill="none" strokeDasharray="1 4" opacity="0.5">
+
+      {/* ── Orbital rings around core — visibly rotating ───────── */}
+      {/* Ring 1: wide ellipse, slow counter-clockwise, violet dashed */}
+      <ellipse cx="280" cy="460" rx="64" ry="22"
+        stroke="#A78BFA" strokeWidth="1" fill="none" opacity="0.75"
+        strokeDasharray="5 4">
         <animateTransform attributeName="transform" type="rotate"
-          from="0 280 460" to="360 280 460" dur="6s" repeatCount="indefinite" />
+          from="0 280 460" to="-360 280 460" dur="9s" repeatCount="indefinite" />
+      </ellipse>
+
+      {/* Ring 2: narrower ellipse, fast clockwise, tilted, solid violet */}
+      <ellipse cx="280" cy="460" rx="58" ry="18"
+        stroke="#C4B5FD" strokeWidth="1.2" fill="none" opacity="0.85">
+        <animateTransform attributeName="transform" type="rotate"
+          from="35 280 460" to="395 280 460" dur="5s" repeatCount="indefinite" />
+      </ellipse>
+
+      {/* Orbiting dot on ring 1 */}
+      <circle r="3" fill="#EDE4FF" opacity="0.95">
+        <animateMotion dur="9s" repeatCount="indefinite"
+          path="M 344 460 A 64 22 0 1 0 216 460 A 64 22 0 1 0 344 460" />
+      </circle>
+      {/* Orbiting dot on ring 2 (opposite direction via reversed path) */}
+      <circle r="2.4" fill="#10B981" opacity="0.9">
+        <animateMotion dur="5s" repeatCount="indefinite" rotate="auto"
+          path="M 222 460 A 58 18 0 1 1 338 460 A 58 18 0 1 1 222 460" />
+      </circle>
+
+      {/* Pulse ring — expands/fades */}
+      <circle cx="280" cy="460" r="36" stroke="#A78BFA" strokeWidth="0.7" fill="none" opacity="0.6">
+        <animate attributeName="r" values="36;54;36" dur="3s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.6;0;0.6" dur="3s" repeatCount="indefinite" />
       </circle>
 
       {/* status bars at bottom of panel */}

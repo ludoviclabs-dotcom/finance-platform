@@ -235,7 +235,12 @@
 
 /* ANDROID VISUAL */
 .nhp-android { position: relative; display: inline-block; overflow: visible; }
-.nhp-android-img { position: relative; z-index: 2; filter: drop-shadow(0 30px 60px rgba(124,58,237,0.25)); }
+/* SVG android: fill width, aspect-ratio from viewBox (380/520 ≈ 0.73) */
+.nhp-android-img {
+  position: relative; z-index: 2;
+  width: 100%; height: auto; display: block;
+  /* SVG has its own internal glow filters — no outer drop-shadow needed */
+}
 .nhp-android-halo {
   position: absolute; inset: -20%; z-index: 1;
   background: radial-gradient(ellipse at center, rgba(167,139,250,0.35) 0%, rgba(124,58,237,0.12) 40%, transparent 70%);

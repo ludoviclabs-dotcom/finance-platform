@@ -1,5 +1,5 @@
-import Image from "next/image";
 import type { ReactNode } from "react";
+import { AndroidSvg } from "./android-svg";
 
 interface AndroidVisualProps {
   size?: number;
@@ -10,16 +10,12 @@ interface AndroidVisualProps {
 
 export function AndroidVisual({ size = 560, glow = true, className = "", children }: AndroidVisualProps) {
   return (
-    <div className={`nhp-android ${className}`} style={{ width: size, maxWidth: "100%" }}>
+    <div
+      className={`nhp-android ${className}`}
+      style={{ width: size, maxWidth: "100%" }}
+    >
       {glow && <div className="nhp-android-halo" />}
-      <Image
-        src="/images/neural-android.png"
-        alt="NEURAL android"
-        width={size}
-        height={Math.round(size * 1.2)}
-        className="nhp-android-img"
-        priority
-      />
+      <AndroidSvg className="nhp-android-img" />
       {children}
     </div>
   );

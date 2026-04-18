@@ -4,6 +4,102 @@
    Fonts: Inter (body), Space Grotesk (display), JetBrains Mono (code)
    ========================================================================= */
 
+/* =========================================================================
+   RESET / OVERRIDES — neutralise les styles globaux (globals.css)
+   qui forcent h1/h2/h3 { color: var(--color-foreground) } en dark mode.
+   Without this, all titles on light backgrounds become near-invisible.
+   ========================================================================= */
+
+.nhp-hero,
+.nhp-stats,
+.nhp-agent-demo,
+.nhp-problem,
+.nhp-orch,
+.nhp-branches,
+.nhp-sectors,
+.nhp-matrix,
+.nhp-pricing,
+.nhp-testimonials,
+.nhp-live-data,
+.nhp-cta {
+  /* Section containers establish a color context; children inherit. */
+  font-family: var(--font-inter, 'Inter'), sans-serif;
+}
+
+.nhp-hero h1, .nhp-hero h2, .nhp-hero h3, .nhp-hero p, .nhp-hero li, .nhp-hero a,
+.nhp-stats h1, .nhp-stats h2, .nhp-stats h3,
+.nhp-agent-demo h1, .nhp-agent-demo h2, .nhp-agent-demo h3,
+.nhp-problem h1, .nhp-problem h2, .nhp-problem h3,
+.nhp-orch h1, .nhp-orch h2, .nhp-orch h3, .nhp-orch p,
+.nhp-branches h1, .nhp-branches h2, .nhp-branches h3, .nhp-branches p,
+.nhp-sectors h1, .nhp-sectors h2, .nhp-sectors h3,
+.nhp-matrix h1, .nhp-matrix h2, .nhp-matrix h3, .nhp-matrix p,
+.nhp-pricing h1, .nhp-pricing h2, .nhp-pricing h3, .nhp-pricing p,
+.nhp-testimonials h1, .nhp-testimonials h2, .nhp-testimonials h3, .nhp-testimonials p,
+.nhp-live-data h1, .nhp-live-data h2, .nhp-live-data h3,
+.nhp-cta h1, .nhp-cta h2, .nhp-cta h3 {
+  color: inherit;
+  font-family: var(--font-space-grotesk, 'Space Grotesk'), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Kill the global `a { color: var(--neural-violet) }` inside our sections */
+.nhp-hero a,
+.nhp-branches a,
+.nhp-sectors a,
+.nhp-matrix a,
+.nhp-pricing a,
+.nhp-testimonials a,
+.nhp-cta a,
+.nhp-stats a {
+  color: inherit;
+}
+
+/* Re-assert explicit section backgrounds + body colors so the page renders
+   regardless of the `[data-theme="dark"]` default on <html>. */
+.nhp-hero         { color: #0A1628; }
+.nhp-stats        { color: #fff; }
+.nhp-agent-demo   { color: #fff; }
+.nhp-problem      { color: #fff; }
+.nhp-orch         { color: #0A1628; }
+.nhp-branches     { color: #0A1628; }
+.nhp-sectors      { color: #fff; }
+.nhp-matrix       { color: #0A1628; }
+.nhp-pricing      { color: #0A1628; }
+.nhp-testimonials { color: #0A1628; }
+.nhp-live-data    { color: #fff; }
+.nhp-cta          { color: #fff; }
+
+/* Card internals inherit from their parent section */
+.nhp-branch-card  { color: #0A1628; }
+.nhp-branch-card  .nhp-branch-desc,
+.nhp-branch-card  .nhp-branch-foot { color: rgba(10,22,40,0.6); }
+.nhp-branch-matrix { color: #fff; }
+.nhp-branch-matrix .nhp-branch-label { color: #fff; }
+.nhp-branch-matrix .nhp-branch-desc  { color: rgba(255,255,255,0.7); }
+.nhp-sector-card  { color: #fff; }
+.nhp-sector-card  .nhp-sector-desc   { color: rgba(255,255,255,0.65); }
+.nhp-tier         { color: #0A1628; }
+.nhp-tier-hl      { color: #fff; }
+.nhp-tier-hl .nhp-tier-sub, .nhp-tier-hl .nhp-tier-price-to { color: rgba(255,255,255,0.7); }
+.nhp-quote-card   { color: #0A1628; }
+
+/* Stat value should stay in gradient — but ensure the gradient IS applied */
+.nhp-stat-value {
+  background: linear-gradient(180deg, #fff 30%, rgba(167,139,250,0.8) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Problem numbers stay pure white */
+.nhp-problem-k { color: #fff !important; }
+
+/* =========================================================================
+   BASE / TOKENS — original design system below
+   ========================================================================= */
+
 .tabnum { font-variant-numeric: tabular-nums; }
 .muted { color: rgba(10,22,40,0.55); }
 .muted-dark { color: rgba(255,255,255,0.55); }

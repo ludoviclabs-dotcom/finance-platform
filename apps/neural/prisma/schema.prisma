@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  // Connection URLs live in prisma.config.ts (Prisma 7+).
+  // See https://pris.ly/d/config-datasource
 }
 
 // ==========================================
@@ -24,6 +24,10 @@ model User {
   sessions       Session[]
   organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?
+
+  // Sprint 0 — agent runtime relations
+  agentRuns AgentRun[]
+  approvals Approval[] @relation("ApprovalReviewer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -87,6 +91,10 @@ model Organization {
   contracts Contract[]
   agents    DeployedAgent[]
   leads     Lead[]
+
+  // Sprint 0 — agent runtime relations
+  agentRuns AgentRun[]
+  memories  Memory[]
 
   stripeCustomerId String? @unique
 
@@ -204,7 +212,7 @@ model Invoice {
   status InvoiceStatus
   period String
 
-  stripeInvoiceId String?  @unique
+  stripeInvoiceId String?   @unique
   paidAt          DateTime?
 
   createdAt DateTime @default(now())
@@ -292,8 +300,8 @@ model LeadNote {
 // ==========================================
 
 model NewsletterSubscriber {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String  @id @default(cuid())
+  email     String  @unique
   firstName String?
   sector    Sector?
 
@@ -319,4 +327,161 @@ model AuditQuizResult {
   answers Json
 
   createdAt DateTime @default(now())
+}
+
+// ==========================================
+// AGENT RUNTIME — Sprint 0 foundations
+// Added 2026-04-18. Feeds:
+//   • Épic 2 observability (Langfuse sync)
+//   • Épic 4 explainability trace (AgentDecision graph)
+//   • Épic 5 HITL (Approval queue)
+//   • Épic 7 regulatory watch (RegulatoryAlert)
+// ==========================================
+
+/// One execution of an agent for a given question. Parent row for the
+/// explainability trace (AgentDecision[]) and any HITL approvals.
+model AgentRun {
+  id             String        @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id])
+
+  agentId    String // e.g. "ifrs9-ecl", "tva-transport"
+  question   String    @db.Text
+  answer     String?   @db.Text
+  confidence Float? // 0..1 — drives HITL routing
+  status     RunStatus @default(RUNNING)
+  model      String? // "anthropic/claude-sonnet-4-6" etc.
+  costUsd    Decimal?  @db.Decimal(10, 6)
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  /// Full ExplanationTrace (sources, steps, rules applied, uncertainties).
+  trace Json?
+
+  decisions AgentDecision[]
+  approvals Approval[]
+
+  @@index([agentId])
+  @@index([organizationId, startedAt])
+  @@index([status])
+}
+
+enum RunStatus {
+  RUNNING
+  WAITING_APPROVAL
+  DONE
+  FAILED
+  REJECTED
+}
+
+/// Atomic step inside an AgentRun. Multiple decisions compose the trace graph
+/// rendered by components/explainability/trace-view.tsx.
+model AgentDecision {
+  id         String       @id @default(cuid())
+  runId      String
+  run        AgentRun     @relation(fields: [runId], references: [id], onDelete: Cascade)
+  orderIndex Int // deterministic rendering order
+  kind       DecisionKind
+  input      Json
+  output     Json
+  sources    Json // Source[] — Excel cell refs, BOFiP §, IFRS para, URLs
+  durationMs Int
+
+  createdAt DateTime @default(now())
+
+  @@index([runId, orderIndex])
+}
+
+enum DecisionKind {
+  RETRIEVE
+  COMPUTE
+  REASON
+  VALIDATE
+}
+
+/// Long-term memory layer (Mem0-backed). Scoped by ORG, USER, or AGENT.
+/// embedding is populated when pgvector is enabled in Neon.
+model Memory {
+  id        String      @id @default(cuid())
+  scope     MemoryScope
+  scopeId   String // organizationId / userId / agentId depending on scope
+  key       String // semantic key, e.g. "chart-of-accounts"
+  value     Json // structured payload validated by lib/memory/schemas.ts
+  embedding Bytes? // vector(1536) — cast at query time until pgvector is migrated
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([scope, scopeId])
+  @@index([key])
+}
+
+enum MemoryScope {
+  ORG
+  USER
+  AGENT
+}
+
+/// HITL queue row. Produced by AgentRun when confidence < threshold; consumed
+/// by app/(dashboard)/approvals/*. Timeout → EXPIRED, never auto-approved.
+model Approval {
+  id     String         @id @default(cuid())
+  runId  String
+  run    AgentRun       @relation(fields: [runId], references: [id], onDelete: Cascade)
+  tier   ApprovalTier
+  status ApprovalStatus @default(PENDING)
+
+  reviewerId String?
+  reviewer   User?     @relation("ApprovalReviewer", fields: [reviewerId], references: [id])
+  reviewedAt DateTime?
+  reason     String?   @db.Text
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([status, expiresAt])
+  @@index([runId])
+}
+
+enum ApprovalTier {
+  USER // simple click approval by the requesting user
+  SUPERVISOR // escalation to a manager / controller
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+/// Sidecar for the ambient regulatory watch (Sprint 7).
+/// One row per distinct regulatory publication, with classification + impact.
+model RegulatoryAlert {
+  id          String   @id @default(cuid())
+  source      String // "eur-lex" | "bofip" | "eba" | "anc" | "acpr" | "ifrs-foundation"
+  externalId  String   @unique
+  publishedAt DateTime
+  title       String   @db.Text
+  url         String
+
+  /// 0..1 — >0.5 triggers notifications.
+  impactScore    Float
+  /// Agent IDs impacted by this publication.
+  affectedAgents String[]
+  /// Short summary produced by the Haiku classifier.
+  summary        String   @db.Text
+  /// Optional deep analysis produced by the Sonnet impact-analyzer.
+  fullAnalysis   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([source, publishedAt])
+  @@index([impactScore])
 }

@@ -32,19 +32,20 @@ export function HeroUnified() {
           </div>
 
           <div className="nhp-hero-right">
-            <AndroidVisual size={460} />
-            <div className="nhp-badge nhp-badge-tl">
-              <div className="nhp-hab-k">168</div>
-              <div className="nhp-hab-l">agents actifs</div>
-            </div>
-            <div className="nhp-badge nhp-badge-br">
-              <div className="nhp-hab-k">+340<span>%</span></div>
-              <div className="nhp-hab-l">ROI an 1</div>
-            </div>
-            <div className="nhp-badge nhp-badge-bl">
-              <div className="nhp-hab-pulse"><span/><span/><span/></div>
-              <div className="nhp-hab-l">claude-sonnet · en ligne</div>
-            </div>
+            <AndroidVisual size={460}>
+              <div className="nhp-badge nhp-badge-tl">
+                <div className="nhp-hab-k">168</div>
+                <div className="nhp-hab-l">agents actifs</div>
+              </div>
+              <div className="nhp-badge nhp-badge-br">
+                <div className="nhp-hab-k">+340<span>%</span></div>
+                <div className="nhp-hab-l">ROI an 1</div>
+              </div>
+              <div className="nhp-badge nhp-badge-bl">
+                <div className="nhp-hab-pulse"><span/><span/><span/></div>
+                <div className="nhp-hab-l">claude-sonnet · en ligne</div>
+              </div>
+            </AndroidVisual>
           </div>
         </div>
       </div>

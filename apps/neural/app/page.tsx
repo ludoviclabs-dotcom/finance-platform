@@ -1,52 +1,33 @@
-"use client";
+import "./homepage.css";
 
-import { useState, useCallback } from "react";
-import { AnimatePresence } from "framer-motion";
-import { SplashScreen } from "@/components/splash/splash-screen";
-import { Hero } from "@/components/sections/hero";
-import { StatsBanner } from "@/components/sections/stats-banner";
-import { ProblemSolution } from "@/components/sections/problem-solution";
-import { BranchesGrid } from "@/components/sections/branches-grid";
-import { SectorsGrid } from "@/components/sections/sectors-grid";
-import { SectorBranchMatrix } from "@/components/interactive/sector-branch-matrix";
-import { PricingPreview } from "@/components/sections/pricing-preview";
-import { Testimonials } from "@/components/sections/testimonials";
-import { BlogPreview } from "@/components/sections/blog-preview";
-import { FAQAccordion } from "@/components/sections/faq-accordion";
-import { CTASection } from "@/components/sections/cta-section";
+import { HeroUnified }          from "@/components/homepage/hero-unified";
+import { SectionStats }         from "@/components/homepage/section-stats";
+import { SectionAgentDemo }     from "@/components/homepage/section-agent-demo";
+import { SectionProblem }       from "@/components/homepage/section-problem";
+import { SectionOrchestration } from "@/components/homepage/section-orchestration";
+import { SectionBranches }      from "@/components/homepage/section-branches";
+import { SectionSectors }       from "@/components/homepage/section-sectors";
+import { SectionMatrix }        from "@/components/homepage/section-matrix";
+import { SectionPricing }       from "@/components/homepage/section-pricing";
+import { SectionTestimonials }  from "@/components/homepage/section-testimonials";
+import { SectionLiveData }      from "@/components/homepage/section-live-data";
+import { SectionCTA }           from "@/components/homepage/section-cta";
 
 export default function HomePage() {
-  const [showSplash, setShowSplash] = useState(true);
-
-  const handleEnter = useCallback(() => {
-    setShowSplash(false);
-  }, []);
-
   return (
-    <>
-      <AnimatePresence mode="wait">
-        {showSplash && <SplashScreen key="splash" onEnter={handleEnter} />}
-      </AnimatePresence>
-
-      <div
-        style={{
-          // Prevent scroll while splash is visible
-          overflow: showSplash ? "hidden" : undefined,
-          height: showSplash ? "100vh" : undefined,
-        }}
-      >
-        <Hero />
-        <StatsBanner />
-        <ProblemSolution />
-        <BranchesGrid />
-        <SectorsGrid />
-        <SectorBranchMatrix />
-        <PricingPreview />
-        <Testimonials />
-        <BlogPreview />
-        <FAQAccordion />
-        <CTASection />
-      </div>
-    </>
+    <div>
+      <HeroUnified />
+      <SectionStats />
+      <SectionAgentDemo />
+      <SectionProblem />
+      <SectionOrchestration />
+      <SectionBranches />
+      <SectionSectors />
+      <SectionMatrix />
+      <SectionPricing />
+      <SectionTestimonials />
+      <SectionLiveData />
+      <SectionCTA />
+    </div>
   );
 }

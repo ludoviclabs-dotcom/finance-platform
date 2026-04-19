@@ -31,10 +31,10 @@ export function SectionBranches() {
               </div>
             </Link>
           ))}
-          <Link href="/marketplace" className="nhp-branch-card nhp-branch-matrix">
+          <Link href="/secteurs/luxe" className="nhp-branch-card nhp-branch-matrix">
             <div className="nhp-branch-matrix-head">
               <div className="nhp-branch-label">Matrice 7 × 6</div>
-              <div className="nhp-branch-desc">168 agents spécialisés, une orchestration unique.</div>
+              <div className="nhp-branch-desc">42 combinaisons branche × secteur, une orchestration unique.</div>
             </div>
             <div className="nhp-mini-matrix">
               {Array.from({ length: 42 }).map((_, i) => (

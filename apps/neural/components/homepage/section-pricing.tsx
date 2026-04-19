@@ -14,7 +14,7 @@ const tiers = [
   {
     name: "Enterprise", sub: "AI Transformation",
     price: "35 000", to: "110 000", users: "500 – 5 000 users", highlight: false,
-    feats: ["5–7 branches", "Agents sur mesure", "CSM dédié", "SLA 99.9%"],
+    feats: ["5–7 branches", "Agents sur mesure", "CSM dédié", "Cadrage défini avec vous"],
   },
 ];
 
@@ -44,10 +44,10 @@ export function SectionPricing() {
                 ))}
               </ul>
               <Link
-                href="/forfaits"
+                href="/contact"
                 className={`nhp-btn ${t.highlight ? "nhp-btn-primary" : "nhp-btn-ghost"} nhp-btn-block`}
               >
-                {t.highlight ? "Démarrer" : "Explorer"}
+                {t.highlight ? "Demander un cadrage" : "Échanger"}
               </Link>
             </div>
           ))}

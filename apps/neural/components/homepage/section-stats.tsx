@@ -1,11 +1,14 @@
 "use client";
 import { CountUp } from "./shared/count-up";
 
+// Sprint P0 (19 avril 2026) — KPIs vérifiables publiquement.
+// Ancienne liste (168 agents spécialisés, 99.97 % uptime, +340 % ROI an 1)
+// retirée faute de preuve documentable immédiatement sur /trust.
 const stats = [
-  { value: 168,   label: "Agents spécialisés",              suffix: "",   decimals: 0 },
-  { value: 42,    label: "Combinaisons secteur × branche",   suffix: "",   decimals: 0 },
-  { value: 99.97, label: "Uptime",                           suffix: "%",  decimals: 2 },
-  { value: 340,   label: "ROI moyen an 1",                   suffix: "%",  decimals: 0, prefix: "+" },
+  { value: 7,  label: "Branches métier catalogées",     suffix: "", decimals: 0 },
+  { value: 42, label: "Combinaisons secteur × branche", suffix: "", decimals: 0 },
+  { value: 1,  label: "Noyau live — Luxe Finance",      suffix: "", decimals: 0 },
+  { value: 2,  label: "Démonstrations cadrées",         suffix: "", decimals: 0 },
 ];
 
 export function SectionStats() {
@@ -16,7 +19,7 @@ export function SectionStats() {
           {stats.map((s, i) => (
             <div key={i} className="nhp-stat-cell">
               <div className="nhp-stat-value">
-                <CountUp target={s.value} suffix={s.suffix} prefix={s.prefix} decimals={s.decimals} />
+                <CountUp target={s.value} suffix={s.suffix} decimals={s.decimals} />
               </div>
               <div className="nhp-stat-label">{s.label}</div>
             </div>

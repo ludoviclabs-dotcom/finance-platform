@@ -286,10 +286,10 @@ export default function PublicationsPage() {
               Réserver un audit gratuit
             </Link>
             <Link
-              href="/forfaits"
+              href="/secteurs/luxe/finance"
               className="rounded-xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-white/80 transition-all hover:border-white/25 hover:bg-white/10"
             >
-              Voir les forfaits
+              Voir la preuve produit
             </Link>
           </div>
         </div>

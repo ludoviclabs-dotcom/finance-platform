@@ -9,7 +9,9 @@ import { SectionBranches }      from "@/components/homepage/section-branches";
 import { SectionSectors }       from "@/components/homepage/section-sectors";
 import { SectionMatrix }        from "@/components/homepage/section-matrix";
 import { SectionPricing }       from "@/components/homepage/section-pricing";
-import { SectionTestimonials }  from "@/components/homepage/section-testimonials";
+// Sprint P0 — SectionTestimonials retirée du rendu tant qu'aucun témoignage
+// client vérifiable n'est disponible (cf. docs/AI-ACT.md et PLAN.md §Incohérences).
+// Le composant reste disponible dans components/homepage/ pour réactivation future.
 import { SectionLiveData }      from "@/components/homepage/section-live-data";
 import { SectionCTA }           from "@/components/homepage/section-cta";
 
@@ -25,7 +27,6 @@ export default function HomePage() {
       <SectionSectors />
       <SectionMatrix />
       <SectionPricing />
-      <SectionTestimonials />
       <SectionLiveData />
       <SectionCTA />
     </div>

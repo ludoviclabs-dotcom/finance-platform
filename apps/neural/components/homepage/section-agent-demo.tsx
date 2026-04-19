@@ -34,9 +34,9 @@ export function SectionAgentDemo() {
           <div>
             <AgentChat />
             <div className="nhp-ad-flags">
-              <span className="nhp-ad-flag"><span className="nhp-dot nhp-dot-green"/> Audit trail</span>
-              <span className="nhp-ad-flag"><span className="nhp-dot nhp-dot-violet"/> SOC 2 Type II</span>
-              <span className="nhp-ad-flag"><span className="nhp-dot nhp-dot-white"/> GDPR</span>
+              <span className="nhp-ad-flag"><span className="nhp-dot nhp-dot-green"/> Trace auditable</span>
+              <span className="nhp-ad-flag"><span className="nhp-dot nhp-dot-violet"/> Données en UE</span>
+              <span className="nhp-ad-flag"><span className="nhp-dot nhp-dot-white"/> Export signé</span>
             </div>
           </div>
         </div>

@@ -10,9 +10,9 @@ export function SectionOrchestration() {
             <div className="nhp-orch-graph-wrap">
               <AgentGraph />
               <div className="nhp-orch-legend">
-                <div><span className="nhp-dot nhp-dot-violet"/> 7 branches</div>
+                <div><span className="nhp-dot nhp-dot-violet"/> 7 branches métier</div>
                 <div><span className="nhp-dot nhp-dot-green"/> 6 secteurs</div>
-                <div><span className="nhp-dot nhp-dot-white"/> 168 agents</div>
+                <div><span className="nhp-dot nhp-dot-white"/> agents par branche</div>
               </div>
             </div>
             <div className="nhp-orch-android">
@@ -35,8 +35,8 @@ export function SectionOrchestration() {
                 <div className="nhp-of-l">combinaisons secteur × branche</div>
               </div>
               <div>
-                <div className="nhp-of-k">99.97<span>%</span></div>
-                <div className="nhp-of-l">uptime orchestrateur</div>
+                <div className="nhp-of-k">1</div>
+                <div className="nhp-of-l">orchestrateur Claude unique</div>
               </div>
             </div>
           </div>

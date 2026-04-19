@@ -6,14 +6,15 @@ export function SectionLiveData() {
       <div className="nhp-container">
         <div className="nhp-ld-grid">
           <div>
-            <div className="eyebrow eyebrow-violet">Preuve en temps réel</div>
+            <div className="eyebrow eyebrow-violet">Mesurer ce qui se passe</div>
             <h2 className="h-display h-tight">
               La valeur, mesurée.<br/>
               <span className="muted-dark">Chaque heure, chaque tâche.</span>
             </h2>
             <p className="lead lead-dark">
-              Aucune promesse. Un dashboard qui compte les heures économisées, les tâches
-              exécutées, le ROI annualisé. Consultable par votre DAF à tout moment.
+              Chaque déploiement NEURAL embarque un dashboard DAF : heures économisées,
+              tâches exécutées, consolidations livrées. Les chiffres se remplissent une
+              fois le cadrage signé — pas de KPI simulé avant.
             </p>
           </div>
           <div className="nhp-ld-kpi">

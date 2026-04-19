@@ -51,9 +51,16 @@ export const PROOF_LEVEL_LABELS: Record<ProofLevel, string> = {
   content_only: "Preuve contenu",
 };
 
+// Sprint P0 (19 avril 2026) — `frameworkAgents: 168` remplacé par AGENT_ENTRIES.length
+// (valeur dérivée du catalogue réel, pas de nombre théorique non vérifiable).
+// Les seuls chiffres exposés restent ceux du catalogue (liveAgents/liveCells/catalogAgents)
+// ou les constantes structurelles du framework (branches, secteurs, workbooks runtime).
 export const PUBLIC_METRICS = {
-  frameworkAgents: 168,
-  frameworkCells: 42,
+  frameworkCells: 42, // 7 branches × 6 secteurs (math structurelle, vérifiable)
+  get frameworkAgents() {
+    // Somme vraie des agents inscrits dans AGENT_ENTRIES — remplace l'ancien 168.
+    return AGENT_ENTRIES.length;
+  },
   liveAgents: countLiveAgents(),
   liveCells: countLiveCells(),
   runtimeWorkbooks: 7,

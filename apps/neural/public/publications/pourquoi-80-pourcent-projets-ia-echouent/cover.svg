@@ -1,0 +1,48 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" rx="48" fill="#081223"/>
+  <rect x="56" y="56" width="1488" height="788" rx="36" fill="url(#paint0_linear)"/>
+  <rect x="112" y="116" width="428" height="668" rx="28" fill="#0E1B32" stroke="#1D3354"/>
+  <rect x="112" y="116" width="428" height="144" rx="28" fill="#0B1628"/>
+  <text x="152" y="180" fill="#A78BFA" font-family="Inter, Arial, sans-serif" font-size="22" letter-spacing="3.2">NEURAL RESEARCH</text>
+  <text x="152" y="250" fill="white" font-family="Space Grotesk, Arial, sans-serif" font-size="58" font-weight="700">
+    <tspan x="152" dy="0">De la démo</tspan>
+    <tspan x="152" dy="72">à la production</tspan>
+  </text>
+  <text x="152" y="414" fill="#90A4C3" font-family="Inter, Arial, sans-serif" font-size="24">
+    <tspan x="152" dy="0">Sponsor métier, métrique unique, périmètre</tspan>
+    <tspan x="152" dy="38">étroit, données fiables, adoption structurée.</tspan>
+  </text>
+  <rect x="152" y="520" width="232" height="70" rx="35" fill="#132440" stroke="#26426C"/>
+  <text x="188" y="563" fill="#E2E8F0" font-family="Inter, Arial, sans-serif" font-size="24">Framework NEURAL</text>
+  <rect x="642" y="152" width="820" height="596" rx="36" fill="#0B172B" stroke="#1A3154"/>
+  <rect x="702" y="218" width="300" height="92" rx="22" fill="#10223C"/>
+  <text x="736" y="270" fill="#C9D4E5" font-family="Inter, Arial, sans-serif" font-size="26">POC séduisant</text>
+  <rect x="1116" y="218" width="286" height="92" rx="22" fill="#10223C"/>
+  <text x="1150" y="270" fill="#C9D4E5" font-family="Inter, Arial, sans-serif" font-size="26">Production stable</text>
+  <path d="M1008 264H1104" stroke="url(#paint1_linear)" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="805" cy="434" r="82" fill="#10223C" stroke="#2D4D7A"/>
+  <circle cx="1058" cy="434" r="82" fill="#10223C" stroke="#2D4D7A"/>
+  <circle cx="1312" cy="434" r="82" fill="#10223C" stroke="#2D4D7A"/>
+  <text x="742" y="425" fill="#10B981" font-family="Space Grotesk, Arial, sans-serif" font-size="26" font-weight="700">Sponsor</text>
+  <text x="752" y="462" fill="#A8B9D4" font-family="Inter, Arial, sans-serif" font-size="19">métier</text>
+  <text x="1004" y="425" fill="#A78BFA" font-family="Space Grotesk, Arial, sans-serif" font-size="26" font-weight="700">Mesure</text>
+  <text x="992" y="462" fill="#A8B9D4" font-family="Inter, Arial, sans-serif" font-size="19">de valeur</text>
+  <text x="1267" y="425" fill="#22D3EE" font-family="Space Grotesk, Arial, sans-serif" font-size="26" font-weight="700">Adoption</text>
+  <text x="1273" y="462" fill="#A8B9D4" font-family="Inter, Arial, sans-serif" font-size="19">terrain</text>
+  <rect x="716" y="592" width="670" height="82" rx="22" fill="url(#paint2_linear)"/>
+  <text x="754" y="642" fill="white" font-family="Inter, Arial, sans-serif" font-size="24">Les projets échouent quand le modèle arrive avant le système qui doit le porter.</text>
+  <defs>
+    <linearGradient id="paint0_linear" x1="122" y1="98" x2="1492" y2="818" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D1A2F"/>
+      <stop offset="1" stop-color="#091322"/>
+    </linearGradient>
+    <linearGradient id="paint1_linear" x1="1008" y1="264" x2="1104" y2="264" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10B981"/>
+      <stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="paint2_linear" x1="716" y1="592" x2="1386" y2="674" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#132844"/>
+      <stop offset="1" stop-color="#0F1D34"/>
+    </linearGradient>
+  </defs>
+</svg>

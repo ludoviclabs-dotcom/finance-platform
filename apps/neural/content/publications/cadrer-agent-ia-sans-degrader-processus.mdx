@@ -1,0 +1,72 @@
+---
+slug: "cadrer-agent-ia-sans-degrader-processus"
+title: "Comment cadrer un agent IA sans dégrader les processus métier"
+subtitle: "Une méthode compacte pour définir périmètre, responsabilité humaine et niveau de preuve avant de brancher un agent sur un flux existant."
+excerpt: "Le cadre NEURAL pour introduire un agent IA dans un processus réel sans casser les exceptions, les responsabilités ni la qualité de service."
+category: "Guide"
+audience: "Ops"
+date: "2026-04-12"
+updatedAt: "2026-04-20"
+readingTime: "6 min"
+featured: false
+author:
+  name: "NEURAL Labs"
+  role: "Design opérationnel des agents"
+  company: "NEURAL"
+  bio: "Nous travaillons sur l'endroit exact où un agent IA s'insère dans une décision humaine, pas seulement sur ce qu'il sait produire."
+tags:
+  - "Processus"
+  - "Ops"
+  - "HITL"
+  - "Cadrage"
+coverAlt: "Illustration du cadrage d'un agent IA"
+tldr:
+  - "Un agent ne doit jamais être pensé comme un remplacement générique d'une équipe."
+  - "Le bon cadrage décrit une friction précise, une validation humaine explicite et une limite claire du périmètre."
+  - "La qualité du déploiement dépend plus de l'interface avec le processus que de la puissance du modèle."
+relatedSlugs:
+  - "pourquoi-80-pourcent-projets-ia-echouent"
+  - "audit-support-client-3-deploiements-concrets"
+seoTitle: "Cadrer un agent IA sans dégrader les processus métier"
+seoDescription: "Méthode NEURAL pour intégrer un agent IA dans un processus opérationnel avec responsabilités, garde-fous et critères de succès clairs."
+---
+
+## Partir d'une friction, pas d'une technologie
+
+Le point de départ n'est pas "où peut-on mettre de l'IA ?" mais "quelle friction récurrente coûte du temps, de l'argent ou de la qualité de service ?". Tant que cette friction n'est pas décrite, l'agent reste une capacité flottante.
+
+## Définir la frontière de responsabilité
+
+Un agent sérieux a une zone d'action et une zone d'arrêt. Il peut préparer, recommander, classer, résumer, signaler. Mais il ne doit pas s'approprier implicitement une décision qui engage la conformité, la relation client ou la marge.
+
+<Callout tone="retain">
+La meilleure frontière n'est pas "ce que le modèle peut faire", mais "ce que le métier est prêt à déléguer sans perdre en maîtrise".
+</Callout>
+
+## Traiter les exceptions avant le cas nominal
+
+Le cas nominal impressionne en atelier, mais la qualité perçue se joue souvent dans les exceptions : champ manquant, document contradictoire, requête urgente, incohérence entre deux sources, ou client atypique. Cadrer un agent, c'est décider ce qu'il fait quand le monde réel ne ressemble plus au prompt idéal.
+
+<DataTable
+  columns={["Question", "Pourquoi elle compte", "Décision attendue"]}
+  rows={[
+    ["Quel signal déclenche l'agent ?", "Évite les usages opportunistes ou flous", "Définir une entrée observable et stable"],
+    ["Qui valide la sortie ?", "Empêche la dilution de responsabilité", "Nommer un rôle, pas seulement une équipe"],
+    ["Quand l'agent s'arrête ?", "Évite les erreurs silencieuses", "Lister les cas d'escalade obligatoires"],
+    ["Quel indicateur mesure le gain ?", "Transforme le pilote en programme", "Choisir un KPI simple et fréquent"]
+  ]}
+/>
+
+## Construire une première boucle courte
+
+Le premier lot doit être plus court que séduisant. Un flux étroit, un historique limité, une équipe pilote, une documentation simple et un retour hebdomadaire suffisent pour savoir si l'agent mérite d'être étendu.
+
+<InlineCta
+  eyebrow="Cadrage express"
+  title="Transformer un cas d'usage flou en séquence de déploiement crédible"
+  description="Un bon cadrage identifie la friction, la frontière de décision et l'indicateur de valeur avant toute intégration lourde."
+  primaryHref="/contact"
+  primaryLabel="Parler de mon processus"
+  secondaryHref="/publications/audit-support-client-3-deploiements-concrets"
+  secondaryLabel="Voir 3 déploiements concrets"
+/>

@@ -1,0 +1,84 @@
+---
+slug: "mon-nouvel-article"
+title: "Titre principal de l'article"
+subtitle: "Sous-titre orienté lecture, assez concret pour résumer la promesse éditoriale."
+excerpt: "Résumé court pour le listing et l'aperçu homepage."
+category: "Guide"
+audience: "Ops / Direction"
+date: "2026-04-20"
+updatedAt: "2026-04-20"
+readingTime: "6 min"
+featured: false
+author:
+  name: "NEURAL Labs"
+  role: "Rôle éditorial"
+  company: "NEURAL"
+  bio: "Deux phrases maximum pour expliquer qui parle et avec quelle perspective."
+tags:
+  - "Tag 1"
+  - "Tag 2"
+coverImage: "/publications/mon-nouvel-article/cover.svg"
+coverAlt: "Description courte de l'illustration de couverture"
+tldr:
+  - "Idée clé 1"
+  - "Idée clé 2"
+relatedSlugs:
+  - "pourquoi-80-pourcent-projets-ia-echouent"
+seoTitle: "Titre SEO de l'article"
+seoDescription: "Description SEO de l'article."
+---
+
+## Une première section à forte densité
+
+Commence avec un constat concret. Une bonne ouverture aide le lecteur à comprendre la friction, le contexte ou la décision qui justifie l'article.
+
+<Callout tone="signal">
+Utilise les blocs MDX pour rythmer la lecture, pas pour décorer le texte.
+</Callout>
+
+## Un bloc visuel ou de preuve
+
+<StatBlock
+  value="48h"
+  label="Exemple de métrique forte pour donner un repère de lecture dès le début."
+  source="Source ou mention interne"
+/>
+
+<Figure
+  src="/publications/mon-nouvel-article/cover.svg"
+  alt="Description de l'image"
+  caption="Une légende courte qui explique ce que le lecteur doit voir."
+  width={1600}
+  height={900}
+/>
+
+<PullQuote attribution="NEURAL Labs">
+Une citation de respiration qui reformule l'idée centrale avec plus de densité.
+</PullQuote>
+
+<ChartBlock
+  title="Titre du graphique"
+  description="Tu peux déposer un mini graphique éditorial sans dépendance front supplémentaire."
+  items={[
+    { label: "Segment A", value: 72, note: "Commentaire court" },
+    { label: "Segment B", value: 54, note: "Commentaire court" }
+  ]}
+/>
+
+<DataTable
+  columns={["Colonne 1", "Colonne 2"]}
+  rows={[
+    ["Valeur 1", "Valeur 2"],
+    ["Valeur 3", "Valeur 4"]
+  ]}
+/>
+
+<InlineCta
+  eyebrow="Étape suivante"
+  title="Réutiliser ce template sans rebrancher le front"
+  description="Duplique ce fichier, change le slug, place tes assets dans public/publications/mon-nouvel-article/ et pousse sur Git."
+  primaryHref="/contact"
+  primaryLabel="Créer un article piloté"
+  secondaryHref="/publications"
+  secondaryLabel="Retour au hub éditorial"
+/>

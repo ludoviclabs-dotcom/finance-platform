@@ -1,9 +1,17 @@
 import type { MetadataRoute } from "next";
 
+import { getAllPublications } from "@/lib/publications";
 import { SITE_URL } from "@/lib/site-config";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_URL;
+  const publications = await getAllPublications();
+  const publicationEntries = publications.map((publication) => ({
+    url: `${baseUrl}/publications/${publication.slug}`,
+    lastModified: new Date(`${publication.updatedAt}T12:00:00.000Z`),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
 
   return [
     {
@@ -72,5 +80,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.4,
     },
+    ...publicationEntries,
   ];
 }

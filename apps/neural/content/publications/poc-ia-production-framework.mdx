@@ -1,0 +1,74 @@
+---
+slug: "poc-ia-production-framework"
+title: "Du POC à la production : un framework en 5 étapes"
+subtitle: "Le chemin le plus court entre une démonstration utile et un agent réellement adopté par les équipes."
+excerpt: "Un framework simple en cinq étapes pour transformer un POC IA prometteur en système déployé, mesuré et utilisé dans la durée."
+category: "Guide"
+audience: "Ops / Technique"
+date: "2026-02-24"
+updatedAt: "2026-04-20"
+readingTime: "7 min"
+featured: false
+author:
+  name: "NEURAL Labs"
+  role: "Architecture de déploiement"
+  company: "NEURAL"
+  bio: "Nous formalisons les étapes qui permettent à une initiative IA de passer d'un prototype convaincant à un dispositif adopté et maintenable."
+tags:
+  - "Framework"
+  - "Industrialisation"
+  - "Adoption"
+  - "Delivery"
+coverAlt: "Schéma du framework POC vers production"
+tldr:
+  - "La production commence quand le cas d'usage, la validation humaine et la mesure de valeur sont déjà clairs."
+  - "Chaque étape doit réduire une incertitude précise : valeur, fiabilité, intégration, adoption, pilotage."
+  - "Ce framework est pensé pour aller vite sans confondre vitesse et précipitation."
+relatedSlugs:
+  - "pourquoi-80-pourcent-projets-ia-echouent"
+  - "cadrer-agent-ia-sans-degrader-processus"
+seoTitle: "Framework en 5 étapes : du POC IA à la production"
+seoDescription: "Le framework NEURAL en cinq étapes pour industrialiser un POC IA : cadrage, preuve, intégration, adoption et pilotage."
+---
+
+## Étape 1 : verrouiller une friction mesurable
+
+La première étape n'est pas technique. Elle consiste à choisir une friction précise, fréquente et coûteuse. Si la friction est vague, le reste du projet le sera aussi.
+
+## Étape 2 : produire une preuve crédible
+
+La preuve n'est pas seulement "ça marche". C'est "ça marche sur un échantillon représentatif, avec des critères lisibles, et on sait déjà quand on n'accepte pas la sortie". Cette étape transforme une intuition en hypothèse de déploiement.
+
+## Étape 3 : définir l'intégration minimale
+
+Il faut dessiner le plus petit circuit complet : entrée, traitement, validation humaine, sortie et journalisation. Beaucoup de POC échouent ici parce qu'ils restent au niveau du prompt au lieu de devenir un flux.
+
+<Figure
+  src="/publications/poc-ia-production-framework/lanes.svg"
+  alt="Diagramme des cinq étapes du POC vers la production"
+  caption="Chaque étape retire une incertitude différente : valeur, preuve, intégration, adoption puis pilotage."
+  width={1600}
+  height={900}
+/>
+
+## Étape 4 : organiser l'adoption
+
+Sans appropriation par les équipes, il n'y a pas de production, seulement une livraison. Il faut documenter le comportement attendu, rendre la correction facile, et créer une boucle courte de feedback.
+
+## Étape 5 : piloter l'extension
+
+Une fois l'agent stable sur son premier terrain, on n'élargit pas par enthousiasme mais par apprentissage. Quelles variantes ressemblent au cas initial ? Quelles exceptions doivent rester humaines ? Quel nouveau KPI mérite d'être introduit ?
+
+<Callout tone="framework">
+Le passage en production n'est pas un "go live". C'est le moment où la décision de confier une partie du flux à l'agent devient durable, mesurée et réversible.
+</Callout>
+
+<InlineCta
+  eyebrow="Mettre le framework à l'épreuve"
+  title="Cartographier tes cinq étapes sur un cas d'usage réel"
+  description="Si tu as déjà un prototype ou une idée claire de cas d'usage, on peut la traduire en plan de déploiement concret : preuve, intégration, garde-fous et adoption."
+  primaryHref="/contact"
+  primaryLabel="Cadrer mon déploiement"
+  secondaryHref="/publications/pourquoi-80-pourcent-projets-ia-echouent"
+  secondaryLabel="Relire les causes d'échec"
+/>

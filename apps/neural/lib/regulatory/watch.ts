@@ -15,7 +15,7 @@
 
 import { fetchAllSources } from "./sources/feeds";
 import { classifyBatch } from "./classifier";
-import { upsertAlerts, listAlerts } from "./store";
+import { upsertAlerts } from "./store";
 import { db } from "@/lib/db";
 import type { WatchRunResult, RegulatorySource } from "./types";
 

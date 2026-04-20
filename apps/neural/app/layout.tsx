@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk, Playfair_Display } from "next/font/google";
-import { Navbar } from "@/components/layout/navbar";
+
 import { Footer } from "@/components/layout/footer";
+import { Navbar } from "@/components/layout/navbar";
 import { NeuralProvider } from "@/lib/neural-hub/context";
+import { SITE_URL } from "@/lib/site-config";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,52 +26,48 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://neural-ai.fr"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "NEURAL — Intelligence Augmentée pour l'Entreprise",
+    default: "NEURAL — Framework multi-secteurs pour agents metier",
     template: "%s | NEURAL",
   },
   description:
-    "NEURAL déploie des agents Claude AI dans vos 7 fonctions métier. " +
-    "SI, RH, Marketing, Communication, Comptabilité, Finance, Supply Chain. " +
-    "ROI mesuré. 80% des projets IA échouent — pas les nôtres.",
+    "NEURAL expose un framework multi-secteurs avec un sous-ensemble deja live : " +
+    "data hub, surfaces Luxe Finance/RH, demo orchestree Transport et page trust explicite.",
   keywords: [
     "IA entreprise",
-    "Claude AI",
+    "Claude",
     "intelligence artificielle",
     "agent IA",
-    "transformation digitale",
-    "conseil IA",
-    "intégration IA",
+    "data hub",
+    "verticale luxe",
+    "demo orchestration",
     "Anthropic",
-    "LLM entreprise",
   ],
   authors: [{ name: "NEURAL AI Consulting" }],
   creator: "NEURAL AI Consulting",
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://neural-ai.fr",
+    url: SITE_URL,
     siteName: "NEURAL",
-    title: "NEURAL — Intelligence Augmentée pour l'Entreprise",
+    title: "NEURAL — Framework multi-secteurs pour agents metier",
     description:
-      "Nous déployons des agents Claude AI qui fonctionnent vraiment. " +
-      "ROI mesuré, adoption durable, zéro bullshit.",
+      "Framework multi-secteurs, noyau Luxe deja live, demo orchestree Transport et page trust.",
     images: [
       {
-        url: "/images/og-image.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "NEURAL — Intelligence Augmentée pour l'Entreprise",
+        alt: "NEURAL — Framework multi-secteurs pour agents metier",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "NEURAL — Intelligence Augmentée pour l'Entreprise",
-    description:
-      "80% des projets IA échouent. Nous faisons partie des 20% qui réussissent.",
-    images: ["/images/og-image.png"],
+    title: "NEURAL — Framework multi-secteurs pour agents metier",
+    description: "Noyau Luxe live, demo Transport et statuts publics explicites.",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
@@ -98,14 +96,16 @@ export default function RootLayout({
       <body className="min-h-screen font-sans antialiased">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-indigo-600 focus:text-white focus:text-sm focus:font-medium"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:bg-indigo-600 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
         >
           Aller au contenu principal
         </a>
         <NeuralProvider>
           <div className="relative flex min-h-screen flex-col">
             <Navbar />
-            <main id="main-content" className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
             <Footer />
           </div>
         </NeuralProvider>

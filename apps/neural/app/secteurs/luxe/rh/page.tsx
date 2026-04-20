@@ -1,366 +1,266 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';
-
-const TalentWorkflowDiagram = dynamic(
-  () => import('@/components/workflow/TalentWorkflowDiagram'),
-  { ssr: false }
-);
+import Link from "next/link";
+import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
-  Users,
-  UserCheck,
   BarChart3,
-  GraduationCap,
-  Shield,
-  Layers,
-  Globe,
   Gem,
-  ChevronRight,
-  Zap,
-  Target,
-  Heart,
-  AlertTriangle,
-  TrendingUp,
-  DollarSign,
-  Scale,
-  ClipboardCheck,
-  BookOpen,
-} from 'lucide-react';
+  Globe,
+  GraduationCap,
+  Layers,
+  ShieldCheck,
+  UserCheck,
+} from "lucide-react";
 
-const AGENTS = [
+import { EvidenceCard } from "@/components/site/evidence-card";
+import { ScopeCard } from "@/components/site/scope-card";
+import { StatusBadge } from "@/components/site/status-badge";
+import { getAgentEntry, getBranchEntry } from "@/lib/public-catalog";
+
+const TalentWorkflowDiagram = dynamic(
+  () => import("@/components/workflow/TalentWorkflowDiagram"),
+  { ssr: false }
+);
+
+const rhEntry = getBranchEntry("rh");
+const artisanEntry = getAgentEntry("artisan-talent");
+const benchmarkEntry = getAgentEntry("comp-benchmark");
+const onboardingEntry = getAgentEntry("onboarding");
+
+if (!rhEntry || !artisanEntry || !benchmarkEntry || !onboardingEntry) {
+  throw new Error("Missing public catalog entries for Luxe RH.");
+}
+
+const rhCatalog = rhEntry;
+const artisanCatalog = artisanEntry;
+const benchmarkCatalog = benchmarkEntry;
+const onboardingCatalog = onboardingEntry;
+
+const rhAgents = [
   {
-    id: 'artisan-talent',
-    href: '/agents/artisan-talent',
+    title: "Artisan Talent",
+    href: "/agents/artisan-talent",
+    entry: artisanCatalog,
     icon: UserCheck,
-    accent: 'emerald-400',
-    accentRing: 'ring-emerald-400/30',
-    accentBg: 'bg-emerald-500/10',
-    accentText: 'text-emerald-400',
-    title: 'Artisan Talent',
-    subtitle: 'NEURAL_LuxeArtisanTalent',
-    tags: ['GPEC', 'Talent Management', 'Succession'],
-    description:
-      'Gestion prévisionnelle des métiers d\'art rares — selliers-maroquiniers, sertisseurs, lapidaires, guillocheurs. Cartographie des compétences, gap analysis, plans de succession et vivier de talents.',
-    features: [
-      { icon: Target, text: '30+ métiers artisanaux référencés avec scoring de rareté' },
-      { icon: AlertTriangle, text: 'Gap analysis automatique — 14 postes en déficit, 8 urgences critiques' },
-      { icon: Users, text: 'Vivier de 60 talents avec pipeline actif et alertes dormants' },
-      { icon: Heart, text: 'Plans de succession pour 12 titulaires critiques' },
-    ],
-    kpiLabel: 'Artisans en poste',
-    kpiValue: '38',
-    kpiUnit: '',
-    kpi2Label: 'Gaps critiques',
-    kpi2Value: '8',
-    status: 'coming',
+    iconClass: "bg-emerald-400/10 text-emerald-200",
+    summary: "Cartographie des metiers rares, gaps critiques et plans de succession.",
   },
   {
-    id: 'comp-benchmark',
-    href: '/agents/comp-benchmark',
+    title: "Comp & Benchmark",
+    href: "/agents/comp-benchmark",
+    entry: benchmarkCatalog,
     icon: BarChart3,
-    accent: 'blue-400',
-    accentRing: 'ring-blue-400/30',
-    accentBg: 'bg-blue-500/10',
-    accentText: 'text-blue-400',
-    title: 'Comp & Benchmark',
-    subtitle: 'NEURAL_LuxeCompBenchmark',
-    tags: ['Rémunération', 'Benchmark', 'Équité'],
-    description:
-      'Benchmark de rémunération sectoriel pour les métiers du luxe — grille salariale multi-pays, simulateur de package, calculateur expatriation, analyse d\'équité interne H/F.',
-    features: [
-      { icon: DollarSign, text: 'Masse salariale de référence : 4,3M€ sur 25 postes' },
-      { icon: Scale, text: 'Analyse d\'équité interne — 11 alertes, écart H/F -11%' },
-      { icon: Globe, text: 'Calculateur expatriation FR ↔ CH/US/JP/AE' },
-      { icon: TrendingUp, text: 'Historique CAGR 2022-2026 par métier et pays' },
-    ],
-    kpiLabel: 'Masse salariale',
-    kpiValue: '4 329',
-    kpiUnit: 'K€',
-    kpi2Label: 'Compa-ratio médian',
-    kpi2Value: '0.95',
-    status: 'coming',
+    iconClass: "bg-sky-400/10 text-sky-200",
+    summary: "Grille salariale, benchmark sectoriel et equite interne multi-pays.",
   },
   {
-    id: 'onboarding',
-    href: '/agents/onboarding',
+    title: "Onboarding Luxe",
+    href: "/agents/onboarding",
+    entry: onboardingCatalog,
     icon: GraduationCap,
-    accent: 'neural-violet',
-    accentRing: 'ring-neural-violet/30',
-    accentBg: 'bg-neural-violet/10',
-    accentText: 'text-neural-violet',
-    title: 'Onboarding Luxe',
-    subtitle: 'NEURAL_LuxeOnboarding',
-    tags: ['Intégration', 'Culture', 'Probation'],
-    description:
-      'Parcours d\'intégration personnalisé par maison de luxe — 26 jalons, culture de la maison, checklist formations obligatoires, système buddy/mentorat, évaluations J+30 à J+365.',
-    features: [
-      { icon: ClipboardCheck, text: '26 actions d\'onboarding avec timeline et responsables' },
-      { icon: BookOpen, text: 'Culture de 15+ maisons (LV, Hermès, Chanel, Cartier...)' },
-      { icon: Users, text: 'Système buddy/mentorat avec suivi des interactions' },
-      { icon: Target, text: '7 critères d\'évaluation sur 5 jalons (J+30 à J+365)' },
-    ],
-    kpiLabel: 'Jours restants',
-    kpiValue: '90',
-    kpiUnit: 'j',
-    kpi2Label: 'Évaluations',
-    kpi2Value: '7 critères',
-    status: 'coming',
+    iconClass: "bg-violet-400/10 text-violet-200",
+    summary: "Parcours d'integration, culture maison, jalons et evaluation continue.",
   },
 ];
 
-const STATS = [
-  { label: 'Métiers référencés', value: '30+', icon: Gem },
-  { label: 'Pays couverts', value: '7', icon: Globe },
-  { label: 'Agents RH', value: '3', icon: Layers },
-  { label: 'Maisons configurables', value: '15+', icon: Shield },
+const rhStats = [
+  { label: "Agents RH visibles", value: String(rhAgents.length), icon: Layers },
+  { label: "Niveau public", value: "Demo", icon: ShieldCheck },
+  { label: "Pays couverts", value: "7", icon: Globe },
+  { label: "Metiers rares", value: "30+", icon: Gem },
 ];
 
 export default function LuxeRHPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-foreground)]">
-
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden border-b border-[var(--color-border)] bg-gradient-to-b from-emerald-500/5 to-transparent px-6 pb-16 pt-32 md:px-12">
-        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-emerald-500/8 blur-[120px]" />
-        <div className="absolute right-0 bottom-0 h-64 w-64 rounded-full bg-neural-violet/5 blur-[100px]" />
+      <section className="relative overflow-hidden border-b border-[var(--color-border)] px-6 pb-16 pt-32 md:px-12">
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/8 via-transparent to-transparent" />
+        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-emerald-500/10 blur-[120px]" />
+        <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-violet-500/8 blur-[100px]" />
 
         <div className="relative mx-auto max-w-[1440px]">
-          {/* Back link */}
           <Link
             href="/secteurs/luxe"
-            className="inline-flex items-center gap-2 text-sm text-[var(--color-foreground-muted)] hover:text-emerald-400 transition-colors mb-8"
+            className="mb-8 inline-flex items-center gap-2 text-sm text-white/55 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour au Hub Luxe
+            Retour au hub Luxe
           </Link>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            className="max-w-4xl"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">👥</span>
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
-                Ressources Humaines — Maison Aurelia
-              </span>
-            </div>
-
-            <h1 className="font-display font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tighter max-w-3xl">
-              Outils{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #34d399 0%, #6ee7b7 50%, #a78bfa 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                RH Luxe
-              </span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-200">
+              Branche RH
+            </p>
+            <StatusBadge status={rhCatalog.status} proofLevel={rhCatalog.proofLevel} className="mt-4" />
+            <h1 className="mt-6 font-display text-5xl font-extrabold tracking-[-0.05em] text-white md:text-6xl">
+              Des donnees RH pretes, une surface encore en demonstration.
             </h1>
-
-            <p className="mt-5 text-lg text-[var(--color-foreground-muted)] max-w-2xl leading-relaxed">
-              Trois agents spécialisés pour les métiers rares du luxe : gestion des talents
-              artisanaux, benchmark de rémunération sectoriel et onboarding personnalisé
-              par maison.
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/68">
+              La branche RH reste visible parce qu&apos;elle est strategiquement forte pour le
+              luxe, mais elle est volontairement presentee comme demo : datasets presents,
+              narration produit claire, industrialisation publique encore en cours.
             </p>
           </motion.div>
 
-          {/* Stats bar */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4"
+            transition={{ duration: 0.45, delay: 0.15 }}
+            className="mt-12 grid gap-4 md:grid-cols-4"
           >
-            {STATS.map(stat => (
+            {rhStats.map((item) => (
               <div
-                key={stat.label}
-                className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
+                key={item.label}
+                className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
-                  <stat.icon className="h-4 w-4 text-emerald-400" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.06]">
+                  <item.icon className="h-4 w-4 text-emerald-200" />
                 </div>
-                <div>
-                  <p className="font-display text-xl font-bold">{stat.value}</p>
-                  <p className="text-[11px] text-[var(--color-foreground-muted)]">{stat.label}</p>
-                </div>
+                <p className="mt-4 font-display text-3xl font-bold tracking-tight text-white">
+                  {item.value}
+                </p>
+                <p className="mt-1 text-sm text-white/58">{item.label}</p>
               </div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* ── Data flow banner ── */}
       <section className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-6 md:px-12">
-        <div className="mx-auto max-w-[1440px]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <p className="text-sm font-semibold text-[var(--color-foreground-muted)]">
-              Flux de données entre agents RH
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 text-emerald-400 font-medium">
-              Artisan Talent
-            </span>
-            <ChevronRight className="h-3 w-3 text-[var(--color-foreground-subtle)]" />
-            <span className="text-[var(--color-foreground-muted)]">Métiers + Gaps + Scoring</span>
-            <ChevronRight className="h-3 w-3 text-[var(--color-foreground-subtle)]" />
-            <span className="rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 text-blue-400 font-medium">
-              Comp & Benchmark
-            </span>
-            <ChevronRight className="h-3 w-3 text-[var(--color-foreground-subtle)]" />
-            <span className="text-[var(--color-foreground-muted)]">Grille salariale + Package</span>
-            <ChevronRight className="h-3 w-3 text-[var(--color-foreground-subtle)]" />
-            <span className="rounded-lg bg-neural-violet/10 border border-neural-violet/20 px-3 py-1.5 text-neural-violet font-medium">
-              Onboarding Luxe
-            </span>
-          </div>
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-2 text-xs text-white/70">
+          <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-emerald-200">
+            Artisan Talent
+          </span>
+          <ArrowRight className="h-3.5 w-3.5 text-white/30" />
+          <span className="rounded-full border border-sky-300/20 bg-sky-300/10 px-3 py-1.5 text-sky-200">
+            Comp & Benchmark
+          </span>
+          <ArrowRight className="h-3.5 w-3.5 text-white/30" />
+          <span className="rounded-full border border-violet-300/20 bg-violet-300/10 px-3 py-1.5 text-violet-200">
+            Onboarding Luxe
+          </span>
+          <p className="w-full pt-2 text-sm text-white/52">
+            Les trois briques restent publiques, mais avec un statut uniforme de demonstration.
+          </p>
         </div>
       </section>
 
-      {/* ── Agent cards ── */}
       <section className="px-6 py-16 md:px-12">
         <div className="mx-auto max-w-[1440px]">
-          <div className="mb-10">
-            <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
-              Outils RH
-            </span>
-            <h2 className="mt-2 font-display font-extrabold text-3xl md:text-4xl tracking-tight">
-              3 agents, les métiers du luxe
+          <div className="mb-10 max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-200">
+              Surfaces agent
+            </p>
+            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
+              Une meme grammaire de preuve pour les trois outils RH.
             </h2>
-            <p className="mt-2 text-[var(--color-foreground-muted)]">
-              Chaque agent est conçu pour les spécificités des maisons de luxe — métiers rares,
-              mobilité internationale, culture de la maison.
+            <p className="mt-3 text-base leading-relaxed text-white/62">
+              Chaque carte rappelle le statut, la source de donnees et le livrable vise, sans
+              laisser croire a un niveau de preparation egal a la branche Finance.
             </p>
           </div>
 
-          <div className="grid gap-8">
-            {AGENTS.map((agent, i) => (
+          <div className="grid gap-6 lg:grid-cols-3">
+            {rhAgents.map((agent, index) => (
               <motion.div
-                key={agent.id}
-                initial={{ opacity: 0, y: 30 }}
+                key={agent.title}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 + i * 0.12 }}
+                transition={{ duration: 0.4, delay: 0.06 * index }}
+                className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6"
               >
-                <div className={`group relative rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden transition-all hover:border-${agent.accent}/30 hover:shadow-lg hover:shadow-${agent.accent}/5`}>
-                  <div className="grid md:grid-cols-[1fr_320px]">
-                    {/* Left: Content */}
-                    <div className="p-8">
-                      {/* Status badge */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${agent.accentBg}`}>
-                            <agent.icon className={`h-6 w-6 ${agent.accentText}`} />
-                          </div>
-                          <div>
-                            <h3 className="font-display text-xl font-bold">{agent.title}</h3>
-                            <p className="text-[11px] font-mono text-[var(--color-foreground-subtle)]">
-                              {agent.subtitle}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-yellow-400">
-                          <Zap className="h-2.5 w-2.5" />
-                          Bientôt
-                        </span>
-                      </div>
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${agent.iconClass}`}>
+                  <agent.icon className="h-6 w-6" />
+                </div>
+                <StatusBadge status={agent.entry.status} proofLevel={agent.entry.proofLevel} className="mt-5" />
+                <h3 className="mt-5 font-display text-2xl font-bold tracking-tight text-white">
+                  {agent.title}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-white/66">{agent.summary}</p>
 
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {agent.tags.map(tag => (
-                          <span
-                            key={tag}
-                            className="rounded-md bg-[var(--color-surface-raised)] border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-foreground-muted)]"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Description */}
-                      <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed mb-5">
-                        {agent.description}
-                      </p>
-
-                      {/* Features with icons */}
-                      <ul className="space-y-2.5 mb-6">
-                        {agent.features.map(f => (
-                          <li key={f.text} className="flex items-start gap-3 text-xs text-[var(--color-foreground-muted)]">
-                            <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md ${agent.accentBg}`}>
-                              <f.icon className={`h-3 w-3 ${agent.accentText}`} />
-                            </div>
-                            {f.text}
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* CTA */}
-                      <div className="flex items-center justify-center gap-2 w-full md:w-auto md:inline-flex rounded-xl bg-[var(--color-surface-raised)] border border-[var(--color-border)] px-6 py-2.5 text-sm font-medium text-[var(--color-foreground-subtle)] cursor-default">
-                        Disponible prochainement
-                      </div>
-                    </div>
-
-                    {/* Right: KPIs sidebar */}
-                    <div className="border-t md:border-t-0 md:border-l border-[var(--color-border)] bg-[var(--color-surface-raised)] p-6 flex flex-col justify-center gap-4">
-                      <div className="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] px-4 py-4">
-                        <p className="text-[10px] text-[var(--color-foreground-subtle)] uppercase tracking-wider mb-1">
-                          {agent.kpiLabel}
-                        </p>
-                        <p className={`font-display text-3xl font-bold ${agent.accentText}`}>
-                          {agent.kpiValue}
-                          {agent.kpiUnit && (
-                            <span className="text-sm font-normal text-[var(--color-foreground-muted)] ml-1">
-                              {agent.kpiUnit}
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                      <div className="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] px-4 py-4">
-                        <p className="text-[10px] text-[var(--color-foreground-subtle)] uppercase tracking-wider mb-1">
-                          {agent.kpi2Label}
-                        </p>
-                        <p className={`font-display text-3xl font-bold ${agent.accentText}`}>
-                          {agent.kpi2Value}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] text-[var(--color-foreground-subtle)]">
-                          Données Excel connectées
-                        </p>
-                        <div className="mt-1 flex items-center justify-center gap-1">
-                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                          <span className="text-[10px] text-green-400 font-medium">Temps réel</span>
-                        </div>
-                      </div>
-                    </div>
+                <div className="mt-6 grid gap-3">
+                  <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Donnees utilisees</p>
+                    <p className="mt-2 text-sm text-white/70">{agent.entry.dataUsed}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Livrable genere</p>
+                    <p className="mt-2 text-sm text-white/70">{agent.entry.deliverable}</p>
                   </div>
                 </div>
+
+                <Link
+                  href={agent.href}
+                  className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white transition-opacity hover:opacity-85"
+                >
+                  Ouvrir la page agent
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Talent Workflow Diagram ── */}
-      <section className="border-t border-[var(--color-border)] bg-gradient-to-b from-[#0A1628] to-[#080F1E] px-6 py-16 md:px-12">
-        <div className="mx-auto max-w-[1440px]">
-          <TalentWorkflowDiagram />
+      <section className="border-y border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-20 md:px-12">
+        <div className="mx-auto grid max-w-[1440px] gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <EvidenceCard
+            title="Ce que la branche RH prouve deja"
+            dataUsed={rhCatalog.dataUsed}
+            deliverable={rhCatalog.deliverable}
+            status={rhCatalog.status}
+            proofLevel={rhCatalog.proofLevel}
+          />
+          <ScopeCard title="Perimetre public RH" does={rhCatalog.scopeNow} doesnt={rhCatalog.notYet} />
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <section className="border-t border-[var(--color-border)] px-6 py-8 md:px-12">
-        <div className="mx-auto max-w-[1440px] text-center">
-          <p className="text-xs text-[var(--color-foreground-subtle)]">
-            NEURAL — Intelligence Augmentée pour les Maisons de Luxe · Branche Ressources Humaines
-          </p>
+      <section className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-12 md:px-12">
+        <div className="mx-auto max-w-[1440px]">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-xl">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-200">
+                Positionnement public
+              </p>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white">
+                Une surface commerciale utile, pas une sur-promesse.
+              </h2>
+              <p className="mt-3 text-base leading-relaxed text-white/62">
+                Cette branche reste tres utile pour raconter le positionnement RH de NEURAL
+                dans le luxe. Le travail prioritaire maintenant est de relier au moins un
+                de ces agents a une sortie publique aussi tangible qu&apos;un export Finance.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/trust"
+                className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/[0.09]"
+              >
+                Voir la truth layer
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition-transform hover:-translate-y-0.5"
+              >
+                Demander une demo RH
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-[var(--color-border)] bg-gradient-to-b from-[#0A1628] to-[#080F1E] px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-[1440px]">
+          <TalentWorkflowDiagram />
         </div>
       </section>
     </div>

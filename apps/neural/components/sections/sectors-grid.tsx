@@ -2,50 +2,77 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useReveal } from "@/lib/use-reveal";
+import { ArrowRight } from "lucide-react";
 
-const sectors = [
-  { id: "transport",    label: "Transport",    emoji: "\u{1F686}", desc: "Optimisation logistique, maintenance prédictive, conformité OIV" },
-  { id: "luxe",         label: "Luxe",         emoji: "\u{1F45C}", desc: "Inventaire multi-maisons, ESG, recrutement haute couture" },
-  { id: "aeronautique", label: "Aéronautique", emoji: "\u{2708}\u{FE0F}", desc: "Supply chain critique, conformité EASA, MRO intelligent" },
-  { id: "saas",         label: "SaaS",         emoji: "\u{1F4BB}", desc: "PLG analytics, churn prediction, revenue intelligence" },
-  { id: "banque",       label: "Banque",       emoji: "\u{1F3E6}", desc: "Risque crédit, conformité Bâle IV, KYC automatisé" },
-  { id: "assurance",    label: "Assurance",    emoji: "\u{1F6E1}\u{FE0F}", desc: "IFRS 17, tarification dynamique, gestion sinistres" },
-];
+import { StatusBadge } from "@/components/site/status-badge";
+import { SECTOR_ENTRIES } from "@/lib/public-catalog";
+import { useReveal } from "@/lib/use-reveal";
 
 export function SectorsGrid() {
   const sectionRef = useReveal();
 
   return (
-    <section ref={sectionRef} className="section-raised py-28 px-8 md:px-12">
+    <section ref={sectionRef} className="section-raised px-8 py-28 md:px-12">
       <div className="mx-auto max-w-[1440px]">
-        <div className="reveal text-center mb-4">
-          <span className="text-xs font-bold text-neural-violet uppercase tracking-widest">Expertise sectorielle</span>
+        <div className="reveal mb-4 text-center">
+          <span className="text-xs font-bold uppercase tracking-widest text-neural-violet">
+            Expertise sectorielle
+          </span>
         </div>
         <div className="reveal text-center" style={{ animationDelay: "0.05s" }}>
-          <h2 className="font-display font-extrabold text-4xl md:text-5xl tracking-tighter">
-            6 secteurs d&apos;expertise
+          <h2 className="font-display text-4xl font-extrabold tracking-tighter md:text-5xl">
+            6 secteurs, un statut clair par verticale
           </h2>
-          <p className="mt-4 text-lg text-[var(--color-foreground-muted)] max-w-2xl mx-auto">
-            Des agents calibrés pour les spécificités réglementaires et métier de votre industrie
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--color-foreground-muted)]">
+            Chaque carte montre le statut public, les donnees utilisees et le livrable visible
           </p>
         </div>
 
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {sectors.map((sector, i) => (
-            <div key={sector.id} className="reveal" style={{ animationDelay: `${0.1 + i * 0.06}s` }}>
-              <Link href={`/secteurs/${sector.id}`} className="block h-full">
+          {SECTOR_ENTRIES.map((sector, index) => (
+            <div
+              key={sector.slug}
+              className="reveal"
+              style={{ animationDelay: `${0.1 + index * 0.06}s` }}
+            >
+              <Link href={sector.href} className="block h-full">
                 <motion.div
                   whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)" }}
                   transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                  className="card-interactive p-7 h-full"
+                  className="card-interactive h-full p-7"
                 >
-                  <span className="text-4xl">{sector.emoji}</span>
-                  <h3 className="mt-4 font-display text-lg font-bold">
-                    {sector.label}
-                  </h3>
-                  <p className="mt-2 text-sm text-[var(--color-foreground-muted)] leading-relaxed">
-                    {sector.desc}
+                  <StatusBadge status={sector.status} proofLevel={sector.proofLevel} />
+                  <h3 className="mt-5 font-display text-2xl font-bold">{sector.label}</h3>
+                  <p className="mt-2 text-sm font-medium text-neural-violet">{sector.tagline}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
+                    {sector.description}
+                  </p>
+
+                  <div className="mt-5 grid gap-3">
+                    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-3">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-foreground-subtle)]">
+                        Donnees utilisees
+                      </p>
+                      <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
+                        {sector.dataUsed}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-3">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-foreground-subtle)]">
+                        Livrable genere
+                      </p>
+                      <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
+                        {sector.deliverable}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-neural-violet">
+                    {sector.ctaLabel}
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                  <p className="mt-2 text-xs leading-relaxed text-[var(--color-foreground-subtle)]">
+                    {sector.readyNow}
                   </p>
                 </motion.div>
               </Link>

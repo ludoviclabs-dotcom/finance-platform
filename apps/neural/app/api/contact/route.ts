@@ -23,7 +23,7 @@ const ContactSchema = z.object({
 export const runtime = "nodejs"; // Fluid Compute — Resend SDK requires Node.
 
 export async function POST(req: Request) {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
     return NextResponse.json(
       { error: "email_not_configured" },
@@ -48,10 +48,12 @@ export async function POST(req: Request) {
 
   const resend = new Resend(apiKey);
   const { name, company, need, context } = parsed.data;
+  const fromEmail = process.env.CONTACT_FROM_EMAIL?.trim() || "contact@neural.fr";
+  const toEmail = process.env.CONTACT_TO_EMAIL?.trim() || "ludoviclabs@gmail.com";
 
   const { error } = await resend.emails.send({
-    from:    process.env.CONTACT_FROM_EMAIL ?? "contact@neural.fr",
-    to:      [process.env.CONTACT_TO_EMAIL  ?? "ludoviclabs@gmail.com"],
+    from: fromEmail,
+    to: [toEmail],
     subject: `[NEURAL contact] ${company} — ${need}`,
     text: [
       `Nom:     ${name}`,

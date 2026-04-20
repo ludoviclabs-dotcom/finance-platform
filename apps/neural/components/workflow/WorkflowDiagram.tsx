@@ -9,7 +9,6 @@ import ReactFlow, {
   type Edge,
   type NodeTypes,
   type EdgeTypes,
-  useReactFlow,
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -154,7 +153,6 @@ const edgeTypes: EdgeTypes = { animated: AnimatedEdge };
 
 function DiagramInner() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const { fitView } = useReactFlow();
 
   const nodes = useMemo(() => buildNodes(), []);
   const edges = useMemo(() => buildEdges(), []);

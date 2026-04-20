@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import Link from "next/link";
 import { ArrowLeft, Clock, User, Calendar, Share2 } from "lucide-react";
 
@@ -165,9 +166,7 @@ function typeBadgeClasses(type: string) {
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 
 export default function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
-  // In Next.js 16 with dynamic routes, params is a Promise
-  // We use React.use() pattern or handle synchronously
-  const resolvedParams = require("react").use(params);
+  const resolvedParams = use(params);
   const article = getArticle(resolvedParams.slug);
 
   return (

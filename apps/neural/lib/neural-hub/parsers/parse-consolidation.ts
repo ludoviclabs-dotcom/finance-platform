@@ -6,7 +6,6 @@
 import * as XLSX from 'xlsx';
 import path from 'path';
 import {
-  EntityFinancials,
   ExchangeRateSet,
   MonthlyRate,
   GoodwillData,
@@ -422,7 +421,6 @@ export function parseConsolidation() {
   const paramRows = readSheet(wb, '01_PARAMETRES');
   const tauxRows = readSheet(wb, '02_TAUX_BCE');
   const bilanRows = readSheet(wb, '03_BILANS_IND');
-  const pnlRows = readSheet(wb, '04_PNL_IND');
   const goodwillRows = readSheet(wb, '06_GOODWILL');
   const bilanConsoRows = readSheet(wb, '09_BILAN_CONSO');
   const pnlConsoRows = readSheet(wb, '10_PNL_CONSO');

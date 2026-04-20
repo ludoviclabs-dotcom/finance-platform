@@ -18,7 +18,7 @@ import { MemoryScope } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { MemoryValueSchema, type MemoryValue } from "./schemas";
-import { mem0Add, mem0Search, mem0Delete, isMem0Ready } from "./mem0";
+import { mem0Add, mem0Search, isMem0Ready } from "./mem0";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

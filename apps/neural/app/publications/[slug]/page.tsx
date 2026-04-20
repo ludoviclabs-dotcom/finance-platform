@@ -149,7 +149,7 @@ export default async function PublicationPage({ params }: PageProps) {
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-white/48">
               <span className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />
-                Publie le {article.displayDate}
+                Publié le {article.displayDate}
               </span>
               <span className="flex items-center gap-2">
                 <Clock3 className="h-4 w-4" />
@@ -192,14 +192,14 @@ export default async function PublicationPage({ params }: PageProps) {
                     Publication NEURAL
                   </div>
                   <div className="mt-5 max-w-xs font-playfair text-4xl leading-tight text-white/86">
-                    Une lecture concue pour nourrir une decision, pas seulement une opinion.
+                    Une lecture conçue pour nourrir une décision, pas seulement une opinion.
                   </div>
                 </div>
                 <div className="absolute bottom-8 left-8 right-8">
                   <div className={["h-px w-full bg-linear-to-r", theme.line].join(" ")} />
                   <p className="mt-4 text-sm leading-7 text-white/56">
-                    Des analyses redigees pour rester lisibles, concretes et directement
-                    exploitables par une equipe.
+                    Des analyses rédigées pour rester lisibles, concrètes et directement
+                    exploitables par une équipe.
                   </p>
                 </div>
               </div>
@@ -253,7 +253,7 @@ export default async function PublicationPage({ params }: PageProps) {
                 Partager cette lecture
               </div>
               <p className="mt-3 text-sm leading-7 text-white/58">
-                Si ce sujet peut aider un collegue, un associe ou une equipe, partage
+                Si ce sujet peut aider un collègue, un associé ou une équipe, partage
                 simplement l&apos;article.
               </p>
               <div className="mt-5">
@@ -263,7 +263,7 @@ export default async function PublicationPage({ params }: PageProps) {
 
             <div className="rounded-[28px] border border-white/10 bg-linear-to-r from-violet-500/10 via-transparent to-emerald-400/10 p-6">
               <div className="text-sm uppercase tracking-[0.16em] text-violet-300">
-                Passer a l&apos;action
+                Passer à l&apos;action
               </div>
               <p className="mt-3 text-sm leading-7 text-white/58">
                 Besoin de transformer ce sujet en audit, en feuille de route ou en cas d&apos;usage
@@ -273,7 +273,7 @@ export default async function PublicationPage({ params }: PageProps) {
                 href="/contact"
                 className="mt-5 inline-flex items-center justify-center rounded-full bg-neural-violet px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-neural-violet-dark"
               >
-                Reserver un audit
+                Réserver un audit
               </Link>
             </div>
           </aside>
@@ -302,7 +302,7 @@ export default async function PublicationPage({ params }: PageProps) {
         {relatedArticles.length > 0 ? (
           <section className="mt-18 border-t border-white/10 pt-10">
             <div className="text-sm uppercase tracking-[0.16em] text-white/38">
-              A lire ensuite
+              À lire ensuite
             </div>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               {relatedArticles.map((relatedArticle) => (

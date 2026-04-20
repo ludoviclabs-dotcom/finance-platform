@@ -79,16 +79,16 @@ export function PublicationsExplorer({
               Publications
             </div>
             <h1 className="mt-6 max-w-4xl font-display text-4xl font-bold tracking-tight text-white md:text-6xl">
-              Des analyses pensees pour{" "}
+              Des analyses pensées pour{" "}
               <span className="bg-gradient-to-r from-white via-violet-200 to-emerald-200 bg-clip-text text-transparent">
-                clarifier les decisions
+                clarifier les décisions
               </span>
               , pas pour remplir un flux.
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-white/62">
               Benchmarks, guides, retours terrain et perspectives sur l&apos;IA en entreprise.
-              Chaque lecture vise le meme objectif : donner un cadre plus net pour arbitrer un
-              cas d&apos;usage, prioriser un deploiement ou comprendre ce qui cree vraiment de la
+              Chaque lecture vise le même objectif : donner un cadre plus net pour arbitrer un
+              cas d&apos;usage, prioriser un déploiement ou comprendre ce qui crée vraiment de la
               valeur.
             </p>
           </div>
@@ -99,17 +99,17 @@ export function PublicationsExplorer({
             </div>
             <div className="mt-5 space-y-5 text-sm leading-7 text-white/62">
               <p>
-                Des articles orientes usage, rediges pour les dirigeants, les equipes
-                operationnelles et les responsables de transformation.
+                Des articles orientés usage, rédigés pour les dirigeants, les équipes
+                opérationnelles et les responsables de transformation.
               </p>
               <p>
-                Des formats varies pour aller vite selon le besoin : benchmark pour prendre du
+                Des formats variés pour aller vite selon le besoin : benchmark pour prendre du
                 recul, guide pour cadrer, cas concret pour comparer, perspective pour ouvrir le
                 champ.
               </p>
               <p>
-                Un meme fil conducteur : separer les promesses vagues des decisions qui peuvent
-                reellement etre prises sur le terrain.
+                Un même fil conducteur : séparer les promesses vagues des décisions qui peuvent
+                réellement être prises sur le terrain.
               </p>
             </div>
           </div>
@@ -172,7 +172,7 @@ export function PublicationsExplorer({
             <p className="mt-3 text-sm leading-7 text-white/58">
               {activeCategory === "Tous"
                 ? "articles disponibles"
-                : `${activeCategory} actuellement filtre`}
+                : `${activeCategory} actuellement filtré`}
             </p>
             {(query || activeCategory !== "Tous") && (
               <button
@@ -185,7 +185,7 @@ export function PublicationsExplorer({
                 }
                 className="mt-5 text-sm font-medium text-violet-300 transition-colors hover:text-violet-200"
               >
-                Reinitialiser les filtres
+                Réinitialiser les filtres
               </button>
             )}
           </div>
@@ -207,7 +207,7 @@ export function PublicationsExplorer({
                           getPublicationTheme(leadPublication.category).badge,
                         ].join(" ")}
                       >
-                        A la une · {leadPublication.category}
+                        À la une · {leadPublication.category}
                       </span>
                       <h2 className="mt-6 max-w-3xl font-display text-3xl font-semibold leading-tight tracking-tight text-white md:text-5xl">
                         {leadPublication.title}
@@ -253,7 +253,7 @@ export function PublicationsExplorer({
                         <div className="absolute inset-6 rounded-[28px] border border-white/10 bg-black/15" />
                         <div className="absolute left-10 top-10 right-10">
                           <div className="text-xs uppercase tracking-[0.18em] text-white/38">
-                            Lecture recommandee
+                            Lecture recommandée
                           </div>
                           <div className="mt-4 max-w-xs font-playfair text-3xl leading-tight text-white/84">
                             {leadPublication.category}
@@ -267,8 +267,8 @@ export function PublicationsExplorer({
                             ].join(" ")}
                           />
                           <p className="mt-4 max-w-xs text-sm leading-7 text-white/55">
-                            Une lecture concue pour aller a l&apos;essentiel sans perdre la nuance,
-                            meme sur des sujets techniques ou strategiques.
+                            Une lecture conçue pour aller à l&apos;essentiel sans perdre la nuance,
+                            même sur des sujets techniques ou stratégiques.
                           </p>
                         </div>
                       </div>
@@ -280,7 +280,7 @@ export function PublicationsExplorer({
               <div className="space-y-4">
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
                   <div className="text-sm uppercase tracking-[0.16em] text-white/38">
-                    A lire ensuite
+                    À lire ensuite
                   </div>
                   {nextRead ? (
                     <Link
@@ -333,8 +333,8 @@ export function PublicationsExplorer({
                   </h2>
                 </div>
                 <p className="max-w-xl text-sm leading-7 text-white/56">
-                  Parcours les analyses par angle, par niveau de maturite ou par type de
-                  decision a prendre.
+                  Parcours les analyses par angle, par niveau de maturité ou par type de
+                  décision à prendre.
                 </p>
               </div>
 
@@ -396,10 +396,10 @@ export function PublicationsExplorer({
         ) : (
           <section className="mt-14 rounded-[32px] border border-dashed border-white/14 bg-white/[0.03] p-8 text-center">
             <h2 className="font-display text-3xl font-semibold text-white">
-              Aucun article ne correspond a cette selection
+              Aucun article ne correspond à cette sélection
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/58">
-              Essaie une autre categorie ou reinitialise la recherche pour elargir la vue.
+              Essaie une autre catégorie ou réinitialise la recherche pour élargir la vue.
             </p>
           </section>
         )}
@@ -408,15 +408,15 @@ export function PublicationsExplorer({
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
             <div>
               <div className="text-sm uppercase tracking-[0.16em] text-violet-300">
-                Passer de la lecture a l&apos;action
+                Passer de la lecture à l&apos;action
               </div>
               <h2 className="mt-4 max-w-3xl font-display text-3xl font-semibold leading-tight text-white md:text-4xl">
-                Transformer une intuition IA en decision claire, puis en plan d&apos;execution.
+                Transformer une intuition IA en décision claire, puis en plan d&apos;exécution.
               </h2>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-white/62 md:text-base">
-                Si un article fait echo a un sujet concret chez toi, l&apos;etape utile ensuite est
-                souvent simple : cadrer le probleme, definir le perimetre et identifier ou la
-                valeur peut apparaitre rapidement.
+                Si un article fait écho à un sujet concret chez toi, l&apos;étape utile ensuite est
+                souvent simple : cadrer le problème, définir le périmètre et identifier où la
+                valeur peut apparaître rapidement.
               </p>
             </div>
             <div className="flex flex-col gap-3 lg:items-end">
@@ -424,13 +424,13 @@ export function PublicationsExplorer({
                 href="/contact"
                 className="inline-flex items-center justify-center rounded-full bg-neural-violet px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-neural-violet-dark"
               >
-                Reserver un audit
+                Réserver un audit
               </Link>
               <Link
                 href="/publications/poc-ia-production-framework"
                 className="inline-flex items-center justify-center rounded-full border border-white/14 bg-white/5 px-6 py-3 text-sm font-medium text-white/76 transition-colors hover:border-white/22 hover:bg-white/8"
               >
-                Decouvrir notre approche
+                Découvrir notre approche
               </Link>
             </div>
           </div>

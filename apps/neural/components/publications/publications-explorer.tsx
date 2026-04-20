@@ -79,36 +79,37 @@ export function PublicationsExplorer({
               Publications
             </div>
             <h1 className="mt-6 max-w-4xl font-display text-4xl font-bold tracking-tight text-white md:text-6xl">
-              Un hub éditorial pensé comme un{" "}
+              Des analyses pensees pour{" "}
               <span className="bg-gradient-to-r from-white via-violet-200 to-emerald-200 bg-clip-text text-transparent">
-                journal de déploiement
+                clarifier les decisions
               </span>
-              , pas comme une grille de blog.
+              , pas pour remplir un flux.
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-white/62">
-              Benchmarks, guides, retours terrain et perspectives sur l'IA en entreprise.
-              Chaque article vient d'une source MDX unique, avec sommaire réel, SEO par
-              publication et blocs éditoriaux prêts pour accueillir figures, graphiques et
-              assets dédiés.
+              Benchmarks, guides, retours terrain et perspectives sur l&apos;IA en entreprise.
+              Chaque lecture vise le meme objectif : donner un cadre plus net pour arbitrer un
+              cas d&apos;usage, prioriser un deploiement ou comprendre ce qui cree vraiment de la
+              valeur.
             </p>
           </div>
 
           <div className="border-l border-white/10 pl-0 lg:pl-8">
             <div className="text-sm uppercase tracking-[0.18em] text-white/38">
-              Workflow éditorial
+              Ce que vous trouverez ici
             </div>
             <div className="mt-5 space-y-5 text-sm leading-7 text-white/62">
               <p>
-                Chaque article vit dans <code>content/publications/*.mdx</code>, avec ses
-                images dans <code>public/publications/&lt;slug&gt;/</code>.
+                Des articles orientes usage, rediges pour les dirigeants, les equipes
+                operationnelles et les responsables de transformation.
               </p>
               <p>
-                La recherche, le featured, les articles liés et le sitemap sont calculés à
-                partir de cette même source.
+                Des formats varies pour aller vite selon le besoin : benchmark pour prendre du
+                recul, guide pour cadrer, cas concret pour comparer, perspective pour ouvrir le
+                champ.
               </p>
               <p>
-                Rien n'est décoratif ici : les filtres, la navigation et les métadonnées
-                sont réellement branchés au contenu.
+                Un meme fil conducteur : separer les promesses vagues des decisions qui peuvent
+                reellement etre prises sur le terrain.
               </p>
             </div>
           </div>
@@ -171,7 +172,7 @@ export function PublicationsExplorer({
             <p className="mt-3 text-sm leading-7 text-white/58">
               {activeCategory === "Tous"
                 ? "articles disponibles"
-                : `${activeCategory} actuellement filtré`}
+                : `${activeCategory} actuellement filtre`}
             </p>
             {(query || activeCategory !== "Tous") && (
               <button
@@ -184,7 +185,7 @@ export function PublicationsExplorer({
                 }
                 className="mt-5 text-sm font-medium text-violet-300 transition-colors hover:text-violet-200"
               >
-                Réinitialiser les filtres
+                Reinitialiser les filtres
               </button>
             )}
           </div>
@@ -206,7 +207,7 @@ export function PublicationsExplorer({
                           getPublicationTheme(leadPublication.category).badge,
                         ].join(" ")}
                       >
-                        Featured {leadPublication.category}
+                        A la une · {leadPublication.category}
                       </span>
                       <h2 className="mt-6 max-w-3xl font-display text-3xl font-semibold leading-tight tracking-tight text-white md:text-5xl">
                         {leadPublication.title}
@@ -226,7 +227,7 @@ export function PublicationsExplorer({
                         <span>{leadPublication.audience}</span>
                       </div>
                       <div className="inline-flex items-center gap-2 text-sm font-medium text-violet-300 transition-transform group-hover:translate-x-1">
-                        Lire l'article
+                        Lire l&apos;article
                         <ArrowRight className="h-4 w-4" />
                       </div>
                     </div>
@@ -252,7 +253,7 @@ export function PublicationsExplorer({
                         <div className="absolute inset-6 rounded-[28px] border border-white/10 bg-black/15" />
                         <div className="absolute left-10 top-10 right-10">
                           <div className="text-xs uppercase tracking-[0.18em] text-white/38">
-                            Lecture recommandée
+                            Lecture recommandee
                           </div>
                           <div className="mt-4 max-w-xs font-playfair text-3xl leading-tight text-white/84">
                             {leadPublication.category}
@@ -266,8 +267,8 @@ export function PublicationsExplorer({
                             ].join(" ")}
                           />
                           <p className="mt-4 max-w-xs text-sm leading-7 text-white/55">
-                            Les blocs éditoriaux sont prêts pour accueillir illustrations,
-                            graphiques et figures spécifiques à chaque article.
+                            Une lecture concue pour aller a l&apos;essentiel sans perdre la nuance,
+                            meme sur des sujets techniques ou strategiques.
                           </p>
                         </div>
                       </div>
@@ -279,7 +280,7 @@ export function PublicationsExplorer({
               <div className="space-y-4">
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
                   <div className="text-sm uppercase tracking-[0.16em] text-white/38">
-                    À lire ensuite
+                    A lire ensuite
                   </div>
                   {nextRead ? (
                     <Link
@@ -332,8 +333,8 @@ export function PublicationsExplorer({
                   </h2>
                 </div>
                 <p className="max-w-xl text-sm leading-7 text-white/56">
-                  La liste ci-dessous reste synchronisée avec les fichiers MDX du projet. Tu peux
-                  donc ajouter un article sans retoucher le front.
+                  Parcours les analyses par angle, par niveau de maturite ou par type de
+                  decision a prendre.
                 </p>
               </div>
 
@@ -395,11 +396,10 @@ export function PublicationsExplorer({
         ) : (
           <section className="mt-14 rounded-[32px] border border-dashed border-white/14 bg-white/[0.03] p-8 text-center">
             <h2 className="font-display text-3xl font-semibold text-white">
-              Aucun article ne correspond à la vue active
+              Aucun article ne correspond a cette selection
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/58">
-              Essaie une autre catégorie ou réinitialise la recherche. Les filtres sont réels :
-              s'il n'y a pas de résultat, c'est que le contenu n'existe pas encore.
+              Essaie une autre categorie ou reinitialise la recherche pour elargir la vue.
             </p>
           </section>
         )}
@@ -408,16 +408,15 @@ export function PublicationsExplorer({
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
             <div>
               <div className="text-sm uppercase tracking-[0.16em] text-violet-300">
-                Prochaine étape
+                Passer de la lecture a l&apos;action
               </div>
               <h2 className="mt-4 max-w-3xl font-display text-3xl font-semibold leading-tight text-white md:text-4xl">
-                Transformer une idée d'article ou un cas d'usage en contenu publiable sans
-                réouvrir l'architecture du site.
+                Transformer une intuition IA en decision claire, puis en plan d&apos;execution.
               </h2>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-white/62 md:text-base">
-                Le système est maintenant pensé pour que le contenu pilote la page : tu ajoutes
-                un fichier MDX, ses assets éventuels, puis tu pousses. Le hub, le détail, le
-                sitemap et les métadonnées suivent.
+                Si un article fait echo a un sujet concret chez toi, l&apos;etape utile ensuite est
+                souvent simple : cadrer le probleme, definir le perimetre et identifier ou la
+                valeur peut apparaitre rapidement.
               </p>
             </div>
             <div className="flex flex-col gap-3 lg:items-end">
@@ -425,13 +424,13 @@ export function PublicationsExplorer({
                 href="/contact"
                 className="inline-flex items-center justify-center rounded-full bg-neural-violet px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-neural-violet-dark"
               >
-                Réserver un audit
+                Reserver un audit
               </Link>
               <Link
                 href="/publications/poc-ia-production-framework"
                 className="inline-flex items-center justify-center rounded-full border border-white/14 bg-white/5 px-6 py-3 text-sm font-medium text-white/76 transition-colors hover:border-white/22 hover:bg-white/8"
               >
-                Voir le framework d'industrialisation
+                Decouvrir notre approche
               </Link>
             </div>
           </div>

@@ -54,25 +54,25 @@ export function ReadinessPage({
           <div className="mt-12 grid gap-4 md:grid-cols-4">
             <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/35">
-                Statut
+                Positionnement
               </p>
               <p className="mt-3 font-display text-2xl font-bold text-white">{entry.tagline}</p>
             </div>
             <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/35">
-                Pret aujourd&apos;hui
+                Ce qui est opérable
               </p>
               <p className="mt-3 text-sm leading-relaxed text-white/68">{entry.readyNow}</p>
             </div>
             <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/35">
-                Donnees
+                Données mobilisées
               </p>
               <p className="mt-3 text-sm leading-relaxed text-white/68">{entry.dataUsed}</p>
             </div>
             <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/35">
-                Prochaine etape
+                Prochain jalon
               </p>
               <p className="mt-3 text-sm leading-relaxed text-white/68">{entry.nextStep}</p>
             </div>
@@ -98,22 +98,25 @@ export function ReadinessPage({
           <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-6">
             <div className="flex items-center gap-2 text-sm font-medium text-violet-200">
               <Compass className="h-4 w-4" />
-              Pourquoi cette page existe
+              Direction prise
             </div>
             <p className="mt-3 text-sm leading-relaxed text-white/65">
-              Cette page garde la structure publique du site lisible tout en indiquant clairement le
-              niveau de maturite reel. Le visiteur voit ce qui est demonstrable maintenant et ce qui
-              releve encore d&apos;une prochaine incremention.
+              Cette brique vise à devenir un actif opérable sur un périmètre ciblé :
+              livrable clair, KPI suivi, points de supervision humaine définis.
+              La trajectoire d&apos;industrialisation s&apos;écrit sur quelques sprints, pas
+              sur une refonte globale.
             </p>
           </div>
           <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-6">
             <div className="flex items-center gap-2 text-sm font-medium text-emerald-200">
               <ClipboardList className="h-4 w-4" />
-              Action recommandee
+              Mise en pratique
             </div>
             <p className="mt-3 text-sm leading-relaxed text-white/65">
-              Le meilleur usage de cette brique aujourd&apos;hui est une conversation de cadrage, une
-              demo guidee ou un pilote cible. Rien n&apos;est presente ici comme un produit plus fini qu&apos;il ne l&apos;est reellement.
+              Le point d&apos;entrée utile aujourd&apos;hui : un cadrage de 30 minutes
+              pour identifier le premier jalon que cette brique peut absorber chez
+              vous, le périmètre data nécessaire, et la mesure qui prouvera sa
+              valeur avant tout déploiement plus large.
             </p>
           </div>
         </div>

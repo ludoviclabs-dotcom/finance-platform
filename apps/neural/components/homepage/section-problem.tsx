@@ -1,7 +1,7 @@
 const problems = [
   { k: "80%",   t: "des POC IA n'atteignent jamais la production.", src: "RAND Corp." },
   { k: "< 20%", t: "des projets produisent un ROI mesurable.",      src: "McKinsey" },
-  { k: "2 × ∞", t: "de budget brûlé sans méthode.",                src: "BCG 2024" },
+  { k: "2 × ∞", t: "de budget engagé sans cadre méthodologique.",   src: "BCG 2024" },
 ];
 
 export function SectionProblem() {
@@ -10,10 +10,12 @@ export function SectionProblem() {
       <div className="nhp-container">
         <div className="eyebrow eyebrow-violet">Le constat</div>
         <h2 className="h-display">
-          L&apos;IA en entreprise est<br/>un cimetière de POCs.
+          La plupart des projets IA<br/>s&apos;arrêtent avant la production.
         </h2>
         <p className="lead lead-dark">
-          Nous sommes l&apos;antidote. Méthode, KPIs contractualisés, agents qui vivent dans vos flux — pas à côté.
+          L&apos;écart se joue rarement sur le modèle. Il se joue sur le cadrage, les données,
+          la gouvernance et la mise en flux. NEURAL structure ces quatre points avant d&apos;écrire
+          la première ligne de code.
         </p>
         <div className="nhp-problem-row">
           {problems.map((p, i) => (

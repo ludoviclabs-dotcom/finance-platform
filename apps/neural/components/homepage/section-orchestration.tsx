@@ -22,12 +22,13 @@ export function SectionOrchestration() {
           <div>
             <div className="eyebrow">L&apos;orchestration</div>
             <h2 className="h-display h-tight">
-              Un agent seul résout une tâche.<br/>
-              <span className="accent-violet">Orchestrés, ils résolvent votre entreprise.</span>
+              Un agent couvre une tâche.<br/>
+              <span className="accent-violet">Plusieurs agents coordonnés couvrent un processus.</span>
             </h2>
             <p className="lead">
-              L&apos;agent Finance parle à l&apos;agent Compta, qui notifie l&apos;agent SI, qui déclenche
-              l&apos;agent Supply. L&apos;orchestrateur Claude maintient la cohérence de bout en bout.
+              Chaque agent reste spécialisé sur un périmètre clair. Un orchestrateur commun
+              passe le contexte d&apos;un agent à l&apos;autre, conserve la trace des décisions et
+              s&apos;arrête quand un jalon critique demande une validation humaine.
             </p>
             <div className="nhp-orch-facts">
               <div>
@@ -36,7 +37,7 @@ export function SectionOrchestration() {
               </div>
               <div>
                 <div className="nhp-of-k">1</div>
-                <div className="nhp-of-l">orchestrateur Claude unique</div>
+                <div className="nhp-of-l">orchestrateur commun</div>
               </div>
             </div>
           </div>

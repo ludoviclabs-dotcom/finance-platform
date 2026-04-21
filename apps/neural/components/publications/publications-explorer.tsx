@@ -2,7 +2,6 @@
 
 import { startTransition, useDeferredValue, useState } from "react";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock3, Search, Sparkles } from "lucide-react";
 
@@ -233,46 +232,39 @@ export function PublicationsExplorer({
                     </div>
                   </div>
 
-                  <div className="relative min-h-[280px] border-t border-white/10 bg-[#09111F] lg:min-h-full lg:border-l lg:border-t-0">
-                    {leadPublication.coverImage ? (
-                      <Image
-                        src={leadPublication.coverImage}
-                        alt={leadPublication.coverAlt ?? leadPublication.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 1024px) 100vw, 480px"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 overflow-hidden">
-                        <div
-                          className={[
-                            "absolute inset-0 bg-linear-to-br",
-                            getPublicationTheme(leadPublication.category).glow,
-                          ].join(" ")}
-                        />
-                        <div className="absolute inset-6 rounded-[28px] border border-white/10 bg-black/15" />
-                        <div className="absolute left-10 top-10 right-10">
-                          <div className="text-xs uppercase tracking-[0.18em] text-white/38">
-                            Lecture recommandée
-                          </div>
-                          <div className="mt-4 max-w-xs font-playfair text-3xl leading-tight text-white/84">
-                            {leadPublication.category}
-                          </div>
-                        </div>
-                        <div className="absolute bottom-10 left-10 right-10">
-                          <div
-                            className={[
-                              "h-px w-full bg-linear-to-r",
-                              getPublicationTheme(leadPublication.category).line,
-                            ].join(" ")}
-                          />
-                          <p className="mt-4 max-w-xs text-sm leading-7 text-white/55">
-                            Une lecture conçue pour aller à l&apos;essentiel sans perdre la nuance,
-                            même sur des sujets techniques ou stratégiques.
-                          </p>
-                        </div>
+                  <div className="relative min-h-[280px] overflow-hidden border-t border-white/10 bg-[#09111F] lg:min-h-full lg:border-l lg:border-t-0">
+                    {/*
+                      Hub featured card : on privilégie toujours le traitement décoratif
+                      ci-dessous. Le coverImage reste affiché sur la page article
+                      (/publications/[slug]), où il dispose de la place nécessaire à sa lisibilité.
+                    */}
+                    <div
+                      className={[
+                        "absolute inset-0 bg-linear-to-br",
+                        getPublicationTheme(leadPublication.category).glow,
+                      ].join(" ")}
+                    />
+                    <div className="absolute inset-6 rounded-[28px] border border-white/10 bg-black/25" />
+                    <div className="absolute left-10 right-10 top-10">
+                      <div className="text-xs uppercase tracking-[0.18em] text-white/45">
+                        Lecture recommandée
                       </div>
-                    )}
+                      <div className="mt-4 max-w-xs font-playfair text-3xl leading-tight text-white/88">
+                        {leadPublication.category}
+                      </div>
+                    </div>
+                    <div className="absolute bottom-10 left-10 right-10">
+                      <div
+                        className={[
+                          "h-px w-full bg-linear-to-r",
+                          getPublicationTheme(leadPublication.category).line,
+                        ].join(" ")}
+                      />
+                      <p className="mt-4 max-w-xs text-sm leading-7 text-white/60">
+                        Une lecture conçue pour aller à l&apos;essentiel sans perdre la nuance,
+                        même sur des sujets techniques ou stratégiques.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </Link>

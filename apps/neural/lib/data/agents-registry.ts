@@ -385,6 +385,92 @@ export const MATRIX: CellData[] = [
       },
     ],
   },
+
+  // ═══ LUXE × COMMUNICATION ═══
+  // Source : apps/neural/data/luxe-comms/ (7 workbooks synchronises en content/luxe-comms/)
+  // Sprint 1 du chantier Luxe / Communication (avril 2026).
+  {
+    sector: "luxe",
+    branch: "communication",
+    excelSource: "NEURAL_LUXE_COMMS_MASTER.xlsx",
+    excelSheets: [
+      "2_AGENT_REGISTRY",
+      "3_WORKFLOW_MAP",
+      "5_REVIEW_GATES",
+      "8_GLOBAL_LOG_IMPORT",
+      "9_GLOBAL_KPIS",
+      "11_RISK_REGISTER",
+    ],
+    topAgent: "MaisonVoiceGuard",
+    roiHighlight: "Contrôle absolu du brand voice — 100% des sorties scorees",
+    agents: [
+      {
+        id: "maison-voice-guard",
+        name: "MaisonVoiceGuard",
+        mission:
+          "Score chaque communication sur la conformite charte (vocabulaire, ton, hard-fail) — gate brand obligatoire avant publication.",
+        version: "V1",
+        kpis: [
+          "Score brand /100 par sortie",
+          "Hard-fail detection zero-tolerance",
+          "SLA review 24h (4h en mode crise)",
+        ],
+        status: "live",
+      },
+      {
+        id: "luxe-press-agent",
+        name: "LuxePressAgent",
+        mission:
+          "Redige communiques dans le registre du luxe — adapte presse lifestyle (Vogue, HB) vs. business (FT, BoF), gere media matrix + embargos.",
+        version: "V1",
+        kpis: [
+          "First-pass validation rate",
+          "Nb revisions moyen par draft",
+          "Press pickup rate post-publication",
+        ],
+        status: "live",
+      },
+      {
+        id: "luxe-event-comms",
+        name: "LuxeEventComms",
+        mission:
+          "Pack multi-format pour defiles, lancements, expositions — invitations, scripts, social live, captions — avec gates brand + heritage.",
+        version: "V1",
+        kpis: [
+          "Taux de completion pack par evenement",
+          "SLA social live 2h",
+          "Brand approve rate 1er jet",
+        ],
+        status: "live",
+      },
+      {
+        id: "heritage-comms",
+        name: "HeritageComms",
+        mission:
+          "Sourcing patrimonial discipline — aucune sortie sans source cataloguee + citation formatee (Maison-style, Chicago).",
+        version: "V1",
+        kpis: [
+          "Sources actives / stale / rejected",
+          "Coverage citation par sortie",
+          "Facts approuves (unique source)",
+        ],
+        status: "live",
+      },
+      {
+        id: "green-claim-checker",
+        name: "GreenClaimChecker",
+        mission:
+          "Detection claims RSE + matching preuve + scoring risque — conformite EU Green Claims Directive, Loi Climat FR, CMA UK, FTC US.",
+        version: "V1",
+        kpis: [
+          "Claims CRITICAL blocked pre-publication",
+          "Evidence coverage rate",
+          "Multi-juridiction compliance (EU/FR/UK/US/CH)",
+        ],
+        status: "live",
+      },
+    ],
+  },
 ];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────

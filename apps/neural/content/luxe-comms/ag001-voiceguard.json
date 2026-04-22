@@ -1,0 +1,449 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AG001_MaisonVoiceGuard.xlsx",
+    "generatedAt": "2026-04-22T00:53:21.781Z",
+    "sheets": [
+      "3_BRAND_RULES",
+      "4_HARD_FAIL_RULES",
+      "9_TESTSET"
+    ]
+  },
+  "data": {
+    "3_BRAND_RULES": [
+      {
+        "rule_id": "R-001",
+        "categorie": "Tone",
+        "regle": "Registre allusif, jamais declamatoire",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "FR",
+        "detection_mode": "SEMANTIC+VOCAB",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-002",
+        "categorie": "Tone",
+        "regle": "Pas de superlatif absolu",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "detection_mode": "VOCAB",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-003",
+        "categorie": "Structure",
+        "regle": "Accroche <140 caracteres + factuel",
+        "niveau": "MEDIUM",
+        "poids": 10,
+        "lang": "FR",
+        "detection_mode": "REGEX",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-004",
+        "categorie": "Identite",
+        "regle": "Pas de nom concurrent / comparatif",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "FR",
+        "detection_mode": "REGEX+VOCAB",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-005",
+        "categorie": "Claim",
+        "regle": "Affirmation RSE = prouvee (handoff AG-005)",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "FR",
+        "detection_mode": "VOCAB+HANDOFF",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-006",
+        "categorie": "Heritage",
+        "regle": "Reference historique datee doit etre sourcee",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "detection_mode": "REGEX",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-007",
+        "categorie": "Formulation",
+        "regle": "Present de narration, pas futur vendeur",
+        "niveau": "MEDIUM",
+        "poids": 10,
+        "lang": "FR",
+        "detection_mode": "SEMANTIC",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-008",
+        "categorie": "Formulation",
+        "regle": "Pas d'exhortation commerciale",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "detection_mode": "VOCAB",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-009",
+        "categorie": "Legal",
+        "regle": "Pas de revendication sante / medicale",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "FR",
+        "detection_mode": "VOCAB",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-010",
+        "categorie": "Tone",
+        "regle": "Allusion > revendication directe",
+        "niveau": "MEDIUM",
+        "poids": 10,
+        "lang": "FR",
+        "detection_mode": "SEMANTIC",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-011",
+        "categorie": "Identite",
+        "regle": "Coherence vocabulaire",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "detection_mode": "VOCAB",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-012",
+        "categorie": "Inclusive",
+        "regle": "Formulation inclusive",
+        "niveau": "MEDIUM",
+        "poids": 10,
+        "lang": "FR",
+        "detection_mode": "SEMANTIC",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-013",
+        "categorie": "Tone",
+        "regle": "Neutral prestige tone in EN",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "EN",
+        "detection_mode": "SEMANTIC+VOCAB",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-014",
+        "categorie": "Claim",
+        "regle": "'sustainable' requires evidence",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "EN",
+        "detection_mode": "VOCAB+HANDOFF",
+        "enabled": "YES"
+      },
+      {
+        "rule_id": "R-015",
+        "categorie": "Crisis",
+        "regle": "Crisis mode — fast-track mais review maintenue",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "detection_mode": "FLAG",
+        "enabled": "YES"
+      }
+    ],
+    "4_HARD_FAIL_RULES": [
+      {
+        "hf_id": "HF-001",
+        "pattern": "discount",
+        "type": "LITERAL",
+        "lang": "FR",
+        "categorie": "Commercial",
+        "note": "Jamais tolere en luxe"
+      },
+      {
+        "hf_id": "HF-002",
+        "pattern": "promo",
+        "type": "LITERAL",
+        "lang": "FR",
+        "categorie": "Commercial",
+        "note": "Jamais tolere en luxe"
+      },
+      {
+        "hf_id": "HF-003",
+        "pattern": "unique au monde",
+        "type": "LITERAL",
+        "lang": "FR",
+        "categorie": "Superlatif",
+        "note": "Superlatif absolu"
+      },
+      {
+        "hf_id": "HF-004",
+        "pattern": "le meilleur",
+        "type": "LITERAL",
+        "lang": "FR",
+        "categorie": "Superlatif",
+        "note": "Superlatif absolu"
+      },
+      {
+        "hf_id": "HF-005",
+        "pattern": "usine",
+        "type": "LITERAL",
+        "lang": "FR",
+        "categorie": "Identite",
+        "note": "Hors charte"
+      },
+      {
+        "hf_id": "HF-006",
+        "pattern": "no 1 mondial",
+        "type": "LITERAL",
+        "lang": "FR",
+        "categorie": "Superlatif",
+        "note": "Comparatif prohibe"
+      },
+      {
+        "hf_id": "HF-007",
+        "pattern": "anti-age",
+        "type": "LITERAL",
+        "lang": "FR",
+        "categorie": "Claim sante",
+        "note": "Revendication medicale"
+      },
+      {
+        "hf_id": "HF-008",
+        "pattern": "eco-responsable",
+        "type": "LITERAL",
+        "lang": "FR",
+        "categorie": "Claim RSE",
+        "note": "Declenche gate AG-005 imperatif"
+      },
+      {
+        "hf_id": "HF-009",
+        "pattern": "[Cc]oncurrent\\s+\\w+",
+        "type": "REGEX",
+        "lang": "FR",
+        "categorie": "Identite",
+        "note": "Comparatif concurrent"
+      },
+      {
+        "hf_id": "HF-010",
+        "pattern": "discount",
+        "type": "LITERAL",
+        "lang": "EN",
+        "categorie": "Commercial",
+        "note": "Never"
+      },
+      {
+        "hf_id": "HF-011",
+        "pattern": "sale",
+        "type": "LITERAL",
+        "lang": "EN",
+        "categorie": "Commercial",
+        "note": "Never"
+      },
+      {
+        "hf_id": "HF-012",
+        "pattern": "the best",
+        "type": "LITERAL",
+        "lang": "EN",
+        "categorie": "Superlative",
+        "note": "Absolute"
+      },
+      {
+        "hf_id": "HF-013",
+        "pattern": "sustainable",
+        "type": "LITERAL",
+        "lang": "EN",
+        "categorie": "ESG claim",
+        "note": "Triggers AG-005"
+      },
+      {
+        "hf_id": "HF-014",
+        "pattern": "eco-friendly",
+        "type": "LITERAL",
+        "lang": "EN",
+        "categorie": "ESG claim",
+        "note": "Triggers AG-005"
+      },
+      {
+        "hf_id": "HF-015",
+        "pattern": "factory",
+        "type": "LITERAL",
+        "lang": "EN",
+        "categorie": "Identite",
+        "note": "Off-brand"
+      },
+      {
+        "hf_id": "HF-016",
+        "pattern": "anti-aging",
+        "type": "LITERAL",
+        "lang": "EN",
+        "categorie": "Health claim",
+        "note": "Medical claim"
+      },
+      {
+        "hf_id": "HF-017",
+        "pattern": "number one",
+        "type": "LITERAL",
+        "lang": "EN",
+        "categorie": "Superlative",
+        "note": "Comparative"
+      }
+    ],
+    "9_TESTSET": [
+      {
+        "test_id": "T-001",
+        "categorie": "Golden",
+        "lang": "FR",
+        "texte_test": "Une piece rare issue d'un savoir-faire transmis depuis 1923.",
+        "expected_decision": "APPROVE",
+        "expected_hardfail": 0,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "Vocab preferred + heritage"
+      },
+      {
+        "test_id": "T-002",
+        "categorie": "Hardfail",
+        "lang": "FR",
+        "texte_test": "Notre nouvelle collection en discount pour un week-end.",
+        "expected_decision": "REJECT",
+        "expected_hardfail": 1,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "discount"
+      },
+      {
+        "test_id": "T-003",
+        "categorie": "Hardfail",
+        "lang": "FR",
+        "texte_test": "Le meilleur bijou du monde, unique au monde.",
+        "expected_decision": "REJECT",
+        "expected_hardfail": 2,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "2 hardfails"
+      },
+      {
+        "test_id": "T-004",
+        "categorie": "Claim",
+        "lang": "FR",
+        "texte_test": "Notre collection entierement eco-responsable est sans precedent.",
+        "expected_decision": "REJECT",
+        "expected_hardfail": 1,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "eco-responsable + sans precedent"
+      },
+      {
+        "test_id": "T-005",
+        "categorie": "Hardfail",
+        "lang": "FR",
+        "texte_test": "Une piece fabriquee dans notre usine avec soin.",
+        "expected_decision": "REJECT",
+        "expected_hardfail": 1,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "usine"
+      },
+      {
+        "test_id": "T-006",
+        "categorie": "Golden",
+        "lang": "EN",
+        "texte_test": "A piece crafted in our Parisian atelier.",
+        "expected_decision": "APPROVE",
+        "expected_hardfail": 0,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "Clean"
+      },
+      {
+        "test_id": "T-007",
+        "categorie": "Hardfail",
+        "lang": "EN",
+        "texte_test": "The best sustainable product from our factory.",
+        "expected_decision": "REJECT",
+        "expected_hardfail": 3,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "3 hardfails"
+      },
+      {
+        "test_id": "T-008",
+        "categorie": "Legal",
+        "lang": "FR",
+        "texte_test": "Effet anti-age prouve scientifiquement.",
+        "expected_decision": "REJECT",
+        "expected_hardfail": 1,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "anti-age medical"
+      },
+      {
+        "test_id": "T-009",
+        "categorie": "Golden",
+        "lang": "EN",
+        "texte_test": "A limited run of 48 numbered pieces.",
+        "expected_decision": "APPROVE",
+        "expected_hardfail": 0,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "Scarcity OK"
+      },
+      {
+        "test_id": "T-010",
+        "categorie": "Edge",
+        "lang": "FR",
+        "texte_test": "Piece exclusive, reservee a nos clients prives.",
+        "expected_decision": "REWORK",
+        "expected_hardfail": 0,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "exclusif a reviewer"
+      },
+      {
+        "test_id": "T-011",
+        "categorie": "Crisis",
+        "lang": "FR",
+        "texte_test": "La maison tient a clarifier les conditions de production.",
+        "expected_decision": "APPROVE",
+        "expected_hardfail": 0,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "Crisis ton factuel"
+      },
+      {
+        "test_id": "T-012",
+        "categorie": "Heritage",
+        "lang": "FR",
+        "texte_test": "Inspiree des archives maison 1987 (cote A-1987-032).",
+        "expected_decision": "APPROVE",
+        "expected_hardfail": 0,
+        "observed_decision": null,
+        "observed_hardfail": 0,
+        "pass_fail": null,
+        "note": "Source citee"
+      }
+    ]
+  }
+}

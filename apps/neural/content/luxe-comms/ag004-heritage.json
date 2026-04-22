@@ -1,0 +1,176 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AG004_HeritageComms.xlsx",
+    "generatedAt": "2026-04-22T00:53:21.834Z",
+    "sheets": [
+      "4_APPROVED_FACTS",
+      "5_NARRATIVE_BLOCKS"
+    ]
+  },
+  "data": {
+    "4_APPROVED_FACTS": [
+      {
+        "fact_id": "FC-001",
+        "fait": "La maison est fondee en 1920 par le fondateur X.",
+        "annee": 1920,
+        "source_1": "SRC-009",
+        "source_2": "SRC-001",
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      },
+      {
+        "fact_id": "FC-002",
+        "fait": "Les premiers carnets de dessins datent de 1923.",
+        "annee": 1923,
+        "source_1": "SRC-001",
+        "source_2": null,
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      },
+      {
+        "fact_id": "FC-003",
+        "fait": "En 1935, une piece de la maison entre au Musee Galliera (inv A-1935-401).",
+        "annee": 1935,
+        "source_1": "SRC-008",
+        "source_2": null,
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      },
+      {
+        "fact_id": "FC-004",
+        "fait": "En 1947, l'atelier adopte le geste de ciselure enseigne par le maitre A. Dupond.",
+        "annee": 1947,
+        "source_1": "SRC-002",
+        "source_2": null,
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      },
+      {
+        "fact_id": "FC-005",
+        "fait": "L'atelier de 1952 comptait 18 artisans.",
+        "annee": 1952,
+        "source_1": "SRC-006",
+        "source_2": null,
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      },
+      {
+        "fact_id": "FC-006",
+        "fait": "Le fondateur donne une interview a la television en 1965.",
+        "annee": 1965,
+        "source_1": "SRC-007",
+        "source_2": null,
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      },
+      {
+        "fact_id": "FC-007",
+        "fait": "En 1987, une retrospective est organisee au Musee des Arts Deco.",
+        "annee": 1987,
+        "source_1": "SRC-003",
+        "source_2": "SRC-004",
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      },
+      {
+        "fact_id": "FC-008",
+        "fait": "Motif XVI-line inspire des dessins de 1923.",
+        "annee": 2020,
+        "source_1": "SRC-001",
+        "source_2": "SRC-004",
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      },
+      {
+        "fact_id": "FC-009",
+        "fait": "Une piece portee a Cannes 1987 par [celebrite].",
+        "annee": 1987,
+        "source_1": "SRC-003",
+        "source_2": null,
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      },
+      {
+        "fact_id": "FC-010",
+        "fait": "La maison emploie 240 artisans en 2025.",
+        "annee": 2025,
+        "source_1": "SRC-004",
+        "source_2": null,
+        "source_3": null,
+        "statut": "APPROVED",
+        "source_check": null
+      }
+    ],
+    "5_NARRATIVE_BLOCKS": [
+      {
+        "block_id": "BL-001",
+        "theme": "Origine",
+        "titre": "1920 — La maison nait",
+        "texte": "En 1920, [Fondateur] depose la marque et ouvre son premier atelier. Les premiers carnets de dessins datent de 1923 (Archives A-1923-001).",
+        "sources": "SRC-001; SRC-009",
+        "source_status": "ACTIVE",
+        "usability": null,
+        "usage_count": 2
+      },
+      {
+        "block_id": "BL-002",
+        "theme": "Atelier",
+        "titre": "Le geste transmis depuis 1947",
+        "texte": "En 1947, le maitre A. Dupond formalise le geste de ciselure dans une lettre conservee aux archives (A-1947-112). Aujourd'hui, 240 artisans perpetuent ce meme geste.",
+        "sources": "SRC-002; SRC-004",
+        "source_status": "ACTIVE",
+        "usability": null,
+        "usage_count": 1
+      },
+      {
+        "block_id": "BL-003",
+        "theme": "Reconnaissance",
+        "titre": "1935 — Une piece au Musee Galliera",
+        "texte": "En 1935, une piece de la maison entre dans les collections du Musee Galliera (inv A-1935-401), marquant la reconnaissance institutionnelle du savoir-faire.",
+        "sources": "SRC-008",
+        "source_status": "ACTIVE",
+        "usability": null,
+        "usage_count": 0
+      },
+      {
+        "block_id": "BL-004",
+        "theme": "Patrimoine",
+        "titre": "1987 — Retrospective Arts Deco",
+        "texte": "Le Musee des Arts Decoratifs a consacre en 1987 une retrospective a la maison (Cat A-1987-032), reunissant cent pieces de 1920 a 1985.",
+        "sources": "SRC-003; SRC-004",
+        "source_status": "ACTIVE",
+        "usability": null,
+        "usage_count": 3
+      },
+      {
+        "block_id": "BL-005",
+        "theme": "Iconographie",
+        "titre": "Le motif XVI-line",
+        "texte": "Le motif XVI-line trouve ses origines dans les carnets de dessins de 1923 (A-1923-001), repris et reinterprete dans les collections contemporaines.",
+        "sources": "SRC-001",
+        "source_status": "ACTIVE",
+        "usability": null,
+        "usage_count": 1
+      },
+      {
+        "block_id": "BL-006",
+        "theme": "Culture",
+        "titre": "1987 — Cannes",
+        "texte": "Une piece de la maison a ete portee a Cannes en 1987, captee par les agences de photo (cat A-1987-032).",
+        "sources": "SRC-003",
+        "source_status": "ACTIVE",
+        "usability": null,
+        "usage_count": 0
+      }
+    ]
+  }
+}

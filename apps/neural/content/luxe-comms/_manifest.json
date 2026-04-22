@@ -1,0 +1,100 @@
+{
+  "generatedAt": "2026-04-22T00:53:21.854Z",
+  "workbooks": {
+    "foundations": {
+      "file": "NEURAL_LUXE_COMMS_FOUNDATIONS.xlsx",
+      "sheets": [
+        "1_MAISON_PROFILE",
+        "2_BRAND_CHARTER",
+        "3_BRAND_VOCAB_FR",
+        "4_BRAND_VOCAB_EN",
+        "5_HERITAGE_SOURCEBOOK",
+        "6_MEDIA_DIRECTORY",
+        "7_CLAIMS_EVIDENCE_REGISTRY",
+        "8_EVENTS_CALENDAR"
+      ],
+      "rows": {
+        "1_MAISON_PROFILE": 19,
+        "2_BRAND_CHARTER": 15,
+        "3_BRAND_VOCAB_FR": 25,
+        "4_BRAND_VOCAB_EN": 15,
+        "5_HERITAGE_SOURCEBOOK": 10,
+        "6_MEDIA_DIRECTORY": 20,
+        "7_CLAIMS_EVIDENCE_REGISTRY": 17,
+        "8_EVENTS_CALENDAR": 12
+      }
+    },
+    "master": {
+      "file": "NEURAL_LUXE_COMMS_MASTER.xlsx",
+      "sheets": [
+        "2_AGENT_REGISTRY",
+        "3_WORKFLOW_MAP",
+        "5_REVIEW_GATES",
+        "11_RISK_REGISTER"
+      ],
+      "rows": {
+        "2_AGENT_REGISTRY": 5,
+        "3_WORKFLOW_MAP": 15,
+        "5_REVIEW_GATES": 6,
+        "11_RISK_REGISTER": 10
+      }
+    },
+    "ag001-voiceguard": {
+      "file": "NEURAL_AG001_MaisonVoiceGuard.xlsx",
+      "sheets": [
+        "3_BRAND_RULES",
+        "4_HARD_FAIL_RULES",
+        "9_TESTSET"
+      ],
+      "rows": {
+        "3_BRAND_RULES": 15,
+        "4_HARD_FAIL_RULES": 17,
+        "9_TESTSET": 12
+      }
+    },
+    "ag002-press": {
+      "file": "NEURAL_AG002_LuxePressAgent.xlsx",
+      "sheets": [
+        "3_MEDIA_MATRIX",
+        "11_PRESS_PICKUP"
+      ],
+      "rows": {
+        "3_MEDIA_MATRIX": 7,
+        "11_PRESS_PICKUP": 11
+      }
+    },
+    "ag003-events": {
+      "file": "NEURAL_AG003_LuxeEventComms.xlsx",
+      "sheets": [
+        "3_FORMAT_MATRIX"
+      ],
+      "rows": {
+        "3_FORMAT_MATRIX": 27
+      }
+    },
+    "ag004-heritage": {
+      "file": "NEURAL_AG004_HeritageComms.xlsx",
+      "sheets": [
+        "4_APPROVED_FACTS",
+        "5_NARRATIVE_BLOCKS"
+      ],
+      "rows": {
+        "4_APPROVED_FACTS": 10,
+        "5_NARRATIVE_BLOCKS": 6
+      }
+    },
+    "ag005-greenclaim": {
+      "file": "NEURAL_AG005_GreenClaimChecker.xlsx",
+      "sheets": [
+        "3_CLAIM_LIBRARY",
+        "9_TESTSET",
+        "10_JURIDICTION_MATRIX"
+      ],
+      "rows": {
+        "3_CLAIM_LIBRARY": 17,
+        "9_TESTSET": 10,
+        "10_JURIDICTION_MATRIX": 10
+      }
+    }
+  }
+}

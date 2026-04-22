@@ -347,7 +347,12 @@ model AgentRun {
   userId         String?
   user           User?         @relation(fields: [userId], references: [id])
 
-  agentId    String // e.g. "ifrs9-ecl", "tva-transport"
+  // agentId = slug stable. Ex : "ifrs9-ecl", "tva-transport", ou pour la branche
+  // LUXE/Communication : "maison-voice-guard", "luxe-press-agent",
+  // "luxe-event-comms", "heritage-comms", "green-claim-checker".
+  // Pour Luxe Comms, le champ `trace` respecte le type LuxeCommRunTrace
+  // defini dans lib/data/luxe-comms-catalog.ts.
+  agentId    String
   question   String    @db.Text
   answer     String?   @db.Text
   confidence Float? // 0..1 — drives HITL routing

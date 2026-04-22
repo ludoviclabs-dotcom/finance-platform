@@ -1,0 +1,229 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AG003_LuxeEventComms.xlsx",
+    "generatedAt": "2026-04-22T00:53:21.819Z",
+    "sheets": [
+      "3_FORMAT_MATRIX"
+    ]
+  },
+  "data": {
+    "3_FORMAT_MATRIX": [
+      {
+        "event_type": "Defile",
+        "format": "Invitation VIP",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "PR Director",
+        "note": "Envoi J-21"
+      },
+      {
+        "event_type": "Defile",
+        "format": "Caption social live",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Social Lead",
+        "note": "Temps reel"
+      },
+      {
+        "event_type": "Defile",
+        "format": "Teaser 30s video",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Content Lead",
+        "note": "J-3"
+      },
+      {
+        "event_type": "Defile",
+        "format": "Dossier presse",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "PR Director",
+        "note": "J-7"
+      },
+      {
+        "event_type": "Defile",
+        "format": "Email client VIP",
+        "mandatory": "NO",
+        "mandatory_flag": null,
+        "owner": "CRM Lead",
+        "note": "Optionnel"
+      },
+      {
+        "event_type": "Exhibition",
+        "format": "Catalogue",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Heritage Dir",
+        "note": "Coedition musee"
+      },
+      {
+        "event_type": "Exhibition",
+        "format": "Wall text",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Heritage Dir",
+        "note": "Multi-langue"
+      },
+      {
+        "event_type": "Exhibition",
+        "format": "Parcours visite",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Heritage Dir",
+        "note": "FR + EN"
+      },
+      {
+        "event_type": "Exhibition",
+        "format": "Invitation presse",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "PR Director",
+        "note": "J-14"
+      },
+      {
+        "event_type": "Exhibition",
+        "format": "Audio guide",
+        "mandatory": "NO",
+        "mandatory_flag": null,
+        "owner": "Heritage Dir",
+        "note": "Optionnel"
+      },
+      {
+        "event_type": "Launch",
+        "format": "Teaser",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Content Lead",
+        "note": "J-7"
+      },
+      {
+        "event_type": "Launch",
+        "format": "Post reveal",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Social Lead",
+        "note": "J-0"
+      },
+      {
+        "event_type": "Launch",
+        "format": "Email client VIP",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "CRM Lead",
+        "note": "J-3"
+      },
+      {
+        "event_type": "Launch",
+        "format": "Caption social",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Social Lead",
+        "note": "J-0 a J+3"
+      },
+      {
+        "event_type": "Cocktail",
+        "format": "Invitation",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "PR Director",
+        "note": "J-10"
+      },
+      {
+        "event_type": "Cocktail",
+        "format": "Caption social",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Social Lead",
+        "note": "Live"
+      },
+      {
+        "event_type": "Cocktail",
+        "format": "Carte placement",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "PR Coord",
+        "note": null
+      },
+      {
+        "event_type": "Client event",
+        "format": "Invitation personnalisee",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "CRM Lead",
+        "note": null
+      },
+      {
+        "event_type": "Client event",
+        "format": "Plan / carte",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "CRM Lead",
+        "note": null
+      },
+      {
+        "event_type": "Client event",
+        "format": "Gift card",
+        "mandatory": "NO",
+        "mandatory_flag": null,
+        "owner": "CRM Lead",
+        "note": "Optionnel"
+      },
+      {
+        "event_type": "Pop-up",
+        "format": "Teaser",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Social Lead",
+        "note": null
+      },
+      {
+        "event_type": "Pop-up",
+        "format": "Post reveal",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Social Lead",
+        "note": null
+      },
+      {
+        "event_type": "Pop-up",
+        "format": "Caption social",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Social Lead",
+        "note": null
+      },
+      {
+        "event_type": "Salon",
+        "format": "Catalogue",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Heritage Dir",
+        "note": null
+      },
+      {
+        "event_type": "Salon",
+        "format": "Invitation VIP",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "PR Director",
+        "note": null
+      },
+      {
+        "event_type": "Activation",
+        "format": "Post social reveal",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Social Lead",
+        "note": "Marche-specific"
+      },
+      {
+        "event_type": "Activation",
+        "format": "KOL script",
+        "mandatory": "YES",
+        "mandatory_flag": null,
+        "owner": "Social Lead",
+        "note": "Marche CN"
+      }
+    ]
+  }
+}

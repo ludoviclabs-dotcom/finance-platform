@@ -1,0 +1,379 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AG005_GreenClaimChecker.xlsx",
+    "generatedAt": "2026-04-22T00:53:21.853Z",
+    "sheets": [
+      "3_CLAIM_LIBRARY",
+      "9_TESTSET",
+      "10_JURIDICTION_MATRIX"
+    ]
+  },
+  "data": {
+    "3_CLAIM_LIBRARY": [
+      {
+        "lib_id": "CL-LIB-001",
+        "pattern": "recycle",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "autorisation": "AUTORISE_SI_PROUVE",
+        "evidence_required": "YES",
+        "juridictions_ok": "EU, UK, US, FR",
+        "note": "% + source"
+      },
+      {
+        "lib_id": "CL-LIB-002",
+        "pattern": "durable",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "autorisation": "INTERDIT",
+        "evidence_required": "YES",
+        "juridictions_ok": "-",
+        "note": "Vague"
+      },
+      {
+        "lib_id": "CL-LIB-003",
+        "pattern": "eco-responsable",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "autorisation": "INTERDIT",
+        "evidence_required": "YES",
+        "juridictions_ok": "-",
+        "note": "Vague"
+      },
+      {
+        "lib_id": "CL-LIB-004",
+        "pattern": "sustainable",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "autorisation": "INTERDIT",
+        "evidence_required": "YES",
+        "juridictions_ok": "-",
+        "note": "Vague"
+      },
+      {
+        "lib_id": "CL-LIB-005",
+        "pattern": "fully sustainable",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "autorisation": "INTERDIT",
+        "evidence_required": "YES",
+        "juridictions_ok": "-",
+        "note": "Vague"
+      },
+      {
+        "lib_id": "CL-LIB-006",
+        "pattern": "zero dechet",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "autorisation": "REVIEW",
+        "evidence_required": "YES",
+        "juridictions_ok": "FR, EU",
+        "note": "Doit etre prouve par audit"
+      },
+      {
+        "lib_id": "CL-LIB-007",
+        "pattern": "carbon neutral",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "autorisation": "REVIEW",
+        "evidence_required": "YES",
+        "juridictions_ok": "EU, UK",
+        "note": "Loi Climat France interdit"
+      },
+      {
+        "lib_id": "CL-LIB-008",
+        "pattern": "empreinte carbone",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "autorisation": "AUTORISE_SI_PROUVE",
+        "evidence_required": "YES",
+        "juridictions_ok": "EU, FR",
+        "note": "Avec scope + data"
+      },
+      {
+        "lib_id": "CL-LIB-009",
+        "pattern": "LWG certifie",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "autorisation": "AUTORISE_SI_PROUVE",
+        "evidence_required": "YES",
+        "juridictions_ok": "EU",
+        "note": "Certificat LWG valide"
+      },
+      {
+        "lib_id": "CL-LIB-010",
+        "pattern": "fabrique en France",
+        "categorie": "ORIGIN",
+        "wording_type": "QUALIFIED",
+        "autorisation": "AUTORISE_SI_PROUVE",
+        "evidence_required": "YES",
+        "juridictions_ok": "FR, EU",
+        "note": "Label IGP / atelier"
+      },
+      {
+        "lib_id": "CL-LIB-011",
+        "pattern": "made in France",
+        "categorie": "ORIGIN",
+        "wording_type": "QUALIFIED",
+        "autorisation": "AUTORISE_SI_PROUVE",
+        "evidence_required": "YES",
+        "juridictions_ok": "-",
+        "note": "Version EN"
+      },
+      {
+        "lib_id": "CL-LIB-012",
+        "pattern": "kimberley",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "autorisation": "AUTORISE_SI_PROUVE",
+        "evidence_required": "YES",
+        "juridictions_ok": "EU, FR, UK",
+        "note": "Kimberley Process"
+      },
+      {
+        "lib_id": "CL-LIB-013",
+        "pattern": "cruelty-free",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "autorisation": "REVIEW",
+        "evidence_required": "YES",
+        "juridictions_ok": "EU, US",
+        "note": "Certification PETA/Leaping Bunny"
+      },
+      {
+        "lib_id": "CL-LIB-014",
+        "pattern": "vegan",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "autorisation": "REVIEW",
+        "evidence_required": "YES",
+        "juridictions_ok": "EU, US",
+        "note": "Certification"
+      },
+      {
+        "lib_id": "CL-LIB-015",
+        "pattern": "serie limitee",
+        "categorie": "SCARCITY",
+        "wording_type": "QUALIFIED",
+        "autorisation": "AUTORISE_SI_PROUVE",
+        "evidence_required": "YES",
+        "juridictions_ok": "EU",
+        "note": "Chiffre exact requis"
+      },
+      {
+        "lib_id": "CL-LIB-016",
+        "pattern": "fait main",
+        "categorie": "TECH",
+        "wording_type": "ABSOLUTE",
+        "autorisation": "REVIEW",
+        "evidence_required": "YES",
+        "juridictions_ok": "EU, FR",
+        "note": "Video + process"
+      },
+      {
+        "lib_id": "CL-LIB-017",
+        "pattern": "artisanal",
+        "categorie": "TECH",
+        "wording_type": "QUALIFIED",
+        "autorisation": "AUTORISE",
+        "evidence_required": "NO",
+        "juridictions_ok": "EU, FR",
+        "note": "Vocable culturel"
+      }
+    ],
+    "9_TESTSET": [
+      {
+        "test_id": "T-001",
+        "claim_test": "Or certifie 80% recycle, audit LBMA 2026",
+        "wording_type": "QUALIFIED",
+        "evidence_expected": "CLM-001 valide",
+        "juri": "EU",
+        "expected_decision": "PASS",
+        "observed_decision": null,
+        "pass_fail": null
+      },
+      {
+        "test_id": "T-002",
+        "claim_test": "Eco-responsable",
+        "wording_type": "ABSOLUTE",
+        "evidence_expected": "-",
+        "juri": "EU",
+        "expected_decision": "BLOCK",
+        "observed_decision": null,
+        "pass_fail": null
+      },
+      {
+        "test_id": "T-003",
+        "claim_test": "Sustainable collection",
+        "wording_type": "ABSOLUTE",
+        "evidence_expected": "-",
+        "juri": "EU",
+        "expected_decision": "BLOCK",
+        "observed_decision": null,
+        "pass_fail": null
+      },
+      {
+        "test_id": "T-004",
+        "claim_test": "Empreinte carbone neutre sur cette collection",
+        "wording_type": "ABSOLUTE",
+        "evidence_expected": "-",
+        "juri": "FR",
+        "expected_decision": "BLOCK",
+        "observed_decision": null,
+        "pass_fail": null
+      },
+      {
+        "test_id": "T-005",
+        "claim_test": "Cuir certifie LWG (certif 2025)",
+        "wording_type": "QUALIFIED",
+        "evidence_expected": "CLM-002 valide",
+        "juri": "EU",
+        "expected_decision": "PASS_WITH_REVIEW",
+        "observed_decision": null,
+        "pass_fail": null
+      },
+      {
+        "test_id": "T-006",
+        "claim_test": "Serie limitee 48 pieces",
+        "wording_type": "QUALIFIED",
+        "evidence_expected": "CLM-012 valide",
+        "juri": "EU",
+        "expected_decision": "PASS_WITH_REVIEW",
+        "observed_decision": null,
+        "pass_fail": null
+      },
+      {
+        "test_id": "T-007",
+        "claim_test": "Fully sustainable (EN)",
+        "wording_type": "ABSOLUTE",
+        "evidence_expected": "-",
+        "juri": "EU + UK",
+        "expected_decision": "BLOCK",
+        "observed_decision": null,
+        "pass_fail": null
+      },
+      {
+        "test_id": "T-008",
+        "claim_test": "Fabrique en France avec label IGP",
+        "wording_type": "QUALIFIED",
+        "evidence_expected": "CLM-007 valide",
+        "juri": "FR",
+        "expected_decision": "PASS_WITH_REVIEW",
+        "observed_decision": null,
+        "pass_fail": null
+      },
+      {
+        "test_id": "T-009",
+        "claim_test": "Cruelty-free sur toute la gamme",
+        "wording_type": "ABSOLUTE",
+        "evidence_expected": "CLM-011 valide partiel",
+        "juri": "EU",
+        "expected_decision": "PASS_WITH_REVIEW",
+        "observed_decision": null,
+        "pass_fail": null
+      },
+      {
+        "test_id": "T-010",
+        "claim_test": "Diamants sans conflit (Kimberley)",
+        "wording_type": "QUALIFIED",
+        "evidence_expected": "CLM-005 valide",
+        "juri": "EU",
+        "expected_decision": "PASS_WITH_REVIEW",
+        "observed_decision": null,
+        "pass_fail": null
+      }
+    ],
+    "10_JURIDICTION_MATRIX": [
+      {
+        "lib_id": "CL-LIB-001",
+        "claim_pattern": "recycle",
+        "eu": "OK si %",
+        "fr": "OK si %",
+        "uk": "OK si %",
+        "us": "OK si %",
+        "ch": "OK si %"
+      },
+      {
+        "lib_id": "CL-LIB-002",
+        "claim_pattern": "durable",
+        "eu": "INTERDIT vague",
+        "fr": "INTERDIT vague",
+        "uk": "INTERDIT (CMA)",
+        "us": "A QUALIFIER (FTC)",
+        "ch": "INTERDIT vague"
+      },
+      {
+        "lib_id": "CL-LIB-003",
+        "claim_pattern": "eco-responsable",
+        "eu": "INTERDIT vague",
+        "fr": "INTERDIT vague (Loi Climat)",
+        "uk": "INTERDIT (CMA)",
+        "us": "N/A",
+        "ch": "INTERDIT vague"
+      },
+      {
+        "lib_id": "CL-LIB-004",
+        "claim_pattern": "sustainable",
+        "eu": "INTERDIT vague",
+        "fr": "INTERDIT vague",
+        "uk": "INTERDIT (CMA)",
+        "us": "REVIEW FTC",
+        "ch": "INTERDIT"
+      },
+      {
+        "lib_id": "CL-LIB-007",
+        "claim_pattern": "carbon neutral",
+        "eu": "REVIEW",
+        "fr": "INTERDIT (Loi Climat 2023)",
+        "uk": "REVIEW (ASA)",
+        "us": "A QUALIFIER",
+        "ch": "REVIEW"
+      },
+      {
+        "lib_id": "CL-LIB-008",
+        "claim_pattern": "empreinte carbone",
+        "eu": "OK si scope+data",
+        "fr": "OK si scope+data",
+        "uk": "OK si scope+data",
+        "us": "OK si scope+data",
+        "ch": "OK si scope+data"
+      },
+      {
+        "lib_id": "CL-LIB-009",
+        "claim_pattern": "LWG certifie",
+        "eu": "OK si certif",
+        "fr": "OK si certif",
+        "uk": "OK si certif",
+        "us": "OK si certif",
+        "ch": "OK si certif"
+      },
+      {
+        "lib_id": "CL-LIB-010",
+        "claim_pattern": "fabrique en France",
+        "eu": "OK si IGP/atelier",
+        "fr": "OK si IGP/atelier (DGCCRF)",
+        "uk": "OK",
+        "us": "OK",
+        "ch": "OK"
+      },
+      {
+        "lib_id": "CL-LIB-013",
+        "claim_pattern": "cruelty-free",
+        "eu": "REVIEW",
+        "fr": "REVIEW",
+        "uk": "REVIEW",
+        "us": "REVIEW (FDA)",
+        "ch": "REVIEW"
+      },
+      {
+        "lib_id": "CL-LIB-014",
+        "claim_pattern": "vegan",
+        "eu": "REVIEW",
+        "fr": "REVIEW",
+        "uk": "REVIEW",
+        "us": "OK si certif",
+        "ch": "REVIEW"
+      }
+    ]
+  }
+}

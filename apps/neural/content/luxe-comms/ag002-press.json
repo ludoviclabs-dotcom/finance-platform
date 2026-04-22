@@ -1,0 +1,211 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AG002_LuxePressAgent.xlsx",
+    "generatedAt": "2026-04-22T00:53:21.802Z",
+    "sheets": [
+      "3_MEDIA_MATRIX",
+      "11_PRESS_PICKUP"
+    ]
+  },
+  "data": {
+    "3_MEDIA_MATRIX": [
+      {
+        "media_type": "Lifestyle",
+        "angle": "Narration image / maison / heritage",
+        "format_target": "Communique 400-600 mots + media kit",
+        "length_words": 500,
+        "quote_ceo": "YES",
+        "visuals_required": "3-5 photos HD",
+        "embargo_recommand": "J-3"
+      },
+      {
+        "media_type": "Business",
+        "angle": "Angles resultats / direction / expansion",
+        "format_target": "Communique 300-400 mots + data",
+        "length_words": 350,
+        "quote_ceo": "YES",
+        "visuals_required": "1 photo + charts",
+        "embargo_recommand": "J-1"
+      },
+      {
+        "media_type": "Trade",
+        "angle": "Strategie / innovation / filiere",
+        "format_target": "Communique 400-500 mots + interview",
+        "length_words": 450,
+        "quote_ceo": "NO",
+        "visuals_required": "2 photos",
+        "embargo_recommand": "J-2"
+      },
+      {
+        "media_type": "Digital",
+        "angle": "Angle digital / conversion / contenu short",
+        "format_target": "Communique 250-350 mots + visuels",
+        "length_words": 300,
+        "quote_ceo": "NO",
+        "visuals_required": "5-10 photos",
+        "embargo_recommand": "Aucun"
+      },
+      {
+        "media_type": "Social",
+        "angle": "Capsule + teaser + storytelling",
+        "format_target": "Post + carousel + short video",
+        "length_words": 150,
+        "quote_ceo": "NO",
+        "visuals_required": "10 photos",
+        "embargo_recommand": "Aucun"
+      },
+      {
+        "media_type": "Generaliste",
+        "angle": "Dimension societale / culture / France",
+        "format_target": "Communique 400-500 mots",
+        "length_words": 450,
+        "quote_ceo": "YES",
+        "visuals_required": "3 photos",
+        "embargo_recommand": "J-2"
+      },
+      {
+        "media_type": "Magazine",
+        "angle": "Interview + portrait + atelier",
+        "format_target": "Dossier long 800-1500 mots",
+        "length_words": 1000,
+        "quote_ceo": "YES",
+        "visuals_required": "10 photos",
+        "embargo_recommand": "J-7"
+      }
+    ],
+    "11_PRESS_PICKUP": [
+      {
+        "pickup_id": "PK-001",
+        "output_id": "OUT-001",
+        "media_repris": "Vogue FR",
+        "pays": "FR",
+        "lang": "FR",
+        "date_reprise": "2026-05-16",
+        "pickup": "YES",
+        "reach": 450000,
+        "sentiment": "POSITIF",
+        "tonalite": "Valorisation heritage maison"
+      },
+      {
+        "pickup_id": "PK-002",
+        "output_id": "OUT-001",
+        "media_repris": "Harper's Bazaar",
+        "pays": "US",
+        "lang": "EN",
+        "date_reprise": "2026-05-18",
+        "pickup": "YES",
+        "reach": 280000,
+        "sentiment": "POSITIF",
+        "tonalite": "Tres favorable"
+      },
+      {
+        "pickup_id": "PK-003",
+        "output_id": "OUT-001",
+        "media_repris": "Numero",
+        "pays": "FR",
+        "lang": "FR",
+        "date_reprise": "2026-05-20",
+        "pickup": "YES",
+        "reach": 80000,
+        "sentiment": "POSITIF",
+        "tonalite": "Angle art / patrimoine"
+      },
+      {
+        "pickup_id": "PK-004",
+        "output_id": "OUT-002",
+        "media_repris": "FT",
+        "pays": "UK",
+        "lang": "EN",
+        "date_reprise": "2026-07-11",
+        "pickup": "YES",
+        "reach": 520000,
+        "sentiment": "NEUTRE",
+        "tonalite": "Resultats factuels"
+      },
+      {
+        "pickup_id": "PK-005",
+        "output_id": "OUT-002",
+        "media_repris": "Les Echos",
+        "pays": "FR",
+        "lang": "FR",
+        "date_reprise": "2026-07-11",
+        "pickup": "YES",
+        "reach": 180000,
+        "sentiment": "POSITIF",
+        "tonalite": "Croissance saluee"
+      },
+      {
+        "pickup_id": "PK-006",
+        "output_id": "OUT-002",
+        "media_repris": "BoF",
+        "pays": "UK",
+        "lang": "EN",
+        "date_reprise": "2026-07-12",
+        "pickup": "YES",
+        "reach": 95000,
+        "sentiment": "POSITIF",
+        "tonalite": "Analyse strategie"
+      },
+      {
+        "pickup_id": "PK-003",
+        "output_id": "OUT-003",
+        "media_repris": "WWD",
+        "pays": "US",
+        "lang": "EN",
+        "date_reprise": "2026-04-26",
+        "pickup": "YES",
+        "reach": 60000,
+        "sentiment": "POSITIF",
+        "tonalite": "Savoir-faire"
+      },
+      {
+        "pickup_id": "PK-008",
+        "output_id": "OUT-003",
+        "media_repris": "BoF",
+        "pays": "UK",
+        "lang": "EN",
+        "date_reprise": "2026-04-27",
+        "pickup": "NO",
+        "reach": 0,
+        "sentiment": "-",
+        "tonalite": "Non repris"
+      },
+      {
+        "pickup_id": "PK-009",
+        "output_id": "OUT-006",
+        "media_repris": "Jing Daily",
+        "pays": "CN",
+        "lang": "EN",
+        "date_reprise": "2026-06-06",
+        "pickup": "YES",
+        "reach": 110000,
+        "sentiment": "POSITIF",
+        "tonalite": "Rapport ESG credible"
+      },
+      {
+        "pickup_id": "PK-010",
+        "output_id": "OUT-006",
+        "media_repris": "FT",
+        "pays": "UK",
+        "lang": "EN",
+        "date_reprise": "2026-06-06",
+        "pickup": "YES",
+        "reach": 520000,
+        "sentiment": "NEUTRE",
+        "tonalite": "ESG audit retenu"
+      },
+      {
+        "pickup_id": "PK-011",
+        "output_id": "OUT-007",
+        "media_repris": "Tous P1",
+        "pays": "FR",
+        "lang": "FR",
+        "date_reprise": "2026-05-03",
+        "pickup": "YES",
+        "reach": 820000,
+        "sentiment": "POSITIF",
+        "tonalite": "Couverture massive"
+      }
+    ]
+  }
+}

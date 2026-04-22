@@ -1,0 +1,432 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_LUXE_COMMS_MASTER.xlsx",
+    "generatedAt": "2026-04-22T00:53:21.758Z",
+    "sheets": [
+      "2_AGENT_REGISTRY",
+      "3_WORKFLOW_MAP",
+      "5_REVIEW_GATES",
+      "11_RISK_REGISTER"
+    ]
+  },
+  "data": {
+    "2_AGENT_REGISTRY": [
+      {
+        "agent_id": "AG-001",
+        "agent_name": "MaisonVoiceGuard",
+        "mission": "Scorer chaque communication sur la conformite charte de marque; refus automatique si score insuffisant",
+        "owner": "Brand Director",
+        "status": "ACTIVE",
+        "priority": "P0",
+        "input_main": "Texte + LANG + CONTEXT",
+        "output_main": "Score + Decision (APPROVE/REWORK/REJECT) + Log",
+        "primary_gate": "BRAND",
+        "dependencies": "FOUNDATIONS",
+        "data_required": "Brand Charter + Vocab FR/EN"
+      },
+      {
+        "agent_id": "AG-002",
+        "agent_name": "LuxePressAgent",
+        "mission": "Rediger communiques dans le registre du luxe, adapter presse lifestyle vs. business, relations Vogue/HB",
+        "owner": "PR Director",
+        "status": "ACTIVE",
+        "priority": "P0",
+        "input_main": "Brief presse + Media + Angle",
+        "output_main": "Communique finalise + Dossier presse",
+        "primary_gate": "BRAND",
+        "dependencies": "AG-001, AG-005",
+        "data_required": "Media Directory + Claims"
+      },
+      {
+        "agent_id": "AG-003",
+        "agent_name": "LuxeEventComms",
+        "mission": "Generer contenus pour defiles, lancements, expositions (invitations, scripts, social temps reel)",
+        "owner": "PR Director",
+        "status": "ACTIVE",
+        "priority": "P1",
+        "input_main": "Brief evenement + Format + Audience",
+        "output_main": "Pack evenementiel multi-format",
+        "primary_gate": "EVENT",
+        "dependencies": "AG-001, AG-004",
+        "data_required": "Events Calendar + Heritage"
+      },
+      {
+        "agent_id": "AG-004",
+        "agent_name": "HeritageComms",
+        "mission": "Valoriser l'heritage et l'histoire de la maison dans toutes les communications",
+        "owner": "Heritage Director",
+        "status": "ACTIVE",
+        "priority": "P1",
+        "input_main": "Query heritage + Contexte",
+        "output_main": "Narrative blocks sources + citations",
+        "primary_gate": "HERITAGE",
+        "dependencies": "FOUNDATIONS",
+        "data_required": "Heritage Sourcebook"
+      },
+      {
+        "agent_id": "AG-005",
+        "agent_name": "GreenClaimChecker",
+        "mission": "Verifier chaque affirmation RSE / developpement durable contre donnees reelles et reglements (Green Claims)",
+        "owner": "ESG Lead",
+        "status": "ACTIVE",
+        "priority": "P0",
+        "input_main": "Claim extrait + Wording type + Juridiction",
+        "output_main": "Decision (PASS/BLOCK) + Risk level + Evidence",
+        "primary_gate": "CLAIM",
+        "dependencies": "FOUNDATIONS",
+        "data_required": "Claims Evidence Registry"
+      }
+    ],
+    "3_WORKFLOW_MAP": [
+      {
+        "flow_id": "FL-001",
+        "source": "USER",
+        "destination": "AG-002",
+        "trigger": "Brief presse depose",
+        "payload": "Brief + Angle + Media cibles",
+        "auto": "NO",
+        "gate": "-",
+        "escalation": "-",
+        "sla_hours": 0
+      },
+      {
+        "flow_id": "FL-002",
+        "source": "AG-002",
+        "destination": "AG-001",
+        "trigger": "Draft presse cree",
+        "payload": "Texte draft + LANG",
+        "auto": "YES",
+        "gate": "BRAND",
+        "escalation": "Brand Director",
+        "sla_hours": 24
+      },
+      {
+        "flow_id": "FL-003",
+        "source": "AG-002",
+        "destination": "AG-005",
+        "trigger": "Draft contient terme RSE",
+        "payload": "Claims extraits",
+        "auto": "YES",
+        "gate": "CLAIM",
+        "escalation": "ESG Lead + Legal",
+        "sla_hours": 48
+      },
+      {
+        "flow_id": "FL-004",
+        "source": "AG-005",
+        "destination": "AG-002",
+        "trigger": "Decision claim (PASS/BLOCK)",
+        "payload": "Decision + Risk level + Evidence",
+        "auto": "YES",
+        "gate": "-",
+        "escalation": "-",
+        "sla_hours": 0
+      },
+      {
+        "flow_id": "FL-005",
+        "source": "AG-001",
+        "destination": "AG-002",
+        "trigger": "Decision brand (APPROVE/REWORK)",
+        "payload": "Score + Feedback",
+        "auto": "YES",
+        "gate": "-",
+        "escalation": "-",
+        "sla_hours": 0
+      },
+      {
+        "flow_id": "FL-006",
+        "source": "AG-002",
+        "destination": "REVIEW",
+        "trigger": "Draft pret relecture humaine",
+        "payload": "Draft final",
+        "auto": "NO",
+        "gate": "BRAND",
+        "escalation": "CMO",
+        "sla_hours": 24
+      },
+      {
+        "flow_id": "FL-007",
+        "source": "USER",
+        "destination": "AG-003",
+        "trigger": "Brief evenement depose",
+        "payload": "Brief + Type + Audience",
+        "auto": "NO",
+        "gate": "-",
+        "escalation": "-",
+        "sla_hours": 0
+      },
+      {
+        "flow_id": "FL-008",
+        "source": "AG-003",
+        "destination": "AG-004",
+        "trigger": "Besoin block patrimoine",
+        "payload": "Query heritage",
+        "auto": "YES",
+        "gate": "HERITAGE",
+        "escalation": "Heritage Dir",
+        "sla_hours": 72
+      },
+      {
+        "flow_id": "FL-009",
+        "source": "AG-004",
+        "destination": "AG-003",
+        "trigger": "Block patrimoine renvoye",
+        "payload": "Narrative + Sources + Citations",
+        "auto": "YES",
+        "gate": "-",
+        "escalation": "-",
+        "sla_hours": 0
+      },
+      {
+        "flow_id": "FL-010",
+        "source": "AG-003",
+        "destination": "AG-001",
+        "trigger": "Pack evenement a valider",
+        "payload": "Multi-format content",
+        "auto": "YES",
+        "gate": "BRAND",
+        "escalation": "Brand Director",
+        "sla_hours": 24
+      },
+      {
+        "flow_id": "FL-011",
+        "source": "AG-003",
+        "destination": "REVIEW",
+        "trigger": "Pack finalise",
+        "payload": "Pack + Gate status",
+        "auto": "NO",
+        "gate": "EVENT",
+        "escalation": "PR Director + CMO",
+        "sla_hours": 72
+      },
+      {
+        "flow_id": "FL-012",
+        "source": "AG-001",
+        "destination": "MASTER",
+        "trigger": "Log output quotidien",
+        "payload": "Outputs log",
+        "auto": "YES",
+        "gate": "-",
+        "escalation": "-",
+        "sla_hours": 0
+      },
+      {
+        "flow_id": "FL-013",
+        "source": "AG-005",
+        "destination": "MASTER",
+        "trigger": "Log decision quotidien",
+        "payload": "Risk log",
+        "auto": "YES",
+        "gate": "-",
+        "escalation": "-",
+        "sla_hours": 0
+      },
+      {
+        "flow_id": "FL-014",
+        "source": "AG-004",
+        "destination": "MASTER",
+        "trigger": "Log sourcing quotidien",
+        "payload": "Sourcing log",
+        "auto": "YES",
+        "gate": "-",
+        "escalation": "-",
+        "sla_hours": 0
+      },
+      {
+        "flow_id": "FL-015",
+        "source": "CRISIS",
+        "destination": "AG-001",
+        "trigger": "Flag crisis mode active",
+        "payload": "Texte + priorite",
+        "auto": "YES",
+        "gate": "BRAND",
+        "escalation": "CMO (fast-track)",
+        "sla_hours": 4
+      }
+    ],
+    "5_REVIEW_GATES": [
+      {
+        "gate_id": "G-001",
+        "gate_type": "BRAND",
+        "blocking": "YES",
+        "approver_role": "Brand Director",
+        "sla_hours": 24,
+        "escalate_to": "CMO",
+        "crisis_fast_track_h": 4,
+        "note": "Sortie externe standard"
+      },
+      {
+        "gate_id": "G-002",
+        "gate_type": "CLAIM",
+        "blocking": "YES",
+        "approver_role": "ESG Lead + Legal",
+        "sla_hours": 48,
+        "escalate_to": "Legal + CMO",
+        "crisis_fast_track_h": 8,
+        "note": "Claim ESG / absolu / origine"
+      },
+      {
+        "gate_id": "G-003",
+        "gate_type": "HERITAGE",
+        "blocking": "YES",
+        "approver_role": "Heritage Director",
+        "sla_hours": 72,
+        "escalate_to": "CEO",
+        "crisis_fast_track_h": 24,
+        "note": "Reference patrimoine non sourcee"
+      },
+      {
+        "gate_id": "G-004",
+        "gate_type": "LEGAL",
+        "blocking": "YES",
+        "approver_role": "Legal",
+        "sla_hours": 24,
+        "escalate_to": "CEO",
+        "crisis_fast_track_h": 4,
+        "note": "Contenu juridique / revendication regulee"
+      },
+      {
+        "gate_id": "G-005",
+        "gate_type": "EVENT",
+        "blocking": "NO",
+        "approver_role": "PR Director",
+        "sla_hours": 72,
+        "escalate_to": "CMO",
+        "crisis_fast_track_h": 12,
+        "note": "Pack evenementiel sans claim"
+      },
+      {
+        "gate_id": "G-006",
+        "gate_type": "CRISIS",
+        "blocking": "YES",
+        "approver_role": "CMO",
+        "sla_hours": 2,
+        "escalate_to": "CEO",
+        "crisis_fast_track_h": 2,
+        "note": "Crise — decision < 2h imperatif"
+      }
+    ],
+    "11_RISK_REGISTER": [
+      {
+        "risk_id": "RK-001",
+        "domaine": "Brand",
+        "description": "VoiceGuard calibration trop stricte -> faux positifs et ralentissement ops",
+        "likelihood": "MEDIUM",
+        "impact": "HIGH",
+        "score": null,
+        "owner": "Brand Dir",
+        "mitigation": "Testset + sensibility analysis + seuil ajustable par maison",
+        "statut": "OPEN",
+        "next_review": "2026-05-15"
+      },
+      {
+        "risk_id": "RK-002",
+        "domaine": "Claim",
+        "description": "Expiration evidence non surveillee -> claim diffuse alors que preuve perimee",
+        "likelihood": "HIGH",
+        "impact": "CRITICAL",
+        "score": null,
+        "owner": "ESG Lead",
+        "mitigation": "Alertes J-30 J-7 (CF pose) + statut STALE formule auto",
+        "statut": "MITIGATED",
+        "next_review": "2026-04-30"
+      },
+      {
+        "risk_id": "RK-003",
+        "domaine": "Heritage",
+        "description": "Citation source tertiaire utilisee sans revalidation",
+        "likelihood": "MEDIUM",
+        "impact": "HIGH",
+        "score": null,
+        "owner": "Heritage Dir",
+        "mitigation": "Blocage hard si source = TERTIARY sans validation",
+        "statut": "OPEN",
+        "next_review": "2026-05-10"
+      },
+      {
+        "risk_id": "RK-004",
+        "domaine": "Legal",
+        "description": "Juridictions multiples (EU, US, UK, CH) -> divergence regle",
+        "likelihood": "HIGH",
+        "impact": "HIGH",
+        "score": null,
+        "owner": "Legal",
+        "mitigation": "Extension matrice juridiction AG-005 en v2",
+        "statut": "OPEN",
+        "next_review": "2026-06-30"
+      },
+      {
+        "risk_id": "RK-005",
+        "domaine": "Ops cout",
+        "description": "Derive cout API sans alerte budget",
+        "likelihood": "MEDIUM",
+        "impact": "MEDIUM",
+        "score": null,
+        "owner": "AI Ops",
+        "mitigation": "Budget mensuel + alerte 80% + kill switch 120%",
+        "statut": "OPEN",
+        "next_review": "2026-05-01"
+      },
+      {
+        "risk_id": "RK-006",
+        "domaine": "Crisis",
+        "description": "Fast-track bypass sans revue = risque reputationnel",
+        "likelihood": "LOW",
+        "impact": "CRITICAL",
+        "score": null,
+        "owner": "CMO",
+        "mitigation": "Log tous les fast-track + audit post-crise obligatoire",
+        "statut": "OPEN",
+        "next_review": "2026-05-20"
+      },
+      {
+        "risk_id": "RK-007",
+        "domaine": "Data",
+        "description": "Vocab FR non maintenu -> charte drift",
+        "likelihood": "MEDIUM",
+        "impact": "MEDIUM",
+        "score": null,
+        "owner": "Brand Dir",
+        "mitigation": "Revue mensuelle + changelog obligatoire",
+        "statut": "OPEN",
+        "next_review": "2026-05-01"
+      },
+      {
+        "risk_id": "RK-008",
+        "domaine": "Heritage",
+        "description": "Droits image non verifies sur visuels comms",
+        "likelihood": "MEDIUM",
+        "impact": "HIGH",
+        "score": null,
+        "owner": "Legal",
+        "mitigation": "Registre droits images a creer en v2",
+        "statut": "OPEN",
+        "next_review": "2026-06-30"
+      },
+      {
+        "risk_id": "RK-009",
+        "domaine": "Localisation",
+        "description": "Pas de vocab IT/DE/JA/ZH -> international comms restent FR/EN-only",
+        "likelihood": "HIGH",
+        "impact": "MEDIUM",
+        "score": null,
+        "owner": "Brand Dir",
+        "mitigation": "Seed vocab 4 langues supp en v2",
+        "statut": "OPEN",
+        "next_review": "2026-07-31"
+      },
+      {
+        "risk_id": "RK-010",
+        "domaine": "Learnings",
+        "description": "Boucle d'apprentissage partielle (AG-001 seulement)",
+        "likelihood": "MEDIUM",
+        "impact": "MEDIUM",
+        "score": null,
+        "owner": "AI Ops",
+        "mitigation": "LEARNINGS pose sur AG-002/003/004/005 dans le Sprint 3",
+        "statut": "MITIGATED",
+        "next_review": "2026-06-15"
+      }
+    ]
+  }
+}

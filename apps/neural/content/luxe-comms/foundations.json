@@ -1,0 +1,1455 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_LUXE_COMMS_FOUNDATIONS.xlsx",
+    "generatedAt": "2026-04-22T00:53:21.724Z",
+    "sheets": [
+      "1_MAISON_PROFILE",
+      "2_BRAND_CHARTER",
+      "3_BRAND_VOCAB_FR",
+      "4_BRAND_VOCAB_EN",
+      "5_HERITAGE_SOURCEBOOK",
+      "6_MEDIA_DIRECTORY",
+      "7_CLAIMS_EVIDENCE_REGISTRY",
+      "8_EVENTS_CALENDAR"
+    ]
+  },
+  "data": {
+    "1_MAISON_PROFILE": [
+      {
+        "key": "MAISON_ID",
+        "value": "M-001",
+        "note": "Identifiant unique maison"
+      },
+      {
+        "key": "MAISON_NAME",
+        "value": "Maison pilote",
+        "note": "Raison sociale / enseigne"
+      },
+      {
+        "key": "CATEGORIES",
+        "value": "Haute couture, Joaillerie, Parfumerie",
+        "note": "Piliers produit"
+      },
+      {
+        "key": "SIEGE",
+        "value": "Paris, France",
+        "note": "Pays siege"
+      },
+      {
+        "key": "PAYS_CIBLES",
+        "value": "FR, IT, UK, DE, US, JP, KR, CN, UAE",
+        "note": "Marches adressables"
+      },
+      {
+        "key": "LANG_PRIMARY",
+        "value": "FR",
+        "note": "Langue principale"
+      },
+      {
+        "key": "LANG_SECONDARY",
+        "value": "EN",
+        "note": "Langue secondaire"
+      },
+      {
+        "key": "ANNEE_FONDATION",
+        "value": 1920,
+        "note": "Annee historique"
+      },
+      {
+        "key": "TON_MAITRE",
+        "value": "Raffine, intemporel, allusif, jamais ostentatoire",
+        "note": "Registre editorial"
+      },
+      {
+        "key": "DO_LIST",
+        "value": "Savoir-faire; Geste artisanal; Allusion patrimoniale",
+        "note": "Elements obligatoires"
+      },
+      {
+        "key": "DONT_LIST",
+        "value": "Superlatifs; Discount; Exclusivite revendiquee; Claims absolus",
+        "note": "Interdictions"
+      },
+      {
+        "key": "LIGNES_ROUGES",
+        "value": "Greenwashing; Revendications medicales; Comparatif concurrent",
+        "note": "Tabous"
+      },
+      {
+        "key": "CODE_DEONTO",
+        "value": "Charte 2024 v1.3 — signataire FHL & FFPAPF",
+        "note": "Charte / engagement"
+      },
+      {
+        "key": "ESG_PILIERS",
+        "value": "Or recycle; Cuir LWG; Eau; Emplois artisans",
+        "note": "Axes ESG autorises"
+      },
+      {
+        "key": "REVIEW_REQUIRED_DEFAULT",
+        "value": "YES",
+        "note": "Revue humaine obligatoire par defaut"
+      },
+      {
+        "key": "CRISIS_MODE_ON",
+        "value": "NO",
+        "note": "Fast-track actif ? (YES bascule gate d'urgence)"
+      },
+      {
+        "key": "DATA_VERSION",
+        "value": "v2026.04",
+        "note": "Version du referentiel"
+      },
+      {
+        "key": "PROMPT_VERSION",
+        "value": "v1.0.0",
+        "note": "Version des prompts agents"
+      },
+      {
+        "key": "LAST_REFRESH",
+        "value": "2026-04-21",
+        "note": "Derniere mise a jour"
+      }
+    ],
+    "2_BRAND_CHARTER": [
+      {
+        "rule_id": "R-001",
+        "categorie": "Tone",
+        "regle": "Registre allusif, jamais declamatoire",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "FR",
+        "exemple_ok": "L'atelier dessine un bijou a la main, comme en 1920.",
+        "exemple_ko": "Le meilleur bijou du monde."
+      },
+      {
+        "rule_id": "R-002",
+        "categorie": "Tone",
+        "regle": "Pas de superlatif absolu (meilleur, le plus, unique)",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "exemple_ok": "Une piece rare issue d'un savoir-faire rare.",
+        "exemple_ko": "La piece la plus extraordinaire jamais concue."
+      },
+      {
+        "rule_id": "R-003",
+        "categorie": "Structure",
+        "regle": "Accroche < 140 caracteres, puis expose factuel",
+        "niveau": "MEDIUM",
+        "poids": 10,
+        "lang": "FR",
+        "exemple_ok": "Un bracelet ciselé au marteau. Collection printemps.",
+        "exemple_ko": "Bracelet extraordinaire en or exceptionnel unique au monde."
+      },
+      {
+        "rule_id": "R-004",
+        "categorie": "Identite",
+        "regle": "Eviter nom des concurrents et comparatifs",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "FR",
+        "exemple_ok": "Nos ateliers francais.",
+        "exemple_ko": "Superieur a [Concurrent]."
+      },
+      {
+        "rule_id": "R-005",
+        "categorie": "Claim",
+        "regle": "Toute affirmation RSE doit etre prouvee (voir AG-005)",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "FR",
+        "exemple_ok": "Or certifie 80% recycle, source fournisseur LBMA.",
+        "exemple_ko": "Entierement eco-responsable."
+      },
+      {
+        "rule_id": "R-006",
+        "categorie": "Heritage",
+        "regle": "Toute reference historique datee doit etre sourcee",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "exemple_ok": "Archives maison 1987 (cote A-2014-032).",
+        "exemple_ko": "Depuis toujours, nous..."
+      },
+      {
+        "rule_id": "R-007",
+        "categorie": "Formulation",
+        "regle": "Utiliser le present de narration, pas le futur vendeur",
+        "niveau": "MEDIUM",
+        "poids": 10,
+        "lang": "FR",
+        "exemple_ok": "L'artisan polit la surface pendant 36 heures.",
+        "exemple_ko": "Vous allez adorer cette piece."
+      },
+      {
+        "rule_id": "R-008",
+        "categorie": "Formulation",
+        "regle": "Pas d'exhortation commerciale ('achetez', 'promo')",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "exemple_ok": "Piece numerotee, serie limitee a 48 exemplaires.",
+        "exemple_ko": "Achetez maintenant, stock limite !"
+      },
+      {
+        "rule_id": "R-009",
+        "categorie": "Legal",
+        "regle": "Pas de revendication sante / medicale",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "FR",
+        "exemple_ok": "Extrait de rose centifolia.",
+        "exemple_ko": "Effet anti-age prouve."
+      },
+      {
+        "rule_id": "R-010",
+        "categorie": "Tone",
+        "regle": "Allusion > revendication directe",
+        "niveau": "MEDIUM",
+        "poids": 10,
+        "lang": "FR",
+        "exemple_ok": "Un geste qui traverse les generations.",
+        "exemple_ko": "Le meilleur savoir-faire du monde."
+      },
+      {
+        "rule_id": "R-011",
+        "categorie": "Identite",
+        "regle": "Maintenir cohesion vocabulaire (voir 3_BRAND_VOCAB_FR)",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "exemple_ok": "Atelier, savoir-faire, geste.",
+        "exemple_ko": "Usine, production, fabrication de masse."
+      },
+      {
+        "rule_id": "R-012",
+        "categorie": "Inclusive",
+        "regle": "Pas de formulation genree exclusive",
+        "niveau": "MEDIUM",
+        "poids": 10,
+        "lang": "FR",
+        "exemple_ok": "Celle ou celui qui porte.",
+        "exemple_ko": "L'homme accompli."
+      },
+      {
+        "rule_id": "R-013",
+        "categorie": "Tone",
+        "regle": "Neutral prestige tone in EN",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "EN",
+        "exemple_ok": "A piece crafted in our Parisian atelier.",
+        "exemple_ko": "The best luxury product ever made."
+      },
+      {
+        "rule_id": "R-014",
+        "categorie": "Claim",
+        "regle": "Do not use 'sustainable' without evidence",
+        "niveau": "CRITICAL",
+        "poids": 25,
+        "lang": "EN",
+        "exemple_ok": "Gold certified 80% recycled, LBMA audited.",
+        "exemple_ko": "Fully sustainable collection."
+      },
+      {
+        "rule_id": "R-015",
+        "categorie": "Crisis",
+        "regle": "En crisis mode (flag on), by-pass SLA mais review maintenue",
+        "niveau": "HIGH",
+        "poids": 15,
+        "lang": "FR",
+        "exemple_ok": "Communication de crise validee en < 2h.",
+        "exemple_ko": "Publication sans review."
+      }
+    ],
+    "3_BRAND_VOCAB_FR": [
+      {
+        "term_id": "VOC-FR-001",
+        "terme": "savoir-faire",
+        "term_type": "PREFERRED",
+        "categorie": "Heritage",
+        "niveau": "HIGH",
+        "suggestion_remplacement": "-",
+        "contexte": "Toujours valorise",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-FR-002",
+        "terme": "geste artisanal",
+        "term_type": "PREFERRED",
+        "categorie": "Heritage",
+        "niveau": "HIGH",
+        "suggestion_remplacement": "-",
+        "contexte": "Toujours valorise",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-FR-003",
+        "terme": "maison",
+        "term_type": "PREFERRED",
+        "categorie": "Identite",
+        "niveau": "MEDIUM",
+        "suggestion_remplacement": "-",
+        "contexte": "Remplace 'marque'",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-FR-004",
+        "terme": "atelier",
+        "term_type": "PREFERRED",
+        "categorie": "Identite",
+        "niveau": "MEDIUM",
+        "suggestion_remplacement": "-",
+        "contexte": "Remplace 'usine'",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-FR-005",
+        "terme": "ciselure",
+        "term_type": "PREFERRED",
+        "categorie": "Technique",
+        "niveau": "MEDIUM",
+        "suggestion_remplacement": "-",
+        "contexte": "Vocable metier",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-FR-006",
+        "terme": "intemporel",
+        "term_type": "PREFERRED",
+        "categorie": "Positionnement",
+        "niveau": "LOW",
+        "suggestion_remplacement": "-",
+        "contexte": "Allusif",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-FR-007",
+        "terme": "patrimoine",
+        "term_type": "PREFERRED",
+        "categorie": "Heritage",
+        "niveau": "HIGH",
+        "suggestion_remplacement": "-",
+        "contexte": "Valorise ancrage",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-FR-008",
+        "terme": "discount",
+        "term_type": "FORBIDDEN",
+        "categorie": "Commercial",
+        "niveau": "CRITICAL",
+        "suggestion_remplacement": "piece numerotee, serie limitee",
+        "contexte": "Jamais tolere",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-009",
+        "terme": "promo",
+        "term_type": "FORBIDDEN",
+        "categorie": "Commercial",
+        "niveau": "CRITICAL",
+        "suggestion_remplacement": "selection",
+        "contexte": "Jamais tolere",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-010",
+        "terme": "le meilleur",
+        "term_type": "FORBIDDEN",
+        "categorie": "Superlatif",
+        "niveau": "CRITICAL",
+        "suggestion_remplacement": "une piece rare",
+        "contexte": "Superlatif absolu",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-011",
+        "terme": "unique au monde",
+        "term_type": "FORBIDDEN",
+        "categorie": "Superlatif",
+        "niveau": "CRITICAL",
+        "suggestion_remplacement": "piece numerotee",
+        "contexte": "Superlatif absolu",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-012",
+        "terme": "eco-responsable",
+        "term_type": "FORBIDDEN",
+        "categorie": "Claim RSE",
+        "niveau": "CRITICAL",
+        "suggestion_remplacement": "avec preuve AG-005 uniquement",
+        "contexte": "Declenche gate AG-005 si utilise",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-013",
+        "terme": "eternel",
+        "term_type": "FORBIDDEN",
+        "categorie": "Superlatif",
+        "niveau": "HIGH",
+        "suggestion_remplacement": "intemporel",
+        "contexte": "Abus",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-014",
+        "terme": "fabrication",
+        "term_type": "FORBIDDEN",
+        "categorie": "Identite",
+        "niveau": "HIGH",
+        "suggestion_remplacement": "atelier / geste artisanal",
+        "contexte": "Connotation industrielle",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-015",
+        "terme": "usine",
+        "term_type": "FORBIDDEN",
+        "categorie": "Identite",
+        "niveau": "CRITICAL",
+        "suggestion_remplacement": "atelier",
+        "contexte": "Hors charte",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-016",
+        "terme": "no 1 mondial",
+        "term_type": "FORBIDDEN",
+        "categorie": "Superlatif",
+        "niveau": "CRITICAL",
+        "suggestion_remplacement": "-",
+        "contexte": "Comparatif prohibe",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-017",
+        "terme": "anti-age",
+        "term_type": "FORBIDDEN",
+        "categorie": "Claim sante",
+        "niveau": "CRITICAL",
+        "suggestion_remplacement": "-",
+        "contexte": "Revendication medicale",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-FR-018",
+        "terme": "natural",
+        "term_type": "FORBIDDEN",
+        "categorie": "Claim RSE",
+        "niveau": "HIGH",
+        "suggestion_remplacement": "ingredient d'origine naturelle",
+        "contexte": "Greenwashing potentiel",
+        "action": "REVIEW"
+      },
+      {
+        "term_id": "VOC-FR-019",
+        "terme": "sans parabenes",
+        "term_type": "FORBIDDEN",
+        "categorie": "Claim RSE",
+        "niveau": "MEDIUM",
+        "suggestion_remplacement": "formulation sans parabenes",
+        "contexte": "Claim negatif regule",
+        "action": "REVIEW"
+      },
+      {
+        "term_id": "VOC-FR-020",
+        "terme": "exclusif",
+        "term_type": "REVIEW",
+        "categorie": "Superlatif",
+        "niveau": "MEDIUM",
+        "suggestion_remplacement": "reserve, numerotee",
+        "contexte": "A encadrer",
+        "action": "REVIEW"
+      },
+      {
+        "term_id": "VOC-FR-021",
+        "terme": "artisan",
+        "term_type": "PREFERRED",
+        "categorie": "Identite",
+        "niveau": "HIGH",
+        "suggestion_remplacement": "-",
+        "contexte": "Valorise metier",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-FR-022",
+        "terme": "rare",
+        "term_type": "PREFERRED",
+        "categorie": "Positionnement",
+        "niveau": "LOW",
+        "suggestion_remplacement": "-",
+        "contexte": "Allusif",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-FR-023",
+        "terme": "prestige",
+        "term_type": "REVIEW",
+        "categorie": "Positionnement",
+        "niveau": "MEDIUM",
+        "suggestion_remplacement": "-",
+        "contexte": "Eviter en exces",
+        "action": "INFO"
+      },
+      {
+        "term_id": "VOC-FR-024",
+        "terme": "cuir exotique",
+        "term_type": "REVIEW",
+        "categorie": "Materiel",
+        "niveau": "HIGH",
+        "suggestion_remplacement": "cuir certifie",
+        "contexte": "Regulation CITES",
+        "action": "REVIEW"
+      },
+      {
+        "term_id": "VOC-FR-025",
+        "terme": "fait main",
+        "term_type": "PREFERRED",
+        "categorie": "Technique",
+        "niveau": "MEDIUM",
+        "suggestion_remplacement": "-",
+        "contexte": "Si vrai uniquement",
+        "action": "BONUS"
+      }
+    ],
+    "4_BRAND_VOCAB_EN": [
+      {
+        "term_id": "VOC-EN-001",
+        "term": "craftsmanship",
+        "term_type": "PREFERRED",
+        "category": "Heritage",
+        "severity": "HIGH",
+        "replacement": "-",
+        "context": "Always valued",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-EN-002",
+        "term": "maison",
+        "term_type": "PREFERRED",
+        "category": "Identity",
+        "severity": "MEDIUM",
+        "replacement": "-",
+        "context": "Preferred over 'brand'",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-EN-003",
+        "term": "atelier",
+        "term_type": "PREFERRED",
+        "category": "Identity",
+        "severity": "MEDIUM",
+        "replacement": "-",
+        "context": "Preferred over 'factory'",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-EN-004",
+        "term": "heritage",
+        "term_type": "PREFERRED",
+        "category": "Heritage",
+        "severity": "HIGH",
+        "replacement": "-",
+        "context": "Positive anchor",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-EN-005",
+        "term": "discount",
+        "term_type": "FORBIDDEN",
+        "category": "Commercial",
+        "severity": "CRITICAL",
+        "replacement": "numbered piece / limited run",
+        "context": "Never acceptable",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-EN-006",
+        "term": "sale",
+        "term_type": "FORBIDDEN",
+        "category": "Commercial",
+        "severity": "CRITICAL",
+        "replacement": "selection",
+        "context": "Never acceptable",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-EN-007",
+        "term": "the best",
+        "term_type": "FORBIDDEN",
+        "category": "Superlative",
+        "severity": "CRITICAL",
+        "replacement": "a rare piece",
+        "context": "Absolute superlative",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-EN-008",
+        "term": "sustainable",
+        "term_type": "FORBIDDEN",
+        "category": "ESG claim",
+        "severity": "CRITICAL",
+        "replacement": "requires AG-005 evidence",
+        "context": "Triggers AG-005 gate",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-EN-009",
+        "term": "eco-friendly",
+        "term_type": "FORBIDDEN",
+        "category": "ESG claim",
+        "severity": "CRITICAL",
+        "replacement": "requires AG-005 evidence",
+        "context": "Triggers AG-005 gate",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-EN-010",
+        "term": "green",
+        "term_type": "REVIEW",
+        "category": "ESG claim",
+        "severity": "HIGH",
+        "replacement": "specify criteria",
+        "context": "Vague unless evidenced",
+        "action": "REVIEW"
+      },
+      {
+        "term_id": "VOC-EN-011",
+        "term": "anti-aging",
+        "term_type": "FORBIDDEN",
+        "category": "Health claim",
+        "severity": "CRITICAL",
+        "replacement": "-",
+        "context": "Medical claim regulated",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-EN-012",
+        "term": "factory",
+        "term_type": "FORBIDDEN",
+        "category": "Identity",
+        "severity": "CRITICAL",
+        "replacement": "atelier",
+        "context": "Off-brand",
+        "action": "BLOCK"
+      },
+      {
+        "term_id": "VOC-EN-013",
+        "term": "unique",
+        "term_type": "REVIEW",
+        "category": "Superlative",
+        "severity": "MEDIUM",
+        "replacement": "limited / rare",
+        "context": "Use sparingly",
+        "action": "REVIEW"
+      },
+      {
+        "term_id": "VOC-EN-014",
+        "term": "handcrafted",
+        "term_type": "PREFERRED",
+        "category": "Technique",
+        "severity": "MEDIUM",
+        "replacement": "-",
+        "context": "Only if true",
+        "action": "BONUS"
+      },
+      {
+        "term_id": "VOC-EN-015",
+        "term": "artisan",
+        "term_type": "PREFERRED",
+        "category": "Identity",
+        "severity": "HIGH",
+        "replacement": "-",
+        "context": "Valued",
+        "action": "BONUS"
+      }
+    ],
+    "5_HERITAGE_SOURCEBOOK": [
+      {
+        "source_id": "SRC-001",
+        "titre": "Carnet de dessins du fondateur",
+        "type": "PRIMARY",
+        "annee": 1923,
+        "auteur": "Fondateur maison",
+        "cote_archive": "A-1923-001",
+        "manual_override": null,
+        "review_date": "2026-10-01",
+        "citation_format": "Maison-style",
+        "usage_count": 4,
+        "statut": null
+      },
+      {
+        "source_id": "SRC-002",
+        "titre": "Lettre a la direction atelier",
+        "type": "PRIMARY",
+        "annee": 1947,
+        "auteur": "Directeur atelier",
+        "cote_archive": "A-1947-112",
+        "manual_override": null,
+        "review_date": "2026-09-15",
+        "citation_format": "Chicago",
+        "usage_count": 2,
+        "statut": null
+      },
+      {
+        "source_id": "SRC-003",
+        "titre": "Catalogue exposition retrospective",
+        "type": "SECONDARY",
+        "annee": 1987,
+        "auteur": "Musee Arts Deco",
+        "cote_archive": "A-1987-032",
+        "manual_override": null,
+        "review_date": "2026-07-20",
+        "citation_format": "Chicago",
+        "usage_count": 7,
+        "statut": null
+      },
+      {
+        "source_id": "SRC-004",
+        "titre": "Livre monographie maison",
+        "type": "SECONDARY",
+        "annee": 2005,
+        "auteur": "Historien partenaire",
+        "cote_archive": "A-2005-008",
+        "manual_override": null,
+        "review_date": "2026-12-01",
+        "citation_format": "APA",
+        "usage_count": 3,
+        "statut": null
+      },
+      {
+        "source_id": "SRC-005",
+        "titre": "Article Le Figaro edition speciale",
+        "type": "TERTIARY",
+        "annee": 2012,
+        "auteur": "Journaliste presse",
+        "cote_archive": "A-2012-044",
+        "manual_override": null,
+        "review_date": "2025-01-10",
+        "citation_format": "Chicago",
+        "usage_count": 1,
+        "statut": null
+      },
+      {
+        "source_id": "SRC-006",
+        "titre": "Photos atelier annees 1950",
+        "type": "PRIMARY",
+        "annee": 1952,
+        "auteur": "Photographe maison",
+        "cote_archive": "A-1952-007",
+        "manual_override": null,
+        "review_date": "2026-06-30",
+        "citation_format": "Maison-style",
+        "usage_count": 5,
+        "statut": null
+      },
+      {
+        "source_id": "SRC-007",
+        "titre": "Interview fondateur",
+        "type": "PRIMARY",
+        "annee": 1965,
+        "auteur": "Emission TV",
+        "cote_archive": "A-1965-099",
+        "manual_override": null,
+        "review_date": "2026-11-15",
+        "citation_format": "Chicago",
+        "usage_count": 2,
+        "statut": null
+      },
+      {
+        "source_id": "SRC-008",
+        "titre": "Piece Musee Galliera, inv 12-09",
+        "type": "SECONDARY",
+        "annee": 1935,
+        "auteur": "Musee Galliera",
+        "cote_archive": "A-1935-401",
+        "manual_override": null,
+        "review_date": "2026-08-01",
+        "citation_format": "Chicago",
+        "usage_count": 1,
+        "statut": null
+      },
+      {
+        "source_id": "SRC-009",
+        "titre": "Document juridique marque deposee",
+        "type": "PRIMARY",
+        "annee": 1920,
+        "auteur": "INPI",
+        "cote_archive": "A-1920-001",
+        "manual_override": null,
+        "review_date": "2027-01-01",
+        "citation_format": "Juridique",
+        "usage_count": 0,
+        "statut": null
+      },
+      {
+        "source_id": "SRC-010",
+        "titre": "Blog post fan non officiel",
+        "type": "TERTIARY",
+        "annee": 2019,
+        "auteur": "Blogueur tiers",
+        "cote_archive": "A-2019-777",
+        "manual_override": "REJECTED",
+        "review_date": "2024-12-01",
+        "citation_format": "Non utilisable",
+        "usage_count": 0,
+        "statut": null
+      }
+    ],
+    "6_MEDIA_DIRECTORY": [
+      {
+        "media_id": "MED-001",
+        "nom_media": "Vogue",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Narration image / maison",
+        "embargo_accepted": "YES",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-002",
+        "nom_media": "Harper's Bazaar",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "US",
+        "lang": "EN",
+        "angle_editorial": "Narration style / collection",
+        "embargo_accepted": "YES",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-003",
+        "nom_media": "Financial Times",
+        "type": "Presse",
+        "vertical": "Business",
+        "pays": "UK",
+        "lang": "EN",
+        "angle_editorial": "Resultats / expansion / direction",
+        "embargo_accepted": "NO",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-004",
+        "nom_media": "Les Echos",
+        "type": "Presse",
+        "vertical": "Business",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Resultats / investissement",
+        "embargo_accepted": "YES",
+        "relation_status": "MEDIUM",
+        "priorite": "P2"
+      },
+      {
+        "media_id": "MED-005",
+        "nom_media": "Le Monde",
+        "type": "Presse",
+        "vertical": "Generaliste",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Patrimoine / culture / societe",
+        "embargo_accepted": "YES",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-006",
+        "nom_media": "WWD",
+        "type": "Presse",
+        "vertical": "Trade",
+        "pays": "US",
+        "lang": "EN",
+        "angle_editorial": "Industrie mode / retail",
+        "embargo_accepted": "YES",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-007",
+        "nom_media": "Business of Fashion",
+        "type": "Digital",
+        "vertical": "Trade",
+        "pays": "UK",
+        "lang": "EN",
+        "angle_editorial": "Strategie / innovation",
+        "embargo_accepted": "YES",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-008",
+        "nom_media": "T Magazine NYT",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "US",
+        "lang": "EN",
+        "angle_editorial": "Culture / art de vivre",
+        "embargo_accepted": "YES",
+        "relation_status": "MEDIUM",
+        "priorite": "P2"
+      },
+      {
+        "media_id": "MED-009",
+        "nom_media": "Madame Figaro",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Lifestyle premium",
+        "embargo_accepted": "YES",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-010",
+        "nom_media": "L'Officiel",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Mode / patrimoine",
+        "embargo_accepted": "YES",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-011",
+        "nom_media": "GQ France",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Style masculin",
+        "embargo_accepted": "YES",
+        "relation_status": "MEDIUM",
+        "priorite": "P2"
+      },
+      {
+        "media_id": "MED-012",
+        "nom_media": "Numero",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Avant-garde / art",
+        "embargo_accepted": "YES",
+        "relation_status": "MEDIUM",
+        "priorite": "P2"
+      },
+      {
+        "media_id": "MED-013",
+        "nom_media": "Le Point",
+        "type": "Presse",
+        "vertical": "Generaliste",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Economie / culture",
+        "embargo_accepted": "YES",
+        "relation_status": "MEDIUM",
+        "priorite": "P2"
+      },
+      {
+        "media_id": "MED-014",
+        "nom_media": "Vogue Business",
+        "type": "Digital",
+        "vertical": "Trade",
+        "pays": "UK",
+        "lang": "EN",
+        "angle_editorial": "Strategie / digital",
+        "embargo_accepted": "YES",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-015",
+        "nom_media": "Jing Daily",
+        "type": "Digital",
+        "vertical": "Trade",
+        "pays": "CN",
+        "lang": "EN",
+        "angle_editorial": "Marche chinois / luxe",
+        "embargo_accepted": "YES",
+        "relation_status": "STRONG",
+        "priorite": "P1"
+      },
+      {
+        "media_id": "MED-016",
+        "nom_media": "WEIBO KOL partner",
+        "type": "Social",
+        "vertical": "Lifestyle",
+        "pays": "CN",
+        "lang": "ZH",
+        "angle_editorial": "Amplification Chine",
+        "embargo_accepted": "NO",
+        "relation_status": "MEDIUM",
+        "priorite": "P2"
+      },
+      {
+        "media_id": "MED-017",
+        "nom_media": "Nikkei Style",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "JP",
+        "lang": "JA",
+        "angle_editorial": "Marche japonais",
+        "embargo_accepted": "YES",
+        "relation_status": "MEDIUM",
+        "priorite": "P2"
+      },
+      {
+        "media_id": "MED-018",
+        "nom_media": "AD France",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Design / interieur",
+        "embargo_accepted": "YES",
+        "relation_status": "MEDIUM",
+        "priorite": "P3"
+      },
+      {
+        "media_id": "MED-019",
+        "nom_media": "Vanity Fair France",
+        "type": "Magazine",
+        "vertical": "Lifestyle",
+        "pays": "FR",
+        "lang": "FR",
+        "angle_editorial": "Culture / people",
+        "embargo_accepted": "YES",
+        "relation_status": "MEDIUM",
+        "priorite": "P2"
+      },
+      {
+        "media_id": "MED-020",
+        "nom_media": "Bilan",
+        "type": "Presse",
+        "vertical": "Business",
+        "pays": "CH",
+        "lang": "FR",
+        "angle_editorial": "Horlogerie / joaillerie suisse",
+        "embargo_accepted": "YES",
+        "relation_status": "MEDIUM",
+        "priorite": "P2"
+      }
+    ],
+    "7_CLAIMS_EVIDENCE_REGISTRY": [
+      {
+        "claim_id": "CLM-001",
+        "claim": "Or certifie 80% recycle",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Attestation fournisseur",
+        "evidence_source": "LBMA audit 2026",
+        "juridiction": "EU",
+        "evidence_date": "2026-01-15",
+        "evidence_expiry": "2027-01-15",
+        "owner": "ESG Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-002",
+        "claim": "Cuir d'origine certifiee LWG",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Certificat LWG",
+        "evidence_source": "Leather Working Group",
+        "juridiction": "EU",
+        "evidence_date": "2025-11-01",
+        "evidence_expiry": "2026-11-01",
+        "owner": "ESG Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-003",
+        "claim": "Zero dechet atelier",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "evidence_title": null,
+        "evidence_source": null,
+        "juridiction": "EU",
+        "evidence_date": null,
+        "evidence_expiry": null,
+        "owner": "ESG Lead",
+        "manual_override": "UNVERIFIED",
+        "status": null
+      },
+      {
+        "claim_id": "CLM-004",
+        "claim": "Eau utilisee -30% vs 2019",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Rapport RSE 2025",
+        "evidence_source": "Audit Ernst & Young 2025",
+        "juridiction": "EU",
+        "evidence_date": "2025-06-30",
+        "evidence_expiry": "2026-06-30",
+        "owner": "ESG Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-005",
+        "claim": "Diamants sans conflit (Kimberley)",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Certificat Kimberley Process",
+        "evidence_source": "Fournisseur certifie",
+        "juridiction": "EU",
+        "evidence_date": "2026-02-20",
+        "evidence_expiry": "2027-02-20",
+        "owner": "Supply Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-006",
+        "claim": "Produit vegan",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "evidence_title": "Certification PETA",
+        "evidence_source": "PETA",
+        "juridiction": "EU",
+        "evidence_date": "2025-09-10",
+        "evidence_expiry": "2026-09-10",
+        "owner": "Product Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-007",
+        "claim": "Fabrique en France",
+        "categorie": "ORIGIN",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Label IGP atelier",
+        "evidence_source": "DGCCRF",
+        "juridiction": "FR",
+        "evidence_date": "2025-12-01",
+        "evidence_expiry": "2027-12-01",
+        "owner": "Legal",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-008",
+        "claim": "Fait main integralement",
+        "categorie": "TECH",
+        "wording_type": "ABSOLUTE",
+        "evidence_title": "Video atelier + process",
+        "evidence_source": "Interne",
+        "juridiction": "FR",
+        "evidence_date": "2026-01-01",
+        "evidence_expiry": "2026-12-31",
+        "owner": "Atelier Dir",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-009",
+        "claim": "Eco-responsable",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "evidence_title": null,
+        "evidence_source": null,
+        "juridiction": "EU",
+        "evidence_date": null,
+        "evidence_expiry": null,
+        "owner": "ESG Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-010",
+        "claim": "Empreinte carbone neutre",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "evidence_title": null,
+        "evidence_source": null,
+        "juridiction": "EU",
+        "evidence_date": null,
+        "evidence_expiry": null,
+        "owner": "ESG Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-011",
+        "claim": "Cruelty-free",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "evidence_title": "Certificat Leaping Bunny",
+        "evidence_source": "Cruelty Free International",
+        "juridiction": "EU",
+        "evidence_date": "2025-07-01",
+        "evidence_expiry": "2026-07-01",
+        "owner": "Product Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-012",
+        "claim": "Serie limitee a 48 pieces",
+        "categorie": "SCARCITY",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Production book serialise",
+        "evidence_source": "Interne",
+        "juridiction": "EU",
+        "evidence_date": "2026-03-01",
+        "evidence_expiry": "2027-03-01",
+        "owner": "Atelier Dir",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-013",
+        "claim": "Utilise au Palais de l'Elysee",
+        "categorie": "PROVENANCE",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Archives maison",
+        "evidence_source": "SRC-003",
+        "juridiction": "FR",
+        "evidence_date": "2018-05-01",
+        "evidence_expiry": null,
+        "owner": "Heritage Dir",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-014",
+        "claim": "Porte a Cannes 1987 par [celebrite]",
+        "categorie": "PROVENANCE",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Photo agence + accord",
+        "evidence_source": "Archives presse",
+        "juridiction": "EU",
+        "evidence_date": "1987-05-10",
+        "evidence_expiry": null,
+        "owner": "Heritage Dir",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-015",
+        "claim": "Or du Perou ethiquement extrait",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Certificat Fairmined",
+        "evidence_source": "ARM",
+        "juridiction": "EU",
+        "evidence_date": "2025-10-01",
+        "evidence_expiry": "2026-10-01",
+        "owner": "Supply Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-016",
+        "claim": "Sans plastique d'emballage",
+        "categorie": "ESG",
+        "wording_type": "ABSOLUTE",
+        "evidence_title": "Packaging spec + audit",
+        "evidence_source": "Audit packaging 2025",
+        "juridiction": "EU",
+        "evidence_date": "2025-08-01",
+        "evidence_expiry": "2026-08-01",
+        "owner": "Packaging Lead",
+        "manual_override": null,
+        "status": null
+      },
+      {
+        "claim_id": "CLM-017",
+        "claim": "Emplois preserves artisans maroquiniers",
+        "categorie": "ESG",
+        "wording_type": "QUALIFIED",
+        "evidence_title": "Rapport social 2025",
+        "evidence_source": "Audit social",
+        "juridiction": "FR",
+        "evidence_date": "2025-12-31",
+        "evidence_expiry": "2026-12-31",
+        "owner": "HR Dir",
+        "manual_override": null,
+        "status": null
+      }
+    ],
+    "8_EVENTS_CALENDAR": [
+      {
+        "event_id": "EV-001",
+        "nom": "Defile haute couture printemps",
+        "type": "Defile",
+        "date_debut": "2026-07-05",
+        "date_fin": "2026-07-05",
+        "lieu": "Paris, Palais de Tokyo",
+        "audience": "VIP / Presse / Clients",
+        "vip_level": "HIGH",
+        "claims_expected": "YES",
+        "heritage_angle": "YES",
+        "sensibilite_score": null,
+        "statut": "PLANNED"
+      },
+      {
+        "event_id": "EV-002",
+        "nom": "Exposition retrospective 100 ans",
+        "type": "Exhibition",
+        "date_debut": "2026-09-15",
+        "date_fin": "2026-12-15",
+        "lieu": "Musee des Arts Deco",
+        "audience": "Public / Presse",
+        "vip_level": "HIGH",
+        "claims_expected": "NO",
+        "heritage_angle": "YES",
+        "sensibilite_score": null,
+        "statut": "PLANNED"
+      },
+      {
+        "event_id": "EV-003",
+        "nom": "Lancement parfum capsule automne",
+        "type": "Launch",
+        "date_debut": "2026-10-01",
+        "date_fin": "2026-10-01",
+        "lieu": "Paris, flagship",
+        "audience": "Presse / VIP",
+        "vip_level": "MEDIUM",
+        "claims_expected": "YES",
+        "heritage_angle": "NO",
+        "sensibilite_score": null,
+        "statut": "PLANNED"
+      },
+      {
+        "event_id": "EV-004",
+        "nom": "Cocktail Cannes 2026",
+        "type": "Cocktail",
+        "date_debut": "2026-05-15",
+        "date_fin": "2026-05-15",
+        "lieu": "Cannes, hotel partenaire",
+        "audience": "Celebrites / Presse",
+        "vip_level": "HIGH",
+        "claims_expected": "NO",
+        "heritage_angle": "NO",
+        "sensibilite_score": null,
+        "statut": "CONFIRMED"
+      },
+      {
+        "event_id": "EV-005",
+        "nom": "Salon joaillerie Biennale",
+        "type": "Salon",
+        "date_debut": "2026-09-22",
+        "date_fin": "2026-09-29",
+        "lieu": "Paris, Grand Palais",
+        "audience": "Collectionneurs",
+        "vip_level": "HIGH",
+        "claims_expected": "YES",
+        "heritage_angle": "YES",
+        "sensibilite_score": null,
+        "statut": "PLANNED"
+      },
+      {
+        "event_id": "EV-006",
+        "nom": "Rencontre artisans atelier",
+        "type": "PR event",
+        "date_debut": "2026-04-18",
+        "date_fin": "2026-04-18",
+        "lieu": "Atelier historique",
+        "audience": "Journalistes trade",
+        "vip_level": "MEDIUM",
+        "claims_expected": "NO",
+        "heritage_angle": "YES",
+        "sensibilite_score": null,
+        "statut": "CONFIRMED"
+      },
+      {
+        "event_id": "EV-007",
+        "nom": "Collaboration artiste contemporain",
+        "type": "Launch",
+        "date_debut": "2026-11-10",
+        "date_fin": "2026-11-10",
+        "lieu": "Paris, galerie",
+        "audience": "Art / lifestyle presse",
+        "vip_level": "HIGH",
+        "claims_expected": "YES",
+        "heritage_angle": "YES",
+        "sensibilite_score": null,
+        "statut": "PLANNED"
+      },
+      {
+        "event_id": "EV-008",
+        "nom": "Client day Hong Kong",
+        "type": "Client event",
+        "date_debut": "2026-10-28",
+        "date_fin": "2026-10-29",
+        "lieu": "Hong Kong",
+        "audience": "Top clients Asie",
+        "vip_level": "HIGH",
+        "claims_expected": "NO",
+        "heritage_angle": "NO",
+        "sensibilite_score": null,
+        "statut": "PLANNED"
+      },
+      {
+        "event_id": "EV-009",
+        "nom": "Conference ESG Milan",
+        "type": "Conference",
+        "date_debut": "2026-06-12",
+        "date_fin": "2026-06-12",
+        "lieu": "Milan",
+        "audience": "Trade / ESG analysts",
+        "vip_level": "MEDIUM",
+        "claims_expected": "YES",
+        "heritage_angle": "NO",
+        "sensibilite_score": null,
+        "statut": "PLANNED"
+      },
+      {
+        "event_id": "EV-010",
+        "nom": "Pop-up Tokyo Harajuku",
+        "type": "Pop-up",
+        "date_debut": "2026-08-01",
+        "date_fin": "2026-08-31",
+        "lieu": "Tokyo",
+        "audience": "Lifestyle jeune",
+        "vip_level": "MEDIUM",
+        "claims_expected": "YES",
+        "heritage_angle": "NO",
+        "sensibilite_score": null,
+        "statut": "PLANNED"
+      },
+      {
+        "event_id": "EV-011",
+        "nom": "Gala charity Noel",
+        "type": "Charity",
+        "date_debut": "2026-12-08",
+        "date_fin": "2026-12-08",
+        "lieu": "Paris, Opera",
+        "audience": "HNW / celebrites",
+        "vip_level": "HIGH",
+        "claims_expected": "NO",
+        "heritage_angle": "NO",
+        "sensibilite_score": null,
+        "statut": "PLANNED"
+      },
+      {
+        "event_id": "EV-012",
+        "nom": "Week Chinese New Year activation",
+        "type": "Activation",
+        "date_debut": "2026-02-08",
+        "date_fin": "2026-02-18",
+        "lieu": "Shanghai, Pekin",
+        "audience": "Marche chinois",
+        "vip_level": "MEDIUM",
+        "claims_expected": "YES",
+        "heritage_angle": "YES",
+        "sensibilite_score": null,
+        "statut": "CONFIRMED"
+      }
+    ]
+  }
+}

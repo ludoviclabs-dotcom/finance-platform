@@ -18,6 +18,7 @@ import { z } from "zod";
 
 import { env } from "@/lib/env";
 import { flushLangfuse, getLangfuseClient } from "@/lib/ai/langfuse";
+import { persistBankCommsRun } from "@/lib/ai/bank-comms-persistence";
 import {
   ESG_CLAIM_LIBRARY,
   ESG_JURISDICTION_VERDICTS,
@@ -384,17 +385,28 @@ export async function checkEsgScenario({
   const startedAt = Date.now();
   const baseline = fallbackVerdict(scenario);
 
+  const finish = async (
+    result: EsgVerdict,
+    mode: "gateway" | "fallback",
+    model?: string,
+  ): Promise<{ ok: true; result: EsgVerdict; meta: EsgMeta }> => {
+    const latencyMs = Date.now() - startedAt;
+    void persistBankCommsRun({
+      traceId,
+      agentSlug: "esg-bank-comms",
+      scenarioId,
+      decision: result.decision,
+      mode,
+      model,
+      latencyMs,
+      startedAtMs: startedAt,
+      trace: { result, meta: { mode, model, latencyMs } },
+    });
+    return { ok: true, result, meta: { traceId, mode, model, latencyMs, scenarioId } };
+  };
+
   if (!env.ai.gatewayReady) {
-    return {
-      ok: true,
-      result: baseline,
-      meta: {
-        traceId,
-        mode: "fallback",
-        latencyMs: Date.now() - startedAt,
-        scenarioId,
-      },
-    };
+    return finish(baseline, "fallback");
   }
 
   const langfuse = getLangfuseClient();
@@ -445,17 +457,7 @@ export async function checkEsgScenario({
     });
     void flushLangfuse();
 
-    return {
-      ok: true,
-      result: safe,
-      meta: {
-        traceId,
-        mode: "gateway",
-        model: MODEL,
-        latencyMs: Date.now() - startedAt,
-        scenarioId,
-      },
-    };
+    return finish(safe, "gateway", MODEL);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn(
@@ -463,15 +465,6 @@ export async function checkEsgScenario({
       err instanceof Error ? err.message : err,
     );
     void flushLangfuse();
-    return {
-      ok: true,
-      result: baseline,
-      meta: {
-        traceId,
-        mode: "fallback",
-        latencyMs: Date.now() - startedAt,
-        scenarioId,
-      },
-    };
+    return finish(baseline, "fallback");
   }
 }

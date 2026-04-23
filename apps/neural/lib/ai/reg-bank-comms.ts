@@ -28,6 +28,7 @@ import { z } from "zod";
 
 import { env } from "@/lib/env";
 import { flushLangfuse, getLangfuseClient } from "@/lib/ai/langfuse";
+import { persistBankCommsRun } from "@/lib/ai/bank-comms-persistence";
 import {
   BANK_COMMS_DISCLOSURE_RULES,
   BANK_COMMS_RESTRICTED_WORDING,
@@ -343,17 +344,33 @@ export async function checkRegBankScenario({
   const blockers = gates.filter((g) => g.blocking && !g.passed).map((g) => g.gate_id);
   const warnings = gates.filter((g) => !g.blocking && !g.passed).map((g) => g.gate_id);
 
-  if (!env.ai.gatewayReady) {
+  // Persistance best-effort : historise dans AgentRun pour inbox HITL + audit.
+  const finish = async (
+    result: RegBankVerdict,
+    mode: "gateway" | "fallback",
+    model?: string,
+  ): Promise<{ ok: true; result: RegBankVerdict; meta: RegBankMeta }> => {
+    const latencyMs = Date.now() - startedAt;
+    void persistBankCommsRun({
+      traceId,
+      agentSlug: "reg-bank-comms",
+      scenarioId,
+      decision: result.decision,
+      mode,
+      model,
+      latencyMs,
+      startedAtMs: startedAt,
+      trace: { result, meta: { mode, model, latencyMs } },
+    });
     return {
       ok: true,
-      result: fallbackVerdict(scenario),
-      meta: {
-        traceId,
-        mode: "fallback",
-        latencyMs: Date.now() - startedAt,
-        scenarioId,
-      },
+      result,
+      meta: { traceId, mode, model, latencyMs, scenarioId },
     };
+  };
+
+  if (!env.ai.gatewayReady) {
+    return finish(fallbackVerdict(scenario), "fallback");
   }
 
   const langfuse = getLangfuseClient();
@@ -407,17 +424,7 @@ export async function checkRegBankScenario({
     });
     void flushLangfuse();
 
-    return {
-      ok: true,
-      result: safeResult,
-      meta: {
-        traceId,
-        mode: "gateway",
-        model: MODEL,
-        latencyMs: Date.now() - startedAt,
-        scenarioId,
-      },
-    };
+    return finish(safeResult, "gateway", MODEL);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn(
@@ -425,15 +432,6 @@ export async function checkRegBankScenario({
       err instanceof Error ? err.message : err,
     );
     void flushLangfuse();
-    return {
-      ok: true,
-      result: fallbackVerdict(scenario),
-      meta: {
-        traceId,
-        mode: "fallback",
-        latencyMs: Date.now() - startedAt,
-        scenarioId,
-      },
-    };
+    return finish(fallbackVerdict(scenario), "fallback");
   }
 }

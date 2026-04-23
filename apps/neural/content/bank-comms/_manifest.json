@@ -1,0 +1,92 @@
+{
+  "_meta": {
+    "vertical": "bank-comms",
+    "sprint": "Sprint 0 — scaffold",
+    "generatedAt": null,
+    "notes": "Skeleton initial. Workbooks Excel non encore produits. Les JSON ci-dessous sont des squelettes minimalistes valides pour le catalog loader ; ils seront remplacés par `scripts/sync-bank-comms.ts` dès que `data/bank-comms/*.xlsx` existera."
+  },
+  "workbooks": {
+    "foundations": {
+      "file": "NEURAL_BANK_COMMS_FOUNDATIONS.xlsx",
+      "status": "not-yet-built",
+      "sheets": [
+        "1_BANK_PROFILE",
+        "2_SOURCEBOOK",
+        "3_DISCLOSURE_RULES",
+        "4_APPROVER_ROLES",
+        "5_JURISDICTION_MATRIX",
+        "6_DISCLAIMERS",
+        "7_RESTRICTED_WORDING",
+        "8_TEMPLATE_LIBRARY"
+      ],
+      "rows": {}
+    },
+    "master": {
+      "file": "NEURAL_BANK_COMMS_MASTER.xlsx",
+      "status": "not-yet-built",
+      "sheets": [
+        "1_EXEC_SUMMARY",
+        "2_AGENT_REGISTRY",
+        "3_WORKFLOW_MAP",
+        "4_APPROVAL_POLICIES",
+        "5_REVIEW_GATES",
+        "6_RISK_REGISTER",
+        "7_KPI_DASHBOARD",
+        "8_CHANGELOG"
+      ],
+      "rows": {}
+    },
+    "agb001-regbank": {
+      "file": "NEURAL_AGB001_RegBankComms.xlsx",
+      "status": "not-yet-built",
+      "sheets": [
+        "1_SCOPE",
+        "2_MANDATORY_FIELDS",
+        "3_DISCLOSURE_CHECKLIST",
+        "4_DRAFT_TESTSET",
+        "5_OUTPUT_TEMPLATES",
+        "6_APPROVAL_LOG"
+      ],
+      "rows": {}
+    },
+    "agb002-crisis": {
+      "file": "NEURAL_AGB002_BankCrisis.xlsx",
+      "status": "not-yet-built",
+      "sheets": [
+        "1_SCENARIO_CATALOG",
+        "2_HOLDING_STATEMENTS",
+        "3_FAQ_LIBRARY",
+        "4_ESCALATION_TREE",
+        "5_CRISIS_TIMER",
+        "6_POSTMORTEM_LOG"
+      ],
+      "rows": {}
+    },
+    "agb003-esg": {
+      "file": "NEURAL_AGB003_ESGBankComms.xlsx",
+      "status": "not-yet-built",
+      "sheets": [
+        "1_SCOPE",
+        "2_CLAIM_LIBRARY",
+        "3_EVIDENCE_REGISTRY",
+        "4_JURISDICTION_VERDICTS",
+        "5_TESTSET",
+        "6_REWRITE_LIBRARY"
+      ],
+      "rows": {}
+    },
+    "agb004-client": {
+      "file": "NEURAL_AGB004_ClientBankComms.xlsx",
+      "status": "not-yet-built",
+      "sheets": [
+        "1_USE_CASES",
+        "2_SEGMENT_RULES",
+        "3_MANDATORY_NOTICES",
+        "4_TEMPLATE_LIBRARY",
+        "5_CHANNEL_MATRIX",
+        "6_TESTSET"
+      ],
+      "rows": {}
+    }
+  }
+}

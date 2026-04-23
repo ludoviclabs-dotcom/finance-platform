@@ -1,0 +1,102 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_BANK_COMMS_FOUNDATIONS.xlsx",
+    "generatedAt": null,
+    "status": "scaffold-only",
+    "sheets": [
+      "1_BANK_PROFILE",
+      "2_SOURCEBOOK",
+      "3_DISCLOSURE_RULES",
+      "4_APPROVER_ROLES",
+      "5_JURISDICTION_MATRIX"
+    ]
+  },
+  "data": {
+    "1_BANK_PROFILE": [
+      { "key": "BANK_ID", "value": "B-001", "note": "Identifiant banque pilote" },
+      { "key": "BANK_NAME", "value": "Banque pilote", "note": "Raison sociale" },
+      { "key": "CATEGORIES", "value": "Banque de détail, Banque privée", "note": "Piliers d'activité" },
+      { "key": "SIEGE", "value": "Paris, France", "note": "Pays siège" },
+      { "key": "JURIDICTIONS", "value": "FR, EU", "note": "Périmètre initial V0" },
+      { "key": "SUPERVISION", "value": "ACPR, AMF, EBA, ECB", "note": "Autorités de supervision" },
+      { "key": "LANG_PRIMARY", "value": "FR", "note": "Langue principale" },
+      { "key": "LANG_SECONDARY", "value": "EN", "note": "Langue secondaire" }
+    ],
+    "2_SOURCEBOOK": [
+      {
+        "source_id": "SRC-ACPR-001",
+        "autorite": "ACPR",
+        "titre": "Recommandations en matière de communication financière",
+        "url": "https://acpr.banque-france.fr/",
+        "juridiction": "FR",
+        "status": "ACTIVE",
+        "owner": "compliance",
+        "review_date": null,
+        "note": "Placeholder — à remplacer par sources réelles dans Sprint 1"
+      },
+      {
+        "source_id": "SRC-AMF-001",
+        "autorite": "AMF",
+        "titre": "Règlement général — Informations privilégiées et communication",
+        "url": "https://www.amf-france.org/",
+        "juridiction": "FR",
+        "status": "ACTIVE",
+        "owner": "compliance",
+        "review_date": null,
+        "note": "Placeholder"
+      },
+      {
+        "source_id": "SRC-EBA-001",
+        "autorite": "EBA",
+        "titre": "Guidelines on disclosure requirements under Part Eight of CRR",
+        "url": "https://www.eba.europa.eu/",
+        "juridiction": "EU",
+        "status": "ACTIVE",
+        "owner": "compliance",
+        "review_date": null,
+        "note": "Placeholder"
+      }
+    ],
+    "3_DISCLOSURE_RULES": [
+      {
+        "rule_id": "RUL-FINRES-001",
+        "communication_type": "FINANCIAL_RESULTS",
+        "champ_obligatoire": "Période couverte",
+        "jurisdiction": "FR,EU",
+        "autorite": "AMF",
+        "severite": "CRITICAL",
+        "blocking": true,
+        "note": "Placeholder"
+      },
+      {
+        "rule_id": "RUL-FINRES-002",
+        "communication_type": "FINANCIAL_RESULTS",
+        "champ_obligatoire": "Chiffres validés (statut=validated)",
+        "jurisdiction": "FR,EU",
+        "autorite": "AMF",
+        "severite": "CRITICAL",
+        "blocking": true,
+        "note": "Tous les chiffres doivent avoir statut validated avant émission"
+      },
+      {
+        "rule_id": "RUL-PRIV-001",
+        "communication_type": "ANY",
+        "champ_obligatoire": "Aucune information privilégiée non publique",
+        "jurisdiction": "FR,EU",
+        "autorite": "AMF",
+        "severite": "CRITICAL",
+        "blocking": true,
+        "note": "Gate zero-tolerance"
+      }
+    ],
+    "4_APPROVER_ROLES": [
+      { "role_id": "APP-DIRCOM", "label": "Directeur Communication", "required_for": ["FINANCIAL_RESULTS", "CRISIS", "ESG"] },
+      { "role_id": "APP-JURIDIQUE", "label": "Juridique", "required_for": ["FINANCIAL_RESULTS", "CRISIS", "ESG", "CLIENT_NOTICE"] },
+      { "role_id": "APP-COMPLIANCE", "label": "Compliance", "required_for": ["FINANCIAL_RESULTS", "CRISIS", "ESG"] }
+    ],
+    "5_JURISDICTION_MATRIX": [
+      { "jurisdiction": "FR", "autorites": ["ACPR", "AMF"], "lang": "FR", "disclaimer_default": "TBD" },
+      { "jurisdiction": "EU", "autorites": ["EBA", "ECB", "ESMA"], "lang": "EN", "disclaimer_default": "TBD" }
+    ]
+  }
+}

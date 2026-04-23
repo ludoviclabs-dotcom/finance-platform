@@ -1,0 +1,97 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_BANK_COMMS_MASTER.xlsx",
+    "generatedAt": null,
+    "status": "scaffold-only",
+    "sheets": [
+      "2_AGENT_REGISTRY",
+      "3_WORKFLOW_MAP",
+      "5_REVIEW_GATES",
+      "6_RISK_REGISTER"
+    ]
+  },
+  "data": {
+    "2_AGENT_REGISTRY": [
+      {
+        "agent_id": "AG-B001",
+        "slug": "reg-bank-comms",
+        "name": "RegBankComms",
+        "type": "agent",
+        "priority": "MVP",
+        "sla_h": 24,
+        "owner": "DirCom + Compliance",
+        "status": "planned"
+      },
+      {
+        "agent_id": "AG-B002",
+        "slug": "bank-crisis-comms",
+        "name": "BankCrisisComms",
+        "type": "agent",
+        "priority": "V1",
+        "sla_h": 4,
+        "owner": "Cellule crise + CISO",
+        "status": "planned"
+      },
+      {
+        "agent_id": "AG-B003",
+        "slug": "esg-bank-comms",
+        "name": "ESGBankComms",
+        "type": "agent",
+        "priority": "V1",
+        "sla_h": 24,
+        "owner": "RSE + Compliance",
+        "status": "planned"
+      },
+      {
+        "agent_id": "AG-B004",
+        "slug": "client-bank-comms",
+        "name": "ClientBankComms",
+        "type": "agent",
+        "priority": "V2",
+        "sla_h": 48,
+        "owner": "Service client + Juridique",
+        "status": "planned"
+      },
+      {
+        "agent_id": "AG-B005",
+        "slug": "reg-watch-bank",
+        "name": "RegWatchBank",
+        "type": "service",
+        "priority": "MVP",
+        "sla_h": null,
+        "owner": "Compliance + PMO",
+        "status": "planned"
+      },
+      {
+        "agent_id": "AG-B006",
+        "slug": "bank-evidence-guard",
+        "name": "BankEvidenceGuard",
+        "type": "service",
+        "priority": "MVP",
+        "sla_h": null,
+        "owner": "Compliance",
+        "status": "planned"
+      }
+    ],
+    "3_WORKFLOW_MAP": [
+      { "step": 1, "stage": "BRIEF", "owner": "DirCom", "outcome": "brief normalisé + type de communication" },
+      { "step": 2, "stage": "EVIDENCE", "owner": "AG-B006", "outcome": "paquet sources admissibles" },
+      { "step": 3, "stage": "DRAFT", "owner": "AG-B001/B002/B003/B004", "outcome": "draft FR/EN + checklist" },
+      { "step": 4, "stage": "POLICY_GATE", "owner": "system", "outcome": "blocage ou pass" },
+      { "step": 5, "stage": "HITL_REVIEW", "owner": "Juridique + Compliance", "outcome": "décision d'approbation" },
+      { "step": 6, "stage": "EXPORT", "owner": "system", "outcome": "pack defendable (hash, versions, approbateurs)" }
+    ],
+    "5_REVIEW_GATES": [
+      { "gate_id": "GATE-PRIV", "label": "Aucune info privilégiée non publique", "stage": "POLICY_GATE", "blocking": true },
+      { "gate_id": "GATE-NUM-VALIDATED", "label": "Tous les chiffres marqués validated", "stage": "POLICY_GATE", "blocking": true },
+      { "gate_id": "GATE-SOURCE-ACTIVE", "label": "Toute affirmation adossée à une source ACTIVE", "stage": "POLICY_GATE", "blocking": true },
+      { "gate_id": "GATE-APPROVAL-DUAL", "label": "Double signature DirCom + Juridique", "stage": "HITL_REVIEW", "blocking": true }
+    ],
+    "6_RISK_REGISTER": [
+      { "risk_id": "RISK-001", "label": "Diffusion d'information privilégiée", "impact": 5, "probabilite": 2, "score": 10, "mitigation": "GATE-PRIV + approbation juridique obligatoire" },
+      { "risk_id": "RISK-002", "label": "Erreur chiffrée publique", "impact": 4, "probabilite": 2, "score": 8, "mitigation": "GATE-NUM-VALIDATED + source registry" },
+      { "risk_id": "RISK-003", "label": "Greenwashing ESG", "impact": 4, "probabilite": 3, "score": 12, "mitigation": "AG-B003 + matrice juridiction" },
+      { "risk_id": "RISK-004", "label": "Demo publique ingère un communiqué non publié", "impact": 5, "probabilite": 3, "score": 15, "mitigation": "Correctif #2 : démo en mode exemples pré-chargés uniquement" }
+    ]
+  }
+}

@@ -34,6 +34,12 @@ export interface AgentDefinition {
   version: "V1" | "V2";
   kpis: string[];
   status: "live" | "planned";
+  /**
+   * Agent public (defaut) vs service transverse (pas de page publique /agents/*).
+   * Introduit Sprint 0 banque / comms pour marquer RegWatchBank et BankEvidenceGuard
+   * comme services internes et ne pas les exposer comme vitrines produit.
+   */
+  type?: "agent" | "service";
 }
 
 export interface CellData {
@@ -471,6 +477,107 @@ export const MATRIX: CellData[] = [
       },
     ],
   },
+
+  // ═══ BANQUE × COMMUNICATION ═══
+  // Sprint 0 scaffold (avril 2026) — blueprint `PLAN projet Banque communication.md`.
+  // 4 agents publics + 2 services transverses (type: "service"). Tous `planned`.
+  // Wedge MVP : AG-B001 RegBankComms + AG-B005 RegWatchBank + AG-B006 BankEvidenceGuard.
+  // Correctif #2 : la demo publique sera en mode "exemples pre-charges" uniquement
+  // pour eviter toute ingestion d'info privilegiee non-publique.
+  {
+    sector: "banque",
+    branch: "communication",
+    excelSource: null,
+    excelSheets: [],
+    topAgent: "RegBankComms",
+    roiHighlight: "Preparation/validation de communications bancaires defendables",
+    agents: [
+      {
+        id: "reg-bank-comms",
+        name: "RegBankComms",
+        mission:
+          "Redige et relit les communications reglementees (resultats, gouvernance, notices supervision). Bloque tout chiffre non valide ou mention d'info privilegiee non approuvee.",
+        version: "V1",
+        kpis: [
+          "0 chiffre non-validated diffuse",
+          "0 mention d'info privilegiee sans approbation",
+          "First-pass compliance > 80% sur testset",
+        ],
+        status: "planned",
+        type: "agent",
+      },
+      {
+        id: "bank-crisis-comms",
+        name: "BankCrisisComms",
+        mission:
+          "Assemble messages de crise externes/internes (cyber, fuite, sanction, rumeur liquidite) a partir de playbooks et messages pre-approuves. Jamais de cause racine non confirmee.",
+        version: "V1",
+        kpis: [
+          "MTTA publication initiale (par severite)",
+          "% messages adosses a message pre-approuve",
+          "0 engagement de remediation non valide",
+        ],
+        status: "planned",
+        type: "agent",
+      },
+      {
+        id: "esg-bank-comms",
+        name: "ESGBankComms",
+        mission:
+          "Controle et reformule claims ESG/ISR/finance durable (SFDR, taxonomie). Verdict pass/review/block + reformulation qualifiee sourcee.",
+        version: "V1",
+        kpis: [
+          "% claims bloques pour preuve manquante",
+          "% claims valides avec source fraiche",
+          "Multi-juridiction : FR, EU",
+        ],
+        status: "planned",
+        type: "agent",
+      },
+      {
+        id: "client-bank-comms",
+        name: "ClientBankComms",
+        mission:
+          "Prepare communications clients sensibles (hausse tarifs, fermeture agence, incident). Ton, mentions legales, segmentation, canal (email/SMS/app/courrier).",
+        version: "V2",
+        kpis: [
+          "% messages avec mentions legales completes",
+          "Taux de reformulation vs. seuil lisibilite",
+          "Couverture multi-canal (email/SMS/app/courrier)",
+        ],
+        status: "planned",
+        type: "agent",
+      },
+      {
+        id: "reg-watch-bank",
+        name: "RegWatchBank",
+        mission:
+          "Veille ACPR/AMF/EBA/ECB/ESMA/EUR-Lex/IFRS — digest, score d'impact, agents touches, tache de mise a jour workbook. Service transverse non expose publiquement.",
+        version: "V1",
+        kpis: [
+          "Delai de prise en compte d'une nouvelle regle",
+          "Couverture autorites FR+EU : 100%",
+          "Faux positifs < 10%",
+        ],
+        status: "planned",
+        type: "service",
+      },
+      {
+        id: "bank-evidence-guard",
+        name: "BankEvidenceGuard",
+        mission:
+          "Service transverse — recherche + validation des sources admissibles avant generation. Aucune sortie agent sans paquet de sources ACTIVE. Pas de page publique.",
+        version: "V1",
+        kpis: [
+          "% drafts avec paquet sources complet",
+          "% sources expirees bloquees",
+          "Latence moyenne de resolution evidence",
+        ],
+        status: "planned",
+        type: "service",
+      },
+    ],
+  },
 ];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -490,10 +597,14 @@ export function getCellsByBranch(branch: Branch): CellData[] {
   return MATRIX.filter((c) => c.branch === branch);
 }
 
-/** Count total agents with "live" status */
+/** Count total agents with "live" status (services transverses exclus) */
 export function countLiveAgents(): number {
   return MATRIX.reduce(
-    (sum, cell) => sum + cell.agents.filter((a) => a.status === "live").length,
+    (sum, cell) =>
+      sum +
+      cell.agents.filter(
+        (a) => a.status === "live" && (a.type ?? "agent") === "agent",
+      ).length,
     0
   );
 }

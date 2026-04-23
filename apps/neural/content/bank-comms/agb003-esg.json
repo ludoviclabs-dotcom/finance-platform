@@ -1,0 +1,114 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AGB003_ESGBankComms.xlsx",
+    "generatedAt": "2026-04-23T00:00:00.000Z",
+    "status": "sprint-3-seed",
+    "sheets": [
+      "1_SCOPE",
+      "2_CLAIM_LIBRARY",
+      "3_EVIDENCE_REGISTRY",
+      "4_JURISDICTION_VERDICTS",
+      "5_TESTSET",
+      "6_REWRITE_LIBRARY"
+    ],
+    "note": "Agent ESG banque — SFDR, taxonomie UE, EBA GL ESG disclosures, directive EU Green Claims 2024. Juridictions couvertes MVP : FR, EU. UK/US en backlog V2."
+  },
+  "data": {
+    "1_SCOPE": [
+      { "key": "AGENT_ID", "value": "AG-B003" },
+      { "key": "AGENT_NAME", "value": "ESGBankComms" },
+      { "key": "COMMUNICATION_TYPES", "value": "ESG_CLAIM" },
+      { "key": "JURISDICTIONS", "value": "FR,EU" },
+      { "key": "SLA_HOURS", "value": "24" },
+      { "key": "CADRE_REF", "value": "SFDR, EU Taxonomy, EU Green Claims Directive 2024, Loi Climat 2023, EBA GL 2022/09" }
+    ],
+    "2_CLAIM_LIBRARY": [
+      { "lib_id": "CLB-001", "pattern": "neutre en carbone", "wording_type": "ABSOLUTE", "autorisation": "INTERDIT", "evidence_required": true, "note": "Interdit vague FR Loi Climat 2023 Art. 12. Exige preuve scope 1+2+3 + compensation." },
+      { "lib_id": "CLB-002", "pattern": "zéro émission", "wording_type": "ABSOLUTE", "autorisation": "INTERDIT", "evidence_required": true, "note": "Absolu non défendable pour une banque." },
+      { "lib_id": "CLB-003", "pattern": "aligné taxonomie", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Doit citer pourcentage d'alignement + périmètre + année." },
+      { "lib_id": "CLB-004", "pattern": "article 8 SFDR", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Exige mention du pré-contrat SFDR Annexe II." },
+      { "lib_id": "CLB-005", "pattern": "article 9 SFDR", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Exige objectif d'investissement durable + périmètre." },
+      { "lib_id": "CLB-006", "pattern": "impact positif", "wording_type": "QUALIFIED", "autorisation": "REVIEW", "evidence_required": true, "note": "Nécessite indicateur chiffré + méthodologie." },
+      { "lib_id": "CLB-007", "pattern": "durable", "wording_type": "ABSOLUTE", "autorisation": "REVIEW", "evidence_required": true, "note": "Trop vague seul ; exige qualifieur (% taxonomie, certification)." },
+      { "lib_id": "CLB-008", "pattern": "engagé climat", "wording_type": "QUALIFIED", "autorisation": "REVIEW", "evidence_required": true, "note": "Exige référence NZBA ou trajectoire chiffrée." },
+      { "lib_id": "CLB-009", "pattern": "-XX% d'émissions", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Exige année de base + périmètre scope 1+2 minimum." },
+      { "lib_id": "CLB-010", "pattern": "finance verte", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Exige volume + méthodologie taxonomie." }
+    ],
+    "3_EVIDENCE_REGISTRY": [
+      { "evidence_id": "EVD-001", "claim_pattern": "aligné taxonomie", "source_id": "SRC-EBA-002", "titre": "Rapport Pilier 3 ESG 2025 — banque pilote", "valeur": "18,3 %", "perimetre": "Encours entreprises éligibles", "annee": 2025, "expiry_date": "2026-12-31", "status": "ACTIVE" },
+      { "evidence_id": "EVD-002", "claim_pattern": "article 8 SFDR", "source_id": "SRC-EBA-002", "titre": "Pré-contrat Annexe II fonds XYZ", "valeur": "Fonds Art. 8", "perimetre": "3 fonds ISR", "annee": 2026, "expiry_date": "2027-06-30", "status": "ACTIVE" },
+      { "evidence_id": "EVD-003", "claim_pattern": "-XX% d'émissions", "source_id": "SRC-EBA-002", "titre": "Trajectoire SBTi validée 2024", "valeur": "-42 % vs. 2019", "perimetre": "Scope 1+2 opérations", "annee": 2024, "expiry_date": "2025-12-31", "status": "STALE" },
+      { "evidence_id": "EVD-004", "claim_pattern": "engagé climat", "source_id": "SRC-EBA-002", "titre": "Adhésion NZBA 2024", "valeur": "Net Zero Banking Alliance", "perimetre": "Portefeuille financements", "annee": 2024, "expiry_date": "2027-12-31", "status": "ACTIVE" },
+      { "evidence_id": "EVD-005", "claim_pattern": "finance verte", "source_id": "SRC-EBA-002", "titre": "Encours verts 2025", "valeur": "12,4 Md€", "perimetre": "Selon méthodo taxonomie UE", "annee": 2025, "expiry_date": "2026-12-31", "status": "ACTIVE" }
+    ],
+    "4_JURISDICTION_VERDICTS": [
+      { "claim_pattern": "neutre en carbone", "fr": "INTERDIT", "eu": "HIGH_RISK", "note": "Loi Climat 2023 Art. 12 + EU Green Claims Directive 2024" },
+      { "claim_pattern": "zéro émission", "fr": "INTERDIT", "eu": "INTERDIT", "note": "Absolu non défendable pour une banque" },
+      { "claim_pattern": "aligné taxonomie", "fr": "PASS_SI_CHIFFRE", "eu": "PASS_SI_CHIFFRE", "note": "Exige % d'alignement + périmètre" },
+      { "claim_pattern": "article 8 SFDR", "fr": "PASS_SI_ANNEXE", "eu": "PASS_SI_ANNEXE", "note": "Mention pré-contrat SFDR" },
+      { "claim_pattern": "article 9 SFDR", "fr": "PASS_SI_ANNEXE", "eu": "PASS_SI_ANNEXE", "note": "Objectif d'investissement durable requis" },
+      { "claim_pattern": "impact positif", "fr": "REVIEW", "eu": "REVIEW", "note": "Requiert indicateur chiffré" },
+      { "claim_pattern": "durable", "fr": "REVIEW", "eu": "REVIEW", "note": "Vague sans qualifieur" },
+      { "claim_pattern": "engagé climat", "fr": "PASS_SI_SOURCE", "eu": "PASS_SI_SOURCE", "note": "NZBA ou SBTi validés" },
+      { "claim_pattern": "-XX% d'émissions", "fr": "PASS_SI_ANNEE_BASE", "eu": "PASS_SI_ANNEE_BASE", "note": "Exige année + périmètre" },
+      { "claim_pattern": "finance verte", "fr": "PASS_SI_METHODO", "eu": "PASS_SI_METHODO", "note": "Méthodologie publique requise" }
+    ],
+    "5_TESTSET": [
+      {
+        "scenario_id": "ESG-ALIGNED-CHIFFRE",
+        "label": "Alignement taxonomie — chiffré + source ACTIVE",
+        "expected_verdict": "PASS",
+        "expected_blockers": [],
+        "draft": {
+          "claim_text": "Notre portefeuille entreprises est aligné taxonomie à hauteur de 18,3 % en 2025 selon la méthodologie européenne (CRR Part 8).",
+          "jurisdiction": "FR"
+        }
+      },
+      {
+        "scenario_id": "ESG-NEUTRE-CARBONE",
+        "label": "Neutre en carbone — formulation vague interdite",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-ESG-JURISDICTION", "GATE-ESG-WORDING"],
+        "draft": {
+          "claim_text": "Notre banque est neutre en carbone depuis 2024 et accompagne la transition de ses clients.",
+          "jurisdiction": "FR"
+        }
+      },
+      {
+        "scenario_id": "ESG-STALE-EVIDENCE",
+        "label": "Trajectoire -42% — preuve STALE (expirée fin 2025)",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-ESG-EVIDENCE"],
+        "draft": {
+          "claim_text": "Nous avons réduit de 42 % nos émissions scope 1+2 vs. 2019 dans le cadre de notre trajectoire SBTi.",
+          "jurisdiction": "FR"
+        }
+      },
+      {
+        "scenario_id": "ESG-IMPACT-VAGUE",
+        "label": "Impact positif — pas de chiffre, review requise",
+        "expected_verdict": "PASS_WITH_REVIEW",
+        "expected_blockers": [],
+        "draft": {
+          "claim_text": "Nos fonds ISR génèrent un impact positif significatif sur la transition écologique.",
+          "jurisdiction": "FR"
+        }
+      },
+      {
+        "scenario_id": "ESG-UNKNOWN-PATTERN",
+        "label": "Affirmation sans match dans la claim library",
+        "expected_verdict": "PASS_WITH_REVIEW",
+        "expected_blockers": [],
+        "draft": {
+          "claim_text": "Nous contribuons à la préservation de la biodiversité via nos partenariats associatifs.",
+          "jurisdiction": "FR"
+        }
+      }
+    ],
+    "6_REWRITE_LIBRARY": [
+      { "rewrite_id": "RWR-001", "from_pattern": "neutre en carbone", "rewrite": "Nos opérations internes (scope 1+2) affichent une réduction de X % vs. année de base YYYY, vérifiée par tiers." },
+      { "rewrite_id": "RWR-002", "from_pattern": "zéro émission", "rewrite": "Réduction de X % des émissions scope Y vs. année de base YYYY (méthodologie SBTi)." },
+      { "rewrite_id": "RWR-003", "from_pattern": "durable", "rewrite": "Aligné à X % sur la taxonomie UE (périmètre : encours entreprises éligibles 2025)." }
+    ]
+  }
+}

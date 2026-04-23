@@ -40,7 +40,7 @@
         "priority": "V1",
         "sla_h": 24,
         "owner": "RSE + Compliance",
-        "status": "planned"
+        "status": "demo"
       },
       {
         "agent_id": "AG-B004",

@@ -15,6 +15,7 @@ import {
 import { StatusBadge } from "@/components/site/status-badge";
 import { RegBankCommsLive } from "@/components/bank-comms/RegBankCommsLive";
 import { BankCrisisLive } from "@/components/bank-comms/BankCrisisLive";
+import { EsgBankCommsLive } from "@/components/bank-comms/EsgBankCommsLive";
 import {
   BANK_COMMS_SUMMARY,
   getPublicAgents,
@@ -140,6 +141,24 @@ export default function BankCommsPage() {
           fuite de données, rumeur de liquidité, indisponibilité service.
         </p>
         <BankCrisisLive />
+      </section>
+
+      {/* Démo live AG-B003 */}
+      <section className="mx-auto max-w-6xl px-6 py-10" id="demo-esg-bank">
+        <div className="mb-4 flex items-center gap-3">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Démo live — AG-B003 ESGBankComms
+          </h2>
+          <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
+            Sprint 3
+          </span>
+        </div>
+        <p className="mb-5 max-w-3xl text-neutral-600">
+          Anti-greenwashing : détection de patterns ESG (SFDR, taxonomie UE,
+          Loi Climat), vérification preuve ACTIVE vs. STALE, verdict
+          juridiction FR / EU, reformulation qualifiée sourcée.
+        </p>
+        <EsgBankCommsLive />
       </section>
 
       {/* Sources / registre */}

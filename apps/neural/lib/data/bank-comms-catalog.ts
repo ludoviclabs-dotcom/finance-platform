@@ -25,6 +25,7 @@ import foundationsJson from "@/content/bank-comms/foundations.json";
 import masterJson from "@/content/bank-comms/master.json";
 import agb001Json from "@/content/bank-comms/agb001-regbank.json";
 import agb002Json from "@/content/bank-comms/agb002-crisis.json";
+import agb003Json from "@/content/bank-comms/agb003-esg.json";
 
 // ─── CONSTS ──────────────────────────────────────────────────────────────────
 
@@ -318,6 +319,98 @@ export function getCrisisTimer(severity: string): CrisisTimer | undefined {
   return BANK_CRISIS_TIMERS.find((t) => t.severity === severity);
 }
 
+// ─── AG-B003 ESGBankComms ────────────────────────────────────────────────────
+
+const EsgClaimLibSchema = z.object({
+  lib_id: z.string(),
+  pattern: z.string(),
+  wording_type: z.enum(["ABSOLUTE", "QUALIFIED", "COMPARATIVE"]),
+  autorisation: z.enum(["INTERDIT", "REVIEW", "AUTORISE_SI_PROUVE", "AUTORISE"]),
+  evidence_required: z.boolean(),
+  note: z.string().nullable(),
+});
+export type EsgClaim = z.infer<typeof EsgClaimLibSchema>;
+
+const EsgEvidenceSchema = z.object({
+  evidence_id: z.string(),
+  claim_pattern: z.string(),
+  source_id: z.string(),
+  titre: z.string(),
+  valeur: z.string(),
+  perimetre: z.string(),
+  annee: z.number(),
+  expiry_date: z.string().nullable(),
+  status: z.enum(["ACTIVE", "STALE", "REJECTED", "MISSING"]),
+});
+export type EsgEvidence = z.infer<typeof EsgEvidenceSchema>;
+
+const EsgJurisdictionVerdictSchema = z.object({
+  claim_pattern: z.string(),
+  fr: z.string(),
+  eu: z.string(),
+  note: z.string().nullable(),
+});
+export type EsgJurisdictionVerdict = z.infer<typeof EsgJurisdictionVerdictSchema>;
+
+const EsgScenarioDraftSchema = z.object({
+  claim_text: z.string(),
+  jurisdiction: z.enum(["FR", "EU"]),
+});
+
+const EsgScenarioSchema = z.object({
+  scenario_id: z.string(),
+  label: z.string(),
+  expected_verdict: z.enum(["PASS", "PASS_WITH_REVIEW", "BLOCK"]),
+  expected_blockers: z.array(z.string()),
+  draft: EsgScenarioDraftSchema,
+});
+export type EsgScenario = z.infer<typeof EsgScenarioSchema>;
+
+const esgData = (agb003Json as { data: Record<string, unknown> }).data ?? {};
+
+export const ESG_CLAIM_LIBRARY: EsgClaim[] = safeParseArray(
+  EsgClaimLibSchema,
+  esgData["2_CLAIM_LIBRARY"],
+  "esg_claim_library",
+);
+
+export const ESG_EVIDENCE_REGISTRY: EsgEvidence[] = safeParseArray(
+  EsgEvidenceSchema,
+  esgData["3_EVIDENCE_REGISTRY"],
+  "esg_evidence",
+);
+
+export const ESG_JURISDICTION_VERDICTS: EsgJurisdictionVerdict[] = safeParseArray(
+  EsgJurisdictionVerdictSchema,
+  esgData["4_JURISDICTION_VERDICTS"],
+  "esg_jurisdiction",
+);
+
+export const ESG_SCENARIOS: EsgScenario[] = safeParseArray(
+  EsgScenarioSchema,
+  esgData["5_TESTSET"],
+  "esg_scenarios",
+);
+
+export function getEsgScenario(id: string): EsgScenario | undefined {
+  return ESG_SCENARIOS.find((s) => s.scenario_id === id);
+}
+
+/** Matching basique : retourne les patterns de la library détectés dans le claim text. */
+export function matchEsgPatterns(claimText: string): EsgClaim[] {
+  const lower = claimText.toLowerCase();
+  return ESG_CLAIM_LIBRARY.filter((c) => lower.includes(c.pattern.toLowerCase()));
+}
+
+/** Retourne l'evidence la plus récente pour un pattern. */
+export function bestEvidenceFor(pattern: string): EsgEvidence | undefined {
+  const candidates = ESG_EVIDENCE_REGISTRY.filter(
+    (e) => e.claim_pattern === pattern,
+  );
+  if (!candidates.length) return undefined;
+  return candidates.sort((a, b) => b.annee - a.annee)[0];
+}
+
 // ─── SÉLECTEURS MÉTIER ───────────────────────────────────────────────────────
 
 export function getPublicAgents(): AgentRegistryRow[] {
@@ -348,6 +441,9 @@ export const BANK_COMMS_SUMMARY = {
   scenarios_count: REG_BANK_SCENARIOS.length,
   crisis_scenarios_count: BANK_CRISIS_SCENARIOS.length,
   holding_statements_count: BANK_CRISIS_HOLDING_STATEMENTS.length,
+  esg_claims_count: ESG_CLAIM_LIBRARY.length,
+  esg_evidence_count: ESG_EVIDENCE_REGISTRY.length,
+  esg_scenarios_count: ESG_SCENARIOS.length,
   readiness: {
     workbooks_built: false,
     demo_live: true,

@@ -160,6 +160,7 @@ function jurisdictionGate(
   jurisdiction: "FR" | "EU",
   verdicts: EsgJurisdictionVerdict[],
 ): { gate: EsgGateResult; verdictLabel: string } {
+  // Priorité 1 : verdict INTERDIT → fail bloquant.
   for (const m of matches) {
     const v = verdicts.find((x) => x.claim_pattern === m.pattern);
     if (!v) continue;
@@ -174,6 +175,24 @@ function jurisdictionGate(
           reason: `Pattern "${m.pattern}" : ${val} en ${jurisdiction}. ${v.note ?? ""}`,
         },
         verdictLabel: `${val} en ${jurisdiction}`,
+      };
+    }
+  }
+  // Priorité 2 : verdict REVIEW → warning non bloquant (review humaine requise).
+  for (const m of matches) {
+    const v = verdicts.find((x) => x.claim_pattern === m.pattern);
+    if (!v) continue;
+    const val = jurisdiction === "FR" ? v.fr : v.eu;
+    if (val === "REVIEW") {
+      return {
+        gate: {
+          gate_id: "GATE-ESG-JURISDICTION",
+          label: `Claim soumis à review ${jurisdiction}`,
+          passed: false,
+          blocking: false,
+          reason: `Pattern "${m.pattern}" : REVIEW en ${jurisdiction}. ${v.note ?? "Indicateur chiffré + méthodologie requis."}`,
+        },
+        verdictLabel: `REVIEW en ${jurisdiction}`,
       };
     }
   }

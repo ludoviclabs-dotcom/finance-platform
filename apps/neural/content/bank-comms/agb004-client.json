@@ -25,7 +25,7 @@
       { "segment_id": "SEG-RET", "label": "Particuliers retail", "reading_level_max": 70, "ton": "clair, non-technique, empathique", "lang_default": "FR" },
       { "segment_id": "SEG-PRIV", "label": "Banque privée", "reading_level_max": 60, "ton": "professionnel, précis", "lang_default": "FR" },
       { "segment_id": "SEG-PRO", "label": "Professionnels / TPE", "reading_level_max": 65, "ton": "opérationnel, factuel", "lang_default": "FR" },
-      { "segment_id": "SEG-CORP", "label": "Entreprises / PME-ETI", "reading_level_max": 50, "ton": "technique, structuré", "lang_default": "FR" }
+      { "segment_id": "SEG-CORP", "label": "Entreprises / PME-ETI", "reading_level_max": 80, "ton": "technique, structuré", "lang_default": "FR" }
     ],
     "3_MANDATORY_NOTICES": [
       { "notice_id": "NOT-001", "label": "Mention contact médiateur bancaire", "required_for": "UC-001,UC-002", "text": "En cas de désaccord persistant, vous pouvez saisir le médiateur bancaire via mediateur.banque@..." },

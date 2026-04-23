@@ -28,16 +28,16 @@
       { "lib_id": "CLB-003", "pattern": "aligné taxonomie", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Doit citer pourcentage d'alignement + périmètre + année." },
       { "lib_id": "CLB-004", "pattern": "article 8 SFDR", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Exige mention du pré-contrat SFDR Annexe II." },
       { "lib_id": "CLB-005", "pattern": "article 9 SFDR", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Exige objectif d'investissement durable + périmètre." },
-      { "lib_id": "CLB-006", "pattern": "impact positif", "wording_type": "QUALIFIED", "autorisation": "REVIEW", "evidence_required": true, "note": "Nécessite indicateur chiffré + méthodologie." },
+      { "lib_id": "CLB-006", "pattern": "impact positif", "wording_type": "QUALIFIED", "autorisation": "REVIEW", "evidence_required": false, "note": "Nécessite indicateur chiffré + méthodologie (non bloquant : review humaine)." },
       { "lib_id": "CLB-007", "pattern": "durable", "wording_type": "ABSOLUTE", "autorisation": "REVIEW", "evidence_required": true, "note": "Trop vague seul ; exige qualifieur (% taxonomie, certification)." },
       { "lib_id": "CLB-008", "pattern": "engagé climat", "wording_type": "QUALIFIED", "autorisation": "REVIEW", "evidence_required": true, "note": "Exige référence NZBA ou trajectoire chiffrée." },
-      { "lib_id": "CLB-009", "pattern": "-XX% d'émissions", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Exige année de base + périmètre scope 1+2 minimum." },
+      { "lib_id": "CLB-009", "pattern": "émissions scope", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Exige année de base + périmètre scope 1+2 minimum." },
       { "lib_id": "CLB-010", "pattern": "finance verte", "wording_type": "QUALIFIED", "autorisation": "AUTORISE_SI_PROUVE", "evidence_required": true, "note": "Exige volume + méthodologie taxonomie." }
     ],
     "3_EVIDENCE_REGISTRY": [
       { "evidence_id": "EVD-001", "claim_pattern": "aligné taxonomie", "source_id": "SRC-EBA-002", "titre": "Rapport Pilier 3 ESG 2025 — banque pilote", "valeur": "18,3 %", "perimetre": "Encours entreprises éligibles", "annee": 2025, "expiry_date": "2026-12-31", "status": "ACTIVE" },
       { "evidence_id": "EVD-002", "claim_pattern": "article 8 SFDR", "source_id": "SRC-EBA-002", "titre": "Pré-contrat Annexe II fonds XYZ", "valeur": "Fonds Art. 8", "perimetre": "3 fonds ISR", "annee": 2026, "expiry_date": "2027-06-30", "status": "ACTIVE" },
-      { "evidence_id": "EVD-003", "claim_pattern": "-XX% d'émissions", "source_id": "SRC-EBA-002", "titre": "Trajectoire SBTi validée 2024", "valeur": "-42 % vs. 2019", "perimetre": "Scope 1+2 opérations", "annee": 2024, "expiry_date": "2025-12-31", "status": "STALE" },
+      { "evidence_id": "EVD-003", "claim_pattern": "émissions scope", "source_id": "SRC-EBA-002", "titre": "Trajectoire SBTi validée 2024", "valeur": "-42 % vs. 2019", "perimetre": "Scope 1+2 opérations", "annee": 2024, "expiry_date": "2025-12-31", "status": "STALE" },
       { "evidence_id": "EVD-004", "claim_pattern": "engagé climat", "source_id": "SRC-EBA-002", "titre": "Adhésion NZBA 2024", "valeur": "Net Zero Banking Alliance", "perimetre": "Portefeuille financements", "annee": 2024, "expiry_date": "2027-12-31", "status": "ACTIVE" },
       { "evidence_id": "EVD-005", "claim_pattern": "finance verte", "source_id": "SRC-EBA-002", "titre": "Encours verts 2025", "valeur": "12,4 Md€", "perimetre": "Selon méthodo taxonomie UE", "annee": 2025, "expiry_date": "2026-12-31", "status": "ACTIVE" }
     ],
@@ -50,7 +50,7 @@
       { "claim_pattern": "impact positif", "fr": "REVIEW", "eu": "REVIEW", "note": "Requiert indicateur chiffré" },
       { "claim_pattern": "durable", "fr": "REVIEW", "eu": "REVIEW", "note": "Vague sans qualifieur" },
       { "claim_pattern": "engagé climat", "fr": "PASS_SI_SOURCE", "eu": "PASS_SI_SOURCE", "note": "NZBA ou SBTi validés" },
-      { "claim_pattern": "-XX% d'émissions", "fr": "PASS_SI_ANNEE_BASE", "eu": "PASS_SI_ANNEE_BASE", "note": "Exige année + périmètre" },
+      { "claim_pattern": "émissions scope", "fr": "PASS_SI_ANNEE_BASE", "eu": "PASS_SI_ANNEE_BASE", "note": "Exige année + périmètre" },
       { "claim_pattern": "finance verte", "fr": "PASS_SI_METHODO", "eu": "PASS_SI_METHODO", "note": "Méthodologie publique requise" }
     ],
     "5_TESTSET": [

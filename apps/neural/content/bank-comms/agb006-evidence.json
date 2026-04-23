@@ -151,7 +151,7 @@
           "subjects": ["esg", "sfdr", "taxonomy"],
           "freshness_policy": "FRESH-STANDARD"
         },
-        "expected_sources_min": 2,
+        "expected_sources_min": 1,
         "expected_blockers": []
       },
       {

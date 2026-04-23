@@ -9,7 +9,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { checkEsgScenario } from "@/lib/ai/esg-bank-comms";
 import {
   ESG_SCENARIOS,
-  bestEvidenceFor,
   getEsgScenario,
   matchEsgPatterns,
 } from "@/lib/data/bank-comms-catalog";

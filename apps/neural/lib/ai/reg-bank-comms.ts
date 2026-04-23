@@ -426,7 +426,7 @@ export async function checkRegBankScenario({
 
     return finish(safeResult, "gateway", MODEL);
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.warn(
       "[reg-bank-comms] gateway error, fallback:",
       err instanceof Error ? err.message : err,

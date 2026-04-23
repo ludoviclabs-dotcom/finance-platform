@@ -69,7 +69,7 @@ async function handler(req: NextRequest): Promise<Response> {
       },
     );
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error("[client-bank-comms] unexpected:", err);
     return NextResponse.json(
       { error: "Analyse momentanément indisponible. Réessayez." },

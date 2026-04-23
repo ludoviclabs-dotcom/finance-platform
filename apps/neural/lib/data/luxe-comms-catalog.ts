@@ -25,7 +25,7 @@ import foundationsJson from "@/content/luxe-comms/foundations.json";
 import masterJson from "@/content/luxe-comms/master.json";
 import ag001Json from "@/content/luxe-comms/ag001-voiceguard.json";
 import ag002Json from "@/content/luxe-comms/ag002-press.json";
-import ag003Json from "@/content/luxe-comms/ag003-events.json";
+// ag003-events.json reserved for future LuxeEventComms wiring — not imported yet.
 import ag004Json from "@/content/luxe-comms/ag004-heritage.json";
 import ag005Json from "@/content/luxe-comms/ag005-greenclaim.json";
 
@@ -245,73 +245,73 @@ function parseList<T>(
 export const BRAND_RULES: BrandRule[] = parseList(
   "BRAND_RULES",
   BrandRuleSchema,
-  (foundationsJson as any).data["2_BRAND_CHARTER"]
+  (foundationsJson as { data: Record<string, unknown> }).data["2_BRAND_CHARTER"]
 );
 
 export const VOCAB_FR: VocabFr[] = parseList(
   "VOCAB_FR",
   VocabFrSchema,
-  (foundationsJson as any).data["3_BRAND_VOCAB_FR"]
+  (foundationsJson as { data: Record<string, unknown> }).data["3_BRAND_VOCAB_FR"]
 );
 
 export const HERITAGE_SOURCES: HeritageSource[] = parseList(
   "HERITAGE_SOURCES",
   HeritageSourceSchema,
-  (foundationsJson as any).data["5_HERITAGE_SOURCEBOOK"]
+  (foundationsJson as { data: Record<string, unknown> }).data["5_HERITAGE_SOURCEBOOK"]
 );
 
 export const MEDIA_DIRECTORY: MediaEntry[] = parseList(
   "MEDIA_DIRECTORY",
   MediaEntrySchema,
-  (foundationsJson as any).data["6_MEDIA_DIRECTORY"]
+  (foundationsJson as { data: Record<string, unknown> }).data["6_MEDIA_DIRECTORY"]
 );
 
 export const CLAIMS_REGISTRY: ClaimRegistry[] = parseList(
   "CLAIMS_REGISTRY",
   ClaimRegistrySchema,
-  (foundationsJson as any).data["7_CLAIMS_EVIDENCE_REGISTRY"]
+  (foundationsJson as { data: Record<string, unknown> }).data["7_CLAIMS_EVIDENCE_REGISTRY"]
 );
 
 export const EVENTS_CALENDAR: EventCalendar[] = parseList(
   "EVENTS_CALENDAR",
   EventCalendarSchema,
-  (foundationsJson as any).data["8_EVENTS_CALENDAR"]
+  (foundationsJson as { data: Record<string, unknown> }).data["8_EVENTS_CALENDAR"]
 );
 
 export const HARD_FAIL_RULES: HardFailRule[] = parseList(
   "HARD_FAIL_RULES",
   HardFailRuleSchema,
-  (ag001Json as any).data["4_HARD_FAIL_RULES"]
+  (ag001Json as { data: Record<string, unknown> }).data["4_HARD_FAIL_RULES"]
 );
 
 export const MEDIA_MATRIX: MediaMatrix[] = parseList(
   "MEDIA_MATRIX",
   MediaMatrixSchema,
-  (ag002Json as any).data["3_MEDIA_MATRIX"]
+  (ag002Json as { data: Record<string, unknown> }).data["3_MEDIA_MATRIX"]
 );
 
 export const CLAIM_LIBRARY: ClaimLibrary[] = parseList(
   "CLAIM_LIBRARY",
   ClaimLibrarySchema,
-  (ag005Json as any).data["3_CLAIM_LIBRARY"]
+  (ag005Json as { data: Record<string, unknown> }).data["3_CLAIM_LIBRARY"]
 );
 
 export const JURISDICTION_MATRIX: JurisdictionMatrix[] = parseList(
   "JURISDICTION_MATRIX",
   JurisdictionMatrixSchema,
-  (ag005Json as any).data["10_JURIDICTION_MATRIX"]
+  (ag005Json as { data: Record<string, unknown> }).data["10_JURIDICTION_MATRIX"]
 );
 
 export const APPROVED_FACTS: ApprovedFact[] = parseList(
   "APPROVED_FACTS",
   ApprovedFactSchema,
-  (ag004Json as any).data["4_APPROVED_FACTS"]
+  (ag004Json as { data: Record<string, unknown> }).data["4_APPROVED_FACTS"]
 );
 
 export const NARRATIVE_BLOCKS: NarrativeBlock[] = parseList(
   "NARRATIVE_BLOCKS",
   NarrativeBlockSchema,
-  (ag004Json as any).data["5_NARRATIVE_BLOCKS"]
+  (ag004Json as { data: Record<string, unknown> }).data["5_NARRATIVE_BLOCKS"]
 );
 
 // ─── DERIVED (recalcule les statuts formules Excel cote JS) ──────────────────
@@ -396,7 +396,7 @@ export const LUXE_COMMS_SUMMARY = {
   hardFailRulesCount: HARD_FAIL_RULES.length,
   juridictionsCovered: JURISDICTION_MATRIX.length > 0 ? 5 : 0, // EU, FR, UK, US, CH
   jurisdictionsCount: JURISDICTION_MATRIX.length,
-  workbookVersion: (masterJson as any)._meta.generatedAt,
+  workbookVersion: (masterJson as { _meta: { generatedAt: string } })._meta.generatedAt,
 } as const;
 
 // ─── 5 AGENTS — expose comme liste structuree ──────────────────────────────────

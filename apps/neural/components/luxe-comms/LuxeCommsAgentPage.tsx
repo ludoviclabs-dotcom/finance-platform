@@ -15,7 +15,6 @@ import { StatusBadge } from "@/components/site/status-badge";
 import { getAgentEntry, getBranchEntry } from "@/lib/public-catalog";
 import {
   LUXE_COMMS_AGENTS,
-  LUXE_COMMS_SUMMARY,
   type LuxeCommsAgentSlug,
 } from "@/lib/data/luxe-comms-catalog";
 

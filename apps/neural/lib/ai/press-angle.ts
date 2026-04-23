@@ -114,7 +114,6 @@ function deterministicAngle(brief: string, mediaType: MediaType): PressAngleResu
   const length = m?.length_words ?? 400;
   const quoteExpected = m?.quote_ceo === "YES";
 
-  const lower = brief.toLowerCase();
   const isHeritage = /heritage|patrimoine|archive|fondat|1920|1930|historique/i.test(brief);
   const isESG = /esg|durable|recycle|rse|eco|carbon|green/i.test(brief);
 

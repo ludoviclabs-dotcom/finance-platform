@@ -388,7 +388,7 @@ export async function checkCrisisScenario({
 
     return finish(safe, "gateway", MODEL);
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.warn(
       "[bank-crisis-comms] gateway error, fallback:",
       err instanceof Error ? err.message : err,

@@ -1,0 +1,55 @@
+name: Neural CI
+
+on:
+  push:
+    paths:
+      - "apps/neural/**"
+      - ".github/workflows/neural.yml"
+  pull_request:
+    paths:
+      - "apps/neural/**"
+      - ".github/workflows/neural.yml"
+
+# Annule les runs précédents sur la même branche/PR pour éviter la file d'attente.
+concurrency:
+  group: neural-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint · Typecheck · Tests · Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/neural
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/neural/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        # postinstall = `prisma generate` (cf. package.json). Le schema est
+        # présent, donc pas besoin de DATABASE_URL pour générer le client.
+
+      - name: ESLint
+        run: npm run lint -- --max-warnings=0
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Vitest (gates + evidence-guard resolver)
+        run: npm test
+
+      - name: Next build (production)
+        run: npm run build
+        env:
+          # Toutes les capacités sont optionnelles au build : cf. lib/env.ts.
+          # On passe uniquement la variable publique qui affecte le sitemap.
+          NEXT_PUBLIC_SITE_URL: https://neural.fr

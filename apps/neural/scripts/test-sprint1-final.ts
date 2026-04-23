@@ -4,7 +4,7 @@
  */
 import { getBranchEntry, getAgentEntry, AGENT_ENTRIES, PUBLIC_METRICS } from "@/lib/public-catalog";
 import { getCell, countLiveAgents } from "@/lib/data/agents-registry";
-import { LUXE_COMMS_AGENTS, LUXE_COMMS_SUMMARY } from "@/lib/data/luxe-comms-catalog";
+import { LUXE_COMMS_SUMMARY } from "@/lib/data/luxe-comms-catalog";
 
 console.log("=== PUBLIC_METRICS ===");
 console.log(PUBLIC_METRICS);

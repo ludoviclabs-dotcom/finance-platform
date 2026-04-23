@@ -159,7 +159,7 @@ function safeParseArray<T>(
     const parsed = schema.safeParse(row);
     if (parsed.success) out.push(parsed.data);
     else if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
+       
       console.warn(`[bank-comms-catalog] ${label}[${idx}] skipped:`, parsed.error.issues);
     }
   }

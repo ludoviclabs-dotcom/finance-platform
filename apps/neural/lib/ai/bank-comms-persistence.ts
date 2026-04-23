@@ -75,7 +75,7 @@ export async function persistBankCommsRun(record: BankCommsRunRecord): Promise<b
     return true;
   } catch (err) {
     // Best-effort : on logge mais on n'échoue jamais le run applicatif.
-    // eslint-disable-next-line no-console
+     
     console.warn(
       `[bank-comms-persistence] persist ${record.agentSlug}/${record.scenarioId} failed:`,
       err instanceof Error ? err.message : err,
@@ -140,7 +140,7 @@ export async function getRecentBankCommsRuns(params: {
       model: r.model,
     }));
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.warn("[bank-comms-persistence] getRecentBankCommsRuns failed:", err);
     return [];
   }

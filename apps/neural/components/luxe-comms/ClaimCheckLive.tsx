@@ -6,7 +6,7 @@
  * avec regulation cite, risk class, reformulation qualifiee.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {

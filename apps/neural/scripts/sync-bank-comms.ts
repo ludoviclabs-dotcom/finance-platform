@@ -144,14 +144,6 @@ const WORKBOOKS: WorkbookSpec[] = [
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
-function colLetterToIdx(letter: string): number {
-  let idx = 0;
-  for (let i = 0; i < letter.length; i += 1) {
-    idx = idx * 26 + (letter.charCodeAt(i) - 64);
-  }
-  return idx - 1;
-}
-
 function pickSheet(ws: XLSX.WorkSheet, pick: SheetPick): Record<string, unknown>[] {
   const ref = ws["!ref"];
   if (!ref) return [];
@@ -198,7 +190,7 @@ function ensureOutDir(): void {
 function syncWorkbook(spec: WorkbookSpec): { built: boolean; rows: Record<string, number> } {
   const path = join(DATA_DIR, spec.file);
   if (!existsSync(path)) {
-    // eslint-disable-next-line no-console
+     
     console.warn(`[sync-bank-comms] ${spec.file} absent — skeleton JSON conservé.`);
     return { built: false, rows: {} };
   }
@@ -208,7 +200,7 @@ function syncWorkbook(spec: WorkbookSpec): { built: boolean; rows: Record<string
   for (const pick of spec.picks) {
     const ws = wb.Sheets[pick.sheet];
     if (!ws) {
-      // eslint-disable-next-line no-console
+       
       console.warn(`[sync-bank-comms] ${spec.file} — feuille ${pick.sheet} introuvable.`);
       data[pick.sheet] = [];
       rows[pick.sheet] = 0;
@@ -256,13 +248,13 @@ function writeManifest(results: Array<{ spec: WorkbookSpec; built: boolean; rows
 function main(): void {
   ensureOutDir();
   if (!existsSync(DATA_DIR)) {
-    // eslint-disable-next-line no-console
+     
     console.warn(`[sync-bank-comms] ${DATA_DIR} absent — rien à synchroniser (Sprint 0 scaffold).`);
     return;
   }
   const results = WORKBOOKS.map((spec) => ({ spec, ...syncWorkbook(spec) }));
   writeManifest(results);
-  // eslint-disable-next-line no-console
+   
   console.log(
     `[sync-bank-comms] OK — ${results.filter((r) => r.built).length}/${results.length} workbooks synchronisés.`,
   );

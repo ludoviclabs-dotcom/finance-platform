@@ -95,7 +95,7 @@ async function handler(req: NextRequest): Promise<Response> {
       },
     );
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error("[reg-bank-comms] unexpected:", err);
     return NextResponse.json(
       { error: "Analyse momentanément indisponible. Réessayez." },

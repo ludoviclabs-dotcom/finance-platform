@@ -53,7 +53,7 @@ async function handler(req: NextRequest): Promise<Response> {
       },
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.warn("[evidence-guard] query invalid:", err);
     return NextResponse.json(
       {

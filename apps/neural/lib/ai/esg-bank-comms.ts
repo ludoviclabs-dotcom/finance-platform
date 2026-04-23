@@ -459,7 +459,7 @@ export async function checkEsgScenario({
 
     return finish(safe, "gateway", MODEL);
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.warn(
       "[esg-bank-comms] gateway error, fallback:",
       err instanceof Error ? err.message : err,

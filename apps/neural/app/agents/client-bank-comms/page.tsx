@@ -33,19 +33,19 @@ const CANAL_ICON: Record<string, typeof Mail> = {
 export const metadata: Metadata = {
   title: "ClientBankComms (AG-B004) — communications clients sensibles banque | NEURAL",
   description:
-    "AG-B004 ClientBankComms : vérifie les communications clients (hausse tarifs, fermeture agence, incident, fraude). 4 gates déterministes : mentions légales, limite canal, ton, lisibilité Flesch FR. 5 use cases, 4 segments, 5 scénarios pré-chargés.",
+    "Hausse tarifs, fermeture agence, incident, fraude. 4 gates : mentions légales, char_limit canal, ton non-promotionnel, Flesch FR par segment. 5 use cases, 4 segments, 5 canaux.",
 };
 
 export default function ClientBankCommsAgentPage() {
   const agent = getAgentBySlug(SLUG);
 
   return (
-    <div className="bg-stone-50 text-neutral-900">
-      <div className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-6">
+    <div data-theme="dark" className="min-h-screen bg-[#0A1628] text-white">
+      <div className="border-b border-white/5 px-6 py-6 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
           <Link
             href="/secteurs/banque/communication"
-            className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900"
+            className="inline-flex items-center gap-2 text-sm text-white/55 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             Banque / Communication
@@ -53,196 +53,214 @@ export default function ClientBankCommsAgentPage() {
         </div>
       </div>
 
-      <section className="mx-auto max-w-6xl px-6 py-12">
-        <div className="flex flex-wrap items-start justify-between gap-6">
+      <section className="relative overflow-hidden border-b border-white/5 px-6 pb-14 pt-16 md:px-12">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 via-transparent to-transparent" />
+        <div className="relative mx-auto flex max-w-[1280px] flex-wrap items-start justify-between gap-6">
           <div>
             <div className="flex items-center gap-3">
-              <Mail className="h-10 w-10 text-blue-600" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-400/30 bg-blue-400/10">
+                <Mail className="h-7 w-7 text-blue-200" />
+              </div>
               <div>
-                <p className="font-mono text-xs uppercase tracking-wider text-neutral-500">
-                  {agent?.agent_id ?? "AG-B004"} · {agent?.priority ?? "V2"} · démo live
+                <p className="font-mono text-[11px] uppercase tracking-wider text-white/50">
+                  {agent?.agent_id ?? "AG-B004"} · V2 · démo live
                 </p>
-                <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
+                <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
                   ClientBankComms
                 </h1>
               </div>
             </div>
-            <p className="mt-4 max-w-3xl text-lg text-neutral-700">
-              Ton, clarté, mentions obligatoires, segmentation, canal. AG-B004
-              valide chaque communication client sensible (hausse tarifs,
-              fermeture agence, incident, alerte fraude) avec 4 gates
-              déterministes — dont un scoring Flesch FR de lisibilité par
-              segment.
+            <p className="mt-5 max-w-3xl text-white/70">
+              Ton, clarté, mentions obligatoires, segmentation, canal. Chaque
+              communication client sensible passe 4 gates avant diffusion — dont
+              un scoring Flesch FR de lisibilité calculé serveur.
             </p>
           </div>
-          <div className="rounded-xl border border-neutral-200 bg-white p-4 text-sm">
-            <p className="font-medium text-neutral-900">Owner</p>
-            <p className="mt-0.5 text-neutral-600">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm">
+            <p className="font-semibold text-white">Owner</p>
+            <p className="mt-0.5 text-white/65">
               {agent?.owner ?? "Service client + Juridique"}
             </p>
-            <p className="mt-3 font-medium text-neutral-900">Cadres couverts</p>
-            <p className="mt-0.5 text-neutral-600">
-              Art. L.312-1-1 CMF, RGPD Art. 34, Code consommation, Médiation bancaire
+            <p className="mt-3 font-semibold text-white">Cadres</p>
+            <p className="mt-0.5 text-white/65">
+              Art. L.312-1-1 CMF · RGPD Art. 34 · Code consommation
             </p>
           </div>
         </div>
       </section>
 
-      {/* Démo */}
-      <section className="mx-auto max-w-6xl px-6 py-6">
-        <h2 className="text-2xl font-semibold tracking-tight">Démo live</h2>
-        <p className="mt-2 max-w-3xl text-neutral-600">
-          {CLIENT_SCENARIOS.length} scénarios pré-chargés : hausse tarifs email,
-          hausse tarifs sans mentions, SMS alerte fraude trop long, fermeture
-          agence ton promotionnel, incident technique corporate.
-        </p>
-        <div className="mt-6">
-          <ClientBankCommsLive />
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+            Démo live
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-bold tracking-tight md:text-3xl">
+            {CLIENT_SCENARIOS.length} scénarios figés.
+          </h2>
+          <div className="mt-8">
+            <ClientBankCommsLive />
+          </div>
         </div>
       </section>
 
       {/* Use cases */}
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-          <Users className="h-6 w-6 text-stone-700" />
-          Use cases couverts ({CLIENT_USE_CASES.length})
-        </h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {CLIENT_USE_CASES.map((u) => (
-            <article
-              key={u.use_case_id}
-              className="rounded-xl border border-neutral-200 bg-white p-4 text-sm"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-mono text-xs text-neutral-500">
-                    {u.use_case_id}
-                  </p>
-                  <h3 className="mt-0.5 font-semibold text-neutral-900">{u.label}</h3>
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+            <Users className="h-3.5 w-3.5" />
+            Use cases
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-bold tracking-tight md:text-3xl">
+            {CLIENT_USE_CASES.length} cas d&apos;usage couverts.
+          </h2>
+          <div className="mt-8 grid gap-3 md:grid-cols-2">
+            {CLIENT_USE_CASES.map((u) => (
+              <article
+                key={u.use_case_id}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-mono text-[11px] text-white/50">
+                      {u.use_case_id}
+                    </p>
+                    <h3 className="mt-0.5 font-semibold text-white">{u.label}</h3>
+                  </div>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[11px] text-white/70">
+                    {u.preavis_jours} j
+                  </span>
                 </div>
-                <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-mono text-neutral-700">
-                  {u.preavis_jours} j
-                </span>
-              </div>
-              <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-                <dt className="text-neutral-500">Canaux</dt>
-                <dd className="text-neutral-800">{u.canaux_autorises}</dd>
-                <dt className="text-neutral-500">Base légale</dt>
-                <dd className="text-neutral-800">{u.base_legale}</dd>
-              </dl>
-            </article>
-          ))}
+                <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[11px]">
+                  <dt className="text-white/45">Canaux</dt>
+                  <dd className="text-white/85">{u.canaux_autorises}</dd>
+                  <dt className="text-white/45">Base légale</dt>
+                  <dd className="text-white/85">{u.base_legale}</dd>
+                </dl>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Segments */}
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Segments & lisibilité ({CLIENT_SEGMENTS.length})
-        </h2>
-        <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
-              <tr>
-                <th className="px-4 py-2">ID</th>
-                <th className="px-4 py-2">Segment</th>
-                <th className="px-4 py-2">Lisibilité max</th>
-                <th className="px-4 py-2">Ton attendu</th>
-              </tr>
-            </thead>
-            <tbody>
-              {CLIENT_SEGMENTS.map((s) => (
-                <tr key={s.segment_id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 font-mono text-xs text-neutral-500">
-                    {s.segment_id}
-                  </td>
-                  <td className="px-4 py-2 font-medium text-neutral-900">
-                    {s.label}
-                  </td>
-                  <td className="px-4 py-2 text-neutral-700">
-                    Index {s.reading_level_max} · Flesch FR ≥{" "}
-                    {Math.max(0, 100 - s.reading_level_max)}
-                  </td>
-                  <td className="px-4 py-2 text-xs text-neutral-600">{s.ton}</td>
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+            Segments + lisibilité
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-bold tracking-tight md:text-3xl">
+            Flesch FR adapté par segment.
+          </h2>
+          <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+            <table className="w-full text-sm">
+              <thead className="border-b border-white/10 text-left text-[11px] uppercase tracking-wider text-white/50">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">ID</th>
+                  <th className="px-4 py-3 font-semibold">Segment</th>
+                  <th className="px-4 py-3 font-semibold">Lisibilité</th>
+                  <th className="px-4 py-3 font-semibold">Ton attendu</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {CLIENT_SEGMENTS.map((s) => (
+                  <tr key={s.segment_id} className="border-t border-white/5">
+                    <td className="px-4 py-3 font-mono text-[11px] text-white/50">
+                      {s.segment_id}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-white">{s.label}</td>
+                    <td className="px-4 py-3 text-white/75">
+                      Index {s.reading_level_max} · Flesch FR ≥{" "}
+                      {Math.max(0, 100 - s.reading_level_max)}
+                    </td>
+                    <td className="px-4 py-3 text-[11px] text-white/65">{s.ton}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
       {/* Mentions légales */}
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-          <FileText className="h-6 w-6 text-stone-700" />
-          Mentions légales obligatoires ({CLIENT_NOTICES.length})
-        </h2>
-        <div className="mt-4 space-y-3">
-          {CLIENT_NOTICES.map((n) => (
-            <article
-              key={n.notice_id}
-              className="rounded-xl border border-neutral-200 bg-white p-4 text-sm"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-mono text-xs text-neutral-500">{n.notice_id}</p>
-                <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-mono text-neutral-700">
-                  {n.required_for}
-                </span>
-              </div>
-              <p className="mt-1 font-semibold text-neutral-900">{n.label}</p>
-              <p className="mt-2 italic text-neutral-700">
-                &laquo;&nbsp;{n.text}&nbsp;&raquo;
-              </p>
-            </article>
-          ))}
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+            <FileText className="h-3.5 w-3.5" />
+            Mentions obligatoires
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-bold tracking-tight md:text-3xl">
+            {CLIENT_NOTICES.length} mentions contrôlées par GATE-MENTIONS.
+          </h2>
+          <div className="mt-8 space-y-3">
+            {CLIENT_NOTICES.map((n) => (
+              <article
+                key={n.notice_id}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-mono text-[11px] text-white/50">{n.notice_id}</p>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-mono text-[11px] text-white/70">
+                    {n.required_for}
+                  </span>
+                </div>
+                <p className="mt-1.5 font-semibold text-white">{n.label}</p>
+                <p className="mt-2 italic text-white/70">
+                  &laquo;&nbsp;{n.text}&nbsp;&raquo;
+                </p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Channel matrix */}
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Matrice canal ({CLIENT_CHANNELS.length})
-        </h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-5">
-          {CLIENT_CHANNELS.map((c) => {
-            const Icon = CANAL_ICON[c.canal] ?? Mail;
-            return (
-              <article
-                key={c.canal}
-                className="rounded-xl border border-neutral-200 bg-white p-4 text-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <Icon className="h-5 w-5 text-neutral-700" />
-                  <p className="font-semibold text-neutral-900">{c.canal}</p>
-                </div>
-                <p className="mt-2 text-xs font-mono text-neutral-500">
-                  {c.char_limit !== null
-                    ? `≤ ${c.char_limit} chars`
-                    : "pas de limite"}
-                </p>
-                <ul className="mt-2 space-y-0.5 text-xs text-neutral-600">
-                  <li>HTML : {c.supports_html ? "✓" : "—"}</li>
-                  <li>Liens : {c.supports_links ? "✓" : "—"}</li>
-                  <li>PJ : {c.supports_attachments ? "✓" : "—"}</li>
-                </ul>
-              </article>
-            );
-          })}
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+            Matrice canal
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-bold tracking-tight md:text-3xl">
+            {CLIENT_CHANNELS.length} canaux avec char_limit.
+          </h2>
+          <div className="mt-8 grid gap-3 md:grid-cols-5">
+            {CLIENT_CHANNELS.map((c) => {
+              const Icon = CANAL_ICON[c.canal] ?? Mail;
+              return (
+                <article
+                  key={c.canal}
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-5 w-5 text-blue-200" />
+                    <p className="font-semibold text-white">{c.canal}</p>
+                  </div>
+                  <p className="mt-2 font-mono text-[11px] text-white/50">
+                    {c.char_limit !== null ? `≤ ${c.char_limit} chars` : "illimité"}
+                  </p>
+                  <ul className="mt-2 space-y-0.5 text-[11px] text-white/65">
+                    <li>HTML : {c.supports_html ? "✓" : "—"}</li>
+                    <li>Liens : {c.supports_links ? "✓" : "—"}</li>
+                    <li>PJ : {c.supports_attachments ? "✓" : "—"}</li>
+                  </ul>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-14">
-        <div className="flex flex-wrap gap-3">
+      <section className="px-6 py-14 md:px-12">
+        <div className="mx-auto flex max-w-[1280px] flex-wrap gap-3">
           <Link
             href="/secteurs/banque/communication"
-            className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour à la branche Banque / Communication
+            Retour à la branche
           </Link>
           <Link
             href="/agents/esg-bank-comms"
-            className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[#0A1628] transition-colors hover:bg-white/90"
           >
             Voir AG-B003 ESGBankComms
             <ArrowRight className="h-4 w-4" />

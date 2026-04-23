@@ -35,41 +35,47 @@ import { runResolverTestset } from "@/lib/ai/bank-evidence-guard";
 export const metadata: Metadata = {
   title: "Dashboard opérationnel — Banque / Communication | NEURAL",
   description:
-    "Vue consolidée des 4 agents publics (RegBank, Crisis, ESG, Client) + service RegWatch. KPIs, gates, testsets, sources, digests réglementaires. Snapshot déterministe temps réel.",
+    "Vue consolidée des 4 agents + 2 services. KPIs calculés à la volée, gates, testsets, sources, digests, risques. Snapshot déterministe.",
 };
 
-type KpiColor = "stone" | "red" | "emerald" | "blue" | "violet" | "amber";
+type KpiColor = "violet" | "emerald" | "amber" | "cyan" | "rose" | "default";
 
 function Kpi({
   label,
   value,
   hint,
-  color = "stone",
+  color = "default",
 }: {
   label: string;
   value: number | string;
   hint?: string;
   color?: KpiColor;
 }) {
-  const colors: Record<KpiColor, string> = {
-    stone: "border-stone-200 bg-white",
-    red: "border-red-200 bg-red-50",
-    emerald: "border-emerald-200 bg-emerald-50/60",
-    blue: "border-blue-200 bg-blue-50/60",
-    violet: "border-violet-200 bg-violet-50/60",
-    amber: "border-amber-200 bg-amber-50/60",
+  const border: Record<KpiColor, string> = {
+    default: "border-white/10",
+    violet: "border-violet-400/25",
+    emerald: "border-emerald-400/25",
+    amber: "border-amber-400/25",
+    cyan: "border-cyan-400/25",
+    rose: "border-rose-400/25",
+  };
+  const text: Record<KpiColor, string> = {
+    default: "text-white",
+    violet: "text-violet-100",
+    emerald: "text-emerald-100",
+    amber: "text-amber-100",
+    cyan: "text-cyan-100",
+    rose: "text-rose-100",
   };
   return (
-    <article
-      className={`rounded-xl border p-4 ${colors[color]}`}
-    >
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+    <article className={`rounded-2xl border bg-white/[0.04] p-4 ${border[color]}`}>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50">
         {label}
       </p>
-      <p className="mt-1 text-3xl font-semibold tracking-tight text-neutral-900">
+      <p className={`mt-1 font-display text-3xl font-bold tracking-tight ${text[color]}`}>
         {value}
       </p>
-      {hint ? <p className="mt-1 text-xs text-neutral-600">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-xs text-white/55">{hint}</p> : null}
     </article>
   );
 }
@@ -86,12 +92,11 @@ export default function BankCommsDashboardPage() {
     ESG_SCENARIOS.length +
     CLIENT_SCENARIOS.length;
 
-  // Gates par agent (summary card).
   const agentGates: Array<{
     slug: string;
     name: string;
     icon: typeof Landmark;
-    color: string;
+    tint: string;
     gateCount: number;
     scenarioCount: number;
     gateIds: string[];
@@ -101,7 +106,7 @@ export default function BankCommsDashboardPage() {
       slug: "reg-bank-comms",
       name: "RegBankComms",
       icon: Landmark,
-      color: "stone",
+      tint: "border-violet-400/30 bg-violet-400/10 text-violet-200",
       gateCount: 4,
       scenarioCount: REG_BANK_SCENARIOS.length,
       gateIds: [
@@ -116,7 +121,7 @@ export default function BankCommsDashboardPage() {
       slug: "bank-crisis-comms",
       name: "BankCrisisComms",
       icon: Siren,
-      color: "red",
+      tint: "border-rose-400/30 bg-rose-400/10 text-rose-200",
       gateCount: 4,
       scenarioCount: BANK_CRISIS_SCENARIOS.length,
       gateIds: [
@@ -131,7 +136,7 @@ export default function BankCommsDashboardPage() {
       slug: "esg-bank-comms",
       name: "ESGBankComms",
       icon: Leaf,
-      color: "emerald",
+      tint: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
       gateCount: 4,
       scenarioCount: ESG_SCENARIOS.length,
       gateIds: [
@@ -146,7 +151,7 @@ export default function BankCommsDashboardPage() {
       slug: "client-bank-comms",
       name: "ClientBankComms",
       icon: Mail,
-      color: "blue",
+      tint: "border-blue-400/30 bg-blue-400/10 text-blue-200",
       gateCount: 4,
       scenarioCount: CLIENT_SCENARIOS.length,
       gateIds: [
@@ -165,12 +170,12 @@ export default function BankCommsDashboardPage() {
   const evidenceTestPassed = evidenceTestset.filter((t) => t.passed).length;
 
   return (
-    <div className="bg-stone-50 text-neutral-900">
-      <div className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-6">
+    <div data-theme="dark" className="min-h-screen bg-[#0A1628] text-white">
+      <div className="border-b border-white/5 px-6 py-6 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
           <Link
             href="/secteurs/banque/communication"
-            className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900"
+            className="inline-flex items-center gap-2 text-sm text-white/55 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             Banque / Communication
@@ -178,52 +183,54 @@ export default function BankCommsDashboardPage() {
         </div>
       </div>
 
-      <section className="mx-auto max-w-6xl px-6 py-12">
-        <div className="flex items-center gap-3">
-          <Gauge className="h-10 w-10 text-stone-700" />
-          <div>
-            <p className="font-mono text-xs uppercase tracking-wider text-neutral-500">
-              Dashboard opérationnel — Sprint 5
-            </p>
-            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-              Banque / Communication
-            </h1>
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/5">
+              <Gauge className="h-6 w-6 text-white/85" />
+            </div>
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-wider text-white/50">
+                Dashboard opérationnel
+              </p>
+              <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
+                Banque <span className="text-white/40">/</span> Communication
+              </h1>
+            </div>
           </div>
+          <p className="mt-4 max-w-3xl text-white/70">
+            Tous les compteurs sont calculés à la volée depuis le catalog
+            (<code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs">lib/data/bank-comms-catalog.ts</code>).
+            Pas de chiffre théorique non vérifiable.
+          </p>
         </div>
-        <p className="mt-4 max-w-3xl text-lg text-neutral-700">
-          Vue consolidée des 4 agents publics + RegWatchBank. Tous les
-          compteurs sont calculés à la volée à partir du catalog
-          (lib/data/bank-comms-catalog.ts) — aucun chiffre théorique non
-          vérifiable.
-        </p>
       </section>
 
       {/* KPIs */}
-      <section className="mx-auto max-w-6xl px-6 py-4">
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <section className="border-b border-white/5 px-6 py-10 md:px-12">
+        <div className="mx-auto grid max-w-[1280px] gap-3 md:grid-cols-2 lg:grid-cols-4">
           <Kpi
-            label="Agents publics live"
+            label="Agents live"
             value={`${agentsLive.length} / ${publicAgents.length}`}
-            hint="4/4 en démo scenario-id"
+            hint="scénario-id uniquement"
             color="emerald"
           />
           <Kpi
             label="Gates déterministes"
             value={totalGates}
-            hint="overrident le LLM — calculées serveur"
-            color="stone"
+            hint="overrident le LLM"
+            color="violet"
           />
           <Kpi
             label="Scénarios testset"
             value={totalScenarios}
             hint={`${REG_BANK_SCENARIOS.length}+${BANK_CRISIS_SCENARIOS.length}+${ESG_SCENARIOS.length}+${CLIENT_SCENARIOS.length}`}
-            color="blue"
+            color="cyan"
           />
           <Kpi
             label="Sources ACTIVE"
             value={BANK_COMMS_SOURCES.length}
-            hint="ACPR, AMF, EBA, ECB, ESMA, IFRS, EUR-Lex"
-            color="violet"
+            hint="ACPR · AMF · EBA · ECB · ESMA · IFRS · EUR-Lex"
           />
           <Kpi
             label="Claims ESG library"
@@ -234,338 +241,378 @@ export default function BankCommsDashboardPage() {
           <Kpi
             label="Risques registre"
             value={`${criticalRisks} / ${BANK_COMMS_RISKS.length}`}
-            hint="score ≥ 10 (impact×proba)"
-            color={criticalRisks > 0 ? "amber" : "stone"}
+            hint="score ≥ 10 (impact × proba)"
+            color={criticalRisks > 0 ? "amber" : "default"}
           />
           <Kpi
             label="Digests réglementaires"
             value={BANK_COMMS_SUMMARY.reg_digests_count}
-            hint="seed — fetch live Sprint 6"
-            color="blue"
-          />
-          <Kpi
-            label="Packs .md exportables"
-            value={agentGates.filter((a) => a.exportReady).length}
-            hint="hash SHA-256 signant chaque pack"
-            color="stone"
+            hint="seed — fetch live en Sprint ultérieur"
+            color="cyan"
           />
           <Kpi
             label="EvidenceGuard testset"
             value={`${evidenceTestPassed} / ${evidenceTestset.length}`}
-            hint={`${EVIDENCE_SUBJECTS.length} subjects · résolveur déterministe`}
+            hint={`${EVIDENCE_SUBJECTS.length} subjects · zero-LLM`}
             color={evidenceTestPassed === evidenceTestset.length ? "emerald" : "amber"}
           />
         </div>
       </section>
 
       {/* Agents */}
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="text-2xl font-semibold tracking-tight">Agents publics — snapshot</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {agentGates.map((a) => {
-            const Icon = a.icon;
-            const registry = publicAgents.find((p) => p.slug === a.slug);
-            return (
-              <Link
-                key={a.slug}
-                href={`/agents/${a.slug}`}
-                className="block rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 hover:shadow"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-6 w-6 text-stone-700" />
-                    <div>
-                      <p className="font-mono text-xs text-neutral-500">
-                        {registry?.agent_id ?? "?"}
-                      </p>
-                      <h3 className="text-lg font-semibold">{a.name}</h3>
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+            Snapshot agents
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-bold tracking-tight md:text-3xl">
+            4 agents publics, chacun avec ses 4 gates.
+          </h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {agentGates.map((a) => {
+              const Icon = a.icon;
+              const registry = publicAgents.find((p) => p.slug === a.slug);
+              return (
+                <Link
+                  key={a.slug}
+                  href={`/agents/${a.slug}`}
+                  className="group rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition-colors hover:border-white/20 hover:bg-white/[0.06]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${a.tint}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-mono text-[11px] text-white/50">
+                          {registry?.agent_id ?? "?"}
+                        </p>
+                        <h3 className="text-lg font-semibold text-white">
+                          {a.name}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="rounded-full border border-violet-400/30 bg-violet-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-200">
+                        Démo live
+                      </span>
+                      {a.exportReady ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-white/55">
+                          <Download className="h-3 w-3" />
+                          Pack .md
+                        </span>
+                      ) : null}
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold text-violet-800 ring-1 ring-inset ring-violet-200">
-                      Démo live
-                    </span>
-                    {a.exportReady ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-neutral-600">
-                        <Download className="h-3 w-3" />
-                        Pack .md
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-                <dl className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                  <div className="rounded-lg bg-neutral-50 p-2">
-                    <dt className="text-neutral-500">Gates</dt>
-                    <dd className="text-base font-semibold text-neutral-900">
-                      {a.gateCount}
-                    </dd>
-                  </div>
-                  <div className="rounded-lg bg-neutral-50 p-2">
-                    <dt className="text-neutral-500">Scénarios</dt>
-                    <dd className="text-base font-semibold text-neutral-900">
-                      {a.scenarioCount}
-                    </dd>
-                  </div>
-                </dl>
-                <ul className="mt-3 flex flex-wrap gap-1.5">
-                  {a.gateIds.map((g) => (
-                    <li
-                      key={g}
-                      className="rounded-full bg-neutral-100 px-2 py-0.5 font-mono text-[10px] text-neutral-700"
-                    >
-                      {g}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-stone-700">
-                  Ouvrir la fiche agent <ArrowRight className="h-3.5 w-3.5" />
-                </p>
-              </Link>
-            );
-          })}
+                  <dl className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
+                      <dt className="text-white/55">Gates</dt>
+                      <dd className="text-xl font-bold text-white">{a.gateCount}</dd>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
+                      <dt className="text-white/55">Scénarios</dt>
+                      <dd className="text-xl font-bold text-white">
+                        {a.scenarioCount}
+                      </dd>
+                    </div>
+                  </dl>
+                  <ul className="mt-3 flex flex-wrap gap-1.5">
+                    {a.gateIds.map((g) => (
+                      <li
+                        key={g}
+                        className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[10px] text-white/65"
+                      >
+                        {g}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-violet-200 opacity-0 transition-opacity group-hover:opacity-100">
+                    Ouvrir la fiche agent <ArrowRight className="h-3.5 w-3.5" />
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* Services transverses */}
-      <section className="mx-auto max-w-6xl px-6 py-8">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Services transverses
-        </h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <Link
-            href="/agents/reg-watch-bank"
-            className="block rounded-xl border border-dashed border-neutral-300 bg-white p-5 transition hover:border-neutral-400 hover:shadow"
-          >
-            <div className="flex items-center gap-3">
-              <Radio className="h-6 w-6 text-stone-700" />
-              <div>
-                <p className="font-mono text-xs text-neutral-500">AG-B005 · service</p>
-                <h3 className="text-lg font-semibold">RegWatchBank</h3>
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+            Services transverses
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-bold tracking-tight md:text-3xl">
+            Consommés par les 4 agents.
+          </h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <Link
+              href="/agents/reg-watch-bank"
+              className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-5 transition-colors hover:border-white/30 hover:bg-white/[0.05]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                  <Radio className="h-5 w-5 text-white/75" />
+                </div>
+                <div>
+                  <p className="font-mono text-[11px] text-white/50">
+                    AG-B005 · service
+                  </p>
+                  <h3 className="text-lg font-semibold">RegWatchBank</h3>
+                </div>
               </div>
-            </div>
-            <p className="mt-2 text-sm text-neutral-700">
-              Veille ACPR/AMF/EBA/ECB/ESMA/EUR-Lex ·{" "}
-              {BANK_COMMS_SUMMARY.reg_digests_count} digests seed ·{" "}
-              {BANK_COMMS_SUMMARY.reg_feeds_count} feeds.
-            </p>
-            <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-stone-700">
-              Voir le flux <ArrowRight className="h-3.5 w-3.5" />
-            </p>
-          </Link>
-          <Link
-            href="/agents/bank-evidence-guard"
-            className="block rounded-xl border border-dashed border-neutral-300 bg-white p-5 transition hover:border-neutral-400 hover:shadow"
-          >
-            <div className="flex items-center gap-3">
-              <Database className="h-6 w-6 text-stone-700" />
-              <div>
-                <p className="font-mono text-xs text-neutral-500">AG-B006 · service</p>
-                <h3 className="text-lg font-semibold">BankEvidenceGuard</h3>
+              <p className="mt-3 text-sm text-white/65">
+                Veille ACPR · AMF · EBA · ECB · ESMA · EUR-Lex.{" "}
+                {BANK_COMMS_SUMMARY.reg_digests_count} digests seed ·{" "}
+                {BANK_COMMS_SUMMARY.reg_feeds_count} feeds suivis.
+              </p>
+              <p className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-violet-200">
+                Voir le flux <ArrowRight className="h-3.5 w-3.5" />
+              </p>
+            </Link>
+            <Link
+              href="/agents/bank-evidence-guard"
+              className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-5 transition-colors hover:border-white/30 hover:bg-white/[0.05]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                  <Database className="h-5 w-5 text-white/75" />
+                </div>
+                <div>
+                  <p className="font-mono text-[11px] text-white/50">
+                    AG-B006 · service
+                  </p>
+                  <h3 className="text-lg font-semibold">BankEvidenceGuard</h3>
+                </div>
               </div>
-            </div>
-            <p className="mt-2 text-sm text-neutral-700">
-              Résolveur déterministe de sources admissibles ·{" "}
-              {EVIDENCE_SUBJECTS.length} subjects · {evidenceTestPassed}/
-              {evidenceTestset.length} testset PASS.
-            </p>
-            <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-stone-700">
-              Tester le résolveur <ArrowRight className="h-3.5 w-3.5" />
-            </p>
-          </Link>
+              <p className="mt-3 text-sm text-white/65">
+                Résolveur déterministe sans LLM · {EVIDENCE_SUBJECTS.length}{" "}
+                subjects · {evidenceTestPassed}/{evidenceTestset.length} testset
+                PASS.
+              </p>
+              <p className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-violet-200">
+                Tester le résolveur <ArrowRight className="h-3.5 w-3.5" />
+              </p>
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Gates cross-agents reference */}
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Gates MVP — référence transverse
-        </h2>
-        <p className="mt-2 max-w-3xl text-sm text-neutral-600">
-          Gates déterministes de niveau branche (issues du workbook Master).
-          Elles complètent les gates spécifiques de chaque agent.
-        </p>
-        <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
-              <tr>
-                <th className="px-4 py-2">ID</th>
-                <th className="px-4 py-2">Label</th>
-                <th className="px-4 py-2">Stage</th>
-                <th className="px-4 py-2">Bloquant</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BANK_COMMS_GATES.map((g) => (
-                <tr key={g.gate_id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 font-mono text-xs text-neutral-500">
-                    {g.gate_id}
-                  </td>
-                  <td className="px-4 py-2 text-neutral-900">{g.label}</td>
-                  <td className="px-4 py-2 text-xs text-neutral-600">{g.stage}</td>
-                  <td className="px-4 py-2">
-                    {g.blocking ? (
-                      <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-800 ring-1 ring-inset ring-red-200">
-                        oui
-                      </span>
-                    ) : (
-                      <span className="text-[11px] text-neutral-500">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Risques */}
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="text-2xl font-semibold tracking-tight">Registre des risques</h2>
-        <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
-              <tr>
-                <th className="px-4 py-2">ID</th>
-                <th className="px-4 py-2">Risque</th>
-                <th className="px-4 py-2">Score</th>
-                <th className="px-4 py-2">Mitigation</th>
-              </tr>
-            </thead>
-            <tbody>
+      {/* Gates cross + Risques */}
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto grid max-w-[1280px] gap-10 lg:grid-cols-2">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+              Gates MVP transverses
+            </p>
+            <h2 className="mt-3 font-display text-2xl font-bold tracking-tight">
+              En complément des gates par agent.
+            </h2>
+            <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+              <table className="w-full text-sm">
+                <thead className="border-b border-white/10 text-left text-[11px] uppercase tracking-wider text-white/50">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">ID</th>
+                    <th className="px-4 py-3 font-semibold">Label</th>
+                    <th className="px-4 py-3 font-semibold">Stage</th>
+                    <th className="px-4 py-3 font-semibold">Bloquant</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {BANK_COMMS_GATES.map((g) => (
+                    <tr key={g.gate_id} className="border-t border-white/5">
+                      <td className="px-4 py-3 font-mono text-[11px] text-white/50">
+                        {g.gate_id}
+                      </td>
+                      <td className="px-4 py-3 text-white">{g.label}</td>
+                      <td className="px-4 py-3 text-[11px] text-white/55">
+                        {g.stage}
+                      </td>
+                      <td className="px-4 py-3">
+                        {g.blocking ? (
+                          <span className="rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-[11px] font-semibold text-red-200">
+                            oui
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-white/40">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+              Registre des risques
+            </p>
+            <h2 className="mt-3 font-display text-2xl font-bold tracking-tight">
+              Score impact × probabilité.
+            </h2>
+            <div className="mt-6 space-y-2">
               {BANK_COMMS_RISKS.map((r) => (
-                <tr key={r.risk_id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 font-mono text-xs text-neutral-500">
-                    {r.risk_id}
-                  </td>
-                  <td className="px-4 py-2 text-neutral-900">{r.label}</td>
-                  <td className="px-4 py-2">
+                <div
+                  key={r.risk_id}
+                  className="rounded-xl border border-white/10 bg-white/[0.04] p-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-mono text-[11px] text-white/50">{r.risk_id}</p>
                     <span
                       className={
                         r.score >= 12
-                          ? "rounded bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-800 ring-1 ring-inset ring-red-200"
+                          ? "rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-[11px] font-semibold text-red-200"
                           : r.score >= 8
-                            ? "rounded bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-200"
-                            : "rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700"
+                            ? "rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[11px] font-semibold text-amber-200"
+                            : "rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[11px] text-white/60"
                       }
                     >
                       {r.score}
                     </span>
-                  </td>
-                  <td className="px-4 py-2 text-xs text-neutral-600">{r.mitigation}</td>
-                </tr>
+                  </div>
+                  <p className="mt-1.5 text-sm text-white">{r.label}</p>
+                  <p className="mt-1 text-[11px] text-white/60">{r.mitigation}</p>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Derniers digests */}
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-            <Radio className="h-6 w-6 text-stone-700" />
-            Derniers digests réglementaires
-          </h2>
-          <Link
-            href="/agents/reg-watch-bank"
-            className="inline-flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-neutral-900"
-          >
-            Voir le flux complet
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-        <div className="mt-4 space-y-3">
-          {digests.map((d) => (
-            <article
-              key={d.digest_id}
-              className="rounded-xl border border-neutral-200 bg-white p-4 text-sm"
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+                Derniers digests réglementaires
+              </p>
+              <h2 className="mt-3 font-display text-2xl font-bold tracking-tight">
+                Top 3 — seed Sprint 3.
+              </h2>
+            </div>
+            <Link
+              href="/agents/reg-watch-bank"
+              className="inline-flex items-center gap-1 text-sm font-medium text-violet-200 transition-colors hover:text-violet-100"
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={
-                    d.impact_score >= 5
-                      ? "rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-800 ring-1 ring-inset ring-red-200"
-                      : d.impact_score === 4
-                        ? "rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-semibold text-orange-800 ring-1 ring-inset ring-orange-200"
-                        : "rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 ring-1 ring-inset ring-amber-200"
-                  }
-                >
-                  Impact {d.impact_score}
-                </span>
-                <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-700">
-                  {d.autorite}
-                </span>
-                <span className="text-xs text-neutral-500">{d.published_at}</span>
-                <div className="ml-auto flex flex-wrap gap-1">
-                  {d.affected_agents.map((a) => (
-                    <span
-                      key={a}
-                      className="rounded-full bg-violet-50 px-2 py-0.5 font-mono text-[10px] text-violet-800 ring-1 ring-inset ring-violet-200"
-                    >
-                      {a}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <h3 className="mt-1 font-semibold text-neutral-900">{d.title}</h3>
-              <p className="mt-1 text-neutral-700">{d.summary}</p>
-              <a
-                href={d.url}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex items-center gap-1 text-xs text-neutral-600 hover:text-neutral-900"
+              Flux complet
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="mt-8 space-y-3">
+            {digests.map((d) => (
+              <article
+                key={d.digest_id}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm"
               >
-                Source officielle
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </article>
-          ))}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={
+                      d.impact_score >= 5
+                        ? "rounded-full border border-red-400/30 bg-red-400/10 px-2.5 py-0.5 text-[11px] font-semibold text-red-200"
+                        : d.impact_score === 4
+                          ? "rounded-full border border-orange-400/30 bg-orange-400/10 px-2.5 py-0.5 text-[11px] font-semibold text-orange-200"
+                          : "rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[11px] font-semibold text-amber-200"
+                    }
+                  >
+                    Impact {d.impact_score}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-white/70">
+                    {d.autorite}
+                  </span>
+                  <span className="text-[11px] text-white/50">{d.published_at}</span>
+                  <div className="ml-auto flex flex-wrap gap-1">
+                    {d.affected_agents.map((a) => (
+                      <span
+                        key={a}
+                        className="rounded-full border border-violet-400/30 bg-violet-400/10 px-2 py-0.5 font-mono text-[10px] text-violet-200"
+                      >
+                        {a}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <h3 className="mt-2 font-semibold text-white">{d.title}</h3>
+                <p className="mt-1.5 text-white/70">{d.summary}</p>
+                <a
+                  href={d.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-1 text-[11px] text-white/55 transition-colors hover:text-white"
+                >
+                  Source officielle
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Readiness */}
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h2 className="text-2xl font-semibold tracking-tight">Readiness</h2>
-        <div className="mt-4 grid gap-2 text-sm md:grid-cols-2">
-          <div className="rounded-lg border border-neutral-200 bg-white p-3">
-            {BANK_COMMS_SUMMARY.readiness.workbooks_built ? "✅" : "☐"} Workbooks Excel réels
-            <p className="mt-1 text-xs text-neutral-500">
-              Sprint 6 — produire data/bank-comms/*.xlsx, sync via scripts/sync-bank-comms.ts
-            </p>
-          </div>
-          <div className="rounded-lg border border-neutral-200 bg-white p-3">
-            {BANK_COMMS_SUMMARY.readiness.demo_live ? "✅" : "☐"} Démos live (4 agents publics)
-            <p className="mt-1 text-xs text-neutral-500">
-              Scenario-id only, gates déterministes, LLM overridé
-            </p>
-          </div>
-          <div className="rounded-lg border border-neutral-200 bg-white p-3">
-            {BANK_COMMS_SUMMARY.readiness.regulatory_watch_branch ? "✅" : "☐"} Veille réglementaire branchée
-            <p className="mt-1 text-xs text-neutral-500">
-              Seed Sprint 3 · fetch auto + classifier LLM en Sprint 6
-            </p>
-          </div>
-          <div className="rounded-lg border border-neutral-200 bg-white p-3">
-            {BANK_COMMS_SUMMARY.readiness.export_pack_ready ? "✅" : "☐"} Export pack défendable
-            <p className="mt-1 text-xs text-neutral-500">
-              4/4 agents publics · Markdown + hash SHA-256
-            </p>
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+            Readiness
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-bold tracking-tight">
+            État actuel vs. backlog.
+          </h2>
+          <div className="mt-8 grid gap-3 md:grid-cols-2">
+            {[
+              {
+                ok: BANK_COMMS_SUMMARY.readiness.demo_live,
+                title: "Démos live (4 agents publics)",
+                hint: "Scenario-id only · gates serveur · LLM overridé",
+              },
+              {
+                ok: BANK_COMMS_SUMMARY.readiness.export_pack_ready,
+                title: "Packs .md défendables",
+                hint: "4/4 agents publics · hash SHA-256",
+              },
+              {
+                ok: BANK_COMMS_SUMMARY.readiness.regulatory_watch_branch,
+                title: "Veille réglementaire branchée",
+                hint: "Seed Sprint 3 · fetch auto + classifier LLM à brancher",
+              },
+              {
+                ok: BANK_COMMS_SUMMARY.readiness.workbooks_built,
+                title: "Workbooks Excel réels",
+                hint: "data/bank-comms/*.xlsx · sync via scripts/sync-bank-comms.ts",
+              },
+            ].map((r) => (
+              <div
+                key={r.title}
+                className={`rounded-2xl border p-4 ${r.ok ? "border-emerald-400/25 bg-emerald-400/[0.06]" : "border-white/10 bg-white/[0.04]"}`}
+              >
+                <p className="flex items-center gap-2 font-semibold text-white">
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${r.ok ? "bg-emerald-400/20 text-emerald-200" : "border border-white/20 text-white/40"}`}
+                  >
+                    {r.ok ? "✓" : "·"}
+                  </span>
+                  {r.title}
+                </p>
+                <p className="mt-1 text-[11px] text-white/55">{r.hint}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-14">
-        <div className="flex flex-wrap gap-3">
+      {/* Footer */}
+      <section className="px-6 py-14 md:px-12">
+        <div className="mx-auto flex max-w-[1280px] flex-wrap gap-3">
           <Link
             href="/secteurs/banque/communication"
-            className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour à la page secteur
+            Page secteur
           </Link>
           <Link
             href="/secteurs/banque/communication/inbox"
-            className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[#0A1628] transition-colors hover:bg-white/90"
           >
             <Inbox className="h-4 w-4" />
             Inbox HITL des runs

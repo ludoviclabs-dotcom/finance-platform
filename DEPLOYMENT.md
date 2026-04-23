@@ -1,93 +1,133 @@
-# Deployment Guide — Finance Platform
+# Deployment — Finance Platform
 
-## Architecture
+> **État** : monorepo multi-app. Le flagship est `apps/neural` (Next.js 16 déployé sur Vercel). Les autres apps (`apps/api`, `apps/frontend`, `apps/carbon`, `apps/web`) sont en arrière-plan — voir § Apps héritées.
+
+## Topologie actuelle
 
 ```
-┌─────────────────────────────────────────────┐
-│                VPS Hostinger                │
-│                                             │
-│  ┌──────────────┐    ┌──────────────┐       │
-│  │   frontend   │    │     api      │       │
-│  │  (Next.js)   │───▶│  (FastAPI)   │       │
-│  │  :3000       │    │  :8000       │       │
-│  └──────────────┘    └──────────────┘       │
-│                                             │
-│         Docker Compose orchestration        │
-└─────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                         Vercel                                │
+│                                                               │
+│  apps/neural (Next.js 16 + Turbopack)                         │
+│  ├─ Fluid Compute runtime (Node.js 24)                        │
+│  ├─ Middleware (Vercel Functions)                             │
+│  ├─ Static + SSG (62 pages prérendues)                        │
+│  └─ Dynamic routes (/api/demo, /api/internal, ...)            │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+        │             │                 │                │
+        ▼             ▼                 ▼                ▼
+    Neon            Upstash          AI Gateway      Blob / Langfuse
+  (Postgres)       (Redis KV)      (OIDC auto-auth)
+  via Marketplace  via Marketplace  via Marketplace
 ```
 
-| Service    | Technology | Port | Role                              |
-|------------|------------|------|-----------------------------------|
-| `frontend` | Next.js 16 | 3000 | UI, SSR, client-side interactions  |
-| `api`      | FastAPI    | 8000 | REST API, business logic, calculs  |
+## Déploiement `apps/neural` sur Vercel
 
-## Local development with Docker
+1. **Lier le projet**
+   ```bash
+   cd apps/neural
+   npx vercel link
+   ```
+
+2. **Ajouter les intégrations Marketplace** (depuis le dashboard Vercel du projet) :
+   - **Neon** → injecte automatiquement `DATABASE_URL`, `DIRECT_URL`
+   - **Upstash Redis** → injecte `KV_REST_API_URL`, `KV_REST_API_TOKEN`
+   - **AI Gateway** → OIDC : pas de clé à injecter, auth automatique en prod
+   - **Vercel Blob** (optionnel) → `BLOB_READ_WRITE_TOKEN`
+
+3. **Variables manuelles à ajouter** (onglet Settings → Environment Variables) :
+   - `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` — observability
+   - `LAKERA_API_KEY` — input guardrail
+   - `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_TO_EMAIL` — contact form
+   - `NEXT_PUBLIC_SITE_URL` — URL de production (OpenGraph, sitemap)
+
+4. **Build & deploy**
+   ```bash
+   npx vercel deploy            # preview
+   npx vercel deploy --prod     # production
+   ```
+
+   Le build de production est validé par `next build` en local (62 pages statiques + routes dynamiques). Durée typique : ~40 s.
+
+5. **Domaines** : configurer dans Settings → Domains. Le sitemap est servi sur `/sitemap.xml` et référence 9 URLs Banque + 5 URLs Luxe + les ressources publiques.
+
+## Configuration minimale de capacités
+
+Chaque capacité d'`apps/neural` s'auto-gate sur la présence de ses variables (cf. `apps/neural/lib/env.ts`) :
+
+| Capacité | Vars requises | Si absent |
+|---|---|---|
+| Site + démos | aucune | Démos en mode `fallback` déterministe — OK pour recruteur |
+| Démos IA live | `AI_GATEWAY_API_KEY` (ou OIDC Vercel) | Mode `fallback` |
+| Approvals / HITL | `DATABASE_URL` | 503 sur routes approvals |
+| Rate limit persistant | Upstash | Rate limit en mémoire (non scalable) |
+| Observability | Langfuse | Pas de trace |
+| Email contact | Resend | Form désactivé |
+
+## Local development
 
 ```bash
-# 1. Copy env file
-cp .env.example .env
-
-# 2. Build and start both services
-docker compose up --build
-
-# 3. Access
-#    Frontend: http://localhost:3000
-#    API:      http://localhost:8000
-#    API docs: http://localhost:8000/docs
+cd apps/neural
+cp .env.example .env.local    # remplir ce qui est utile
+npm install
+npm run dev                   # http://localhost:3002
 ```
 
-## Project structure (deployment files)
-
-```
-finance-platform/
-├── docker-compose.yml          # Orchestrates frontend + api
-├── .env.example                # Environment variables template
-├── .github/workflows/
-│   ├── frontend.yml            # CI: lint, type check, build
-│   └── api.yml                 # CI: import validation
-├── apps/frontend/
-│   ├── Dockerfile              # Multi-stage Next.js build
-│   ├── .dockerignore
-│   └── next.config.ts          # output: "standalone" for Docker
-└── apps/api/
-    ├── Dockerfile              # Python slim image
-    └── .dockerignore
+Pour tester la prod localement :
+```bash
+npm run build
+npm run start                 # http://localhost:3000
 ```
 
-## CI/CD (GitHub Actions)
+## CI / CD
 
-Two workflows run automatically on push/PR when their respective `apps/` directory changes:
+Workflows GitHub Actions existants :
 
-- **frontend.yml** — `npm ci` → `lint` → `tsc --noEmit` → `build`
-- **api.yml** — `pip install` → verify app/models/services import correctly
+- **`.github/workflows/frontend.yml`** — `npm ci` → `lint` → `tsc --noEmit` → `build` sur `apps/frontend` (**app héritée — à déplacer vers `apps/neural` ou retirer**).
+- **`.github/workflows/api.yml`** — `pip install` + imports check sur `apps/api` (backend carbone, cf. § Apps héritées).
 
-No automatic deployment is configured yet. These workflows validate code quality only.
+**À faire** (non-bloquant pour Vercel qui build à chaque push) :
+- [ ] Workflow `neural.yml` : `npm ci` → `lint` → `tsc` → `next build` sur `apps/neural`
+- [ ] Vitest unit tests pour les 16 gates déterministes banque + testset EvidenceGuard
+- [ ] Retirer ou archiver `workflows/frontend.yml` (cible l'ancien apps/frontend)
 
-## Deploying to Hostinger VPS (future steps)
+## Preview / production workflow
 
-These steps are **not yet automated** and will need to be done manually:
+- Push sur une branche autre que `master` → preview Vercel automatique
+- Merge dans `master` → déploiement production automatique
+- Rollback : utiliser l'onglet Deployments de Vercel (instantané, pas de rebuild)
 
-1. **Provision the VPS** — Ubuntu, min 2 GB RAM recommended
-2. **Install Docker & Docker Compose** on the VPS
-3. **Clone the repo** on the VPS
-4. **Configure `.env`** — copy `.env.example` to `.env` and set production values:
-   - `NEXT_PUBLIC_API_BASE_URL` should point to the public API URL (e.g. `https://api.yourdomain.com`)
-   - Note: this variable is baked into the frontend at **build time** (`docker compose up --build` re-builds with the value)
-5. **Build and run**: `docker compose up --build -d`
-6. **Set up a reverse proxy** (Nginx or Caddy) to:
-   - Route `yourdomain.com` → frontend `:3000`
-   - Route `yourdomain.com/api` or `api.yourdomain.com` → api `:8000`
-   - Handle SSL/TLS (Let's Encrypt)
-7. **Configure a firewall** — open only ports 80, 443, and SSH
+## Apps héritées (non déployées actuellement)
 
-## What remains to be done
+Le monorepo contient également :
+- **`apps/api`** (FastAPI, Python) — backend carbone avec modules IFRS 9 / Bâle IV / DORA. Réutilisable comme future brique backend, pas déployée en production actuellement.
+- **`apps/frontend`** (Next.js plus ancien) — antérieur à `apps/neural`, à archiver.
+- **`apps/carbon`** — projet Carbon Compliance Management séparé.
+- **`apps/web`** — placeholder / exploration.
 
-- [ ] Reverse proxy (Nginx/Caddy) configuration
-- [ ] SSL/TLS certificates (Let's Encrypt)
-- [ ] Domain name pointing to VPS IP
-- [ ] PostgreSQL database (when needed)
-- [ ] Redis cache (when needed)
-- [ ] Automated deployment via GitHub Actions (SSH deploy or container registry)
-- [ ] Health check monitoring
-- [ ] Log aggregation
-- [ ] Backup strategy
+Aucune de ces apps n'est déployée publiquement avec l'architecture actuelle. Elles peuvent être supprimées ou déplacées vers un repo dédié lors d'un prochain nettoyage. L'ancien guide Docker + Hostinger + FastAPI qui figurait dans ce fichier décrivait leur déploiement et n'est plus pertinent.
+
+## Stratégie de données
+
+- **Runtime production** : les agents lisent des JSON figés (`content/bank-comms/*.json`, `content/luxe-comms/*.json`) — pas de parsing xlsx au runtime.
+- **Source éditoriale** : les xlsx sont générés par les scripts Python sous `scripts/workbook-generators/` puis synchronisés vers JSON via `apps/neural/scripts/sync-*.ts`. Cf. `scripts/workbook-generators/README.md`.
+- **Persistence dynamique** (runs, approvals, regulatory digests persistés) : Postgres via Prisma — schéma dans `apps/neural/prisma/schema.prisma`.
+
+## Checklist avant premier pilote client
+
+- [ ] Domain configuré + SSL/TLS via Vercel
+- [ ] Environnement `production` isolé de `preview`
+- [ ] Intégrations Marketplace (Neon, Upstash, Langfuse) provisionnées
+- [ ] `AI_GATEWAY_API_KEY` (OIDC Vercel) + fallback vérifié
+- [ ] Migrations Prisma appliquées : `prisma migrate deploy` (dans le build command Vercel ou en post-deploy)
+- [ ] Rate limiting testé (hitter la même route > seuil → 429)
+- [ ] Smoke test complet des 11 routes publiques + 4 exports (cf. § Smoke test dans `apps/neural/README.md`)
+- [ ] Workflow GitHub Actions `neural.yml` actif
+- [ ] Politique de retention Langfuse / journaux définie
+
+## Références
+
+- Guide applicatif : [`apps/neural/README.md`](apps/neural/README.md)
+- Documentation interne : `apps/neural/docs/`
+- Conventions : `CLAUDE.md` (s'il existe) ou règles commit dans les PR récentes

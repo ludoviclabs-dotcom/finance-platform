@@ -494,6 +494,13 @@ export default function BankCommsPage() {
           </ul>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
+              href="/secteurs/banque/communication/dashboard"
+              className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            >
+              Dashboard opérationnel
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
               href="/trust"
               className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
             >
@@ -502,7 +509,7 @@ export default function BankCommsPage() {
             </Link>
             <Link
               href="/secteurs/luxe/communication"
-              className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
             >
               Voir la branche Luxe / Communication (live)
               <ArrowRight className="h-4 w-4" />

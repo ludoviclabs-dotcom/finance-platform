@@ -196,26 +196,29 @@ export const SECTOR_ENTRIES: PublicEntry[] = [
     ],
   }),
   buildSectorEntry("banque", {
-    status: "planned",
-    proofLevel: "content_only",
-    tagline: "Expertise potentielle a productiser",
+    status: "demo",
+    proofLevel: "runtime_data",
+    tagline: "Branche Communication bancaire en demo — 4 agents + 2 services",
     description:
-      "La verticale Banque apparait comme un axe prometteur lie a la finance normative, mais elle doit encore etre traduite en surface publique demonstrable.",
-    readyNow: "Narratif finance / norme et workbooks hors produit public principal.",
+      "Banque / Communication expose 4 agents publics (RegBankComms, BankCrisisComms, ESGBankComms, ClientBankComms) et 2 services transverses (RegWatchBank, BankEvidenceGuard). 16 gates deterministes MVP, 19 scenarios pre-charges, registre de 10 sources ACTIVE ACPR/AMF/EBA/ECB/ESMA. Mode scenario-id only pour eviter toute ingestion d'info privilegiee non publique.",
+    readyNow:
+      "4 demos live (scenario-id uniquement), 4 packs Markdown exportables avec hash SHA-256, resolveur EvidenceGuard deterministe sans LLM, 18 subjects mappes aux agents, veille reglementaire seed (5 digests 2025-2026).",
     nextStep:
-      "Transformer un cas banque en demo claire avec entree, traitement et livrable.",
-    dataUsed: "Workbooks et cadrage hors runtime public principal.",
-    deliverable: "Page readiness et contact oriente finance normative.",
-    ctaHref: "/contact",
-    ctaLabel: "Echanger sur la banque",
+      "Persister les runs (Postgres), fetch live des feeds ACPR/AMF/EBA (cron hebdo + classifier), produire les workbooks Excel reels.",
+    dataUsed:
+      "10 sources reglementaires ACTIVE, 13 disclosure rules bloquantes, 5 holding statements pre-approuves, 10 patterns ESG library, 5 mentions legales clients obligatoires.",
+    deliverable: "Branche /secteurs/banque/communication live + dashboard operationnel + 6 pages agents + 4 packs .md.",
+    ctaHref: "/secteurs/banque/communication",
+    ctaLabel: "Ouvrir Banque / Communication",
     scopeNow: [
-      "Maintient l'ambition sectorielle dans le discours.",
-      "Prepare un futur wedge sans melanger vision et execution.",
+      "Trust-first : 4 agents en demo, aucun texte libre accepte, gates determinnistes qui overrident le LLM.",
+      "Modele pilote prive cadre (setup 25-60 k EUR, 80-180 k EUR/an par domaine), aucun forfait public.",
+      "Perimetre FR + UE, cadres ACPR/AMF/EBA/ECB/ESMA/IFRS/EUR-Lex couverts.",
     ],
     notYet: [
-      "Pas de verticale banque live.",
-      "Pas de page agent banque reliee a une sortie reelle.",
-      "Pas de parcours public complet.",
+      "Workbooks Excel reels non encore produits — les seeds JSON font le job runtime.",
+      "Fetch automatise de la veille reglementaire en Sprint suivant (seed aujourd'hui).",
+      "Persistence runs multi-tenant a brancher avant premier pilote paye.",
     ],
   }),
   buildSectorEntry("assurance", {
@@ -362,27 +365,27 @@ export const BRANCH_ENTRIES: PublicEntry[] = [
   buildBranchEntry("communication", {
     status: "live",
     proofLevel: "runtime_data",
-    tagline: "5 agents pour scorer, rediger et prouver chaque communication luxe",
+    tagline: "2 verticales live : 5 agents Luxe + 4 agents Banque, tous prouvables",
     description:
-      "La branche Communication expose la nouvelle verticale LUXE : 5 agents (MaisonVoiceGuard, LuxePressAgent, LuxeEventComms, HeritageComms, GreenClaimChecker) branches sur 7 workbooks runtime couvrant charte de marque, registre claims EU/FR/UK/US, sources patrimoniales et calendrier evenementiel.",
+      "La branche Communication couvre deux verticales : LUXE (5 agents — MaisonVoiceGuard, LuxePressAgent, LuxeEventComms, HeritageComms, GreenClaimChecker) et BANQUE (4 agents publics + 2 services — RegBankComms, BankCrisisComms, ESGBankComms, ClientBankComms, RegWatchBank, BankEvidenceGuard). Tous en demo scenario-id only, avec gates deterministes qui overrident le LLM.",
     readyNow:
-      "Gate brand scoring (15 regles, 17 hard-fail), registre claims (17 entrees + matrice 5 juridictions), 10 sources heritage sourcees, 20 medias references, 12 evenements mappes.",
+      "Luxe : 7 workbooks runtime, gate brand scoring, matrice 5 juridictions. Banque : 16 gates deterministes, 19 scenarios testset, 4 packs Markdown exportables avec hash SHA-256, resolveur EvidenceGuard deterministe sans LLM.",
     nextStep:
-      "Publier les 5 pages agents dediees + demos interactives live (Voice Scorer, Claim Checker) — Sprint 3 du chantier Luxe / Comms.",
+      "Workbooks Excel reels banque, fetch live veille reglementaire (ACPR/AMF/EBA), persistance runs multi-tenant, tests unitaires des gates.",
     dataUsed:
-      "7 workbooks runtime synchronises via scripts/sync-luxe-comms.ts (FOUNDATIONS + MASTER + 5 agents).",
-    deliverable: "Hub branche Luxe / Communication + 5 surfaces agents demos.",
+      "Luxe : 7 workbooks Luxe Comms synchronises via scripts/sync-luxe-comms.ts. Banque : 10 sources ACPR/AMF/EBA/ECB/ESMA/IFRS/EUR-Lex + 13 disclosure rules + 10 patterns ESG library + 18 subjects EvidenceGuard.",
+    deliverable: "Hub Luxe / Communication (5 agents) + Hub Banque / Communication avec dashboard operationnel (6 agents) + 11 packs .md exportables.",
     ctaHref: "/secteurs/luxe/communication",
     ctaLabel: "Ouvrir Luxe / Communication",
     scopeNow: [
-      "Expose un modele multi-agents oriente contenu luxe avec preuves runtime.",
-      "Demontre la boucle wedge Brand -> Press -> Claim avec data reelle.",
-      "Couvre conformite EU Green Claims Directive + Loi Climat FR (matrice 5 juridictions).",
+      "Deux verticales live avec preuves runtime distinctes (contenu luxe vs. conformite bancaire).",
+      "16 gates banque + 5 gates luxe, tous deterministes et serveur-side.",
+      "Couverture reglementaire : EU Green Claims 2024, Loi Climat FR, SFDR, taxonomie UE, MAR, CRR Part 8, Art. L.312-1-1 CMF.",
     ],
     notYet: [
-      "Pages agents publiques et demos interactives a livrer Sprint 2-3.",
-      "Vocabulaire non-FR/EN (IT, DE, JA, ZH) en preparation v2.",
-      "Registre droits images visuels pas encore expose.",
+      "Workbooks Excel banque (les seeds JSON suffisent en runtime mais xlsx visible prouverait la chaine).",
+      "Fetch automatise de la veille reglementaire (seed Sprint 3).",
+      "Persistence runs cross-verticales pour inbox HITL.",
     ],
   }),
   buildBranchEntry("si", {

@@ -5,7 +5,7 @@ const sectors = [
   { id: "lux", label: "Luxe",         desc: "Inventaire multi-maisons, ESG, recrutement", bg: "#1A0F2E", href: "/secteurs/luxe" },
   { id: "aer", label: "Aéronautique", desc: "Supply critique, EASA, MRO intelligent",     bg: "#0B1C2E", href: "/secteurs/aeronautique" },
   { id: "saa", label: "SaaS",         desc: "PLG analytics, churn, revenue",              bg: "#0E1F2A", href: "/secteurs/saas" },
-  { id: "ban", label: "Banque",        desc: "Risque, Bâle IV, KYC",                      bg: "#14121F", href: "/secteurs/banque" },
+  { id: "ban", label: "Banque",        desc: "Communication régulée, crise, ESG, clients sensibles", bg: "#14121F", href: "/secteurs/banque/communication" },
   { id: "ass", label: "Assurance",    desc: "IFRS 17, tarification, sinistres",           bg: "#1A1026", href: "/secteurs/assurance" },
 ];
 

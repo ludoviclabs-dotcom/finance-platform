@@ -1,0 +1,151 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AGB001_RegBankComms.xlsx",
+    "generatedAt": "2026-04-23T00:00:00.000Z",
+    "status": "sprint-1-seed",
+    "sheets": [
+      "1_SCOPE",
+      "2_MANDATORY_FIELDS",
+      "3_DISCLOSURE_CHECKLIST",
+      "4_DRAFT_TESTSET",
+      "5_OUTPUT_TEMPLATES"
+    ],
+    "note": "Testset 5 scénarios pré-chargés — correctif #2 du blueprint : la démo publique n'accepte aucun texte libre, uniquement un id de scénario."
+  },
+  "data": {
+    "1_SCOPE": [
+      { "key": "AGENT_ID", "value": "AG-B001" },
+      { "key": "AGENT_NAME", "value": "RegBankComms" },
+      { "key": "COMMUNICATION_TYPES", "value": "FINANCIAL_RESULTS,GOVERNANCE,SUPERVISION_NOTICE" },
+      { "key": "SUBTYPES_FINRES", "value": "QUARTERLY,ANNUAL,GUIDANCE,PROFIT_WARNING" },
+      { "key": "JURISDICTIONS", "value": "FR,EU" },
+      { "key": "SLA_HOURS", "value": "24" }
+    ],
+    "2_MANDATORY_FIELDS": [
+      { "field_id": "FLD-001", "communication_type": "FINANCIAL_RESULTS", "field": "period", "label": "Période couverte", "required": true, "pattern": "^(Q[1-4]|S[12]|FY)\\s?20\\d{2}$" },
+      { "field_id": "FLD-002", "communication_type": "FINANCIAL_RESULTS", "field": "ifrs_ref", "label": "Référentiel comptable", "required": true, "pattern": "IFRS|IAS 34" },
+      { "field_id": "FLD-003", "communication_type": "FINANCIAL_RESULTS", "field": "cet1_ratio", "label": "Ratio CET1 (EBA CRR)", "required": true, "pattern": "^\\d{1,2}([.,]\\d{1,2})?\\s?%$" },
+      { "field_id": "FLD-004", "communication_type": "FINANCIAL_RESULTS", "field": "comparative_prior", "label": "Comparatif n-1", "required": true, "pattern": null },
+      { "field_id": "FLD-005", "communication_type": "GOVERNANCE", "field": "effective_date", "label": "Date d'effet", "required": true, "pattern": "^20\\d{2}-\\d{2}-\\d{2}$" },
+      { "field_id": "FLD-006", "communication_type": "GOVERNANCE", "field": "approving_body", "label": "Organe ayant décidé", "required": true, "pattern": null }
+    ],
+    "3_DISCLOSURE_CHECKLIST": [
+      { "check_id": "CHK-001", "communication_type": "FINANCIAL_RESULTS", "label": "Tous les chiffres marqués validated", "severity": "CRITICAL", "gate": "GATE-NUM-VALIDATED" },
+      { "check_id": "CHK-002", "communication_type": "ANY", "label": "Aucune information privilégiée non publique", "severity": "CRITICAL", "gate": "GATE-PRIV" },
+      { "check_id": "CHK-003", "communication_type": "ANY", "label": "Toutes les affirmations adossées à une source ACTIVE", "severity": "CRITICAL", "gate": "GATE-SOURCE-ACTIVE" },
+      { "check_id": "CHK-004", "communication_type": "ANY", "label": "Aucun terme de la liste restricted_wording sans qualifieur", "severity": "HIGH", "gate": "GATE-WORDING" },
+      { "check_id": "CHK-005", "communication_type": "FINANCIAL_RESULTS", "label": "Disclaimer forward-looking présent si prévisions/guidance", "severity": "HIGH", "gate": "GATE-FWD-DISC" },
+      { "check_id": "CHK-006", "communication_type": "FINANCIAL_RESULTS", "label": "Ratios prudentiels (CET1, LCR, NSFR) avec date de calcul", "severity": "HIGH", "gate": "GATE-PRUD-RATIOS" }
+    ],
+    "4_DRAFT_TESTSET": [
+      {
+        "scenario_id": "SCN-CLEAN-Q1",
+        "label": "Résultats Q1 2026 — draft propre",
+        "communication_type": "FINANCIAL_RESULTS",
+        "communication_subtype": "QUARTERLY",
+        "expected_verdict": "PASS",
+        "expected_blockers": [],
+        "draft": {
+          "title": "Résultats du premier trimestre 2026",
+          "period": "Q1 2026",
+          "body_fr": "Au premier trimestre 2026, le produit net bancaire s'établit à 2 450 millions d'euros, en progression de 4,2 % par rapport au premier trimestre 2025. Le résultat net part du groupe atteint 680 millions d'euros (vs. 640 M€ au T1 2025). Le ratio CET1 phasé ressort à 13,2 % au 31 mars 2026. Les comptes sont établis selon IAS 34.",
+          "numbers": [
+            { "label": "PNB", "value": "2 450 M€", "status": "validated", "source_id": "SRC-IFRS-001" },
+            { "label": "RNPG", "value": "680 M€", "status": "validated", "source_id": "SRC-IFRS-001" },
+            { "label": "CET1", "value": "13,2 %", "status": "validated", "source_id": "SRC-EBA-001" },
+            { "label": "PNB Q1 2025", "value": "2 350 M€", "status": "validated", "source_id": "SRC-IFRS-001" }
+          ],
+          "cited_sources": ["SRC-IFRS-001", "SRC-EBA-001"],
+          "contains_privileged_info": false
+        }
+      },
+      {
+        "scenario_id": "SCN-UNVALIDATED",
+        "label": "Guidance FY 2026 — chiffre non-validé",
+        "communication_type": "FINANCIAL_RESULTS",
+        "communication_subtype": "GUIDANCE",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-NUM-VALIDATED"],
+        "draft": {
+          "title": "Perspectives annuelles 2026",
+          "period": "FY 2026",
+          "body_fr": "La banque vise un résultat net d'environ 3,2 milliards d'euros pour l'exercice 2026, en hausse de 8 % par rapport à 2025. Le coefficient d'exploitation devrait s'améliorer à environ 58 %.",
+          "numbers": [
+            { "label": "RN cible 2026", "value": "3,2 Md€", "status": "forecast", "source_id": null },
+            { "label": "Coex cible", "value": "58 %", "status": "estimate", "source_id": null }
+          ],
+          "cited_sources": [],
+          "contains_privileged_info": false
+        }
+      },
+      {
+        "scenario_id": "SCN-PRIVILEGED",
+        "label": "Annonce M&A — information privilégiée non publique",
+        "communication_type": "GOVERNANCE",
+        "communication_subtype": null,
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-PRIV"],
+        "draft": {
+          "title": "Projet d'acquisition confidentiel",
+          "period": "2026",
+          "body_fr": "Dans le cadre de discussions avancées, la banque envisage l'acquisition d'une filiale européenne pour un montant de l'ordre de 1,8 milliard d'euros. L'opération n'a pas encore été approuvée par le conseil d'administration.",
+          "numbers": [
+            { "label": "Prix envisagé", "value": "1,8 Md€", "status": "unvalidated", "source_id": null }
+          ],
+          "cited_sources": [],
+          "contains_privileged_info": true
+        }
+      },
+      {
+        "scenario_id": "SCN-RESTRICTED-WORDING",
+        "label": "Résultats S1 — superlatif non qualifié",
+        "communication_type": "FINANCIAL_RESULTS",
+        "communication_subtype": "QUARTERLY",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-WORDING"],
+        "draft": {
+          "title": "Résultats semestriels 2026 — performance exceptionnelle",
+          "period": "S1 2026",
+          "body_fr": "La banque enregistre un record historique avec un PNB de 5 120 millions d'euros. Cette performance exceptionnelle confirme la trajectoire de croissance garantie du groupe.",
+          "numbers": [
+            { "label": "PNB S1 2026", "value": "5 120 M€", "status": "validated", "source_id": "SRC-IFRS-001" }
+          ],
+          "cited_sources": ["SRC-IFRS-001"],
+          "contains_privileged_info": false
+        }
+      },
+      {
+        "scenario_id": "SCN-MISSING-SOURCE",
+        "label": "Ratio CET1 cité sans source",
+        "communication_type": "FINANCIAL_RESULTS",
+        "communication_subtype": "QUARTERLY",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-SOURCE-ACTIVE"],
+        "draft": {
+          "title": "Communication prudentielle Q1 2026",
+          "period": "Q1 2026",
+          "body_fr": "Le ratio CET1 s'établit à 13,5 % au 31 mars 2026, confirmant la solidité du bilan.",
+          "numbers": [
+            { "label": "CET1", "value": "13,5 %", "status": "validated", "source_id": null }
+          ],
+          "cited_sources": [],
+          "contains_privileged_info": false
+        }
+      }
+    ],
+    "5_OUTPUT_TEMPLATES": [
+      {
+        "template_id": "TPL-FINRES-FR",
+        "communication_type": "FINANCIAL_RESULTS",
+        "lang": "FR",
+        "skeleton": "# {TITLE}\n\n{PERIOD} — Résultats en normes {IFRS_REF}.\n\n{BODY}\n\n## Points clés\n{BULLETS}\n\n## Ratios prudentiels\n{PRUD_RATIOS}\n\n---\n{DISCLAIMER}"
+      },
+      {
+        "template_id": "TPL-GOV-FR",
+        "communication_type": "GOVERNANCE",
+        "lang": "FR",
+        "skeleton": "# {TITLE}\n\nDate d'effet : {EFFECTIVE_DATE}\nOrgane décisionnaire : {APPROVING_BODY}\n\n{BODY}\n\n---\n{DISCLAIMER}"
+      }
+    ]
+  }
+}

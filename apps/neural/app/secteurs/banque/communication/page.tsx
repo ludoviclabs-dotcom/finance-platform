@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { StatusBadge } from "@/components/site/status-badge";
+import { RegBankCommsLive } from "@/components/bank-comms/RegBankCommsLive";
 import {
   BANK_COMMS_SUMMARY,
   getPublicAgents,
@@ -20,6 +21,7 @@ import {
   BANK_COMMS_GATES,
   BANK_COMMS_WORKFLOW,
   BANK_COMMS_RISKS,
+  BANK_COMMS_SOURCES,
 } from "@/lib/data/bank-comms-catalog";
 
 export const metadata: Metadata = {
@@ -66,9 +68,9 @@ export default function BankCommsPage() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3">
             <Building2 className="h-10 w-10 text-stone-700" />
-            <StatusBadge status="planned" />
+            <StatusBadge status="demo" />
             <span className="text-xs font-mono uppercase tracking-wider text-neutral-500">
-              Sprint 0 · scaffold
+              Sprint 1 · AG-B001 en démo
             </span>
           </div>
           <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
@@ -100,6 +102,66 @@ export default function BankCommsPage() {
         </div>
       </section>
 
+      {/* Démo live AG-B001 */}
+      <section className="mx-auto max-w-6xl px-6 py-10" id="demo-reg-bank-comms">
+        <div className="mb-4 flex items-center gap-3">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Démo live — AG-B001 RegBankComms
+          </h2>
+          <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
+            Sprint 1
+          </span>
+        </div>
+        <p className="mb-5 max-w-3xl text-neutral-600">
+          Gates MVP déterministes exécutées côté serveur sur 5 scénarios figés :
+          résultats Q1 propre, guidance non validée, annonce M&amp;A privilégiée,
+          superlatif non qualifié, ratio CET1 sans source. Chaque gate retourne
+          un statut <em>PASS/FAIL</em> + raison + offending refs, et le LLM
+          n'a pas le droit de contredire le verdict déterministe.
+        </p>
+        <RegBankCommsLive />
+      </section>
+
+      {/* Sources / registre */}
+      <section className="mx-auto max-w-6xl px-6 py-6">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Registre de sources réglementaires
+        </h2>
+        <p className="mt-1 text-sm text-neutral-600">
+          {BANK_COMMS_SOURCES.length} sources ACTIVE en Sprint 1 — ACPR, AMF,
+          EBA, ECB, ESMA, IFRS, EUR-Lex. Toute sortie agent doit être adossée à
+          au moins une de ces sources (GATE-SOURCE-ACTIVE).
+        </p>
+        <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+          <table className="w-full text-sm">
+            <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
+              <tr>
+                <th className="px-4 py-2">ID</th>
+                <th className="px-4 py-2">Autorité</th>
+                <th className="px-4 py-2">Titre</th>
+                <th className="px-4 py-2">Juri.</th>
+                <th className="px-4 py-2">Review</th>
+              </tr>
+            </thead>
+            <tbody>
+              {BANK_COMMS_SOURCES.map((s) => (
+                <tr key={s.source_id} className="border-t border-neutral-100">
+                  <td className="px-4 py-2 font-mono text-xs text-neutral-500">
+                    {s.source_id}
+                  </td>
+                  <td className="px-4 py-2 text-neutral-900">{s.autorite}</td>
+                  <td className="px-4 py-2 text-neutral-700">{s.titre}</td>
+                  <td className="px-4 py-2 text-neutral-600">{s.juridiction}</td>
+                  <td className="px-4 py-2 text-xs text-neutral-500">
+                    {s.review_date ?? "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* Agents publics */}
       <section className="mx-auto max-w-6xl px-6 py-8">
         <h2 className="text-2xl font-semibold tracking-tight">
@@ -127,9 +189,16 @@ export default function BankCommsPage() {
                       <h3 className="text-lg font-semibold">{a.name}</h3>
                     </div>
                   </div>
-                  <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
-                    {a.priority}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    {a.status === "demo" ? (
+                      <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
+                        Démo live
+                      </span>
+                    ) : null}
+                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+                      {a.priority}
+                    </span>
+                  </div>
                 </div>
                 <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   <dt className="text-neutral-500">Owner</dt>

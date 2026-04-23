@@ -23,6 +23,7 @@ import { z } from "zod";
 import manifestJson from "@/content/bank-comms/_manifest.json";
 import foundationsJson from "@/content/bank-comms/foundations.json";
 import masterJson from "@/content/bank-comms/master.json";
+import agb001Json from "@/content/bank-comms/agb001-regbank.json";
 
 // ─── CONSTS ──────────────────────────────────────────────────────────────────
 
@@ -105,6 +106,41 @@ const DisclosureRuleRowSchema = z.object({
 });
 export type DisclosureRuleRow = z.infer<typeof DisclosureRuleRowSchema>;
 
+const RestrictedWordingSchema = z.object({
+  term_id: z.string(),
+  term: z.string(),
+  severite: z.string(),
+  reason: z.string(),
+});
+export type RestrictedWording = z.infer<typeof RestrictedWordingSchema>;
+
+const ScenarioNumberSchema = z.object({
+  label: z.string(),
+  value: z.union([z.string(), z.number()]),
+  status: z.enum(["validated", "unvalidated", "estimate", "forecast"]),
+  source_id: z.string().nullable(),
+});
+
+const ScenarioDraftSchema = z.object({
+  title: z.string(),
+  period: z.string(),
+  body_fr: z.string(),
+  numbers: z.array(ScenarioNumberSchema),
+  cited_sources: z.array(z.string()),
+  contains_privileged_info: z.boolean(),
+});
+
+const ScenarioSchema = z.object({
+  scenario_id: z.string(),
+  label: z.string(),
+  communication_type: z.string(),
+  communication_subtype: z.string().nullable(),
+  expected_verdict: z.enum(["PASS", "PASS_WITH_REVIEW", "BLOCK"]),
+  expected_blockers: z.array(z.string()),
+  draft: ScenarioDraftSchema,
+});
+export type RegBankScenario = z.infer<typeof ScenarioSchema>;
+
 // ─── PARSERS SAFE ────────────────────────────────────────────────────────────
 
 function safeParseArray<T>(
@@ -166,6 +202,24 @@ export const BANK_COMMS_DISCLOSURE_RULES: DisclosureRuleRow[] = safeParseArray(
   "disclosure_rules",
 );
 
+export const BANK_COMMS_RESTRICTED_WORDING: RestrictedWording[] = safeParseArray(
+  RestrictedWordingSchema,
+  foundationsData["7_RESTRICTED_WORDING"],
+  "restricted_wording",
+);
+
+const agb001Data = (agb001Json as { data: Record<string, unknown> }).data ?? {};
+
+export const REG_BANK_SCENARIOS: RegBankScenario[] = safeParseArray(
+  ScenarioSchema,
+  agb001Data["4_DRAFT_TESTSET"],
+  "regbank_scenarios",
+);
+
+export function getRegBankScenario(id: string): RegBankScenario | undefined {
+  return REG_BANK_SCENARIOS.find((s) => s.scenario_id === id);
+}
+
 // ─── SÉLECTEURS MÉTIER ───────────────────────────────────────────────────────
 
 export function getPublicAgents(): AgentRegistryRow[] {
@@ -193,9 +247,10 @@ export const BANK_COMMS_SUMMARY = {
   risks: BANK_COMMS_RISKS,
   sources_count: BANK_COMMS_SOURCES.length,
   rules_count: BANK_COMMS_DISCLOSURE_RULES.length,
+  scenarios_count: REG_BANK_SCENARIOS.length,
   readiness: {
     workbooks_built: false,
-    demo_live: false,
+    demo_live: true,
     regulatory_watch_branch: false,
     export_pack_ready: false,
   },

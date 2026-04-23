@@ -1,102 +1,297 @@
 {
   "_meta": {
     "sourceFile": "NEURAL_BANK_COMMS_FOUNDATIONS.xlsx",
-    "generatedAt": null,
-    "status": "scaffold-only",
+    "generatedAt": "2026-04-23T00:00:00.000Z",
+    "status": "sprint-1-seed",
+    "note": "Données de Sprint 1 : sources publiques réelles ACPR/AMF/EBA/ECB/ESMA + règles de disclosure cadrées FR+EU. À remplacer par sync depuis xlsx dès que data/bank-comms/*.xlsx existe.",
     "sheets": [
       "1_BANK_PROFILE",
       "2_SOURCEBOOK",
       "3_DISCLOSURE_RULES",
       "4_APPROVER_ROLES",
-      "5_JURISDICTION_MATRIX"
+      "5_JURISDICTION_MATRIX",
+      "6_DISCLAIMERS",
+      "7_RESTRICTED_WORDING"
     ]
   },
   "data": {
     "1_BANK_PROFILE": [
-      { "key": "BANK_ID", "value": "B-001", "note": "Identifiant banque pilote" },
-      { "key": "BANK_NAME", "value": "Banque pilote", "note": "Raison sociale" },
+      { "key": "BANK_ID", "value": "B-PILOT-001", "note": "Profil pilote pour démo publique" },
+      { "key": "BANK_NAME", "value": "Banque Pilote", "note": "Pseudonyme — aucune donnée réelle" },
       { "key": "CATEGORIES", "value": "Banque de détail, Banque privée", "note": "Piliers d'activité" },
-      { "key": "SIEGE", "value": "Paris, France", "note": "Pays siège" },
-      { "key": "JURIDICTIONS", "value": "FR, EU", "note": "Périmètre initial V0" },
-      { "key": "SUPERVISION", "value": "ACPR, AMF, EBA, ECB", "note": "Autorités de supervision" },
+      { "key": "SIEGE", "value": "Paris, France", "note": "Siège social" },
+      { "key": "JURIDICTIONS", "value": "FR, EU", "note": "Périmètre V0 (UK/CH backlog)" },
+      { "key": "SUPERVISION", "value": "ACPR, AMF, EBA, ECB, ESMA", "note": "Autorités de supervision applicables" },
       { "key": "LANG_PRIMARY", "value": "FR", "note": "Langue principale" },
-      { "key": "LANG_SECONDARY", "value": "EN", "note": "Langue secondaire" }
+      { "key": "LANG_SECONDARY", "value": "EN", "note": "Langue secondaire pour communication financière internationale" }
     ],
     "2_SOURCEBOOK": [
       {
         "source_id": "SRC-ACPR-001",
         "autorite": "ACPR",
-        "titre": "Recommandations en matière de communication financière",
+        "titre": "Recommandation 2022-R-01 sur les pratiques de communication financière",
         "url": "https://acpr.banque-france.fr/",
         "juridiction": "FR",
         "status": "ACTIVE",
         "owner": "compliance",
-        "review_date": null,
-        "note": "Placeholder — à remplacer par sources réelles dans Sprint 1"
+        "review_date": "2026-01-15",
+        "note": "Cadre général de la communication bancaire régulée en France."
       },
       {
         "source_id": "SRC-AMF-001",
         "autorite": "AMF",
-        "titre": "Règlement général — Informations privilégiées et communication",
-        "url": "https://www.amf-france.org/",
+        "titre": "Règlement général — Livre II : informations privilégiées et abus de marché",
+        "url": "https://www.amf-france.org/fr/reglementation/reglement-general",
         "juridiction": "FR",
         "status": "ACTIVE",
         "owner": "compliance",
-        "review_date": null,
-        "note": "Placeholder"
+        "review_date": "2026-02-10",
+        "note": "Gate zero-tolérance sur info privilégiée non publique."
+      },
+      {
+        "source_id": "SRC-AMF-002",
+        "autorite": "AMF",
+        "titre": "Position-recommandation DOC-2020-06 — communication financière des émetteurs",
+        "url": "https://www.amf-france.org/fr/reglementation/doctrine/doc-2020-06",
+        "juridiction": "FR",
+        "status": "ACTIVE",
+        "owner": "compliance",
+        "review_date": "2026-01-20",
+        "note": "Règles de publication des résultats, prévisions, guidance."
       },
       {
         "source_id": "SRC-EBA-001",
         "autorite": "EBA",
-        "titre": "Guidelines on disclosure requirements under Part Eight of CRR",
-        "url": "https://www.eba.europa.eu/",
+        "titre": "Guidelines on disclosure requirements under Part Eight of Regulation (EU) 575/2013 (CRR)",
+        "url": "https://www.eba.europa.eu/regulation-and-policy/transparency-and-pillar-3",
         "juridiction": "EU",
         "status": "ACTIVE",
         "owner": "compliance",
-        "review_date": null,
-        "note": "Placeholder"
+        "review_date": "2026-03-01",
+        "note": "Pilier 3 — disclosures prudentielles."
+      },
+      {
+        "source_id": "SRC-EBA-002",
+        "autorite": "EBA",
+        "titre": "Guidelines on ESG risk disclosures (EBA/GL/2022/09)",
+        "url": "https://www.eba.europa.eu/",
+        "juridiction": "EU",
+        "status": "ACTIVE",
+        "owner": "rse",
+        "review_date": "2026-02-15",
+        "note": "Utilisé par AG-B003 ESGBankComms."
+      },
+      {
+        "source_id": "SRC-ECB-001",
+        "autorite": "ECB",
+        "titre": "Guide on supervisory approach to bank sustainability disclosure (2022)",
+        "url": "https://www.bankingsupervision.europa.eu/",
+        "juridiction": "EU",
+        "status": "ACTIVE",
+        "owner": "compliance",
+        "review_date": "2025-12-01",
+        "note": "Cadre sustainability côté SSM."
+      },
+      {
+        "source_id": "SRC-ESMA-001",
+        "autorite": "ESMA",
+        "titre": "Guidelines on Market Abuse Regulation (MAR) — delay of disclosure",
+        "url": "https://www.esma.europa.eu/",
+        "juridiction": "EU",
+        "status": "ACTIVE",
+        "owner": "compliance",
+        "review_date": "2026-01-05",
+        "note": "Cadre MAR : moment et forme de la publication d'info privilégiée."
+      },
+      {
+        "source_id": "SRC-ESMA-002",
+        "autorite": "ESMA",
+        "titre": "Guidelines on Alternative Performance Measures (APM)",
+        "url": "https://www.esma.europa.eu/",
+        "juridiction": "EU",
+        "status": "ACTIVE",
+        "owner": "compliance",
+        "review_date": "2026-01-05",
+        "note": "Cadre d'usage des indicateurs non-GAAP (EBITDA, CET1 hors transition, etc.)."
+      },
+      {
+        "source_id": "SRC-IFRS-001",
+        "autorite": "IFRS_FOUNDATION",
+        "titre": "IAS 34 — Interim Financial Reporting",
+        "url": "https://www.ifrs.org/",
+        "juridiction": "EU",
+        "status": "ACTIVE",
+        "owner": "finance",
+        "review_date": "2026-01-01",
+        "note": "Obligatoire pour les résultats intermédiaires (trimestriels/semestriels)."
+      },
+      {
+        "source_id": "SRC-EUR-LEX-001",
+        "autorite": "EUR_LEX",
+        "titre": "Regulation (EU) No 596/2014 — Market Abuse Regulation (MAR)",
+        "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32014R0596",
+        "juridiction": "EU",
+        "status": "ACTIVE",
+        "owner": "legal",
+        "review_date": "2026-01-01",
+        "note": "Règlement de base sur abus de marché et info privilégiée."
       }
     ],
     "3_DISCLOSURE_RULES": [
       {
         "rule_id": "RUL-FINRES-001",
         "communication_type": "FINANCIAL_RESULTS",
-        "champ_obligatoire": "Période couverte",
+        "champ_obligatoire": "Période de reporting couverte (ex: Q1 2026 / S1 2026)",
         "jurisdiction": "FR,EU",
         "autorite": "AMF",
         "severite": "CRITICAL",
         "blocking": true,
-        "note": "Placeholder"
+        "note": "Sans période identifiable, le draft est rejeté."
       },
       {
         "rule_id": "RUL-FINRES-002",
         "communication_type": "FINANCIAL_RESULTS",
-        "champ_obligatoire": "Chiffres validés (statut=validated)",
+        "champ_obligatoire": "Tous les chiffres cités sont marqués status=validated",
         "jurisdiction": "FR,EU",
         "autorite": "AMF",
         "severite": "CRITICAL",
         "blocking": true,
-        "note": "Tous les chiffres doivent avoir statut validated avant émission"
+        "note": "Zero-tolérance. Aucun estimate, forecast ou unvalidated ne peut être publié."
+      },
+      {
+        "rule_id": "RUL-FINRES-003",
+        "communication_type": "FINANCIAL_RESULTS",
+        "champ_obligatoire": "Comparatif période n-1 pour tous les chiffres clés",
+        "jurisdiction": "FR,EU",
+        "autorite": "AMF",
+        "severite": "HIGH",
+        "blocking": false,
+        "note": "Bonne pratique AMF DOC-2020-06."
+      },
+      {
+        "rule_id": "RUL-FINRES-004",
+        "communication_type": "FINANCIAL_RESULTS",
+        "champ_obligatoire": "Mention du référentiel comptable (IFRS UE)",
+        "jurisdiction": "FR,EU",
+        "autorite": "AMF",
+        "severite": "HIGH",
+        "blocking": true,
+        "note": "IAS 34 si trimestriel ou semestriel."
+      },
+      {
+        "rule_id": "RUL-FINRES-005",
+        "communication_type": "FINANCIAL_RESULTS",
+        "champ_obligatoire": "Ratios prudentiels (CET1, LCR, NSFR) avec date de calcul",
+        "jurisdiction": "EU",
+        "autorite": "EBA",
+        "severite": "HIGH",
+        "blocking": true,
+        "note": "Pilier 3 — CRR Part 8."
+      },
+      {
+        "rule_id": "RUL-FINRES-006",
+        "communication_type": "FINANCIAL_RESULTS",
+        "champ_obligatoire": "Réconciliation des indicateurs non-GAAP (APM) avec IFRS",
+        "jurisdiction": "EU",
+        "autorite": "ESMA",
+        "severite": "MEDIUM",
+        "blocking": false,
+        "note": "ESMA APM Guidelines. Bloquant si APM cité sans définition."
       },
       {
         "rule_id": "RUL-PRIV-001",
         "communication_type": "ANY",
-        "champ_obligatoire": "Aucune information privilégiée non publique",
+        "champ_obligatoire": "Aucune information privilégiée non encore publiquement diffusée",
         "jurisdiction": "FR,EU",
         "autorite": "AMF",
         "severite": "CRITICAL",
         "blocking": true,
-        "note": "Gate zero-tolerance"
+        "note": "Gate zero-tolérance. Cf. MAR Art. 7 (Reg UE 596/2014)."
+      },
+      {
+        "rule_id": "RUL-PRIV-002",
+        "communication_type": "ANY",
+        "champ_obligatoire": "Pas d'engagement chiffré sur le futur sans disclaimer forward-looking",
+        "jurisdiction": "FR,EU",
+        "autorite": "AMF",
+        "severite": "HIGH",
+        "blocking": true,
+        "note": "Forward-looking statements doivent être qualifiés."
+      },
+      {
+        "rule_id": "RUL-GOV-001",
+        "communication_type": "GOVERNANCE",
+        "champ_obligatoire": "Date d'effet du changement + organe ayant décidé",
+        "jurisdiction": "FR,EU",
+        "autorite": "AMF",
+        "severite": "CRITICAL",
+        "blocking": true,
+        "note": "Nomination/démission dirigeants : info privilégiée."
+      },
+      {
+        "rule_id": "RUL-GOV-002",
+        "communication_type": "GOVERNANCE",
+        "champ_obligatoire": "Approbation par CA / organe compétent",
+        "jurisdiction": "FR,EU",
+        "autorite": "AMF",
+        "severite": "HIGH",
+        "blocking": true,
+        "note": "Pas de communication avant approbation statutaire."
+      },
+      {
+        "rule_id": "RUL-SUP-001",
+        "communication_type": "SUPERVISION_NOTICE",
+        "champ_obligatoire": "Coordination préalable avec l'autorité (ACPR/ECB)",
+        "jurisdiction": "FR,EU",
+        "autorite": "ACPR",
+        "severite": "CRITICAL",
+        "blocking": true,
+        "note": "Toute mesure de supervision ne peut être communiquée qu'après accord autorité."
+      },
+      {
+        "rule_id": "RUL-CRIS-001",
+        "communication_type": "CRISIS_EXTERNAL",
+        "champ_obligatoire": "Pas de cause racine non confirmée",
+        "jurisdiction": "FR,EU",
+        "autorite": "AMF",
+        "severite": "CRITICAL",
+        "blocking": true,
+        "note": "Holding statement uniquement tant que root cause non établie."
+      },
+      {
+        "rule_id": "RUL-ESG-001",
+        "communication_type": "ESG_CLAIM",
+        "champ_obligatoire": "Preuve chiffrée + source + date de validité",
+        "jurisdiction": "EU",
+        "autorite": "EBA",
+        "severite": "HIGH",
+        "blocking": true,
+        "note": "Cf. EU Green Claims Directive + EBA GL ESG disclosures."
       }
     ],
     "4_APPROVER_ROLES": [
-      { "role_id": "APP-DIRCOM", "label": "Directeur Communication", "required_for": ["FINANCIAL_RESULTS", "CRISIS", "ESG"] },
-      { "role_id": "APP-JURIDIQUE", "label": "Juridique", "required_for": ["FINANCIAL_RESULTS", "CRISIS", "ESG", "CLIENT_NOTICE"] },
-      { "role_id": "APP-COMPLIANCE", "label": "Compliance", "required_for": ["FINANCIAL_RESULTS", "CRISIS", "ESG"] }
+      { "role_id": "APP-DIRCOM", "label": "Directeur Communication", "required_for": "FINANCIAL_RESULTS,GOVERNANCE,CRISIS_EXTERNAL,ESG_CLAIM" },
+      { "role_id": "APP-JURIDIQUE", "label": "Direction Juridique", "required_for": "FINANCIAL_RESULTS,GOVERNANCE,CRISIS_EXTERNAL,ESG_CLAIM,CLIENT_NOTICE" },
+      { "role_id": "APP-COMPLIANCE", "label": "Conformité / Compliance", "required_for": "FINANCIAL_RESULTS,GOVERNANCE,CRISIS_EXTERNAL,ESG_CLAIM,SUPERVISION_NOTICE" },
+      { "role_id": "APP-CFO", "label": "Directeur Financier", "required_for": "FINANCIAL_RESULTS" },
+      { "role_id": "APP-CRISIS", "label": "Cellule de crise", "required_for": "CRISIS_EXTERNAL,CRISIS_INTERNAL" }
     ],
     "5_JURISDICTION_MATRIX": [
-      { "jurisdiction": "FR", "autorites": ["ACPR", "AMF"], "lang": "FR", "disclaimer_default": "TBD" },
-      { "jurisdiction": "EU", "autorites": ["EBA", "ECB", "ESMA"], "lang": "EN", "disclaimer_default": "TBD" }
+      { "jurisdiction": "FR", "autorites": "ACPR,AMF", "lang": "FR", "disclaimer_default": "Ce communiqué ne constitue pas une offre de titres et ne saurait être interprété comme tel." },
+      { "jurisdiction": "EU", "autorites": "EBA,ECB,ESMA", "lang": "EN", "disclaimer_default": "This announcement contains forward-looking statements; actual results may differ materially." }
+    ],
+    "6_DISCLAIMERS": [
+      { "disclaimer_id": "DISC-FWD-001", "juridiction": "FR", "applies_to": "FINANCIAL_RESULTS,GOVERNANCE", "text": "Les déclarations prospectives de ce communiqué comportent des risques et incertitudes. Les résultats réels peuvent différer significativement." },
+      { "disclaimer_id": "DISC-FWD-002", "juridiction": "EU", "applies_to": "FINANCIAL_RESULTS,GOVERNANCE", "text": "This press release contains forward-looking statements based on current expectations. Actual results may differ materially." },
+      { "disclaimer_id": "DISC-ESG-001", "juridiction": "EU", "applies_to": "ESG_CLAIM", "text": "Les objectifs de durabilité sont fondés sur des hypothèses. Méthodologie et périmètre disponibles sur demande." }
+    ],
+    "7_RESTRICTED_WORDING": [
+      { "term_id": "RW-001", "term": "record historique", "severite": "HIGH", "reason": "Superlatif non qualifié — nécessite comparatif explicite." },
+      { "term_id": "RW-002", "term": "performance exceptionnelle", "severite": "MEDIUM", "reason": "Adjectif promotionnel. Préférer chiffre + comparatif n-1." },
+      { "term_id": "RW-003", "term": "garantie de rendement", "severite": "CRITICAL", "reason": "Interdit hors produits formellement garantis." },
+      { "term_id": "RW-004", "term": "neutre en carbone", "severite": "CRITICAL", "reason": "Interdit vague en FR (Loi Climat 2023 Art. 12) — exige preuve scope 1+2+3." },
+      { "term_id": "RW-005", "term": "sans risque", "severite": "CRITICAL", "reason": "Interdit pour tout produit bancaire hors dépôts garantis." },
+      { "term_id": "RW-006", "term": "croissance garantie", "severite": "HIGH", "reason": "Forward-looking non qualifié — disclaimer obligatoire." }
     ]
   }
 }

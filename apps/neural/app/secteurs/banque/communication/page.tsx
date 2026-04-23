@@ -174,11 +174,26 @@ export default function BankCommsPage() {
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {publicAgents.map((a) => {
             const Icon = AGENT_ICON[a.slug] ?? Landmark;
+            const hasPage = a.status === "demo" || a.status === "live";
+            const Wrapper = ({ children }: { children: React.ReactNode }) =>
+              hasPage ? (
+                <Link
+                  key={a.agent_id}
+                  href={`/agents/${a.slug}`}
+                  className="block rounded-xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:border-neutral-300 hover:shadow"
+                >
+                  {children}
+                </Link>
+              ) : (
+                <article
+                  key={a.agent_id}
+                  className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm"
+                >
+                  {children}
+                </article>
+              );
             return (
-              <article
-                key={a.agent_id}
-                className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm"
-              >
+              <Wrapper key={a.agent_id}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <Icon className="h-6 w-6 text-stone-700" />
@@ -210,7 +225,12 @@ export default function BankCommsPage() {
                   <dt className="text-neutral-500">Priorité</dt>
                   <dd className="text-neutral-900">{a.priority}</dd>
                 </dl>
-              </article>
+                {hasPage ? (
+                  <p className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-stone-700">
+                    Voir la démo <ArrowRight className="h-3.5 w-3.5" />
+                  </p>
+                ) : null}
+              </Wrapper>
             );
           })}
         </div>

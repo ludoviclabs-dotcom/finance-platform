@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
+  Download,
   FileText,
   Landmark,
   Loader2,
@@ -84,6 +85,7 @@ export function RegBankCommsLive() {
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [meta, setMeta] = useState<{ mode: string; latencyMs: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     void fetch("/api/demo/reg-bank-comms")
@@ -121,6 +123,39 @@ export function RegBankCommsLive() {
       setError(e instanceof Error ? e.message : "Erreur réseau.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function downloadPack() {
+    if (!scenarioId) return;
+    setExporting(true);
+    try {
+      const res = await fetch("/api/demo/reg-bank-comms/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenario_id: scenarioId }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        setError(data?.error ?? "Échec de l'export.");
+        return;
+      }
+      const blob = await res.blob();
+      const filename =
+        res.headers.get("content-disposition")?.match(/filename="([^"]+)"/)?.[1] ??
+        `neural-regbank-${scenarioId}.md`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur export.");
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -231,6 +266,24 @@ export function RegBankCommsLive() {
                 Mode {meta.mode} · {meta.latencyMs} ms
               </span>
             ) : null}
+            <button
+              type="button"
+              onClick={downloadPack}
+              disabled={exporting}
+              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 transition hover:bg-neutral-50 disabled:opacity-50"
+            >
+              {exporting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Export…
+                </>
+              ) : (
+                <>
+                  <Download className="h-3.5 w-3.5" />
+                  Pack défendable (.md + hash)
+                </>
+              )}
+            </button>
           </div>
 
           <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">

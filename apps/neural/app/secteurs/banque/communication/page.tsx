@@ -14,6 +14,7 @@ import {
 
 import { StatusBadge } from "@/components/site/status-badge";
 import { RegBankCommsLive } from "@/components/bank-comms/RegBankCommsLive";
+import { BankCrisisLive } from "@/components/bank-comms/BankCrisisLive";
 import {
   BANK_COMMS_SUMMARY,
   getPublicAgents,
@@ -120,6 +121,25 @@ export default function BankCommsPage() {
           n'a pas le droit de contredire le verdict déterministe.
         </p>
         <RegBankCommsLive />
+      </section>
+
+      {/* Démo live AG-B002 */}
+      <section className="mx-auto max-w-6xl px-6 py-10" id="demo-bank-crisis">
+        <div className="mb-4 flex items-center gap-3">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Démo live — AG-B002 BankCrisisComms
+          </h2>
+          <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
+            Sprint 2
+          </span>
+        </div>
+        <p className="mb-5 max-w-3xl text-neutral-600">
+          Crise bancaire : 4 gates spécifiques (cause racine confirmée,
+          message issu de la bibliothèque approuvée, remédiation validée,
+          horloge SLA par sévérité). 4 scénarios pré-chargés couvrent cyber,
+          fuite de données, rumeur de liquidité, indisponibilité service.
+        </p>
+        <BankCrisisLive />
       </section>
 
       {/* Sources / registre */}

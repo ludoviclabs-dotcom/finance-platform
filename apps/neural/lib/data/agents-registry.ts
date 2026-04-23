@@ -517,6 +517,7 @@ export const MATRIX: CellData[] = [
           "% messages adosses a message pre-approuve",
           "0 engagement de remediation non valide",
         ],
+        // Sprint 2 : demo live (4 scenarios : cyber, data leak, liquidity rumor, outage).
         status: "planned",
         type: "agent",
       },

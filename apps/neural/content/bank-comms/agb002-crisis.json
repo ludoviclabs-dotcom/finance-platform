@@ -1,0 +1,155 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AGB002_BankCrisis.xlsx",
+    "generatedAt": "2026-04-23T00:00:00.000Z",
+    "status": "sprint-2-seed",
+    "sheets": [
+      "1_SCENARIO_CATALOG",
+      "2_HOLDING_STATEMENTS",
+      "3_FAQ_LIBRARY",
+      "4_ESCALATION_TREE",
+      "5_CRISIS_TIMER",
+      "6_TESTSET"
+    ],
+    "note": "Testset 4 scénarios de crise pré-chargés — correctif #2 maintenu : aucun texte libre, uniquement scenario_id. Niveaux de sévérité SEV0..SEV3, SLA en minutes pour la publication initiale (holding statement)."
+  },
+  "data": {
+    "1_SCENARIO_CATALOG": [
+      { "scenario_id": "CYBER", "label": "Incident cyber (ransomware / intrusion)", "severity_default": "SEV1", "sla_minutes_initial": 120, "regulator_coord_required": true },
+      { "scenario_id": "DATA_LEAK", "label": "Fuite de données clients", "severity_default": "SEV1", "sla_minutes_initial": 120, "regulator_coord_required": true },
+      { "scenario_id": "LIQUIDITY_RUMOR", "label": "Rumeur de liquidité / bank run", "severity_default": "SEV0", "sla_minutes_initial": 60, "regulator_coord_required": true },
+      { "scenario_id": "SANCTION", "label": "Sanction / mesure prudentielle", "severity_default": "SEV2", "sla_minutes_initial": 240, "regulator_coord_required": true },
+      { "scenario_id": "SERVICE_OUTAGE", "label": "Indisponibilité service (app, cartes, virements)", "severity_default": "SEV2", "sla_minutes_initial": 90, "regulator_coord_required": false }
+    ],
+    "2_HOLDING_STATEMENTS": [
+      {
+        "statement_id": "HLD-CYBER-001",
+        "scenario_id": "CYBER",
+        "lang": "FR",
+        "title": "Holding statement cyber — SEV1",
+        "body": "La banque a détecté un incident de sécurité affectant une partie de ses systèmes d'information. Les équipes techniques travaillent à l'évaluation et à la résolution en coordination avec les autorités compétentes. Aucune conclusion sur la cause racine ou l'ampleur ne peut être communiquée à ce stade. Une nouvelle communication sera publiée dès que des éléments confirmés seront disponibles.",
+        "approver": "DirCom + Juridique",
+        "approved_at": "2026-04-01"
+      },
+      {
+        "statement_id": "HLD-DATA-001",
+        "scenario_id": "DATA_LEAK",
+        "lang": "FR",
+        "title": "Holding statement fuite de données — SEV1",
+        "body": "La banque a ouvert une enquête à la suite d'un possible incident concernant des données personnelles. Les investigations sont en cours sous la supervision du DPO et en lien avec la CNIL. Aucune conclusion définitive n'est disponible à ce stade. Les clients concernés seront informés individuellement dès que les vérifications seront terminées, conformément à la réglementation applicable.",
+        "approver": "DirCom + DPO + Juridique",
+        "approved_at": "2026-04-01"
+      },
+      {
+        "statement_id": "HLD-LIQ-001",
+        "scenario_id": "LIQUIDITY_RUMOR",
+        "lang": "FR",
+        "title": "Réponse rumeur de liquidité — SEV0",
+        "body": "La banque confirme que ses ratios prudentiels (LCR, NSFR, CET1) restent supérieurs aux seuils réglementaires et que l'activité se poursuit normalement. Les niveaux de liquidité et de solvabilité sont intégralement communiqués dans le dernier rapport public disponible. Toute information circulant en dehors des canaux officiels doit être considérée avec la plus grande prudence.",
+        "approver": "DirCom + CFO + Juridique + ACPR coord",
+        "approved_at": "2026-03-15"
+      },
+      {
+        "statement_id": "HLD-OUT-001",
+        "scenario_id": "SERVICE_OUTAGE",
+        "lang": "FR",
+        "title": "Message d'indisponibilité service — SEV2",
+        "body": "Nous rencontrons actuellement un incident affectant [SERVICE]. Nos équipes sont mobilisées pour rétablir le service dans les meilleurs délais. Les transactions en cours ne sont pas impactées. Nous communiquerons dès le retour à la normale.",
+        "approver": "DirCom + Ops",
+        "approved_at": "2026-02-20"
+      }
+    ],
+    "3_FAQ_LIBRARY": [
+      { "faq_id": "FAQ-001", "scenario_id": "CYBER", "question": "Les données clients sont-elles compromises ?", "answer": "Nous ne pouvons pas confirmer à ce stade. Une analyse est en cours." },
+      { "faq_id": "FAQ-002", "scenario_id": "CYBER", "question": "Les transactions sont-elles impactées ?", "answer": "Voir le message d'état publié sur le site officiel." },
+      { "faq_id": "FAQ-003", "scenario_id": "LIQUIDITY_RUMOR", "question": "Faut-il s'inquiéter de la solidité de la banque ?", "answer": "Les ratios CET1/LCR/NSFR publiés au dernier reporting restent supérieurs aux seuils réglementaires." },
+      { "faq_id": "FAQ-004", "scenario_id": "DATA_LEAK", "question": "Dois-je changer mes identifiants ?", "answer": "Par précaution, vous pouvez le faire ; nous communiquerons une recommandation officielle si nécessaire." }
+    ],
+    "4_ESCALATION_TREE": [
+      { "level": 1, "role": "DirCom on-call", "sla_minutes": 15 },
+      { "level": 2, "role": "Juridique on-call", "sla_minutes": 30 },
+      { "level": 3, "role": "Cellule de crise (COMEX)", "sla_minutes": 45 },
+      { "level": 4, "role": "Coordination régulateur (ACPR / ECB)", "sla_minutes": 60 }
+    ],
+    "5_CRISIS_TIMER": [
+      { "severity": "SEV0", "sla_minutes_initial": 60, "reassess_every_minutes": 30 },
+      { "severity": "SEV1", "sla_minutes_initial": 120, "reassess_every_minutes": 60 },
+      { "severity": "SEV2", "sla_minutes_initial": 240, "reassess_every_minutes": 120 },
+      { "severity": "SEV3", "sla_minutes_initial": 480, "reassess_every_minutes": 240 }
+    ],
+    "6_TESTSET": [
+      {
+        "scenario_id": "CRS-CYBER-HOLDING",
+        "label": "Cyber SEV1 — holding propre (statut non confirmé)",
+        "incident_type": "CYBER",
+        "severity": "SEV1",
+        "expected_verdict": "PASS",
+        "expected_blockers": [],
+        "draft": {
+          "title": "Communication externe — incident de sécurité",
+          "body_fr": "La banque a détecté un incident de sécurité affectant une partie de ses systèmes d'information. Les équipes techniques travaillent à l'évaluation et à la résolution en coordination avec les autorités compétentes. Aucune conclusion sur la cause racine ou l'ampleur ne peut être communiquée à ce stade.",
+          "root_cause_stated": false,
+          "uses_approved_message": true,
+          "matched_statement_id": "HLD-CYBER-001",
+          "regulator_coord_confirmed": true,
+          "remediation_commitment": null,
+          "minutes_since_incident": 45
+        }
+      },
+      {
+        "scenario_id": "CRS-CYBER-ROOT-CAUSE",
+        "label": "Cyber — cause racine énoncée sans confirmation",
+        "incident_type": "CYBER",
+        "severity": "SEV1",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-CRISIS-ROOT-CAUSE"],
+        "draft": {
+          "title": "Cyber attaque — origine identifiée",
+          "body_fr": "La banque a été victime d'une intrusion provenant d'un groupe de hackers basé à l'étranger, exploitant une faille dans un logiciel tiers. Aucune donnée client n'a été compromise.",
+          "root_cause_stated": true,
+          "uses_approved_message": false,
+          "matched_statement_id": null,
+          "regulator_coord_confirmed": false,
+          "remediation_commitment": null,
+          "minutes_since_incident": 30
+        }
+      },
+      {
+        "scenario_id": "CRS-LIQ-UNAPPROVED",
+        "label": "Rumeur liquidité — message non issu de la bibliothèque approuvée",
+        "incident_type": "LIQUIDITY_RUMOR",
+        "severity": "SEV0",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-CRISIS-APPROVED-MESSAGE"],
+        "draft": {
+          "title": "Démenti liquidité",
+          "body_fr": "La banque dément formellement toute difficulté de liquidité. Nos clients peuvent continuer à utiliser nos services en toute sérénité, sans aucun risque pour leurs dépôts.",
+          "root_cause_stated": false,
+          "uses_approved_message": false,
+          "matched_statement_id": null,
+          "regulator_coord_confirmed": false,
+          "remediation_commitment": null,
+          "minutes_since_incident": 15
+        }
+      },
+      {
+        "scenario_id": "CRS-OUT-REMEDIATION",
+        "label": "Indisponibilité service — engagement de remédiation non validé",
+        "incident_type": "SERVICE_OUTAGE",
+        "severity": "SEV2",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-CRISIS-REMEDIATION"],
+        "draft": {
+          "title": "Incident paiement cartes",
+          "body_fr": "Nous rencontrons un incident de paiement par carte. Le service sera rétabli avant 18h et un geste commercial sera automatiquement appliqué aux clients impactés.",
+          "root_cause_stated": false,
+          "uses_approved_message": false,
+          "matched_statement_id": null,
+          "regulator_coord_confirmed": false,
+          "remediation_commitment": "service rétabli avant 18h + geste commercial automatique",
+          "minutes_since_incident": 30
+        }
+      }
+    ]
+  }
+}

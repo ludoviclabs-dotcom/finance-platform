@@ -30,7 +30,7 @@
         "priority": "V1",
         "sla_h": 4,
         "owner": "Cellule crise + CISO",
-        "status": "planned"
+        "status": "demo"
       },
       {
         "agent_id": "AG-B003",

@@ -24,6 +24,7 @@ import manifestJson from "@/content/bank-comms/_manifest.json";
 import foundationsJson from "@/content/bank-comms/foundations.json";
 import masterJson from "@/content/bank-comms/master.json";
 import agb001Json from "@/content/bank-comms/agb001-regbank.json";
+import agb002Json from "@/content/bank-comms/agb002-crisis.json";
 
 // ─── CONSTS ──────────────────────────────────────────────────────────────────
 
@@ -220,6 +221,103 @@ export function getRegBankScenario(id: string): RegBankScenario | undefined {
   return REG_BANK_SCENARIOS.find((s) => s.scenario_id === id);
 }
 
+// ─── AG-B002 BankCrisis ──────────────────────────────────────────────────────
+
+const CrisisDraftSchema = z.object({
+  title: z.string(),
+  body_fr: z.string(),
+  root_cause_stated: z.boolean(),
+  uses_approved_message: z.boolean(),
+  matched_statement_id: z.string().nullable(),
+  regulator_coord_confirmed: z.boolean(),
+  remediation_commitment: z.string().nullable(),
+  minutes_since_incident: z.number(),
+});
+
+const CrisisScenarioSchema = z.object({
+  scenario_id: z.string(),
+  label: z.string(),
+  incident_type: z.enum([
+    "CYBER",
+    "DATA_LEAK",
+    "LIQUIDITY_RUMOR",
+    "SANCTION",
+    "SERVICE_OUTAGE",
+  ]),
+  severity: z.enum(["SEV0", "SEV1", "SEV2", "SEV3"]),
+  expected_verdict: z.enum(["PASS", "PASS_WITH_REVIEW", "BLOCK"]),
+  expected_blockers: z.array(z.string()),
+  draft: CrisisDraftSchema,
+});
+export type BankCrisisScenario = z.infer<typeof CrisisScenarioSchema>;
+
+const CrisisCatalogSchema = z.object({
+  scenario_id: z.string(),
+  label: z.string(),
+  severity_default: z.string(),
+  sla_minutes_initial: z.number(),
+  regulator_coord_required: z.boolean(),
+});
+export type CrisisCatalogEntry = z.infer<typeof CrisisCatalogSchema>;
+
+const HoldingStatementSchema = z.object({
+  statement_id: z.string(),
+  scenario_id: z.string(),
+  lang: z.string(),
+  title: z.string(),
+  body: z.string(),
+  approver: z.string(),
+  approved_at: z.string(),
+});
+export type HoldingStatement = z.infer<typeof HoldingStatementSchema>;
+
+const CrisisTimerSchema = z.object({
+  severity: z.string(),
+  sla_minutes_initial: z.number(),
+  reassess_every_minutes: z.number(),
+});
+export type CrisisTimer = z.infer<typeof CrisisTimerSchema>;
+
+const crisisData = (agb002Json as { data: Record<string, unknown> }).data ?? {};
+
+export const BANK_CRISIS_CATALOG: CrisisCatalogEntry[] = safeParseArray(
+  CrisisCatalogSchema,
+  crisisData["1_SCENARIO_CATALOG"],
+  "crisis_catalog",
+);
+
+export const BANK_CRISIS_HOLDING_STATEMENTS: HoldingStatement[] = safeParseArray(
+  HoldingStatementSchema,
+  crisisData["2_HOLDING_STATEMENTS"],
+  "holding_statements",
+);
+
+export const BANK_CRISIS_TIMERS: CrisisTimer[] = safeParseArray(
+  CrisisTimerSchema,
+  crisisData["5_CRISIS_TIMER"],
+  "crisis_timers",
+);
+
+export const BANK_CRISIS_SCENARIOS: BankCrisisScenario[] = safeParseArray(
+  CrisisScenarioSchema,
+  crisisData["6_TESTSET"],
+  "crisis_scenarios",
+);
+
+export function getCrisisScenario(id: string): BankCrisisScenario | undefined {
+  return BANK_CRISIS_SCENARIOS.find((s) => s.scenario_id === id);
+}
+
+export function getHoldingStatementsFor(incidentType: string): HoldingStatement[] {
+  return BANK_CRISIS_HOLDING_STATEMENTS.filter(
+    (s) => s.scenario_id === incidentType,
+  );
+}
+
+export function getCrisisTimer(severity: string): CrisisTimer | undefined {
+  return BANK_CRISIS_TIMERS.find((t) => t.severity === severity);
+}
+
 // ─── SÉLECTEURS MÉTIER ───────────────────────────────────────────────────────
 
 export function getPublicAgents(): AgentRegistryRow[] {
@@ -248,6 +346,8 @@ export const BANK_COMMS_SUMMARY = {
   sources_count: BANK_COMMS_SOURCES.length,
   rules_count: BANK_COMMS_DISCLOSURE_RULES.length,
   scenarios_count: REG_BANK_SCENARIOS.length,
+  crisis_scenarios_count: BANK_CRISIS_SCENARIOS.length,
+  holding_statements_count: BANK_CRISIS_HOLDING_STATEMENTS.length,
   readiness: {
     workbooks_built: false,
     demo_live: true,

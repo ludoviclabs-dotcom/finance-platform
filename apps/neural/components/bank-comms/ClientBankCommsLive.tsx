@@ -1,9 +1,7 @@
 "use client";
 
 /**
- * ClientBankCommsLive — AG-B004 ClientBankComms demo (Sprint 4).
- * Scenario-id only. Affiche gates (mentions, canal, ton, lisibilité) +
- * métriques chiffrées (chars vs. limite, Flesch FR score).
+ * ClientBankCommsLive — dark theme refit.
  */
 
 import { useEffect, useState } from "react";
@@ -66,9 +64,15 @@ type Api = {
 };
 
 const DECISION: Record<Verdict["decision"], { badge: string; icon: typeof CheckCircle2 }> = {
-  PASS: { badge: "bg-emerald-50 text-emerald-800 ring-emerald-200", icon: CheckCircle2 },
-  PASS_WITH_REVIEW: { badge: "bg-amber-50 text-amber-800 ring-amber-200", icon: AlertTriangle },
-  BLOCK: { badge: "bg-red-50 text-red-800 ring-red-200", icon: XCircle },
+  PASS: {
+    badge: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
+    icon: CheckCircle2,
+  },
+  PASS_WITH_REVIEW: {
+    badge: "border-amber-400/30 bg-amber-400/10 text-amber-200",
+    icon: AlertTriangle,
+  },
+  BLOCK: { badge: "border-red-400/30 bg-red-400/10 text-red-200", icon: XCircle },
 };
 
 const CANAL_ICON: Record<Scenario["canal"], typeof Mail> = {
@@ -162,34 +166,36 @@ export function ClientBankCommsLive() {
   const CanalIcon = active ? CANAL_ICON[active.canal] : Mail;
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <header className="flex items-start justify-between gap-4">
+    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-8">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Mail className="h-6 w-6 text-blue-600" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-400/30 bg-blue-400/10">
+            <Mail className="h-5 w-5 text-blue-200" />
+          </div>
           <div>
-            <p className="text-xs font-mono uppercase tracking-wider text-neutral-500">
+            <p className="font-mono text-[11px] uppercase tracking-wider text-white/50">
               AG-B004 · ClientBankComms
             </p>
-            <h3 className="text-lg font-semibold">
+            <h3 className="text-lg font-semibold text-white">
               Communication client sensible
             </h3>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-800 ring-1 ring-inset ring-violet-200">
-          <PlayCircle className="h-3.5 w-3.5" />
-          Démo · scénarios pré-chargés uniquement
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-violet-200">
+          <PlayCircle className="h-3 w-3" />
+          Scénarios figés · pas de texte libre
         </span>
       </header>
 
-      <p className="mt-3 text-sm text-neutral-600">
+      <p className="mt-4 text-sm leading-relaxed text-white/65">
         4 gates : mentions légales obligatoires selon use_case, limite de
-        caractères du canal (SMS ≤ 160, PUSH ≤ 80), ton non-promotionnel,
-        lisibilité Flesch FR adaptée au segment.
+        caractères du canal (SMS ≤ 160, PUSH ≤ 80), ton non promotionnel,
+        lisibilité Flesch FR par segment.
       </p>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
+      <div className="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-white/50">
             Scénario client
           </span>
           <select
@@ -199,10 +205,14 @@ export function ClientBankCommsLive() {
               setVerdict(null);
               setError(null);
             }}
-            className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500"
+            className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2.5 text-sm text-white focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
           >
             {scenarios.map((s) => (
-              <option key={s.scenario_id} value={s.scenario_id}>
+              <option
+                key={s.scenario_id}
+                value={s.scenario_id}
+                className="bg-[#0A1628]"
+              >
                 [{s.canal}] {s.label}
               </option>
             ))}
@@ -212,7 +222,7 @@ export function ClientBankCommsLive() {
           type="button"
           onClick={run}
           disabled={loading || !scenarioId}
-          className="inline-flex items-center justify-center gap-2 self-end rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 self-end rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[#0A1628] transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             <>
@@ -222,46 +232,46 @@ export function ClientBankCommsLive() {
           ) : (
             <>
               <ShieldCheck className="h-4 w-4" />
-              Vérifier la communication
+              Vérifier
             </>
           )}
         </button>
       </div>
 
       {active ? (
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 font-mono text-neutral-700">
+        <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-white/70">
             <CanalIcon className="h-3 w-3" />
             {active.canal}
           </span>
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600">
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/60">
             {active.use_case_id}
           </span>
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600">
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/60">
             {active.segment_id}
           </span>
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600">
-            Verdict attendu :{" "}
-            <span className="font-semibold">{active.expected_verdict}</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/60">
+            Attendu :{" "}
+            <span className="font-semibold text-white">{active.expected_verdict}</span>
           </span>
         </div>
       ) : null}
 
       {error ? (
-        <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800 ring-1 ring-inset ring-red-200">
+        <div className="mt-4 rounded-xl border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-200">
           {error}
         </div>
       ) : null}
 
       {verdict ? (
-        <section className="mt-6 space-y-4">
+        <section className="mt-8 space-y-5">
           <div className="flex flex-wrap items-center gap-3">
             {(() => {
               const s = DECISION[verdict.decision];
               const Icon = s.icon;
               return (
                 <span
-                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ring-1 ring-inset ${s.badge}`}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${s.badge}`}
                 >
                   <Icon className="h-4 w-4" />
                   {verdict.decision}
@@ -269,7 +279,7 @@ export function ClientBankCommsLive() {
               );
             })()}
             {meta ? (
-              <span className="text-xs text-neutral-500">
+              <span className="text-[11px] text-white/50">
                 Mode {meta.mode} · {meta.latencyMs} ms
               </span>
             ) : null}
@@ -277,7 +287,7 @@ export function ClientBankCommsLive() {
               type="button"
               onClick={downloadPack}
               disabled={exporting}
-              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 transition hover:bg-neutral-50 disabled:opacity-50"
+              className="ml-auto inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
             >
               {exporting ? (
                 <>
@@ -295,19 +305,19 @@ export function ClientBankCommsLive() {
 
           {/* Métriques */}
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-lg border border-neutral-200 bg-white p-3 text-sm">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
               <div className="flex items-center justify-between gap-2">
-                <p className="flex items-center gap-1 font-medium text-neutral-900">
-                  <Gauge className="h-4 w-4 text-neutral-600" />
+                <p className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <Gauge className="h-4 w-4 text-white/60" />
                   Longueur
                 </p>
                 <span
-                  className={
+                  className={`font-mono text-[11px] ${
                     verdict.metrics.char_limit &&
                     verdict.metrics.char_count > verdict.metrics.char_limit
-                      ? "font-mono text-xs text-red-700"
-                      : "font-mono text-xs text-neutral-600"
-                  }
+                      ? "text-red-300"
+                      : "text-white/60"
+                  }`}
                 >
                   {verdict.metrics.char_count} chars
                   {verdict.metrics.char_limit
@@ -316,13 +326,13 @@ export function ClientBankCommsLive() {
                 </span>
               </div>
               {verdict.metrics.char_limit ? (
-                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-neutral-200">
+                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
                   <div
-                    className={
+                    className={`h-full ${
                       verdict.metrics.char_count > verdict.metrics.char_limit
-                        ? "h-full bg-red-500"
-                        : "h-full bg-emerald-500"
-                    }
+                        ? "bg-red-400"
+                        : "bg-emerald-400"
+                    }`}
                     style={{
                       width: `${Math.min(
                         100,
@@ -336,25 +346,25 @@ export function ClientBankCommsLive() {
               ) : null}
             </div>
 
-            <div className="rounded-lg border border-neutral-200 bg-white p-3 text-sm">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
               <div className="flex items-center justify-between gap-2">
-                <p className="flex items-center gap-1 font-medium text-neutral-900">
-                  <Gauge className="h-4 w-4 text-neutral-600" />
-                  Lisibilité (Flesch FR)
+                <p className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <Gauge className="h-4 w-4 text-white/60" />
+                  Flesch FR
                 </p>
-                <span className="font-mono text-xs text-neutral-600">
+                <span className="font-mono text-[11px] text-white/60">
                   Score {verdict.metrics.reading_level_score} / seuil{" "}
                   {Math.max(0, 100 - verdict.metrics.reading_level_max)}
                 </span>
               </div>
-              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-neutral-200">
+              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
                 <div
-                  className={
+                  className={`h-full ${
                     verdict.metrics.reading_level_score >=
                     Math.max(0, 100 - verdict.metrics.reading_level_max)
-                      ? "h-full bg-emerald-500"
-                      : "h-full bg-amber-500"
-                  }
+                      ? "bg-emerald-400"
+                      : "bg-amber-400"
+                  }`}
                   style={{
                     width: `${Math.min(100, verdict.metrics.reading_level_score)}%`,
                   }}
@@ -364,15 +374,15 @@ export function ClientBankCommsLive() {
           </div>
 
           {verdict.metrics.missing_notices.length ? (
-            <div className="rounded-lg border border-red-200 bg-red-50/50 p-3 text-sm">
-              <p className="font-medium text-red-900">
-                Mentions obligatoires manquantes
+            <div className="rounded-2xl border border-red-400/25 bg-red-400/[0.08] p-4 text-sm">
+              <p className="font-semibold text-red-100">
+                Mentions légales manquantes
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {verdict.metrics.missing_notices.map((n) => (
                   <span
                     key={n}
-                    className="rounded-full bg-red-100 px-2 py-0.5 font-mono text-xs text-red-900"
+                    className="rounded-full border border-red-400/30 bg-red-400/15 px-2.5 py-1 font-mono text-[11px] text-red-100"
                   >
                     {n}
                   </span>
@@ -382,15 +392,13 @@ export function ClientBankCommsLive() {
           ) : null}
 
           {verdict.metrics.absolute_terms.length ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 text-sm">
-              <p className="font-medium text-amber-900">
-                Termes absolus détectés
-              </p>
+            <div className="rounded-2xl border border-amber-400/25 bg-amber-400/[0.08] p-4 text-sm">
+              <p className="font-semibold text-amber-100">Termes absolus détectés</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {verdict.metrics.absolute_terms.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-900"
+                    className="rounded-full border border-amber-400/30 bg-amber-400/15 px-2.5 py-1 text-[11px] text-amber-100"
                   >
                     {t}
                   </span>
@@ -399,43 +407,47 @@ export function ClientBankCommsLive() {
             </div>
           ) : null}
 
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
-            <p className="font-medium text-neutral-900">Commentaire reviewer</p>
-            <p className="mt-1 whitespace-pre-wrap">{verdict.reviewer_comment}</p>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-white/75">
+            <p className="font-semibold text-white">Commentaire reviewer</p>
+            <p className="mt-1.5 whitespace-pre-wrap">{verdict.reviewer_comment}</p>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-neutral-900">
-              Gates client ({verdict.gates.filter((g) => g.passed).length}/
-              {verdict.gates.length} passent)
-            </h4>
-            <ul className="mt-2 space-y-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-violet-200">
+              Gates client — {verdict.gates.filter((g) => g.passed).length}/
+              {verdict.gates.length} PASS
+            </p>
+            <ul className="mt-3 space-y-2">
               {verdict.gates.map((g) => (
                 <li
                   key={g.gate_id}
-                  className={`rounded-lg border p-3 text-sm ${
+                  className={`rounded-xl border p-3 ${
                     g.passed
-                      ? "border-emerald-200 bg-emerald-50/50"
+                      ? "border-emerald-400/25 bg-emerald-400/[0.06]"
                       : g.blocking
-                        ? "border-red-200 bg-red-50/50"
-                        : "border-amber-200 bg-amber-50/50"
+                        ? "border-red-400/25 bg-red-400/[0.06]"
+                        : "border-amber-400/25 bg-amber-400/[0.06]"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-mono text-xs text-neutral-500">{g.gate_id}</p>
-                      <p className="mt-0.5 font-medium text-neutral-900">{g.label}</p>
+                      <p className="font-mono text-[11px] text-white/50">
+                        {g.gate_id}
+                      </p>
+                      <p className="mt-0.5 text-sm font-semibold text-white">
+                        {g.label}
+                      </p>
                     </div>
                     {g.passed ? (
-                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                      <CheckCircle2 className="h-5 w-5 text-emerald-300" />
                     ) : g.blocking ? (
-                      <ShieldAlert className="h-5 w-5 text-red-600" />
+                      <ShieldAlert className="h-5 w-5 text-red-300" />
                     ) : (
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      <AlertTriangle className="h-5 w-5 text-amber-300" />
                     )}
                   </div>
                   {g.reason ? (
-                    <p className="mt-2 text-xs text-neutral-700">{g.reason}</p>
+                    <p className="mt-2 text-xs text-white/60">{g.reason}</p>
                   ) : null}
                 </li>
               ))}
@@ -444,8 +456,10 @@ export function ClientBankCommsLive() {
 
           {verdict.points_to_validate.length ? (
             <div>
-              <h4 className="text-sm font-semibold text-neutral-900">Points à valider</h4>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-neutral-700">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-violet-200">
+                Points à valider
+              </p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-white/75">
                 {verdict.points_to_validate.map((p, i) => (
                   <li key={i}>{p}</li>
                 ))}
@@ -455,11 +469,11 @@ export function ClientBankCommsLive() {
 
           {verdict.suggested_rewrite ? (
             <div>
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-                <FileText className="h-4 w-4" />
+              <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-violet-200">
+                <FileText className="h-3.5 w-3.5" />
                 Reformulation suggérée
-              </h4>
-              <pre className="mt-2 overflow-x-auto rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-800">
+              </p>
+              <pre className="mt-3 overflow-x-auto rounded-2xl border border-white/10 bg-black/30 p-4 text-xs leading-relaxed text-white/80">
                 {verdict.suggested_rewrite}
               </pre>
             </div>

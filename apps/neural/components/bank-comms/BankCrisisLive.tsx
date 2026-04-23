@@ -1,11 +1,7 @@
 "use client";
 
 /**
- * BankCrisisLive — Client Component (Sprint 2 Banque / Comms)
- *
- * Démo live AG-B002 BankCrisisComms. Scenario-id only (correctif #2).
- * Affiche verdict, SLA clock, gates crise et reformulation dérivée d'un
- * holding statement approuvé.
+ * BankCrisisLive — dark theme refit.
  */
 
 import { useEffect, useState } from "react";
@@ -66,19 +62,31 @@ type ApiResponse = {
 };
 
 const SEV_STYLE: Record<Scenario["severity"], string> = {
-  SEV0: "bg-red-100 text-red-900 ring-red-300",
-  SEV1: "bg-orange-100 text-orange-900 ring-orange-300",
-  SEV2: "bg-amber-100 text-amber-900 ring-amber-300",
-  SEV3: "bg-yellow-50 text-yellow-900 ring-yellow-200",
+  SEV0: "border-red-400/40 bg-red-400/15 text-red-100",
+  SEV1: "border-orange-400/40 bg-orange-400/15 text-orange-100",
+  SEV2: "border-amber-400/40 bg-amber-400/15 text-amber-100",
+  SEV3: "border-yellow-400/30 bg-yellow-400/10 text-yellow-100",
 };
 
 const DECISION_STYLE: Record<
   Verdict["decision"],
   { badge: string; icon: typeof CheckCircle2; label: string }
 > = {
-  PASS: { badge: "bg-emerald-50 text-emerald-800 ring-emerald-200", icon: CheckCircle2, label: "Conforme" },
-  PASS_WITH_REVIEW: { badge: "bg-amber-50 text-amber-800 ring-amber-200", icon: AlertTriangle, label: "À relire" },
-  BLOCK: { badge: "bg-red-50 text-red-800 ring-red-200", icon: XCircle, label: "Bloqué" },
+  PASS: {
+    badge: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
+    icon: CheckCircle2,
+    label: "Conforme",
+  },
+  PASS_WITH_REVIEW: {
+    badge: "border-amber-400/30 bg-amber-400/10 text-amber-200",
+    icon: AlertTriangle,
+    label: "À relire",
+  },
+  BLOCK: {
+    badge: "border-red-400/30 bg-red-400/10 text-red-200",
+    icon: XCircle,
+    label: "Bloqué",
+  },
 };
 
 export function BankCrisisLive() {
@@ -163,33 +171,37 @@ export function BankCrisisLive() {
   const active = scenarios.find((s) => s.scenario_id === scenarioId);
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <header className="flex items-start justify-between gap-4">
+    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-8">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Siren className="h-6 w-6 text-red-600" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-red-400/30 bg-red-400/10">
+            <Siren className="h-5 w-5 text-red-200" />
+          </div>
           <div>
-            <p className="text-xs font-mono uppercase tracking-wider text-neutral-500">
+            <p className="font-mono text-[11px] uppercase tracking-wider text-white/50">
               AG-B002 · BankCrisisComms
             </p>
-            <h3 className="text-lg font-semibold">Communication de crise bancaire</h3>
+            <h3 className="text-lg font-semibold text-white">
+              Communication de crise bancaire
+            </h3>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-800 ring-1 ring-inset ring-violet-200">
-          <PlayCircle className="h-3.5 w-3.5" />
-          Démo · scénarios pré-chargés uniquement
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-violet-200">
+          <PlayCircle className="h-3 w-3" />
+          Scénarios figés · pas de texte libre
         </span>
       </header>
 
-      <p className="mt-3 text-sm text-neutral-600">
-        4 gates spécifiques crise : pas de cause racine non confirmée, message dérivé de
-        la bibliothèque approuvée, pas d&apos;engagement de remédiation sans validation,
-        horloge SLA par niveau de sévérité.
+      <p className="mt-4 text-sm leading-relaxed text-white/65">
+        4 gates spécifiques crise : cause racine confirmée, message issu de la
+        bibliothèque approuvée, remédiation validée régulateur, horloge SLA par
+        niveau de sévérité.
       </p>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
+      <div className="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-            Scénario de crise
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-white/50">
+            Scénario crise
           </span>
           <select
             value={scenarioId}
@@ -198,10 +210,14 @@ export function BankCrisisLive() {
               setVerdict(null);
               setError(null);
             }}
-            className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500"
+            className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2.5 text-sm text-white focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
           >
             {scenarios.map((s) => (
-              <option key={s.scenario_id} value={s.scenario_id}>
+              <option
+                key={s.scenario_id}
+                value={s.scenario_id}
+                className="bg-[#0A1628]"
+              >
                 [{s.severity}] {s.label}
               </option>
             ))}
@@ -211,7 +227,7 @@ export function BankCrisisLive() {
           type="button"
           onClick={run}
           disabled={loading || !scenarioId}
-          className="inline-flex items-center justify-center gap-2 self-end rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 self-end rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[#0A1628] transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             <>
@@ -228,38 +244,41 @@ export function BankCrisisLive() {
       </div>
 
       {active ? (
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          <span className={`rounded-full px-2 py-0.5 font-semibold ring-1 ring-inset ${SEV_STYLE[active.severity]}`}>
+        <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+          <span
+            className={`inline-flex items-center rounded-full border px-2.5 py-1 font-semibold ${SEV_STYLE[active.severity]}`}
+          >
             {active.severity}
           </span>
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 font-mono text-neutral-600">
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-white/60">
             {active.incident_type}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600">
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/60">
             <Clock className="h-3 w-3" />
             T+{active.minutes_since_incident} min
           </span>
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600">
-            Verdict attendu : <span className="font-semibold">{active.expected_verdict}</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/60">
+            Attendu :{" "}
+            <span className="font-semibold text-white">{active.expected_verdict}</span>
           </span>
         </div>
       ) : null}
 
       {error ? (
-        <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800 ring-1 ring-inset ring-red-200">
+        <div className="mt-4 rounded-xl border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-200">
           {error}
         </div>
       ) : null}
 
       {verdict ? (
-        <section className="mt-6 space-y-4">
+        <section className="mt-8 space-y-5">
           <div className="flex flex-wrap items-center gap-3">
             {(() => {
               const s = DECISION_STYLE[verdict.decision];
               const Icon = s.icon;
               return (
                 <span
-                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ring-1 ring-inset ${s.badge}`}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${s.badge}`}
                 >
                   <Icon className="h-4 w-4" />
                   {s.label} — {verdict.decision}
@@ -267,7 +286,7 @@ export function BankCrisisLive() {
               );
             })()}
             {meta ? (
-              <span className="text-xs text-neutral-500">
+              <span className="text-[11px] text-white/50">
                 Mode {meta.mode} · {meta.latencyMs} ms
               </span>
             ) : null}
@@ -275,7 +294,7 @@ export function BankCrisisLive() {
               type="button"
               onClick={downloadPack}
               disabled={exporting}
-              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 transition hover:bg-neutral-50 disabled:opacity-50"
+              className="ml-auto inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
             >
               {exporting ? (
                 <>
@@ -293,25 +312,25 @@ export function BankCrisisLive() {
 
           {/* SLA clock */}
           <div
-            className={`rounded-lg border p-4 text-sm ${
+            className={`rounded-2xl border p-4 ${
               verdict.sla.overdue
-                ? "border-red-300 bg-red-50"
-                : "border-emerald-200 bg-emerald-50/50"
+                ? "border-red-400/40 bg-red-400/10"
+                : "border-emerald-400/30 bg-emerald-400/[0.08]"
             }`}
           >
             <div className="flex items-center gap-2">
               <Timer
-                className={`h-5 w-5 ${verdict.sla.overdue ? "text-red-600" : "text-emerald-600"}`}
+                className={`h-5 w-5 ${verdict.sla.overdue ? "text-red-300" : "text-emerald-300"}`}
               />
-              <p className="font-semibold text-neutral-900">
-                SLA {verdict.sla.severity} :{" "}
-                {verdict.sla.elapsed_minutes} / {verdict.sla.deadline_minutes} min
+              <p className="text-sm font-semibold text-white">
+                SLA {verdict.sla.severity} : {verdict.sla.elapsed_minutes} /{" "}
+                {verdict.sla.deadline_minutes} min
                 {verdict.sla.overdue ? " — dépassé" : " — dans les clous"}
               </p>
             </div>
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-neutral-200">
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
               <div
-                className={`h-full ${verdict.sla.overdue ? "bg-red-500" : "bg-emerald-500"}`}
+                className={`h-full ${verdict.sla.overdue ? "bg-red-400" : "bg-emerald-400"}`}
                 style={{
                   width: `${Math.min(100, Math.round((verdict.sla.elapsed_minutes / verdict.sla.deadline_minutes) * 100))}%`,
                 }}
@@ -319,44 +338,48 @@ export function BankCrisisLive() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
-            <p className="font-medium text-neutral-900">Commentaire reviewer</p>
-            <p className="mt-1 whitespace-pre-wrap">{verdict.reviewer_comment}</p>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-white/75">
+            <p className="font-semibold text-white">Commentaire reviewer</p>
+            <p className="mt-1.5 whitespace-pre-wrap">{verdict.reviewer_comment}</p>
           </div>
 
           {/* Gates */}
           <div>
-            <h4 className="text-sm font-semibold text-neutral-900">
-              Gates crise ({verdict.gates.filter((g) => g.passed).length}/
-              {verdict.gates.length} passent)
-            </h4>
-            <ul className="mt-2 space-y-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-violet-200">
+              Gates crise — {verdict.gates.filter((g) => g.passed).length}/
+              {verdict.gates.length} PASS
+            </p>
+            <ul className="mt-3 space-y-2">
               {verdict.gates.map((g) => (
                 <li
                   key={g.gate_id}
-                  className={`rounded-lg border p-3 text-sm ${
+                  className={`rounded-xl border p-3 ${
                     g.passed
-                      ? "border-emerald-200 bg-emerald-50/50"
+                      ? "border-emerald-400/25 bg-emerald-400/[0.06]"
                       : g.blocking
-                        ? "border-red-200 bg-red-50/50"
-                        : "border-amber-200 bg-amber-50/50"
+                        ? "border-red-400/25 bg-red-400/[0.06]"
+                        : "border-amber-400/25 bg-amber-400/[0.06]"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-mono text-xs text-neutral-500">{g.gate_id}</p>
-                      <p className="mt-0.5 font-medium text-neutral-900">{g.label}</p>
+                      <p className="font-mono text-[11px] text-white/50">
+                        {g.gate_id}
+                      </p>
+                      <p className="mt-0.5 text-sm font-semibold text-white">
+                        {g.label}
+                      </p>
                     </div>
                     {g.passed ? (
-                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                      <CheckCircle2 className="h-5 w-5 text-emerald-300" />
                     ) : g.blocking ? (
-                      <ShieldAlert className="h-5 w-5 text-red-600" />
+                      <ShieldAlert className="h-5 w-5 text-red-300" />
                     ) : (
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      <AlertTriangle className="h-5 w-5 text-amber-300" />
                     )}
                   </div>
                   {g.reason ? (
-                    <p className="mt-2 text-xs text-neutral-700">{g.reason}</p>
+                    <p className="mt-2 text-xs text-white/60">{g.reason}</p>
                   ) : null}
                 </li>
               ))}
@@ -364,18 +387,18 @@ export function BankCrisisLive() {
           </div>
 
           {verdict.recommended_statement_id ? (
-            <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3 text-sm">
-              <p className="font-medium text-blue-900">
-                Holding statement recommandé :{" "}
-                <span className="font-mono">{verdict.recommended_statement_id}</span>
-              </p>
+            <div className="rounded-xl border border-blue-400/25 bg-blue-400/[0.08] p-3 text-sm text-blue-100">
+              Holding statement recommandé :{" "}
+              <span className="font-mono">{verdict.recommended_statement_id}</span>
             </div>
           ) : null}
 
           {verdict.points_to_validate.length ? (
             <div>
-              <h4 className="text-sm font-semibold text-neutral-900">Points à valider</h4>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-neutral-700">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-violet-200">
+                Points à valider
+              </p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-white/75">
                 {verdict.points_to_validate.map((p, i) => (
                   <li key={i}>{p}</li>
                 ))}
@@ -385,11 +408,11 @@ export function BankCrisisLive() {
 
           {verdict.suggested_rewrite ? (
             <div>
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-                <FileText className="h-4 w-4" />
+              <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-violet-200">
+                <FileText className="h-3.5 w-3.5" />
                 Reformulation dérivée d&apos;un holding approuvé
-              </h4>
-              <pre className="mt-2 overflow-x-auto rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-800">
+              </p>
+              <pre className="mt-3 overflow-x-auto rounded-2xl border border-white/10 bg-black/30 p-4 text-xs leading-relaxed text-white/80">
                 {verdict.suggested_rewrite}
               </pre>
             </div>

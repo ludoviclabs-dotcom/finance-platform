@@ -5,6 +5,8 @@ import {
   ArrowRight,
   Building2,
   FileWarning,
+  Gauge,
+  Inbox,
   Landmark,
   Leaf,
   Mail,
@@ -12,29 +14,27 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { StatusBadge } from "@/components/site/status-badge";
 import { RegBankCommsLive } from "@/components/bank-comms/RegBankCommsLive";
 import { BankCrisisLive } from "@/components/bank-comms/BankCrisisLive";
 import { EsgBankCommsLive } from "@/components/bank-comms/EsgBankCommsLive";
 import { ClientBankCommsLive } from "@/components/bank-comms/ClientBankCommsLive";
 import {
-  BANK_COMMS_SUMMARY,
-  getPublicAgents,
-  getTransverseServices,
   BANK_COMMS_GATES,
-  BANK_COMMS_WORKFLOW,
   BANK_COMMS_RISKS,
   BANK_COMMS_SOURCES,
+  BANK_COMMS_WORKFLOW,
+  getPublicAgents,
+  getTransverseServices,
 } from "@/lib/data/bank-comms-catalog";
 
 export const metadata: Metadata = {
-  title: "Banque / Communication — readiness Sprint 0 | NEURAL",
+  title: "Banque / Communication — 4 agents déterministes en démo | NEURAL",
   description:
-    "Branche Banque / Communication en préparation : RegBankComms, BankCrisisComms, ESGBankComms, ClientBankComms. Architecture trust-first, workflow de validation humaine, veille réglementaire ACPR/AMF/EBA/ECB/ESMA.",
+    "Communications bancaires régulées, crise, ESG et clients sensibles. 16 gates serveur, scénarios pré-chargés, packs exportables avec hash SHA-256. Aucune autopublication, chaque sortie est défendable.",
   openGraph: {
     title: "NEURAL — Banque / Communication",
     description:
-      "4 agents de préparation de communications bancaires sensibles + 2 services transverses. Aucune autopublication, toute sortie validée humainement.",
+      "RegBankComms, BankCrisisComms, ESGBankComms, ClientBankComms. 16 gates déterministes, 10 sources ACPR/AMF/EBA/ECB/ESMA/IFRS.",
   },
 };
 
@@ -47,351 +47,352 @@ const AGENT_ICON: Record<string, typeof ShieldCheck> = {
   "bank-evidence-guard": ShieldCheck,
 };
 
+const AGENT_TAGLINE: Record<string, string> = {
+  "reg-bank-comms":
+    "Résultats financiers, gouvernance, notices supervision. Bloque chiffres non validés, info privilégiée non publique, termes absolus.",
+  "bank-crisis-comms":
+    "Cyber, fuite, rumeur liquidité, sanction, outage. Holding statement obligatoire, cause racine interdite tant que non confirmée, SLA par sévérité.",
+  "esg-bank-comms":
+    "SFDR, taxonomie, Green Claims Directive. Matche claim library, vérifie preuve ACTIVE, rend verdict juridiction FR/EU.",
+  "client-bank-comms":
+    "Hausse tarifs, fermeture agence, incident, alerte fraude. Mentions légales obligatoires, limite de canal, ton non promotionnel, Flesch FR par segment.",
+};
+
 export default function BankCommsPage() {
   const publicAgents = getPublicAgents();
   const services = getTransverseServices();
 
   return (
-    <div className="bg-stone-50 text-neutral-900">
-      {/* Header */}
-      <div className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-6">
+    <div data-theme="dark" className="min-h-screen bg-[#0A1628] text-white">
+      {/* HERO */}
+      <section className="relative overflow-hidden border-b border-white/5 px-6 pb-14 pt-32 md:px-12">
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-500/10 via-transparent to-transparent" />
+        <div className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-violet-500/15 blur-[120px]" />
+
+        <div className="relative mx-auto max-w-[1280px]">
           <Link
             href="/secteurs"
-            className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900"
+            className="mb-8 inline-flex items-center gap-2 text-sm text-white/55 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             Tous les secteurs
           </Link>
-        </div>
-      </div>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 py-14">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-3">
-            <Building2 className="h-10 w-10 text-stone-700" />
-            <StatusBadge status="demo" />
-            <span className="text-xs font-mono uppercase tracking-wider text-neutral-500">
-              Sprint 4 · 4 agents publics en démo live
-            </span>
-          </div>
-          <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-            Banque <span className="text-stone-500">/</span> Communication
-          </h1>
-          <p className="max-w-3xl text-lg text-neutral-700">
-            NEURAL prépare, contrôle, justifie et fait valider les communications
-            bancaires sensibles. Pas un outil de publication : un système
-            multi-agents qui produit des sorties défendables devant audit,
-            régulateur ou management.
-          </p>
-          <div className="grid gap-3 text-sm text-neutral-700 md:grid-cols-2">
-            <div className="rounded-lg border border-neutral-200 bg-white p-4">
-              <p className="font-medium text-neutral-900">Wedge MVP</p>
-              <p className="mt-1 text-neutral-600">
-                Communication réglementée + veille + registre de preuves.
-                Extensions crise et ESG en V1, client sensible en V2.
-              </p>
+          <div className="flex flex-wrap items-start gap-6">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border border-violet-400/30 bg-violet-400/10">
+              <Building2 className="h-7 w-7 text-violet-200" />
             </div>
-            <div className="rounded-lg border border-neutral-200 bg-white p-4">
-              <p className="font-medium text-neutral-900">Périmètre initial</p>
-              <p className="mt-1 text-neutral-600">
-                France + UE. Cibles : banques régionales, banques privées,
-                fintechs régulées. Validation humaine obligatoire, pas
-                d'autopublication.
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-200">
+                  4 agents en démo live
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] font-mono text-white/60">
+                  FR · UE
+                </span>
+              </div>
+              <h1 className="mt-3 font-display text-5xl font-extrabold tracking-[-0.04em] md:text-6xl">
+                Banque <span className="text-white/40">/</span> Communication
+              </h1>
+              <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/70">
+                Communications bancaires régulées, crise, ESG, clients sensibles.
+                16 gates déterministes exécutées côté serveur avant tout appel
+                LLM. Pack défendable signé SHA-256 à chaque run.
               </p>
             </div>
           </div>
-          {/* Pricing mode — correctif #3 du blueprint : pas de forfaits publics banque */}
-          <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50/40 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-900">
-              Modèle tarifaire — Banque
-            </p>
-            <p className="mt-2 text-sm text-blue-950">
-              La branche Banque n&apos;est pas commercialisée sous forme de
-              forfaits publics. Chaque déploiement fait l&apos;objet d&apos;un
-              pilote privé cadré avec Juridique, Compliance, DirCom — avec
-              isolation par tenant, Postgres dédié, SSO et journalisation
-              restreinte.
-            </p>
-            <p className="mt-3 text-xs text-blue-900">
-              Ordres de grandeur indicatifs (non contractuels) : setup pilote
-              25–60 k€ · abonnement wedge 3–8 k€/mois · domaine complet
-              80–180 k€/an · groupe multi-pays 200–600 k€/an.
-            </p>
+
+          <div className="mt-10 grid gap-3 md:grid-cols-4">
+            {[
+              { k: "4", l: "agents publics" },
+              { k: "16", l: "gates serveur" },
+              { k: "19", l: "scénarios testset" },
+              { k: `${BANK_COMMS_SOURCES.length}`, l: "sources ACTIVE" },
+            ].map((s) => (
+              <div
+                key={s.l}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"
+              >
+                <p className="font-display text-4xl font-bold text-white">{s.k}</p>
+                <p className="mt-1 text-xs uppercase tracking-wider text-white/50">
+                  {s.l}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/contact?subject=Banque%20/%20Communication%20-%20pilote"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              href="/secteurs/banque/communication/dashboard"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[#0A1628] transition-colors hover:bg-white/90"
             >
-              Discuter d&apos;un pilote privé
-              <ArrowRight className="h-4 w-4" />
+              <Gauge className="h-4 w-4" />
+              Dashboard opérationnel
+            </Link>
+            <Link
+              href="/secteurs/banque/communication/inbox"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+            >
+              <Inbox className="h-4 w-4" />
+              Inbox HITL
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Démo live AG-B001 */}
-      <section className="mx-auto max-w-6xl px-6 py-10" id="demo-reg-bank-comms">
-        <div className="mb-4 flex items-center gap-3">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Démo live — AG-B001 RegBankComms
-          </h2>
-          <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
-            Sprint 1
-          </span>
-        </div>
-        <p className="mb-5 max-w-3xl text-neutral-600">
-          Gates MVP déterministes exécutées côté serveur sur 5 scénarios figés :
-          résultats Q1 propre, guidance non validée, annonce M&amp;A privilégiée,
-          superlatif non qualifié, ratio CET1 sans source. Chaque gate retourne
-          un statut <em>PASS/FAIL</em> + raison + offending refs, et le LLM
-          n'a pas le droit de contredire le verdict déterministe.
-        </p>
-        <RegBankCommsLive />
-      </section>
-
-      {/* Démo live AG-B002 */}
-      <section className="mx-auto max-w-6xl px-6 py-10" id="demo-bank-crisis">
-        <div className="mb-4 flex items-center gap-3">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Démo live — AG-B002 BankCrisisComms
-          </h2>
-          <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
-            Sprint 2
-          </span>
-        </div>
-        <p className="mb-5 max-w-3xl text-neutral-600">
-          Crise bancaire : 4 gates spécifiques (cause racine confirmée,
-          message issu de la bibliothèque approuvée, remédiation validée,
-          horloge SLA par sévérité). 4 scénarios pré-chargés couvrent cyber,
-          fuite de données, rumeur de liquidité, indisponibilité service.
-        </p>
-        <BankCrisisLive />
-      </section>
-
-      {/* Démo live AG-B003 */}
-      <section className="mx-auto max-w-6xl px-6 py-10" id="demo-esg-bank">
-        <div className="mb-4 flex items-center gap-3">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Démo live — AG-B003 ESGBankComms
-          </h2>
-          <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
-            Sprint 3
-          </span>
-        </div>
-        <p className="mb-5 max-w-3xl text-neutral-600">
-          Anti-greenwashing : détection de patterns ESG (SFDR, taxonomie UE,
-          Loi Climat), vérification preuve ACTIVE vs. STALE, verdict
-          juridiction FR / EU, reformulation qualifiée sourcée.
-        </p>
-        <EsgBankCommsLive />
-      </section>
-
-      {/* Démo live AG-B004 */}
-      <section className="mx-auto max-w-6xl px-6 py-10" id="demo-client-bank">
-        <div className="mb-4 flex items-center gap-3">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Démo live — AG-B004 ClientBankComms
-          </h2>
-          <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
-            Sprint 4
-          </span>
-        </div>
-        <p className="mb-5 max-w-3xl text-neutral-600">
-          Communications clients sensibles : hausse tarifs, fermeture agence,
-          incident, fraude. 4 gates : mentions obligatoires, limite caractères
-          du canal, ton, lisibilité Flesch FR adaptée au segment.
-        </p>
-        <ClientBankCommsLive />
-      </section>
-
-      {/* Sources / registre */}
-      <section className="mx-auto max-w-6xl px-6 py-6">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Registre de sources réglementaires
-        </h2>
-        <p className="mt-1 text-sm text-neutral-600">
-          {BANK_COMMS_SOURCES.length} sources ACTIVE en Sprint 1 — ACPR, AMF,
-          EBA, ECB, ESMA, IFRS, EUR-Lex. Toute sortie agent doit être adossée à
-          au moins une de ces sources (GATE-SOURCE-ACTIVE).
-        </p>
-        <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
-              <tr>
-                <th className="px-4 py-2">ID</th>
-                <th className="px-4 py-2">Autorité</th>
-                <th className="px-4 py-2">Titre</th>
-                <th className="px-4 py-2">Juri.</th>
-                <th className="px-4 py-2">Review</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BANK_COMMS_SOURCES.map((s) => (
-                <tr key={s.source_id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 font-mono text-xs text-neutral-500">
-                    {s.source_id}
-                  </td>
-                  <td className="px-4 py-2 text-neutral-900">{s.autorite}</td>
-                  <td className="px-4 py-2 text-neutral-700">{s.titre}</td>
-                  <td className="px-4 py-2 text-neutral-600">{s.juridiction}</td>
-                  <td className="px-4 py-2 text-xs text-neutral-500">
-                    {s.review_date ?? "—"}
-                  </td>
-                </tr>
+      {/* MODÈLE TARIFAIRE */}
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <div className="grid gap-10 lg:grid-cols-[1fr_1fr]">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+                Modèle pilote
+              </p>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+                Pas de forfait public. Pilote privé cadré.
+              </h2>
+              <p className="mt-4 text-white/65">
+                Chaque déploiement banque s&apos;exécute en tenant isolé : Postgres
+                dédié, SSO, journalisation restreinte, coordination directe
+                avec DirCom, Juridique et Compliance. Les chiffres
+                ci-dessous sont indicatifs — un scope précis émerge du
+                premier atelier.
+              </p>
+              <Link
+                href="/contact?subject=Banque%20/%20Communication%20-%20pilote"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[#0A1628] transition-colors hover:bg-white/90"
+              >
+                Cadrer un pilote
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="grid gap-3">
+              {[
+                { l: "Setup pilote", v: "25 – 60 k€" },
+                { l: "Wedge opérationnel", v: "3 – 8 k€/mois" },
+                { l: "Domaine complet", v: "80 – 180 k€/an" },
+                { l: "Groupe multi-pays", v: "200 – 600 k€/an" },
+              ].map((r) => (
+                <div
+                  key={r.l}
+                  className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3"
+                >
+                  <span className="text-sm text-white/70">{r.l}</span>
+                  <span className="font-mono text-sm font-semibold text-white">
+                    {r.v}
+                  </span>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Agents publics */}
-      <section className="mx-auto max-w-6xl px-6 py-8">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          4 agents publics
-        </h2>
-        <p className="mt-2 text-neutral-600">
-          Chacun ciblé sur un type de communication bancaire, avec ses propres
-          gates déterministes, son SLA et sa politique d'approbation.
-        </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {publicAgents.map((a) => {
-            const Icon = AGENT_ICON[a.slug] ?? Landmark;
-            const hasPage = a.status === "demo" || a.status === "live";
-            const Wrapper = ({ children }: { children: React.ReactNode }) =>
-              hasPage ? (
+      {/* DÉMO AG-B001 */}
+      <section className="border-b border-white/5 px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <Header
+            eyebrow="Démo live — AG-B001"
+            title="RegBankComms."
+            lead="Vérifier un communiqué de résultats, une annonce de gouvernance ou une notice de supervision. Gates : info privilégiée, chiffres validated, sources ACTIVE, termes restreints."
+          />
+          <div className="mt-8">
+            <RegBankCommsLive />
+          </div>
+        </div>
+      </section>
+
+      {/* DÉMO AG-B002 */}
+      <section className="border-b border-white/5 bg-rose-500/[0.03] px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <Header
+            eyebrow="Démo live — AG-B002"
+            title="BankCrisisComms."
+            lead="Assembler un message de crise en quelques minutes sans sortir du protocole. Cause racine bloquée tant que non confirmée, message issu de la bibliothèque approuvée, SLA par sévérité."
+          />
+          <div className="mt-8">
+            <BankCrisisLive />
+          </div>
+        </div>
+      </section>
+
+      {/* DÉMO AG-B003 */}
+      <section className="border-b border-white/5 bg-emerald-500/[0.03] px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <Header
+            eyebrow="Démo live — AG-B003"
+            title="ESGBankComms."
+            lead="Anti-greenwashing. Claim library 10 patterns, preuves avec expiry, matrice juridiction FR/EU, reformulation qualifiée sourcée."
+          />
+          <div className="mt-8">
+            <EsgBankCommsLive />
+          </div>
+        </div>
+      </section>
+
+      {/* DÉMO AG-B004 */}
+      <section className="border-b border-white/5 bg-blue-500/[0.03] px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <Header
+            eyebrow="Démo live — AG-B004"
+            title="ClientBankComms."
+            lead="Hausse tarifs, fermeture agence, incident, fraude. Mentions légales obligatoires selon use case, char_limit du canal, ton non-promotionnel, lisibilité Flesch FR par segment."
+          />
+          <div className="mt-8">
+            <ClientBankCommsLive />
+          </div>
+        </div>
+      </section>
+
+      {/* SOURCES */}
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <Header
+            eyebrow="Registre fermé"
+            title={`${BANK_COMMS_SOURCES.length} sources réglementaires.`}
+            lead="Aucune sortie agent n'est acceptée sans un mapping vers une de ces sources. Review toutes les 90 à 365 jours selon criticité (policy FRESH-STRICT / STANDARD / CLIENT)."
+          />
+          <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+            <table className="w-full text-sm">
+              <thead className="border-b border-white/10 text-left text-[11px] uppercase tracking-wider text-white/50">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">ID</th>
+                  <th className="px-4 py-3 font-semibold">Autorité</th>
+                  <th className="px-4 py-3 font-semibold">Titre</th>
+                  <th className="px-4 py-3 font-semibold">Juri.</th>
+                  <th className="px-4 py-3 font-semibold">Review</th>
+                </tr>
+              </thead>
+              <tbody>
+                {BANK_COMMS_SOURCES.map((s) => (
+                  <tr key={s.source_id} className="border-t border-white/5">
+                    <td className="px-4 py-3 font-mono text-xs text-white/50">
+                      {s.source_id}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-white">
+                      {s.autorite}
+                    </td>
+                    <td className="px-4 py-3 text-white/70">{s.titre}</td>
+                    <td className="px-4 py-3 text-white/60">{s.juridiction}</td>
+                    <td className="px-4 py-3 text-xs text-white/50">
+                      {s.review_date ?? "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* AGENTS */}
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <Header
+            eyebrow="Les 4 agents publics"
+            title="Scope explicite par agent."
+            lead="Chaque agent a 4 gates serveur propres. Le LLM ne peut jamais contredire la décision déterministe : il enrichit la reformulation et le commentaire reviewer, rien d'autre."
+          />
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {publicAgents.map((a) => {
+              const Icon = AGENT_ICON[a.slug] ?? Landmark;
+              return (
                 <Link
                   key={a.agent_id}
                   href={`/agents/${a.slug}`}
-                  className="block rounded-xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:border-neutral-300 hover:shadow"
+                  className="group rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition-colors hover:border-white/20 hover:bg-white/[0.06]"
                 >
-                  {children}
-                </Link>
-              ) : (
-                <article
-                  key={a.agent_id}
-                  className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm"
-                >
-                  {children}
-                </article>
-              );
-            return (
-              <Wrapper key={a.agent_id}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-6 w-6 text-stone-700" />
-                    <div>
-                      <p className="text-xs font-mono text-neutral-500">
-                        {a.agent_id}
-                      </p>
-                      <h3 className="text-lg font-semibold">{a.name}</h3>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                        <Icon className="h-5 w-5 text-violet-200" />
+                      </div>
+                      <div>
+                        <p className="font-mono text-[11px] text-white/50">
+                          {a.agent_id}
+                        </p>
+                        <h3 className="text-lg font-semibold text-white">
+                          {a.name}
+                        </h3>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    {a.status === "demo" ? (
-                      <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
-                        Démo live
-                      </span>
-                    ) : null}
-                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
-                      {a.priority}
+                    <span className="rounded-full border border-violet-400/30 bg-violet-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-200">
+                      {a.status === "demo" ? "Démo" : a.priority}
                     </span>
                   </div>
-                </div>
-                <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  <dt className="text-neutral-500">Owner</dt>
-                  <dd className="text-neutral-900">{a.owner}</dd>
-                  <dt className="text-neutral-500">SLA</dt>
-                  <dd className="text-neutral-900">
-                    {a.sla_h ? `${a.sla_h} h` : "—"}
-                  </dd>
-                  <dt className="text-neutral-500">Priorité</dt>
-                  <dd className="text-neutral-900">{a.priority}</dd>
-                </dl>
-                {hasPage ? (
-                  <p className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-stone-700">
-                    Voir la démo <ArrowRight className="h-3.5 w-3.5" />
+                  <p className="mt-4 text-sm leading-relaxed text-white/65">
+                    {AGENT_TAGLINE[a.slug] ?? a.owner}
                   </p>
-                ) : null}
-              </Wrapper>
-            );
-          })}
+                  <p className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-violet-200 opacity-0 transition-opacity group-hover:opacity-100">
+                    Ouvrir la fiche agent <ArrowRight className="h-3.5 w-3.5" />
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      {/* Services transverses */}
-      <section className="mx-auto max-w-6xl px-6 py-8">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          2 services transverses
-        </h2>
-        <p className="mt-2 text-neutral-600">
-          Non exposés comme vitrines publiques. Ils alimentent les 4 agents en
-          sources admissibles et en veille réglementaire.
-        </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {services.map((s) => {
-            const Icon = AGENT_ICON[s.slug] ?? ShieldCheck;
-            // Services avec page interne de consultation.
-            const hasPage =
-              s.slug === "reg-watch-bank" || s.slug === "bank-evidence-guard";
-            const Card = (
-              <>
-                <div className="flex items-center gap-3">
-                  <Icon className="h-6 w-6 text-neutral-600" />
-                  <div>
-                    <p className="text-xs font-mono text-neutral-500">
-                      {s.agent_id} · service
-                    </p>
-                    <h3 className="text-lg font-semibold">{s.name}</h3>
+      {/* SERVICES TRANSVERSES */}
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <Header
+            eyebrow="2 services transverses"
+            title="Consommés par les 4 agents."
+            lead="RegWatchBank alimente la veille réglementaire. BankEvidenceGuard résout les sources admissibles avant génération — résolveur 100 % déterministe, sans LLM."
+          />
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {services.map((s) => {
+              const Icon = AGENT_ICON[s.slug] ?? ShieldCheck;
+              return (
+                <Link
+                  key={s.agent_id}
+                  href={`/agents/${s.slug}`}
+                  className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6 transition-colors hover:border-white/30 hover:bg-white/[0.04]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                      <Icon className="h-5 w-5 text-white/70" />
+                    </div>
+                    <div>
+                      <p className="font-mono text-[11px] text-white/50">
+                        {s.agent_id} · service
+                      </p>
+                      <h3 className="text-lg font-semibold text-white">{s.name}</h3>
+                    </div>
                   </div>
-                </div>
-                <p className="mt-2 text-sm text-neutral-600">Owner : {s.owner}</p>
-                {hasPage ? (
-                  <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-stone-700">
-                    Voir le flux de veille <ArrowRight className="h-3.5 w-3.5" />
-                  </p>
-                ) : null}
-              </>
-            );
-            return hasPage ? (
-              <Link
-                key={s.agent_id}
-                href={`/agents/${s.slug}`}
-                className="block rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6 transition hover:border-neutral-400 hover:bg-white"
-              >
-                {Card}
-              </Link>
-            ) : (
-              <article
-                key={s.agent_id}
-                className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6"
-              >
-                {Card}
-              </article>
-            );
-          })}
+                  <p className="mt-3 text-sm text-white/60">Owner : {s.owner}</p>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      {/* Workflow + Gates */}
-      <section className="mx-auto max-w-6xl px-6 py-8">
-        <div className="grid gap-6 md:grid-cols-2">
+      {/* WORKFLOW + GATES + RISQUES */}
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto grid max-w-[1280px] gap-10 lg:grid-cols-2">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Workflow</h2>
-            <ol className="mt-4 space-y-3">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+              Workflow runtime
+            </p>
+            <h2 className="mt-3 font-display text-2xl font-bold tracking-tight">
+              Du brief à l&apos;export défendable.
+            </h2>
+            <ol className="mt-6 space-y-2">
               {BANK_COMMS_WORKFLOW.map((step) => (
                 <li
                   key={step.step}
-                  className="flex gap-3 rounded-lg border border-neutral-200 bg-white p-3 text-sm"
+                  className="flex gap-4 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3"
                 >
-                  <span className="font-mono text-neutral-500">
-                    #{step.step}
+                  <span className="font-mono text-sm font-semibold text-violet-200">
+                    0{step.step}
                   </span>
                   <div>
-                    <p className="font-medium text-neutral-900">
+                    <p className="text-sm font-semibold text-white">
                       {step.stage}
                     </p>
-                    <p className="text-neutral-600">
+                    <p className="mt-0.5 text-xs text-white/60">
                       {step.owner} — {step.outcome}
                     </p>
                   </div>
@@ -400,33 +401,31 @@ export default function BankCommsPage() {
             </ol>
           </div>
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Policy gates MVP
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+              Gates MVP
+            </p>
+            <h2 className="mt-3 font-display text-2xl font-bold tracking-tight">
+              Calculées serveur, jamais par le LLM.
             </h2>
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-6 space-y-2">
               {BANK_COMMS_GATES.map((g) => (
                 <li
                   key={g.gate_id}
-                  className="rounded-lg border border-neutral-200 bg-white p-3 text-sm"
+                  className="rounded-xl border border-white/10 bg-white/[0.04] p-3"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <p className="font-mono text-xs text-neutral-500">
+                    <p className="font-mono text-[11px] text-white/50">
                       {g.gate_id}
                     </p>
-                    <span
-                      className={
-                        g.blocking
-                          ? "rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700 ring-1 ring-inset ring-red-200"
-                          : "rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700"
-                      }
-                    >
-                      {g.blocking ? "bloquant" : "info"}
-                    </span>
+                    {g.blocking ? (
+                      <span className="rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-red-200">
+                        bloquant
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-white/40">info</span>
+                    )}
                   </div>
-                  <p className="mt-1 text-neutral-900">{g.label}</p>
-                  <p className="mt-0.5 text-xs text-neutral-500">
-                    Stage : {g.stage}
-                  </p>
+                  <p className="mt-1 text-sm font-medium text-white">{g.label}</p>
                 </li>
               ))}
             </ul>
@@ -434,97 +433,96 @@ export default function BankCommsPage() {
         </div>
       </section>
 
-      {/* Risques clés */}
-      <section className="mx-auto max-w-6xl px-6 py-8">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Risques clés suivis
-        </h2>
-        <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
-              <tr>
-                <th className="px-4 py-2">ID</th>
-                <th className="px-4 py-2">Risque</th>
-                <th className="px-4 py-2">Score</th>
-                <th className="px-4 py-2">Mitigation</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BANK_COMMS_RISKS.map((r) => (
-                <tr key={r.risk_id} className="border-t border-neutral-100">
-                  <td className="px-4 py-2 font-mono text-xs text-neutral-500">
-                    {r.risk_id}
-                  </td>
-                  <td className="px-4 py-2 text-neutral-900">{r.label}</td>
-                  <td className="px-4 py-2">
-                    <span className="rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
-                      {r.score}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-neutral-600">{r.mitigation}</td>
+      {/* RISQUES */}
+      <section className="border-b border-white/5 px-6 py-14 md:px-12">
+        <div className="mx-auto max-w-[1280px]">
+          <Header
+            eyebrow="Risques tracés"
+            title="Score impact × probabilité."
+            lead="Chaque risque métier identifié par le blueprint est listé ici avec sa mitigation active. Mise à jour à chaque sprint."
+          />
+          <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+            <table className="w-full text-sm">
+              <thead className="border-b border-white/10 text-left text-[11px] uppercase tracking-wider text-white/50">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">ID</th>
+                  <th className="px-4 py-3 font-semibold">Risque</th>
+                  <th className="px-4 py-3 font-semibold">Score</th>
+                  <th className="px-4 py-3 font-semibold">Mitigation</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Readiness / Next */}
-      <section className="mx-auto max-w-6xl px-6 py-12">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-8">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            État actuel — Sprint 0 (scaffold)
-          </h2>
-          <ul className="mt-4 grid gap-2 text-sm text-neutral-700 md:grid-cols-2">
-            <li>
-              {BANK_COMMS_SUMMARY.readiness.workbooks_built ? "✅" : "☐"}{" "}
-              Workbooks Foundations + Master construits
-            </li>
-            <li>
-              {BANK_COMMS_SUMMARY.readiness.demo_live ? "✅" : "☐"} Démo live
-              RegBankComms (mode exemples pré-chargés)
-            </li>
-            <li>
-              {BANK_COMMS_SUMMARY.readiness.regulatory_watch_branch ? "✅" : "☐"}{" "}
-              Veille réglementaire branchée ACPR/AMF/EBA/ECB/ESMA
-            </li>
-            <li>
-              {BANK_COMMS_SUMMARY.readiness.export_pack_ready ? "✅" : "☐"}{" "}
-              Export pack défendable (draft + sources + approbations + hash)
-            </li>
-          </ul>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/secteurs/banque/communication/dashboard"
-              className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
-            >
-              Dashboard opérationnel
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/secteurs/banque/communication/inbox"
-              className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-            >
-              Inbox HITL
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/trust"
-              className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-            >
-              Modèle trust-first
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/secteurs/luxe/communication"
-              className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-            >
-              Voir la branche Luxe / Communication (live)
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              </thead>
+              <tbody>
+                {BANK_COMMS_RISKS.map((r) => (
+                  <tr key={r.risk_id} className="border-t border-white/5">
+                    <td className="px-4 py-3 font-mono text-xs text-white/50">
+                      {r.risk_id}
+                    </td>
+                    <td className="px-4 py-3 text-white">{r.label}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={
+                          r.score >= 12
+                            ? "rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-xs font-semibold text-red-200"
+                            : r.score >= 8
+                              ? "rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-xs font-semibold text-amber-200"
+                              : "rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs text-white/60"
+                        }
+                      >
+                        {r.score}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-white/60">
+                      {r.mitigation}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
+
+      {/* FOOTER CTAs */}
+      <section className="px-6 py-16 md:px-12">
+        <div className="mx-auto flex max-w-[1280px] flex-wrap gap-3">
+          <Link
+            href="/secteurs/luxe/communication"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            Voir Luxe / Communication
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/trust"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            Modèle trust-first
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function Header({
+  eyebrow,
+  title,
+  lead,
+}: {
+  eyebrow: string;
+  title: string;
+  lead: string;
+}) {
+  return (
+    <div className="max-w-3xl">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-300">
+        {eyebrow}
+      </p>
+      <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
+        {title}
+      </h2>
+      <p className="mt-4 text-white/70">{lead}</p>
     </div>
   );
 }

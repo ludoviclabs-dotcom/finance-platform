@@ -28,6 +28,7 @@ import agb002Json from "@/content/bank-comms/agb002-crisis.json";
 import agb003Json from "@/content/bank-comms/agb003-esg.json";
 import agb004Json from "@/content/bank-comms/agb004-client.json";
 import agb005Json from "@/content/bank-comms/agb005-regwatch.json";
+import agb006Json from "@/content/bank-comms/agb006-evidence.json";
 
 // ─── CONSTS ──────────────────────────────────────────────────────────────────
 
@@ -587,6 +588,87 @@ export function getDigestsForAgent(agentId: string): RegDigest[] {
   return BANK_REG_DIGESTS.filter((d) => d.affected_agents.includes(agentId));
 }
 
+// ─── AG-B006 BankEvidenceGuard ───────────────────────────────────────────────
+
+const EvidenceExpandedSchema = z.object({
+  source_id: z.string(),
+  subjects: z.string(),
+  applicable_comm_types: z.string(),
+  juridictions_effective: z.string(),
+  priority_weight: z.number(),
+  official_level: z.enum(["PRIMARY", "SECONDARY", "TERTIARY"]),
+  expected_review_days: z.number(),
+});
+export type EvidenceExpanded = z.infer<typeof EvidenceExpandedSchema>;
+
+const EvidenceSubjectSchema = z.object({
+  subject_id: z.string(),
+  label: z.string(),
+  applicable_agents: z.string(),
+});
+export type EvidenceSubject = z.infer<typeof EvidenceSubjectSchema>;
+
+const FreshnessPolicySchema = z.object({
+  policy_id: z.string(),
+  label: z.string(),
+  max_age_days: z.number(),
+  stale_warning_days: z.number(),
+  applicable_to: z.string(),
+});
+export type FreshnessPolicy = z.infer<typeof FreshnessPolicySchema>;
+
+const ResolverQueryTestSchema = z.object({
+  query_id: z.string(),
+  label: z.string(),
+  query: z.object({
+    communication_type: z.string(),
+    jurisdiction: z.string(),
+    subjects: z.array(z.string()),
+    freshness_policy: z.string(),
+  }),
+  expected_sources_min: z.number(),
+  expected_blockers: z.array(z.string()),
+});
+export type ResolverQueryTest = z.infer<typeof ResolverQueryTestSchema>;
+
+const evidenceData = (agb006Json as { data: Record<string, unknown> }).data ?? {};
+
+export const EVIDENCE_EXPANDED: EvidenceExpanded[] = safeParseArray(
+  EvidenceExpandedSchema,
+  evidenceData["1_EVIDENCE_EXPANDED"],
+  "evidence_expanded",
+);
+
+export const EVIDENCE_SUBJECTS: EvidenceSubject[] = safeParseArray(
+  EvidenceSubjectSchema,
+  evidenceData["2_SUBJECTS"],
+  "evidence_subjects",
+);
+
+export const FRESHNESS_POLICIES: FreshnessPolicy[] = safeParseArray(
+  FreshnessPolicySchema,
+  evidenceData["3_FRESHNESS_POLICY"],
+  "freshness_policies",
+);
+
+export const EVIDENCE_RESOLVER_TESTSET: ResolverQueryTest[] = safeParseArray(
+  ResolverQueryTestSchema,
+  evidenceData["4_RESOLVER_TESTSET"],
+  "evidence_resolver_testset",
+);
+
+export function getEvidenceExpanded(sourceId: string): EvidenceExpanded | undefined {
+  return EVIDENCE_EXPANDED.find((e) => e.source_id === sourceId);
+}
+
+export function getFreshnessPolicy(policyId: string): FreshnessPolicy | undefined {
+  return FRESHNESS_POLICIES.find((p) => p.policy_id === policyId);
+}
+
+export function getEvidenceSubject(subjectId: string): EvidenceSubject | undefined {
+  return EVIDENCE_SUBJECTS.find((s) => s.subject_id === subjectId);
+}
+
 // ─── SÉLECTEURS MÉTIER ───────────────────────────────────────────────────────
 
 export function getPublicAgents(): AgentRegistryRow[] {
@@ -624,6 +706,8 @@ export const BANK_COMMS_SUMMARY = {
   reg_digests_count: BANK_REG_DIGESTS.length,
   client_scenarios_count: CLIENT_SCENARIOS.length,
   client_notices_count: CLIENT_NOTICES.length,
+  evidence_expanded_count: EVIDENCE_EXPANDED.length,
+  evidence_subjects_count: EVIDENCE_SUBJECTS.length,
   readiness: {
     workbooks_built: false,
     demo_live: true,

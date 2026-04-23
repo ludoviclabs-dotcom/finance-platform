@@ -1,0 +1,183 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AGB006_BankEvidenceGuard.xlsx",
+    "generatedAt": "2026-04-23T00:00:00.000Z",
+    "status": "sprint-6-seed",
+    "note": "Service transverse — résolveur déterministe. Prend en entrée {communication_type, jurisdiction, subject, freshness_days} et retourne un paquet de sources admissibles avec score et drapeaux. Consommé par AG-B001..B004 avant génération. Aucun LLM : logique pure, auditable, reproductible.",
+    "sheets": [
+      "1_EVIDENCE_EXPANDED",
+      "2_SUBJECTS",
+      "3_FRESHNESS_POLICY",
+      "4_RESOLVER_TESTSET"
+    ]
+  },
+  "data": {
+    "1_EVIDENCE_EXPANDED": [
+      {
+        "source_id": "SRC-ACPR-001",
+        "subjects": "financial_results,governance,supervision,crisis_external",
+        "applicable_comm_types": "FINANCIAL_RESULTS,GOVERNANCE,SUPERVISION_NOTICE,CRISIS_EXTERNAL",
+        "juridictions_effective": "FR",
+        "priority_weight": 100,
+        "official_level": "PRIMARY",
+        "expected_review_days": 90
+      },
+      {
+        "source_id": "SRC-AMF-001",
+        "subjects": "privileged_info,market_abuse,financial_results",
+        "applicable_comm_types": "FINANCIAL_RESULTS,GOVERNANCE,SUPERVISION_NOTICE",
+        "juridictions_effective": "FR",
+        "priority_weight": 100,
+        "official_level": "PRIMARY",
+        "expected_review_days": 90
+      },
+      {
+        "source_id": "SRC-AMF-002",
+        "subjects": "financial_results,guidance,issuer_communication",
+        "applicable_comm_types": "FINANCIAL_RESULTS",
+        "juridictions_effective": "FR",
+        "priority_weight": 95,
+        "official_level": "PRIMARY",
+        "expected_review_days": 90
+      },
+      {
+        "source_id": "SRC-EBA-001",
+        "subjects": "prudential_ratios,pillar3,crr",
+        "applicable_comm_types": "FINANCIAL_RESULTS",
+        "juridictions_effective": "EU,FR",
+        "priority_weight": 95,
+        "official_level": "PRIMARY",
+        "expected_review_days": 180
+      },
+      {
+        "source_id": "SRC-EBA-002",
+        "subjects": "esg,sfdr,taxonomy,sustainability",
+        "applicable_comm_types": "ESG_CLAIM,FINANCIAL_RESULTS",
+        "juridictions_effective": "EU,FR",
+        "priority_weight": 90,
+        "official_level": "PRIMARY",
+        "expected_review_days": 120
+      },
+      {
+        "source_id": "SRC-ECB-001",
+        "subjects": "supervision,sustainability,ssm",
+        "applicable_comm_types": "ESG_CLAIM,SUPERVISION_NOTICE",
+        "juridictions_effective": "EU",
+        "priority_weight": 85,
+        "official_level": "PRIMARY",
+        "expected_review_days": 180
+      },
+      {
+        "source_id": "SRC-ESMA-001",
+        "subjects": "privileged_info,market_abuse,mar",
+        "applicable_comm_types": "FINANCIAL_RESULTS,GOVERNANCE,CRISIS_EXTERNAL",
+        "juridictions_effective": "EU,FR",
+        "priority_weight": 95,
+        "official_level": "PRIMARY",
+        "expected_review_days": 120
+      },
+      {
+        "source_id": "SRC-ESMA-002",
+        "subjects": "apm,performance_measures,issuer_communication",
+        "applicable_comm_types": "FINANCIAL_RESULTS",
+        "juridictions_effective": "EU,FR",
+        "priority_weight": 85,
+        "official_level": "PRIMARY",
+        "expected_review_days": 180
+      },
+      {
+        "source_id": "SRC-IFRS-001",
+        "subjects": "ifrs,interim_reporting,accounting",
+        "applicable_comm_types": "FINANCIAL_RESULTS",
+        "juridictions_effective": "EU,FR",
+        "priority_weight": 100,
+        "official_level": "PRIMARY",
+        "expected_review_days": 365
+      },
+      {
+        "source_id": "SRC-EUR-LEX-001",
+        "subjects": "privileged_info,market_abuse,mar,legal_base",
+        "applicable_comm_types": "FINANCIAL_RESULTS,GOVERNANCE,CRISIS_EXTERNAL",
+        "juridictions_effective": "EU,FR",
+        "priority_weight": 100,
+        "official_level": "PRIMARY",
+        "expected_review_days": 365
+      }
+    ],
+    "2_SUBJECTS": [
+      { "subject_id": "financial_results", "label": "Résultats financiers", "applicable_agents": "AG-B001" },
+      { "subject_id": "governance", "label": "Gouvernance", "applicable_agents": "AG-B001" },
+      { "subject_id": "supervision", "label": "Mesures de supervision", "applicable_agents": "AG-B001,AG-B002" },
+      { "subject_id": "privileged_info", "label": "Information privilégiée", "applicable_agents": "AG-B001,AG-B002,AG-B003" },
+      { "subject_id": "market_abuse", "label": "Abus de marché (MAR)", "applicable_agents": "AG-B001,AG-B002" },
+      { "subject_id": "prudential_ratios", "label": "Ratios prudentiels (CET1, LCR, NSFR)", "applicable_agents": "AG-B001,AG-B002" },
+      { "subject_id": "pillar3", "label": "Pilier 3 CRR", "applicable_agents": "AG-B001" },
+      { "subject_id": "crisis_external", "label": "Communication de crise externe", "applicable_agents": "AG-B002" },
+      { "subject_id": "esg", "label": "ESG / ISR / durabilité", "applicable_agents": "AG-B003" },
+      { "subject_id": "sfdr", "label": "SFDR", "applicable_agents": "AG-B003" },
+      { "subject_id": "taxonomy", "label": "Taxonomie UE", "applicable_agents": "AG-B003" },
+      { "subject_id": "sustainability", "label": "Sustainability (SSM)", "applicable_agents": "AG-B003" },
+      { "subject_id": "apm", "label": "APM (Alternative Performance Measures)", "applicable_agents": "AG-B001" },
+      { "subject_id": "ifrs", "label": "Référentiel IFRS", "applicable_agents": "AG-B001" },
+      { "subject_id": "interim_reporting", "label": "IAS 34 — reporting intermédiaire", "applicable_agents": "AG-B001" },
+      { "subject_id": "legal_base", "label": "Base légale UE/FR", "applicable_agents": "AG-B001,AG-B002,AG-B003,AG-B004" },
+      { "subject_id": "guidance", "label": "Guidance / prévisions", "applicable_agents": "AG-B001" },
+      { "subject_id": "issuer_communication", "label": "Communication d'émetteur", "applicable_agents": "AG-B001" }
+    ],
+    "3_FRESHNESS_POLICY": [
+      { "policy_id": "FRESH-STRICT", "label": "Strict (CRITICAL comms)", "max_age_days": 365, "stale_warning_days": 180, "applicable_to": "FINANCIAL_RESULTS,CRISIS_EXTERNAL" },
+      { "policy_id": "FRESH-STANDARD", "label": "Standard", "max_age_days": 730, "stale_warning_days": 365, "applicable_to": "GOVERNANCE,SUPERVISION_NOTICE,ESG_CLAIM" },
+      { "policy_id": "FRESH-CLIENT", "label": "Client notice", "max_age_days": 1095, "stale_warning_days": 730, "applicable_to": "CLIENT_NOTICE" }
+    ],
+    "4_RESOLVER_TESTSET": [
+      {
+        "query_id": "EVG-FINRES-FR",
+        "label": "Résultats financiers FR — paquet complet",
+        "query": {
+          "communication_type": "FINANCIAL_RESULTS",
+          "jurisdiction": "FR",
+          "subjects": ["financial_results", "prudential_ratios", "ifrs"],
+          "freshness_policy": "FRESH-STRICT"
+        },
+        "expected_sources_min": 3,
+        "expected_blockers": []
+      },
+      {
+        "query_id": "EVG-ESG-EU",
+        "label": "Claim ESG EU — registry obligatoire",
+        "query": {
+          "communication_type": "ESG_CLAIM",
+          "jurisdiction": "EU",
+          "subjects": ["esg", "sfdr", "taxonomy"],
+          "freshness_policy": "FRESH-STANDARD"
+        },
+        "expected_sources_min": 2,
+        "expected_blockers": []
+      },
+      {
+        "query_id": "EVG-CRISIS-FR",
+        "label": "Crise externe FR — base légale MAR",
+        "query": {
+          "communication_type": "CRISIS_EXTERNAL",
+          "jurisdiction": "FR",
+          "subjects": ["privileged_info", "market_abuse"],
+          "freshness_policy": "FRESH-STRICT"
+        },
+        "expected_sources_min": 2,
+        "expected_blockers": []
+      },
+      {
+        "query_id": "EVG-UNKNOWN-SUBJECT",
+        "label": "Sujet inconnu — BLOCK",
+        "query": {
+          "communication_type": "FINANCIAL_RESULTS",
+          "jurisdiction": "FR",
+          "subjects": ["quantum_accounting"],
+          "freshness_policy": "FRESH-STRICT"
+        },
+        "expected_sources_min": 0,
+        "expected_blockers": ["NO_SOURCE_MATCHED"]
+      }
+    ]
+  }
+}

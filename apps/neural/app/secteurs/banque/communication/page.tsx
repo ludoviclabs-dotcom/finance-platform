@@ -331,8 +331,9 @@ export default function BankCommsPage() {
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {services.map((s) => {
             const Icon = AGENT_ICON[s.slug] ?? ShieldCheck;
-            // RegWatchBank a une page interne de consultation (seed Sprint 3).
-            const hasPage = s.slug === "reg-watch-bank";
+            // Services avec page interne de consultation.
+            const hasPage =
+              s.slug === "reg-watch-bank" || s.slug === "bank-evidence-guard";
             const Card = (
               <>
                 <div className="flex items-center gap-3">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
+  Database,
   Download,
   ExternalLink,
   Gauge,
@@ -23,10 +24,12 @@ import {
   ESG_CLAIM_LIBRARY,
   ESG_EVIDENCE_REGISTRY,
   ESG_SCENARIOS,
+  EVIDENCE_SUBJECTS,
   REG_BANK_SCENARIOS,
   getPublicAgents,
   getRecentDigests,
 } from "@/lib/data/bank-comms-catalog";
+import { runResolverTestset } from "@/lib/ai/bank-evidence-guard";
 
 export const metadata: Metadata = {
   title: "Dashboard opérationnel — Banque / Communication | NEURAL",
@@ -157,6 +160,8 @@ export default function BankCommsDashboardPage() {
 
   const totalGates = agentGates.reduce((s, a) => s + a.gateCount, 0);
   const criticalRisks = BANK_COMMS_RISKS.filter((r) => r.score >= 10).length;
+  const evidenceTestset = runResolverTestset();
+  const evidenceTestPassed = evidenceTestset.filter((t) => t.passed).length;
 
   return (
     <div className="bg-stone-50 text-neutral-900">
@@ -243,6 +248,12 @@ export default function BankCommsDashboardPage() {
             hint="hash SHA-256 signant chaque pack"
             color="stone"
           />
+          <Kpi
+            label="EvidenceGuard testset"
+            value={`${evidenceTestPassed} / ${evidenceTestset.length}`}
+            hint={`${EVIDENCE_SUBJECTS.length} subjects · résolveur déterministe`}
+            color={evidenceTestPassed === evidenceTestset.length ? "emerald" : "amber"}
+          />
         </div>
       </section>
 
@@ -311,6 +322,55 @@ export default function BankCommsDashboardPage() {
               </Link>
             );
           })}
+        </div>
+      </section>
+
+      {/* Services transverses */}
+      <section className="mx-auto max-w-6xl px-6 py-8">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Services transverses
+        </h2>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <Link
+            href="/agents/reg-watch-bank"
+            className="block rounded-xl border border-dashed border-neutral-300 bg-white p-5 transition hover:border-neutral-400 hover:shadow"
+          >
+            <div className="flex items-center gap-3">
+              <Radio className="h-6 w-6 text-stone-700" />
+              <div>
+                <p className="font-mono text-xs text-neutral-500">AG-B005 · service</p>
+                <h3 className="text-lg font-semibold">RegWatchBank</h3>
+              </div>
+            </div>
+            <p className="mt-2 text-sm text-neutral-700">
+              Veille ACPR/AMF/EBA/ECB/ESMA/EUR-Lex ·{" "}
+              {BANK_COMMS_SUMMARY.reg_digests_count} digests seed ·{" "}
+              {BANK_COMMS_SUMMARY.reg_feeds_count} feeds.
+            </p>
+            <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-stone-700">
+              Voir le flux <ArrowRight className="h-3.5 w-3.5" />
+            </p>
+          </Link>
+          <Link
+            href="/agents/bank-evidence-guard"
+            className="block rounded-xl border border-dashed border-neutral-300 bg-white p-5 transition hover:border-neutral-400 hover:shadow"
+          >
+            <div className="flex items-center gap-3">
+              <Database className="h-6 w-6 text-stone-700" />
+              <div>
+                <p className="font-mono text-xs text-neutral-500">AG-B006 · service</p>
+                <h3 className="text-lg font-semibold">BankEvidenceGuard</h3>
+              </div>
+            </div>
+            <p className="mt-2 text-sm text-neutral-700">
+              Résolveur déterministe de sources admissibles ·{" "}
+              {EVIDENCE_SUBJECTS.length} subjects · {evidenceTestPassed}/
+              {evidenceTestset.length} testset PASS.
+            </p>
+            <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-stone-700">
+              Tester le résolveur <ArrowRight className="h-3.5 w-3.5" />
+            </p>
+          </Link>
         </div>
       </section>
 

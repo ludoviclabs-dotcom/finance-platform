@@ -26,6 +26,7 @@ import masterJson from "@/content/bank-comms/master.json";
 import agb001Json from "@/content/bank-comms/agb001-regbank.json";
 import agb002Json from "@/content/bank-comms/agb002-crisis.json";
 import agb003Json from "@/content/bank-comms/agb003-esg.json";
+import agb004Json from "@/content/bank-comms/agb004-client.json";
 import agb005Json from "@/content/bank-comms/agb005-regwatch.json";
 
 // ─── CONSTS ──────────────────────────────────────────────────────────────────
@@ -412,6 +413,116 @@ export function bestEvidenceFor(pattern: string): EsgEvidence | undefined {
   return candidates.sort((a, b) => b.annee - a.annee)[0];
 }
 
+// ─── AG-B004 ClientBankComms ─────────────────────────────────────────────────
+
+const ClientUseCaseSchema = z.object({
+  use_case_id: z.string(),
+  label: z.string(),
+  preavis_jours: z.number(),
+  canaux_autorises: z.string(),
+  base_legale: z.string(),
+});
+export type ClientUseCase = z.infer<typeof ClientUseCaseSchema>;
+
+const ClientSegmentSchema = z.object({
+  segment_id: z.string(),
+  label: z.string(),
+  reading_level_max: z.number(),
+  ton: z.string(),
+  lang_default: z.string(),
+});
+export type ClientSegment = z.infer<typeof ClientSegmentSchema>;
+
+const ClientNoticeSchema = z.object({
+  notice_id: z.string(),
+  label: z.string(),
+  required_for: z.string(),
+  text: z.string(),
+});
+export type ClientNotice = z.infer<typeof ClientNoticeSchema>;
+
+const ClientChannelSchema = z.object({
+  canal: z.enum(["EMAIL", "SMS", "APP", "PUSH", "MAIL"]),
+  char_limit: z.number().nullable(),
+  supports_html: z.boolean(),
+  supports_links: z.boolean(),
+  supports_attachments: z.boolean(),
+});
+export type ClientChannel = z.infer<typeof ClientChannelSchema>;
+
+const ClientScenarioDraftSchema = z.object({
+  subject: z.string().nullable(),
+  body_fr: z.string(),
+  notices_included: z.array(z.string()),
+  absolute_terms: z.array(z.string()),
+});
+
+const ClientScenarioSchema = z.object({
+  scenario_id: z.string(),
+  label: z.string(),
+  use_case_id: z.string(),
+  segment_id: z.string(),
+  canal: z.enum(["EMAIL", "SMS", "APP", "PUSH", "MAIL"]),
+  expected_verdict: z.enum(["PASS", "PASS_WITH_REVIEW", "BLOCK"]),
+  expected_blockers: z.array(z.string()),
+  draft: ClientScenarioDraftSchema,
+});
+export type ClientScenario = z.infer<typeof ClientScenarioSchema>;
+
+const clientData = (agb004Json as { data: Record<string, unknown> }).data ?? {};
+
+export const CLIENT_USE_CASES: ClientUseCase[] = safeParseArray(
+  ClientUseCaseSchema,
+  clientData["1_USE_CASES"],
+  "client_use_cases",
+);
+
+export const CLIENT_SEGMENTS: ClientSegment[] = safeParseArray(
+  ClientSegmentSchema,
+  clientData["2_SEGMENT_RULES"],
+  "client_segments",
+);
+
+export const CLIENT_NOTICES: ClientNotice[] = safeParseArray(
+  ClientNoticeSchema,
+  clientData["3_MANDATORY_NOTICES"],
+  "client_notices",
+);
+
+export const CLIENT_CHANNELS: ClientChannel[] = safeParseArray(
+  ClientChannelSchema,
+  clientData["4_CHANNEL_MATRIX"],
+  "client_channels",
+);
+
+export const CLIENT_SCENARIOS: ClientScenario[] = safeParseArray(
+  ClientScenarioSchema,
+  clientData["5_TESTSET"],
+  "client_scenarios",
+);
+
+export function getClientScenario(id: string): ClientScenario | undefined {
+  return CLIENT_SCENARIOS.find((s) => s.scenario_id === id);
+}
+
+export function getClientUseCase(id: string): ClientUseCase | undefined {
+  return CLIENT_USE_CASES.find((u) => u.use_case_id === id);
+}
+
+export function getClientSegment(id: string): ClientSegment | undefined {
+  return CLIENT_SEGMENTS.find((s) => s.segment_id === id);
+}
+
+export function getClientChannel(canal: string): ClientChannel | undefined {
+  return CLIENT_CHANNELS.find((c) => c.canal === canal);
+}
+
+export function getNoticesRequiredFor(useCaseId: string): ClientNotice[] {
+  return CLIENT_NOTICES.filter((n) =>
+    n.required_for.split(",").map((s) => s.trim()).includes(useCaseId),
+  );
+}
+
 // ─── AG-B005 RegWatchBank (service transverse, scaffold Sprint 3) ────────────
 
 const RegFeedSchema = z.object({
@@ -511,6 +622,8 @@ export const BANK_COMMS_SUMMARY = {
   esg_scenarios_count: ESG_SCENARIOS.length,
   reg_feeds_count: BANK_REG_FEEDS.length,
   reg_digests_count: BANK_REG_DIGESTS.length,
+  client_scenarios_count: CLIENT_SCENARIOS.length,
+  client_notices_count: CLIENT_NOTICES.length,
   readiness: {
     workbooks_built: false,
     demo_live: true,

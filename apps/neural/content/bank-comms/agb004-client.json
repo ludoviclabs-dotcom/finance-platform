@@ -1,0 +1,126 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AGB004_ClientBankComms.xlsx",
+    "generatedAt": "2026-04-23T00:00:00.000Z",
+    "status": "sprint-4-seed",
+    "sheets": [
+      "1_USE_CASES",
+      "2_SEGMENT_RULES",
+      "3_MANDATORY_NOTICES",
+      "4_CHANNEL_MATRIX",
+      "5_TESTSET",
+      "6_TEMPLATE_LIBRARY"
+    ],
+    "note": "Agent communication client sensible — hausse tarifs, fermeture agence, incident, remédiation. Validation humaine obligatoire. Cadre : RGPD, Code monétaire et financier, Code de la consommation, Art. L.312-1-1 CMF (modification conditions). Canaux supportés : EMAIL, SMS, APP, MAIL, PUSH."
+  },
+  "data": {
+    "1_USE_CASES": [
+      { "use_case_id": "UC-001", "label": "Hausse de tarifs bancaires", "preavis_jours": 60, "canaux_autorises": "EMAIL,MAIL,APP", "base_legale": "Art. L.312-1-1 CMF" },
+      { "use_case_id": "UC-002", "label": "Fermeture d'agence physique", "preavis_jours": 90, "canaux_autorises": "MAIL,EMAIL,APP", "base_legale": "Conditions générales banque" },
+      { "use_case_id": "UC-003", "label": "Évolution de service / fonctionnalité", "preavis_jours": 30, "canaux_autorises": "EMAIL,APP,PUSH", "base_legale": "Conditions générales banque" },
+      { "use_case_id": "UC-004", "label": "Incident technique — remédiation client", "preavis_jours": 0, "canaux_autorises": "EMAIL,SMS,APP,PUSH", "base_legale": "RGPD Art. 34 si violation données" },
+      { "use_case_id": "UC-005", "label": "Alerte fraude / phishing", "preavis_jours": 0, "canaux_autorises": "EMAIL,SMS,APP,PUSH", "base_legale": "Obligation d'information client" }
+    ],
+    "2_SEGMENT_RULES": [
+      { "segment_id": "SEG-RET", "label": "Particuliers retail", "reading_level_max": 70, "ton": "clair, non-technique, empathique", "lang_default": "FR" },
+      { "segment_id": "SEG-PRIV", "label": "Banque privée", "reading_level_max": 60, "ton": "professionnel, précis", "lang_default": "FR" },
+      { "segment_id": "SEG-PRO", "label": "Professionnels / TPE", "reading_level_max": 65, "ton": "opérationnel, factuel", "lang_default": "FR" },
+      { "segment_id": "SEG-CORP", "label": "Entreprises / PME-ETI", "reading_level_max": 50, "ton": "technique, structuré", "lang_default": "FR" }
+    ],
+    "3_MANDATORY_NOTICES": [
+      { "notice_id": "NOT-001", "label": "Mention contact médiateur bancaire", "required_for": "UC-001,UC-002", "text": "En cas de désaccord persistant, vous pouvez saisir le médiateur bancaire via mediateur.banque@..." },
+      { "notice_id": "NOT-002", "label": "Droit de clôture sans frais (hausse tarifs)", "required_for": "UC-001", "text": "Vous disposez d'un délai de 2 mois pour refuser cette modification et clôturer votre compte sans frais." },
+      { "notice_id": "NOT-003", "label": "Mention préavis de modification", "required_for": "UC-001,UC-002,UC-003", "text": "Modification applicable au [DATE]. Sans opposition de votre part avant cette date, elle sera considérée acceptée." },
+      { "notice_id": "NOT-004", "label": "Notification violation données RGPD Art. 34", "required_for": "UC-004", "text": "Conformément à l'article 34 du RGPD, nous vous informons d'un incident susceptible d'avoir impacté vos données personnelles." },
+      { "notice_id": "NOT-005", "label": "Rappel anti-phishing", "required_for": "UC-005", "text": "Nous ne vous demandons jamais vos identifiants ou codes par téléphone, email ou SMS." }
+    ],
+    "4_CHANNEL_MATRIX": [
+      { "canal": "EMAIL", "char_limit": null, "supports_html": true, "supports_links": true, "supports_attachments": true },
+      { "canal": "SMS", "char_limit": 160, "supports_html": false, "supports_links": false, "supports_attachments": false },
+      { "canal": "APP", "char_limit": 500, "supports_html": true, "supports_links": true, "supports_attachments": false },
+      { "canal": "PUSH", "char_limit": 80, "supports_html": false, "supports_links": false, "supports_attachments": false },
+      { "canal": "MAIL", "char_limit": null, "supports_html": false, "supports_links": false, "supports_attachments": true }
+    ],
+    "5_TESTSET": [
+      {
+        "scenario_id": "CLI-TARIFS-EMAIL",
+        "label": "Hausse tarifs — email particuliers complet",
+        "use_case_id": "UC-001",
+        "segment_id": "SEG-RET",
+        "canal": "EMAIL",
+        "expected_verdict": "PASS",
+        "expected_blockers": [],
+        "draft": {
+          "subject": "Évolution de nos conditions tarifaires au 1er juillet 2026",
+          "body_fr": "Madame, Monsieur,\n\nNous vous informons qu'à compter du 1er juillet 2026, les conditions tarifaires de votre compte évoluent. Le détail complet est disponible dans votre espace personnel.\n\nConformément à la réglementation, cette modification vous est communiquée 2 mois avant son application. Sans opposition de votre part avant cette date, elle sera considérée comme acceptée.\n\nVous disposez de la possibilité de refuser cette modification et, le cas échéant, de clôturer votre compte sans frais.\n\nEn cas de désaccord persistant, vous pouvez saisir le médiateur bancaire via mediateur.banque@exemple.fr.\n\nRestant à votre disposition,\nVotre conseiller",
+          "notices_included": ["NOT-001", "NOT-002", "NOT-003"],
+          "absolute_terms": []
+        }
+      },
+      {
+        "scenario_id": "CLI-TARIFS-NO-NOTICES",
+        "label": "Hausse tarifs — mentions obligatoires manquantes",
+        "use_case_id": "UC-001",
+        "segment_id": "SEG-RET",
+        "canal": "EMAIL",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-CLIENT-MENTIONS"],
+        "draft": {
+          "subject": "Nouveautés tarifaires 2026",
+          "body_fr": "Bonjour,\n\nNos tarifs évoluent à partir du 1er juillet 2026. Merci de votre confiance.",
+          "notices_included": [],
+          "absolute_terms": []
+        }
+      },
+      {
+        "scenario_id": "CLI-SMS-TOO-LONG",
+        "label": "Alerte fraude — SMS > 160 caractères",
+        "use_case_id": "UC-005",
+        "segment_id": "SEG-RET",
+        "canal": "SMS",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-CLIENT-CANAL"],
+        "draft": {
+          "subject": null,
+          "body_fr": "Votre banque vous informe qu'une tentative de fraude a été détectée sur votre compte. Nous ne vous demandons jamais vos identifiants ou codes par téléphone, email ou SMS. Consultez votre application pour plus de détails et sécurisez votre compte immédiatement.",
+          "notices_included": ["NOT-005"],
+          "absolute_terms": []
+        }
+      },
+      {
+        "scenario_id": "CLI-AGENCE-TON",
+        "label": "Fermeture agence — ton promotionnel inapproprié",
+        "use_case_id": "UC-002",
+        "segment_id": "SEG-RET",
+        "canal": "MAIL",
+        "expected_verdict": "BLOCK",
+        "expected_blockers": ["GATE-CLIENT-TON"],
+        "draft": {
+          "subject": "Excellente nouvelle — votre agence évolue",
+          "body_fr": "Chère cliente, cher client,\n\nNous avons l'immense plaisir de vous annoncer la fermeture définitive de votre agence au 1er septembre 2026 ! Cette opportunité unique vous permettra de bénéficier de nos services 100% digitaux, totalement révolutionnaires et sans aucun risque.\n\nCette évolution exceptionnelle prendra effet au 1er septembre. Sans opposition, elle sera considérée acceptée.\n\nMédiateur bancaire : mediateur.banque@exemple.fr.",
+          "notices_included": ["NOT-001", "NOT-003"],
+          "absolute_terms": ["sans aucun risque", "totalement révolutionnaires"]
+        }
+      },
+      {
+        "scenario_id": "CLI-INCIDENT-CORP",
+        "label": "Incident technique — segment corporate, ton approprié",
+        "use_case_id": "UC-004",
+        "segment_id": "SEG-CORP",
+        "canal": "EMAIL",
+        "expected_verdict": "PASS",
+        "expected_blockers": [],
+        "draft": {
+          "subject": "Incident technique du 22/04/2026 — information clients Entreprises",
+          "body_fr": "Madame, Monsieur,\n\nNous vous informons d'un incident technique survenu le 22 avril 2026 entre 14h et 16h, ayant affecté l'accès à l'interface de gestion des flux.\n\nConformément à l'article 34 du RGPD, nous vous informons d'un incident susceptible d'avoir impacté vos données personnelles. Nos équipes ont procédé aux vérifications ; aucune donnée de transaction n'a été compromise.\n\nUn rapport détaillé est disponible sur demande auprès de votre chargé d'affaires.\n\nCordialement,\nService Entreprises",
+          "notices_included": ["NOT-004"],
+          "absolute_terms": []
+        }
+      }
+    ],
+    "6_TEMPLATE_LIBRARY": [
+      { "template_id": "TPL-CLI-TARIFS-FR", "use_case_id": "UC-001", "canal": "EMAIL", "skeleton": "# {SUBJECT}\n\nMadame, Monsieur,\n\n{INTRO_MODIFICATION}\n\n{NOT-003}\n\n{NOT-002}\n\n{NOT-001}\n\nCordialement,\n{SIGNATURE}" },
+      { "template_id": "TPL-CLI-INCIDENT-FR", "use_case_id": "UC-004", "canal": "EMAIL", "skeleton": "# {SUBJECT}\n\nMadame, Monsieur,\n\n{INCIDENT_DESCRIPTION}\n\n{NOT-004}\n\n{REMEDIATION_STEPS}\n\nCordialement,\n{SIGNATURE}" }
+    ]
+  }
+}

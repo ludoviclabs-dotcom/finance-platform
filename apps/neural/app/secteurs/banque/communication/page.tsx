@@ -16,6 +16,7 @@ import { StatusBadge } from "@/components/site/status-badge";
 import { RegBankCommsLive } from "@/components/bank-comms/RegBankCommsLive";
 import { BankCrisisLive } from "@/components/bank-comms/BankCrisisLive";
 import { EsgBankCommsLive } from "@/components/bank-comms/EsgBankCommsLive";
+import { ClientBankCommsLive } from "@/components/bank-comms/ClientBankCommsLive";
 import {
   BANK_COMMS_SUMMARY,
   getPublicAgents,
@@ -72,7 +73,7 @@ export default function BankCommsPage() {
             <Building2 className="h-10 w-10 text-stone-700" />
             <StatusBadge status="demo" />
             <span className="text-xs font-mono uppercase tracking-wider text-neutral-500">
-              Sprint 1 · AG-B001 en démo
+              Sprint 4 · 4 agents publics en démo live
             </span>
           </div>
           <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
@@ -184,6 +185,24 @@ export default function BankCommsPage() {
           juridiction FR / EU, reformulation qualifiée sourcée.
         </p>
         <EsgBankCommsLive />
+      </section>
+
+      {/* Démo live AG-B004 */}
+      <section className="mx-auto max-w-6xl px-6 py-10" id="demo-client-bank">
+        <div className="mb-4 flex items-center gap-3">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Démo live — AG-B004 ClientBankComms
+          </h2>
+          <span className="rounded-full border border-violet-300 bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
+            Sprint 4
+          </span>
+        </div>
+        <p className="mb-5 max-w-3xl text-neutral-600">
+          Communications clients sensibles : hausse tarifs, fermeture agence,
+          incident, fraude. 4 gates : mentions obligatoires, limite caractères
+          du canal, ton, lisibilité Flesch FR adaptée au segment.
+        </p>
+        <ClientBankCommsLive />
       </section>
 
       {/* Sources / registre */}

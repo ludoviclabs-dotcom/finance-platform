@@ -7,6 +7,7 @@ import {
   Download,
   ExternalLink,
   Gauge,
+  Inbox,
   Landmark,
   Leaf,
   Mail,
@@ -554,13 +555,22 @@ export default function BankCommsDashboardPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-14">
-        <Link
-          href="/secteurs/banque/communication"
-          className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Retour à la page secteur
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/secteurs/banque/communication"
+            className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour à la page secteur
+          </Link>
+          <Link
+            href="/secteurs/banque/communication/inbox"
+            className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+          >
+            <Inbox className="h-4 w-4" />
+            Inbox HITL des runs
+          </Link>
+        </div>
       </section>
     </div>
   );

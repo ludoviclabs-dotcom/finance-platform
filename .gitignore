@@ -24,6 +24,7 @@ __pycache__/
 debug-*.ts
 test-debug*.ts
 test-*-parser.ts
+test-parser.ts
 
 # Generated data files (keep templates, not outputs)
 *.xlsx
@@ -36,9 +37,24 @@ test-*-parser.ts
 !apps/*/app/**/*.png
 *.mp4
 !apps/*/public/**/*.mp4
+# Screenshots JPEGs — same rule as PNG (ignored at repo root, allowed under app assets)
+*.jpeg
+*.jpg
+!apps/*/public/**/*.jpeg
+!apps/*/public/**/*.jpg
+!apps/*/app/**/*.jpeg
+!apps/*/app/**/*.jpg
 
 # Claude Code worktrees
 .claude/worktrees/
 
 # Backup dirs
 *.bak/
+backups/
+
+# Runtime logs / test artifacts
+apps/*/logs/
+apps/*/test-results/
+
+# Claude Code local settings (per-machine, per-user)
+.claude/settings.local.json

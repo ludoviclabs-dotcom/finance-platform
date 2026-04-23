@@ -1,0 +1,83 @@
+{
+  "_meta": {
+    "sourceFile": "NEURAL_AGB005_RegWatchBank.xlsx",
+    "generatedAt": "2026-04-23T00:00:00.000Z",
+    "status": "sprint-3-seed",
+    "note": "Service transverse de veille réglementaire banque. Sprint 3 = seed JSON figé de 5 digests réels publiés 2025-2026. Sprint 4 = fetch hebdo automatisé (RSS/HTML) des feeds ACPR/AMF/EBA/ECB/ESMA/EUR-Lex avec classifier LLM + task queue vers owners.",
+    "sheets": ["1_SOURCES_FEED", "2_DIGESTS", "3_IMPACT_MAPPING"]
+  },
+  "data": {
+    "1_SOURCES_FEED": [
+      { "feed_id": "FEED-ACPR", "autorite": "ACPR", "url": "https://acpr.banque-france.fr/liste-chronologique/publications", "cadence": "daily", "owner": "compliance", "active": true },
+      { "feed_id": "FEED-AMF", "autorite": "AMF", "url": "https://www.amf-france.org/fr/actualites-publications", "cadence": "daily", "owner": "compliance", "active": true },
+      { "feed_id": "FEED-EBA", "autorite": "EBA", "url": "https://www.eba.europa.eu/publications-and-media/press-releases", "cadence": "daily", "owner": "compliance", "active": true },
+      { "feed_id": "FEED-ECB", "autorite": "ECB", "url": "https://www.bankingsupervision.europa.eu/press/publications/html/index.en.html", "cadence": "daily", "owner": "compliance", "active": true },
+      { "feed_id": "FEED-ESMA", "autorite": "ESMA", "url": "https://www.esma.europa.eu/press-news", "cadence": "daily", "owner": "compliance", "active": true },
+      { "feed_id": "FEED-EUR-LEX", "autorite": "EUR_LEX", "url": "https://eur-lex.europa.eu/", "cadence": "weekly", "owner": "legal", "active": true }
+    ],
+    "2_DIGESTS": [
+      {
+        "digest_id": "DIG-2026-0412-001",
+        "published_at": "2026-04-12",
+        "autorite": "AMF",
+        "title": "Mise à jour doctrine DOC-2020-06 — communication financière des émetteurs",
+        "summary": "Précisions sur l'usage des APM (Alternative Performance Measures) dans les communiqués de résultats : réconciliation explicite obligatoire avec les agrégats IFRS. Impact principal : disclaimer réciprocité IFRS/APM à renforcer.",
+        "url": "https://www.amf-france.org/fr/reglementation/doctrine/doc-2020-06",
+        "impact_score": 3,
+        "affected_agents": ["AG-B001"],
+        "followup_task_id": "TSK-2026-04-001"
+      },
+      {
+        "digest_id": "DIG-2026-0325-002",
+        "published_at": "2026-03-25",
+        "autorite": "EBA",
+        "title": "Revised ESG risk disclosure templates — Q2 2026 reporting cycle",
+        "summary": "Nouveaux templates pour les disclosures ESG (transition plans, financed emissions scope 3). Effectif juin 2026. Impact direct sur AG-B003 ESGBankComms — update de la claim library et du registry.",
+        "url": "https://www.eba.europa.eu/",
+        "impact_score": 4,
+        "affected_agents": ["AG-B003"],
+        "followup_task_id": "TSK-2026-03-002"
+      },
+      {
+        "digest_id": "DIG-2026-0218-003",
+        "published_at": "2026-02-18",
+        "autorite": "ESMA",
+        "title": "Guidelines MAR — delay of disclosure : cas d'usage typiques mis à jour",
+        "summary": "Ajout d'exemples pour les cas de reports de publication d'info privilégiée : M&A avancés, cyber majeur. Renforce la nécessité de la gate PRIV côté AG-B001.",
+        "url": "https://www.esma.europa.eu/",
+        "impact_score": 3,
+        "affected_agents": ["AG-B001", "AG-B002"],
+        "followup_task_id": "TSK-2026-02-001"
+      },
+      {
+        "digest_id": "DIG-2026-0130-004",
+        "published_at": "2026-01-30",
+        "autorite": "ACPR",
+        "title": "Recommandation 2026-R-02 — communication de crise prudentielle",
+        "summary": "Cadre précisé pour les communications de crise liées à des mesures de supervision (mise sous surveillance, injonction). Ton, timing, coordination obligatoire avec l'ACPR avant publication externe.",
+        "url": "https://acpr.banque-france.fr/",
+        "impact_score": 5,
+        "affected_agents": ["AG-B002"],
+        "followup_task_id": "TSK-2026-01-003"
+      },
+      {
+        "digest_id": "DIG-2025-1210-005",
+        "published_at": "2025-12-10",
+        "autorite": "EUR_LEX",
+        "title": "Règlement (UE) 2024/825 — EU Green Claims Directive : clarification périmètre banques",
+        "summary": "La Commission précise que les banques entrent dans le champ de la Green Claims Directive dès qu'elles communiquent sur l'impact environnemental de leurs produits (crédits verts, fonds ISR). Impact critique AG-B003.",
+        "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024L0825",
+        "impact_score": 5,
+        "affected_agents": ["AG-B003"],
+        "followup_task_id": "TSK-2025-12-001"
+      }
+    ],
+    "3_IMPACT_MAPPING": [
+      { "impact_score": 5, "label": "CRITIQUE — gel publication concernée + mise à jour règles immédiate", "sla_days": 3 },
+      { "impact_score": 4, "label": "HIGH — revue prioritaire, update workbook < 2 semaines", "sla_days": 14 },
+      { "impact_score": 3, "label": "MEDIUM — planifier update au prochain cycle mensuel", "sla_days": 30 },
+      { "impact_score": 2, "label": "LOW — veille pour information, pas d'action immédiate", "sla_days": 60 },
+      { "impact_score": 1, "label": "INFO — archivage uniquement", "sla_days": 90 }
+    ]
+  }
+}

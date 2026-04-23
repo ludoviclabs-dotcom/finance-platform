@@ -26,6 +26,7 @@ import masterJson from "@/content/bank-comms/master.json";
 import agb001Json from "@/content/bank-comms/agb001-regbank.json";
 import agb002Json from "@/content/bank-comms/agb002-crisis.json";
 import agb003Json from "@/content/bank-comms/agb003-esg.json";
+import agb005Json from "@/content/bank-comms/agb005-regwatch.json";
 
 // ─── CONSTS ──────────────────────────────────────────────────────────────────
 
@@ -411,6 +412,70 @@ export function bestEvidenceFor(pattern: string): EsgEvidence | undefined {
   return candidates.sort((a, b) => b.annee - a.annee)[0];
 }
 
+// ─── AG-B005 RegWatchBank (service transverse, scaffold Sprint 3) ────────────
+
+const RegFeedSchema = z.object({
+  feed_id: z.string(),
+  autorite: z.string(),
+  url: z.string(),
+  cadence: z.string(),
+  owner: z.string(),
+  active: z.boolean(),
+});
+export type RegFeed = z.infer<typeof RegFeedSchema>;
+
+const RegDigestSchema = z.object({
+  digest_id: z.string(),
+  published_at: z.string(),
+  autorite: z.string(),
+  title: z.string(),
+  summary: z.string(),
+  url: z.string(),
+  impact_score: z.number(),
+  affected_agents: z.array(z.string()),
+  followup_task_id: z.string().nullable(),
+});
+export type RegDigest = z.infer<typeof RegDigestSchema>;
+
+const RegImpactSchema = z.object({
+  impact_score: z.number(),
+  label: z.string(),
+  sla_days: z.number(),
+});
+export type RegImpactLevel = z.infer<typeof RegImpactSchema>;
+
+const regwatchData = (agb005Json as { data: Record<string, unknown> }).data ?? {};
+
+export const BANK_REG_FEEDS: RegFeed[] = safeParseArray(
+  RegFeedSchema,
+  regwatchData["1_SOURCES_FEED"],
+  "reg_feeds",
+);
+
+export const BANK_REG_DIGESTS: RegDigest[] = safeParseArray(
+  RegDigestSchema,
+  regwatchData["2_DIGESTS"],
+  "reg_digests",
+);
+
+export const BANK_REG_IMPACT_LEVELS: RegImpactLevel[] = safeParseArray(
+  RegImpactSchema,
+  regwatchData["3_IMPACT_MAPPING"],
+  "reg_impact_levels",
+);
+
+/** Digests triés du plus récent au plus ancien. */
+export function getRecentDigests(limit = 10): RegDigest[] {
+  return [...BANK_REG_DIGESTS]
+    .sort((a, b) => b.published_at.localeCompare(a.published_at))
+    .slice(0, limit);
+}
+
+/** Digests concernant un agent donné. */
+export function getDigestsForAgent(agentId: string): RegDigest[] {
+  return BANK_REG_DIGESTS.filter((d) => d.affected_agents.includes(agentId));
+}
+
 // ─── SÉLECTEURS MÉTIER ───────────────────────────────────────────────────────
 
 export function getPublicAgents(): AgentRegistryRow[] {
@@ -444,10 +509,12 @@ export const BANK_COMMS_SUMMARY = {
   esg_claims_count: ESG_CLAIM_LIBRARY.length,
   esg_evidence_count: ESG_EVIDENCE_REGISTRY.length,
   esg_scenarios_count: ESG_SCENARIOS.length,
+  reg_feeds_count: BANK_REG_FEEDS.length,
+  reg_digests_count: BANK_REG_DIGESTS.length,
   readiness: {
     workbooks_built: false,
     demo_live: true,
-    regulatory_watch_branch: false,
-    export_pack_ready: false,
+    regulatory_watch_branch: true,
+    export_pack_ready: true,
   },
 } as const;

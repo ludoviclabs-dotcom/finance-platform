@@ -101,6 +101,31 @@ export default function BankCommsPage() {
               </p>
             </div>
           </div>
+          {/* Pricing mode — correctif #3 du blueprint : pas de forfaits publics banque */}
+          <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50/40 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-blue-900">
+              Modèle tarifaire — Banque
+            </p>
+            <p className="mt-2 text-sm text-blue-950">
+              La branche Banque n&apos;est pas commercialisée sous forme de
+              forfaits publics. Chaque déploiement fait l&apos;objet d&apos;un
+              pilote privé cadré avec Juridique, Compliance, DirCom — avec
+              isolation par tenant, Postgres dédié, SSO et journalisation
+              restreinte.
+            </p>
+            <p className="mt-3 text-xs text-blue-900">
+              Ordres de grandeur indicatifs (non contractuels) : setup pilote
+              25–60 k€ · abonnement wedge 3–8 k€/mois · domaine complet
+              80–180 k€/an · groupe multi-pays 200–600 k€/an.
+            </p>
+            <Link
+              href="/contact?subject=Banque%20/%20Communication%20-%20pilote"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            >
+              Discuter d&apos;un pilote privé
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -287,11 +312,10 @@ export default function BankCommsPage() {
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {services.map((s) => {
             const Icon = AGENT_ICON[s.slug] ?? ShieldCheck;
-            return (
-              <article
-                key={s.agent_id}
-                className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6"
-              >
+            // RegWatchBank a une page interne de consultation (seed Sprint 3).
+            const hasPage = s.slug === "reg-watch-bank";
+            const Card = (
+              <>
                 <div className="flex items-center gap-3">
                   <Icon className="h-6 w-6 text-neutral-600" />
                   <div>
@@ -301,9 +325,28 @@ export default function BankCommsPage() {
                     <h3 className="text-lg font-semibold">{s.name}</h3>
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-neutral-600">
-                  Owner : {s.owner}
-                </p>
+                <p className="mt-2 text-sm text-neutral-600">Owner : {s.owner}</p>
+                {hasPage ? (
+                  <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-stone-700">
+                    Voir le flux de veille <ArrowRight className="h-3.5 w-3.5" />
+                  </p>
+                ) : null}
+              </>
+            );
+            return hasPage ? (
+              <Link
+                key={s.agent_id}
+                href={`/agents/${s.slug}`}
+                className="block rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6 transition hover:border-neutral-400 hover:bg-white"
+              >
+                {Card}
+              </Link>
+            ) : (
+              <article
+                key={s.agent_id}
+                className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-6"
+              >
+                {Card}
               </article>
             );
           })}

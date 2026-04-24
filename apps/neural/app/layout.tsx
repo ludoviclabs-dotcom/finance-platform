@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Playfair_Display } from "next/font/google";
+import {
+  Inter,
+  Instrument_Serif,
+  JetBrains_Mono,
+  Playfair_Display,
+  Space_Grotesk,
+} from "next/font/google";
 
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
@@ -22,6 +28,20 @@ const spaceGrotesk = Space_Grotesk({
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
+  display: "swap",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  variable: "--font-instrument",
+  weight: "400",
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
   display: "swap",
 });
 
@@ -91,7 +111,7 @@ export default function RootLayout({
     <html
       lang="fr"
       data-theme="dark"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${playfair.variable}`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${playfair.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
     >
       <body className="min-h-screen font-sans antialiased">
         <a

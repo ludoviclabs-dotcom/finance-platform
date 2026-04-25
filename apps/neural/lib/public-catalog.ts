@@ -150,26 +150,27 @@ export const SECTOR_ENTRIES: PublicEntry[] = [
     ],
   }),
   buildSectorEntry("aeronautique", {
-    status: "planned",
-    proofLevel: "content_only",
-    tagline: "Verticale en cadrage",
+    status: "demo",
+    proofLevel: "ui_demo",
+    tagline: "Premier wedge public : Marketing aero (B2B + defense + sustainability)",
     description:
-      "L'aeronautique reste visible pour conserver la vision multi-secteurs, mais le perimetre public doit etre lu comme une trajectoire produit et non comme une verticale deja live.",
-    readyNow: "Narratif secteur, cas d'usage cibles et matiere workbook hors runtime public.",
+      "L'aeronautique dispose maintenant d'un premier wedge visible : Marketing B2B technique, conformite ITAR/EAR/sanctions, packs salons 2026 (Farnborough, ILA, Eurosatory, MEBAA) et anti-greenwashing SAF/H2/eVTOL. La page expose 4 agents, 2 services reserves, 44 regles et les 5 workbooks Excel generes.",
+    readyNow: "Page Aeronautique / Marketing, hub /secteurs/aeronautique, 5 workbooks Excel locaux et referentiel 2026 documente (AI Act art. 50, OFAC SDN, Green Claims Directive, ReFuelEU).",
     nextStep:
-      "Selectionner un premier wedge aeronautique et le transformer en surface demonstrable.",
-    dataUsed: "Documentation et workbooks hors runtime public.",
-    deliverable: "Page readiness, cadrage d'usage et call-to-action de contact.",
-    ctaHref: "/contact",
-    ctaLabel: "Discuter de l'aeronautique",
+      "Brancher les workbooks au runtime public et ajouter la branche Communications & Affaires publiques (corporate, gov relations).",
+    dataUsed: "AeroTechContent + DefenseCommsGuard + AeroEventAI + AeroSustainabilityComms + Aero_Marketing_OVERVIEW (5 workbooks NEURAL).",
+    deliverable: "Page /secteurs/aeronautique/marketing avec sourcebook reglementaire 12 sources et catalogue TS.",
+    ctaHref: "/secteurs/aeronautique/marketing",
+    ctaLabel: "Ouvrir Aeronautique / Marketing",
     scopeNow: [
-      "Preserve la lisibilite de la vision multi-secteurs.",
-      "Permet une conversation commerciale sans surestimer le niveau de maturite.",
+      "Expose un cas d'usage aero concret sans donnees classifiees.",
+      "Montre les guardrails reglementaires : ITAR/EAR, sanctions, AI Act art. 50, anti-greenwashing.",
+      "Reste honnete : demo UI et workbooks portfolio, pas production live.",
     ],
     notYet: [
-      "Pas de page secteur live avec preuves runtime.",
-      "Pas d'exports publics relies a cette verticale.",
-      "Pas d'agent expose comme surface operable.",
+      "Pas encore de parsing runtime des fichiers Excel aero.",
+      "Pas encore de pages agents dediees avec API de demo.",
+      "Pas encore de branche Communications & Affaires publiques publiee (corporate aero-comms en attente).",
     ],
   }),
   buildSectorEntry("saas", {
@@ -198,27 +199,27 @@ export const SECTOR_ENTRIES: PublicEntry[] = [
   buildSectorEntry("banque", {
     status: "demo",
     proofLevel: "runtime_data",
-    tagline: "Branche Communication bancaire en demo — 4 agents + 2 services",
+    tagline: "Communication runtime + Marketing Excel-first",
     description:
-      "Banque / Communication expose 4 agents publics (RegBankComms, BankCrisisComms, ESGBankComms, ClientBankComms) et 2 services transverses (RegWatchBank, BankEvidenceGuard). 16 gates deterministes MVP, 19 scenarios pre-charges, registre de 10 sources ACTIVE ACPR/AMF/EBA/ECB/ESMA. Mode scenario-id only pour eviter toute ingestion d'info privilegiee non publique.",
+      "Le secteur Banque expose deux branches distinctes : Communication bancaire regulee (runtime scenario-id only) et Marketing bancaire Excel-first (AMF/ACPR, education financiere, segmentation, MiFID, PRIIPs, MiCA). Les deux gardent les gates deterministes et la revue humaine visibles.",
     readyNow:
-      "4 demos live (scenario-id uniquement), 4 packs Markdown exportables avec hash SHA-256, resolveur EvidenceGuard deterministe sans LLM, 18 subjects mappes aux agents, veille reglementaire seed (5 digests 2025-2026).",
+      "Hub /secteurs/banque, branche Communication en demo runtime, branche Marketing avec 6 workbooks generes, console scenario-id et 10 gates MVP.",
     nextStep:
-      "Persister les runs (Postgres), fetch live des feeds ACPR/AMF/EBA (cron hebdo + classifier), produire les workbooks Excel reels.",
+      "Synchroniser les workbooks Banque / Marketing vers content JSON, puis ajouter des fiches agents dediees quand la console branche est stabilisee.",
     dataUsed:
-      "10 sources reglementaires ACTIVE, 13 disclosure rules bloquantes, 5 holding statements pre-approuves, 10 patterns ESG library, 5 mentions legales clients obligatoires.",
-    deliverable: "Branche /secteurs/banque/communication live + dashboard operationnel + 6 pages agents + 4 packs .md.",
-    ctaHref: "/secteurs/banque/communication",
-    ctaLabel: "Ouvrir Banque / Communication",
+      "Communication : seeds JSON reglementaires. Marketing : NEURAL_BANK_MARKETING_FOUNDATIONS.xlsx, MASTER et 4 workbooks agents generes localement.",
+    deliverable: "Hub /secteurs/banque + pages /communication et /marketing avec demos scenario-id only.",
+    ctaHref: "/secteurs/banque",
+    ctaLabel: "Ouvrir le secteur Banque",
     scopeNow: [
-      "Trust-first : 4 agents en demo, aucun texte libre accepte, gates determinnistes qui overrident le LLM.",
-      "Modele pilote prive cadre (setup 25-60 k EUR, 80-180 k EUR/an par domaine), aucun forfait public.",
-      "Perimetre FR + UE, cadres ACPR/AMF/EBA/ECB/ESMA/IFRS/EUR-Lex couverts.",
+      "Separe clairement Communication corporate et Marketing client.",
+      "Expose 8 agents publics, 4 services reserves et 26 gates explicites entre les deux branches.",
+      "Maintient le mode scenario-id only pour eviter texte libre, conseil personnalise ou autopublication.",
     ],
     notYet: [
-      "Workbooks Excel reels non encore produits — les seeds JSON font le job runtime.",
-      "Fetch automatise de la veille reglementaire en Sprint suivant (seed aujourd'hui).",
-      "Persistence runs multi-tenant a brancher avant premier pilote paye.",
+      "Les workbooks Banque / Marketing ne sont pas encore synchronises vers le runtime public.",
+      "Pas encore de pages agents dediees pour AG-BM001 a AG-BM004.",
+      "Pas de fetch automatise de la veille reglementaire marketing.",
     ],
   }),
   buildSectorEntry("assurance", {
@@ -345,22 +346,29 @@ export const BRANCH_ENTRIES: PublicEntry[] = [
     ],
   }),
   buildBranchEntry("marketing", {
-    status: "planned",
-    proofLevel: "content_only",
-    tagline: "Vision de branche",
+    status: "demo",
+    proofLevel: "ui_demo",
+    tagline: "Deux wedges demo : Assurance / Marketing et Banque / Marketing",
     description:
-      "Marketing est conserve comme composante du framework NEURAL, sans etre presente comme une branche deja active publiquement.",
-    readyNow: "Promesse de branche et cadrage de valeur.",
-    nextStep: "Identifier un agent wedge et une preuve metier concrete.",
-    dataUsed: "Contenus de positionnement.",
-    deliverable: "Page readiness et CTA.",
-    ctaHref: "/contact",
-    ctaLabel: "Parler marketing",
-    scopeNow: ["Maintient le recit multi-branches."],
+      "Marketing dispose maintenant de surfaces demonstrables : Assurance / Marketing pour DDA et RGPD, et Banque / Marketing pour AMF/ACPR, education, segmentation, MiFID, PRIIPs et MiCA.",
+    readyNow:
+      "Pages UI demo, workbooks locaux, sourcebooks reglementaires et consoles scenario-id only.",
+    nextStep:
+      "Synchroniser les workbooks vers content JSON et transformer les consoles branche en fiches agents dediees.",
+    dataUsed:
+      "Workbooks Assurance / Marketing existants et NEURAL_BANK_MARKETING_* generes localement.",
+    deliverable: "Pages /secteurs/assurance/marketing et /secteurs/banque/marketing.",
+    ctaHref: "/secteurs/banque/marketing",
+    ctaLabel: "Ouvrir Banque / Marketing",
+    scopeNow: [
+      "Montre une branche Marketing concrete sans promettre de production live.",
+      "Expose les gates et les limites de conseil personnalise.",
+      "Presente des livrables Excel utiles en portfolio recruteur.",
+    ],
     notYet: [
-      "Pas de surface publique live.",
-      "Pas de sortie ou export public.",
-      "Pas de branchement runtime expose.",
+      "Pas de runtime Excel direct.",
+      "Pas de generation libre de campagne.",
+      "Pas de connecteur CRM/CMS production.",
     ],
   }),
   buildBranchEntry("communication", {

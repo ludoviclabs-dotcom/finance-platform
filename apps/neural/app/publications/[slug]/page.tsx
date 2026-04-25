@@ -173,13 +173,13 @@ export default async function PublicationPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="relative min-h-[280px] overflow-hidden rounded-[32px] border border-white/10 bg-[#09111F]">
+          <div className="relative aspect-[4/3] w-full self-start overflow-hidden rounded-[32px] border border-white/10 bg-[#09111F]">
             {article.coverImage ? (
               <Image
                 src={article.coverImage}
                 alt={article.coverAlt ?? article.title}
                 fill
-                className="object-cover"
+                className="object-contain p-4"
                 sizes="(max-width: 1024px) 100vw, 380px"
                 priority
               />

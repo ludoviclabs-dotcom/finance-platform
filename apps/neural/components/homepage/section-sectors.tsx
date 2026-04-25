@@ -6,7 +6,7 @@ const sectors = [
   { id: "aer", label: "Aéronautique", desc: "Supply critique, EASA, MRO intelligent",     bg: "#0B1C2E", href: "/secteurs/aeronautique" },
   { id: "saa", label: "SaaS",         desc: "PLG analytics, churn, revenue",              bg: "#0E1F2A", href: "/secteurs/saas" },
   { id: "ban", label: "Banque",        desc: "Communication régulée, crise, ESG, clients sensibles", bg: "#14121F", href: "/secteurs/banque/communication" },
-  { id: "ass", label: "Assurance",    desc: "IFRS 17, tarification, sinistres",           bg: "#1A1026", href: "/secteurs/assurance" },
+  { id: "ass", label: "Assurance",    desc: "Supply Chain sinistres, Marketing DDA, RGPD", bg: "#10231D", href: "/secteurs/assurance" },
 ];
 
 export function SectionSectors() {

@@ -1,0 +1,506 @@
+{
+  "version": "Set 2 (EFRAG nov. 2025, post-Omnibus mars 2026)",
+  "generatedAt": "2026-04-26",
+  "datapoints": [
+    {
+      "id": "E1-1_transition_plan",
+      "standard": "E1",
+      "code": "E1-1",
+      "label_fr": "Plan de transition pour l'atténuation du changement climatique",
+      "label_en": "Transition plan for climate change mitigation",
+      "type": "text",
+      "mandatory": true,
+      "description": "Description du plan de transition aligné Accord de Paris (1.5°C), incluant les leviers de décarbonation, l'horizon temporel et les engagements financiers."
+    },
+    {
+      "id": "E1-2_policies",
+      "standard": "E1",
+      "code": "E1-2",
+      "label_fr": "Politiques liées à l'atténuation et à l'adaptation au changement climatique",
+      "label_en": "Policies related to climate change mitigation and adaptation",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E1-3_actions",
+      "standard": "E1",
+      "code": "E1-3",
+      "label_fr": "Actions et ressources liées aux politiques climatiques",
+      "label_en": "Actions and resources in relation to climate change policies",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E1-4_targets",
+      "standard": "E1",
+      "code": "E1-4",
+      "label_fr": "Cibles de réduction GES (court, moyen, long terme)",
+      "label_en": "GHG reduction targets (short, medium, long term)",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E1-5_energy_consumption_total",
+      "standard": "E1",
+      "code": "E1-5",
+      "label_fr": "Consommation énergétique totale",
+      "label_en": "Total energy consumption",
+      "type": "number",
+      "unit": "MWh",
+      "mandatory": true
+    },
+    {
+      "id": "E1-5_energy_consumption_renewable",
+      "standard": "E1",
+      "code": "E1-5",
+      "label_fr": "Consommation d'énergie renouvelable",
+      "label_en": "Renewable energy consumption",
+      "type": "number",
+      "unit": "MWh",
+      "mandatory": true
+    },
+    {
+      "id": "E1-5_energy_consumption_non_renewable",
+      "standard": "E1",
+      "code": "E1-5",
+      "label_fr": "Consommation d'énergie non renouvelable",
+      "label_en": "Non-renewable energy consumption",
+      "type": "number",
+      "unit": "MWh",
+      "mandatory": true
+    },
+    {
+      "id": "E1-5_energy_intensity",
+      "standard": "E1",
+      "code": "E1-5",
+      "label_fr": "Intensité énergétique par chiffre d'affaires net",
+      "label_en": "Energy intensity per net revenue",
+      "type": "number",
+      "unit": "MWh/M€",
+      "mandatory": true
+    },
+    {
+      "id": "E1-6_scope1_gross",
+      "standard": "E1",
+      "code": "E1-6",
+      "label_fr": "Émissions brutes Scope 1",
+      "label_en": "Gross Scope 1 GHG emissions",
+      "type": "number",
+      "unit": "tCO2e",
+      "mandatory": true
+    },
+    {
+      "id": "E1-6_scope2_location_based",
+      "standard": "E1",
+      "code": "E1-6",
+      "label_fr": "Émissions Scope 2 (location-based)",
+      "label_en": "Scope 2 GHG emissions (location-based)",
+      "type": "number",
+      "unit": "tCO2e",
+      "mandatory": true
+    },
+    {
+      "id": "E1-6_scope2_market_based",
+      "standard": "E1",
+      "code": "E1-6",
+      "label_fr": "Émissions Scope 2 (market-based)",
+      "label_en": "Scope 2 GHG emissions (market-based)",
+      "type": "number",
+      "unit": "tCO2e",
+      "mandatory": true
+    },
+    {
+      "id": "E1-6_scope3_total",
+      "standard": "E1",
+      "code": "E1-6",
+      "label_fr": "Émissions totales Scope 3",
+      "label_en": "Total Scope 3 GHG emissions",
+      "type": "number",
+      "unit": "tCO2e",
+      "mandatory": true
+    },
+    {
+      "id": "E1-6_total_ghg",
+      "standard": "E1",
+      "code": "E1-6",
+      "label_fr": "Émissions GES totales (Scope 1+2+3)",
+      "label_en": "Total GHG emissions (Scope 1+2+3)",
+      "type": "number",
+      "unit": "tCO2e",
+      "mandatory": true,
+      "dependencies": [
+        "E1-6_scope1_gross",
+        "E1-6_scope2_market_based",
+        "E1-6_scope3_total"
+      ]
+    },
+    {
+      "id": "E1-6_ghg_intensity",
+      "standard": "E1",
+      "code": "E1-6",
+      "label_fr": "Intensité GES par chiffre d'affaires net",
+      "label_en": "GHG intensity per net revenue",
+      "type": "number",
+      "unit": "tCO2e/M€",
+      "mandatory": true
+    },
+    {
+      "id": "E1-7_removals_storage",
+      "standard": "E1",
+      "code": "E1-7",
+      "label_fr": "Absorptions et stockage carbone",
+      "label_en": "GHG removals and storage",
+      "type": "number",
+      "unit": "tCO2e",
+      "mandatory": false
+    },
+    {
+      "id": "E1-7_carbon_credits",
+      "standard": "E1",
+      "code": "E1-7",
+      "label_fr": "Crédits carbone achetés",
+      "label_en": "Carbon credits purchased",
+      "type": "number",
+      "unit": "tCO2e",
+      "mandatory": false
+    },
+    {
+      "id": "E1-8_internal_carbon_price",
+      "standard": "E1",
+      "code": "E1-8",
+      "label_fr": "Prix interne du carbone",
+      "label_en": "Internal carbon price",
+      "type": "number",
+      "unit": "€/tCO2e",
+      "mandatory": false
+    },
+    {
+      "id": "E1-9_assets_at_physical_risk",
+      "standard": "E1",
+      "code": "E1-9",
+      "label_fr": "Actifs exposés aux risques physiques climat",
+      "label_en": "Assets at material physical risk from climate change",
+      "type": "number",
+      "unit": "M€",
+      "mandatory": true
+    },
+    {
+      "id": "E1-9_assets_at_transition_risk",
+      "standard": "E1",
+      "code": "E1-9",
+      "label_fr": "Actifs exposés aux risques de transition",
+      "label_en": "Assets at material transition risk",
+      "type": "number",
+      "unit": "M€",
+      "mandatory": true
+    },
+    {
+      "id": "E1-9_capex_aligned_taxonomy",
+      "standard": "E1",
+      "code": "E1-9",
+      "label_fr": "CapEx aligné Taxonomie UE",
+      "label_en": "Taxonomy-aligned CapEx",
+      "type": "number",
+      "unit": "%",
+      "mandatory": true
+    },
+    {
+      "id": "S1-1_policies",
+      "standard": "S1",
+      "code": "S1-1",
+      "label_fr": "Politiques relatives aux effectifs propres",
+      "label_en": "Policies related to own workforce",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S1-2_processes_engagement",
+      "standard": "S1",
+      "code": "S1-2",
+      "label_fr": "Processus d'engagement avec les effectifs propres",
+      "label_en": "Processes for engaging with own workforce",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S1-3_remediation_channels",
+      "standard": "S1",
+      "code": "S1-3",
+      "label_fr": "Canaux de remontée de réclamations et remédiation",
+      "label_en": "Channels to raise concerns and remediation",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S1-6_total_employees",
+      "standard": "S1",
+      "code": "S1-6",
+      "label_fr": "Effectif total (équivalents temps plein)",
+      "label_en": "Total number of employees (FTE)",
+      "type": "number",
+      "unit": "FTE",
+      "mandatory": true
+    },
+    {
+      "id": "S1-6_employees_male",
+      "standard": "S1",
+      "code": "S1-6",
+      "label_fr": "Effectif hommes",
+      "label_en": "Number of male employees",
+      "type": "number",
+      "unit": "FTE",
+      "mandatory": true
+    },
+    {
+      "id": "S1-6_employees_female",
+      "standard": "S1",
+      "code": "S1-6",
+      "label_fr": "Effectif femmes",
+      "label_en": "Number of female employees",
+      "type": "number",
+      "unit": "FTE",
+      "mandatory": true
+    },
+    {
+      "id": "S1-6_employees_other",
+      "standard": "S1",
+      "code": "S1-6",
+      "label_fr": "Effectif autres / non déclarés",
+      "label_en": "Number of other / undisclosed employees",
+      "type": "number",
+      "unit": "FTE",
+      "mandatory": false
+    },
+    {
+      "id": "S1-6_permanent_contracts",
+      "standard": "S1",
+      "code": "S1-6",
+      "label_fr": "Effectif en CDI",
+      "label_en": "Permanent contract employees",
+      "type": "number",
+      "unit": "FTE",
+      "mandatory": true
+    },
+    {
+      "id": "S1-6_temporary_contracts",
+      "standard": "S1",
+      "code": "S1-6",
+      "label_fr": "Effectif en CDD",
+      "label_en": "Temporary contract employees",
+      "type": "number",
+      "unit": "FTE",
+      "mandatory": true
+    },
+    {
+      "id": "S1-6_turnover_rate",
+      "standard": "S1",
+      "code": "S1-6",
+      "label_fr": "Taux de rotation du personnel",
+      "label_en": "Employee turnover rate",
+      "type": "number",
+      "unit": "%",
+      "mandatory": true
+    },
+    {
+      "id": "S1-8_collective_bargaining_coverage",
+      "standard": "S1",
+      "code": "S1-8",
+      "label_fr": "Couverture conventions collectives",
+      "label_en": "Collective bargaining coverage",
+      "type": "number",
+      "unit": "%",
+      "mandatory": true
+    },
+    {
+      "id": "S1-9_gender_pay_gap",
+      "standard": "S1",
+      "code": "S1-9",
+      "label_fr": "Écart de rémunération hommes/femmes",
+      "label_en": "Gender pay gap",
+      "type": "number",
+      "unit": "%",
+      "mandatory": true
+    },
+    {
+      "id": "S1-9_ceo_to_median_ratio",
+      "standard": "S1",
+      "code": "S1-9",
+      "label_fr": "Ratio rémunération PDG / médiane salariés",
+      "label_en": "CEO to median employee pay ratio",
+      "type": "number",
+      "unit": "ratio",
+      "mandatory": true
+    },
+    {
+      "id": "S1-10_adequate_wages",
+      "standard": "S1",
+      "code": "S1-10",
+      "label_fr": "Salariés payés au-dessus du salaire décent",
+      "label_en": "Employees paid above adequate wage",
+      "type": "number",
+      "unit": "%",
+      "mandatory": true
+    },
+    {
+      "id": "S1-13_training_hours_per_employee",
+      "standard": "S1",
+      "code": "S1-13",
+      "label_fr": "Heures de formation moyennes par salarié",
+      "label_en": "Average training hours per employee",
+      "type": "number",
+      "unit": "heures",
+      "mandatory": true
+    },
+    {
+      "id": "S1-14_recordable_work_accidents",
+      "standard": "S1",
+      "code": "S1-14",
+      "label_fr": "Accidents du travail enregistrables",
+      "label_en": "Number of recordable work-related accidents",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S1-14_fatalities",
+      "standard": "S1",
+      "code": "S1-14",
+      "label_fr": "Décès liés au travail",
+      "label_en": "Number of fatalities due to work-related injuries",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S1-14_lost_day_rate",
+      "standard": "S1",
+      "code": "S1-14",
+      "label_fr": "Taux de jours perdus pour accident",
+      "label_en": "Lost day rate due to work-related accidents",
+      "type": "number",
+      "unit": "jours/200k h",
+      "mandatory": true
+    },
+    {
+      "id": "S1-16_human_rights_incidents",
+      "standard": "S1",
+      "code": "S1-16",
+      "label_fr": "Incidents droits humains effectifs propres",
+      "label_en": "Human rights incidents in own workforce",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S1-17_discrimination_incidents",
+      "standard": "S1",
+      "code": "S1-17",
+      "label_fr": "Incidents de discrimination signalés",
+      "label_en": "Reported discrimination incidents",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "G1-1_business_conduct_policies",
+      "standard": "G1",
+      "code": "G1-1",
+      "label_fr": "Politiques de conduite des affaires et culture d'entreprise",
+      "label_en": "Business conduct policies and corporate culture",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "G1-2_supplier_relationships",
+      "standard": "G1",
+      "code": "G1-2",
+      "label_fr": "Gestion des relations fournisseurs",
+      "label_en": "Management of relationships with suppliers",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "G1-3_anticorruption_prevention",
+      "standard": "G1",
+      "code": "G1-3",
+      "label_fr": "Prévention et détection de la corruption",
+      "label_en": "Prevention and detection of corruption and bribery",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "G1-3_anticorruption_training_coverage",
+      "standard": "G1",
+      "code": "G1-3",
+      "label_fr": "Couverture formation anti-corruption",
+      "label_en": "Anti-corruption training coverage",
+      "type": "number",
+      "unit": "%",
+      "mandatory": true
+    },
+    {
+      "id": "G1-4_corruption_incidents",
+      "standard": "G1",
+      "code": "G1-4",
+      "label_fr": "Incidents avérés de corruption ou pots-de-vin",
+      "label_en": "Confirmed incidents of corruption or bribery",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "G1-4_corruption_convictions",
+      "standard": "G1",
+      "code": "G1-4",
+      "label_fr": "Condamnations pour corruption",
+      "label_en": "Convictions for corruption",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "G1-4_corruption_fines",
+      "standard": "G1",
+      "code": "G1-4",
+      "label_fr": "Amendes pour corruption",
+      "label_en": "Fines for corruption",
+      "type": "number",
+      "unit": "€",
+      "mandatory": true
+    },
+    {
+      "id": "G1-5_political_contributions",
+      "standard": "G1",
+      "code": "G1-5",
+      "label_fr": "Contributions politiques totales",
+      "label_en": "Total political contributions",
+      "type": "number",
+      "unit": "€",
+      "mandatory": true
+    },
+    {
+      "id": "G1-5_lobbying_membership_fees",
+      "standard": "G1",
+      "code": "G1-5",
+      "label_fr": "Cotisations lobbying et associations professionnelles",
+      "label_en": "Lobbying and trade association membership fees",
+      "type": "number",
+      "unit": "€",
+      "mandatory": true
+    },
+    {
+      "id": "G1-6_supplier_payment_days",
+      "standard": "G1",
+      "code": "G1-6",
+      "label_fr": "Délai moyen de paiement fournisseurs",
+      "label_en": "Average supplier payment days",
+      "type": "number",
+      "unit": "jours",
+      "mandatory": true
+    },
+    {
+      "id": "G1-6_late_payments_pct",
+      "standard": "G1",
+      "code": "G1-6",
+      "label_fr": "Pourcentage de paiements en retard",
+      "label_en": "Percentage of late payments",
+      "type": "number",
+      "unit": "%",
+      "mandatory": true
+    }
+  ]
+}

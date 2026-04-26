@@ -9,7 +9,7 @@ import {
   FileBarChart, CreditCard, Leaf, LogOut,
   ChevronLeft, ChevronRight, X, Scale,
   Sparkles, ShieldCheck, Database, Upload, ClipboardList, History, Settings, Bell,
-  Inbox, Factory,
+  Inbox, Factory, ListChecks,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -36,6 +36,10 @@ const navItems: {
     badge: { text: "3 alertes", color: "bg-red-500/15 text-red-400" },
   },
   { id: "materialite", href: "/materialite", label: "Matérialité", icon: <Scale className="w-5 h-5" /> },
+  {
+    id: "datapoints", href: "/datapoints", label: "Datapoints CSRD", icon: <ListChecks className="w-5 h-5" />,
+    badge: { text: "RAG", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
+  },
   { id: "fournisseurs", href: "/fournisseurs", label: "Fournisseurs", icon: <Factory className="w-5 h-5" />, badge: { text: "Scope 3", color: "bg-blue-500/15 text-blue-400" } },
   { id: "qc", href: "/qc", label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
   { id: "revue", href: "/revue", label: "Inbox revue", icon: <Inbox className="w-5 h-5" /> },

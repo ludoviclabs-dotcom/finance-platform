@@ -18,7 +18,8 @@ export type Page =
   | "history"
   | "alerts"
   | "admin"
-  | "pricing";
+  | "pricing"
+  | "datapoints";
 
 export interface ChatMessage {
   role: "user" | "assistant";

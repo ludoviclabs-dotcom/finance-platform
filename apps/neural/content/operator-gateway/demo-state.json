@@ -1,0 +1,328 @@
+{
+  "lastUpdated": "2026-04-27T08:30:00Z",
+  "comment": "Mock data réaliste pour la page /operator-gateway. À remplacer par un fetch live quand le gateway sera en runtime public.",
+  "globalStats": {
+    "agentsActifs": 16,
+    "decisions24h": 12847,
+    "auditTrailIntegrity": "100%",
+    "policiesEnforced": 47,
+    "incidentsBlocked24h": 3
+  },
+  "mcpServers": [
+    {
+      "id": "anthropic-claude",
+      "name": "Anthropic Claude (Sonnet 4.6)",
+      "category": "LLM",
+      "status": "operational",
+      "rbacEnabled": true,
+      "rateLimit": "1000 req/min/tenant",
+      "lastActivity": "il y a 2s",
+      "totalCalls24h": 9247
+    },
+    {
+      "id": "vercel-gateway",
+      "name": "Vercel AI Gateway",
+      "category": "Routing",
+      "status": "operational",
+      "rbacEnabled": true,
+      "rateLimit": "Configuré upstream",
+      "lastActivity": "il y a 4s",
+      "totalCalls24h": 9247
+    },
+    {
+      "id": "neural-data-hub",
+      "name": "NEURAL Data Hub MCP",
+      "category": "Internal",
+      "status": "operational",
+      "rbacEnabled": true,
+      "rateLimit": "500 req/min/agent",
+      "lastActivity": "il y a 7s",
+      "totalCalls24h": 3120
+    },
+    {
+      "id": "luxe-comms-mcp",
+      "name": "Luxe Comms MCP",
+      "category": "Sectoriel",
+      "status": "operational",
+      "rbacEnabled": true,
+      "rateLimit": "200 req/min/agent",
+      "lastActivity": "il y a 12s",
+      "totalCalls24h": 854
+    },
+    {
+      "id": "bank-comms-mcp",
+      "name": "Bank Comms MCP",
+      "category": "Sectoriel",
+      "status": "operational",
+      "rbacEnabled": true,
+      "rateLimit": "200 req/min/agent",
+      "lastActivity": "il y a 28s",
+      "totalCalls24h": 627
+    },
+    {
+      "id": "evidence-resolver",
+      "name": "Evidence Resolver MCP",
+      "category": "Compliance",
+      "status": "operational",
+      "rbacEnabled": true,
+      "rateLimit": "Stateless · pas de limite",
+      "lastActivity": "il y a 1m",
+      "totalCalls24h": 412
+    },
+    {
+      "id": "claim-evidence-mcp",
+      "name": "Claim Evidence Registry MCP",
+      "category": "Compliance",
+      "status": "operational",
+      "rbacEnabled": true,
+      "rateLimit": "100 req/min/agent",
+      "lastActivity": "il y a 3m",
+      "totalCalls24h": 184
+    },
+    {
+      "id": "sap-readonly",
+      "name": "SAP Read-Only MCP (sandbox)",
+      "category": "Connecteur",
+      "status": "degraded",
+      "rbacEnabled": true,
+      "rateLimit": "10 req/min/agent",
+      "lastActivity": "il y a 2h",
+      "totalCalls24h": 24
+    }
+  ],
+  "auditTrail": [
+    {
+      "id": "tr-9482",
+      "timestamp": "2026-04-27T08:29:47Z",
+      "agent": "GreenClaimChecker",
+      "decision": "REVIEW",
+      "promptHash": "sha256:a83f...91ed",
+      "promptVersion": "v3.2.1",
+      "model": "claude-sonnet-4-6",
+      "tokens": 1842,
+      "latency": "1.4s",
+      "cost": "0.018 €",
+      "tenant": "client_ABC",
+      "signedBy": "GreenClaimChecker@v3.2.1",
+      "outcome": "Claim CRITICAL escaladé Legal+ESG Lead",
+      "trigger": "Pattern matching ABSOLUTE sans evidence USABLE"
+    },
+    {
+      "id": "tr-9481",
+      "timestamp": "2026-04-27T08:29:42Z",
+      "agent": "MaisonVoiceGuard",
+      "decision": "APPROVE",
+      "promptHash": "sha256:7c2d...4f8a",
+      "promptVersion": "v2.8.0",
+      "model": "claude-sonnet-4-6",
+      "tokens": 967,
+      "latency": "0.8s",
+      "cost": "0.010 €",
+      "tenant": "client_ABC",
+      "signedBy": "MaisonVoiceGuard@v2.8.0",
+      "outcome": "Score brand 87/100 — pass",
+      "trigger": "Demande validation copy presse FR"
+    },
+    {
+      "id": "tr-9480",
+      "timestamp": "2026-04-27T08:29:38Z",
+      "agent": "Sapin2Compliance",
+      "decision": "BLOCK",
+      "promptHash": "sha256:e91b...c7d2",
+      "promptVersion": "v1.5.3",
+      "model": "claude-sonnet-4-6",
+      "tokens": 2341,
+      "latency": "2.1s",
+      "cost": "0.024 €",
+      "tenant": "client_DEF",
+      "signedBy": "Sapin2Compliance@v1.5.3",
+      "outcome": "Onboarding tiers refusé — pays haut risque sans due diligence renforcée",
+      "trigger": "Tier identifié dans liste OFAC SDN secondaire"
+    },
+    {
+      "id": "tr-9479",
+      "timestamp": "2026-04-27T08:29:31Z",
+      "agent": "RegBankComms",
+      "decision": "REVIEW",
+      "promptHash": "sha256:4a51...8b2f",
+      "promptVersion": "v2.4.1",
+      "model": "claude-sonnet-4-6",
+      "tokens": 1523,
+      "latency": "1.1s",
+      "cost": "0.016 €",
+      "tenant": "client_GHI",
+      "signedBy": "RegBankComms@v2.4.1",
+      "outcome": "Communication MiFID II — review humaine demandée",
+      "trigger": "Mention performance > seuil sans disclaimer obligatoire"
+    },
+    {
+      "id": "tr-9478",
+      "timestamp": "2026-04-27T08:29:24Z",
+      "agent": "HeritageComms",
+      "decision": "APPROVE",
+      "promptHash": "sha256:b17e...3a99",
+      "promptVersion": "v1.9.2",
+      "model": "claude-sonnet-4-6",
+      "tokens": 1247,
+      "latency": "0.9s",
+      "cost": "0.013 €",
+      "tenant": "client_ABC",
+      "signedBy": "HeritageComms@v1.9.2",
+      "outcome": "Citation patrimoniale validée (2 sources PRIMARY)",
+      "trigger": "Demande génération format Maison-style"
+    },
+    {
+      "id": "tr-9477",
+      "timestamp": "2026-04-27T08:29:17Z",
+      "agent": "Consolidation",
+      "decision": "APPROVE",
+      "promptHash": "sha256:d62c...e4b1",
+      "promptVersion": "v4.1.0",
+      "model": "claude-sonnet-4-6",
+      "tokens": 3421,
+      "latency": "2.8s",
+      "cost": "0.034 €",
+      "tenant": "client_JKL",
+      "signedBy": "Consolidation@v4.1.0",
+      "outcome": "Agrégation Q1 2026 — 6 maisons, écart < 0.05%",
+      "trigger": "Clôture trimestrielle automatique"
+    },
+    {
+      "id": "tr-9476",
+      "timestamp": "2026-04-27T08:29:10Z",
+      "agent": "BankCrisisComms",
+      "decision": "BLOCK",
+      "promptHash": "sha256:f93a...8c7d",
+      "promptVersion": "v1.2.4",
+      "model": "claude-sonnet-4-6",
+      "tokens": 1876,
+      "latency": "1.6s",
+      "cost": "0.019 €",
+      "tenant": "client_GHI",
+      "signedBy": "BankCrisisComms@v1.2.4",
+      "outcome": "Communication crise bloquée — pas d'autopublication permise",
+      "trigger": "Demande publication directe sans validation Comex"
+    },
+    {
+      "id": "tr-9475",
+      "timestamp": "2026-04-27T08:29:03Z",
+      "agent": "FraudDetectSC",
+      "decision": "REVIEW",
+      "promptHash": "sha256:21bf...9e0a",
+      "promptVersion": "v2.0.1",
+      "model": "claude-sonnet-4-6",
+      "tokens": 4127,
+      "latency": "3.2s",
+      "cost": "0.041 €",
+      "tenant": "client_MNO",
+      "signedBy": "FraudDetectSC@v2.0.1",
+      "outcome": "Alerte fraude fournisseur — score 76/100 → review investigateur",
+      "trigger": "Pattern surfacturation détecté"
+    },
+    {
+      "id": "tr-9474",
+      "timestamp": "2026-04-27T08:28:56Z",
+      "agent": "LuxePressAgent",
+      "decision": "APPROVE",
+      "promptHash": "sha256:c84d...7b3f",
+      "promptVersion": "v3.1.0",
+      "model": "claude-sonnet-4-6",
+      "tokens": 2138,
+      "latency": "1.5s",
+      "cost": "0.022 €",
+      "tenant": "client_ABC",
+      "signedBy": "LuxePressAgent@v3.1.0",
+      "outcome": "Pitch FT formaté — embargo 48h respecté",
+      "trigger": "Brief presse business launch produit"
+    },
+    {
+      "id": "tr-9473",
+      "timestamp": "2026-04-27T08:28:48Z",
+      "agent": "MaisonVoiceGuard",
+      "decision": "REWORK",
+      "promptHash": "sha256:5e72...c1a8",
+      "promptVersion": "v2.8.0",
+      "model": "claude-sonnet-4-6",
+      "tokens": 891,
+      "latency": "0.7s",
+      "cost": "0.009 €",
+      "tenant": "client_ABC",
+      "signedBy": "MaisonVoiceGuard@v2.8.0",
+      "outcome": "Score 62/100 — 3 hard-fail brand détectés",
+      "trigger": "Validation copy social media"
+    }
+  ],
+  "policies": [
+    {
+      "id": "p-rbac",
+      "label": "RBAC strict par tenant",
+      "description": "Aucun agent ne peut accéder aux données d'un autre tenant. Cloisonnement physique au niveau base de données.",
+      "category": "Security",
+      "blocked24h": 0
+    },
+    {
+      "id": "p-sov-rt",
+      "label": "Pas de biométrie temps réel",
+      "description": "Conformément à l'article 5 AI Act, refus systématique de toute requête d'identification biométrique en espace public.",
+      "category": "AI Act",
+      "blocked24h": 0
+    },
+    {
+      "id": "p-decision-art22",
+      "label": "Article 22 RGPD — décision automatisée",
+      "description": "Sur cas d'effet juridique, escalade humaine forcée. Pas de décision finale automatisée sans review.",
+      "category": "RGPD",
+      "blocked24h": 1
+    },
+    {
+      "id": "p-cost-cap",
+      "label": "Cost cap par client",
+      "description": "Plafond mensuel configurable par client. Notification à 80% du cap, blocage soft à 110%.",
+      "category": "Operational",
+      "blocked24h": 0
+    },
+    {
+      "id": "p-rate-limit",
+      "label": "Rate-limit par agent",
+      "description": "Quota réq/minute par agent et par tenant. Protection anti-abus et anti-coûts dérivés.",
+      "category": "Security",
+      "blocked24h": 12
+    },
+    {
+      "id": "p-prompt-version",
+      "label": "Prompt versioning + signature",
+      "description": "Chaque prompt est versionné, hashé SHA-256 et signé. Rollback < 30s en cas de régression.",
+      "category": "Operational",
+      "blocked24h": 0
+    },
+    {
+      "id": "p-hard-fail-brand",
+      "label": "Hard-fail brand (Luxe Comms)",
+      "description": "Dictionnaire de termes interdits par charte de marque. Override LLM systématique.",
+      "category": "Sectoriel",
+      "blocked24h": 7
+    },
+    {
+      "id": "p-mar-mifid",
+      "label": "Hard-fail MAR / MiFID II",
+      "description": "Détection automatique des wordings interdits (insider, performance sans disclaimer, etc.).",
+      "category": "Sectoriel",
+      "blocked24h": 3
+    }
+  ],
+  "costBreakdown": {
+    "monthlyTotal": 4287,
+    "currency": "EUR",
+    "month": "Avril 2026",
+    "byAgent": [
+      { "agent": "Consolidation", "cost": 1024, "calls": 312, "share": 24 },
+      { "agent": "GreenClaimChecker", "cost": 627, "calls": 1842, "share": 14 },
+      { "agent": "Sapin2Compliance", "cost": 542, "calls": 287, "share": 13 },
+      { "agent": "FraudDetectSC", "cost": 487, "calls": 412, "share": 11 },
+      { "agent": "MaisonVoiceGuard", "cost": 412, "calls": 2341, "share": 10 },
+      { "agent": "LuxePressAgent", "cost": 387, "calls": 894, "share": 9 },
+      { "agent": "RegBankComms", "cost": 324, "calls": 567, "share": 8 },
+      { "agent": "Autres (8 agents)", "cost": 484, "calls": 1247, "share": 11 }
+    ]
+  }
+}

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { ContactForm } from "@/components/site/contact-form";
+import { CalEmbed } from "@/components/site/cal-embed";
 import { PUBLIC_METRICS } from "@/lib/public-catalog";
 
 /**
@@ -226,6 +227,28 @@ export default function ContactPage() {
             </div>
           </div>
         </div>
+
+        {/* ═══ Cal.com booking direct ═══ */}
+        <section className="mt-20">
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/[0.10] px-4 py-1.5 text-xs font-medium text-emerald-300">
+                <CalendarCheck2 className="h-3.5 w-3.5" />
+                Réservation directe
+              </div>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight md:text-4xl">
+                Préférez réserver un créneau directement&nbsp;?
+              </h2>
+            </div>
+            <p className="max-w-md text-sm leading-relaxed text-white/55">
+              Calendrier Cal.com intégré. Pas de back-and-forth d&apos;email pour caler 30 min.
+            </p>
+          </div>
+          <CalEmbed calLink="neural-ai/cadrage-30min" />
+          <p className="mt-3 text-[11px] uppercase tracking-[0.18em] text-white/35">
+            Cal.com · données EU · 100% open-source self-hostable
+          </p>
+        </section>
 
         {/* ═══ FAQ ═══ */}
         <section className="mt-24">

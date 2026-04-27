@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   PremiumDashboardMockup,
@@ -149,32 +149,349 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
   );
 }
 
+type DemoTone = "green" | "cyan" | "amber" | "neutral";
+
+type DemoStep = {
+  id: string;
+  label: string;
+  kicker: string;
+  title: string;
+  description: string;
+  screenTitle: string;
+  status: string;
+  output: string;
+  rows: Array<{ label: string; value: string; tone: DemoTone }>;
+  proof: {
+    title: string;
+    items: string[];
+  };
+};
+
+const DEMO_TONE_CLASSES: Record<DemoTone, string> = {
+  green: "border-emerald-400/25 bg-emerald-400/10 text-emerald-200",
+  cyan: "border-cyan-400/25 bg-cyan-400/10 text-cyan-200",
+  amber: "border-amber-400/25 bg-amber-400/10 text-amber-200",
+  neutral: "border-white/15 bg-white/[0.08] text-white/70",
+};
+
+const PRODUCT_DEMO_STEPS: DemoStep[] = [
+  {
+    id: "import",
+    label: "Import Excel",
+    kicker: "01 / Collecte",
+    title: "factures_energie_2025.xlsx importé",
+    description: "Carbon&Co transforme un fichier métier en données structurées, prêtes à être contrôlées.",
+    screenTitle: "Collecte fournisseurs",
+    status: "Fichier contrôlé",
+    output: "Données normalisées pour le calcul carbone",
+    rows: [
+      { label: "14 feuilles reconnues", value: "OK", tone: "green" },
+      { label: "Énergie, transport, achats", value: "3 sources", tone: "cyan" },
+      { label: "Champs obligatoires", value: "96%", tone: "neutral" },
+    ],
+    proof: {
+      title: "Trace de collecte",
+      items: ["Nom du fichier source", "Schéma d'import", "Horodatage de collecte"],
+    },
+  },
+  {
+    id: "mapping",
+    label: "Mapping ADEME",
+    kicker: "02 / Calcul",
+    title: "Facteur ADEME versionné",
+    description: "Les lignes sont reliées aux facteurs d'émission utiles, avec la version de référence conservée.",
+    screenTitle: "Moteur de correspondance",
+    status: "Facteurs appliqués",
+    output: "Émissions calculées avec facteurs sourcés",
+    rows: [
+      { label: "Électricité France", value: "ADEME", tone: "green" },
+      { label: "Gaz naturel", value: "fact_id lié", tone: "cyan" },
+      { label: "Transport amont", value: "à valider", tone: "amber" },
+    ],
+    proof: {
+      title: "Justification facteur",
+      items: ["fact_id conservé", "Version Base Empreinte®", "Méthode de conversion"],
+    },
+  },
+  {
+    id: "anomalies",
+    label: "Anomalies",
+    kicker: "03 / Contrôle",
+    title: "12 anomalies à vérifier",
+    description: "Le copilote signale les incohérences avant publication pour éviter les chiffres fragiles.",
+    screenTitle: "Contrôle qualité",
+    status: "Revue requise",
+    output: "Liste priorisée pour les équipes RSE et finance",
+    rows: [
+      { label: "Unités mixtes", value: "5 lignes", tone: "amber" },
+      { label: "Doublon fournisseur", value: "2 cas", tone: "amber" },
+      { label: "Période manquante", value: "à compléter", tone: "neutral" },
+    ],
+    proof: {
+      title: "Réassurance audit",
+      items: ["Alerte explicable", "Correction historisée", "Responsable identifié"],
+    },
+  },
+  {
+    id: "audit",
+    label: "Audit trail",
+    kicker: "04 / Preuve",
+    title: "Source, méthode et hash conservés",
+    description: "Chaque chiffre garde son origine, son calcul et son historique de validation.",
+    screenTitle: "Journal de preuve",
+    status: "Traçabilité active",
+    output: "Chaîne de preuve exploitable par un auditeur",
+    rows: [
+      { label: "Source facture", value: "liée", tone: "green" },
+      { label: "Méthode de calcul", value: "visible", tone: "cyan" },
+      { label: "Hash de chaîne", value: "SHA-256", tone: "neutral" },
+    ],
+    proof: {
+      title: "Evidence Pack",
+      items: ["Source d'origine", "Méthode appliquée", "Journal append-only"],
+    },
+  },
+  {
+    id: "export",
+    label: "Export rapport",
+    kicker: "05 / Livraison",
+    title: "PDF + Excel + Evidence Pack prêts",
+    description: "Le résultat est présenté dans les formats attendus pour la revue interne et l'audit.",
+    screenTitle: "Centre d'export",
+    status: "Rapport prêt",
+    output: "Dossier de reporting prêt à partager",
+    rows: [
+      { label: "Rapport ESRS E1", value: "PDF", tone: "green" },
+      { label: "Tableur auditeur", value: "Excel", tone: "cyan" },
+      { label: "Preuves sources", value: "Pack", tone: "neutral" },
+    ],
+    proof: {
+      title: "Livrables",
+      items: ["Rapport de synthèse", "Données détaillées", "Pièces justificatives"],
+    },
+  },
+];
+
+function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
+  const [activeDemoStep, setActiveDemoStep] = useState(0);
+  const [autoplayPaused, setAutoplayPaused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const activeStep = PRODUCT_DEMO_STEPS[activeDemoStep];
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+    return () => mediaQuery.removeEventListener("change", updatePreference);
+  }, []);
+
+  useEffect(() => {
+    if (autoplayPaused || prefersReducedMotion) return;
+
+    const timer = window.setInterval(() => {
+      setActiveDemoStep((current) => (current + 1) % PRODUCT_DEMO_STEPS.length);
+    }, 4200);
+
+    return () => window.clearInterval(timer);
+  }, [autoplayPaused, prefersReducedMotion]);
+
+  const selectDemoStep = (index: number) => {
+    setActiveDemoStep(index);
+    setAutoplayPaused(true);
+  };
+
+  return (
+    <section id="video-section" className="py-28 md:py-32 px-5 sm:px-8 md:px-12 bg-neutral-950 text-white overflow-hidden relative">
+      <div
+        className="absolute inset-0 pointer-events-none opacity-45"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px), linear-gradient(180deg, rgba(20,184,166,0.10), transparent 34%, rgba(22,163,74,0.08))",
+          backgroundSize: "72px 72px, 72px 72px, 100% 100%",
+        }}
+      />
+      <div className="max-w-[1440px] mx-auto relative z-10">
+        <Reveal className="max-w-3xl mb-12 md:mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.08] border border-white/15 mb-6">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span className="text-xs uppercase tracking-widest text-white/60 font-semibold">Démo produit · 90 sec · données exemples</span>
+          </div>
+          <h2 className="font-extrabold text-4xl md:text-5xl lg:text-6xl leading-[0.95] tracking-tighter text-white mb-5">
+            Du tableur au rapport auditable.
+          </h2>
+          <p className="text-base md:text-lg text-neutral-300 max-w-2xl leading-relaxed">
+            Suivez un flux Carbon&amp;Co complet : collecte, calcul, contrôle, preuve et export. Pas de film abstrait, juste le produit en situation.
+          </p>
+        </Reveal>
+
+        <div className="grid lg:grid-cols-[0.86fr_1.14fr] gap-6 lg:gap-8 items-stretch">
+          <Reveal delay={0.08} className="flex flex-col gap-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:p-4">
+              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mb-4">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-300 to-white transition-all duration-500"
+                  style={{ width: `${((activeDemoStep + 1) / PRODUCT_DEMO_STEPS.length) * 100}%` }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                {PRODUCT_DEMO_STEPS.map((step, index) => {
+                  const isActive = activeDemoStep === index;
+
+                  return (
+                    <button
+                      key={step.id}
+                      type="button"
+                      data-analytics="demo-step"
+                      aria-label={`${step.kicker}: ${step.label} - ${step.title}`}
+                      aria-pressed={isActive}
+                      onClick={() => selectDemoStep(index)}
+                      className={`group w-full text-left rounded-2xl border p-4 transition-all duration-300 cursor-pointer ${
+                        isActive
+                          ? "border-white bg-white text-black shadow-[0_20px_50px_rgba(0,0,0,0.28)]"
+                          : "border-white/10 bg-white/[0.035] text-white hover:bg-white/[0.07] hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${
+                          isActive ? "bg-black text-white" : "bg-white/10 text-white/70"
+                        }`}>
+                          {index + 1}
+                        </span>
+                        <span className="min-w-0">
+                          <span className={`block text-[0.68rem] uppercase tracking-widest font-bold ${
+                            isActive ? "text-emerald-700" : "text-emerald-300/80"
+                          }`}>
+                            {step.kicker}
+                          </span>
+                          <span className="block text-sm sm:text-base font-bold mt-1">{step.label}</span>
+                          <span className={`block text-xs sm:text-sm leading-relaxed mt-1 ${
+                            isActive ? "text-neutral-600" : "text-white/50"
+                          }`}>
+                            {step.title}
+                          </span>
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={onEnterApp}
+                data-analytics="demo-primary-cta"
+                className="rounded-2xl bg-white text-black px-5 py-4 text-sm font-extrabold hover:bg-neutral-100 transition-colors cursor-pointer"
+              >
+                Essayer avec des données exemples
+              </button>
+              <button
+                type="button"
+                onClick={() => selectDemoStep(PRODUCT_DEMO_STEPS.length - 1)}
+                data-analytics="demo-report-preview"
+                className="rounded-2xl border border-white/15 bg-white/[0.04] px-5 py-4 text-sm font-bold text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+              >
+                Voir un rapport généré
+              </button>
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.16}>
+            <div className="h-full rounded-[1.5rem] border border-white/[0.12] bg-[#070909] shadow-[0_40px_120px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 sm:px-6 py-4 bg-white/[0.035]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="h-3 w-3 rounded-full bg-red-400/80" />
+                  <span className="h-3 w-3 rounded-full bg-amber-300/80" />
+                  <span className="h-3 w-3 rounded-full bg-emerald-400/80" />
+                  <span className="ml-2 text-xs sm:text-sm text-white/[0.55] truncate">Carbon&amp;Co / Démo audit</span>
+                </div>
+                <span className="hidden sm:inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
+                  {activeStep.status}
+                </span>
+              </div>
+
+              <div className="grid xl:grid-cols-[1fr_0.68fr] gap-0 min-h-[540px]">
+                <div className="p-5 sm:p-7 lg:p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-emerald-300/80 font-bold mb-2">{activeStep.screenTitle}</p>
+                      <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">{activeStep.title}</h3>
+                      <p className="text-sm md:text-base text-white/[0.55] leading-relaxed mt-3 max-w-xl">{activeStep.description}</p>
+                    </div>
+                    <span className="sm:hidden inline-flex w-fit rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
+                      {activeStep.status}
+                    </span>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.035] overflow-hidden">
+                    <div className="grid grid-cols-[1.2fr_0.7fr] border-b border-white/10 px-4 py-3 text-[0.68rem] uppercase tracking-widest text-white/[0.35] font-bold">
+                      <span>Signal détecté</span>
+                      <span className="text-right">État</span>
+                    </div>
+                    {activeStep.rows.map((row) => (
+                      <div key={row.label} className="grid grid-cols-[1.2fr_0.7fr] items-center gap-3 px-4 py-4 border-b border-white/[0.08] last:border-b-0">
+                        <span className="text-sm text-white/[0.78] min-w-0">{row.label}</span>
+                        <span className={`justify-self-end rounded-full border px-3 py-1 text-xs font-bold whitespace-nowrap ${DEMO_TONE_CLASSES[row.tone]}`}>
+                          {row.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.06] p-4">
+                    <p className="text-xs uppercase tracking-widest text-cyan-200/70 font-bold mb-2">Résultat de l'étape</p>
+                    <p className="text-base font-semibold text-white">{activeStep.output}</p>
+                  </div>
+                </div>
+
+                <aside className="border-t xl:border-t-0 xl:border-l border-white/10 bg-white/[0.025] p-5 sm:p-7 lg:p-8 flex flex-col justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-white/[0.35] font-bold mb-3">Preuve produit</p>
+                    <h4 className="text-xl font-extrabold text-white mb-5">{activeStep.proof.title}</h4>
+                    <div className="space-y-3">
+                      {activeStep.proof.items.map((item) => (
+                        <div key={item} className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-3">
+                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-300 flex-shrink-0" />
+                          <span className="text-sm text-white/[0.72]">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-8 rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <span className="text-xs uppercase tracking-widest text-white/[0.35] font-bold">Evidence Pack</span>
+                      <span className="text-xs text-emerald-200">prêt</span>
+                    </div>
+                    <div className="space-y-2 text-sm text-white/[0.65]">
+                      <div className="flex justify-between gap-4"><span>Sources</span><span className="text-white">liées</span></div>
+                      <div className="flex justify-between gap-4"><span>Méthodes</span><span className="text-white">visibles</span></div>
+                      <div className="flex justify-between gap-4"><span>Export</span><span className="text-white">PDF / Excel</span></div>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════ */
 export function LandingPage({ onEnterApp }: LandingPageProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const toggleVideo = useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.paused) { v.play(); setIsPlaying(true); }
-    else { v.pause(); setIsPlaying(false); }
-  }, []);
-
-  const toggleMute = useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setIsMuted(v.muted);
   }, []);
 
   return (
@@ -744,70 +1061,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
         </section>
 
-        {/* ══ 9. VIDÉO ══ */}
-        <section id="video-section" className="py-32 px-8 md:px-12 bg-neutral-950 text-white overflow-hidden relative">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full bg-white/[0.03] blur-[140px]" />
-          </div>
-          <div className="max-w-[1440px] mx-auto relative z-10">
-            <Reveal className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 mb-6">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-xs uppercase tracking-widest text-white/60 font-semibold">Film Cinématique</span>
-              </div>
-              <h2 className="font-extrabold text-[3.5rem] md:text-[4rem] leading-none tracking-tighter text-white mb-4">NEURAL en action</h2>
-              <p className="text-lg text-neutral-400 max-w-xl mx-auto">Découvrez l&apos;expérience sensorielle complète — intelligence, précision et esthétique réunies.</p>
-            </Reveal>
-
-            <Reveal delay={0.12} className="max-w-5xl mx-auto">
-              <div className="relative cursor-pointer rounded-[2rem] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.6)]" onClick={toggleVideo}>
-                <video ref={videoRef} className="w-full block" src="/Création_Vidéo_Cinématique_Premium_NEURAL interactif.mp4" loop muted preload="metadata" />
-                <div className="absolute inset-0 flex items-center justify-center transition-all duration-300" style={{ background: isPlaying ? "rgba(0,0,0,0)" : "rgba(0,0,0,0.45)", pointerEvents: isPlaying ? "none" : "all" }}>
-                  <div className="text-center select-none" style={{ opacity: isPlaying ? 0 : 1, transition: "opacity 0.3s" }}>
-                    <div className="w-[88px] h-[88px] mx-auto mb-4 rounded-full flex items-center justify-center border-2 border-white/25" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)" }}>
-                      <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
-                    </div>
-                    <p className="text-white/60 text-xs uppercase tracking-widest">Cliquer pour lire</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-5 px-1">
-                <div className="flex items-center gap-3">
-                  <button onClick={(e) => { e.stopPropagation(); toggleVideo(); }} aria-label={isPlaying ? "Pause" : "Lecture"} className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      {isPlaying ? <path fillRule="evenodd" d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zm7 0a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" clipRule="evenodd" /> : <path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />}
-                    </svg>
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} aria-label={isMuted ? "Activer le son" : "Couper le son"} className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      {isMuted ? <path d="M9.547 3.062A.75.75 0 0110 3.75v12.5a.75.75 0 01-1.264.546L4.703 13H3.167a.75.75 0 01-.7-.48A6.985 6.985 0 012 10c0-.74.115-1.453.327-2.123a.75.75 0 01.56-.427h1.66L8.736 3.516a.75.75 0 01.811-.454zM13 9.5a.75.75 0 01.75.75v0a.75.75 0 01-.75.75h0a.75.75 0 01-.75-.75v0a.75.75 0 01.75-.75h0z" /> : <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.7.48A6.985 6.985 0 002 10c0 .74.115 1.453.327 2.123a.75.75 0 00.56.427h1.66l4.227 3.797A.75.75 0 0010 15.75V3.75zm4.95-1.28a.75.75 0 011.06 0 8.038 8.038 0 010 11.06.75.75 0 11-1.06-1.06 6.538 6.538 0 000-8.94.75.75 0 010-1.06zm-1.44 2.5a.75.75 0 011.06 0 5.037 5.037 0 010 6.06.75.75 0 01-1.06-1.06 3.537 3.537 0 000-3.94.75.75 0 010-1.06z" />}
-                    </svg>
-                  </button>
-                </div>
-                <span className="text-xs text-white/30 uppercase tracking-widest hidden md:block">Carbon&amp;Co × NEURAL</span>
-                <button onClick={(e) => { e.stopPropagation(); videoRef.current?.requestFullscreen?.(); }} aria-label="Plein écran" className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" /></svg>
-                </button>
-              </div>
-            </Reveal>
-
-            <Reveal delay={0.24}>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-24">
-                {[
-                  { val: "2.4B", label: "Paramètres IA" },
-                  { val: "0.3ms", label: "Latence réponse" },
-                  { val: "−78%", label: "Empreinte carbone" },
-                  { val: "ADEME", label: "Base Empreinte® intégrée" },
-                ].map((s) => (
-                  <div key={s.label} className="bg-white/5 border border-white/10 rounded-3xl p-8 text-center hover:bg-white/10 transition-colors">
-                    <div className="text-4xl font-extrabold text-white mb-2">{s.val}</div>
-                    <div className="text-xs uppercase tracking-widest text-white/40">{s.label}</div>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-        </section>
+        {/* ══ 9. DÉMO PRODUIT ══ */}
+        <ProductDemoSection onEnterApp={onEnterApp} />
 
         {/* ══ 10. CONFORMITÉ & SÉCURITÉ ══ */}
         <section className="py-20 px-8 md:px-12 bg-[#f9f9fb]">

@@ -1,0 +1,35 @@
+{
+  "slug": "getting-started",
+  "title": "Démarrer avec NEURAL",
+  "subtitle": "Cadrage outcome → premier agent en production en 90 jours",
+  "category": "Démarrage",
+  "readTime": "8 min",
+  "lastUpdated": "2026-04-27",
+  "sections": [
+    {
+      "heading": "1. Le principe : outcome avant code",
+      "body": "Tout projet NEURAL démarre par un cadrage outcome — un objectif chiffré et signé avant la première ligne de code. Pourquoi ? Parce que 80% des POCs IA meurent en production. La cause n'est presque jamais technique : c'est l'absence d'objectif mesurable et partagé entre la direction métier et la direction technique.\n\nLe cadrage NEURAL produit en 2-3 semaines :\n• Un objectif mesurable (exemple : \"réduire de 65% le délai de constitution du registre TIC tiers\")\n• Une condition de réussite vérifiable\n• Une enveloppe budgétaire avec clause de réajustement\n• Un calendrier réaliste 30 / 60 / 90 jours"
+    },
+    {
+      "heading": "2. Choisir votre premier agent",
+      "body": "Plutôt que de partir d'un canvas vide, NEURAL s'appuie sur 16 agents documentés (catalogue /agents). Pour votre premier projet, on recommande d'identifier l'agent qui :\n• Adresse une douleur opérationnelle précise (pas un sujet stratégique flou)\n• A un ROI mesurable en moins de 90 jours\n• Présente un risque AI Act limité ou minimal (pour démarrer)\n• Bénéficie d'une donnée d'entrée disponible et de qualité acceptable\n\nExemples de premiers agents populaires : Consolidation Groupe (finance), GreenClaimChecker (communication RSE), Sapin2Compliance (due diligence tiers)."
+    },
+    {
+      "heading": "3. Le cycle de déploiement",
+      "body": "Phase 1 — Cadrage (semaines 1-3) : ateliers métier + tech, mapping données, OKR signés.\n\nPhase 2 — Pilote (semaines 4-8) : déploiement de l'agent sur un périmètre restreint avec audit trail signé activé. Validation des sorties par votre équipe métier.\n\nPhase 3 — Industrialisation (semaines 8-12) : extension à l'échelle, intégration aux workflows existants, formation des équipes opérationnelles.\n\nPhase 4 — Mode opératoire (semaines 12+) : revue mensuelle des KPI tech + business, ajustement des prompts versionnés, expansion à d'autres agents si l'outcome est atteint."
+    },
+    {
+      "heading": "4. Ce dont vous avez besoin côté client",
+      "body": "Pour démarrer dans de bonnes conditions :\n• Un sponsor au niveau Comex (ou direction métier opérationnelle)\n• Une équipe métier qui valide les sorties (3-5 personnes mobilisables 1-2j/semaine)\n• Un accès aux données sources (ERP, CRM, etc.) — soit lecture directe, soit export\n• Un cadre de gouvernance interne (DPO, RSSI) prêt à valider l'AIPD\n• Un budget cadré sur 12 mois minimum"
+    },
+    {
+      "heading": "5. Ce que NEURAL apporte",
+      "body": "• Méthodologie de cadrage outcome — éprouvée\n• 16 agents Claude pré-entraînés sectoriels\n• Operator Gateway (audit trail signé, RBAC, policies, cost tracking)\n• Connecteurs EU certifiés (50 visés fin 2026)\n• Documentation Model Cards pour chaque agent\n• Page Trust publique avec sous-processeurs et certifs roadmap\n• Conformité AI Act + RGPD by design"
+    }
+  ],
+  "nextSteps": [
+    { "label": "Lancer le cadrage outcome", "href": "/contact?source=docs-getting-started" },
+    { "label": "Voir le catalogue d'agents", "href": "/agents" },
+    { "label": "Tester l'AI Act Classifier", "href": "/outils/ai-act-classifier" }
+  ]
+}

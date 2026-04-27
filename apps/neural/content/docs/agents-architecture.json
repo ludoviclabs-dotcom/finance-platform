@@ -1,0 +1,35 @@
+{
+  "slug": "agents-architecture",
+  "title": "Architecture des agents NEURAL",
+  "subtitle": "Comment un agent NEURAL est structuré, opéré et gouverné",
+  "category": "Architecture",
+  "readTime": "12 min",
+  "lastUpdated": "2026-04-27",
+  "sections": [
+    {
+      "heading": "1. Définition : qu'est-ce qu'un agent NEURAL ?",
+      "body": "Un agent NEURAL n'est pas un chatbot. C'est une unité opérationnelle qui :\n• Reçoit une entrée structurée (depuis vos systèmes ou un humain)\n• Applique une logique métier déterministe (gates, règles, policies)\n• Sollicite Claude Sonnet 4.6 (ou modèle alternatif) avec un prompt versionné\n• Produit une décision tracée (APPROVE / REVIEW / REWORK / BLOCK)\n• Émet un événement dans l'audit trail signé\n\nChaque agent a un objectif unique et mesurable. Pas d'agent fourre-tout."
+    },
+    {
+      "heading": "2. Les 4 couches d'un agent",
+      "body": "**Couche 1 — Inputs validés** : schéma Zod côté serveur, rate limit par tenant, RBAC, déduplication des entrées identiques.\n\n**Couche 2 — Pre-processing déterministe** : application des gates avant LLM. Exemples : dictionnaire hard-fail brand, filtrage ITAR/EAR, vérification base de données interne. Le LLM n'est jamais appelé si une gate déterministe rejette.\n\n**Couche 3 — Modèle LLM via Operator Gateway** : appel Claude Sonnet 4.6 via Vercel AI Gateway avec prompt versionné signé. Fallback GPT-5 documenté. Audit trail capté.\n\n**Couche 4 — Post-processing déterministe** : application des gates post-LLM. Override systématique si le LLM produit une sortie qui viole une règle métier. Génération du résultat final structuré."
+    },
+    {
+      "heading": "3. Model Cards : la transparence par défaut",
+      "body": "Chaque agent a (ou aura, roadmap T3 2026) une Model Card publique standardisée :\n• Objectif et limites assumées\n• Données d'entrée et sources\n• Classification AI Act (interdit / haut-risque / limité / minimal)\n• Mesures de mitigation des risques connus\n• Métriques d'évaluation (accuracy, hallucination rate, drift)\n• Versions du prompt utilisé\n• Conformité couverte (RGPD, AI Act, secteurs)\n\nC'est un signal de qualité pour vos auditeurs et un cadre clair pour vos DPO/RSSI."
+    },
+    {
+      "heading": "4. Versioning et rollback",
+      "body": "Chaque prompt agent est versionné, hashé SHA-256, signé. En cas de régression détectée :\n• Rollback < 30 secondes vers la version précédente\n• L'audit trail capture la transition (qui, quand, pourquoi)\n• Les décisions prises avec la version défaillante sont identifiables a posteriori\n\nC'est la condition pour opérer en environnement régulé sans paniquer à chaque mise à jour."
+    },
+    {
+      "heading": "5. Multi-tenant et isolation",
+      "body": "Architecture multi-tenant stricte :\n• Cloisonnement physique au niveau base de données (Neon Postgres EU)\n• RBAC enforced au niveau Operator Gateway\n• Aucun croisement de données entre tenants\n• Audit trail séparé par tenant, exportable au format JSONL\n• Cost cap configurable par tenant avec alerting"
+    }
+  ],
+  "nextSteps": [
+    { "label": "Voir le catalogue des 16 agents", "href": "/agents" },
+    { "label": "Comprendre le Protocole MCP", "href": "/docs/mcp-protocol" },
+    { "label": "Comprendre l'audit trail", "href": "/docs/audit-trail" }
+  ]
+}

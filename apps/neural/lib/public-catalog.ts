@@ -1050,6 +1050,7 @@ export const FOOTER_LINKS = {
     { label: "Comparatifs", href: "/contre", status: "live" as PublicStatus },
     { label: "Operator Gateway", href: "/operator-gateway", status: "demo" as PublicStatus },
     { label: "Connecteurs", href: "/connecteurs", status: "live" as PublicStatus },
+    { label: "Documentation", href: "/docs", status: "live" as PublicStatus },
     { label: "Developer", href: "/dev", status: "live" as PublicStatus },
   ],
   Outils: [

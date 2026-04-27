@@ -1,0 +1,35 @@
+{
+  "slug": "mcp-protocol",
+  "title": "Protocole MCP & Operator Gateway",
+  "subtitle": "Comment NEURAL gouverne les serveurs MCP et les outils des agents",
+  "category": "Architecture",
+  "readTime": "10 min",
+  "lastUpdated": "2026-04-27",
+  "sections": [
+    {
+      "heading": "1. Qu'est-ce que MCP ?",
+      "body": "MCP (Model Context Protocol) est un protocole ouvert publié par Anthropic en 2024. Il standardise la communication entre un modèle LLM et les outils qu'il peut invoquer (lecture base de données, appel API, calcul, etc.). C'est l'équivalent USB pour les agents IA : un même outil peut être branché sur n'importe quel modèle compatible MCP.\n\nNEURAL utilise MCP pour :\n• Connecter Claude aux outils internes (NEURAL Data Hub, Luxe Comms MCP, Bank Comms MCP, etc.)\n• Centraliser la gouvernance via l'Operator Gateway\n• Garantir la portabilité des agents entre fournisseurs LLM"
+    },
+    {
+      "heading": "2. L'Operator Gateway",
+      "body": "L'Operator Gateway est la couche centralisée que NEURAL place entre les agents et les serveurs MCP. C'est ce qui distingue NEURAL d'un assemblage technique brut.\n\nResponsabilités du Gateway :\n• **Routing** : sélectionne le bon serveur MCP selon la décision agent\n• **Authentification** : vérifie l'identité de l'agent appelant + tenant\n• **RBAC** : applique les permissions par tenant et par utilisateur\n• **Rate limiting** : quotas req/min par agent et par tenant\n• **Audit trail** : capture chaque appel pour traçabilité\n• **Cost tracking** : tokens, latence, coût par décision\n• **Policy enforcement** : applique les hard-fails déterministes\n• **Failover** : bascule automatique vers serveur MCP de secours"
+    },
+    {
+      "heading": "3. Les 8 serveurs MCP NEURAL aujourd'hui",
+      "body": "1. **Anthropic Claude (Sonnet 4.6)** — LLM principal\n2. **Vercel AI Gateway** — couche de routing supplémentaire\n3. **NEURAL Data Hub MCP** — accès aux workbooks runtime\n4. **Luxe Comms MCP** — outils dédiés communication luxe\n5. **Bank Comms MCP** — outils dédiés communication banque\n6. **Evidence Resolver MCP** — résolution evidence pour audit\n7. **Claim Evidence Registry MCP** — registre des claims RSE\n8. **SAP Read-Only MCP (sandbox)** — connecteur ERP en beta\n\nVoir la page /operator-gateway pour le statut live et les métriques."
+    },
+    {
+      "heading": "4. Sécurité MCP",
+      "body": "MCP est puissant mais dangereux s'il est mal configuré : un serveur MCP mal scopé peut donner à un agent des accès qu'il ne devrait pas avoir. NEURAL applique :\n\n• **Principe de moindre privilège** : chaque agent a le scope MCP minimal pour son rôle\n• **Pas d'accès direct** : aucun agent ne contacte un MCP server sans passer par le Gateway\n• **Whitelist d'outils** : chaque agent déclare la liste des outils MCP qu'il est autorisé à invoquer\n• **Audit complet** : chaque appel MCP est tracé (qui, quoi, quand, latence, succès/échec)\n• **Rate limit par outil** : empêche un agent en boucle de saturer un MCP server"
+    },
+    {
+      "heading": "5. Roadmap MCP",
+      "body": "• **T3 2026** : Operator Gateway MVP en production avec audit signé\n• **T4 2026** : Open-source d'une lib utilitaire (`@neural/mcp-audit`) pour audit signé MCP standardisé\n• **2027** : Contributions amont au protocole MCP (proposals concernant l'audit trail standardisé et les policies)\n• **2027+** : Embed SDK qui expose des MCP servers NEURAL aux partenaires SaaS"
+    }
+  ],
+  "nextSteps": [
+    { "label": "Voir la démo Operator Gateway", "href": "/operator-gateway" },
+    { "label": "Webhooks de l'Operator Gateway", "href": "/dev/webhooks" },
+    { "label": "Comprendre l'audit trail", "href": "/docs/audit-trail" }
+  ]
+}

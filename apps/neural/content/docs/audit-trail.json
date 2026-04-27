@@ -1,0 +1,35 @@
+{
+  "slug": "audit-trail",
+  "title": "Audit trail signé",
+  "subtitle": "Format, signature, export, opposabilité juridique",
+  "category": "Conformité",
+  "readTime": "9 min",
+  "lastUpdated": "2026-04-27",
+  "sections": [
+    {
+      "heading": "1. Pourquoi un audit trail signé ?",
+      "body": "Pour un opérateur d'agents IA en environnement régulé, la traçabilité des décisions n'est pas optionnelle :\n• **AI Act article 12** : exige la journalisation automatique des événements d'un système IA haut-risque\n• **DORA article 17-23** : impose la classification et notification des incidents TIC\n• **RGPD article 32** : mesures de sécurité incluant l'intégrité des données\n• **Sapin II** : traçabilité des contrôles anti-corruption\n\nUn audit trail \"normal\" (logs techniques) ne suffit pas. Il faut un audit signé, opposable, exportable."
+    },
+    {
+      "heading": "2. Format d'une entrée d'audit trail",
+      "body": "Chaque décision agent NEURAL produit une entrée structurée avec les champs suivants :\n\n• `id` : identifiant unique de la décision\n• `timestamp` : ISO 8601 UTC\n• `tenant` : identifiant client\n• `agent` : { slug, version }\n• `decision` : APPROVE | REVIEW | REWORK | BLOCK\n• `promptHash` : SHA-256 du prompt utilisé (immuable)\n• `promptVersion` : version sémantique du prompt (vX.Y.Z)\n• `model` : identifiant modèle utilisé\n• `tokens` : nombre de tokens consommés\n• `latencyMs` : temps de réponse\n• `cost` : { amount, currency }\n• `signedBy` : signataire (agent + version)\n• `outcome` : résumé textuel de la sortie\n• `trigger` : événement déclencheur\n• `signature` : HMAC-SHA256 sur l'ensemble"
+    },
+    {
+      "heading": "3. La chaîne de signature",
+      "body": "Chaque entrée est signée à deux niveaux :\n\n**Niveau 1 — Signature de l'entrée** : HMAC-SHA256 sur le contenu sérialisé. La clé privée est rotée mensuellement et stockée en HSM (futur ; aujourd'hui en KMS Vercel).\n\n**Niveau 2 — Chaînage** : chaque entrée contient le hash de l'entrée précédente (à la manière d'une blockchain légère). Toute altération d'une entrée passée invalide toutes les entrées suivantes.\n\nRésultat : **un seul mot de passe correctement gardé suffit à garantir l'intégrité de l'historique complet**. Toute manipulation a posteriori est détectable."
+    },
+    {
+      "heading": "4. Export et opposabilité",
+      "body": "Le client peut exporter son audit trail à tout moment :\n• Format JSONL (une décision par ligne, lisible par tout outil de log)\n• Période configurable (1 jour à 10 ans selon politique de rétention)\n• Manifeste de signature inclus pour vérification offline\n• Hash racine signé avec horodatage qualifié (futur : eIDAS Time Stamping)\n\nOpposabilité juridique : l'audit trail signé est **présumé fidèle** au sens de l'article 1366 du Code civil français à condition que les conditions d'intégrité soient respectées. NEURAL fournit la documentation technique pour démontrer ces conditions à un juge ou un auditeur."
+    },
+    {
+      "heading": "5. Limites assumées",
+      "body": "Un audit trail signé n'est pas une garantie absolue. Il n'empêche pas :\n• Une mauvaise décision agent — l'audit trail trace, ne juge pas\n• Une fraude au niveau des inputs (entrée mal calibrée)\n• Une compromission au niveau client (RBAC mal configuré)\n• Une attaque sur la chaîne de signature si la clé est compromise\n\nC'est un outil de transparence et de défense en cas d'audit, pas une protection magique. Il doit être combiné avec une bonne hygiène de sécurité côté client (RBAC, rotation clés, monitoring)."
+    }
+  ],
+  "nextSteps": [
+    { "label": "Voir l'Operator Gateway en démo", "href": "/operator-gateway" },
+    { "label": "Webhook agent.decision.created", "href": "/dev/webhooks" },
+    { "label": "Conformité AI Act détaillée", "href": "/conformite/ai-act" }
+  ]
+}

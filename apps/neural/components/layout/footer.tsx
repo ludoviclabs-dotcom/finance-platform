@@ -17,7 +17,7 @@ export function Footer() {
           <TrustGrid variant="strip" />
         </div>
 
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-5">
           {Object.entries(FOOTER_LINKS).map(([category, links]) => (
             <div key={category}>
               <h3 className="font-display text-xs font-bold uppercase tracking-widest text-white/80">

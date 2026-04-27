@@ -1,0 +1,202 @@
+{
+  "lastUpdated": "2026-04-27",
+  "axes": [
+    { "id": "cadrage", "label": "Cadrage stratégique", "description": "Vision IA, ownership, alignement direction" },
+    { "id": "donnees", "label": "Maturité données", "description": "Qualité, accès, gouvernance, infrastructure" },
+    { "id": "gouvernance", "label": "Gouvernance & conformité", "description": "RGPD, AI Act, audit, supervision" },
+    { "id": "deploiement", "label": "Déploiement IA", "description": "POCs en prod, équipes, méthodologie" },
+    { "id": "roi", "label": "Mesure de la valeur", "description": "KPI, ROI, suivi continu" }
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "axis": "cadrage",
+      "label": "Votre direction a-t-elle formalisé une stratégie IA écrite ?",
+      "options": [
+        { "id": "no", "label": "Non, l'IA arrive par opportunité ou pression marché", "score": 0 },
+        { "id": "draft", "label": "En cours de rédaction par un comité ad hoc", "score": 1 },
+        { "id": "yes-recent", "label": "Oui, formalisée dans les 12 derniers mois", "score": 2 },
+        { "id": "yes-mature", "label": "Oui, revue annuellement avec OKR clairs", "score": 3 }
+      ]
+    },
+    {
+      "id": "q2",
+      "axis": "cadrage",
+      "label": "Qui porte la responsabilité IA dans l'organisation ?",
+      "options": [
+        { "id": "none", "label": "Personne en particulier, dispersée par direction", "score": 0 },
+        { "id": "shared", "label": "DSI ou data, en mode best-effort", "score": 1 },
+        { "id": "lead", "label": "Un Head of AI / Chief AI Officer dédié", "score": 2 },
+        { "id": "exec", "label": "Comex avec sponsorship CEO et budget propre", "score": 3 }
+      ]
+    },
+    {
+      "id": "q3",
+      "axis": "cadrage",
+      "label": "Comment priorisez-vous vos cas d'usage IA ?",
+      "options": [
+        { "id": "ad-hoc", "label": "Par demande métier au cas par cas", "score": 0 },
+        { "id": "list", "label": "Backlog priorisé par impact estimé", "score": 1 },
+        { "id": "framework", "label": "Framework d'évaluation (impact × faisabilité × risque)", "score": 2 },
+        { "id": "portfolio", "label": "Portfolio management avec ROI tracking", "score": 3 }
+      ]
+    },
+    {
+      "id": "q4",
+      "axis": "donnees",
+      "label": "Vos données critiques sont-elles accessibles via API/datalake ?",
+      "options": [
+        { "id": "silos", "label": "Silos métier, exports manuels", "score": 0 },
+        { "id": "partial", "label": "Datalake partiel, certaines sources connectées", "score": 1 },
+        { "id": "lake", "label": "Datalake centralisé, qualité acceptable", "score": 2 },
+        { "id": "platform", "label": "Data platform mature avec contrats data", "score": 3 }
+      ]
+    },
+    {
+      "id": "q5",
+      "axis": "donnees",
+      "label": "La qualité de vos données est-elle mesurée et tracée ?",
+      "options": [
+        { "id": "no", "label": "Non mesurée, problèmes découverts à l'usage", "score": 0 },
+        { "id": "audit", "label": "Audits ponctuels par projet", "score": 1 },
+        { "id": "monitoring", "label": "Monitoring continu sur les sources critiques", "score": 2 },
+        { "id": "contracts", "label": "Data contracts avec SLA et pénalités producteurs", "score": 3 }
+      ]
+    },
+    {
+      "id": "q6",
+      "axis": "gouvernance",
+      "label": "Avez-vous un cadre de gouvernance IA (charte, comité, processus) ?",
+      "options": [
+        { "id": "no", "label": "Aucun cadre formalisé", "score": 0 },
+        { "id": "draft", "label": "Charte en cours, pas de comité actif", "score": 1 },
+        { "id": "committee", "label": "Comité IA actif et processus de validation", "score": 2 },
+        { "id": "audited", "label": "Gouvernance auditée externe (AI Act-ready)", "score": 3 }
+      ]
+    },
+    {
+      "id": "q7",
+      "axis": "gouvernance",
+      "label": "Comment gérez-vous l'AI Act dans vos projets ?",
+      "options": [
+        { "id": "ignored", "label": "Pas encore traité, on verra plus tard", "score": 0 },
+        { "id": "aware", "label": "Conscience du sujet, pas de plan structuré", "score": 1 },
+        { "id": "mapping", "label": "Mapping en cours par cas d'usage", "score": 2 },
+        { "id": "ready", "label": "Classification + Model Cards systématiques", "score": 3 }
+      ]
+    },
+    {
+      "id": "q8",
+      "axis": "gouvernance",
+      "label": "Vos décisions agent IA laissent-elles une trace auditable ?",
+      "options": [
+        { "id": "none", "label": "Pas de trace structurée", "score": 0 },
+        { "id": "logs", "label": "Logs techniques sans corrélation business", "score": 1 },
+        { "id": "audit-trail", "label": "Audit trail signé avec versioning prompts", "score": 2 },
+        { "id": "exportable", "label": "Trace exportable client + opposable juridiquement", "score": 3 }
+      ]
+    },
+    {
+      "id": "q9",
+      "axis": "deploiement",
+      "label": "Combien d'agents IA sont en production aujourd'hui ?",
+      "options": [
+        { "id": "zero", "label": "Aucun, uniquement des POCs morts ou abandonnés", "score": 0 },
+        { "id": "few", "label": "1 à 3 agents en prod", "score": 1 },
+        { "id": "scale", "label": "4 à 10 agents en prod", "score": 2 },
+        { "id": "fleet", "label": "10+ agents en prod opérés systématiquement", "score": 3 }
+      ]
+    },
+    {
+      "id": "q10",
+      "axis": "deploiement",
+      "label": "Quelle est la durée moyenne POC → production d'un agent ?",
+      "options": [
+        { "id": "blocked", "label": "Bloqué — la majorité des POCs ne passent jamais", "score": 0 },
+        { "id": "long", "label": "12+ mois, parcours du combattant", "score": 1 },
+        { "id": "ok", "label": "3 à 6 mois en moyenne", "score": 2 },
+        { "id": "fast", "label": "Moins de 3 mois avec une méthodologie standardisée", "score": 3 }
+      ]
+    },
+    {
+      "id": "q11",
+      "axis": "deploiement",
+      "label": "Comment supervisez-vous les agents en production ?",
+      "options": [
+        { "id": "blind", "label": "Pas de supervision active, plaintes utilisateurs uniquement", "score": 0 },
+        { "id": "manual", "label": "Revues manuelles ponctuelles", "score": 1 },
+        { "id": "dashboards", "label": "Dashboards techniques (latence, erreurs)", "score": 2 },
+        { "id": "hitl", "label": "Human-in-the-loop systématisé sur cas sensibles", "score": 3 }
+      ]
+    },
+    {
+      "id": "q12",
+      "axis": "roi",
+      "label": "Mesurez-vous le ROI de vos agents IA ?",
+      "options": [
+        { "id": "no", "label": "Non mesuré, sentiment qualitatif", "score": 0 },
+        { "id": "anecdotal", "label": "Anecdotes et témoignages internes", "score": 1 },
+        { "id": "kpi", "label": "KPI techniques + business par agent", "score": 2 },
+        { "id": "contractual", "label": "ROI contractualisé avec engagement chiffré", "score": 3 }
+      ]
+    }
+  ],
+  "tiers": [
+    {
+      "id": "explorer",
+      "min": 0,
+      "max": 12,
+      "label": "Explorateur",
+      "color": "amber",
+      "summary": "Vous découvrez l'IA. Beaucoup de potentiel, peu de fondations posées. Risque : POCs qui meurent, frustrations métier, conformité non maîtrisée.",
+      "actions": [
+        "Formaliser une stratégie IA écrite avec sponsorship Comex (4-6 sem.)",
+        "Identifier 2-3 cas d'usage à fort impact mesurable et faible risque AI Act",
+        "Cadrer un opérateur agent (interne ou via NEURAL) avec ROI signé avant code",
+        "Lancer un audit de maturité données sur les sources critiques"
+      ]
+    },
+    {
+      "id": "builder",
+      "min": 13,
+      "max": 22,
+      "label": "Constructeur",
+      "color": "violet",
+      "summary": "Vous avez posé les bases. Quelques agents tournent, mais la mise à l'échelle bute sur la gouvernance et la mesure de valeur.",
+      "actions": [
+        "Industrialiser le cycle POC → prod (objectif < 3 mois)",
+        "Déployer un Operator Gateway avec audit trail signé sur les agents critiques",
+        "Mettre en place des Model Cards systématiques (classification AI Act incluse)",
+        "Formaliser un framework ROI avec KPI agent par agent + suivi mensuel"
+      ]
+    },
+    {
+      "id": "operator",
+      "min": 23,
+      "max": 30,
+      "label": "Opérateur",
+      "color": "emerald",
+      "summary": "Vous opérez l'IA à l'échelle avec discipline. Reste à transformer cette excellence en avantage compétitif soutenable.",
+      "actions": [
+        "Étendre le Portfolio agents à 10+ avec gouvernance multi-tenant",
+        "Préparer la certification ISO/IEC 42001 (rare et différenciant 2026-2027)",
+        "Embedder vos agents dans des produits SaaS partenaires (Embed SDK)",
+        "Publier vos évaluations agent comme thought leadership sectoriel"
+      ]
+    },
+    {
+      "id": "leader",
+      "min": 31,
+      "max": 36,
+      "label": "Leader",
+      "color": "cyan",
+      "summary": "Vous êtes parmi les acteurs les plus matures de votre secteur. NEURAL peut accélérer votre verticalisation et la conformité de pointe.",
+      "actions": [
+        "Cadrer une Sovereign AI strategy (souveraineté EU + AI Act + ISO 42001)",
+        "Devenir éditeur d'agents pour partenaires sectoriels (revenus B2B2B)",
+        "Co-construire des standards sectoriels avec NEURAL et 2-3 pairs",
+        "Préparer un positionnement Series A / Series B sur la thèse opérateur IA EU"
+      ]
+    }
+  ]
+}

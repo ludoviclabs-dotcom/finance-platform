@@ -1048,6 +1048,11 @@ export const FOOTER_LINKS = {
     { label: "AI Act", href: "/conformite/ai-act", status: "live" as PublicStatus },
     { label: "vs Tray.ai", href: "/contre/tray-ai", status: "live" as PublicStatus },
   ],
+  Outils: [
+    { label: "AI Act Classifier", href: "/outils/ai-act-classifier", status: "live" as PublicStatus },
+    { label: "ROI Calculator", href: "/outils/roi", status: "live" as PublicStatus },
+    { label: "Audit Maturité IA", href: "/outils/maturite", status: "live" as PublicStatus },
+  ],
   Entreprise: [
     { label: "A propos", href: "/about", status: "demo" as PublicStatus },
     { label: "Publications", href: "/publications", status: "live" as PublicStatus },

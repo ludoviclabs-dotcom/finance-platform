@@ -1,0 +1,149 @@
+{
+  "lastUpdated": "2026-04-27",
+  "questions": [
+    {
+      "id": "context",
+      "label": "Quel est le contexte principal du système IA ?",
+      "help": "Choisissez le domaine fonctionnel le plus proche.",
+      "type": "single",
+      "options": [
+        { "id": "rh", "label": "RH / recrutement / évaluation salariés", "weight": "annexe_iii" },
+        { "id": "credit", "label": "Crédit / scoring / accès aux services essentiels", "weight": "annexe_iii" },
+        { "id": "justice", "label": "Justice / forces de l'ordre / migration", "weight": "annexe_iii" },
+        { "id": "infra", "label": "Infrastructures critiques (énergie, transport, eau)", "weight": "annexe_iii" },
+        { "id": "education", "label": "Éducation / examens / orientation", "weight": "annexe_iii" },
+        { "id": "marketing", "label": "Marketing / communication / contenu B2B", "weight": "limite" },
+        { "id": "interne", "label": "Productivité interne / R&D / analyse", "weight": "minimal" },
+        { "id": "autre", "label": "Autre cas d'usage", "weight": "limite" }
+      ]
+    },
+    {
+      "id": "biometric-realtime",
+      "label": "Le système fait-il de l'identification biométrique en temps réel dans des espaces publics ?",
+      "help": "Reconnaissance faciale dans la rue, par exemple. Hors usage strictement encadré (article 5).",
+      "type": "single",
+      "options": [
+        { "id": "non", "label": "Non", "weight": "ok" },
+        { "id": "oui", "label": "Oui", "weight": "interdit" }
+      ]
+    },
+    {
+      "id": "social-scoring",
+      "label": "Le système attribue-t-il un score social aux personnes ?",
+      "help": "Notation comportementale type \"crédit social\". Hors notation crédit financière classique.",
+      "type": "single",
+      "options": [
+        { "id": "non", "label": "Non", "weight": "ok" },
+        { "id": "oui", "label": "Oui", "weight": "interdit" }
+      ]
+    },
+    {
+      "id": "manipulation",
+      "label": "Le système exploite-t-il des vulnérabilités (âge, handicap, situation sociale) pour influencer un comportement ?",
+      "help": "Manipulation subliminale ou ciblage de publics vulnérables.",
+      "type": "single",
+      "options": [
+        { "id": "non", "label": "Non", "weight": "ok" },
+        { "id": "oui", "label": "Oui", "weight": "interdit" }
+      ]
+    },
+    {
+      "id": "human-decision",
+      "label": "Le système influence-t-il une décision juridique ou contractuelle sur une personne ?",
+      "help": "Embauche, refus de prêt, accès à un service, sanction, etc.",
+      "type": "single",
+      "options": [
+        { "id": "non", "label": "Non — pas d'impact direct", "weight": "ok" },
+        { "id": "assist", "label": "Le système assiste une décision humaine", "weight": "haut" },
+        { "id": "auto", "label": "Le système prend la décision automatiquement", "weight": "haut_aggrave" }
+      ]
+    },
+    {
+      "id": "interaction",
+      "label": "Le système interagit-il avec une personne physique qui pourrait le confondre avec un humain ?",
+      "help": "Chatbot, assistant vocal, agent de support sans disclosure.",
+      "type": "single",
+      "options": [
+        { "id": "non", "label": "Non", "weight": "ok" },
+        { "id": "oui-disclosed", "label": "Oui mais l'utilisateur est informé qu'il parle à une IA", "weight": "limite_ok" },
+        { "id": "oui-no-disclose", "label": "Oui, sans disclosure", "weight": "limite" }
+      ]
+    },
+    {
+      "id": "synthetic-content",
+      "label": "Le système génère-t-il du contenu synthétique (texte, image, audio, vidéo) susceptible d'être pris pour du réel ?",
+      "help": "Deepfake, génération photoréaliste, voix clonée.",
+      "type": "single",
+      "options": [
+        { "id": "non", "label": "Non", "weight": "ok" },
+        { "id": "oui-watermark", "label": "Oui, avec marquage et disclosure", "weight": "limite_ok" },
+        { "id": "oui", "label": "Oui sans marquage", "weight": "limite" }
+      ]
+    },
+    {
+      "id": "supervision",
+      "label": "Y a-t-il une supervision humaine effective sur les décisions du système ?",
+      "help": "Possibilité de bloquer, override, escalade. Décisive pour l'article 14.",
+      "type": "single",
+      "options": [
+        { "id": "always", "label": "Oui, sur chaque décision sensible", "weight": "ok" },
+        { "id": "sometimes", "label": "Partiellement / sur échantillon", "weight": "warn" },
+        { "id": "never", "label": "Non, le système opère en autonomie", "weight": "warn_severe" }
+      ]
+    }
+  ],
+  "results": {
+    "interdit": {
+      "label": "Pratique interdite (Article 5)",
+      "color": "red",
+      "summary": "Selon vos réponses, le système relève des pratiques interdites par l'AI Act. Il ne peut pas être déployé légalement en l'état dans l'UE.",
+      "obligations": [
+        "Arrêt immédiat ou refonte structurelle du système avant tout déploiement EU.",
+        "Consultation juridique spécialisée nécessaire avant relance.",
+        "Documenter la décision d'arrêt et les alternatives envisagées."
+      ],
+      "neuralAgent": null
+    },
+    "haut": {
+      "label": "Système haut-risque (Annexe III)",
+      "color": "orange",
+      "summary": "Le système entre dans la catégorie haut-risque de l'AI Act. Vous êtes éditeur ou déployeur d'un système à fort impact sur les droits fondamentaux.",
+      "obligations": [
+        "Système de gestion des risques continu (article 9)",
+        "Gouvernance données et documentation traçabilité (article 10)",
+        "Documentation technique conforme annexe IV (article 11)",
+        "Journalisation des décisions agent (article 12)",
+        "Transparence + Model Cards utilisateurs (article 13)",
+        "Supervision humaine effective et override possible (article 14)",
+        "Tests d'exactitude, robustesse, cybersécurité (article 15)",
+        "Système de gestion qualité et registre EU (articles 17 + 49)",
+        "FRIA — Fundamental Rights Impact Assessment (article 27)"
+      ],
+      "neuralAgent": "Sapin2Compliance + RegBankComms + Operator Gateway pour audit signé"
+    },
+    "limite": {
+      "label": "Risque limité (transparence)",
+      "color": "amber",
+      "summary": "Le système relève d'obligations de transparence : l'utilisateur doit savoir qu'il interagit avec une IA ou consulte du contenu généré.",
+      "obligations": [
+        "Disclosure explicite : \"Cette réponse / image / voix est générée par IA\"",
+        "Marquage technique des contenus synthétiques (watermark, métadonnées C2PA)",
+        "Information utilisateur claire sur les capacités et limites du système",
+        "Aucun stockage de données identifiantes au-delà du nécessaire"
+      ],
+      "neuralAgent": "MaisonVoiceGuard ou GreenClaimChecker selon votre branche"
+    },
+    "minimal": {
+      "label": "Risque minimal",
+      "color": "emerald",
+      "summary": "Le système est à risque minimal selon l'AI Act. Aucune obligation spécifique au-delà des bonnes pratiques générales.",
+      "obligations": [
+        "Bonnes pratiques volontaires recommandées (charte IA responsable)",
+        "Documentation interne des choix techniques",
+        "Veille AI Act pour anticiper les évolutions de classification",
+        "Adoption Model Cards même non obligatoire (signal qualité)"
+      ],
+      "neuralAgent": "Consolidation Groupe ou Multi-Currency IAS 21 selon votre branche"
+    }
+  }
+}

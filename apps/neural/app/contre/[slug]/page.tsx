@@ -1,14 +1,20 @@
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, GitCompare, ExternalLink } from "lucide-react";
+import { ArrowRight, GitCompare, ExternalLink, ArrowLeft } from "lucide-react";
 
-import compareData from "@/content/contre/tray-ai.json";
 import { CompareTable } from "@/components/contre/compare-table";
 import { WhenToChoose } from "@/components/contre/when-to-choose";
 
-export const metadata = {
-  title: "NEURAL vs Tray.ai — Opérateur IA EU vs iPaaS US",
-  description:
-    "Comparatif factuel d'avril 2026 entre NEURAL (opérateur agents EU, AI Act-ready) et Tray.ai (iPaaS US, 700+ connecteurs). 16 dimensions, verdict honnête.",
+import trayData from "@/content/contre/tray-ai.json";
+import workatoData from "@/content/contre/workato.json";
+import n8nData from "@/content/contre/n8n.json";
+import makeData from "@/content/contre/make.json";
+
+const COMPARATORS: Record<string, typeof trayData> = {
+  "tray-ai": trayData,
+  workato: workatoData,
+  n8n: n8nData,
+  make: makeData,
 };
 
 const COLOR_CARD: Record<string, string> = {
@@ -23,7 +29,33 @@ const COLOR_LABEL: Record<string, string> = {
   amber: "text-amber-200",
 };
 
-export default function CompareTrayPage() {
+export function generateStaticParams() {
+  return Object.keys(COMPARATORS).map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const data = COMPARATORS[slug];
+  if (!data) return { title: "Comparatif — NEURAL" };
+  return {
+    title: `NEURAL vs ${data.competitor.name} — Comparatif`,
+    description: data.verdict,
+  };
+}
+
+export default async function CompareSlugPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const data = COMPARATORS[slug];
+  if (!data) notFound();
+
   return (
     <div className="min-h-screen overflow-hidden bg-gradient-neural text-white">
       <div className="absolute -left-40 top-20 h-[360px] w-[360px] rounded-full bg-violet-500/10 blur-[140px]" />
@@ -32,30 +64,37 @@ export default function CompareTrayPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative px-8 pb-12 pt-30 md:px-12 lg:pt-36">
         <div className="mx-auto max-w-[1320px]">
-          <span className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/[0.10] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-violet-200">
+          <Link
+            href="/contre"
+            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-violet-200 hover:text-violet-100"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Tous les comparatifs
+          </Link>
+          <span className="mt-6 inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/[0.10] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-violet-200">
             <GitCompare className="h-3.5 w-3.5" />
             Comparatif
           </span>
           <h1 className="mt-6 font-display text-5xl font-bold tracking-tight md:text-6xl">
-            NEURAL <span className="text-white/40">vs</span> {compareData.competitor.name}
+            NEURAL <span className="text-white/40">vs</span> {data.competitor.name}
           </h1>
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/68">
             Comparatif factuel d&apos;avril 2026 — basé sur les pages publiques des deux acteurs.
             Pas de bench fabriqué, pas de cherry-pick : 16 dimensions documentées avec un verdict
-            honnête (incluant les domaines où Tray.ai gagne).
+            honnête (incluant les domaines où {data.competitor.name} gagne).
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <a
-              href={compareData.competitor.url}
+              href={data.competitor.url}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:bg-white/[0.10]"
             >
-              Source : {compareData.competitor.url.replace("https://", "")}
+              Source : {data.competitor.url.replace("https://", "")}
               <ExternalLink className="h-3 w-3" aria-hidden="true" />
             </a>
             <span className="text-[11px] uppercase tracking-[0.18em] text-white/35">
-              Mise à jour : {compareData.lastUpdated}
+              Mise à jour : {data.lastUpdated}
             </span>
           </div>
         </div>
@@ -66,7 +105,7 @@ export default function CompareTrayPage() {
         <div className="mx-auto max-w-[1320px]">
           <h2 className="font-display text-3xl font-bold tracking-tight">En 30 secondes</h2>
           <div className="mt-8 grid gap-4 lg:grid-cols-3">
-            {compareData.tldr.map((item, i) => (
+            {data.tldr.map((item, i) => (
               <div
                 key={item.side}
                 className={`rounded-[24px] border p-6 ${
@@ -79,7 +118,11 @@ export default function CompareTrayPage() {
                       COLOR_LABEL[item.color]
                     }`}
                   >
-                    {item.side === "verdict" ? "Verdict" : item.side === "tray" ? "Tray.ai" : "NEURAL"}
+                    {item.side === "verdict"
+                      ? "Verdict"
+                      : item.side === "neural"
+                      ? "NEURAL"
+                      : data.competitor.name}
                   </span>
                   <span className="font-display text-2xl font-bold text-white/40 tabular-nums">
                     0{i + 1}
@@ -101,18 +144,18 @@ export default function CompareTrayPage() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="font-display text-3xl font-bold tracking-tight">
-                16 dimensions, verdict assumé
+                {data.dimensions.length} dimensions, verdict assumé
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
-                Honnêteté : Tray gagne sur connecteurs, profondeur produit et gouvernance mature.
-                NEURAL gagne sur AI Act, hosting EU, transparence pricing, verticalisation.
+                {data.tableNote ||
+                  `Honnêteté : ${data.competitor.name} gagne sur certains axes, NEURAL sur d'autres. Choisissez selon votre contexte.`}
               </p>
             </div>
           </div>
           <div className="mt-8">
             <CompareTable
-              dimensions={compareData.dimensions as Parameters<typeof CompareTable>[0]["dimensions"]}
-              competitorName={compareData.competitor.name}
+              dimensions={data.dimensions as Parameters<typeof CompareTable>[0]["dimensions"]}
+              competitorName={data.competitor.name}
             />
           </div>
         </div>
@@ -134,8 +177,8 @@ export default function CompareTrayPage() {
           </div>
           <div className="mt-8">
             <WhenToChoose
-              competitor={compareData.whenChooseTray}
-              neural={compareData.whenChooseNeural}
+              competitor={data.whenChooseTray}
+              neural={data.whenChooseNeural}
             />
           </div>
         </div>
@@ -151,12 +194,13 @@ export default function CompareTrayPage() {
                   Audit comparatif sur votre contexte
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-white/65">
-                  30 minutes pour cadrer si NEURAL est le bon choix — ou si Tray.ai (ou un autre
-                  acteur) ferait mieux votre job. Sortie : recommandation argumentée écrite.
+                  30 minutes pour cadrer si NEURAL est le bon choix — ou si {data.competitor.name}{" "}
+                  (ou un autre acteur) ferait mieux votre job. Sortie : recommandation argumentée
+                  écrite.
                 </p>
               </div>
               <Link
-                href="/contact?source=compare-tray"
+                href={`/contact?source=compare-${slug}`}
                 className="inline-flex items-center gap-2 rounded-full bg-emerald-500/90 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400"
               >
                 Réserver l&apos;audit <ArrowRight className="h-4 w-4" />

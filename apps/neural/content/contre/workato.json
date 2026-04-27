@@ -1,0 +1,151 @@
+{
+  "lastUpdated": "2026-04-27",
+  "competitor": {
+    "name": "Workato",
+    "url": "https://workato.com",
+    "tagline": "Enterprise integration & automation",
+    "category": "iPaaS enterprise US"
+  },
+  "verdict": "Workato pour automatiser des workflows transverses dans une enterprise mature. NEURAL pour opérer 6 secteurs régulés EU avec agents IA verticaux et conformité AI Act native.",
+  "tldr": [
+    {
+      "side": "competitor",
+      "title": "Workato",
+      "description": "iPaaS enterprise US (~12 ans). 1200+ connecteurs, recipes Workflow, Workbot Slack/Teams, équipes IT/RevOps US.",
+      "color": "violet"
+    },
+    {
+      "side": "neural",
+      "title": "NEURAL",
+      "description": "Opérateur agents Claude vertical EU. AI Act-ready, 168 agents sectoriels, ROI cadré avant code.",
+      "color": "emerald"
+    },
+    {
+      "side": "verdict",
+      "title": "Verdict",
+      "description": "Workato pour automatiser. NEURAL pour opérer. Catégories différentes pour des besoins différents.",
+      "color": "amber"
+    }
+  ],
+  "tableNote": "Honnêteté : Workato est plus mature en breadth, recipes et écosystème enterprise US. NEURAL gagne sur AI Act, hosting EU, verticalisation et transparence pricing.",
+  "dimensions": [
+    {
+      "label": "Positionnement",
+      "tray": "iPaaS enterprise + automation transverse",
+      "neural": "Opérateur sectoriel d'agents Claude EU",
+      "winner": "different"
+    },
+    {
+      "label": "ICP cible",
+      "tray": "Enterprise IT/RevOps mature, US-default",
+      "neural": "DAF / Direction métier secteurs régulés FR/EU",
+      "winner": "different"
+    },
+    {
+      "label": "Cas d'usage principal",
+      "tray": "Automatisation transverse multi-département (RevOps, Finance Ops, IT Ops)",
+      "neural": "Opérer agents sectoriels avec ROI cadré",
+      "winner": "different"
+    },
+    {
+      "label": "Connecteurs",
+      "tray": "1200+ connecteurs",
+      "neural": "Roadmap 50 connecteurs EU certifiés (SAP, Sage, Cegid, Pennylane…)",
+      "winner": "tray",
+      "note": "Workato gagne largement sur breadth — votre choix est de viser deep EU"
+    },
+    {
+      "label": "Onboarding",
+      "tray": "Demo + trial sur demande, services pro souvent requis",
+      "neural": "Audit 30 min gratuit, pas d'engagement",
+      "winner": "neural"
+    },
+    {
+      "label": "Profondeur produit",
+      "tray": "Très mature : Workflow, Workbot, EDI, App Builder, Insights, AI@Work",
+      "neural": "Plus jeune, focus IA verticale + Operator Gateway en cours",
+      "winner": "tray"
+    },
+    {
+      "label": "IA / agents",
+      "tray": "AI@Work + Workbot. Modèles non spécifiés publiquement, focus copilote",
+      "neural": "Agents Claude pré-entraînés sectoriels, partenariat Anthropic",
+      "winner": "different"
+    },
+    {
+      "label": "Gouvernance",
+      "tray": "Workato Insights + RBAC + audit logs — très mature enterprise",
+      "neural": "Trace auditable, human-in-the-loop, gates déterministes",
+      "winner": "tray"
+    },
+    {
+      "label": "Conformité AI Act",
+      "tray": "Pas de signal public spécifique sur l'AI Act EU",
+      "neural": "Page dédiée, 8 articles documentés, classification 168 agents",
+      "winner": "neural"
+    },
+    {
+      "label": "Conformité RGPD",
+      "tray": "Conforme par défaut (acteur SaaS US)",
+      "neural": "RGPD by design, sous-processeurs publics, hosting EU documenté",
+      "winner": "neural"
+    },
+    {
+      "label": "Hosting / souveraineté",
+      "tray": "Multi-cloud global (AWS), région EU disponible mais US par défaut",
+      "neural": "EU exclusif (Vercel FRA/CDG, Neon EU-Central)",
+      "winner": "neural"
+    },
+    {
+      "label": "Pricing",
+      "tray": "Opaque, basé sur \"recipes\" + tasks, négociation enterprise",
+      "neural": "Transparent : Starter 290-1290€/mo, Business 4900-16500€/mo",
+      "winner": "neural"
+    },
+    {
+      "label": "Vitesse de déploiement",
+      "tray": "8-16 semaines premier projet, équipe Workato Specialist requise",
+      "neural": "Cadrage outcome avant code, agents pré-entraînés sectoriels",
+      "winner": "neural"
+    },
+    {
+      "label": "Verticalisation",
+      "tray": "Horizontal, peu de cas d'usage sectoriels prêts",
+      "neural": "6 secteurs × 7 branches = 42 combinaisons sectorielles",
+      "winner": "neural"
+    },
+    {
+      "label": "Crédibilité enterprise",
+      "tray": "Logos Fortune 500 (Salesforce, Slack, Box, Atlassian…)",
+      "neural": "Cible CAC40/SBF120, runtime preuves Luxe + Banque",
+      "winner": "tray",
+      "note": "Workato a 10+ ans d'avance sur la trajectoire enterprise US"
+    },
+    {
+      "label": "Adaptation France/Europe",
+      "tray": "Présence EU mais pas spécialisée sur les contraintes FR (ACPR, EASA, CSRD)",
+      "neural": "Native FR, AI Act-ready, MiFID/ACPR/EASA outillé",
+      "winner": "neural"
+    }
+  ],
+  "whenChooseTray": {
+    "title": "Choisissez Workato si...",
+    "criteria": [
+      "Vous êtes une enterprise mature avec 50+ SaaS à orchestrer",
+      "Votre équipe IT/RevOps est expérimentée sur les iPaaS",
+      "Vous voulez automatiser des workflows transverses (RevOps, Finance Ops)",
+      "Votre marché principal est US et la conformité EU est un nice-to-have",
+      "Vous cherchez un Workbot Slack/Teams mature pour vos équipes"
+    ]
+  },
+  "whenChooseNeural": {
+    "title": "Choisissez NEURAL si...",
+    "criteria": [
+      "Vous opérez dans un secteur régulé EU (banque, assurance, luxe, aéro)",
+      "L'AI Act et le RGPD sont des contraintes structurantes",
+      "Vous voulez des agents IA verticaux, pas un canvas no-code à câbler",
+      "ROI cadré avant code et pricing transparent sont critiques",
+      "Vous cherchez un éditeur EU pour rassurer vos régulateurs / auditeurs"
+    ]
+  }
+}

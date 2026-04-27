@@ -1,0 +1,152 @@
+{
+  "lastUpdated": "2026-04-27",
+  "competitor": {
+    "name": "n8n",
+    "url": "https://n8n.io",
+    "tagline": "Open-source workflow automation",
+    "category": "Workflow automation open-source EU"
+  },
+  "verdict": "n8n pour des workflows techniques flexibles avec self-hosting EU. NEURAL pour opérer des agents IA sectoriels avec gouvernance enterprise et conformité AI Act native.",
+  "tldr": [
+    {
+      "side": "competitor",
+      "title": "n8n",
+      "description": "Open-source workflow automation, origine allemande. Self-hosted ou cloud EU. Très flexible, communauté tech active, license fair-code.",
+      "color": "violet"
+    },
+    {
+      "side": "neural",
+      "title": "NEURAL",
+      "description": "Opérateur agents Claude vertical EU. 168 agents sectoriels, AI Act-ready, ROI cadré, gouvernance enterprise.",
+      "color": "emerald"
+    },
+    {
+      "side": "verdict",
+      "title": "Verdict",
+      "description": "n8n pour les équipes tech qui veulent du flexible + self-hosted. NEURAL pour les directions métier qui veulent des agents IA opérables avec gouvernance.",
+      "color": "amber"
+    }
+  ],
+  "tableNote": "n8n est un acteur respectable et EU-friendly. NEURAL ne le concurrence pas frontalement — n8n est un outil technique low-code, NEURAL est un opérateur d'agents IA sectoriels.",
+  "dimensions": [
+    {
+      "label": "Positionnement",
+      "tray": "Workflow automation flexible, fair-code, self-hostable",
+      "neural": "Opérateur sectoriel d'agents Claude EU",
+      "winner": "different"
+    },
+    {
+      "label": "ICP cible",
+      "tray": "Équipes tech / dev / ops, indépendants, scale-ups",
+      "neural": "DAF / Direction métier secteurs régulés FR/EU",
+      "winner": "different"
+    },
+    {
+      "label": "Cas d'usage principal",
+      "tray": "Automatiser des workflows techniques (data pipelines, intégrations custom, scrapers, AI workflows)",
+      "neural": "Opérer 168 agents sectoriels avec ROI cadré",
+      "winner": "different"
+    },
+    {
+      "label": "Connecteurs",
+      "tray": "400+ nodes intégrés + community nodes",
+      "neural": "Roadmap 50 connecteurs EU certifiés enterprise",
+      "winner": "tray"
+    },
+    {
+      "label": "Onboarding",
+      "tray": "Self-serve cloud (free 14 jours) ou Docker run instantané",
+      "neural": "Audit 30 min gratuit pour cadrer un déploiement",
+      "winner": "tray",
+      "note": "n8n gagne sur le self-serve technique"
+    },
+    {
+      "label": "Profondeur produit",
+      "tray": "Workflow editor visuel, code nodes JS/Python, AI nodes, sub-workflows",
+      "neural": "Focus IA verticale + Operator Gateway",
+      "winner": "different"
+    },
+    {
+      "label": "IA / agents",
+      "tray": "AI agents nodes (LangChain, OpenAI, Anthropic), build-your-own",
+      "neural": "168 agents pré-entraînés sectoriels prêts à l'emploi",
+      "winner": "different",
+      "note": "Approche orthogonale : DIY vs ready-made"
+    },
+    {
+      "label": "Gouvernance",
+      "tray": "RBAC enterprise edition, audit logs, version control",
+      "neural": "Trace auditable, human-in-the-loop, gates déterministes",
+      "winner": "different"
+    },
+    {
+      "label": "Conformité AI Act",
+      "tray": "Pas de cadre AI Act spécifique. Le déployeur porte la responsabilité.",
+      "neural": "Page dédiée, 8 articles documentés, classification 168 agents",
+      "winner": "neural"
+    },
+    {
+      "label": "Conformité RGPD",
+      "tray": "Cloud EU disponible, self-hostable totalement",
+      "neural": "RGPD by design, sous-processeurs publics, hosting EU documenté",
+      "winner": "different",
+      "note": "Match nul — les deux sont EU-friendly"
+    },
+    {
+      "label": "Hosting / souveraineté",
+      "tray": "Self-hosted total possible (atout fort), Cloud EU disponible",
+      "neural": "EU géré (Vercel FRA, Neon EU-Central), pas de self-host",
+      "winner": "tray"
+    },
+    {
+      "label": "Pricing",
+      "tray": "Self-hosted gratuit (fair-code), Cloud à partir de ~20€/mo",
+      "neural": "Starter 290-1290€/mo, Business 4900-16500€/mo (offre managée enterprise)",
+      "winner": "tray"
+    },
+    {
+      "label": "Vitesse de déploiement",
+      "tray": "Quelques heures pour un workflow simple (équipe tech)",
+      "neural": "Cadrage outcome + agents prêts, accélère la mise en valeur métier",
+      "winner": "different"
+    },
+    {
+      "label": "Verticalisation",
+      "tray": "Horizontal pur, communauté nodes par cas d'usage",
+      "neural": "6 secteurs × 7 branches = 42 combinaisons sectorielles",
+      "winner": "neural"
+    },
+    {
+      "label": "Crédibilité enterprise",
+      "tray": "Adoption growing en mid-market et scale-ups EU",
+      "neural": "Cible CAC40/SBF120, runtime preuves Luxe + Banque + Assurance",
+      "winner": "neural"
+    },
+    {
+      "label": "Cible primaire",
+      "tray": "Équipes tech qui veulent assembler des workflows custom",
+      "neural": "Directions métier qui veulent des agents prêts à opérer",
+      "winner": "different"
+    }
+  ],
+  "whenChooseTray": {
+    "title": "Choisissez n8n si...",
+    "criteria": [
+      "Vous avez une équipe tech qui peut assembler des workflows custom",
+      "Le self-hosting est un critère contractuel non-négociable",
+      "Vous cherchez du flexible bas niveau (data pipelines, scrapers, intégrations exotiques)",
+      "Votre budget est contraint et vous tolérez l'effort de build",
+      "Vous voulez assembler vos propres AI agents avec LangChain / OpenAI / Anthropic"
+    ]
+  },
+  "whenChooseNeural": {
+    "title": "Choisissez NEURAL si...",
+    "criteria": [
+      "Vous opérez dans un secteur régulé EU (banque, assurance, luxe, aéro)",
+      "L'AI Act et la conformité documentée sont des critères structurants",
+      "Vous préférez 168 agents sectoriels prêts à un canvas vide à configurer",
+      "Vos décisions agent IA doivent être auditables avec trace signée",
+      "Vous voulez un éditeur EU avec gouvernance enterprise mature"
+    ]
+  }
+}

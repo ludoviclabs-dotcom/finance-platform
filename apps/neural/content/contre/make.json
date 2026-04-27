@@ -1,0 +1,152 @@
+{
+  "lastUpdated": "2026-04-27",
+  "competitor": {
+    "name": "Make",
+    "url": "https://make.com",
+    "tagline": "Visual platform to design, build, and automate",
+    "category": "No-code automation SMB EU"
+  },
+  "verdict": "Make pour automatiser des tâches simples sans code dans une PME ou pour des indépendants. NEURAL pour opérer des agents IA sectoriels avec gouvernance enterprise, conformité AI Act et secteurs régulés.",
+  "tldr": [
+    {
+      "side": "competitor",
+      "title": "Make",
+      "description": "Plateforme no-code (ex-Integromat). Origine tchèque, EU-based. Très visuel, ICP SMB et indépendants. Pricing lisible, accessible.",
+      "color": "violet"
+    },
+    {
+      "side": "neural",
+      "title": "NEURAL",
+      "description": "Opérateur agents Claude vertical EU. 168 agents sectoriels, AI Act-ready, ROI cadré, gouvernance enterprise.",
+      "color": "emerald"
+    },
+    {
+      "side": "verdict",
+      "title": "Verdict",
+      "description": "Make pour automatiser des tâches simples en PME. NEURAL pour opérer des agents IA en environnement régulé enterprise. Catégories radicalement différentes.",
+      "color": "amber"
+    }
+  ],
+  "tableNote": "Make et NEURAL ne ciblent pas le même marché. Make est excellent en SMB/indépendants. NEURAL adresse l'enterprise régulé EU avec agents IA verticaux.",
+  "dimensions": [
+    {
+      "label": "Positionnement",
+      "tray": "No-code visual automation pour PME/indépendants",
+      "neural": "Opérateur sectoriel d'agents Claude EU enterprise",
+      "winner": "different"
+    },
+    {
+      "label": "ICP cible",
+      "tray": "PME, indépendants, agences, marketing/ops sans dev",
+      "neural": "DAF / Direction métier secteurs régulés FR/EU >50 employés",
+      "winner": "different"
+    },
+    {
+      "label": "Cas d'usage principal",
+      "tray": "Automatiser des tâches simples (CRM sync, emails, social media, reporting basique)",
+      "neural": "Opérer 168 agents sectoriels avec ROI cadré et trace auditable",
+      "winner": "different"
+    },
+    {
+      "label": "Connecteurs",
+      "tray": "1700+ apps intégrées",
+      "neural": "Roadmap 50 connecteurs EU enterprise certifiés",
+      "winner": "tray"
+    },
+    {
+      "label": "Onboarding",
+      "tray": "Self-serve gratuit, scénarios visuels en quelques minutes",
+      "neural": "Audit 30 min gratuit pour cadrer un déploiement enterprise",
+      "winner": "tray",
+      "note": "Make gagne pour des cas d'usage simples"
+    },
+    {
+      "label": "Profondeur produit",
+      "tray": "Scenario builder visuel, mature et UX excellente",
+      "neural": "Focus IA verticale + Operator Gateway",
+      "winner": "different"
+    },
+    {
+      "label": "IA / agents",
+      "tray": "Modules AI (OpenAI, Anthropic, etc.), pas d'agents pré-entraînés",
+      "neural": "168 agents Claude pré-entraînés sectoriels",
+      "winner": "different"
+    },
+    {
+      "label": "Gouvernance",
+      "tray": "Logs basiques, pas de RBAC enterprise mature",
+      "neural": "Trace auditable, human-in-the-loop, gates déterministes",
+      "winner": "neural"
+    },
+    {
+      "label": "Conformité AI Act",
+      "tray": "Pas de cadre AI Act spécifique",
+      "neural": "Page dédiée, 8 articles documentés, classification 168 agents",
+      "winner": "neural"
+    },
+    {
+      "label": "Conformité RGPD",
+      "tray": "Conforme RGPD, hosting EU (Prague)",
+      "neural": "RGPD by design, sous-processeurs publics, hosting EU documenté",
+      "winner": "different"
+    },
+    {
+      "label": "Hosting / souveraineté",
+      "tray": "EU (Prague), pas d'option self-host",
+      "neural": "EU exclusif (Vercel FRA/CDG, Neon EU-Central)",
+      "winner": "different",
+      "note": "Match nul — les deux sont EU-hosted"
+    },
+    {
+      "label": "Pricing",
+      "tray": "Free tier + plans à partir de 9$/mo, opérations facturées",
+      "neural": "Starter 290-1290€/mo (mid-cap), Business 4900-16500€/mo (enterprise)",
+      "winner": "tray",
+      "note": "Make gagne pour des budgets PME"
+    },
+    {
+      "label": "Vitesse de déploiement",
+      "tray": "Quelques minutes à quelques heures pour un scénario simple",
+      "neural": "Cadrage outcome + agents prêts pour cas enterprise complexes",
+      "winner": "different"
+    },
+    {
+      "label": "Verticalisation",
+      "tray": "Horizontal pur, templates communautaires",
+      "neural": "6 secteurs × 7 branches = 42 combinaisons sectorielles",
+      "winner": "neural"
+    },
+    {
+      "label": "Crédibilité enterprise",
+      "tray": "Adoption SMB/agences, peu de logos enterprise lourds",
+      "neural": "Cible CAC40/SBF120, runtime preuves Luxe + Banque + Assurance",
+      "winner": "neural"
+    },
+    {
+      "label": "Adaptation secteurs régulés",
+      "tray": "Pas de packs sectoriels enterprise (banque, aéro, santé)",
+      "neural": "Native FR, AI Act-ready, MiFID/ACPR/EASA outillé",
+      "winner": "neural"
+    }
+  ],
+  "whenChooseTray": {
+    "title": "Choisissez Make si...",
+    "criteria": [
+      "Vous êtes une PME, agence ou indépendant qui veut automatiser sans code",
+      "Votre budget est limité et vous voulez du self-serve immédiat",
+      "Vos cas d'usage sont simples (CRM sync, emails, social, reporting léger)",
+      "Vous n'avez pas de contraintes réglementaires lourdes (AI Act, ACPR, etc.)",
+      "Vous préférez une UX visuelle accessible à des non-tech"
+    ]
+  },
+  "whenChooseNeural": {
+    "title": "Choisissez NEURAL si...",
+    "criteria": [
+      "Vous êtes une enterprise (>50 personnes) en secteur régulé EU",
+      "L'AI Act, ACPR/AMF/EASA sont des contraintes structurantes",
+      "Vous voulez des agents IA verticaux, pas un canvas générique",
+      "Vos décisions agent IA doivent être auditables et opposables",
+      "Vous cherchez un éditeur enterprise avec gouvernance mature"
+    ]
+  }
+}

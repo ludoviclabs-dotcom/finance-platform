@@ -1065,6 +1065,8 @@ export const FOOTER_LINKS = {
   Entreprise: [
     { label: "A propos", href: "/about", status: "demo" as PublicStatus },
     { label: "Publications", href: "/publications", status: "live" as PublicStatus },
+    { label: "Témoignages", href: "/temoignages", status: "live" as PublicStatus },
+    { label: "Presse", href: "/presse", status: "live" as PublicStatus },
     { label: "Contact", href: "/contact", status: "live" as PublicStatus },
     { label: "Mentions legales", href: "/legal", status: "demo" as PublicStatus },
     { label: "Confidentialite", href: "/legal/confidentialite", status: "demo" as PublicStatus },

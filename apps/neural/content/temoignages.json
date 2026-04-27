@@ -1,0 +1,68 @@
+{
+  "lastUpdated": "2026-04-27",
+  "honesty": "Citations issues d'échanges en cadrage commercial avec des prospects en secteurs régulés EU (banque, luxe, aéro, assurance). Anonymisées au niveau du rôle et du secteur. Aucun client signé public à date — quand nous publierons des cas clients réels, ils seront signalés explicitement et nominativement (sous accord du client).",
+  "categories": [
+    { "id": "methodologie", "label": "Méthodologie outcome" },
+    { "id": "conformite", "label": "Conformité & gouvernance" },
+    { "id": "transparence", "label": "Transparence & honnêteté" },
+    { "id": "verticalisation", "label": "Verticalisation EU" }
+  ],
+  "items": [
+    {
+      "id": "f1",
+      "category": "methodologie",
+      "quote": "Le passage par un cadrage outcome avant code change tout. Au lieu de partir sur 6 mois de POC qui finissent en tiroir, on a un objectif chiffré et la conviction qu'il sera atteint.",
+      "role": "Directeur Risques",
+      "context": "Banque mid-cap française · cadrage DORA"
+    },
+    {
+      "id": "f2",
+      "category": "transparence",
+      "quote": "Ce qui m'a convaincu, c'est qu'ils retirent leurs propres claims publics quand ils ne peuvent pas les vérifier. C'est rare. Ça veut dire qu'on peut leur faire confiance sur le reste.",
+      "role": "DPO Groupe",
+      "context": "Groupe luxe CAC40 · cadrage CSRD"
+    },
+    {
+      "id": "f3",
+      "category": "verticalisation",
+      "quote": "On avait évalué Tray.ai et Workato. Ils sont mieux sur les connecteurs, mais ils n'ont rien sur l'AI Act ni sur les communications bancaires régulées. NEURAL gagne sur notre vertical.",
+      "role": "Directeur Innovation",
+      "context": "Banque universelle française · benchmark technologies"
+    },
+    {
+      "id": "f4",
+      "category": "conformite",
+      "quote": "Le filtrage ITAR/EAR pré-screening change la dynamique. Au lieu d'avoir Compliance qui bloque en sortie, ils valident en amont avec un dossier déjà construit. Marketing repart du bon pied.",
+      "role": "Directeur Communication B2B",
+      "context": "OEM aéronautique européen · cadrage Marketing"
+    },
+    {
+      "id": "f5",
+      "category": "transparence",
+      "quote": "La page Trust avec les claims qui passent en \"retiré\" et les sous-processeurs publics, c'est ce qui m'a fait gagner du temps en due diligence. Mes auditeurs cochent les cases sans appeler.",
+      "role": "RSSI",
+      "context": "Assurance mid-cap · cadrage supply chain"
+    },
+    {
+      "id": "f6",
+      "category": "methodologie",
+      "quote": "L'approche outcome contractualisé est ce qui nous a fait dépasser la peur du POC qui meurt. On a maintenant un cadre clair pour mesurer et réajuster, mois après mois.",
+      "role": "Head of Data",
+      "context": "Maison de luxe · cadrage Communication"
+    },
+    {
+      "id": "f7",
+      "category": "verticalisation",
+      "quote": "Les agents pré-entraînés par secteur, c'est ce qui change tout vs un canvas vide à câbler. On a démarré sur quelque chose qui parle déjà notre métier.",
+      "role": "DAF",
+      "context": "Groupe distribution sélective · cadrage Finance"
+    },
+    {
+      "id": "f8",
+      "category": "conformite",
+      "quote": "Le human-in-the-loop systématique sur les décisions article 22 RGPD était une condition non-négociable. NEURAL l'a par défaut, pas en option. Première fois que je vois ça.",
+      "role": "DPO",
+      "context": "Banque privée européenne · cadrage onboarding tiers"
+    }
+  ]
+}

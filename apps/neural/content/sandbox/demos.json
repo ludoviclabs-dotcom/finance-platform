@@ -1,0 +1,77 @@
+{
+  "lastUpdated": "2026-04-27",
+  "demos": [
+    {
+      "id": "voice-score",
+      "label": "Voice Guard Scorer",
+      "description": "Score brand /100 avec hard-fails dictionnaire FR+EN. Validez une copie en temps réel.",
+      "category": "Communication Luxe",
+      "agent": "MaisonVoiceGuard",
+      "agentSlug": "maison-voice-guard",
+      "duration": "~15s",
+      "model": "claude-sonnet-4-6",
+      "status": "live",
+      "color": "violet"
+    },
+    {
+      "id": "press-angle",
+      "label": "Press Angle Generator",
+      "description": "Adaptation FT vs Vogue selon outlet. Media matrix 20 outlets référencés.",
+      "category": "Communication Luxe",
+      "agent": "LuxePressAgent",
+      "agentSlug": "luxe-press-agent",
+      "duration": "~20s",
+      "model": "claude-sonnet-4-6",
+      "status": "live",
+      "color": "violet"
+    },
+    {
+      "id": "heritage-quote",
+      "label": "Heritage Quote Generator",
+      "description": "Citations patrimoniales avec sourcing auditable. 4 formats (Maison, Chicago, APA, Juridique).",
+      "category": "Communication Luxe",
+      "agent": "HeritageComms",
+      "agentSlug": "heritage-comms",
+      "duration": "~15s",
+      "model": "claude-sonnet-4-6",
+      "status": "live",
+      "color": "violet"
+    },
+    {
+      "id": "claim-check",
+      "label": "Green Claim Checker",
+      "description": "Vérification de claims RSE avec matrice 5 juridictions (EU/FR/UK/US/CH).",
+      "category": "Conformité",
+      "agent": "GreenClaimChecker",
+      "agentSlug": "green-claim-checker",
+      "duration": "~20s",
+      "model": "claude-sonnet-4-6",
+      "status": "live",
+      "color": "emerald"
+    },
+    {
+      "id": "event-pack",
+      "label": "Event Pack Builder",
+      "description": "Pack contenu défilé/expo cross-format (invitations, scripts, social, captions).",
+      "category": "Communication Luxe",
+      "agent": "LuxeEventComms",
+      "agentSlug": "luxe-event-comms",
+      "duration": "~25s",
+      "model": "claude-sonnet-4-6",
+      "status": "live",
+      "color": "violet"
+    },
+    {
+      "id": "idp-demo",
+      "label": "Document Extract (IDP)",
+      "description": "Extraction structurée de 3 documents-types : facture, contrat, bilan. Données pré-calculées.",
+      "category": "Document Processing",
+      "agent": "IDP Sandbox",
+      "agentSlug": null,
+      "duration": "Mock instantané",
+      "model": "claude-sonnet-4-6 (mock)",
+      "status": "demo",
+      "color": "cyan"
+    }
+  ]
+}

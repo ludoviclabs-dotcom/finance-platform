@@ -1,0 +1,103 @@
+{
+  "samples": [
+    {
+      "id": "facture",
+      "label": "Facture fournisseur",
+      "description": "Facture B2B classique avec TVA, lignes de commande, conditions de paiement.",
+      "fileMeta": "facture-FR-2026-04-1247.pdf · 142 KB · 2 pages",
+      "extractedAt": "2026-04-27T08:30:12Z",
+      "extractionLatency": "1.4s",
+      "extractedFields": {
+        "Type": "Facture",
+        "Numéro": "FR-2026-04-1247",
+        "Date émission": "2026-04-22",
+        "Date échéance": "2026-05-22",
+        "Délai paiement": "30 jours nets",
+        "Émetteur": "Sopra Conseil SA · 11 rue d'Aurelle de Paladines · 75017 Paris",
+        "SIRET émetteur": "423 901 137 00018",
+        "Destinataire": "NEURAL AI Consulting SAS",
+        "SIRET destinataire": "927 384 215 00012",
+        "Montant HT": "12 750,00 €",
+        "TVA (20%)": "2 550,00 €",
+        "Montant TTC": "15 300,00 €",
+        "IBAN": "FR76 3000 4000 0312 3456 7890 143",
+        "BIC": "BNPAFRPPXXX"
+      },
+      "lineItems": [
+        { "description": "Conseil — cadrage projet IA", "qty": 5, "unitPrice": 1500, "total": 7500 },
+        { "description": "Atelier méthodologique 2j", "qty": 2, "unitPrice": 2000, "total": 4000 },
+        { "description": "Frais de déplacement", "qty": 1, "unitPrice": 1250, "total": 1250 }
+      ],
+      "anomalies": [],
+      "confidence": 0.97
+    },
+    {
+      "id": "contrat",
+      "label": "Contrat de prestation",
+      "description": "Contrat de prestation services IT avec clauses RGPD et durée.",
+      "fileMeta": "contrat-prestation-NEURAL-2026.pdf · 287 KB · 8 pages",
+      "extractedAt": "2026-04-27T08:31:47Z",
+      "extractionLatency": "2.8s",
+      "extractedFields": {
+        "Type": "Contrat de prestation",
+        "Référence": "CP-NEURAL-2026-042",
+        "Date signature": "2026-04-15",
+        "Durée": "12 mois reconductible",
+        "Date début": "2026-05-01",
+        "Date fin": "2027-04-30",
+        "Préavis résiliation": "3 mois",
+        "Prestataire": "NEURAL AI Consulting SAS",
+        "Client": "Banque Régionale Atlantique",
+        "Objet": "Prestation de services IA — déploiement agent Sapin2Compliance",
+        "Montant total": "187 200,00 € HT",
+        "Modalités paiement": "Mensuel, 30 jours nets",
+        "Loi applicable": "Droit français",
+        "Juridiction": "Tribunal de commerce de Paris"
+      },
+      "clausesIdentifiees": [
+        { "clause": "Confidentialité", "presente": true, "page": 3, "robustness": "Standard" },
+        { "clause": "Propriété intellectuelle", "presente": true, "page": 4, "robustness": "Robuste" },
+        { "clause": "RGPD / DPA", "presente": true, "page": 5, "robustness": "Conforme" },
+        { "clause": "Responsabilité limitée", "presente": true, "page": 6, "robustness": "Plafonnée 12 mois CA" },
+        { "clause": "Force majeure", "presente": true, "page": 7, "robustness": "Standard" },
+        { "clause": "Audit / Reversibilité", "presente": true, "page": 7, "robustness": "DORA-compatible" }
+      ],
+      "anomalies": [
+        "Clause de cession à un tiers non explicitement traitée (vérification recommandée)"
+      ],
+      "confidence": 0.94
+    },
+    {
+      "id": "bilan",
+      "label": "Bilan comptable",
+      "description": "Liasse fiscale 2058-A simplifiée, exercice clos 2025.",
+      "fileMeta": "bilan-2025-exercice-clos.pdf · 412 KB · 12 pages",
+      "extractedAt": "2026-04-27T08:32:33Z",
+      "extractionLatency": "4.1s",
+      "extractedFields": {
+        "Type": "Liasse fiscale 2058-A",
+        "Société": "MAISON LUXE FRANCAISE SAS",
+        "SIREN": "542 057 924",
+        "Exercice": "01/01/2025 → 31/12/2025",
+        "Durée": "12 mois",
+        "Régime": "Réel normal",
+        "CA HT": "284 712 000 €",
+        "Résultat net": "42 318 000 €",
+        "Total bilan": "612 947 000 €",
+        "Effectif moyen": "1 247 ETP",
+        "Date d'arrêté": "2026-03-15"
+      },
+      "kpiFinanciers": [
+        { "label": "Marge nette", "valeur": "14,9%", "delta": "+1,8 pt vs 2024" },
+        { "label": "Croissance CA YoY", "valeur": "+8,2%", "delta": "supérieur secteur" },
+        { "label": "Capitaux propres", "valeur": "187 250 000 €", "delta": "+22 M€" },
+        { "label": "Endettement net", "valeur": "−32 100 000 €", "delta": "trésorerie nette" },
+        { "label": "ROE", "valeur": "22,6%", "delta": "+2,1 pt" }
+      ],
+      "anomalies": [
+        "Variation des stocks de +18% (à investiguer si > seuil interne)"
+      ],
+      "confidence": 0.96
+    }
+  ]
+}

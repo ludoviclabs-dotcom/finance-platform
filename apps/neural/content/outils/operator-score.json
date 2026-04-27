@@ -1,0 +1,142 @@
+{
+  "lastUpdated": "2026-04-27",
+  "axes": [
+    { "id": "cadrage", "label": "Cadrage outcome", "description": "ROI signé avant code, OKR clairs" },
+    { "id": "donnees", "label": "Données opérateur", "description": "Qualité, contrats, monitoring" },
+    { "id": "gouvernance", "label": "Gouvernance agents", "description": "Audit trail, RBAC, policies" },
+    { "id": "orchestration", "label": "Orchestration MCP", "description": "Gateway, versioning, fallback" },
+    { "id": "roi", "label": "Mesure ROI continue", "description": "KPI agent, suivi mensuel, contrats" }
+  ],
+  "questions": [
+    { "id": "q1", "axis": "cadrage", "label": "Vos projets agents IA partent-ils d'un outcome chiffré et signé ?", "options": [
+      { "id": "no", "label": "Non — on commence par construire et on mesure ensuite", "score": 0 },
+      { "id": "draft", "label": "Objectifs estimés mais pas signés", "score": 1 },
+      { "id": "signed", "label": "Outcome signé avant build", "score": 2 },
+      { "id": "contractual", "label": "Outcome contractualisé avec clause de sortie", "score": 3 }
+    ]},
+    { "id": "q2", "axis": "cadrage", "label": "Comment cadrez-vous la responsabilité partagée éditeur/déployeur ?", "options": [
+      { "id": "none", "label": "Pas formalisée", "score": 0 },
+      { "id": "verbal", "label": "Discussions verbales avec partenaires", "score": 1 },
+      { "id": "documented", "label": "Doc écrite par projet", "score": 2 },
+      { "id": "framework", "label": "Framework standardisé incluant article 26 AI Act", "score": 3 }
+    ]},
+    { "id": "q3", "axis": "donnees", "label": "Vos sources de données ont-elles des contrats avec SLA ?", "options": [
+      { "id": "no", "label": "Pas de contrats explicites", "score": 0 },
+      { "id": "informal", "label": "Accords informels par équipe", "score": 1 },
+      { "id": "documented", "label": "Data contracts documentés", "score": 2 },
+      { "id": "monitored", "label": "Data contracts monitorés avec pénalités producteurs", "score": 3 }
+    ]},
+    { "id": "q4", "axis": "donnees", "label": "Le drift de qualité de données est-il monitoré en continu ?", "options": [
+      { "id": "no", "label": "Non monitoré", "score": 0 },
+      { "id": "ad-hoc", "label": "Audits ponctuels", "score": 1 },
+      { "id": "monitoring", "label": "Monitoring continu avec alerting", "score": 2 },
+      { "id": "self-healing", "label": "Détection + remédiation automatisée", "score": 3 }
+    ]},
+    { "id": "q5", "axis": "gouvernance", "label": "Vos agents IA produisent-ils un audit trail signé ?", "options": [
+      { "id": "no", "label": "Logs techniques seulement", "score": 0 },
+      { "id": "logs", "label": "Logs business mais pas signés", "score": 1 },
+      { "id": "signed", "label": "Audit trail avec hash immuable", "score": 2 },
+      { "id": "exportable", "label": "Audit trail signé exportable + opposable juridiquement", "score": 3 }
+    ]},
+    { "id": "q6", "axis": "gouvernance", "label": "Avez-vous une policy engine séparée du LLM pour appliquer vos règles métier ?", "options": [
+      { "id": "no", "label": "Tout dans le prompt LLM", "score": 0 },
+      { "id": "partial", "label": "Quelques règles externalisées", "score": 1 },
+      { "id": "engine", "label": "Policy engine avec override LLM", "score": 2 },
+      { "id": "deterministic", "label": "Hard-fails déterministes avec audit", "score": 3 }
+    ]},
+    { "id": "q7", "axis": "gouvernance", "label": "Vos agents respectent-ils l'article 22 RGPD (décision automatisée) ?", "options": [
+      { "id": "ignored", "label": "Pas de cadre spécifique", "score": 0 },
+      { "id": "aware", "label": "Conscience du sujet, pas de gate", "score": 1 },
+      { "id": "hitl", "label": "Human-in-the-loop sur cas sensibles", "score": 2 },
+      { "id": "auto-escalation", "label": "Escalade auto + traçage complet", "score": 3 }
+    ]},
+    { "id": "q8", "axis": "orchestration", "label": "Avez-vous un gateway centralisé pour vos appels MCP ?", "options": [
+      { "id": "direct", "label": "Appels directs aux outils", "score": 0 },
+      { "id": "wrapper", "label": "Wrapper basique sans RBAC", "score": 1 },
+      { "id": "gateway", "label": "Gateway avec RBAC + rate limits", "score": 2 },
+      { "id": "full", "label": "Gateway complet : audit + cost + policies", "score": 3 }
+    ]},
+    { "id": "q9", "axis": "orchestration", "label": "Vos prompts sont-ils versionnés et signés ?", "options": [
+      { "id": "no", "label": "Prompts dans le code, pas tracés", "score": 0 },
+      { "id": "git", "label": "Versionning Git seulement", "score": 1 },
+      { "id": "registry", "label": "Prompt registry avec hash", "score": 2 },
+      { "id": "full", "label": "Registry signé + rollback < 30s", "score": 3 }
+    ]},
+    { "id": "q10", "axis": "orchestration", "label": "Avez-vous un fallback documenté entre fournisseurs LLM ?", "options": [
+      { "id": "no", "label": "Un seul fournisseur, pas de plan B", "score": 0 },
+      { "id": "manual", "label": "Bascule manuelle si problème", "score": 1 },
+      { "id": "auto", "label": "Bascule automatique sur erreur", "score": 2 },
+      { "id": "tested", "label": "Bascule testée régulièrement", "score": 3 }
+    ]},
+    { "id": "q11", "axis": "roi", "label": "Mesurez-vous le coût par décision agent ?", "options": [
+      { "id": "no", "label": "Coût total mensuel uniquement", "score": 0 },
+      { "id": "estimated", "label": "Estimation par agent", "score": 1 },
+      { "id": "tracked", "label": "Tracking par décision", "score": 2 },
+      { "id": "capped", "label": "Cost cap configurable + alerting", "score": 3 }
+    ]},
+    { "id": "q12", "axis": "roi", "label": "Vos KPI agents sont-ils revus mensuellement avec le métier ?", "options": [
+      { "id": "no", "label": "Pas de revue formalisée", "score": 0 },
+      { "id": "tech", "label": "Revue tech seulement", "score": 1 },
+      { "id": "business", "label": "Revue tech + business mensuelle", "score": 2 },
+      { "id": "executive", "label": "Revue Comex trimestrielle + ROI signé", "score": 3 }
+    ]}
+  ],
+  "tiers": [
+    {
+      "id": "explorer",
+      "min": 0,
+      "max": 12,
+      "label": "Explorateur",
+      "color": "amber",
+      "summary": "Vous découvrez l'opération d'agents IA. Beaucoup de potentiel, peu de discipline opérationnelle posée. Risque : POCs sans gouvernance, dérives coûts, non-conformité AI Act/RGPD.",
+      "actions": [
+        "Cadrer le 1er agent avec ROI signé avant code (4-6 sem.)",
+        "Mettre en place un audit trail signé minimal sur les décisions agent",
+        "Externaliser au moins 3 règles métier en policy engine déterministe",
+        "Définir une routine mensuelle de revue KPI tech + business"
+      ]
+    },
+    {
+      "id": "builder",
+      "min": 13,
+      "max": 22,
+      "label": "Constructeur",
+      "color": "violet",
+      "summary": "Vous opérez quelques agents avec discipline. Reste à industrialiser le passage à l'échelle : gateway centralisé, prompt registry, cost tracking par décision.",
+      "actions": [
+        "Déployer un Operator Gateway avec RBAC + rate limits + audit trail",
+        "Mettre en place un prompt registry signé avec rollback < 30s",
+        "Tracker le coût par décision et configurer un cost cap par client",
+        "Formaliser la chaîne de responsabilité éditeur/déployeur (article 26 AI Act)"
+      ]
+    },
+    {
+      "id": "operator",
+      "min": 23,
+      "max": 30,
+      "label": "Opérateur",
+      "color": "emerald",
+      "summary": "Vous opérez l'IA à l'échelle avec gouvernance mature. Reste à transformer cette discipline en avantage compétitif soutenable et défendable.",
+      "actions": [
+        "Étendre le Portfolio agents à 10+ avec multi-tenant",
+        "Préparer ISO/IEC 42001 (AI Management System — différenciant 2026-2027)",
+        "Embedder vos agents dans des produits SaaS partenaires",
+        "Publier vos évaluations agent comme thought leadership sectoriel"
+      ]
+    },
+    {
+      "id": "leader",
+      "min": 31,
+      "max": 36,
+      "label": "Leader",
+      "color": "cyan",
+      "summary": "Vous êtes parmi les acteurs les plus matures de votre secteur en opération d'agents IA. NEURAL peut accélérer votre verticalisation et vos exigences de conformité de pointe.",
+      "actions": [
+        "Cadrer une Sovereign AI strategy (souveraineté EU + AI Act + ISO 42001)",
+        "Devenir éditeur d'agents pour partenaires sectoriels (revenus B2B2B)",
+        "Co-construire des standards sectoriels avec NEURAL et 2-3 pairs",
+        "Préparer un positionnement Series A / B sur la thèse opérateur IA EU"
+      ]
+    }
+  ]
+}

@@ -1051,6 +1051,7 @@ export const FOOTER_LINKS = {
     { label: "Operator Gateway", href: "/operator-gateway", status: "demo" as PublicStatus },
     { label: "Connecteurs", href: "/connecteurs", status: "live" as PublicStatus },
     { label: "Documentation", href: "/docs", status: "live" as PublicStatus },
+    { label: "Glossaire IA", href: "/glossaire", status: "live" as PublicStatus },
     { label: "Developer", href: "/dev", status: "live" as PublicStatus },
   ],
   Outils: [

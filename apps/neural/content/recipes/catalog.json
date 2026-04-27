@@ -1,0 +1,207 @@
+{
+  "lastUpdated": "2026-04-27",
+  "comment": "Bibliothèque de recettes = combinaisons d'agents prêtes à l'emploi. Chaque recette détaille les agents enchaînés, les connecteurs requis, le workflow et les outcomes typiques.",
+  "recipes": [
+    {
+      "slug": "cycle-cloture-luxe",
+      "title": "Cycle clôture trimestriel · Luxe",
+      "subtitle": "Consolidation Q1 multi-marques avec audit trail signé",
+      "sector": "luxe",
+      "branch": "finance",
+      "duration": "3-5 jours par cycle",
+      "difficulty": "Moyenne",
+      "color": "violet",
+      "summary": "Orchestration de la clôture trimestrielle pour groupe luxe multi-marques : agrégation comptable, conversion devises, vérification cohérence, génération rapports auditeur-ready.",
+      "agents": [
+        { "step": 1, "slug": "consolidation", "label": "Consolidation Groupe", "role": "Agrégation FI/CO multi-entités" },
+        { "step": 2, "slug": "multi-currency", "label": "Multi-Currency IAS 21", "role": "Conversion + retraitement IAS 21" },
+        { "step": 3, "slug": "royalty", "label": "Royalty Accounting", "role": "Comptabilisation royalties intra-groupe" },
+        { "step": 4, "slug": "inventaire-luxe", "label": "Inventaire Luxe", "role": "Vérification stock + écarts" }
+      ],
+      "connectors": ["sap-s4hana", "cegid-loop", "stripe", "spendesk"],
+      "outcomes": [
+        "Délai de clôture −40% vs cycle manuel",
+        "Audit trail signé pour cabinet (KPMG/Deloitte/EY/Mazars)",
+        "Détection anomalies écart > 0.1% en automatique"
+      ],
+      "compliance": ["IFRS 17", "IAS 21", "CSRD ESRS 1"],
+      "caveat": "Présuppose des données d'entrée fiables côté ERP source. Le calibrage initial nécessite 4-6 semaines."
+    },
+    {
+      "slug": "onboarding-banque-dora",
+      "title": "Onboarding client · Banque DORA",
+      "subtitle": "Due diligence tiers + classification critique en parcours unifié",
+      "sector": "banque",
+      "branch": "communication",
+      "duration": "2-4 heures par tiers",
+      "difficulty": "Élevée",
+      "color": "cyan",
+      "summary": "Parcours d'onboarding d'un tiers TIC pour banque sous DORA : screening identité, due diligence pays-secteur, classification critique selon seuils DORA, génération rapport auditeur.",
+      "agents": [
+        { "step": 1, "slug": "sapin2-compliance", "label": "Sapin2Compliance", "role": "Due diligence + screening sanctions" },
+        { "step": 2, "slug": "fraud-detect-sc", "label": "FraudDetectSC", "role": "Détection patterns risque tiers" },
+        { "step": 3, "slug": "reg-bank-comms", "label": "RegBankComms", "role": "Validation communications associées" },
+        { "step": 4, "slug": "bank-evidence-guard", "label": "BankEvidenceGuard", "role": "Compilation evidence auditeur-ready" }
+      ],
+      "connectors": ["sopra-cassiopae", "fenergo", "verifeed"],
+      "outcomes": [
+        "Délai onboarding tiers : 2-4h tracées au lieu de 5-10 jours",
+        "Coût due diligence : 200-400€/tiers au lieu de 1200-2500€",
+        "Conformité DORA art. 28-44 documentée par défaut"
+      ],
+      "compliance": ["DORA", "Sapin II", "RGPD", "AI Act art. 6"],
+      "caveat": "Les dossiers à classification critique nécessitent toujours une revue humaine finale (article 22 RGPD respecté)."
+    },
+    {
+      "slug": "communication-luxe-integrale",
+      "title": "Production communication luxe intégrale",
+      "subtitle": "Brand + Press + Heritage + Anti-greenwashing en chaîne unifiée",
+      "sector": "luxe",
+      "branch": "communication",
+      "duration": "30 min par sortie",
+      "difficulty": "Faible",
+      "color": "violet",
+      "summary": "Production complète d'une communication luxe (article presse, social media, communiqué) avec contrôles brand/heritage/claims en cascade. Override LLM systématique sur les hard-fails.",
+      "agents": [
+        { "step": 1, "slug": "luxe-press-agent", "label": "LuxePressAgent", "role": "Rédaction selon outlet (Vogue/FT/etc.)" },
+        { "step": 2, "slug": "heritage-comms", "label": "HeritageComms", "role": "Sourcing patrimonial avec citations" },
+        { "step": 3, "slug": "maison-voice-guard", "label": "MaisonVoiceGuard", "role": "Score brand + hard-fails dictionnaire" },
+        { "step": 4, "slug": "green-claim-checker", "label": "GreenClaimChecker", "role": "Validation claims RSE 5 juridictions" }
+      ],
+      "connectors": ["m365", "slack", "brevo"],
+      "outcomes": [
+        "Cycle validation : 30 min au lieu de 6-8 sem.",
+        "Zero greenwashing détecté en revue Legal",
+        "100% des sorties avec sources citées et auditable"
+      ],
+      "compliance": ["EU Green Claims 2024", "Loi Climat FR", "AI Act art. 50"],
+      "caveat": "Le sourcebook patrimonial doit être à jour. Chaque maison a sa propre charte brand intégrée au runtime."
+    },
+    {
+      "slug": "salon-aero-2026",
+      "title": "Pack salon aéronautique 2026",
+      "subtitle": "Farnborough + ILA + Eurosatory + MEBAA en parallèle",
+      "sector": "aeronautique",
+      "branch": "marketing",
+      "duration": "2-3 sem. par salon",
+      "difficulty": "Élevée",
+      "color": "amber",
+      "summary": "Production des 4 packs salons aéro 2026 avec contraintes ITAR/EAR + sanctions OFAC + anti-greenwashing SAF/H2/eVTOL. Parallélisation possible sur les 4 événements.",
+      "agents": [
+        { "step": 1, "slug": "aero-event-ai", "label": "AeroEventAI", "role": "Pack contenu événement (invitations, scripts, social)" },
+        { "step": 2, "slug": "defense-comms-guard", "label": "DefenseCommsGuard", "role": "Filtrage ITAR/EAR + sanctions OFAC" },
+        { "step": 3, "slug": "aero-tech-content", "label": "AeroTechContent", "role": "White papers techniques B2B" },
+        { "step": 4, "slug": "aero-sustainability-comms", "label": "AeroSustainabilityComms", "role": "Anti-greenwashing SAF/H2/eVTOL" },
+        { "step": 5, "slug": "green-claim-checker", "label": "GreenClaimChecker", "role": "Validation finale claims" }
+      ],
+      "connectors": ["m365", "salesforce", "buffer"],
+      "outcomes": [
+        "+100% capacité (4 salons au lieu de 2)",
+        "Validation ITAR pré-screening : 100% au lieu de 0%",
+        "Délai white paper technique : 2-3 sem. au lieu de 6-8 sem."
+      ],
+      "compliance": ["ITAR / EAR", "Sanctions OFAC SDN", "EU Green Claims 2024", "ReFuelEU"],
+      "caveat": "Les communications dual-use ITAR doivent toujours passer par revue Legal interne. Le pré-screening accélère mais ne remplace pas."
+    },
+    {
+      "slug": "csrd-e1-g1",
+      "title": "Reporting CSRD ESRS E1 + G1",
+      "subtitle": "Climat + Gouvernance pour cycle CSRD annuel",
+      "sector": "luxe",
+      "branch": "finance",
+      "duration": "8-10 sem. par exercice",
+      "difficulty": "Élevée",
+      "color": "emerald",
+      "summary": "Production des datapoints ESRS E1 (climat, GES Scopes 1-2-3) et G1 (gouvernance, anti-corruption) pour le rapport CSRD annuel. Audit trail auditeur-ready.",
+      "agents": [
+        { "step": 1, "slug": "consolidation", "label": "Consolidation Groupe", "role": "Agrégation données comptables sources" },
+        { "step": 2, "slug": "sapin2-compliance", "label": "Sapin2Compliance", "role": "Datapoints G1 — due diligence tiers" },
+        { "step": 3, "slug": "green-claim-checker", "label": "GreenClaimChecker", "role": "Validation claims RSE publiés" },
+        { "step": 4, "slug": "maison-voice-guard", "label": "MaisonVoiceGuard", "role": "Gates brand sur narratif RSE" }
+      ],
+      "connectors": ["sap-s4hana", "lucca", "cegid-loop"],
+      "outcomes": [
+        "Couverture E1 automatisée : ~85% des datapoints",
+        "Délai production rapport : 8-10 sem. au lieu de 5-7 mois",
+        "Risque greenwashing à l'audit : −90%"
+      ],
+      "compliance": ["CSRD ESRS E1", "CSRD ESRS G1", "Sapin II", "EU Green Claims"],
+      "caveat": "L'analyse de double matérialité reste un travail humain externe. La recette outille le reporting, pas la stratégie ESG."
+    },
+    {
+      "slug": "communication-banque-crise",
+      "title": "Communication régulée + gestion de crise · Banque",
+      "subtitle": "RegBank + Crisis + EvidenceGuard + RegWatch en parallèle",
+      "sector": "banque",
+      "branch": "communication",
+      "duration": "Continue + activation crise",
+      "difficulty": "Élevée",
+      "color": "cyan",
+      "summary": "Stack de communication bancaire régulée en mode opérationnel quotidien, avec activation crise (15 min) sous escalade Comex obligatoire. Veille réglementaire continue.",
+      "agents": [
+        { "step": 1, "slug": "reg-bank-comms", "label": "RegBankComms", "role": "Communications quotidiennes avec gates MAR/MiFID/SFDR" },
+        { "step": 2, "slug": "esg-bank-comms", "label": "ESGBankComms", "role": "Communications ESG conformes Loi Climat FR" },
+        { "step": 3, "slug": "client-bank-comms", "label": "ClientBankComms", "role": "Communications client tone-of-voice" },
+        { "step": 4, "slug": "bank-crisis-comms", "label": "BankCrisisComms", "role": "Activation crise · escalade Comex" },
+        { "step": 5, "slug": "reg-watch-bank", "label": "RegWatchBank", "role": "Veille auto ACPR/AMF/EBA" },
+        { "step": 6, "slug": "bank-evidence-guard", "label": "BankEvidenceGuard", "role": "Résolution evidence pour audit" }
+      ],
+      "connectors": ["m365", "slack", "verifeed"],
+      "outcomes": [
+        "16 gates déterministes appliqués sur chaque sortie",
+        "Activation crise documentée < 15 min",
+        "Veille régulateur EU automatisée 24/7"
+      ],
+      "compliance": ["MAR", "MiFID II", "SFDR", "Art. L.312-1-1 CMF", "DORA"],
+      "caveat": "Les communications de crise gardent l'escalade Comex obligatoire — aucune autopublication permise par design."
+    },
+    {
+      "slug": "supply-chain-assurance",
+      "title": "Stack Assurance · Supply Chain sinistres",
+      "subtitle": "Réparateurs + experts + fraude + Sapin II en parcours",
+      "sector": "assurance",
+      "branch": "supply-chain",
+      "duration": "30 min par sinistre",
+      "difficulty": "Moyenne",
+      "color": "rose",
+      "summary": "Parcours de gestion de la supply chain sinistres : choix réparateur (avec libre choix assuré), dispatch expert avec mandat, détection fraude fournisseur, conformité Sapin II.",
+      "agents": [
+        { "step": 1, "slug": "repair-network-insur", "label": "RepairNetworkInsur", "role": "Recommandation réseau réparateurs" },
+        { "step": 2, "slug": "expert-mgmt-insur", "label": "ExpertMgmtInsur", "role": "Dispatch expert + mandat" },
+        { "step": 3, "slug": "fraud-detect-sc", "label": "FraudDetectSC", "role": "Détection fraude fournisseur" },
+        { "step": 4, "slug": "sapin2-compliance", "label": "Sapin2Compliance", "role": "Due diligence tiers + AFA" }
+      ],
+      "connectors": ["fenergo"],
+      "outcomes": [
+        "Coût sinistre : −12%",
+        "Délai expertise : −25%",
+        "Détection fraude : +40%"
+      ],
+      "compliance": ["Sapin II", "RGPD art. 22", "DORA"],
+      "caveat": "Libre choix réparateur garanti par design — aucun wording imposant un réseau agréé."
+    },
+    {
+      "slug": "anti-greenwashing-transverse",
+      "title": "Anti-greenwashing transverse",
+      "subtitle": "Validation claims RSE multi-secteurs (5 juridictions)",
+      "sector": "cross",
+      "branch": "communication",
+      "duration": "5-15 min par claim",
+      "difficulty": "Faible",
+      "color": "emerald",
+      "summary": "Validation systématique des claims RSE/sustainability avant publication : matrice 5 juridictions (EU/FR/UK/US/CH), distinction ABSOLUTE/QUALIFIED/COMPARATIVE, escalation Legal+ESG si CRITICAL.",
+      "agents": [
+        { "step": 1, "slug": "green-claim-checker", "label": "GreenClaimChecker", "role": "Validation matrice 5 juridictions" },
+        { "step": 2, "slug": "maison-voice-guard", "label": "MaisonVoiceGuard", "role": "Gates brand (si Luxe)" }
+      ],
+      "connectors": ["m365", "slack"],
+      "outcomes": [
+        "Risque greenwashing détecté avant publication : 100%",
+        "Coût conformité par claim : 5-15 min vs 2-3 jours Legal",
+        "Conformité Green Claims Directive 2024 documentée"
+      ],
+      "compliance": ["EU Green Claims Directive 2024", "Loi Climat FR", "CMA UK", "FTC US", "DGCCRF"],
+      "caveat": "Les claims CRITICAL (risque haut) sont systématiquement escaladés Legal+ESG. Pas de validation auto sur cette catégorie."
+    }
+  ]
+}

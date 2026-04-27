@@ -1057,6 +1057,7 @@ export const FOOTER_LINKS = {
     { label: "Audit Maturité IA", href: "/outils/maturite", status: "live" as PublicStatus },
     { label: "Cas-types", href: "/cas-types", status: "live" as PublicStatus },
     { label: "Sandbox", href: "/sandbox", status: "live" as PublicStatus },
+    { label: "Recipes", href: "/recipes", status: "live" as PublicStatus },
   ],
   Entreprise: [
     { label: "A propos", href: "/about", status: "demo" as PublicStatus },

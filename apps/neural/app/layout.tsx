@@ -9,6 +9,7 @@ import {
 
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { NeuralChatLauncher } from "@/components/chat/neural-chat-launcher";
 import { NeuralProvider } from "@/lib/neural-hub/context";
 import { SITE_URL } from "@/lib/site-config";
 import "./globals.css";
@@ -128,6 +129,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <NeuralChatLauncher />
         </NeuralProvider>
       </body>
     </html>

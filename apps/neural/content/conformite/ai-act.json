@@ -1,5 +1,16 @@
 {
   "lastUpdated": "2026-04-27",
+  "regulation": {
+    "code": "AI Act",
+    "fullName": "EU Artificial Intelligence Act",
+    "reference": "Règlement (UE) 2024/1689",
+    "applicableSince": "Application progressive 2024-2027",
+    "scope": "Tout système IA mis sur le marché ou utilisé dans l'UE"
+  },
+  "hero": {
+    "title": "AI Act et NEURAL",
+    "intro": "Le règlement (UE) 2024/1689 entre progressivement en application. Voici comment NEURAL opère, article par article, avec les engagements concrets et les limites assumées. Pas de garantie juridique absolue — un cadre clair pour cadrer la responsabilité partagée éditeur / déployeur."
+  },
   "commitments": [
     {
       "id": "model-cards",

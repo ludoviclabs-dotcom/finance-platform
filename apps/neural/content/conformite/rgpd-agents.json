@@ -1,0 +1,116 @@
+{
+  "lastUpdated": "2026-04-27",
+  "regulation": {
+    "code": "RGPD",
+    "fullName": "Règlement Général sur la Protection des Données — appliqué aux agents IA",
+    "reference": "Règlement (UE) 2016/679",
+    "applicableSince": "25 mai 2018",
+    "scope": "Tout traitement de données personnelles dans l'EEE, y compris par agents IA"
+  },
+  "hero": {
+    "title": "RGPD et agents IA",
+    "intro": "Le RGPD précède l'AI Act mais s'applique pleinement aux agents IA dès qu'ils traitent des données personnelles. Quelques articles deviennent particulièrement structurants : 22 (décision automatisée), 25 (Privacy by Design), 32 (sécurité), 35 (DPIA)."
+  },
+  "commitments": [
+    {
+      "id": "no-personal-training",
+      "title": "Aucun re-entraînement sur données client identifiantes",
+      "description": "Les modèles Claude sont utilisés tels quels via Vercel AI Gateway avec rétention zéro. Pas de fine-tuning sur des données personnelles client."
+    },
+    {
+      "id": "minimization",
+      "title": "Minimisation des données par design",
+      "description": "Les agents demandent uniquement les données strictement nécessaires au cas d'usage. Pas de collecte préventive ou de stockage long-terme non justifié."
+    },
+    {
+      "id": "automated-decision",
+      "title": "Pas de décision automatisée seule sur cas sensibles",
+      "description": "Pour les décisions produisant un effet juridique ou similaire (article 22), supervision humaine systématique sur les agents NEURAL."
+    }
+  ],
+  "articles": [
+    {
+      "id": "art-5",
+      "number": "Article 5",
+      "title": "Principes — licéité, loyauté, transparence, finalité, minimisation",
+      "summary": "Les six principes RGPD doivent être respectés à chaque traitement : finalité explicite et légitime, données adéquates et limitées au nécessaire, exactitude, conservation limitée, intégrité, confidentialité.",
+      "neuralDoes": "Chaque agent a une finalité documentée dans sa Model Card (T3 2026). Les données collectées sont mappées au strict nécessaire. Politique de conservation explicite par agent.",
+      "neuralDoesNot": "Nous ne pouvons pas garantir que votre usage final respecte le principe de finalité — c'est votre responsabilité de déployeur."
+    },
+    {
+      "id": "art-6",
+      "number": "Article 6",
+      "title": "Licéité du traitement",
+      "summary": "Tout traitement doit reposer sur une base légale : consentement, contrat, obligation légale, intérêt vital, mission d'intérêt public, intérêts légitimes.",
+      "neuralDoes": "Le déploiement NEURAL chez vous repose typiquement sur l'intérêt légitime ou l'exécution contractuelle. Documentation par agent disponible.",
+      "neuralDoesNot": "Nous ne définissons pas votre base légale. Vous l'identifiez et la documentez dans votre registre RGPD article 30."
+    },
+    {
+      "id": "art-13-14",
+      "number": "Article 13-14",
+      "title": "Information des personnes concernées",
+      "summary": "Les personnes dont les données sont traitées doivent être informées : identité du responsable, finalité, base légale, durée, droits, transfert hors UE.",
+      "neuralDoes": "Disclosure systématique côté UI : \"Cette réponse est générée par IA via NEURAL\". Notice d'information type fournie.",
+      "neuralDoesNot": "Nous ne rédigeons pas votre notice d'information finale — elle dépend de votre contexte d'usage."
+    },
+    {
+      "id": "art-22",
+      "number": "Article 22",
+      "title": "Décision individuelle automatisée — y compris profilage",
+      "summary": "Une personne a le droit de ne pas faire l'objet d'une décision fondée exclusivement sur un traitement automatisé produisant des effets juridiques ou similaires. Exceptions : nécessité contractuelle, autorisation EU/EM, consentement explicite.",
+      "neuralDoes": "Aucun agent NEURAL ne prend de décision finale automatisée sur cas sensibles. Human-in-the-loop systématique pour les décisions à effet juridique ou similaire (recrutement, crédit, accès services).",
+      "neuralDoesNot": "Nous ne pouvons pas empêcher votre usage de basculer en décision automatique seule — vos paramètres de supervision sont configurables et auditables."
+    },
+    {
+      "id": "art-25",
+      "number": "Article 25",
+      "title": "Privacy by Design and by Default",
+      "summary": "La protection des données doit être intégrée dès la conception et par défaut. Mesures techniques et organisationnelles appropriées.",
+      "neuralDoes": "Architecture pensée pour la minimisation : pas de collecte préventive, hosting EU exclusif, sous-processeurs publics, chiffrement transit + stockage. Sécurité incluse dans chaque agent par défaut.",
+      "neuralDoesNot": "Le déploiement final reste sous votre contrôle — Privacy by Default exige une vérification de votre côté."
+    },
+    {
+      "id": "art-28",
+      "number": "Article 28",
+      "title": "Sous-traitant",
+      "summary": "Le sous-traitant traite les données personnelles sur instruction documentée du responsable. Contrat obligatoire avec garanties suffisantes.",
+      "neuralDoes": "DPA standard NEURAL signable, clauses RGPD complètes, garantie sur les sous-traitants ultérieurs (sous-processeurs publics + notification 30j).",
+      "neuralDoesNot": "Nous restons sous-traitant — toute instruction non documentée est rejetée par nos process internes."
+    },
+    {
+      "id": "art-32",
+      "number": "Article 32",
+      "title": "Sécurité du traitement",
+      "summary": "Mesures techniques et organisationnelles appropriées : pseudonymisation, chiffrement, intégrité, disponibilité, résilience, tests réguliers.",
+      "neuralDoes": "Chiffrement TLS 1.3 transit + AES-256 stockage, rate-limiting, monitoring continu, vulnerability disclosure policy. Status Page publique pour la disponibilité.",
+      "neuralDoesNot": "Nous ne couvrons pas les mesures organisationnelles côté client (formation, accès, badges, etc.) — c'est votre périmètre."
+    },
+    {
+      "id": "art-35",
+      "number": "Article 35",
+      "title": "Analyse d'impact relative à la protection des données (DPIA / AIPD)",
+      "summary": "Obligation d'AIPD pour les traitements à haut risque : profilage, surveillance systématique, données sensibles à grande échelle.",
+      "neuralDoes": "FRIA (AI Act) fournie par défaut pour les agents haut-risque, compatible avec votre AIPD RGPD. Modèle d'AIPD outillé via /outils/ai-act-classifier.",
+      "neuralDoesNot": "Nous ne signons pas votre AIPD — c'est votre DPO ou un consultant qui la valide."
+    }
+  ],
+  "doesList": [
+    "Aucun re-entraînement sur données client (Claude utilisé tel quel)",
+    "Sous-processeurs publics avec DPA téléchargeable",
+    "Hosting EU exclusif (Vercel FRA, Neon EU-Central) — pas de transfert hors UE",
+    "Disclosure utilisateur systématique (\"généré par IA\")",
+    "Human-in-the-loop par défaut pour décisions article 22",
+    "Chiffrement transit (TLS 1.3) + stockage (AES-256)",
+    "Rate-limiting, audit logs, monitoring continu",
+    "Outil AI Act Classifier qui aide à pré-cadrer une AIPD",
+    "Engagement de notification 30j sur tout changement de sous-processeur"
+  ],
+  "doesNotList": [
+    "Remplacer votre DPO ou votre consultant RGPD",
+    "Signer ou valider votre AIPD à votre place",
+    "Définir votre base légale de traitement (article 6)",
+    "Rédiger votre notice d'information finale aux personnes concernées",
+    "Couvrir les mesures organisationnelles côté client (formation, badges, etc.)",
+    "Garantir la conformité de votre usage final — votre responsabilité de responsable de traitement"
+  ]
+}

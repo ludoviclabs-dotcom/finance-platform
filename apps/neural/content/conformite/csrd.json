@@ -1,0 +1,97 @@
+{
+  "lastUpdated": "2026-04-27",
+  "regulation": {
+    "code": "CSRD",
+    "fullName": "Corporate Sustainability Reporting Directive",
+    "reference": "Directive (UE) 2022/2464 + ESRS Set 1 (Règlement délégué UE 2023/2772)",
+    "applicableSince": "Premiers rapports sur exercice 2024 (publiés en 2025)",
+    "scope": "~50 000 entreprises EU concernées par vagues successives 2025-2029"
+  },
+  "hero": {
+    "title": "CSRD et NEURAL",
+    "intro": "La CSRD impose un reporting de durabilité structuré selon les ESRS. NEURAL outille l'extraction, la collecte et la mise en forme de vos datapoints ESRS via des agents sectoriels (climat E1, social S1, gouvernance G1)."
+  },
+  "commitments": [
+    {
+      "id": "datapoints",
+      "title": "Couverture des 1 144 datapoints ESRS",
+      "description": "Mapping documenté des datapoints ESRS Set 1 (E1-E5, S1-S4, G1) avec les agents NEURAL applicables. Pas de promesse 100% — ce qui est couvert est explicite."
+    },
+    {
+      "id": "auditability",
+      "title": "Traçabilité auditeur-ready",
+      "description": "Chaque datapoint extrait est tracé : source, formule, version de prompt, signataire. Format compatible avec un audit de cabinet (KPMG, Deloitte, EY, Mazars)."
+    },
+    {
+      "id": "double-materiality",
+      "title": "Support à l'analyse de double matérialité",
+      "description": "Agents pour identifier les enjeux de double matérialité (impact + financier) sectoriels. Pas un remplacement de l'analyse externe par votre auditeur."
+    }
+  ],
+  "articles": [
+    {
+      "id": "esrs-1",
+      "number": "ESRS 1",
+      "title": "Exigences générales de présentation",
+      "summary": "Principes généraux de structuration du rapport durabilité : double matérialité, chaîne de valeur, périmètre, références transverses.",
+      "neuralDoes": "Templates ESRS 1 préparés. Aide à structurer la déclaration, identifier les sujets matériels par secteur (luxe, banque, aéro, etc.).",
+      "neuralDoesNot": "Nous ne définissons pas votre stratégie de durabilité. L'analyse de double matérialité reste votre responsabilité avec vos parties prenantes."
+    },
+    {
+      "id": "esrs-2",
+      "number": "ESRS 2",
+      "title": "Informations générales (cross-cutting)",
+      "summary": "Gouvernance, stratégie, gestion des impacts/risques/opportunités (IRO), métriques et objectifs cross-cutting.",
+      "neuralDoes": "Agents bancaires et luxe pour formuler la gouvernance ESG en respectant le wording réglementaire (Loi Climat FR, EU Green Claims).",
+      "neuralDoesNot": "Nous ne rédigeons pas vos politiques. Nous outillons leur formalisation avec gates de cohérence."
+    },
+    {
+      "id": "esrs-e1",
+      "number": "ESRS E1",
+      "title": "Climat — atténuation et adaptation",
+      "summary": "Plan de transition, scénarios climatiques, GES Scopes 1-2-3, dépenses brunes vs vertes, taxonomie EU.",
+      "neuralDoes": "Module Carbon&Co (sister project NEURAL) pour le calcul GES Scopes 1-2-3, agents Banque ESG pour le wording climat conforme. GreenClaimChecker valide les claims environnementaux.",
+      "neuralDoesNot": "Nous ne sommes pas un cabinet de bilan carbone — nous opérons les outils, vous portez l'expertise méthodologique."
+    },
+    {
+      "id": "esrs-e2-e5",
+      "number": "ESRS E2-E5",
+      "title": "Pollution, eau, biodiversité, économie circulaire",
+      "summary": "Quatre standards environnementaux additionnels selon votre matérialité.",
+      "neuralDoes": "Agents Luxe Supply Chain (futur) pour traçabilité matières et économie circulaire. Agents communication anti-greenwashing.",
+      "neuralDoesNot": "Couverture partielle aujourd'hui — extensions sectorielles sur la roadmap 2026-2027."
+    },
+    {
+      "id": "esrs-s1",
+      "number": "ESRS S1-S4",
+      "title": "Social — effectifs, chaîne de valeur, communautés, consommateurs",
+      "summary": "Quatre standards : workforce propre, workers chaîne de valeur, communautés affectées, consommateurs/end-users.",
+      "neuralDoes": "Agents RH pour la consolidation des datapoints S1 (effectifs, formation, santé-sécurité). Agents Luxe Supply Chain pour traçabilité S2.",
+      "neuralDoesNot": "Pas d'agent S3 (communautés) ni S4 (consommateurs) finalisé aujourd'hui."
+    },
+    {
+      "id": "esrs-g1",
+      "number": "ESRS G1",
+      "title": "Conduite des affaires",
+      "summary": "Culture d'entreprise, protection des lanceurs d'alerte, lutte contre la corruption (Sapin II), engagement politique, paiements aux fournisseurs.",
+      "neuralDoes": "Agent Sapin2Compliance pour la due diligence tiers. Agent BankEvidenceGuard pour la traçabilité des actions de conformité.",
+      "neuralDoesNot": "Nous ne remplaçons pas votre dispositif anti-corruption — nous outillons sa documentation."
+    }
+  ],
+  "doesList": [
+    "Mapping des 1 144 datapoints ESRS avec couverture par agent NEURAL",
+    "Format export auditeur-ready (CSV/Excel structuré, traçabilité par cellule)",
+    "Carbon&Co : module dédié pour ESRS E1 (GES Scopes 1-2-3)",
+    "Agents Communication Banque ESG conformes Loi Climat FR + EU Green Claims",
+    "GreenClaimChecker : validation des claims RSE avec matrice 5 juridictions",
+    "Sapin2Compliance pour ESRS G1 (due diligence tiers, anti-corruption)",
+    "Templates de rapports ESRS avec narratif structuré"
+  ],
+  "doesNotList": [
+    "Conduire votre analyse de double matérialité",
+    "Remplacer votre cabinet d'audit ou votre commissaire aux comptes",
+    "Garantir la couverture 100% des datapoints — couverture explicite par agent",
+    "Définir votre stratégie de durabilité ou vos engagements publics",
+    "Couvrir aujourd'hui ESRS S3 (communautés) et S4 (consommateurs)"
+  ]
+}

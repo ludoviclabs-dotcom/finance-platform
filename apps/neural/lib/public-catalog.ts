@@ -1045,7 +1045,7 @@ export const FOOTER_LINKS = {
     { label: "Trust", href: "/trust", status: "live" as PublicStatus },
     { label: "Status", href: "/status", status: "live" as PublicStatus },
     { label: "Roadmap", href: "/roadmap", status: "live" as PublicStatus },
-    { label: "AI Act", href: "/conformite/ai-act", status: "live" as PublicStatus },
+    { label: "Conformité", href: "/conformite", status: "live" as PublicStatus },
     { label: "Comparatifs", href: "/contre", status: "live" as PublicStatus },
   ],
   Outils: [

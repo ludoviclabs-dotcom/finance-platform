@@ -1,0 +1,90 @@
+{
+  "lastUpdated": "2026-04-27",
+  "regulation": {
+    "code": "DORA",
+    "fullName": "Digital Operational Resilience Act",
+    "reference": "Règlement (UE) 2022/2554",
+    "applicableSince": "17 janvier 2025",
+    "scope": "Entités financières EU + leurs sous-traitants TIC critiques"
+  },
+  "hero": {
+    "title": "DORA et NEURAL",
+    "intro": "Le règlement DORA s'applique depuis le 17 janvier 2025 aux entités financières EU et à leurs sous-traitants TIC. NEURAL est positionné comme prestataire TIC pour vos agents IA, avec les obligations qui en découlent."
+  },
+  "commitments": [
+    {
+      "id": "ict-risk",
+      "title": "Cadre de gestion du risque TIC documenté",
+      "description": "Risk register, mesures de mitigation, procédures de bascule documentées et accessibles à vos auditeurs DORA."
+    },
+    {
+      "id": "incident-reporting",
+      "title": "Notification incident sous 4 heures",
+      "description": "Processus documenté de notification des incidents TIC majeurs : 4h pour notification initiale, 24h pour rapport intermédiaire, 1 mois pour rapport final."
+    },
+    {
+      "id": "third-party",
+      "title": "Registre TIC tiers et clauses contractuelles DORA",
+      "description": "Sous-processeurs publics (page Trust), clauses contractuelles DORA-compliant, droit d'audit, exit plan documenté."
+    }
+  ],
+  "articles": [
+    {
+      "id": "art-5",
+      "number": "Article 5-15",
+      "title": "Cadre de gestion du risque TIC",
+      "summary": "Les entités financières mettent en place un cadre de gestion du risque TIC robuste : gouvernance, identification des actifs critiques, protection, détection, réponse, récupération.",
+      "neuralDoes": "Risk register par agent et par sous-processeur. Page Trust documente l'infrastructure et les sous-processeurs avec engagement de notification 30j. Operator Gateway (en cours) journalise les décisions agent.",
+      "neuralDoesNot": "Nous ne sommes pas votre cadre interne DORA — vous restez l'entité financière responsable. Nous outillons votre conformité, vous portez la stratégie."
+    },
+    {
+      "id": "art-17",
+      "number": "Article 17-23",
+      "title": "Gestion, classification et notification des incidents TIC",
+      "summary": "Processus de classification des incidents par sévérité, notification aux autorités compétentes (ACPR/AMF en France) selon les seuils définis.",
+      "neuralDoes": "Page Status publique avec historique des incidents, sévérité affichée, durée et résolution documentées. Processus interne de notification 4h pour les incidents impactant un client financier.",
+      "neuralDoesNot": "Nous n'effectuons pas la notification ACPR/AMF à votre place. Nous fournissons le rapport d'incident permettant à votre RSSI/CISO de faire la déclaration."
+    },
+    {
+      "id": "art-24",
+      "number": "Article 24-27",
+      "title": "Tests de résilience opérationnelle digitale",
+      "summary": "Programme de tests : vulnerability assessments annuels, scenario-based tests, threat-led penetration testing (TLPT) tous les 3 ans pour les entités significatives.",
+      "neuralDoes": "Vulnerability Disclosure Policy + bug bounty privé sur YesWeHack (roadmap T3 2026). Tests de prompt injection automatisés sur les agents.",
+      "neuralDoesNot": "Nous ne sommes pas auditeur TLPT — vous mandatez vos prestataires habilités."
+    },
+    {
+      "id": "art-28",
+      "number": "Article 28-44",
+      "title": "Gestion du risque TIC tiers",
+      "summary": "Registre des arrangements contractuels, due diligence avant contractualisation, clauses contractuelles obligatoires, droit d'audit, plan de sortie, supervision continue.",
+      "neuralDoes": "Page Trust : sous-processeurs publics avec région et DPA. Clauses DORA disponibles dans le DPA NEURAL. Engagement notification 30j sur tout changement de sous-processeur.",
+      "neuralDoesNot": "Nous ne pouvons pas remplacer votre due diligence interne. Vous évaluez le risque de NEURAL selon votre framework."
+    },
+    {
+      "id": "art-45",
+      "number": "Article 45-49",
+      "title": "Partage d'information sur les cybermenaces",
+      "summary": "Cadre volontaire d'échange d'information sur les menaces et incidents entre entités financières.",
+      "neuralDoes": "Participation prévue aux échanges sectoriels via les associations professionnelles (FBF, France Assureurs, FFB) à mesure que NEURAL grandit.",
+      "neuralDoesNot": "Nous ne participons pas encore activement à ces échanges — c'est sur la roadmap."
+    }
+  ],
+  "doesList": [
+    "Sous-processeurs publics avec région et DPA téléchargeable",
+    "Clauses contractuelles DORA-compatibles dans le DPA NEURAL",
+    "Status Page publique avec historique incidents et sévérité",
+    "Processus de notification incident 4h aux clients financiers concernés",
+    "Vulnerability Disclosure Policy + bug bounty roadmap T3 2026",
+    "Plan de sortie documenté (export données + délai de transition)",
+    "Hosting EU exclusif (Vercel FRA, Neon EU-Central) auditable",
+    "Operator Gateway avec audit trail signé (en cours)"
+  ],
+  "doesNotList": [
+    "Effectuer la notification ACPR/AMF à votre place",
+    "Remplacer votre cadre DORA interne ou votre RSSI",
+    "Conduire vos TLPT — vous mandatez vos prestataires habilités",
+    "Garantir l'absence totale d'incident — DORA reconnaît qu'aucun système n'est invulnérable",
+    "Fournir une couverture assurantielle cyber"
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "lastUpdated": "2026-04-27",
+  "slug": "luxe-csrd",
+  "honesty": "Cas-type méthodologique — illustration de la démarche NEURAL appliquée à un contexte luxe CSRD. Pas un cas client signé. Métriques basées sur hypothèses méthodologiques cohérentes avec des projets comparables.",
+  "sector": "luxe",
+  "regulation": "CSRD",
+  "hero": {
+    "icon": "Luxe",
+    "title": "Maison de luxe · ESRS E1 (climat) automatisé",
+    "subtitle": "Illustration méthodologique — Maison de luxe française CAC40, exercice CSRD 2026",
+    "context": "Maison de luxe française (8 000 ETP, 35 boutiques EU, multi-marques), assujettie à la CSRD vague 1 — premier rapport publié sur exercice 2024 en 2025. Concentration sur ESRS E1 (climat, transition, GES Scopes 1-2-3) et ESRS G1 (anti-corruption, conduite des affaires)."
+  },
+  "challenge": {
+    "title": "Le défi initial",
+    "items": [
+      "1 144 datapoints ESRS Set 1 à mapper avec les SI internes — équipe ESG à 3 ETP",
+      "GES Scopes 1-2-3 disséminés entre 12 systèmes (achats, RH, logistique, retail, finance)",
+      "Communications externes RSE à valider sans tomber dans le greenwashing (Loi Climat FR + EU Green Claims 2024)",
+      "Anti-corruption (Sapin II) : 800+ tiers stratégiques à classer et auditer",
+      "Audit CSRD par cabinet Big 4 — pression sur la traçabilité de chaque chiffre publié"
+    ]
+  },
+  "methodology": {
+    "title": "Méthodologie NEURAL en 4 phases",
+    "phases": [
+      {
+        "id": "cadrage",
+        "label": "Phase 1 — Cadrage outcome (semaines 1-3)",
+        "description": "Mapping des 1 144 datapoints ESRS prioritaires sur l'exercice (E1 + S1 + G1 d'abord). Identification des 6-8 chantiers à fort impact reporting. Définition des KPI cibles d'automatisation (couverture datapoints, traçabilité, délai de production).",
+        "deliverable": "Mapping datapoints · 8 OKR ESG · agent map"
+      },
+      {
+        "id": "deploiement-climat",
+        "label": "Phase 2 — Bras Climat E1 (semaines 4-10)",
+        "description": "Connexion Carbon&Co (sister project NEURAL) aux ERP achats, RH, logistique. Calcul automatisé GES Scopes 1-2-3 avec traçabilité par cellule. GreenClaimChecker pour valider les claims publics.",
+        "deliverable": "Reporting E1 chiffré · GreenClaimChecker en runtime · audit trail E1"
+      },
+      {
+        "id": "deploiement-gov",
+        "label": "Phase 3 — Bras Gouvernance G1 (semaines 8-14)",
+        "description": "Sapin2Compliance pour la due diligence des 800+ tiers stratégiques. Classification automatique par risque (pays, secteur, BRH). Documentation auditable.",
+        "deliverable": "Registre tiers · classification risque · alertes COI"
+      },
+      {
+        "id": "communication",
+        "label": "Phase 4 — Communications RSE (semaines 12-16)",
+        "description": "Activation HeritageComms (sourcing patrimonial), MaisonVoiceGuard (gates brand), GreenClaimChecker (gates Loi Climat + EU Green Claims) pour fiabiliser toutes les sorties RSE/marketing.",
+        "deliverable": "5 agents Communication Luxe en runtime · zéro greenwashing identifié à l'audit"
+      }
+    ]
+  },
+  "agentsUsed": [
+    { "slug": "consolidation", "label": "Consolidation Groupe", "role": "Agrégation comptable multi-marques" },
+    { "slug": "green-claim-checker", "label": "GreenClaimChecker", "role": "Validation des claims RSE EU/FR/UK/US/CH" },
+    { "slug": "maison-voice-guard", "label": "MaisonVoiceGuard", "role": "Gates brand sur communications RSE" },
+    { "slug": "heritage-comms", "label": "HeritageComms", "role": "Sourcing patrimonial avec citations" },
+    { "slug": "sapin2-compliance", "label": "Sapin2Compliance", "role": "Due diligence tiers G1" },
+    { "slug": "luxe-press-agent", "label": "LuxePressAgent", "role": "Rédaction presse business + lifestyle" }
+  ],
+  "metrics": {
+    "title": "Métriques cibles (estimés méthodologiques)",
+    "items": [
+      { "label": "Couverture datapoints ESRS E1 automatisée", "before": "~25% (manuel)", "after": "~85% (avec audit trail)", "delta": "+60 pts" },
+      { "label": "Délai de production rapport CSRD annuel", "before": "5-7 mois équipe ESG", "after": "8-10 semaines + revue", "delta": "−65%" },
+      { "label": "Risque greenwashing détecté à l'audit interne", "before": "5-10 incidents/an", "after": "< 1 incident/an", "delta": "−90%" },
+      { "label": "Coût due diligence tiers (Sapin II)", "before": "800-1 500 €/tiers", "after": "150-300 €/tiers", "delta": "−80%" }
+    ],
+    "caveat": "Métriques basées sur méthodologie NEURAL standard appliquée à un contexte luxe CSRD type. Variation possible selon couverture SI initiale et qualité des données sources."
+  },
+  "quote": {
+    "text": "Le différenciant n'est pas le calcul GES — c'est la traçabilité par cellule. Notre auditeur peut remonter à la source de chaque chiffre en 30 secondes. C'est ce qui fait passer l'audit.",
+    "role": "Profil cible : Directrice ESG · Maison de luxe française CAC40",
+    "note": "Citation illustrative basée sur les retours collectés en cadrage commercial."
+  },
+  "timeline": {
+    "title": "Calendrier 30 / 60 / 90 jours",
+    "items": [
+      { "day": "J0-30", "label": "Cadrage signé + Carbon&Co connecté ERP", "status": "production" },
+      { "day": "J30-60", "label": "GreenClaimChecker + MaisonVoiceGuard en runtime", "status": "production" },
+      { "day": "J60-90", "label": "Sapin2Compliance + HeritageComms · audit interne", "status": "audit" },
+      { "day": "J90+", "label": "5 agents en runtime · cycle CSRD annuel structuré", "status": "operation" }
+    ]
+  }
+}

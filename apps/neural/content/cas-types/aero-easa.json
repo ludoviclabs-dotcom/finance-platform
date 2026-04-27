@@ -1,0 +1,83 @@
+{
+  "lastUpdated": "2026-04-27",
+  "slug": "aero-easa",
+  "honesty": "Cas-type méthodologique — illustration de la démarche NEURAL appliquée à un contexte aéronautique EASA / B2B Marketing technique. Pas un cas client signé.",
+  "sector": "aeronautique",
+  "regulation": "EASA Part-145 / ITAR / EU Green Claims",
+  "hero": {
+    "icon": "Aeronautique",
+    "title": "Industriel aéro · Marketing technique conforme EASA + ITAR",
+    "subtitle": "Illustration méthodologique — OEM aéronautique européen · campagne salon 2026",
+    "context": "Industriel aéronautique européen (15 000 ETP, présence US + EU + APAC), positionné B2B technique avec contraintes ITAR/EAR (technologies dual-use), réglementations EASA (Part-145, Part-21) et anti-greenwashing SAF/H2/eVTOL pour communications sustainability."
+  },
+  "challenge": {
+    "title": "Le défi initial",
+    "items": [
+      "Communications techniques (white papers, fiches produits, press releases salons) à valider ITAR/EAR sans bloquer la communication B2B",
+      "Salons 2026 : Farnborough (juillet), ILA Berlin (juin), Eurosatory (juin), MEBAA (déc.) — 4 packs à produire en parallèle",
+      "Communications sustainability (SAF, H2, eVTOL) à protéger contre greenwashing (EU Green Claims Directive 2024 + ReFuelEU)",
+      "Sanctions OFAC SDN à filtrer dans toutes les communications publiques (clients, partenaires)",
+      "Cycle de validation interne lourd : 6-8 semaines pour un white paper technique, conflits Marketing/Compliance"
+    ]
+  },
+  "methodology": {
+    "title": "Méthodologie NEURAL en 4 phases",
+    "phases": [
+      {
+        "id": "cadrage",
+        "label": "Phase 1 — Cadrage outcome (semaines 1-2)",
+        "description": "Identification des 4 chantiers Marketing aéro prioritaires : technique B2B, défense (ITAR/EAR), événements salons, sustainability anti-greenwashing. Mapping des 44 règles réglementaires applicables. Définition des KPI cibles.",
+        "deliverable": "Document de cadrage · 44 règles documentées · agent map"
+      },
+      {
+        "id": "agents-techniques",
+        "label": "Phase 2 — Agents techniques (semaines 3-8)",
+        "description": "Déploiement AeroTechContent (production white papers/fiches B2B avec gates technique) et DefenseCommsGuard (filtrage ITAR/EAR/sanctions OFAC). Connexion référentiel produits + sourcebook réglementaire 12 sources.",
+        "deliverable": "2 agents en production · 5 workbooks Excel générés"
+      },
+      {
+        "id": "agents-event-sustainability",
+        "label": "Phase 3 — Agents Events + Sustainability (semaines 6-10)",
+        "description": "AeroEventAI (packs salons 2026) et AeroSustainabilityComms (anti-greenwashing SAF/H2/eVTOL). Production des packs Farnborough + ILA + Eurosatory + MEBAA en parallèle.",
+        "deliverable": "4 packs salons prêts · 100% conformes Green Claims + EASA"
+      },
+      {
+        "id": "operation",
+        "label": "Phase 4 — Mode opératoire (semaines 9-12+)",
+        "description": "Bascule en mode opérationnel : revue hebdomadaire des décisions agent, mise à jour du sourcebook réglementaire, formation des équipes Marketing + Communication + Compliance. Coordination avec Legal pour les escalades ITAR.",
+        "deliverable": "Cycle hebdo Marketing-Compliance · sourcebook auto-update"
+      }
+    ]
+  },
+  "agentsUsed": [
+    { "slug": "aero-tech-content", "label": "AeroTechContent", "role": "Production white papers B2B avec gates technique" },
+    { "slug": "defense-comms-guard", "label": "DefenseCommsGuard", "role": "Filtrage ITAR/EAR + sanctions OFAC SDN" },
+    { "slug": "aero-event-ai", "label": "AeroEventAI", "role": "Packs salons 2026 (4 événements)" },
+    { "slug": "aero-sustainability-comms", "label": "AeroSustainabilityComms", "role": "Anti-greenwashing SAF/H2/eVTOL" },
+    { "slug": "green-claim-checker", "label": "GreenClaimChecker", "role": "Validation claims sustainability transverses" }
+  ],
+  "metrics": {
+    "title": "Métriques cibles (estimés méthodologiques)",
+    "items": [
+      { "label": "Délai validation white paper technique B2B", "before": "6-8 semaines avec va-et-vient", "after": "2-3 semaines tracé", "delta": "−65%" },
+      { "label": "Filtrage automatique ITAR/EAR/sanctions", "before": "0% (revue manuelle Compliance)", "after": "100% pré-screening", "delta": "complet" },
+      { "label": "Production packs salons 2026 (4 événements)", "before": "Capacité limitée à 2 salons/an", "after": "4 salons + 1 buffer", "delta": "+100%" },
+      { "label": "Risque greenwashing détecté à la revue Legal", "before": "3-5 incidents par campagne SAF", "after": "< 1 incident/campagne", "delta": "−85%" }
+    ],
+    "caveat": "Métriques basées sur méthodologie NEURAL aéro standard. Les workbooks AeroMarketing OVERVIEW + 4 agents générés localement servent de base — variation possible selon contexte ITAR/EAR spécifique."
+  },
+  "quote": {
+    "text": "Le filtrage ITAR/EAR pré-screening change la dynamique. Au lieu d'avoir Compliance qui bloque en sortie, ils valident en amont avec un dossier déjà construit. Marketing repart du bon pied.",
+    "role": "Profil cible : Directeur Communication B2B · OEM aéronautique européen",
+    "note": "Citation illustrative basée sur les retours collectés en cadrage commercial."
+  },
+  "timeline": {
+    "title": "Calendrier 30 / 60 / 90 jours",
+    "items": [
+      { "day": "J0-30", "label": "Cadrage signé + AeroTechContent + DefenseCommsGuard", "status": "production" },
+      { "day": "J30-60", "label": "AeroEventAI · 1er pack salon livré (Farnborough)", "status": "production" },
+      { "day": "J60-90", "label": "AeroSustainabilityComms · 3 packs salons additionnels", "status": "production" },
+      { "day": "J90+", "label": "5 agents en runtime · cycle hebdomadaire Marketing-Compliance", "status": "operation" }
+    ]
+  }
+}

@@ -1055,6 +1055,7 @@ export const FOOTER_LINKS = {
     { label: "AI Act Classifier", href: "/outils/ai-act-classifier", status: "live" as PublicStatus },
     { label: "ROI Calculator", href: "/outils/roi", status: "live" as PublicStatus },
     { label: "Audit Maturité IA", href: "/outils/maturite", status: "live" as PublicStatus },
+    { label: "Cas-types", href: "/cas-types", status: "live" as PublicStatus },
   ],
   Entreprise: [
     { label: "A propos", href: "/about", status: "demo" as PublicStatus },

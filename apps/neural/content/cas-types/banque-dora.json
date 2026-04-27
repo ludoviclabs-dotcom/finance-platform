@@ -1,0 +1,83 @@
+{
+  "lastUpdated": "2026-04-27",
+  "slug": "banque-dora",
+  "honesty": "Cas-type méthodologique — illustration de la démarche NEURAL appliquée à un contexte bancaire DORA. Pas un cas client signé. Métriques basées sur des hypothèses méthodologiques cohérentes avec des projets comparables.",
+  "sector": "banque",
+  "regulation": "DORA",
+  "hero": {
+    "icon": "Banque",
+    "title": "Banque mid-cap · DORA-ready en 12 semaines",
+    "subtitle": "Illustration méthodologique — Banque française post-DORA (jan 2025)",
+    "context": "Banque française mid-cap (1500 ETP, 3 sites EU, ACPR-régulée), confrontée à la mise en application de DORA depuis janvier 2025. Pression auditeur sur le registre TIC tiers, la notification incidents et la classification des sous-traitants critiques."
+  },
+  "challenge": {
+    "title": "Le défi initial",
+    "items": [
+      "Registre TIC tiers à constituer pour ~120 fournisseurs IT (DSI seule sur le sujet)",
+      "Notification d'incidents TIC majeurs sous 4h vers ACPR — pas de processus structuré existant",
+      "Identification des 5-10 sous-traitants TIC critiques selon les seuils DORA",
+      "Communication régulée sortante (clients, presse) en cas de crise — pas de gates conformes",
+      "Audit ACPR programmé T4 2026 — fenêtre de 9 mois pour structurer la conformité"
+    ]
+  },
+  "methodology": {
+    "title": "Méthodologie NEURAL en 4 phases",
+    "phases": [
+      {
+        "id": "cadrage",
+        "label": "Phase 1 — Cadrage outcome (semaines 1-2)",
+        "description": "Identification des 3 chantiers DORA prioritaires avec ROI signé : registre TIC tiers, notification incidents, communications régulées. Définition des KPI cibles et des conditions de succès.",
+        "deliverable": "Document de cadrage signé · 3 OKR DORA · agent map"
+      },
+      {
+        "id": "deploiement",
+        "label": "Phase 2 — Déploiement agents (semaines 3-8)",
+        "description": "Déploiement de Sapin2Compliance (due diligence tiers + classification critique), RegBankComms (communications régulées avec gates MAR/MiFID), BankCrisisComms (escalade Comex obligatoire), BankEvidenceGuard (résolution evidence pour audit).",
+        "deliverable": "4 agents en production · audit trail signé · RBAC par direction"
+      },
+      {
+        "id": "audit",
+        "label": "Phase 3 — Préparation audit (semaines 9-11)",
+        "description": "Génération du dossier ACPR-ready : registre TIC tiers documenté, processus notification 4h chronométré, sous-traitants critiques identifiés, gates de communication tracés. Répétition d'audit interne.",
+        "deliverable": "Dossier ACPR signé numériquement · répétition audit · gap analysis"
+      },
+      {
+        "id": "operation",
+        "label": "Phase 4 — Mode opératoire (semaines 11-12+)",
+        "description": "Bascule en mode opérationnel : revue mensuelle des décisions agent, mise à jour du registre TIC, formation des équipes risk + compliance. Roulement de veille via RegWatchBank.",
+        "deliverable": "Comité mensuel risk-compliance · veille auto ACPR/AMF/EBA"
+      }
+    ]
+  },
+  "agentsUsed": [
+    { "slug": "sapin2-compliance", "label": "Sapin2Compliance", "role": "Due diligence tiers + classification critique" },
+    { "slug": "reg-bank-comms", "label": "RegBankComms", "role": "Communications régulées avec gates MAR/MiFID/SFDR" },
+    { "slug": "bank-crisis-comms", "label": "BankCrisisComms", "role": "Communications de crise · escalade Comex obligatoire" },
+    { "slug": "bank-evidence-guard", "label": "BankEvidenceGuard", "role": "Résolution evidence pour audit" },
+    { "slug": "reg-watch-bank", "label": "RegWatchBank", "role": "Veille réglementaire continue" }
+  ],
+  "metrics": {
+    "title": "Métriques cibles (estimés méthodologiques)",
+    "items": [
+      { "label": "Délai de constitution du registre TIC", "before": "8-12 mois manuel", "after": "10-12 semaines avec NEURAL", "delta": "−65%" },
+      { "label": "Notification incident ACPR (chronomètre cible DORA : 4h)", "before": "12-24h ad hoc", "after": "< 2h tracé", "delta": "−85%" },
+      { "label": "Coût due diligence par tiers", "before": "1 200-2 500 €/tiers", "after": "200-400 €/tiers", "delta": "−80%" },
+      { "label": "Couverture audit trail communications", "before": "0% (logs techniques uniquement)", "after": "100% (signé + horodaté)", "delta": "complet" }
+    ],
+    "caveat": "Métriques basées sur des projets DORA comparables et la méthodologie NEURAL standard. Variation possible selon contexte et niveau de maturité initial."
+  },
+  "quote": {
+    "text": "Le passage par un cadrage outcome avant code change tout. Au lieu de partir sur 6 mois de POC qui finissent en tiroir, on a un objectif chiffré et la conviction qu'il sera atteint.",
+    "role": "Profil cible : Directeur Risques · Banque mid-cap française",
+    "note": "Citation illustrative basée sur les retours collectés en cadrage commercial."
+  },
+  "timeline": {
+    "title": "Calendrier 30 / 60 / 90 jours",
+    "items": [
+      { "day": "J0-30", "label": "Cadrage signé + Sapin2Compliance déployé", "status": "production" },
+      { "day": "J30-60", "label": "RegBankComms + BankCrisisComms en production", "status": "production" },
+      { "day": "J60-90", "label": "BankEvidenceGuard + audit interne · gap analysis", "status": "audit" },
+      { "day": "J90+", "label": "RegWatchBank + comité mensuel · cycle continu", "status": "operation" }
+    ]
+  }
+}

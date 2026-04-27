@@ -50,7 +50,7 @@ interface BaseAiTelemetryPayload {
   surfaceId: NeuralAiSurfaceId;
   requestedModel: string;
   fallbackModels: readonly string[];
-  gatewayAuthMode: "oidc" | "api_key" | "missing";
+  gatewayAuthMode: "oidc" | "api_key" | "anthropic_direct" | "missing";
   userId: string;
   tags: readonly string[];
 }

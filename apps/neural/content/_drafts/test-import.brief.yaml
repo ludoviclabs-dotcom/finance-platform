@@ -1,0 +1,63 @@
+slug: "test-import"
+title: "Mesurer le ROI d'un projet IA : méthode et indicateurs"
+subtitle: "Comment passer des promesses aux chiffres concrets pour justifier l'investissement IA en entreprise"
+excerpt: "Un cadre pragmatique pour quantifier la valeur créée par un projet IA — avant, pendant et après le déploiement."
+category: "Analyse"
+audience: "Direction"
+date: "2026-04-27"
+readingTime: "6 min"
+featured: false
+author:
+  name: "NEURAL Labs"
+  role: "Analyse IA appliquée"
+  company: "NEURAL"
+  bio: "Cellule de veille NEURAL sur la valeur réelle des projets d'intelligence artificielle en contexte entreprise."
+tags:
+  - "ROI"
+  - "IA"
+  - "Investissement"
+  - "Pilotage"
+tldr:
+  - "72 % des projets IA n'atteignent pas le ROI attendu en an 1 faute de métriques définies en amont."
+  - "Un bon cadre ROI mesure à la fois les gains directs (temps, coût) et les gains indirects (qualité, risque)."
+  - "La valeur IA n'est pas uniforme : elle se concentre sur les tâches répétitives, documentées et à fort volume."
+relatedSlugs:
+  - "claude-en-entreprise-valeur-reelle"
+  - "poc-ia-production-framework"
+seoTitle: "ROI projet IA : méthode de mesure pour les directions"
+seoDescription: "Cadre concret pour mesurer le retour sur investissement d'un projet IA en entreprise : indicateurs, pièges et exemples chiffrés."
+targetWordCount: 1200
+styleGuide: "Analytique, sourcé, orienté praticien. Ton direct, pas de promesses génériques. Chiffres et exemples concrets privilégiés."
+constraints:
+  - "Inclure au moins un StatBlock avec le chiffre 72% McKinsey"
+  - "Inclure au moins un Callout sur la différence gains directs vs indirects"
+  - "Citer chaque source au moins une fois dans le corps de l'article"
+plan:
+  - section: "Pourquoi la mesure du ROI IA est difficile"
+    points:
+      - "Les bénéfices IA sont souvent diffus et décalés dans le temps"
+      - "Le périmètre change au fur et à mesure que les équipes adoptent l'outil"
+      - "Le coût total inclut formation, maintenance, et supervision humaine — souvent sous-estimés"
+  - section: "Les trois catégories de valeur à mesurer"
+    points:
+      - "Gains directs : temps économisé, volume traité, coût opérationnel réduit"
+      - "Gains indirects : qualité augmentée, erreurs évitées, satisfaction collaborateur"
+      - "Valeur stratégique : capacité nouvelle, compétence interne développée, avantage concurrentiel"
+  - section: "Une méthode de mesure en 4 étapes"
+    points:
+      - "Étape 1 : définir la baseline avant déploiement (temps, coût, qualité actuels)"
+      - "Étape 2 : identifier les indicateurs de succès par cas d'usage"
+      - "Étape 3 : mesurer à J+30, J+90, J+180 avec le même protocole"
+      - "Étape 4 : distinguer l'effet IA de l'effet formation/changement organisationnel"
+  - section: "Les erreurs les plus courantes"
+    points:
+      - "Compter uniquement les heures économisées sans valider que le temps est réalloué"
+      - "Ignorer le coût de supervision (validation humaine reste nécessaire)"
+      - "Projeter le POC sur 100% du flux sans tenir compte de la variance des cas"
+sources:
+  - title: "McKinsey — The state of AI in 2025"
+    url: "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai"
+    note: "72% des projets IA n'atteignent pas le ROI attendu en an 1"
+  - title: "Harvard Business Review — Measuring the ROI of AI"
+    url: "https://hbr.org/2023/11/measuring-the-roi-of-generative-ai"
+    note: "Cadre gains directs / indirects / stratégiques"

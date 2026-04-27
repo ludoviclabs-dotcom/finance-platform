@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "@types/pdf-parse": "^1.1.5",
+    "mammoth": "^1.12.0",
+    "pdf-parse": "^2.4.5"
+  }
+}

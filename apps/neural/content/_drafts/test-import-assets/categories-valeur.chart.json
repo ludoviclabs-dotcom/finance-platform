@@ -1,0 +1,9 @@
+{
+  "title": "Répartition de la valeur IA par catégorie",
+  "description": "Part de la valeur totale créée selon le type de gain — gains directs, indirects et stratégiques",
+  "items": [
+    { "label": "Gains directs (temps, coût)", "value": 35, "note": "Les plus simples à mesurer mais rarement les plus importants" },
+    { "label": "Gains indirects (qualité, erreurs)", "value": 40, "note": "Souvent ignorés dans les calculs de ROI" },
+    { "label": "Valeur stratégique (compétence, avantage)", "value": 25, "note": "Mesurable seulement à 12-24 mois" }
+  ]
+}

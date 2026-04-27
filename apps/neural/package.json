@@ -18,9 +18,14 @@
     "db:studio": "prisma studio",
     "db:validate": "prisma validate",
     "db:format": "prisma format",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "pub:gen": "tsx --env-file-if-exists=.env.local scripts/publications/generate-article.ts",
+    "pub:import": "tsx --env-file-if-exists=.env.local scripts/publications/import-article.ts",
+    "pub:lint": "tsx scripts/publications/lint-publication.ts",
+    "pub:review": "tsx --env-file-if-exists=.env.local scripts/publications/review-publication.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.71",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
@@ -33,9 +38,11 @@
     "jszip": "^3.10.1",
     "langfuse": "^3.38.20",
     "lucide-react": "^0.577.0",
+    "mammoth": "^1.12.0",
     "next": "16.2.0",
     "next-mdx-remote": "^6.0.0",
     "next-themes": "^0.4.6",
+    "pdf-parse": "^2.4.5",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "reactflow": "^11.11.4",

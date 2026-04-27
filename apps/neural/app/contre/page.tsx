@@ -91,10 +91,9 @@ export default function ComparatorsIndexPage() {
             {COMPARATORS.map(({ slug, data, accent }) => {
               const cls = ACCENT_CLS[accent];
               return (
-                <Link
+                <div
                   key={slug}
-                  href={`/contre/${slug}`}
-                  className={`group flex flex-col gap-4 rounded-[28px] border ${cls.border} bg-gradient-to-br ${cls.gradient} p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30 no-underline`}
+                  className={`group relative flex flex-col gap-4 rounded-[28px] border ${cls.border} bg-gradient-to-br ${cls.gradient} p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30`}
                 >
                   <div className="flex items-center justify-between">
                     <span
@@ -106,8 +105,8 @@ export default function ComparatorsIndexPage() {
                       href={data.competitor.url}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-white/35 hover:text-white/60"
+                      className="relative z-10 text-white/35 hover:text-white/60"
+                      aria-label={`Site ${data.competitor.name} (nouvel onglet)`}
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                     </a>
@@ -132,7 +131,12 @@ export default function ComparatorsIndexPage() {
                       <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                     </div>
                   </div>
-                </Link>
+                  <Link
+                    href={`/contre/${slug}`}
+                    aria-label={`Comparatif NEURAL vs ${data.competitor.name}`}
+                    className="absolute inset-0 rounded-[28px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-400"
+                  />
+                </div>
               );
             })}
           </div>

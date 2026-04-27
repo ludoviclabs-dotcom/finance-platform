@@ -1,0 +1,74 @@
+{
+  "lastUpdated": "2026-04-27",
+  "comment": "Catalogue 50 connecteurs EU certifiés visés (roadmap fin 2026). Statuts honnêtes : live = en runtime, beta = en intégration, roadmap = priorisé non démarré.",
+  "categories": [
+    { "id": "erp", "label": "ERP / Comptable", "description": "Systèmes core de gestion" },
+    { "id": "crm", "label": "CRM / Sales", "description": "Gestion commerciale et relation client" },
+    { "id": "hr", "label": "RH / Paie", "description": "Outils people EU" },
+    { "id": "banque", "label": "Banque / Asset Mgmt", "description": "Cores bancaires et trading" },
+    { "id": "regtech", "label": "RegTech / Compliance", "description": "Conformité ACPR/AMF/CNIL" },
+    { "id": "productivity", "label": "Productivité", "description": "Suites bureautiques" },
+    { "id": "data", "label": "Data / BI", "description": "Datawarehouses et BI" },
+    { "id": "comms", "label": "Communication", "description": "Email, chat, social" }
+  ],
+  "items": [
+    { "id": "sap-s4hana", "name": "SAP S/4HANA", "category": "erp", "status": "beta", "region": "EU", "vendor": "SAP SE (Allemagne)", "scope": "Lecture FI/CO + posting" },
+    { "id": "sap-bydesign", "name": "SAP Business ByDesign", "category": "erp", "status": "roadmap", "region": "EU", "vendor": "SAP SE", "scope": "ERP cloud mid-cap" },
+    { "id": "sage-x3", "name": "Sage X3", "category": "erp", "status": "beta", "region": "EU", "vendor": "Sage Group (UK)", "scope": "Comptabilité + supply chain" },
+    { "id": "sage-100", "name": "Sage 100", "category": "erp", "status": "roadmap", "region": "EU", "vendor": "Sage Group", "scope": "PME / TPE FR" },
+    { "id": "cegid-loop", "name": "Cegid Loop", "category": "erp", "status": "beta", "region": "EU", "vendor": "Cegid (FR)", "scope": "Comptabilité expert-comptable" },
+    { "id": "pennylane", "name": "Pennylane", "category": "erp", "status": "live", "region": "EU", "vendor": "Pennylane (FR)", "scope": "Comptabilité PME / scale-ups" },
+    { "id": "oracle-fusion", "name": "Oracle Fusion Cloud ERP", "category": "erp", "status": "roadmap", "region": "EU", "vendor": "Oracle", "scope": "ERP enterprise EU" },
+    { "id": "qonto", "name": "Qonto", "category": "erp", "status": "live", "region": "EU", "vendor": "Qonto (FR)", "scope": "Néobanque pro" },
+
+    { "id": "salesforce", "name": "Salesforce CRM", "category": "crm", "status": "live", "region": "EU", "vendor": "Salesforce", "scope": "CRM ventes + service" },
+    { "id": "hubspot", "name": "HubSpot", "category": "crm", "status": "live", "region": "EU", "vendor": "HubSpot", "scope": "CRM marketing + ventes" },
+    { "id": "pipedrive", "name": "Pipedrive", "category": "crm", "status": "beta", "region": "EU", "vendor": "Pipedrive (Estonie)", "scope": "CRM ventes mid-cap EU" },
+    { "id": "axonaut", "name": "Axonaut", "category": "crm", "status": "roadmap", "region": "EU", "vendor": "Axonaut (FR)", "scope": "CRM + ERP TPE FR" },
+
+    { "id": "lucca", "name": "Lucca Suite", "category": "hr", "status": "live", "region": "EU", "vendor": "Lucca (FR)", "scope": "Congés + notes de frais + entretiens" },
+    { "id": "boondmanager", "name": "BoondManager", "category": "hr", "status": "beta", "region": "EU", "vendor": "BoondManager (FR)", "scope": "ERP RH ESN" },
+    { "id": "personio", "name": "Personio", "category": "hr", "status": "beta", "region": "EU", "vendor": "Personio (Allemagne)", "scope": "SIRH mid-cap EU" },
+    { "id": "payfit", "name": "PayFit", "category": "hr", "status": "roadmap", "region": "EU", "vendor": "PayFit (FR)", "scope": "Paie PME FR" },
+    { "id": "workday", "name": "Workday HCM", "category": "hr", "status": "roadmap", "region": "EU", "vendor": "Workday", "scope": "SIRH enterprise" },
+
+    { "id": "sopra-cassiopae", "name": "Sopra Cassiopae", "category": "banque", "status": "roadmap", "region": "EU", "vendor": "Sopra Banking", "scope": "Core banking crédits" },
+    { "id": "sopra-amplitude", "name": "Sopra Amplitude", "category": "banque", "status": "roadmap", "region": "EU", "vendor": "Sopra Banking", "scope": "Asset management" },
+    { "id": "murex", "name": "Murex MX.3", "category": "banque", "status": "roadmap", "region": "EU", "vendor": "Murex (FR)", "scope": "Trading + risk + collateral" },
+    { "id": "temenos-t24", "name": "Temenos T24", "category": "banque", "status": "roadmap", "region": "EU", "vendor": "Temenos (Suisse)", "scope": "Core banking universel" },
+    { "id": "bloomberg-terminal", "name": "Bloomberg Terminal", "category": "banque", "status": "roadmap", "region": "Global", "vendor": "Bloomberg", "scope": "Market data" },
+
+    { "id": "verifeed", "name": "Verifeed", "category": "regtech", "status": "beta", "region": "EU", "vendor": "Verifeed (FR)", "scope": "Conformité AMF/ACPR" },
+    { "id": "fenergo", "name": "Fenergo", "category": "regtech", "status": "roadmap", "region": "EU", "vendor": "Fenergo (Irlande)", "scope": "KYC/AML enterprise" },
+    { "id": "actico", "name": "Actico", "category": "regtech", "status": "roadmap", "region": "EU", "vendor": "Actico (Allemagne)", "scope": "Compliance + risk" },
+    { "id": "didomi", "name": "Didomi", "category": "regtech", "status": "live", "region": "EU", "vendor": "Didomi (FR)", "scope": "RGPD consent + preferences" },
+    { "id": "data-legal-drive", "name": "Data Legal Drive", "category": "regtech", "status": "beta", "region": "EU", "vendor": "Data Legal Drive (FR)", "scope": "Registre RGPD + DPO" },
+
+    { "id": "m365", "name": "Microsoft 365 (Graph API)", "category": "productivity", "status": "live", "region": "EU", "vendor": "Microsoft", "scope": "Email + Teams + SharePoint EU" },
+    { "id": "google-workspace", "name": "Google Workspace", "category": "productivity", "status": "beta", "region": "EU", "vendor": "Google", "scope": "Gmail + Drive + Calendar EU" },
+    { "id": "slack", "name": "Slack Enterprise", "category": "productivity", "status": "live", "region": "EU", "vendor": "Salesforce", "scope": "Chat + intégrations" },
+    { "id": "notion", "name": "Notion", "category": "productivity", "status": "beta", "region": "Global", "vendor": "Notion Labs", "scope": "Wiki + docs" },
+    { "id": "confluence", "name": "Confluence Cloud", "category": "productivity", "status": "roadmap", "region": "EU", "vendor": "Atlassian", "scope": "Wiki entreprise" },
+    { "id": "jira", "name": "Jira", "category": "productivity", "status": "roadmap", "region": "EU", "vendor": "Atlassian", "scope": "Tickets + projets" },
+
+    { "id": "snowflake-eu", "name": "Snowflake EU", "category": "data", "status": "beta", "region": "EU", "vendor": "Snowflake", "scope": "Data warehouse cloud" },
+    { "id": "databricks-eu", "name": "Databricks EU", "category": "data", "status": "roadmap", "region": "EU", "vendor": "Databricks", "scope": "Lakehouse + ML" },
+    { "id": "bigquery-eu", "name": "BigQuery (région EU)", "category": "data", "status": "roadmap", "region": "EU", "vendor": "Google Cloud", "scope": "Data warehouse" },
+    { "id": "postgres-managed", "name": "Postgres managed (Neon/Supabase)", "category": "data", "status": "live", "region": "EU", "vendor": "Multiple", "scope": "Base relationnelle" },
+    { "id": "metabase", "name": "Metabase", "category": "data", "status": "beta", "region": "EU", "vendor": "Metabase", "scope": "BI self-service" },
+    { "id": "tableau", "name": "Tableau Cloud", "category": "data", "status": "roadmap", "region": "EU", "vendor": "Salesforce", "scope": "BI enterprise" },
+    { "id": "powerbi", "name": "Power BI", "category": "data", "status": "roadmap", "region": "EU", "vendor": "Microsoft", "scope": "BI + reporting" },
+
+    { "id": "resend", "name": "Resend", "category": "comms", "status": "live", "region": "EU", "vendor": "Resend", "scope": "Email transactionnel API" },
+    { "id": "brevo", "name": "Brevo", "category": "comms", "status": "beta", "region": "EU", "vendor": "Brevo (FR)", "scope": "Email marketing + SMS" },
+    { "id": "mailjet", "name": "Mailjet", "category": "comms", "status": "beta", "region": "EU", "vendor": "Mailjet (FR)", "scope": "Email transactionnel" },
+    { "id": "twilio", "name": "Twilio (région EU)", "category": "comms", "status": "roadmap", "region": "EU", "vendor": "Twilio", "scope": "SMS + voice + WhatsApp" },
+    { "id": "linkedin-ads", "name": "LinkedIn Ads API", "category": "comms", "status": "roadmap", "region": "Global", "vendor": "Microsoft", "scope": "Campagnes B2B" },
+    { "id": "buffer", "name": "Buffer", "category": "comms", "status": "roadmap", "region": "Global", "vendor": "Buffer", "scope": "Social scheduler" },
+    { "id": "intercom", "name": "Intercom", "category": "comms", "status": "roadmap", "region": "EU", "vendor": "Intercom", "scope": "Support + helpdesk" },
+
+    { "id": "stripe", "name": "Stripe (région EU)", "category": "erp", "status": "live", "region": "EU", "vendor": "Stripe", "scope": "Paiements + facturation" },
+    { "id": "spendesk", "name": "Spendesk", "category": "erp", "status": "beta", "region": "EU", "vendor": "Spendesk (FR)", "scope": "Notes de frais + cartes" },
+    { "id": "agicap", "name": "Agicap", "category": "erp", "status": "roadmap", "region": "EU", "vendor": "Agicap (FR)", "scope": "Trésorerie temps réel" }
+  ]
+}

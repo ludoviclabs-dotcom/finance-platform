@@ -1045,9 +1045,11 @@ export const FOOTER_LINKS = {
     { label: "Trust", href: "/trust", status: "live" as PublicStatus },
     { label: "Status", href: "/status", status: "live" as PublicStatus },
     { label: "Roadmap", href: "/roadmap", status: "live" as PublicStatus },
+    { label: "Changelog", href: "/changelog", status: "live" as PublicStatus },
     { label: "Conformité", href: "/conformite", status: "live" as PublicStatus },
     { label: "Comparatifs", href: "/contre", status: "live" as PublicStatus },
     { label: "Operator Gateway", href: "/operator-gateway", status: "demo" as PublicStatus },
+    { label: "Connecteurs", href: "/connecteurs", status: "live" as PublicStatus },
   ],
   Outils: [
     { label: "AI Act Classifier", href: "/outils/ai-act-classifier", status: "live" as PublicStatus },

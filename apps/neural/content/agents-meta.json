@@ -1,0 +1,118 @@
+{
+  "lastUpdated": "2026-04-27",
+  "comment": "Métadonnées additionnelles aux AGENT_ENTRIES pour le catalogue /agents. Branch, sectors, classification AI Act, durée de déploiement estimée, ROI typique.",
+  "items": {
+    "consolidation": {
+      "branch": "finance",
+      "sectors": ["luxe", "transport", "aero"],
+      "aiActRisk": "minimal",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Réduction 40% temps clôture"
+    },
+    "inventaire-luxe": {
+      "branch": "supply-chain",
+      "sectors": ["luxe"],
+      "aiActRisk": "minimal",
+      "deployTime": "6-10 sem.",
+      "roiEstimate": "Réduction 30% écarts inventaire"
+    },
+    "multi-currency": {
+      "branch": "finance",
+      "sectors": ["luxe", "transport", "aero", "saas"],
+      "aiActRisk": "minimal",
+      "deployTime": "6-8 sem.",
+      "roiEstimate": "Réduction 50% temps conversion"
+    },
+    "royalty": {
+      "branch": "finance",
+      "sectors": ["luxe", "saas"],
+      "aiActRisk": "minimal",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Réduction 35% temps comptabilisation"
+    },
+    "artisan-talent": {
+      "branch": "rh",
+      "sectors": ["luxe"],
+      "aiActRisk": "haut-risque",
+      "deployTime": "10-14 sem.",
+      "roiEstimate": "Réduction 25% time-to-hire"
+    },
+    "comp-benchmark": {
+      "branch": "rh",
+      "sectors": ["luxe", "transport", "aero", "saas", "banque", "assurance"],
+      "aiActRisk": "haut-risque",
+      "deployTime": "6-8 sem.",
+      "roiEstimate": "Cycle salarial -2 sem."
+    },
+    "onboarding": {
+      "branch": "rh",
+      "sectors": ["luxe"],
+      "aiActRisk": "limite",
+      "deployTime": "6-10 sem.",
+      "roiEstimate": "Time-to-productivity -30%"
+    },
+    "repair-network-insur": {
+      "branch": "supply-chain",
+      "sectors": ["assurance"],
+      "aiActRisk": "limite",
+      "deployTime": "10-14 sem.",
+      "roiEstimate": "Coût sinistre -12%"
+    },
+    "expert-mgmt-insur": {
+      "branch": "supply-chain",
+      "sectors": ["assurance"],
+      "aiActRisk": "limite",
+      "deployTime": "10-14 sem.",
+      "roiEstimate": "Délai expertise -25%"
+    },
+    "fraud-detect-sc": {
+      "branch": "supply-chain",
+      "sectors": ["assurance", "banque"],
+      "aiActRisk": "haut-risque",
+      "deployTime": "12-16 sem.",
+      "roiEstimate": "Détection fraude +40%"
+    },
+    "sapin2-compliance": {
+      "branch": "supply-chain",
+      "sectors": ["assurance", "banque", "luxe", "transport", "aero"],
+      "aiActRisk": "haut-risque",
+      "deployTime": "10-14 sem.",
+      "roiEstimate": "Coût due diligence -50%"
+    },
+    "maison-voice-guard": {
+      "branch": "communication",
+      "sectors": ["luxe"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Cycle validation -60%"
+    },
+    "luxe-press-agent": {
+      "branch": "communication",
+      "sectors": ["luxe"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Productivité presse +35%"
+    },
+    "luxe-event-comms": {
+      "branch": "communication",
+      "sectors": ["luxe"],
+      "aiActRisk": "limite",
+      "deployTime": "10-14 sem.",
+      "roiEstimate": "Cycle production event -45%"
+    },
+    "heritage-comms": {
+      "branch": "communication",
+      "sectors": ["luxe"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Sourcing patrimonial -50% temps"
+    },
+    "green-claim-checker": {
+      "branch": "communication",
+      "sectors": ["luxe", "banque", "assurance", "aero", "transport"],
+      "aiActRisk": "limite",
+      "deployTime": "6-10 sem.",
+      "roiEstimate": "Risque greenwashing -90%"
+    }
+  }
+}

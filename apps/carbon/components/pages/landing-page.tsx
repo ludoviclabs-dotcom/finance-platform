@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { InteractiveDashboardMockup } from "../landing/mockup/interactive-dashboard-mockup";
-import { HOTSPOT_TO_SCREEN } from "../landing/mockup/mockup-data";
-import type { ScreenId } from "../landing/mockup/mockup-data";
+import { motion } from "framer-motion";
+import {
+  PremiumDashboardMockup,
+  PREMIUM_DASHBOARD_HOTSPOTS,
+} from "../landing/mockup/premium-dashboard-mockup";
+import { HeroStage } from "../landing/hero/hero-stage";
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -71,209 +73,10 @@ function CountUp({ target, suffix = "", decimals = 0, duration = 1800 }: { targe
   );
 }
 
-/* ── Dashboard Hotspot types ── */
-interface HotspotPosition { x: number; y: number; }
+/* Hotspot data + UI now live in components/landing/mockup/premium-dashboard-mockup.tsx */
 
-interface DashboardHotspot {
-  id: string;
-  label: string;
-  description: string;
-  hotspotPosition: HotspotPosition;
-  labelPosition: HotspotPosition;
-  side: "left" | "right";
-  color: string;
-}
-
-const DASHBOARD_HOTSPOTS: DashboardHotspot[] = [
-  {
-    id: "scopes",
-    label: "Scopes 1, 2, 3",
-    description: "Visualisation en temps reel de vos emissions par scope selon le GHG Protocol. Ventilation automatique par poste et site.",
-    hotspotPosition: { x: 33, y: 40 },
-    labelPosition: { x: 7, y: 28 },
-    side: "left",
-    color: "#16a34a",
-  },
-  {
-    id: "kpis",
-    label: "KPIs Carbone",
-    description: "Indicateurs cles : total tCO2e, evolution Year-over-Year, trajectoire SBTi, benchmark sectoriel.",
-    hotspotPosition: { x: 53, y: 22 },
-    labelPosition: { x: 50, y: 6 },
-    side: "right",
-    color: "#0891b2",
-  },
-  {
-    id: "postes",
-    label: "Postes d'emission",
-    description: "Detail par poste (energie, transport, achats, numerique...) avec ventilation automatique et facteurs ADEME/IEA.",
-    hotspotPosition: { x: 71, y: 44 },
-    labelPosition: { x: 93, y: 30 },
-    side: "right",
-    color: "#7c3aed",
-  },
-  {
-    id: "actions",
-    label: "Plan d'action IA",
-    description: "Recommandations generees par le copilote NEURAL pour reduire vos emissions prioritaires, chiffrees et priorisees.",
-    hotspotPosition: { x: 71, y: 67 },
-    labelPosition: { x: 93, y: 68 },
-    side: "right",
-    color: "#ea580c",
-  },
-  {
-    id: "rapports",
-    label: "Rapports CSRD",
-    description: "Generation automatique de rapports conformes CSRD, CDP, Bilan Carbone. Format auditeur pret pour signature.",
-    hotspotPosition: { x: 33, y: 80 },
-    labelPosition: { x: 8, y: 78 },
-    side: "left",
-    color: "#16a34a",
-  },
-];
-
-/* ── Hotspot Label sub-component ── */
-function HotspotLabel({ hotspot, isActive, onHover, onClick, index }: { hotspot: DashboardHotspot; isActive: boolean; onHover: (id: string | null) => void; onClick: (id: string) => void; index: number }) {
-  return (
-    <motion.div
-      className="absolute z-20 hidden md:block"
-      style={{ left: `${hotspot.labelPosition.x}%`, top: `${hotspot.labelPosition.y}%`, transform: "translate(-50%, -50%)" }}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.8 + index * 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-      onMouseEnter={() => onHover(hotspot.id)}
-      onMouseLeave={() => onHover(null)}
-    >
-      <motion.div
-        className="flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer border transition-all duration-300 select-none whitespace-nowrap"
-        style={isActive
-          ? { background: `${hotspot.color}ee`, borderColor: hotspot.color, color: "#fff", boxShadow: `0 8px 24px ${hotspot.color}40` }
-          : { background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)" }
-        }
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => onClick(hotspot.id)}
-      >
-        <span className="relative flex h-2.5 w-2.5">
-          <span
-            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-            style={{ background: isActive ? "#fff" : hotspot.color }}
-          />
-          <span
-            className="relative inline-flex rounded-full h-2.5 w-2.5"
-            style={{ background: isActive ? "#fff" : hotspot.color }}
-          />
-        </span>
-        <span className="text-sm font-semibold tracking-wide">{hotspot.label}</span>
-      </motion.div>
-
-      <AnimatePresence>
-        {isActive && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="absolute mt-2 px-4 py-3 rounded-xl text-xs leading-relaxed max-w-[240px] shadow-xl"
-            style={{
-              background: "rgba(15,23,42,0.95)",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "rgba(255,255,255,0.8)",
-              ...(hotspot.side === "left" ? { left: 0 } : { right: 0 }),
-            }}
-          >
-            {hotspot.description}
-            <div
-              className="absolute -top-1.5 w-3 h-3 rotate-45"
-              style={{
-                background: "rgba(15,23,42,0.95)",
-                borderLeft: "1px solid rgba(255,255,255,0.1)",
-                borderTop: "1px solid rgba(255,255,255,0.1)",
-                ...(hotspot.side === "left" ? { left: 24 } : { right: 24 }),
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-/* ── Connection Line SVG sub-component ── */
-function ConnectionLineSVG({ hotspot, isActive, index, width, height }: { hotspot: DashboardHotspot; isActive: boolean; index: number; width: number; height: number }) {
-  const startX = (hotspot.hotspotPosition.x / 100) * width;
-  const startY = (hotspot.hotspotPosition.y / 100) * height;
-  const endX = (hotspot.labelPosition.x / 100) * width;
-  const endY = (hotspot.labelPosition.y / 100) * height;
-  const gradId = `line-grad-${hotspot.id}`;
-
-  return (
-    <svg className="absolute inset-0 z-10 pointer-events-none hidden md:block" width={width} height={height}>
-      <defs>
-        <linearGradient id={gradId} x1={startX} y1={startY} x2={endX} y2={endY} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor={isActive ? hotspot.color : "#ffffff"} stopOpacity={isActive ? 0.8 : 0.25} />
-          <stop offset="100%" stopColor={isActive ? hotspot.color : "#ffffff"} stopOpacity={isActive ? 0.4 : 0.08} />
-        </linearGradient>
-      </defs>
-      <motion.line
-        x1={startX} y1={startY} x2={endX} y2={endY}
-        stroke={`url(#${gradId})`}
-        strokeWidth={isActive ? 1.5 : 1}
-        strokeDasharray={isActive ? "none" : "4 4"}
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.6 + index * 0.15, ease: "easeInOut" }}
-      />
-      <motion.circle
-        cx={startX} cy={startY}
-        r={isActive ? 6 : 4}
-        fill={isActive ? hotspot.color : `${hotspot.color}99`}
-        stroke={isActive ? "#fff" : "rgba(255,255,255,0.3)"}
-        strokeWidth={isActive ? 2 : 1}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.5 + index * 0.15, type: "spring", stiffness: 300 }}
-      />
-      {isActive && (
-        <motion.circle
-          cx={startX} cy={startY} r={6}
-          fill="none" stroke={hotspot.color} strokeWidth={1}
-          initial={{ r: 6, opacity: 0.6 }}
-          animate={{ r: 18, opacity: 0 }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
-        />
-      )}
-    </svg>
-  );
-}
-
-/* ── Dashboard Showcase (Interactive Hotspots) ── */
+/* ── Dashboard Showcase (Premium mockup + hotspots) ── */
 function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
-  const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
-  const [activeScreen, setActiveScreen] = useState<ScreenId>("overview");
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-
-  const handleHotspotClick = useCallback((hotspotId: string) => {
-    const screen = HOTSPOT_TO_SCREEN[hotspotId];
-    if (screen) setActiveScreen(screen);
-  }, []);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const updateSize = useCallback(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setContainerSize({ width: rect.width, height: rect.height });
-    }
-  }, []);
-
-  useEffect(() => {
-    updateSize();
-    const observer = new ResizeObserver(updateSize);
-    if (containerRef.current) observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, [updateSize]);
-
   return (
     <section className="py-32 px-8 md:px-12 bg-[#f9f9fb] overflow-hidden">
       <div className="max-w-[1440px] mx-auto">
@@ -294,103 +97,14 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
           </p>
         </Reveal>
 
-        {/* Interactive dashboard container */}
-        <Reveal delay={0.15} className="max-w-5xl mx-auto">
-          {/* Outer wrapper: holds ref + hotspot overlays, NOT overflow-hidden */}
-          <div ref={containerRef} className="relative px-16 md:px-24">
-            {/* Inner: premium device frame with overflow-hidden */}
-            <div
-              className="relative rounded-[20px] overflow-hidden bg-neutral-950"
-              style={{
-                boxShadow: `
-                  0 0 0 1px rgba(255,255,255,0.06),
-                  0 2px 4px rgba(0,0,0,0.08),
-                  0 8px 20px rgba(0,0,0,0.12),
-                  0 20px 48px rgba(0,0,0,0.16),
-                  0 40px 80px rgba(0,0,0,0.12)
-                `,
-              }}
-            >
-            {/* Premium browser chrome */}
-            <div className="absolute top-0 left-0 right-0 h-10 md:h-11 bg-gradient-to-b from-[#1e293b] to-[#171f2e] flex items-center px-4 gap-2 z-30 border-b border-white/[0.06]">
-              <div className="flex gap-1.5">
-                <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#ff5f57]/80" />
-                <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#febc2e]/80" />
-                <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#28c840]/80" />
-              </div>
-              <div className="flex gap-0.5 ml-2">
-                <span className="w-5 h-5 rounded flex items-center justify-center text-white/20">
-                  <svg width="10" height="10" viewBox="0 0 10 10"><path d="M6 2L3 5l3 3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </span>
-                <span className="w-5 h-5 rounded flex items-center justify-center text-white/20">
-                  <svg width="10" height="10" viewBox="0 0 10 10"><path d="M4 2l3 3-3 3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </span>
-              </div>
-              <div className="flex-1 flex items-center justify-center">
-                <div className="flex items-center gap-1.5 bg-black/30 rounded-lg px-3 py-1 md:py-1.5 max-w-[280px] w-full border border-white/[0.04]">
-                  <svg className="w-2.5 h-2.5 md:w-3 md:h-3 text-green-400 flex-shrink-0" viewBox="0 0 16 16" fill="none">
-                    <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-                    <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                  <span className="text-[9px] md:text-[10px] text-white/50 truncate">app.carbonco.fr/dashboard</span>
-                </div>
-              </div>
-              <div className="flex gap-1">
-                <span className="w-5 h-5 rounded flex items-center justify-center text-white/15">
-                  <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/></svg>
-                </span>
-              </div>
-            </div>
-
-            {/* Dashboard content area */}
-            <div className="pt-10 md:pt-11 bg-[#0F172A] min-h-[420px] md:min-h-[520px] relative">
-              <div className="absolute inset-0 pt-10 md:pt-11">
-                <InteractiveDashboardMockup
-                  activeScreen={activeScreen}
-                  onNavigate={setActiveScreen}
-                />
-              </div>
-            </div>
-
-            {/* Subtle screen reflection */}
-            <div className="absolute inset-0 pointer-events-none rounded-[20px]" style={{ background: "linear-gradient(165deg, rgba(255,255,255,0.025) 0%, transparent 35%)" }} />
-            </div>{/* end inner overflow-hidden frame */}
-
-            {/* Connection lines SVG overlay — outside overflow-hidden */}
-            {containerSize.width > 0 && DASHBOARD_HOTSPOTS.map((hotspot, index) => (
-              <ConnectionLineSVG
-                key={`line-${hotspot.id}`}
-                hotspot={hotspot}
-                isActive={activeHotspot === hotspot.id}
-                index={index}
-                width={containerSize.width}
-                height={containerSize.height}
-              />
-            ))}
-
-            {/* Hotspot labels — outside overflow-hidden */}
-            {DASHBOARD_HOTSPOTS.map((hotspot, index) => (
-              <HotspotLabel
-                key={hotspot.id}
-                hotspot={hotspot}
-                isActive={activeHotspot === hotspot.id}
-                onHover={setActiveHotspot}
-                onClick={handleHotspotClick}
-                index={index}
-              />
-            ))}
-          </div>{/* end outer ref wrapper */}
-
-          {/* Decorative device stand */}
-          <div className="hidden md:flex flex-col items-center">
-            <div className="w-16 h-4 bg-gradient-to-b from-neutral-300 to-neutral-400 rounded-b-md" style={{ clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)" }} />
-            <div className="w-28 h-1.5 bg-gradient-to-b from-neutral-400 to-neutral-500 rounded-b-lg" />
-          </div>
+        {/* Premium dashboard mockup (desktop ≥ 1100px : hotspots visibles) */}
+        <Reveal delay={0.15}>
+          <PremiumDashboardMockup />
         </Reveal>
 
-        {/* Mobile: feature list (replaces hotspots) */}
+        {/* Mobile fallback — liste des 5 zones */}
         <div className="md:hidden mt-8 space-y-3 max-w-5xl mx-auto">
-          {DASHBOARD_HOTSPOTS.map((hotspot) => (
+          {PREMIUM_DASHBOARD_HOTSPOTS.map((hotspot) => (
             <Reveal key={hotspot.id} delay={0.05}>
               <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-white border border-neutral-200 shadow-sm">
                 <span className="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: hotspot.color }} />
@@ -526,9 +240,11 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
       <main className="pt-20">
 
         {/* ══ 1. HERO ══ */}
-        <section id="hero" className="relative min-h-[95vh] flex items-center px-8 md:px-12 overflow-hidden bg-white">
+        <section id="hero" className="relative min-h-[95vh] flex items-center px-8 md:px-12 overflow-hidden" style={{ background: "#FBFAF7" }}>
           {/* Mesh background */}
-          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, rgba(22,163,74,0.06) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(8,145,178,0.05) 0%, transparent 50%)" }} />
+          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 18% 35%, rgba(5,150,105,0.05) 0%, transparent 55%), radial-gradient(circle at 82% 18%, rgba(8,145,178,0.04) 0%, transparent 55%)" }} />
+          {/* Warm horizon strip */}
+          <div className="absolute inset-x-0 bottom-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to top, #F2EFE8, transparent)" }} />
 
           <div className="grid lg:grid-cols-2 gap-16 items-center w-full max-w-[1440px] mx-auto py-24">
             {/* Left */}
@@ -571,44 +287,9 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               </div>
             </Reveal>
 
-            {/* Right — robot + badges flottants */}
-            <Reveal delay={0.2} className="relative flex justify-center lg:justify-end mt-8 lg:mt-0">
-              <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(22,163,74,0.18) 0%, rgba(8,145,178,0.10) 50%, transparent 80%)", filter: "blur(28px)" }} />
-
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="relative w-full max-w-sm md:max-w-lg aspect-square rounded-3xl overflow-hidden shadow-2xl bg-neutral-100"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/neural-android.webp" alt="NEURAL — Assistant IA CarbonCo" className="w-full h-full object-cover" />
-              </motion.div>
-
-              {/* Badge disponibilité */}
-              <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute -bottom-4 left-0 lg:-left-6 bg-white rounded-2xl px-5 py-4 shadow-xl border border-neutral-100 z-20">
-                <div className="text-2xl font-extrabold text-black">ESRS E1</div>
-                <div className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Couverture Climat</div>
-              </motion.div>
-
-              {/* Badge IA active */}
-              <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, delay: 1.5, repeat: Infinity, ease: "easeInOut" }} className="absolute top-6 left-0 lg:-left-8 bg-white rounded-2xl px-4 py-3 shadow-xl border border-neutral-100 z-20 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10 1l2.928 6.472L20 8.354l-5.072 4.572L16.18 20 10 16.472 3.82 20l1.252-7.074L0 8.354l7.072-.882L10 1z" /></svg>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-black">NEURAL Actif</div>
-                  <div className="text-xs text-neutral-500">v2.4 · ESRS native</div>
-                </div>
-              </motion.div>
-
-              {/* Badge rapport généré */}
-              <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3.5, delay: 0.8, repeat: Infinity, ease: "easeInOut" }} className="absolute top-1/2 -right-2 lg:-right-8 bg-green-600 rounded-2xl px-4 py-3 shadow-xl z-20 flex items-center gap-2">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                <div>
-                  <div className="text-xs font-bold text-white">Rapport E1 généré</div>
-                  <div className="text-xs text-green-200">Il y a 3 minutes</div>
-                </div>
-              </motion.div>
+            {/* Right — premium stage card avec avatar Sculpt + chips flottants */}
+            <Reveal delay={0.2} className="relative w-full max-w-[520px] mx-auto lg:mx-0 lg:ml-auto mt-8 lg:mt-0">
+              <HeroStage />
             </Reveal>
           </div>
 

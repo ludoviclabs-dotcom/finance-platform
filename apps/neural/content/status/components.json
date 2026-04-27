@@ -1,0 +1,70 @@
+{
+  "lastUpdated": "2026-04-27T08:30:00Z",
+  "globalStatus": "operational",
+  "items": [
+    {
+      "id": "platform",
+      "name": "Plateforme NEURAL",
+      "description": "Frontend Next.js, edge functions, CDN",
+      "status": "operational",
+      "uptime90d": 99.97,
+      "category": "core"
+    },
+    {
+      "id": "agents-api",
+      "name": "API Agents",
+      "description": "Endpoints /api/data, /api/demo/*, agents publics",
+      "status": "operational",
+      "uptime90d": 99.94,
+      "category": "core"
+    },
+    {
+      "id": "ai-gateway",
+      "name": "Vercel AI Gateway",
+      "description": "Routage Claude Sonnet 4.6 (principal) + GPT-5 (fallback préparé)",
+      "status": "operational",
+      "uptime90d": 99.91,
+      "category": "core"
+    },
+    {
+      "id": "database",
+      "name": "Base de données (Neon EU)",
+      "description": "Postgres serverless en région EU-Central-1",
+      "status": "operational",
+      "uptime90d": 99.99,
+      "category": "data"
+    },
+    {
+      "id": "auth",
+      "name": "Authentification",
+      "description": "Sessions et autorisation des surfaces protégées",
+      "status": "operational",
+      "uptime90d": 99.96,
+      "category": "core"
+    },
+    {
+      "id": "rate-limit",
+      "name": "Rate-limiting (Upstash EU)",
+      "description": "Protection anti-abus, quotas par IP",
+      "status": "operational",
+      "uptime90d": 99.98,
+      "category": "platform"
+    },
+    {
+      "id": "publications",
+      "name": "Publications & MDX",
+      "description": "Blog technique, articles publics",
+      "status": "operational",
+      "uptime90d": 99.99,
+      "category": "content"
+    },
+    {
+      "id": "telemetry",
+      "name": "Observabilité (Langfuse)",
+      "description": "Traces LLM, prompts versionnés, métriques agents",
+      "status": "operational",
+      "uptime90d": 99.85,
+      "category": "platform"
+    }
+  ]
+}

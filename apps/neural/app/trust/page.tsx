@@ -15,6 +15,17 @@ import {
 } from "@/lib/ai/router";
 import { StatusBadge } from "@/components/site/status-badge";
 import { getAiTelemetryReadiness } from "@/lib/telemetry/ai";
+import { HostingGrid } from "@/components/trust/hosting-grid";
+import { SubProcessorTable } from "@/components/trust/sub-processor-table";
+import { CertBadges } from "@/components/trust/cert-badges";
+import { DocumentsGrid } from "@/components/trust/documents-grid";
+import { SecurityContact } from "@/components/trust/security-contact";
+
+export const metadata = {
+  title: "Trust — NEURAL",
+  description:
+    "Hébergement, sous-processeurs, certifications, conformité AI Act, sécurité. Tout ce que NEURAL prouve publiquement.",
+};
 
 export default function TrustPage() {
   const aiRuntime = getAiRuntimeReadinessSummary();
@@ -61,6 +72,81 @@ export default function TrustPage() {
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Capacite framework</p>
               <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.frameworkAgents}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Hosting & Infrastructure ─────────────────────────────────────── */}
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-200">
+                Infrastructure
+              </span>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+                Où vivent les données
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
+                Quatre couches, quatre régions documentées. Aucun transit hors UE pour les
+                données applicatives. Modèles IA appelés via Vercel AI Gateway avec rétention zéro.
+              </p>
+            </div>
+          </div>
+          <div className="mt-8">
+            <HostingGrid />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Sous-processeurs publics ─────────────────────────────────────── */}
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-400/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200">
+                RGPD · Article 28
+              </span>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+                Sous-processeurs publics
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
+                Liste exhaustive des entités qui peuvent traiter des données pour le compte de
+                NEURAL. Chacun avec son rôle, sa région et le DPA correspondant.
+              </p>
+            </div>
+          </div>
+          <div className="mt-8">
+            <SubProcessorTable />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Certifications & engagements ─────────────────────────────────── */}
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                Certifications
+              </span>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+                Engagements et trajectoire
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
+                Aucune fausse promesse. Chaque cadre est marqué selon son état réel : conforme par
+                design, en cours de certification, ou planifié avec date.
+              </p>
+            </div>
+            <Link
+              href="/roadmap"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200"
+            >
+              Voir la roadmap conformité <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="mt-8">
+            <CertBadges />
           </div>
         </div>
       </section>
@@ -271,6 +357,78 @@ export default function TrustPage() {
               {Object.entries(PUBLIC_STATUS_LABELS).map(([key]) => (
                 <StatusBadge key={key} status={key as keyof typeof PUBLIC_STATUS_LABELS} />
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Documents publics ────────────────────────────────────────────── */}
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-400/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200">
+                Documents
+              </span>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+                Documents publics
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
+                Quatre documents en préparation pour permettre à un acheteur de boucler sa due
+                diligence sans appel téléphonique. Disponibles sur engagement le temps de la
+                première version publique.
+              </p>
+            </div>
+          </div>
+          <div className="mt-8">
+            <DocumentsGrid />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Sécurité & VDP ───────────────────────────────────────────────── */}
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                Sécurité
+              </span>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+                Contact sécurité &amp; divulgation
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
+                Si vous identifiez une vulnérabilité, parlons-en avant qu&apos;elle ne devienne un
+                incident. Safe harbor en place pour les chercheurs de bonne foi.
+              </p>
+            </div>
+          </div>
+          <div className="mt-8">
+            <SecurityContact />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Closing CTA ──────────────────────────────────────────────────── */}
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="rounded-[28px] border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.10] via-white/[0.04] to-emerald-500/[0.06] p-8 md:p-12">
+            <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-2xl">
+                <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">
+                  Vous voulez vérifier un point précis ?
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-white/65">
+                  Architecture, sous-processeurs, classification AI Act, audit : nous répondons par
+                  écrit, citation à l&apos;appui. Pas de marketing, juste la documentation.
+                </p>
+              </div>
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 rounded-full bg-neural-violet px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-neural-violet/20 transition-all hover:bg-neural-violet-dark"
+              >
+                Échanger sur la conformité <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>

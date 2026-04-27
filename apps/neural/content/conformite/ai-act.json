@@ -1,0 +1,148 @@
+{
+  "lastUpdated": "2026-04-27",
+  "commitments": [
+    {
+      "id": "model-cards",
+      "title": "Model Card publique pour chaque agent",
+      "description": "Objectif, données, limites, classification AI Act, mesures de mitigation. 30 agents prioritaires d'ici T3 2026, les 168 d'ici 2027."
+    },
+    {
+      "id": "audit-trail",
+      "title": "Operator Gateway avec audit signé",
+      "description": "Chaque décision agent est journalisée : prompt hash, modèle, citations, signataire. Trace exportable client à tout moment."
+    },
+    {
+      "id": "human-in-loop",
+      "title": "Aucun agent autonome non supervisé sur cas haut-risque",
+      "description": "Approbation humaine par défaut sur les décisions classées haut-risque. Pas d'exception silencieuse."
+    }
+  ],
+  "riskClassification": {
+    "interdit": {
+      "label": "Pratiques interdites",
+      "color": "red",
+      "agentCount": 0,
+      "description": "Notation sociale, manipulation comportementale, identification biométrique en temps réel non autorisée. NEURAL ne propose aucun agent dans ces catégories.",
+      "examples": []
+    },
+    "haut-risque": {
+      "label": "Systèmes haut-risque (Annexe III)",
+      "color": "orange",
+      "agentCount": 12,
+      "description": "Crédit, recrutement, justice, infrastructures critiques. FRIA fournie systématiquement. Supervision humaine par défaut.",
+      "examples": [
+        "Sapin2Compliance — due diligence tiers (annexe III §6)",
+        "FraudDetectSC — détection fraude fournisseur (annexe III §5)",
+        "RegBankComms — communication bancaire régulée"
+      ]
+    },
+    "limite": {
+      "label": "Risque limité (transparence)",
+      "color": "amber",
+      "agentCount": 84,
+      "description": "Obligations de transparence : utilisateur informé qu'il interagit avec une IA. Disclosure systématique côté NEURAL.",
+      "examples": [
+        "MaisonVoiceGuard — scoring brand luxe",
+        "LuxePressAgent — rédaction presse",
+        "GreenClaimChecker — vérification claims RSE"
+      ]
+    },
+    "minimal": {
+      "label": "Risque minimal",
+      "color": "emerald",
+      "agentCount": 72,
+      "description": "Cas d'usage internes sans impact sur les droits fondamentaux. Bonnes pratiques volontaires appliquées.",
+      "examples": [
+        "Consolidation Groupe — agrégation comptable",
+        "Multi-Currency IAS 21 — conversion devises",
+        "Inventaire Luxe — comptage stock"
+      ]
+    }
+  },
+  "articles": [
+    {
+      "id": "art-6",
+      "number": "Article 6",
+      "title": "Classification des systèmes IA à haut risque",
+      "summary": "Définit les critères qui font basculer un système en « haut risque » selon l'annexe III (employment, education, scoring, etc.).",
+      "neuralDoes": "Chaque agent NEURAL passe une grille de classification documentée. La sortie est publiée dans la Model Card avec justification de la classe (interdit / haut-risque / limité / minimal).",
+      "neuralDoesNot": "Nous ne déclarons jamais un agent en « risque minimal » par confort commercial. Si le client opère le système dans un contexte qui le rend haut-risque, nous le signalons explicitement."
+    },
+    {
+      "id": "art-9",
+      "number": "Article 9",
+      "title": "Système de gestion des risques",
+      "summary": "Exige un processus continu d'identification et de mitigation des risques sur tout le cycle de vie du système IA.",
+      "neuralDoes": "Risk register par agent, revue trimestrielle, intégration des incidents et drift checks dans le processus de mise à jour. Documenté côté Operator Gateway.",
+      "neuralDoesNot": "Nous ne couvrons pas les risques externes (qualité des données client, environnement opérationnel) — ils relèvent du déployeur (article 26)."
+    },
+    {
+      "id": "art-10",
+      "number": "Article 10",
+      "title": "Données et gouvernance des données",
+      "summary": "Qualité, représentativité, biais, traçabilité des données utilisées pour entraîner et opérer un système IA haut-risque.",
+      "neuralDoes": "Pour les agents haut-risque : sources documentées, biais connus listés, mesures de mitigation explicites. Pas d'entraînement sur données client (modèles Claude utilisés tels quels).",
+      "neuralDoesNot": "Nous ne re-entraînons pas Claude sur des données identifiantes. Les agents s'appuient sur du prompting + RAG sur données client en runtime, sans persistance non sollicitée."
+    },
+    {
+      "id": "art-13",
+      "number": "Article 13",
+      "title": "Transparence et information des utilisateurs",
+      "summary": "Le déployeur doit savoir comment fonctionne le système IA, ses capacités et ses limites.",
+      "neuralDoes": "Model Cards publiques pour 30 agents prioritaires (T3 2026), puis 168 agents (2027). Disclosure intégrée aux UIs : « Cette réponse est générée par IA ».",
+      "neuralDoesNot": "Nous ne révélons pas les prompts internes en clair (IP industrielle), mais nous fournissons un résumé fonctionnel et les contraintes appliquées."
+    },
+    {
+      "id": "art-14",
+      "number": "Article 14",
+      "title": "Supervision humaine",
+      "summary": "Les systèmes haut-risque doivent permettre une supervision humaine effective : suspension, override, escalade.",
+      "neuralDoes": "Human-in-the-loop par défaut pour tous les agents haut-risque : décisions à approbation, escalade automatique, possibilité de bloquer un agent en un clic via l'Operator Gateway.",
+      "neuralDoesNot": "Nous n'opérons aucun agent en mode pleinement autonome sur des cas haut-risque, même à la demande explicite du client."
+    },
+    {
+      "id": "art-15",
+      "number": "Article 15",
+      "title": "Exactitude, robustesse et cybersécurité",
+      "summary": "Niveau approprié d'exactitude, mesures de cybersécurité, tests de résilience face aux entrées malveillantes.",
+      "neuralDoes": "Évaluations continues mensuelles : accuracy, hallucination rate, drift. Prompt injection tests automatisés. Rate-limiting par défaut (Upstash EU).",
+      "neuralDoesNot": "Nous ne garantissons pas un taux d'exactitude absolu — les LLMs sont probabilistes. Les seuils sont publiés par agent dans la Model Card."
+    },
+    {
+      "id": "art-17",
+      "number": "Article 17",
+      "title": "Système de gestion qualité",
+      "summary": "QMS structuré : documentation, contrôles, registre, gestion des changements.",
+      "neuralDoes": "Process documenté en interne, alignement progressif sur ISO/IEC 42001:2023 (AI Management System). Certification visée 2027.",
+      "neuralDoesNot": "Nous ne sommes pas encore certifiés ISO 42001. C'est explicitement « roadmap 2027 » sur la page Trust."
+    },
+    {
+      "id": "art-26",
+      "number": "Article 26",
+      "title": "Obligations des déployeurs",
+      "summary": "Le déployeur (le client final) a ses propres obligations : utilisation conforme, supervision humaine effective, journalisation.",
+      "neuralDoes": "Nous outillons le client : journalisation prête, dashboard supervision, FRIA fournie. Document d'aide à l'AIPD spécifique aux agents IA.",
+      "neuralDoesNot": "Nous ne pouvons pas remplacer le DPO ou le RSSI du client. La conformité finale du déploiement reste sous sa responsabilité."
+    }
+  ],
+  "doesList": [
+    "Classification AI Act publique pour chaque agent",
+    "Model Cards standardisées avec limites assumées",
+    "Audit trail signé via Operator Gateway",
+    "FRIA fournie pour les agents haut-risque",
+    "Prompt versioning et hashing immutable",
+    "Évaluations mensuelles drift / accuracy / hallucination",
+    "Escalation human-in-the-loop par défaut",
+    "Hosting EU documenté avec sous-processeurs publics",
+    "Disclosure « réponse générée par IA » côté UI"
+  ],
+  "doesNotList": [
+    "Remplacer un DPO, un RSSI ou un Conseil juridique",
+    "Fournir une garantie juridique absolue de conformité",
+    "Opérer des cas d'usage interdits par l'article 5 de l'AI Act",
+    "Opérer un agent autonome sur cas haut-risque sans supervision",
+    "Re-entraîner Claude sur des données client identifiantes",
+    "Promettre 100% d'exactitude ou zéro hallucination",
+    "Garantir la conformité du contexte d'usage côté client"
+  ]
+}

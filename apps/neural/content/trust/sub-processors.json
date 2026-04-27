@@ -1,0 +1,60 @@
+{
+  "lastUpdated": "2026-04-27",
+  "notificationCommitment": "Tout changement de sous-processeur est annoncé 30 jours à l'avance par email aux clients actifs et publié ici avec horodatage.",
+  "items": [
+    {
+      "id": "vercel",
+      "name": "Vercel Inc.",
+      "service": "Hébergement frontend, edge functions, CDN",
+      "region": "Frankfurt (FRA1) / Paris (CDG1)",
+      "dataScope": "Pages publiques, sessions visiteurs, logs d'accès",
+      "dpaUrl": "https://vercel.com/legal/dpa",
+      "country": "USA (filiale EU)"
+    },
+    {
+      "id": "neon",
+      "name": "Neon Inc.",
+      "service": "Base de données Postgres serverless",
+      "region": "EU-Central-1 (Frankfurt)",
+      "dataScope": "Données applicatives, métadonnées agents, journalisation",
+      "dpaUrl": "https://neon.tech/dpa",
+      "country": "USA (région EU active)"
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic PBC",
+      "service": "Modèles Claude (LLM principal)",
+      "region": "Routé via Vercel AI Gateway, transit chiffré TLS 1.3",
+      "dataScope": "Prompts utilisateur, contexte de session (rétention zéro côté Anthropic via Gateway)",
+      "dpaUrl": "https://www.anthropic.com/legal",
+      "country": "USA"
+    },
+    {
+      "id": "upstash",
+      "name": "Upstash Inc.",
+      "service": "Rate-limiting + cache Redis serverless",
+      "region": "EU-West (Dublin)",
+      "dataScope": "Compteurs anti-abus IP, cache éphémère court (TTL < 60s)",
+      "dpaUrl": "https://upstash.com/dpa",
+      "country": "USA (région EU active)"
+    },
+    {
+      "id": "resend",
+      "name": "Resend Inc.",
+      "service": "Email transactionnel (notifications, contact form)",
+      "region": "EU (eu-west-1)",
+      "dataScope": "Adresse email destinataire + contenu transactionnel",
+      "dpaUrl": "https://resend.com/legal/dpa",
+      "country": "USA (région EU active)"
+    },
+    {
+      "id": "langfuse",
+      "name": "Langfuse GmbH",
+      "service": "Observabilité LLM (traces, prompts versionnés)",
+      "region": "EU (Frankfurt) — auto-hébergement EU activable",
+      "dataScope": "Traces de prompts agents, métadonnées (pas de PII client)",
+      "dpaUrl": "https://langfuse.com/security/legal",
+      "country": "Allemagne"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "lastUpdated": "2026-04-27",
+  "items": [
+    {
+      "id": "frontend",
+      "layer": "Frontend & API routes",
+      "provider": "Vercel",
+      "region": "Frankfurt (FRA1) / Paris (CDG1)",
+      "description": "Hébergement edge multi-régional avec basculement automatique sur la zone européenne la plus proche.",
+      "icon": "Globe2"
+    },
+    {
+      "id": "database",
+      "layer": "Base de données applicative",
+      "provider": "Neon Postgres",
+      "region": "EU-Central-1 (Frankfurt)",
+      "description": "Postgres managé serverless avec branchement à la demande. Backups chiffrés AES-256, point-in-time recovery.",
+      "icon": "Database"
+    },
+    {
+      "id": "ai",
+      "layer": "Modèles IA",
+      "provider": "Anthropic Claude (via Vercel AI Gateway)",
+      "region": "Transit TLS 1.3 — Zero Data Retention configurée",
+      "description": "Claude Sonnet 4.6 principal. Pas de fine-tuning sur données clients. GPT-5 préparé en fallback documenté.",
+      "icon": "Sparkles"
+    },
+    {
+      "id": "observability",
+      "layer": "Observabilité agents",
+      "provider": "Langfuse (auto-hébergeable EU)",
+      "region": "Allemagne (Frankfurt)",
+      "description": "Traces LLM, versioning prompts, metrics par agent. Configurable en self-hosted EU si requis.",
+      "icon": "LineChart"
+    }
+  ]
+}

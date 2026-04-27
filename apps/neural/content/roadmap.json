@@ -1,0 +1,180 @@
+{
+  "lastUpdated": "2026-04-27",
+  "categories": [
+    { "id": "produit", "label": "Produit", "color": "violet" },
+    { "id": "conformite", "label": "Conformité", "color": "emerald" },
+    { "id": "connecteurs", "label": "Connecteurs", "color": "cyan" },
+    { "id": "sectoriel", "label": "Sectoriel", "color": "amber" },
+    { "id": "plateforme", "label": "Plateforme", "color": "rose" }
+  ],
+  "items": [
+    {
+      "id": "luxe-comms-5-agents",
+      "title": "5 agents Communication Luxe live (MaisonVoiceGuard, LuxePressAgent, LuxeEventComms, HeritageComms, GreenClaimChecker)",
+      "description": "Hub branche, démo Live Scorer, Press Angle, Heritage Quote, Claim Checker en runtime public.",
+      "category": "sectoriel",
+      "status": "shipped",
+      "shippedDate": "2026-04",
+      "href": "/secteurs/luxe/communication"
+    },
+    {
+      "id": "banque-comms-4-agents",
+      "title": "4 agents Communication Banque + 2 services internes",
+      "description": "RegBankComms, BankCrisisComms, ESGBankComms, ClientBankComms + RegWatchBank, BankEvidenceGuard. 16 gates déterministes.",
+      "category": "sectoriel",
+      "status": "shipped",
+      "shippedDate": "2026-04",
+      "href": "/secteurs/banque/communication"
+    },
+    {
+      "id": "trust-extension",
+      "title": "Trust Center étendu : sous-processeurs, hosting, certifications",
+      "description": "Sous-processeurs publics, infrastructure documentée, badges certifs, sécurité contact.",
+      "category": "plateforme",
+      "status": "shipped",
+      "shippedDate": "2026-04",
+      "href": "/trust"
+    },
+    {
+      "id": "status-page",
+      "title": "Status Page publique avec uptime 90j",
+      "description": "Composants surveillés, historique incidents, transparence opérationnelle.",
+      "category": "plateforme",
+      "status": "shipped",
+      "shippedDate": "2026-04",
+      "href": "/status"
+    },
+    {
+      "id": "ai-act-page",
+      "title": "Page AI Act complète",
+      "description": "Classification 168 agents, articles applicables, supervision humaine documentée.",
+      "category": "conformite",
+      "status": "shipped",
+      "shippedDate": "2026-04",
+      "href": "/conformite/ai-act"
+    },
+    {
+      "id": "operator-gateway-mvp",
+      "title": "Operator Gateway — MVP audit trail signé",
+      "description": "Couche de journalisation centralisée des décisions agent : prompt hash, modèle, latence, coût, signataire. Démo publique.",
+      "category": "produit",
+      "status": "now",
+      "progress": 60,
+      "expectedDate": "2026-Q3"
+    },
+    {
+      "id": "model-cards-30",
+      "title": "Model Cards publiques pour les 30 agents prioritaires",
+      "description": "Objectif, données, limites, classification AI Act, mesures de mitigation. Format standardisé.",
+      "category": "conformite",
+      "status": "now",
+      "progress": 25,
+      "expectedDate": "2026-Q3"
+    },
+    {
+      "id": "agents-catalog",
+      "title": "Catalogue /agents filtrable",
+      "description": "Grid des agents par branche × secteur × niveau de risque AI Act + ROI estimé. SEO long-tail.",
+      "category": "produit",
+      "status": "now",
+      "progress": 15,
+      "expectedDate": "2026-Q3"
+    },
+    {
+      "id": "outils-viraux",
+      "title": "Outils gratuits : AI Act Classifier, ROI Calculator, Maturity Quiz",
+      "description": "Lead-gen + viralité. Outputs PDF signés.",
+      "category": "produit",
+      "status": "next",
+      "expectedDate": "2026-Q3"
+    },
+    {
+      "id": "soc2-type-i",
+      "title": "SOC 2 Type I",
+      "description": "Audit AICPA Trust Services Criteria — sécurité + disponibilité.",
+      "category": "conformite",
+      "status": "next",
+      "expectedDate": "2026-Q3"
+    },
+    {
+      "id": "iso-27001",
+      "title": "ISO/IEC 27001:2022",
+      "description": "ISMS complet. Audit Bureau Veritas / DNV.",
+      "category": "conformite",
+      "status": "next",
+      "expectedDate": "2026-Q4"
+    },
+    {
+      "id": "connecteurs-eu-50",
+      "title": "50 connecteurs EU certifiés",
+      "description": "SAP, Sage, Cegid, Pennylane, Lucca, M365, Salesforce, Workday EU, Sopra Banking, Murex...",
+      "category": "connecteurs",
+      "status": "next",
+      "expectedDate": "2026-Q4"
+    },
+    {
+      "id": "sandbox-public",
+      "title": "Sandbox public agents (5 agents prioritaires)",
+      "description": "Démo cliquable sans login pour Consolidation, KYC, MRO, ESG, Voice Guard.",
+      "category": "produit",
+      "status": "next",
+      "expectedDate": "2026-Q4"
+    },
+    {
+      "id": "doc-portal",
+      "title": "Documentation produit publique (docs.neural-ai.fr)",
+      "description": "Mintlify ou Nextra. API Reference, tutoriels, model cards.",
+      "category": "produit",
+      "status": "next",
+      "expectedDate": "2026-Q4"
+    },
+    {
+      "id": "iso-42001",
+      "title": "ISO/IEC 42001:2023 — AI Management System",
+      "description": "Premier opérateur IA français visé. Certification rare et différenciante.",
+      "category": "conformite",
+      "status": "later",
+      "expectedDate": "2027"
+    },
+    {
+      "id": "marketplace-agents",
+      "title": "Marketplace agents avec self-serve low-touch",
+      "description": "Achat / déploiement d'un agent NEURAL en self-service pour PME-ETI.",
+      "category": "produit",
+      "status": "later",
+      "expectedDate": "2027"
+    },
+    {
+      "id": "neural-sdk",
+      "title": "SDK npm @neural/sdk + CLI",
+      "description": "TypeScript SDK et CLI pour intégrer les agents dans n'importe quel produit. Modèle Vercel AI SDK.",
+      "category": "produit",
+      "status": "later",
+      "expectedDate": "2027"
+    },
+    {
+      "id": "embed-sdk",
+      "title": "NEURAL Embed SDK",
+      "description": "iframe ou JS snippet pour embarquer un agent dans un produit partenaire SaaS.",
+      "category": "produit",
+      "status": "later",
+      "expectedDate": "2027"
+    },
+    {
+      "id": "dora-ready-pack",
+      "title": "Pack Banque / DORA-ready",
+      "description": "6 agents pré-câblés conformes DORA pour banques mid-cap françaises.",
+      "category": "sectoriel",
+      "status": "later",
+      "expectedDate": "2027"
+    },
+    {
+      "id": "csrd-pack",
+      "title": "Pack Luxe / CSRD E1 climat",
+      "description": "Automatisation reporting ESRS E1 pour maisons de luxe : LVMH, Kering, Hermès, Richemont.",
+      "category": "sectoriel",
+      "status": "later",
+      "expectedDate": "2027"
+    }
+  ]
+}

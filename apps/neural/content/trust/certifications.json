@@ -1,0 +1,65 @@
+{
+  "lastUpdated": "2026-04-27",
+  "items": [
+    {
+      "id": "rgpd",
+      "label": "RGPD",
+      "fullName": "Règlement Général sur la Protection des Données (UE 2016/679)",
+      "status": "by-design",
+      "statusLabel": "Conforme par design",
+      "description": "Architecture pensée pour la minimisation, la portabilité et la souveraineté. Sous-processeurs publics, DPA disponible.",
+      "evidenceUrl": "/trust",
+      "expectedDate": null
+    },
+    {
+      "id": "ai-act",
+      "label": "EU AI Act",
+      "fullName": "Règlement (UE) 2024/1689 sur l'Intelligence Artificielle",
+      "status": "by-design",
+      "statusLabel": "Ready by design",
+      "description": "Classification des agents par niveau de risque, supervision humaine par défaut, journalisation des décisions, transparence par Model Cards.",
+      "evidenceUrl": "/conformite/ai-act",
+      "expectedDate": null
+    },
+    {
+      "id": "soc2-i",
+      "label": "SOC 2 Type I",
+      "fullName": "AICPA SOC 2 Type I — Trust Services Criteria",
+      "status": "roadmap",
+      "statusLabel": "Roadmap T3 2026",
+      "description": "Audit en préparation via plateforme de compliance automatisée. Couverture sécurité + disponibilité.",
+      "evidenceUrl": "/roadmap",
+      "expectedDate": "2026-Q3"
+    },
+    {
+      "id": "soc2-ii",
+      "label": "SOC 2 Type II",
+      "fullName": "AICPA SOC 2 Type II — Continuous Operating Effectiveness",
+      "status": "roadmap",
+      "statusLabel": "Roadmap T1 2027",
+      "description": "Période d'observation 6 mois après obtention Type I.",
+      "evidenceUrl": "/roadmap",
+      "expectedDate": "2027-Q1"
+    },
+    {
+      "id": "iso-27001",
+      "label": "ISO/IEC 27001:2022",
+      "fullName": "Système de Management de la Sécurité de l'Information",
+      "status": "roadmap",
+      "statusLabel": "Roadmap T4 2026",
+      "description": "ISMS en cadrage. Audit prévu fin 2026 / début 2027.",
+      "evidenceUrl": "/roadmap",
+      "expectedDate": "2026-Q4"
+    },
+    {
+      "id": "iso-42001",
+      "label": "ISO/IEC 42001:2023",
+      "fullName": "AI Management System (AIMS)",
+      "status": "roadmap",
+      "statusLabel": "Roadmap 2027",
+      "description": "Standard récent (déc. 2023) — peu d'acteurs FR certifiés. Notre ambition : être parmi les premiers opérateurs IA français certifiés.",
+      "evidenceUrl": "/roadmap",
+      "expectedDate": "2027"
+    }
+  ]
+}

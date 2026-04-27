@@ -1041,15 +1041,17 @@ export const FOOTER_LINKS = {
     href: entry.href,
     status: entry.status,
   })),
-  Ressources: [
-    { label: "Publications", href: "/publications", status: "live" as PublicStatus },
-    // Etudes de cas, White Papers, Calculateur ROI, Audit maturite IA — masqués Sprint P0
-    // tant que le flag NEXT_PUBLIC_FEATURE_RESOURCES est off. Voir lib/features.ts.
+  Transparence: [
+    { label: "Trust", href: "/trust", status: "live" as PublicStatus },
+    { label: "Status", href: "/status", status: "live" as PublicStatus },
+    { label: "Roadmap", href: "/roadmap", status: "live" as PublicStatus },
+    { label: "AI Act", href: "/conformite/ai-act", status: "live" as PublicStatus },
+    { label: "vs Tray.ai", href: "/contre/tray-ai", status: "live" as PublicStatus },
   ],
   Entreprise: [
     { label: "A propos", href: "/about", status: "demo" as PublicStatus },
+    { label: "Publications", href: "/publications", status: "live" as PublicStatus },
     { label: "Contact", href: "/contact", status: "live" as PublicStatus },
-    { label: "Trust", href: "/trust", status: "live" as PublicStatus },
     { label: "Mentions legales", href: "/legal", status: "demo" as PublicStatus },
     { label: "Confidentialite", href: "/legal/confidentialite", status: "demo" as PublicStatus },
   ],

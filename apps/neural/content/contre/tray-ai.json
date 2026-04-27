@@ -1,0 +1,152 @@
+{
+  "lastUpdated": "2026-04-27",
+  "competitor": {
+    "name": "Tray.ai",
+    "url": "https://tray.ai",
+    "tagline": "AI for business automation",
+    "category": "iPaaS horizontal US"
+  },
+  "verdict": "Tray.ai pour intégrer 30 SaaS US avec 700+ connecteurs. NEURAL pour opérer 6 secteurs régulés EU avec 168 agents sectoriels et conformité AI Act native.",
+  "tldr": [
+    {
+      "side": "tray",
+      "title": "Tray.ai",
+      "description": "iPaaS mature (10+ ans), 700+ connecteurs, gouvernance MCP. Cible IT/Integration teams US enterprise.",
+      "color": "violet"
+    },
+    {
+      "side": "neural",
+      "title": "NEURAL",
+      "description": "Opérateur agents Claude vertical EU. 168 agents sectoriels, AI Act-ready by design, ROI cadré.",
+      "color": "emerald"
+    },
+    {
+      "side": "verdict",
+      "title": "Verdict",
+      "description": "Tray pour intégrer. NEURAL pour opérer. Choix orthogonaux selon votre besoin réel.",
+      "color": "amber"
+    }
+  ],
+  "dimensions": [
+    {
+      "label": "Positionnement",
+      "tray": "iPaaS horizontal avec couche IA",
+      "neural": "Opérateur sectoriel d'agents Claude",
+      "winner": "different",
+      "note": "Catégories orthogonales, pas concurrents directs"
+    },
+    {
+      "label": "ICP cible",
+      "tray": "IT / Integration teams mid-market & enterprise US",
+      "neural": "DAF / Direction métier secteurs régulés FR/EU",
+      "winner": "different"
+    },
+    {
+      "label": "Cas d'usage principal",
+      "tray": "Connecter 30+ SaaS et orchestrer workflows multi-systèmes",
+      "neural": "Opérer 168 agents sectoriels avec ROI cadré",
+      "winner": "different"
+    },
+    {
+      "label": "Connecteurs",
+      "tray": "700+ connecteurs pré-buildés",
+      "neural": "Roadmap 50 connecteurs EU certifiés (SAP, Sage, Cegid, Pennylane, Sopra…)",
+      "winner": "tray",
+      "note": "Tray gagne sur breadth — votre choix est de viser deep EU"
+    },
+    {
+      "label": "Onboarding",
+      "tray": "Demo + trial sur demande, services Launch payants",
+      "neural": "Audit 30 min gratuit, ~72h pour rappel, pas d'engagement",
+      "winner": "neural"
+    },
+    {
+      "label": "Profondeur produit",
+      "tray": "Mature (Merlin Builder, Palette, Gateway, Hub, IDP, APIM, Embed)",
+      "neural": "Plus jeune, focus IA verticale + Operator Gateway en cours",
+      "winner": "tray"
+    },
+    {
+      "label": "IA / agents / orchestration",
+      "tray": "Agent Builder no-code + Gateway MCP (modèle non spécifié publiquement)",
+      "neural": "Agents Claude pré-entraînés sectoriels, partenariat Anthropic affiché",
+      "winner": "different"
+    },
+    {
+      "label": "Gouvernance",
+      "tray": "RBAC, audit logs, rate limits, policies — mature",
+      "neural": "Trace auditable, human-in-the-loop, gates déterministes",
+      "winner": "tray",
+      "note": "Tray a 10+ ans d'avance, NEURAL rattrape avec Operator Gateway 2026"
+    },
+    {
+      "label": "Conformité AI Act",
+      "tray": "Pas de signal public spécifique sur l'AI Act EU",
+      "neural": "Page dédiée /conformite/ai-act, 8 articles documentés, classification 168 agents",
+      "winner": "neural"
+    },
+    {
+      "label": "Conformité RGPD",
+      "tray": "Conforme par défaut (acteur SaaS US)",
+      "neural": "RGPD by design, sous-processeurs publics, hosting EU documenté",
+      "winner": "neural"
+    },
+    {
+      "label": "Hosting / souveraineté",
+      "tray": "Multi-région globale, US-default",
+      "neural": "EU exclusif (Vercel FRA/CDG, Neon EU-Central, Upstash EU)",
+      "winner": "neural"
+    },
+    {
+      "label": "Pricing",
+      "tray": "Opaque (\"Tray Advantage\" / \"Advantage Plus\", task-based avec overages)",
+      "neural": "Transparent : Starter 290-1290€/mo, Business 4900-16500€/mo, Enterprise 35-110k€/mo",
+      "winner": "neural"
+    },
+    {
+      "label": "Vitesse de déploiement",
+      "tray": "8-16 semaines premier projet (services Launch en parallèle)",
+      "neural": "Cadrage outcome avant code, agents pré-entraînés sectoriels",
+      "winner": "neural"
+    },
+    {
+      "label": "Verticalisation",
+      "tray": "Horizontal, peu de cas d'usage sectoriels prêts",
+      "neural": "6 secteurs × 7 branches = 42 combinaisons sectorielles",
+      "winner": "neural"
+    },
+    {
+      "label": "Crédibilité enterprise",
+      "tray": "Logos US (J.W. Pepper, Apollo, Life360)",
+      "neural": "Cible CAC40/SBF120, runtime preuves Luxe + Banque + Assurance",
+      "winner": "different",
+      "note": "Tray gagne en US, NEURAL construit le marché FR/EU"
+    },
+    {
+      "label": "Adaptation France/Europe",
+      "tray": "Pas de signal public local (RGPD générique, pas d'AI Act)",
+      "neural": "Native FR, AI Act-ready, MiFID/ACPR/EASA outillé",
+      "winner": "neural"
+    }
+  ],
+  "whenChooseTray": {
+    "title": "Choisissez Tray.ai si...",
+    "criteria": [
+      "Vous avez 30+ SaaS US à interconnecter et besoin d'un iPaaS éprouvé",
+      "Votre équipe IT/Integration est mature et veut un canvas no-code complet",
+      "Vous cherchez un Document Processing + API Management dans la même plateforme",
+      "Votre marché principal est US et la conformité EU n'est pas votre priorité",
+      "Vous opérez déjà avec un MCP Gateway centralisé et voulez un acteur établi"
+    ]
+  },
+  "whenChooseNeural": {
+    "title": "Choisissez NEURAL si...",
+    "criteria": [
+      "Vous opérez dans un secteur régulé EU (banque, assurance, luxe, aéro)",
+      "L'AI Act et le RGPD sont des contraintes structurantes, pas optionnelles",
+      "Vous voulez un ROI cadré avant code, pas un POC qui meurt",
+      "Vous préférez 168 agents sectoriels prêts à un canvas vide à configurer",
+      "Souveraineté EU et pricing transparent sont des critères contractuels"
+    ]
+  }
+}

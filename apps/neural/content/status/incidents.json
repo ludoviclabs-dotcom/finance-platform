@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "id": "2026-04-12-ai-gateway",
+      "title": "Latence accrue sur Vercel AI Gateway",
+      "date": "2026-04-12",
+      "duration": "47 min",
+      "severity": "minor",
+      "status": "resolved",
+      "components": ["ai-gateway"],
+      "summary": "Pic de latence sur les modèles Claude (p95 > 4s) suite à un incident upstream Anthropic. Bascule automatique sur la région secondaire à 11h12. Retour nominal à 11h59.",
+      "postMortemUrl": null
+    },
+    {
+      "id": "2026-03-04-deployment",
+      "title": "Erreur de build sur déploiement de la branche /publications",
+      "date": "2026-03-04",
+      "duration": "12 min",
+      "severity": "minor",
+      "status": "resolved",
+      "components": ["publications"],
+      "summary": "Erreur MDX sur un article. Rollback automatique Vercel, correctif déployé en 12 min. Aucun impact sur les autres surfaces.",
+      "postMortemUrl": null
+    }
+  ]
+}

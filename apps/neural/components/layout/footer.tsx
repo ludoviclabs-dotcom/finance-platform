@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { FOOTER_LINKS, PUBLIC_STATUS_LABELS } from "@/lib/public-catalog";
+import { TrustGrid } from "@/components/site/trust-grid";
 
 export function Footer() {
   return (
@@ -8,6 +9,14 @@ export function Footer() {
       <div className="absolute left-1/2 -top-32 h-64 w-[800px] -translate-x-1/2 rounded-full bg-neural-violet/5 blur-[120px]" />
 
       <div className="relative mx-auto max-w-[1440px] px-8 py-16 md:px-12">
+        {/* TrustGrid strip — gages de crédibilité visibles sur chaque page */}
+        <div className="mb-12 rounded-[24px] border border-white/8 bg-white/[0.02] px-6 py-5">
+          <p className="mb-4 text-center text-[10px] uppercase tracking-[0.18em] text-white/35">
+            Engagements publics
+          </p>
+          <TrustGrid variant="strip" />
+        </div>
+
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {Object.entries(FOOTER_LINKS).map(([category, links]) => (
             <div key={category}>

@@ -30,6 +30,9 @@
   "nextSteps": [
     { "label": "Voir l'Operator Gateway en démo", "href": "/operator-gateway" },
     { "label": "Webhook agent.decision.created", "href": "/dev/webhooks" },
-    { "label": "Conformité AI Act détaillée", "href": "/conformite/ai-act" }
+    { "label": "Conformité AI Act détaillée", "href": "/conformite/ai-act" },
+    { "label": "Glossaire — Audit trail signé", "href": "/glossaire/audit-trail" },
+    { "label": "Glossaire — HMAC-SHA256", "href": "/glossaire/hmac" },
+    { "label": "Glossaire — DORA", "href": "/glossaire/dora" }
   ]
 }

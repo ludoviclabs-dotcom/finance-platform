@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { EvidenceCard } from "@/components/site/evidence-card";
+import { LearnMoreBlock } from "@/components/site/learn-more-block";
 import { ScopeCard } from "@/components/site/scope-card";
 import { StatusBadge } from "@/components/site/status-badge";
 import { getBranchEntry, getSectorEntry } from "@/lib/public-catalog";
@@ -300,6 +301,30 @@ export default function TransportPage() {
           </div>
         </div>
       </section>
+
+      <LearnMoreBlock
+        subtitle="Comprendre la méthodologie NEURAL (cadrage outcome, premier agent en 90 jours) et le vocabulaire IA contextualisé."
+        items={[
+          {
+            kind: "doc",
+            label: "Démarrer avec NEURAL",
+            description: "Cadrage outcome, choix du premier agent, cycle de déploiement 30/60/90 jours.",
+            href: "/docs/getting-started",
+          },
+          {
+            kind: "glossary",
+            label: "Agent IA",
+            description: "Système autonome qui perçoit, raisonne et agit pour atteindre un objectif métier.",
+            href: "/glossaire/agent-ia",
+          },
+          {
+            kind: "glossary",
+            label: "LLM (Large Language Model)",
+            description: "Le moteur de raisonnement utilisé par les agents — Claude Sonnet 4.6 chez NEURAL.",
+            href: "/glossaire/llm",
+          },
+        ]}
+      />
     </div>
   );
 }

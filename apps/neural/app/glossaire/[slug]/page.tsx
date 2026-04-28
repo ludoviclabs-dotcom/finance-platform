@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Layers } from "lucide-react";
 
 import termsData from "@/content/glossaire/terms.json";
+import { getSectorEntry } from "@/lib/public-catalog";
 
 export function generateStaticParams() {
   return termsData.terms.map((t) => ({ slug: t.slug }));
@@ -35,6 +36,11 @@ export default async function GlossaireTermPage({
   const related = term.relatedTerms
     .map((relSlug) => termsData.terms.find((t) => t.slug === relSlug))
     .filter((t): t is NonNullable<typeof t> => Boolean(t));
+
+  const appliesTo = (term as { appliesTo?: string[] }).appliesTo ?? [];
+  const sectors = appliesTo
+    .map((slug) => getSectorEntry(slug))
+    .filter((e): e is NonNullable<typeof e> => Boolean(e));
 
   return (
     <div className="min-h-screen overflow-hidden bg-gradient-neural text-white">
@@ -98,6 +104,35 @@ export default async function GlossaireTermPage({
                       <p className="mt-0.5 text-xs text-white/55">{rel.shortDefinition}</p>
                     </div>
                     <ArrowRight className="h-4 w-4 flex-shrink-0 text-violet-200 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {sectors.length > 0 ? (
+            <div>
+              <h2 className="font-display text-xl font-bold tracking-tight text-white">
+                Applicable à
+              </h2>
+              <p className="mt-2 text-sm text-white/55">
+                Secteurs NEURAL où ce terme est directement opérationnel.
+              </p>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {sectors.map((sector) => (
+                  <Link
+                    key={sector.slug}
+                    href={sector.href}
+                    className="group flex items-center justify-between gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.04] p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-400/40 hover:bg-emerald-400/[0.07] no-underline"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Layers className="h-4 w-4 flex-shrink-0 text-emerald-300" />
+                      <div>
+                        <p className="text-sm font-semibold text-white">Secteur {sector.label}</p>
+                        <p className="mt-0.5 text-xs text-white/55">{sector.tagline}</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 flex-shrink-0 text-emerald-200 transition-transform group-hover:translate-x-1" />
                   </Link>
                 ))}
               </div>

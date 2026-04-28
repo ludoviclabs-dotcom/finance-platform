@@ -30,6 +30,8 @@
   "nextSteps": [
     { "label": "Lancer le cadrage outcome", "href": "/contact?source=docs-getting-started" },
     { "label": "Voir le catalogue d'agents", "href": "/agents" },
-    { "label": "Tester l'AI Act Classifier", "href": "/outils/ai-act-classifier" }
+    { "label": "Tester l'AI Act Classifier", "href": "/outils/ai-act-classifier" },
+    { "label": "Glossaire IA — comprendre le vocabulaire", "href": "/glossaire" },
+    { "label": "Définition d'un Agent IA", "href": "/glossaire/agent-ia" }
   ]
 }

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { EvidenceCard } from "@/components/site/evidence-card";
+import { LearnMoreBlock } from "@/components/site/learn-more-block";
 import { ScopeCard } from "@/components/site/scope-card";
 import { StatusBadge } from "@/components/site/status-badge";
 import {
@@ -310,6 +311,30 @@ export default function LuxeHubPage() {
           </div>
         </div>
       </section>
+
+      <LearnMoreBlock
+        subtitle="Comprendre l'architecture qui rend la verticale Luxe opérable, et le vocabulaire IA contextualisé."
+        items={[
+          {
+            kind: "doc",
+            label: "Architecture des agents",
+            description: "Les 4 couches d'un agent NEURAL : inputs validés, gates déterministes, LLM via Operator Gateway, post-processing.",
+            href: "/docs/agents-architecture",
+          },
+          {
+            kind: "glossary",
+            label: "Operator Gateway",
+            description: "La couche d'orchestration centralisée qui gouverne tous les agents NEURAL.",
+            href: "/glossaire/operator-gateway",
+          },
+          {
+            kind: "glossary",
+            label: "MCP (Model Context Protocol)",
+            description: "Protocole ouvert qui standardise la communication entre LLM et outils.",
+            href: "/glossaire/mcp",
+          },
+        ]}
+      />
     </div>
   );
 }

@@ -13,6 +13,8 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { LearnMoreBlock } from "@/components/site/learn-more-block";
+
 export const metadata: Metadata = {
   title: "Banque - Communication & Marketing regules | NEURAL",
   description:
@@ -193,6 +195,30 @@ export default function BanquePage() {
           </Link>
         </section>
       </div>
+
+      <LearnMoreBlock
+        subtitle="Comprendre les exigences DORA, AI Act et l'audit trail signé que NEURAL applique aux agents bancaires."
+        items={[
+          {
+            kind: "doc",
+            label: "Audit trail signé",
+            description: "Format, chaîne de signature HMAC-SHA256, export, opposabilité juridique (article 1366 du Code civil).",
+            href: "/docs/audit-trail",
+          },
+          {
+            kind: "glossary",
+            label: "DORA",
+            description: "Digital Operational Resilience Act — résilience opérationnelle TIC pour les entités financières EU.",
+            href: "/glossaire/dora",
+          },
+          {
+            kind: "glossary",
+            label: "Audit trail signé",
+            description: "Journal immuable et signé des décisions IA, opposable juridiquement.",
+            href: "/glossaire/audit-trail",
+          },
+        ]}
+      />
     </main>
   );
 }

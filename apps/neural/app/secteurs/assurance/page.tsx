@@ -11,6 +11,8 @@ import {
   Wrench,
 } from "lucide-react";
 
+import { LearnMoreBlock } from "@/components/site/learn-more-block";
+
 export const metadata: Metadata = {
   title: "Assurance — Supply Chain & Marketing conformes | NEURAL",
   description:
@@ -189,6 +191,30 @@ export default function AssurancePage() {
         </section>
 
       </div>
+
+      <LearnMoreBlock
+        subtitle="Comprendre l'audit trail signé exigé par DORA, et la couverture CSRD applicable au secteur assurance."
+        items={[
+          {
+            kind: "doc",
+            label: "Audit trail signé",
+            description: "Format, chaîne de signature HMAC-SHA256, export JSONL, opposabilité juridique.",
+            href: "/docs/audit-trail",
+          },
+          {
+            kind: "glossary",
+            label: "CSRD",
+            description: "Corporate Sustainability Reporting Directive — reporting durabilité EU, 1 144 datapoints ESRS.",
+            href: "/glossaire/csrd",
+          },
+          {
+            kind: "glossary",
+            label: "DORA",
+            description: "Digital Operational Resilience Act — résilience opérationnelle TIC pour les assureurs EU.",
+            href: "/glossaire/dora",
+          },
+        ]}
+      />
     </main>
   );
 }

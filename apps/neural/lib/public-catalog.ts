@@ -1013,11 +1013,23 @@ export const NAVIGATION = [
   {
     label: "Secteurs",
     href: "/secteurs/luxe",
-    children: SECTOR_ENTRIES.filter((entry) => entry.status !== "planned").map((entry) => ({
+    children: SECTOR_ENTRIES.map((entry) => ({
       label: entry.label,
       href: entry.href,
       status: entry.status,
     })),
+  },
+  {
+    label: "Ressources",
+    href: "/docs",
+    children: [
+      { label: "Documentation", href: "/docs", status: "live" as PublicStatus },
+      { label: "Glossaire IA", href: "/glossaire", status: "live" as PublicStatus },
+      { label: "Outils gratuits", href: "/outils/roi", status: "live" as PublicStatus },
+      { label: "Sandbox", href: "/sandbox", status: "live" as PublicStatus },
+      { label: "Recipes", href: "/recipes", status: "live" as PublicStatus },
+      { label: "Cas-types", href: "/cas-types", status: "live" as PublicStatus },
+    ],
   },
   { label: "Publications", href: "/publications" },
   { label: "À propos", href: "/about" },

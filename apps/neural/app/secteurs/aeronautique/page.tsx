@@ -10,6 +10,8 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { LearnMoreBlock } from "@/components/site/learn-more-block";
+
 export const metadata: Metadata = {
   title: "Aéronautique — Marketing & Communications | NEURAL",
   description:
@@ -204,6 +206,30 @@ export default function AeronautiquePage() {
         </section>
 
       </div>
+
+      <LearnMoreBlock
+        subtitle="Comprendre le protocole MCP, le RGPD agents et la supervision humaine appliqués aux contraintes ITAR/EAR."
+        items={[
+          {
+            kind: "doc",
+            label: "Protocole MCP & Operator Gateway",
+            description: "Comment NEURAL gouverne les serveurs MCP : routing, RBAC, rate limiting, audit, policy enforcement.",
+            href: "/docs/mcp-protocol",
+          },
+          {
+            kind: "glossary",
+            label: "RGPD",
+            description: "Règlement Général sur la Protection des Données (UE 2016/679) appliqué aux agents IA.",
+            href: "/glossaire/rgpd",
+          },
+          {
+            kind: "glossary",
+            label: "Supervision humaine effective",
+            description: "Concept AI Act article 14 : capacité humaine à comprendre, suspendre et corriger un système IA.",
+            href: "/glossaire/supervision-humaine",
+          },
+        ]}
+      />
     </main>
   );
 }

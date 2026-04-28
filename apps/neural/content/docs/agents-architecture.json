@@ -30,6 +30,9 @@
   "nextSteps": [
     { "label": "Voir le catalogue des 16 agents", "href": "/agents" },
     { "label": "Comprendre le Protocole MCP", "href": "/docs/mcp-protocol" },
-    { "label": "Comprendre l'audit trail", "href": "/docs/audit-trail" }
+    { "label": "Comprendre l'audit trail", "href": "/docs/audit-trail" },
+    { "label": "Glossaire — MCP", "href": "/glossaire/mcp" },
+    { "label": "Glossaire — Operator Gateway", "href": "/glossaire/operator-gateway" },
+    { "label": "Glossaire — Agent IA", "href": "/glossaire/agent-ia" }
   ]
 }

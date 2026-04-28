@@ -30,6 +30,8 @@
   "nextSteps": [
     { "label": "Voir la démo Operator Gateway", "href": "/operator-gateway" },
     { "label": "Webhooks de l'Operator Gateway", "href": "/dev/webhooks" },
-    { "label": "Comprendre l'audit trail", "href": "/docs/audit-trail" }
+    { "label": "Comprendre l'audit trail", "href": "/docs/audit-trail" },
+    { "label": "Glossaire — MCP (Model Context Protocol)", "href": "/glossaire/mcp" },
+    { "label": "Glossaire — Operator Gateway", "href": "/glossaire/operator-gateway" }
   ]
 }

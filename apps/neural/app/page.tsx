@@ -13,6 +13,7 @@ import { SectionPricing }       from "@/components/homepage/section-pricing";
 // client vérifiable n'est disponible (cf. docs/AI-ACT.md et PLAN.md §Incohérences).
 // Le composant reste disponible dans components/homepage/ pour réactivation future.
 import { SectionLiveData }      from "@/components/homepage/section-live-data";
+import { SectionResources }     from "@/components/homepage/section-resources";
 import { SectionCTA }           from "@/components/homepage/section-cta";
 
 export default function HomePage() {
@@ -28,6 +29,7 @@ export default function HomePage() {
       <SectionMatrix />
       <SectionPricing />
       <SectionLiveData />
+      <SectionResources />
       <SectionCTA />
     </div>
   );

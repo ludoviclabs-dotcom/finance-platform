@@ -36,6 +36,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ── Trust & ops ───────────────────────────────────────────
   const transparencePages: Array<[string, MetadataRoute.Sitemap[number]["changeFrequency"], number]> = [
     ["trust", "weekly", 0.9],
+    ["trust/agent-safety", "weekly", 0.8],
+    ["trust/agent-safety/deck", "monthly", 0.5],
     ["status", "daily", 0.7],
     ["roadmap", "weekly", 0.7],
     ["changelog", "weekly", 0.7],

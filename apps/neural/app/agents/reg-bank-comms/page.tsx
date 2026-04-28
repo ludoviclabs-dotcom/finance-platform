@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { RegBankCommsLive } from "@/components/bank-comms/RegBankCommsLive";
+import { AgentSafetyModelCard } from "@/components/trust/agent-safety-model-card";
 import {
   BANK_COMMS_DISCLOSURE_RULES,
   BANK_COMMS_GATES,
@@ -19,6 +20,7 @@ import {
   REG_BANK_SCENARIOS,
   getAgentBySlug,
 } from "@/lib/data/bank-comms-catalog";
+import { getAgentSafetyProfile } from "@/lib/data/agent-safety";
 
 const SLUG = "reg-bank-comms";
 
@@ -31,6 +33,7 @@ export const metadata: Metadata = {
 export default function RegBankCommsAgentPage() {
   const agent = getAgentBySlug(SLUG);
   const blockingRules = BANK_COMMS_DISCLOSURE_RULES.filter((r) => r.blocking);
+  const safetyProfile = getAgentSafetyProfile(SLUG);
 
   return (
     <div data-theme="dark" className="min-h-screen bg-[#0A1628] text-white">
@@ -79,6 +82,8 @@ export default function RegBankCommsAgentPage() {
           </div>
         </div>
       </section>
+
+      {safetyProfile ? <AgentSafetyModelCard profile={safetyProfile} /> : null}
 
       {/* Démo */}
       <section className="border-b border-white/5 px-6 py-14 md:px-12">

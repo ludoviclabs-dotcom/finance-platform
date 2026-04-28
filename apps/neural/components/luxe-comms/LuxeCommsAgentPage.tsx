@@ -12,6 +12,8 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Database, FileCheck2, Landmark, Leaf, Newspaper, ShieldCheck, Sparkles } from "lucide-react";
 
 import { StatusBadge } from "@/components/site/status-badge";
+import { AgentSafetyModelCard } from "@/components/trust/agent-safety-model-card";
+import { getAgentSafetyProfile } from "@/lib/data/agent-safety";
 import { getAgentEntry, getBranchEntry } from "@/lib/public-catalog";
 import {
   LUXE_COMMS_AGENTS,
@@ -53,6 +55,7 @@ export function LuxeCommsAgentPage({
 
   const Icon = AGENT_ICON[slug];
   const tint = GATE_TINT[agent.primaryGate];
+  const safetyProfile = getAgentSafetyProfile(slug);
 
   // Autres agents de la branche, pour cross-link
   const siblings = LUXE_COMMS_AGENTS.filter((a) => a.slug !== slug);
@@ -123,6 +126,14 @@ export function LuxeCommsAgentPage({
           </div>
         </div>
       </section>
+
+      {safetyProfile ? (
+        <section className="border-b border-white/5 px-6 py-16 md:px-12">
+          <div className="mx-auto max-w-[1280px]">
+            <AgentSafetyModelCard profile={safetyProfile} compact />
+          </div>
+        </section>
+      ) : null}
 
       {/* SCOPE ≠ PROMISE */}
       <section className="border-b border-white/5 px-6 py-16 md:px-12">

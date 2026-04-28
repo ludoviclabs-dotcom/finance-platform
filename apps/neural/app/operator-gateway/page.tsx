@@ -6,6 +6,7 @@ import { McpServersList } from "@/components/operator-gateway/mcp-servers-list";
 import { AuditTrailStream } from "@/components/operator-gateway/audit-trail-stream";
 import { CostDashboard } from "@/components/operator-gateway/cost-dashboard";
 import { PolicyEngineList } from "@/components/operator-gateway/policy-engine-list";
+import { SafetyDecisionDemo } from "@/components/trust/safety-decision-demo";
 
 export const metadata = {
   title: "Operator Gateway — NEURAL",
@@ -149,6 +150,35 @@ export default function OperatorGatewayPage() {
           </div>
           <div className="mt-8">
             <PolicyEngineList policies={demoState.policies} />
+          </div>
+        </div>
+      </section>
+
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                <ShieldCheck className="h-3 w-3" />
+                Agent Safety
+              </span>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+                Demonstration ALLOW / REVIEW / BLOCK
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
+                Cette simulation montre la decision de politique avant execution :
+                action utile, action sensible en revue, ou action hors perimetre bloquee.
+              </p>
+            </div>
+            <Link
+              href="/trust/agent-safety"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200"
+            >
+              Lire la preuve securite <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="mt-8">
+            <SafetyDecisionDemo />
           </div>
         </div>
       </section>

@@ -1055,6 +1055,7 @@ export const FOOTER_LINKS = {
   })),
   Transparence: [
     { label: "Trust", href: "/trust", status: "live" as PublicStatus },
+    { label: "Agent Safety", href: "/trust/agent-safety", status: "live" as PublicStatus },
     { label: "Status", href: "/status", status: "live" as PublicStatus },
     { label: "Roadmap", href: "/roadmap", status: "live" as PublicStatus },
     { label: "Changelog", href: "/changelog", status: "live" as PublicStatus },

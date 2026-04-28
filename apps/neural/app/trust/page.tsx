@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
 
 import {
   BRANCH_ENTRIES,
@@ -252,6 +252,58 @@ export default function TrustPage() {
                     {note}
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-3 py-1 text-[11px] font-semibold text-emerald-300">
+                <LockKeyhole className="h-3 w-3" />
+                Agent Safety
+              </span>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+                Pourquoi un agent NEURAL ne peut pas tout supprimer
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/65">
+                Une page dediee montre le flowchart de controle, les verdicts
+                ALLOW / REVIEW / BLOCK, les scenarios d&apos;incident evite et les
+                mini Model Cards des agents prioritaires.
+              </p>
+            </div>
+            <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+              <div className="grid gap-3 md:grid-cols-3">
+                {["Gates serveur", "HITL", "Audit trail"].map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4"
+                  >
+                    <p className="text-sm font-semibold text-emerald-200">{item}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-white/55">
+                      Controle technique visible dans le parcours Trust.
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  href="/trust/agent-safety"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#0A1628] transition-colors hover:bg-violet-100"
+                >
+                  Ouvrir la preuve securite
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/trust/agent-safety/deck"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/[0.08]"
+                >
+                  Voir le deck
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </div>
             </div>
           </div>

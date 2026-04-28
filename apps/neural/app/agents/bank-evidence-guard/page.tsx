@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { EvidenceResolverLive } from "@/components/bank-comms/EvidenceResolverLive";
+import { AgentSafetyModelCard } from "@/components/trust/agent-safety-model-card";
 import {
   BANK_COMMS_SOURCES,
   EVIDENCE_EXPANDED,
@@ -20,6 +21,7 @@ import {
   getEvidenceExpanded,
 } from "@/lib/data/bank-comms-catalog";
 import { runResolverTestset } from "@/lib/ai/bank-evidence-guard";
+import { getAgentSafetyProfile } from "@/lib/data/agent-safety";
 
 const SLUG = "bank-evidence-guard";
 
@@ -33,6 +35,7 @@ export default function BankEvidenceGuardPage() {
   const agent = getAgentBySlug(SLUG);
   const testResults = runResolverTestset();
   const passed = testResults.filter((r) => r.passed).length;
+  const safetyProfile = getAgentSafetyProfile(SLUG);
 
   return (
     <div data-theme="dark" className="min-h-screen bg-[#0A1628] text-white">
@@ -86,6 +89,8 @@ export default function BankEvidenceGuardPage() {
           </div>
         </div>
       </section>
+
+      {safetyProfile ? <AgentSafetyModelCard profile={safetyProfile} /> : null}
 
       <section className="border-b border-white/5 px-6 py-14 md:px-12">
         <div className="mx-auto max-w-[1280px]">

@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Schéma d'orchestration NEURAL : un orchestrateur central coordonne 6 agents spécialisés via validation humaine, avec audit trail complet">
+  <title>Orchestration NEURAL — Multi-agents avec validation humaine</title>
+  <desc>Schéma d'orchestration : entrée métier → orchestrateur central → 6 agents spécialisés → validation humaine → exécution avec audit trail</desc>
+
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#111D35"/>
+      <stop offset="100%" stop-color="#0A1628"/>
+    </linearGradient>
+    <radialGradient id="orchGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </radialGradient>
+    <radialGradient id="violetHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+    </pattern>
+    <marker id="arrowViolet" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7C3AED"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#10B981"/>
+    </marker>
+    <marker id="arrowDim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(167,139,250,0.5)"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="700" fill="url(#bgGrad)"/>
+  <rect width="1200" height="700" fill="url(#grid)"/>
+  <circle cx="600" cy="350" r="280" fill="url(#violetHalo)"/>
+
+  <!-- Title -->
+  <text x="60" y="56" font-family="'Space Grotesk', system-ui, sans-serif" font-size="22" font-weight="700" fill="#fff" letter-spacing="-0.02em">Orchestration multi-agents</text>
+  <text x="60" y="80" font-family="Inter, system-ui, sans-serif" font-size="13" fill="rgba(255,255,255,0.55)">Un orchestrateur central · agents spécialisés par domaine · validation humaine · audit trail complet</text>
+
+  <!-- Eyebrow -->
+  <g transform="translate(1000, 50)">
+    <rect x="0" y="0" width="140" height="22" rx="11" fill="rgba(167,139,250,0.10)" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+    <circle cx="14" cy="11" r="3" fill="#10B981"/>
+    <text x="24" y="15" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.18em" fill="#A78BFA">FRAMEWORK NEURAL</text>
+  </g>
+
+  <!-- Input layer (left) -->
+  <g transform="translate(60, 290)">
+    <rect x="0" y="0" width="180" height="120" rx="12" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+    <text x="20" y="30" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.14em" fill="rgba(255,255,255,0.55)">ENTRÉE</text>
+    <text x="20" y="58" font-family="'Space Grotesk', system-ui, sans-serif" font-size="16" font-weight="700" fill="#fff">Intention métier</text>
+    <text x="20" y="80" font-family="Inter, system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.70)">Tâche · question · workflow</text>
+    <text x="20" y="98" font-family="Inter, system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.70)">Données structurées</text>
+  </g>
+
+  <!-- Arrow input → orchestrator -->
+  <line x1="245" y1="350" x2="455" y2="350" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#arrowViolet)"/>
+
+  <!-- Orchestrator (center) -->
+  <g transform="translate(470, 260)">
+    <circle cx="90" cy="90" r="105" fill="url(#violetHalo)"/>
+    <rect x="0" y="0" width="180" height="180" rx="90" fill="url(#orchGrad)" stroke="rgba(167,139,250,0.5)" stroke-width="2"/>
+    <text x="90" y="80" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.16em" fill="rgba(255,255,255,0.85)">CŒUR DU SYSTÈME</text>
+    <text x="90" y="106" text-anchor="middle" font-family="'Space Grotesk', system-ui, sans-serif" font-size="20" font-weight="700" fill="#fff">Orchestrateur</text>
+    <text x="90" y="130" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.85)">Routage · contexte</text>
+    <text x="90" y="146" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.85)">Garde-fous métier</text>
+  </g>
+
+  <!-- 6 Specialized agents (right cluster) -->
+  <g font-family="Inter, system-ui, sans-serif">
+    <!-- Agent 1 -->
+    <g transform="translate(740, 100)">
+      <rect width="160" height="64" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(167,139,250,0.30)" stroke-width="1"/>
+      <text x="14" y="22" font-size="10" font-weight="700" fill="#A78BFA" letter-spacing="0.06em">FINANCE</text>
+      <text x="14" y="40" font-size="11" font-weight="600" fill="#fff">Reporting · IFRS 17</text>
+      <text x="14" y="56" font-size="9" fill="rgba(255,255,255,0.60)">−68% temps clôture</text>
+    </g>
+    <!-- Agent 2 -->
+    <g transform="translate(920, 100)">
+      <rect width="160" height="64" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(167,139,250,0.30)" stroke-width="1"/>
+      <text x="14" y="22" font-size="10" font-weight="700" fill="#A78BFA" letter-spacing="0.06em">COMMUNICATION</text>
+      <text x="14" y="40" font-size="11" font-weight="600" fill="#fff">RegBankComms</text>
+      <text x="14" y="56" font-size="9" fill="rgba(255,255,255,0.60)">−85% relecture manuelle</text>
+    </g>
+    <!-- Agent 3 -->
+    <g transform="translate(740, 195)">
+      <rect width="160" height="64" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(167,139,250,0.30)" stroke-width="1"/>
+      <text x="14" y="22" font-size="10" font-weight="700" fill="#A78BFA" letter-spacing="0.06em">SUPPLY CHAIN</text>
+      <text x="14" y="40" font-size="11" font-weight="600" fill="#fff">LogisticsOptimizer</text>
+      <text x="14" y="56" font-size="9" fill="rgba(255,255,255,0.60)">+42% précision prévisions</text>
+    </g>
+    <!-- Agent 4 -->
+    <g transform="translate(920, 195)">
+      <rect width="160" height="64" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(167,139,250,0.30)" stroke-width="1"/>
+      <text x="14" y="22" font-size="10" font-weight="700" fill="#A78BFA" letter-spacing="0.06em">MARKETING / ESG</text>
+      <text x="14" y="40" font-size="11" font-weight="600" fill="#fff">GreenClaimChecker</text>
+      <text x="14" y="56" font-size="9" fill="rgba(255,255,255,0.60)">100% claims vérifiés</text>
+    </g>
+    <!-- Agent 5 -->
+    <g transform="translate(740, 290)">
+      <rect width="160" height="64" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(167,139,250,0.30)" stroke-width="1"/>
+      <text x="14" y="22" font-size="10" font-weight="700" fill="#A78BFA" letter-spacing="0.06em">RH</text>
+      <text x="14" y="40" font-size="11" font-weight="600" fill="#fff">HiringGuardrails</text>
+      <text x="14" y="56" font-size="9" fill="rgba(255,255,255,0.60)">Anti-biais · audit RGPD</text>
+    </g>
+    <!-- Agent 6 -->
+    <g transform="translate(920, 290)">
+      <rect width="160" height="64" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(167,139,250,0.30)" stroke-width="1"/>
+      <text x="14" y="22" font-size="10" font-weight="700" fill="#A78BFA" letter-spacing="0.06em">SI / DATA</text>
+      <text x="14" y="40" font-size="11" font-weight="600" fill="#fff">DataGovernance</text>
+      <text x="14" y="56" font-size="9" fill="rgba(255,255,255,0.60)">Lineage · DORA-ready</text>
+    </g>
+  </g>
+
+  <!-- Arrows orchestrator → agents -->
+  <g stroke="rgba(167,139,250,0.55)" stroke-width="1.6" fill="none" marker-end="url(#arrowDim)">
+    <path d="M 660 320 C 700 280, 720 180, 740 132"/>
+    <path d="M 660 320 C 720 250, 820 180, 920 132"/>
+    <path d="M 660 350 C 700 340, 720 250, 740 227"/>
+    <path d="M 660 350 C 750 350, 880 280, 920 227"/>
+    <path d="M 660 380 C 700 400, 720 340, 740 322"/>
+    <path d="M 660 380 C 750 400, 880 380, 920 322"/>
+  </g>
+
+  <!-- Validation layer -->
+  <g transform="translate(740, 400)">
+    <rect width="340" height="80" rx="12" fill="rgba(16,185,129,0.10)" stroke="rgba(16,185,129,0.35)" stroke-width="1.5"/>
+    <text x="20" y="26" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="700" letter-spacing="0.16em" fill="#10B981">VALIDATION HUMAINE</text>
+    <text x="20" y="49" font-family="'Space Grotesk', system-ui, sans-serif" font-size="15" font-weight="700" fill="#fff">L'humain reste décisionnaire.</text>
+    <text x="20" y="68" font-family="Inter, system-ui, sans-serif" font-size="10.5" fill="rgba(255,255,255,0.70)">Workflow d'approbation sur chaque action à fort impact.</text>
+  </g>
+
+  <!-- Down arrow agents → validation (collective) -->
+  <g stroke="#A78BFA" stroke-width="1.5" fill="none" marker-end="url(#arrowDim)" stroke-dasharray="3,3">
+    <path d="M 820 360 L 820 395"/>
+    <path d="M 1000 360 L 1000 395"/>
+  </g>
+
+  <!-- Output / Audit trail (bottom) -->
+  <g transform="translate(60, 540)">
+    <rect width="1080" height="120" rx="12" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+    <text x="24" y="30" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="700" letter-spacing="0.16em" fill="#10B981">SORTIE · AUDIT TRAIL</text>
+    <text x="24" y="58" font-family="'Space Grotesk', system-ui, sans-serif" font-size="18" font-weight="700" fill="#fff">Exécution + traçabilité complète</text>
+    <text x="24" y="80" font-family="Inter, system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.70)">Chaque action loguée : agent source · contexte · justification · KPI engagé · timestamp.</text>
+    <text x="24" y="100" font-family="Inter, system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.70)">Réglementairement exploitable — DORA, RGPD, EASA, IFRS 17.</text>
+
+    <!-- Pills -->
+    <g transform="translate(680, 44)">
+      <rect width="92" height="26" rx="13" fill="rgba(124,58,237,0.18)" stroke="rgba(124,58,237,0.35)"/>
+      <text x="46" y="17" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#A78BFA">DORA</text>
+    </g>
+    <g transform="translate(780, 44)">
+      <rect width="92" height="26" rx="13" fill="rgba(124,58,237,0.18)" stroke="rgba(124,58,237,0.35)"/>
+      <text x="46" y="17" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#A78BFA">RGPD</text>
+    </g>
+    <g transform="translate(880, 44)">
+      <rect width="92" height="26" rx="13" fill="rgba(16,185,129,0.18)" stroke="rgba(16,185,129,0.35)"/>
+      <text x="46" y="17" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#10B981">IFRS 17</text>
+    </g>
+    <g transform="translate(980, 44)">
+      <rect width="74" height="26" rx="13" fill="rgba(16,185,129,0.18)" stroke="rgba(16,185,129,0.35)"/>
+      <text x="37" y="17" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#10B981">EASA</text>
+    </g>
+  </g>
+
+  <!-- Down arrow validation → audit -->
+  <line x1="910" y1="488" x2="910" y2="535" stroke="#10B981" stroke-width="2" marker-end="url(#arrowGreen)"/>
+</svg>

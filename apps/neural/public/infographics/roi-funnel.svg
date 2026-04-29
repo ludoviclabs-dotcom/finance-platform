@@ -1,0 +1,223 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Funnel ROI NEURAL : du forfait choisi aux gains mesurés contractuellement">
+  <title>Funnel ROI NEURAL — du forfait au gain mesuré</title>
+  <desc>Funnel ROI : forfait choisi (Starter/Business/Enterprise) → agents déployés → gains opérationnels (heures économisées, erreurs évitées) → ROI financier mesuré contractuellement.</desc>
+
+  <defs>
+    <linearGradient id="roiBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FAF8F5"/>
+      <stop offset="100%" stop-color="#F0EBE3"/>
+    </linearGradient>
+    <linearGradient id="violetFill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="midnightFill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0A1628"/>
+      <stop offset="100%" stop-color="#111D35"/>
+    </linearGradient>
+    <linearGradient id="greenFill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+    <pattern id="roiGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(10,22,40,0.04)" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="roiHaloV" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="roiHaloG" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="roiArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7C3AED"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="700" fill="url(#roiBg)"/>
+  <rect width="1200" height="700" fill="url(#roiGrid)"/>
+  <ellipse cx="200" cy="350" rx="280" ry="220" fill="url(#roiHaloV)"/>
+  <ellipse cx="1000" cy="350" rx="280" ry="220" fill="url(#roiHaloG)"/>
+
+  <!-- Header -->
+  <text x="60" y="56" font-family="'Space Grotesk', system-ui, sans-serif" font-size="22" font-weight="700" fill="#0A1628" letter-spacing="-0.02em">Du forfait au ROI mesuré</text>
+  <text x="60" y="80" font-family="Inter, system-ui, sans-serif" font-size="13" fill="rgba(10,22,40,0.55)">Chaque étape engagée contractuellement · KPIs trackés mensuellement · ajustement à J+90 si non atteints</text>
+
+  <g transform="translate(1000, 50)">
+    <rect width="140" height="22" rx="11" fill="rgba(124,58,237,0.06)" stroke="rgba(124,58,237,0.25)"/>
+    <circle cx="14" cy="11" r="3" fill="#10B981"/>
+    <text x="24" y="15" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.18em" fill="#7C3AED">FUNNEL ROI</text>
+  </g>
+
+  <!-- ─── STAGE 1 : INPUT (forfait) ─────────────── -->
+  <g transform="translate(60, 140)">
+    <rect width="220" height="380" rx="14" fill="#fff" stroke="rgba(10,22,40,0.08)" stroke-width="1"/>
+    <rect width="220" height="38" rx="14" fill="url(#violetFill)"/>
+    <rect y="24" width="220" height="14" fill="url(#violetFill)"/>
+    <text x="20" y="24" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="700" letter-spacing="0.16em" fill="#fff">01 · INPUT</text>
+
+    <text x="20" y="68" font-family="'Space Grotesk', system-ui, sans-serif" font-size="17" font-weight="700" fill="#0A1628">Forfait choisi</text>
+
+    <!-- Tier rows -->
+    <g transform="translate(20, 90)">
+      <rect width="180" height="50" rx="8" fill="#FAF8F5" stroke="rgba(10,22,40,0.06)"/>
+      <text x="14" y="22" font-family="'Space Grotesk', system-ui, sans-serif" font-size="11" font-weight="700" fill="#0A1628">Starter</text>
+      <text x="14" y="38" font-family="Inter, system-ui, sans-serif" font-size="9" fill="rgba(10,22,40,0.55)">dès 290 € / mois · 1–2 branches</text>
+    </g>
+
+    <g transform="translate(20, 150)">
+      <rect width="180" height="58" rx="8" fill="#0A1628" stroke="#7C3AED" stroke-width="1.5"/>
+      <text x="14" y="20" font-family="Inter, system-ui, sans-serif" font-size="8" font-weight="700" letter-spacing="0.12em" fill="#A78BFA">LE PLUS DÉPLOYÉ</text>
+      <text x="14" y="36" font-family="'Space Grotesk', system-ui, sans-serif" font-size="11" font-weight="700" fill="#fff">Business</text>
+      <text x="14" y="50" font-family="Inter, system-ui, sans-serif" font-size="9" fill="rgba(255,255,255,0.65)">dès 4 900 € / mois · 3–4 branches</text>
+    </g>
+
+    <g transform="translate(20, 218)">
+      <rect width="180" height="50" rx="8" fill="#FAF8F5" stroke="rgba(10,22,40,0.06)"/>
+      <text x="14" y="22" font-family="'Space Grotesk', system-ui, sans-serif" font-size="11" font-weight="700" fill="#0A1628">Enterprise</text>
+      <text x="14" y="38" font-family="Inter, system-ui, sans-serif" font-size="9" fill="rgba(10,22,40,0.55)">dès 35 000 € / mois · 5–7 branches</text>
+    </g>
+
+    <g transform="translate(20, 290)">
+      <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="700" letter-spacing="0.10em" fill="rgba(10,22,40,0.55)">CADRAGE INCLUS</text>
+      <text x="0" y="20" font-family="Inter, system-ui, sans-serif" font-size="10" fill="rgba(10,22,40,0.70)">Périmètre · KPIs cibles</text>
+      <text x="0" y="36" font-family="Inter, system-ui, sans-serif" font-size="10" fill="rgba(10,22,40,0.70)">Critères d'acceptance</text>
+      <text x="0" y="52" font-family="Inter, system-ui, sans-serif" font-size="10" fill="rgba(10,22,40,0.70)">Jalons ROI contractuels</text>
+    </g>
+  </g>
+
+  <!-- Arrow 1→2 -->
+  <line x1="295" y1="330" x2="345" y2="330" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#roiArrow)"/>
+
+  <!-- ─── STAGE 2 : DÉPLOIEMENT ─────────────────── -->
+  <g transform="translate(360, 140)">
+    <rect width="220" height="380" rx="14" fill="#fff" stroke="rgba(10,22,40,0.08)" stroke-width="1"/>
+    <rect width="220" height="38" rx="14" fill="url(#violetFill)"/>
+    <rect y="24" width="220" height="14" fill="url(#violetFill)"/>
+    <text x="20" y="24" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="700" letter-spacing="0.16em" fill="#fff">02 · DÉPLOIEMENT</text>
+
+    <text x="20" y="68" font-family="'Space Grotesk', system-ui, sans-serif" font-size="17" font-weight="700" fill="#0A1628">Agents déployés</text>
+
+    <text x="20" y="92" font-family="Inter, system-ui, sans-serif" font-size="10.5" fill="rgba(10,22,40,0.65)">4 à 8 semaines de cadrage à la production</text>
+
+    <!-- Stat circles -->
+    <g transform="translate(20, 116)">
+      <rect width="180" height="64" rx="10" fill="rgba(124,58,237,0.06)" stroke="rgba(124,58,237,0.20)"/>
+      <text x="14" y="22" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.10em" fill="rgba(10,22,40,0.55)">AGENTS SPÉCIALISÉS</text>
+      <text x="14" y="46" font-family="'Space Grotesk', system-ui, sans-serif" font-size="22" font-weight="700" fill="#7C3AED" letter-spacing="-0.03em">2 → 7</text>
+      <text x="14" y="58" font-family="Inter, system-ui, sans-serif" font-size="9" fill="rgba(10,22,40,0.55)">selon forfait</text>
+    </g>
+
+    <g transform="translate(20, 192)">
+      <rect width="180" height="64" rx="10" fill="rgba(16,185,129,0.06)" stroke="rgba(16,185,129,0.20)"/>
+      <text x="14" y="22" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.10em" fill="rgba(10,22,40,0.55)">VALIDATION HUMAINE</text>
+      <text x="14" y="46" font-family="'Space Grotesk', system-ui, sans-serif" font-size="22" font-weight="700" fill="#10B981" letter-spacing="-0.03em">100%</text>
+      <text x="14" y="58" font-family="Inter, system-ui, sans-serif" font-size="9" fill="rgba(10,22,40,0.55)">actions à fort impact</text>
+    </g>
+
+    <g transform="translate(20, 268)">
+      <rect width="180" height="64" rx="10" fill="rgba(10,22,40,0.04)" stroke="rgba(10,22,40,0.10)"/>
+      <text x="14" y="22" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.10em" fill="rgba(10,22,40,0.55)">AUDIT TRAIL</text>
+      <text x="14" y="46" font-family="'Space Grotesk', system-ui, sans-serif" font-size="22" font-weight="700" fill="#0A1628" letter-spacing="-0.03em">100%</text>
+      <text x="14" y="58" font-family="Inter, system-ui, sans-serif" font-size="9" fill="rgba(10,22,40,0.55)">décisions traçables</text>
+    </g>
+  </g>
+
+  <!-- Arrow 2→3 -->
+  <line x1="595" y1="330" x2="645" y2="330" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#roiArrow)"/>
+
+  <!-- ─── STAGE 3 : GAINS OPÉRATIONNELS ─────────── -->
+  <g transform="translate(660, 140)">
+    <rect width="220" height="380" rx="14" fill="#fff" stroke="rgba(10,22,40,0.08)" stroke-width="1"/>
+    <rect width="220" height="38" rx="14" fill="url(#midnightFill)"/>
+    <rect y="24" width="220" height="14" fill="url(#midnightFill)"/>
+    <text x="20" y="24" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="700" letter-spacing="0.16em" fill="#fff">03 · GAINS OPÉRATIONNELS</text>
+
+    <text x="20" y="68" font-family="'Space Grotesk', system-ui, sans-serif" font-size="17" font-weight="700" fill="#0A1628">Mesurés mensuellement</text>
+
+    <!-- KPI 1 -->
+    <g transform="translate(20, 92)">
+      <text x="0" y="14" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.10em" fill="rgba(10,22,40,0.55)">TEMPS DE CLÔTURE</text>
+      <text x="0" y="40" font-family="'Space Grotesk', system-ui, sans-serif" font-size="26" font-weight="700" fill="#10B981" letter-spacing="-0.04em">−68%</text>
+      <text x="0" y="58" font-family="Inter, system-ui, sans-serif" font-size="9.5" fill="rgba(10,22,40,0.65)">Maison luxe CAC 40 · réel</text>
+    </g>
+
+    <!-- KPI 2 -->
+    <g transform="translate(20, 168)">
+      <text x="0" y="14" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.10em" fill="rgba(10,22,40,0.55)">PRÉCISION PRÉVISIONS</text>
+      <text x="0" y="40" font-family="'Space Grotesk', system-ui, sans-serif" font-size="26" font-weight="700" fill="#7C3AED" letter-spacing="-0.04em">+42%</text>
+      <text x="0" y="58" font-family="Inter, system-ui, sans-serif" font-size="9.5" fill="rgba(10,22,40,0.65)">Transporteur européen · réel</text>
+    </g>
+
+    <!-- KPI 3 -->
+    <g transform="translate(20, 244)">
+      <text x="0" y="14" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.10em" fill="rgba(10,22,40,0.55)">RELECTURE MANUELLE</text>
+      <text x="0" y="40" font-family="'Space Grotesk', system-ui, sans-serif" font-size="26" font-weight="700" fill="#10B981" letter-spacing="-0.04em">−85%</text>
+      <text x="0" y="58" font-family="Inter, system-ui, sans-serif" font-size="9.5" fill="rgba(10,22,40,0.65)">RegBankComms · réel</text>
+    </g>
+
+    <!-- KPI 4 -->
+    <g transform="translate(20, 320)">
+      <text x="0" y="14" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.10em" fill="rgba(10,22,40,0.55)">INCIDENT IFRS 17</text>
+      <text x="0" y="40" font-family="'Space Grotesk', system-ui, sans-serif" font-size="22" font-weight="700" fill="#10B981" letter-spacing="-0.03em">0</text>
+    </g>
+  </g>
+
+  <!-- Arrow 3→4 -->
+  <line x1="895" y1="330" x2="945" y2="330" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#roiArrow)"/>
+
+  <!-- ─── STAGE 4 : ROI FINANCIER ───────────────── -->
+  <g transform="translate(960, 140)">
+    <rect width="220" height="380" rx="14" fill="#0A1628" stroke="rgba(124,58,237,0.40)" stroke-width="1.5"/>
+    <rect width="220" height="38" rx="14" fill="url(#greenFill)"/>
+    <rect y="24" width="220" height="14" fill="url(#greenFill)"/>
+    <text x="20" y="24" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="700" letter-spacing="0.16em" fill="#fff">04 · ROI FINANCIER</text>
+
+    <text x="20" y="68" font-family="'Space Grotesk', system-ui, sans-serif" font-size="17" font-weight="700" fill="#fff">Cadré contractuellement</text>
+
+    <text x="20" y="90" font-family="Inter, system-ui, sans-serif" font-size="10.5" fill="rgba(255,255,255,0.65)">Mesure mensuelle · ajustement à J+90 si KPIs non atteints</text>
+
+    <!-- Big ROI number -->
+    <g transform="translate(20, 120)">
+      <text x="0" y="14" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.10em" fill="rgba(255,255,255,0.50)">ROI TYPIQUE BUSINESS</text>
+      <text x="0" y="58" font-family="'Space Grotesk', system-ui, sans-serif" font-size="50" font-weight="700" fill="#10B981" letter-spacing="-0.05em">3 à 6×</text>
+      <text x="0" y="80" font-family="Inter, system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.65)">la première année</text>
+    </g>
+
+    <!-- Composition -->
+    <g transform="translate(20, 230)">
+      <text x="0" y="14" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.10em" fill="rgba(255,255,255,0.50)">COMPOSITION DU ROI</text>
+      <g transform="translate(0, 28)">
+        <rect width="6" height="6" fill="#10B981" rx="1"/>
+        <text x="14" y="6" font-family="Inter, system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.80)">Heures économisées</text>
+      </g>
+      <g transform="translate(0, 46)">
+        <rect width="6" height="6" fill="#A78BFA" rx="1"/>
+        <text x="14" y="6" font-family="Inter, system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.80)">Erreurs évitées (compliance)</text>
+      </g>
+      <g transform="translate(0, 64)">
+        <rect width="6" height="6" fill="#FBBF24" rx="1"/>
+        <text x="14" y="6" font-family="Inter, system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.80)">Délais raccourcis</text>
+      </g>
+      <g transform="translate(0, 82)">
+        <rect width="6" height="6" fill="#34D399" rx="1"/>
+        <text x="14" y="6" font-family="Inter, system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.80)">Revenus accélérés</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom guarantee bar -->
+  <g transform="translate(60, 558)">
+    <rect width="1080" height="74" rx="12" fill="rgba(16,185,129,0.06)" stroke="rgba(16,185,129,0.25)" stroke-width="1"/>
+    <circle cx="36" cy="37" r="14" fill="rgba(16,185,129,0.18)"/>
+    <text x="36" y="42" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#10B981">✓</text>
+    <text x="68" y="32" font-family="'Space Grotesk', system-ui, sans-serif" font-size="14" font-weight="700" fill="#0A1628">Engagement contractuel à J+90</text>
+    <text x="68" y="52" font-family="Inter, system-ui, sans-serif" font-size="11" fill="rgba(10,22,40,0.70)">Si les KPIs engagés ne sont pas atteints à J+90, NEURAL adapte le dispositif sans frais supplémentaires. Pas de PoC orphelin, pas de facturation pour rien.</text>
+  </g>
+
+  <!-- Footer note -->
+  <text x="60" y="660" font-family="Inter, system-ui, sans-serif" font-size="10" fill="rgba(10,22,40,0.45)">
+    Sources KPIs : Maison luxe CAC 40 (Direction Financière) · Transporteur européen (COO) · Assureur mutualiste (CFO) — extraits de témoignages clients vérifiés
+  </text>
+</svg>

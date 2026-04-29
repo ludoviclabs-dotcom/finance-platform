@@ -1,0 +1,6 @@
+_render/node_modules/
+_render/package.json
+_render/package-lock.json
+covers/*.png
+stories/*.png
+carousels/**/*.png

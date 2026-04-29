@@ -155,6 +155,56 @@ export default function PressePage() {
         </div>
       </section>
 
+      {/* Infographies & schémas produits */}
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+            <Download className="h-3 w-3" />
+            Disponibles maintenant
+          </span>
+          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+            Infographies &amp; ressources commerciales
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/65">
+            Schémas vectoriels SVG embeddables et brochure corporate PDF.
+            Tous les visuels respectent la palette NEURAL et sont libres d&apos;usage éditorial.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+            <DownloadCard
+              href="/marketing/brochure/neural-corporate-2026.pdf"
+              title="Brochure corporate 2026 — PDF 8 pages"
+              description="Positionnement, méthode, matrice 7×6, cas d'usage banque & luxe, forfaits, témoignages clients. Format A4, 1.1 Mo."
+              format="PDF · 8 pages"
+            />
+            <DownloadCard
+              href="/marketing/deck/neural-pitch-deck-2026.pdf"
+              title="Pitch deck 2026 — PDF 15 slides"
+              description="Deck commercial 16:9 prêt à pitcher : problème, méthode, matrice, cas, traction, roadmap, forfaits, contact. 1.7 Mo."
+              format="PDF · 15 slides 16:9"
+            />
+            <DownloadCard
+              href="/infographics/orchestration.svg"
+              title="Schéma d'orchestration multi-agents"
+              description="Visuel produit central : orchestrateur, 6 agents spécialisés, validation humaine, audit trail. 1200×700 SVG."
+              format="SVG vectoriel"
+            />
+            <DownloadCard
+              href="/infographics/matrice-7x6.svg"
+              title="Matrice 7 branches × 6 secteurs"
+              description="42 cellules détaillées avec statut Live / Démo / Roadmap, KPIs sectoriels, légende complète. 1200×760 SVG."
+              format="SVG vectoriel"
+            />
+            <DownloadCard
+              href="/infographics/roi-funnel.svg"
+              title="Funnel ROI — du forfait au gain mesuré"
+              description="4 étages : forfait, déploiement, gains opérationnels, ROI financier. KPIs réels sourcés témoignages clients. 1200×700 SVG."
+              format="SVG vectoriel"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Contact */}
       <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
         <div className="mx-auto max-w-[1320px]">
@@ -184,6 +234,42 @@ export default function PressePage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function DownloadCard({
+  href,
+  title,
+  description,
+  format,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  format: string;
+}) {
+  return (
+    <a
+      href={href}
+      download
+      className="group flex flex-col gap-3 rounded-[20px] border border-emerald-400/20 bg-gradient-to-br from-emerald-400/[0.04] to-violet-400/[0.04] p-5 transition-all hover:border-emerald-400/40 hover:from-emerald-400/[0.08]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-400/[0.10] text-emerald-300">
+          <Download className="h-4 w-4" />
+        </div>
+        <span className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/[0.10] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-200">
+          {format}
+        </span>
+      </div>
+      <div>
+        <p className="font-display text-sm font-semibold text-white">{title}</p>
+        <p className="mt-1 text-xs leading-relaxed text-white/60">{description}</p>
+      </div>
+      <div className="mt-auto flex items-center gap-1 text-[11px] font-semibold text-emerald-300 transition-all group-hover:gap-2">
+        Télécharger <ArrowRight className="h-3 w-3" />
+      </div>
+    </a>
   );
 }
 

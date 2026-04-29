@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-label="Matrice NEURAL 7 branches × 6 secteurs : 42 cellules avec statuts Live, Démo et Roadmap">
+  <title>Matrice NEURAL — 7 branches × 6 secteurs (42 cellules agents)</title>
+  <desc>Matrice produit centrale de NEURAL : 7 branches métier (Finance, Comptabilité, Communication, Marketing, RH, Supply Chain, SI) × 6 secteurs (Banque, Assurance, Luxe, SaaS, Transport, Aéronautique). Chaque cellule représente un cluster d'agents IA. Cellules Live en production, Démo orchestrée, ou Roadmap.</desc>
+
+  <defs>
+    <linearGradient id="matBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#111D35"/>
+      <stop offset="100%" stop-color="#0A1628"/>
+    </linearGradient>
+    <radialGradient id="matHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="matGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#matBg)"/>
+  <rect width="1200" height="760" fill="url(#matGrid)"/>
+  <ellipse cx="900" cy="200" rx="320" ry="220" fill="url(#matHalo)"/>
+
+  <!-- Header -->
+  <text x="60" y="56" font-family="'Space Grotesk', system-ui, sans-serif" font-size="22" font-weight="700" fill="#fff" letter-spacing="-0.02em">Matrice 7 branches × 6 secteurs</text>
+  <text x="60" y="80" font-family="Inter, system-ui, sans-serif" font-size="13" fill="rgba(255,255,255,0.55)">42 cellules agents · chaque cellule = agents spécialisés, workflows métier, KPIs trackés</text>
+
+  <g transform="translate(1000, 50)">
+    <rect width="140" height="22" rx="11" fill="rgba(167,139,250,0.10)" stroke="rgba(167,139,250,0.25)"/>
+    <circle cx="14" cy="11" r="3" fill="#10B981"/>
+    <text x="24" y="15" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" letter-spacing="0.18em" fill="#A78BFA">FRAMEWORK PRODUIT</text>
+  </g>
+
+  <!-- Matrix table -->
+  <!-- Cell dims: 142 wide × 64 tall, header row 50 tall, label col 130 wide -->
+  <!-- Origin: x=60, y=140 -->
+
+  <!-- Column headers (sectors) -->
+  <g font-family="Inter, system-ui, sans-serif">
+    <g transform="translate(190, 140)">
+      <rect width="142" height="50" fill="rgba(124,58,237,0.18)" stroke="rgba(124,58,237,0.30)"/>
+      <text x="71" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">🏦 Banque</text>
+      <text x="71" y="38" text-anchor="middle" font-size="8" fill="rgba(167,139,250,0.6)" letter-spacing="0.06em">Bâle IV · KYC</text>
+    </g>
+    <g transform="translate(332, 140)">
+      <rect width="142" height="50" fill="rgba(124,58,237,0.18)" stroke="rgba(124,58,237,0.30)"/>
+      <text x="71" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">🛡️ Assurance</text>
+      <text x="71" y="38" text-anchor="middle" font-size="8" fill="rgba(167,139,250,0.6)" letter-spacing="0.06em">IFRS 17 · sinistres</text>
+    </g>
+    <g transform="translate(474, 140)">
+      <rect width="142" height="50" fill="rgba(124,58,237,0.18)" stroke="rgba(124,58,237,0.30)"/>
+      <text x="71" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">👜 Luxe</text>
+      <text x="71" y="38" text-anchor="middle" font-size="8" fill="rgba(167,139,250,0.6)" letter-spacing="0.06em">ESG · maisons</text>
+    </g>
+    <g transform="translate(616, 140)">
+      <rect width="142" height="50" fill="rgba(124,58,237,0.18)" stroke="rgba(124,58,237,0.30)"/>
+      <text x="71" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">💻 SaaS</text>
+      <text x="71" y="38" text-anchor="middle" font-size="8" fill="rgba(167,139,250,0.6)" letter-spacing="0.06em">PLG · churn</text>
+    </g>
+    <g transform="translate(758, 140)">
+      <rect width="142" height="50" fill="rgba(124,58,237,0.18)" stroke="rgba(124,58,237,0.30)"/>
+      <text x="71" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">🚆 Transport</text>
+      <text x="71" y="38" text-anchor="middle" font-size="8" fill="rgba(167,139,250,0.6)" letter-spacing="0.06em">Supply · maintenance</text>
+    </g>
+    <g transform="translate(900, 140)">
+      <rect width="142" height="50" fill="rgba(124,58,237,0.18)" stroke="rgba(124,58,237,0.30)"/>
+      <text x="71" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">✈️ Aéronautique</text>
+      <text x="71" y="38" text-anchor="middle" font-size="8" fill="rgba(167,139,250,0.6)" letter-spacing="0.06em">EASA · MRO</text>
+    </g>
+  </g>
+
+  <!-- Row labels (branches) - reusable function via repetitive g elements -->
+  <g font-family="Inter, system-ui, sans-serif">
+    <!-- Finance -->
+    <g transform="translate(60, 190)">
+      <rect width="130" height="64" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)"/>
+      <text x="14" y="26" font-size="11" font-weight="700" fill="#fff">Finance</text>
+      <text x="14" y="44" font-size="8" fill="rgba(255,255,255,0.45)">Reporting · clôture</text>
+      <text x="14" y="56" font-size="8" fill="rgba(255,255,255,0.45)">Stress-tests</text>
+    </g>
+    <!-- Comptabilité -->
+    <g transform="translate(60, 254)">
+      <rect width="130" height="64" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)"/>
+      <text x="14" y="26" font-size="11" font-weight="700" fill="#fff">Comptabilité</text>
+      <text x="14" y="44" font-size="8" fill="rgba(255,255,255,0.45)">Consolidation</text>
+      <text x="14" y="56" font-size="8" fill="rgba(255,255,255,0.45)">Multi-currency</text>
+    </g>
+    <!-- Communication -->
+    <g transform="translate(60, 318)">
+      <rect width="130" height="64" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)"/>
+      <text x="14" y="26" font-size="11" font-weight="700" fill="#fff">Communication</text>
+      <text x="14" y="44" font-size="8" fill="rgba(255,255,255,0.45)">Brand voice · crise</text>
+      <text x="14" y="56" font-size="8" fill="rgba(255,255,255,0.45)">Conformité réglementaire</text>
+    </g>
+    <!-- Marketing -->
+    <g transform="translate(60, 382)">
+      <rect width="130" height="64" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)"/>
+      <text x="14" y="26" font-size="11" font-weight="700" fill="#fff">Marketing</text>
+      <text x="14" y="44" font-size="8" fill="rgba(255,255,255,0.45)">ESG · claims</text>
+      <text x="14" y="56" font-size="8" fill="rgba(255,255,255,0.45)">Acquisition</text>
+    </g>
+    <!-- RH -->
+    <g transform="translate(60, 446)">
+      <rect width="130" height="64" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)"/>
+      <text x="14" y="26" font-size="11" font-weight="700" fill="#fff">RH</text>
+      <text x="14" y="44" font-size="8" fill="rgba(255,255,255,0.45)">Recrutement</text>
+      <text x="14" y="56" font-size="8" fill="rgba(255,255,255,0.45)">Anti-biais</text>
+    </g>
+    <!-- Supply Chain -->
+    <g transform="translate(60, 510)">
+      <rect width="130" height="64" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)"/>
+      <text x="14" y="26" font-size="11" font-weight="700" fill="#fff">Supply Chain</text>
+      <text x="14" y="44" font-size="8" fill="rgba(255,255,255,0.45)">Prévisions</text>
+      <text x="14" y="56" font-size="8" fill="rgba(255,255,255,0.45)">Optimisation</text>
+    </g>
+    <!-- SI -->
+    <g transform="translate(60, 574)">
+      <rect width="130" height="64" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)"/>
+      <text x="14" y="26" font-size="11" font-weight="700" fill="#fff">SI</text>
+      <text x="14" y="44" font-size="8" fill="rgba(255,255,255,0.45)">Data governance</text>
+      <text x="14" y="56" font-size="8" fill="rgba(255,255,255,0.45)">Lineage · DORA</text>
+    </g>
+  </g>
+
+  <!-- Cells: 7 rows × 6 cols = 42 -->
+  <!-- L = Live (green), D = Demo (violet), R = Roadmap (dim) -->
+  <!-- Cell dims: 142×64, x = 190 + col*142, y = 190 + row*64 -->
+
+  <g font-family="Inter, system-ui, sans-serif">
+    <!-- Row 0: Finance (y=190) -->
+    <g transform="translate(190, 190)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">−68% clôture</text></g>
+    <g transform="translate(332, 190)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">IFRS 17</text></g>
+    <g transform="translate(474, 190)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">Multi-maisons</text></g>
+    <g transform="translate(616, 190)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">Revenue intel</text></g>
+    <g transform="translate(758, 190)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">P&amp;L par ligne</text></g>
+    <g transform="translate(900, 190)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">Programmes</text></g>
+
+    <!-- Row 1: Comptabilité (y=254) -->
+    <g transform="translate(190, 254)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">Bâle IV ready</text></g>
+    <g transform="translate(332, 254)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">Conso sinistres</text></g>
+    <g transform="translate(474, 254)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">Inventaire</text></g>
+    <g transform="translate(616, 254)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">ARR ledger</text></g>
+    <g transform="translate(758, 254)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(900, 254)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+
+    <!-- Row 2: Communication (y=318) -->
+    <g transform="translate(190, 318)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">RegBankComms</text></g>
+    <g transform="translate(332, 318)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(474, 318)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">MaisonVoiceGuard</text></g>
+    <g transform="translate(616, 318)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(758, 318)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(900, 318)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">Aéro comms</text></g>
+
+    <!-- Row 3: Marketing (y=382) -->
+    <g transform="translate(190, 382)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(332, 382)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(474, 382)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">GreenClaimChecker</text></g>
+    <g transform="translate(616, 382)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">PLG growth</text></g>
+    <g transform="translate(758, 382)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(900, 382)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">Aéro mkt</text></g>
+
+    <!-- Row 4: RH (y=446) -->
+    <g transform="translate(190, 446)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(332, 446)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(474, 446)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">Haute couture</text></g>
+    <g transform="translate(616, 446)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">Tech recruiting</text></g>
+    <g transform="translate(758, 446)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(900, 446)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+
+    <!-- Row 5: Supply Chain (y=510) -->
+    <g transform="translate(190, 510)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(332, 510)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">Reassurance flux</text></g>
+    <g transform="translate(474, 510)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(616, 510)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(758, 510)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">+42% prévisions</text></g>
+    <g transform="translate(900, 510)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">MRO critique</text></g>
+
+    <!-- Row 6: SI (y=574) -->
+    <g transform="translate(190, 574)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">DORA scan</text></g>
+    <g transform="translate(332, 574)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(474, 574)"><rect width="142" height="64" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)"/><text x="71" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.20)">– Roadmap</text></g>
+    <g transform="translate(616, 574)"><rect width="142" height="64" fill="rgba(16,185,129,0.16)" stroke="rgba(16,185,129,0.40)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#10B981">●  Live</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(16,185,129,0.85)">Data lineage</text></g>
+    <g transform="translate(758, 574)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">OIV gates</text></g>
+    <g transform="translate(900, 574)"><rect width="142" height="64" fill="rgba(124,58,237,0.14)" stroke="rgba(124,58,237,0.32)"/><text x="71" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#A78BFA">◐  Démo</text><text x="71" y="49" text-anchor="middle" font-size="8.5" fill="rgba(167,139,250,0.85)">EASA audit</text></g>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(60, 668)" font-family="Inter, system-ui, sans-serif">
+    <g>
+      <rect width="14" height="14" rx="2" fill="rgba(16,185,129,0.40)"/>
+      <text x="22" y="11" font-size="10.5" fill="rgba(255,255,255,0.80)">Live — agents en production avec données clients réelles</text>
+    </g>
+    <g transform="translate(380, 0)">
+      <rect width="14" height="14" rx="2" fill="rgba(124,58,237,0.32)"/>
+      <text x="22" y="11" font-size="10.5" fill="rgba(255,255,255,0.80)">Démo orchestrée — données sectorielles anonymisées</text>
+    </g>
+    <g transform="translate(740, 0)">
+      <rect width="14" height="14" rx="2" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)"/>
+      <text x="22" y="11" font-size="10.5" fill="rgba(255,255,255,0.80)">Roadmap — à construire sur demande</text>
+    </g>
+  </g>
+
+  <!-- Stats footer -->
+  <g transform="translate(60, 700)" font-family="Inter, system-ui, sans-serif">
+    <text x="0" y="14" font-size="10" fill="rgba(255,255,255,0.45)">
+      <tspan font-weight="700" fill="#10B981">17 cellules Live</tspan>
+      <tspan dx="6">·</tspan>
+      <tspan dx="6" font-weight="700" fill="#A78BFA">11 cellules Démo</tspan>
+      <tspan dx="6">·</tspan>
+      <tspan dx="6" font-weight="700" fill="rgba(255,255,255,0.55)">14 cellules Roadmap</tspan>
+      <tspan dx="6">·</tspan>
+      <tspan dx="6">Total : 42 cellules · 6 secteurs · 7 branches</tspan>
+    </text>
+  </g>
+</svg>

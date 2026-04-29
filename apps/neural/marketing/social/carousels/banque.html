@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"/><title>NEURAL — Banque carrousel</title>
+<link rel="stylesheet" href="../_render/shared.css"/>
+<style>
+  body { width: 1080px; height: 1080px; }
+  .frame { padding: 64px; display: flex; flex-direction: column; }
+  .halo-violet { top: -150px; right: -150px; width: 500px; height: 500px; }
+  .halo-green { bottom: -150px; left: -150px; }
+  header { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; }
+  main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 28px; }
+  .kicker { font-family: var(--ff-sans); font-size: 16px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); }
+  .slide-title { font-family: var(--ff-head); font-size: 64px; font-weight: 700; line-height: 1.06; letter-spacing: -0.035em; }
+  .slide-title i { font-style: italic; color: var(--violet-l); }
+  .slide-body { font-size: 22px; line-height: 1.5; color: var(--white70); max-width: 800px; }
+  footer { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; }
+  .progress { display: flex; gap: 6px; }
+  .progress span { width: 30px; height: 4px; border-radius: 999px; background: rgba(255,255,255,0.15); }
+  .progress span.active { background: var(--violet-l); }
+  .swipe-cue { font-size: 14px; color: var(--white55); letter-spacing: 0.10em; text-transform: uppercase; }
+  .url-line { font-size: 14px; }
+
+  /* Title slide variant (slide 1) — bigger title */
+  body.s1 .slide-title { font-size: 80px; }
+  body.s1 .kicker { color: var(--green); }
+
+  /* Final slide variant (slide 6) — emphasized CTA */
+  body.s6 main { gap: 36px; align-items: flex-start; }
+  body.s6 .slide-title { font-size: 72px; }
+  body.s6 .slide-body { font-size: 28px; color: var(--violet-l); font-weight: 500; }
+</style>
+<script>
+  // Read ?slide=N to set body class
+  const params = new URLSearchParams(window.location.search);
+  const slide = parseInt(params.get('slide') || '1', 10);
+  document.documentElement.dataset.slide = String(slide);
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('s' + slide);
+    // Hide all but the active slide
+    document.querySelectorAll('[data-slide]').forEach(el => {
+      el.style.display = el.dataset.slide === String(slide) ? '' : 'none';
+    });
+    // Activate progress dots
+    document.querySelectorAll('.progress span').forEach((el, idx) => {
+      if (idx < slide) el.classList.add('active');
+    });
+  });
+</script>
+</head><body><div class="frame">
+  <div class="grid"></div>
+  <div class="halo-violet"></div>
+  <div class="halo-green"></div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-mark">N</div>
+      <div class="logo-name">NEURAL</div>
+    </div>
+    <span class="eyebrow"><span class="dot"></span>Banque</span>
+  </header>
+
+  <main>
+    
+    <div data-slide="1">
+      <div class="kicker" style="margin-bottom:18px;">Le constat</div>
+      <h2 class="slide-title">80% des projets IA bancaires meurent en comité gouvernance.</h2>
+      <p class="slide-body" style="margin-top:24px;">Pas un problème technique. Un problème de traçabilité.</p>
+    </div>
+
+    <div data-slide="2">
+      <div class="kicker" style="margin-bottom:18px;">La cause</div>
+      <h2 class="slide-title">PoC sans audit trail = audit interne KO.</h2>
+      <p class="slide-body" style="margin-top:24px;">Les directions risque exigent : qui a décidé · sur quelles données · validé par qui.</p>
+    </div>
+
+    <div data-slide="3">
+      <div class="kicker" style="margin-bottom:18px;">La méthode</div>
+      <h2 class="slide-title">RegBankComms — chaque message, chaque décision logué.</h2>
+      <p class="slide-body" style="margin-top:24px;">Audit trail DORA-ready · validation 4 yeux · workflow gouvernance natif.</p>
+    </div>
+
+    <div data-slide="4">
+      <div class="kicker" style="margin-bottom:18px;">Les KPIs</div>
+      <h2 class="slide-title">−85% temps relecture.<br/>0 incident IFRS 17.</h2>
+      <p class="slide-body" style="margin-top:24px;">Bascule absorbée pendant deux nuits, zéro erreur (CFO assureur mutualiste).</p>
+    </div>
+
+    <div data-slide="5">
+      <div class="kicker" style="margin-bottom:18px;">Le forfait</div>
+      <h2 class="slide-title">Business · 4 900 €/mois.<br/>Du PoC encadré au déploiement multi-pays.</h2>
+      <p class="slide-body" style="margin-top:24px;">ROI cadré contractuellement · ajustement à J+90 si KPIs non atteints.</p>
+    </div>
+
+    <div data-slide="6">
+      <div class="kicker" style="margin-bottom:18px;">Le rendez-vous</div>
+      <h2 class="slide-title">Cadrage 30 min, sans engagement.</h2>
+      <p class="slide-body" style="margin-top:24px;">neural-five.vercel.app/contact</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="progress">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <span class="swipe-cue">Swipe →</span>
+    <span class="url-line">neural-five.vercel.app</span>
+  </footer>
+</div></body></html>

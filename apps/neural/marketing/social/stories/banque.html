@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"/><title>NEURAL — Banque story</title>
+<link rel="stylesheet" href="../_render/shared.css"/>
+<style>
+  body { width: 1080px; height: 1920px; }
+  .frame { padding: 80px 64px; display: flex; flex-direction: column; }
+  .halo-violet { top: -200px; right: -200px; width: 700px; height: 700px; }
+  .halo-green { bottom: -100px; left: -200px; }
+  header { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; }
+  main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 40px; }
+  .story-title { font-size: 110px; line-height: 1; letter-spacing: -0.045em; }
+  .story-sub { font-size: 32px; color: var(--white70); line-height: 1.4; max-width: 880px; }
+  .story-divider { width: 80px; height: 4px; background: var(--violet); border-radius: 999px; }
+  footer { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 24px; }
+  .cta-block { padding: 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 24px; }
+  .cta-title { font-family: var(--ff-head); font-size: 36px; font-weight: 700; color: #fff; margin-bottom: 8px; letter-spacing: -0.03em; }
+  .cta-url { font-size: 22px; color: var(--violet-l); font-weight: 500; }
+  .footer-meta { display: flex; align-items: center; justify-content: space-between; }
+  .url-line { font-size: 16px; }
+</style></head>
+<body><div class="frame">
+  <div class="grid"></div>
+  <div class="halo-violet"></div>
+  <div class="halo-green"></div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-mark">N</div>
+      <div class="logo-name">NEURAL</div>
+    </div>
+    <span class="eyebrow"><span class="dot"></span>Banque</span>
+  </header>
+
+  <main>
+    <div class="story-divider"></div>
+    <h1 class="h-display story-title">IFRS 17, KYC,<br/>Bâle IV.</h1>
+    <p class="story-sub">Les agents qui passent la gouvernance.</p>
+    <span class="kpi-pill" style="font-size:18px; padding:14px 22px; align-self:flex-start;">●  −85% relecture manuelle</span>
+  </main>
+
+  <footer>
+    <div class="cta-block">
+      <div class="cta-title">Cadrage 30 min, sans engagement.</div>
+      <div class="cta-url">neural-five.vercel.app/contact</div>
+    </div>
+    <div class="footer-meta">
+      <span class="url-line">Banque · DORA · Bâle IV</span>
+      <span class="url-line">2026</span>
+    </div>
+  </footer>
+</div></body></html>

@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>NEURAL — Pitch Deck 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --midnight: #0A1628;
+  --navy:     #111D35;
+  --violet:   #7C3AED;
+  --violet-l: #A78BFA;
+  --green:    #10B981;
+  --cream:    #FAF8F5;
+  --white55:  rgba(255,255,255,0.55);
+  --white70:  rgba(255,255,255,0.70);
+  --ink55:    rgba(10,22,40,0.55);
+  --ink70:    rgba(10,22,40,0.70);
+  --ff-sans:  'Inter', system-ui, sans-serif;
+  --ff-head:  'Space Grotesk', system-ui, sans-serif;
+}
+
+html, body { font-family: var(--ff-sans); }
+
+@page {
+  size: 1920px 1080px landscape;
+  margin: 0;
+}
+
+body { background: #000; }
+
+@media print {
+  body { background: transparent; }
+}
+
+.slide {
+  width: 1920px;
+  height: 1080px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  page-break-after: always;
+  page-break-inside: avoid;
+}
+.slide:last-child { page-break-after: auto; }
+
+.midnight { background: linear-gradient(160deg, var(--navy) 0%, var(--midnight) 100%); color: #fff; }
+.cream    { background: var(--cream); color: var(--midnight); }
+.dark-flat { background: var(--midnight); color: #fff; }
+
+.grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+.cream .grid {
+  background-image:
+    linear-gradient(rgba(10,22,40,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10,22,40,0.04) 1px, transparent 1px);
+}
+
+.halo-violet { position: absolute; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgba(124,58,237,0.30) 0%, transparent 65%); pointer-events: none; }
+.halo-green  { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 65%); pointer-events: none; }
+
+.slide-inner {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 72px 96px;
+}
+
+.slide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.logo-mark {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: var(--violet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: var(--ff-head);
+  font-weight: 700;
+  font-size: 24px;
+  box-shadow: 0 8px 22px -6px rgba(124,58,237,0.5);
+}
+.logo-name { font-family: var(--ff-head); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: inherit; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: var(--violet-l);
+  padding: 9px 20px;
+  border: 1px solid rgba(167,139,250,0.30);
+  border-radius: 999px;
+  background: rgba(167,139,250,0.08);
+}
+.eyebrow.dark { color: var(--violet); border-color: rgba(124,58,237,0.25); background: rgba(124,58,237,0.06); }
+.eyebrow.green { color: var(--green); border-color: rgba(16,185,129,0.30); background: rgba(16,185,129,0.08); }
+
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 999px; background: var(--green); }
+
+.slide-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 42px;
+}
+
+.slide-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--white55);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.cream .slide-footer, .slide-footer.dark { color: var(--ink55); }
+
+.h-display {
+  font-family: var(--ff-head);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+}
+.h-italic { font-style: italic; color: var(--violet-l); }
+.cream .h-italic, .h-italic.dark { color: var(--violet); }
+
+/* === SLIDE 1 — TITLE COVER === */
+.s-cover .slide-body { justify-content: flex-end; gap: 36px; }
+.s-cover h1 { font-size: 116px; max-width: 1500px; }
+.s-cover .lead { font-size: 28px; line-height: 1.45; color: var(--white70); max-width: 1100px; font-weight: 300; }
+.s-cover .meta { display: flex; gap: 36px; align-items: center; }
+.s-cover .meta-num { font-family: var(--ff-head); font-size: 56px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+.s-cover .meta-num span { color: var(--green); }
+.s-cover .meta-label { font-size: 13px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--white55); margin-top: 8px; }
+.s-cover .meta-divider { width: 1px; height: 60px; background: rgba(255,255,255,0.12); }
+
+/* === SLIDE 2 — PROBLÈME === */
+.s-problem h2 { font-size: 80px; max-width: 1500px; }
+.s-problem .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 24px; }
+.s-problem .stat-card { padding: 36px 40px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; }
+.s-problem .stat-num { font-family: var(--ff-head); font-size: 84px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+.red { color: #F87171; } .ylw { color: #FBBF24; } .grn { color: var(--green); }
+.s-problem .stat-label { margin-top: 18px; font-size: 18px; line-height: 1.5; color: var(--white70); }
+
+/* === SLIDE 3 — POSITIONNEMENT === */
+.s-position h2 { font-size: 90px; max-width: 1500px; }
+.s-position .lead { font-size: 26px; line-height: 1.5; color: var(--ink70); max-width: 1300px; }
+.s-position .row { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 8px; }
+.s-position .pos-card { padding: 36px; background: #fff; border-radius: 20px; border: 1px solid rgba(10,22,40,0.08); display: flex; flex-direction: column; gap: 14px; }
+.s-position .pos-card.bad { background: rgba(248,113,113,0.06); border-color: rgba(248,113,113,0.20); }
+.s-position .pos-card.good { background: var(--midnight); color: #fff; border-color: rgba(124,58,237,0.30); }
+.s-position .pos-tag { font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+.s-position .pos-card.bad .pos-tag { color: #DC2626; }
+.s-position .pos-card.good .pos-tag { color: var(--violet-l); }
+.s-position .pos-title { font-family: var(--ff-head); font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
+.s-position .pos-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.s-position .pos-list li { display: flex; gap: 10px; font-size: 18px; line-height: 1.4; }
+.s-position .pos-card.bad li { color: var(--ink70); }
+.s-position .pos-card.good li { color: var(--white70); }
+.s-position .icon-x { color: #DC2626; font-weight: 700; }
+.s-position .icon-check { color: var(--green); font-weight: 700; }
+
+/* === SLIDE 4 — MÉTHODE / ORCHESTRATION === */
+.s-method h2 { font-size: 70px; max-width: 1400px; }
+.s-method .flow { display: flex; gap: 0; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden; }
+.s-method .flow-node { flex: 1; padding: 26px 30px; text-align: center; font-size: 18px; font-weight: 600; color: #fff; position: relative; }
+.s-method .flow-node.hl { background: var(--violet); }
+.s-method .flow-node:not(:last-child)::after { content: '→'; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); color: var(--violet-l); font-size: 22px; z-index: 2; }
+.s-method .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 16px; }
+.s-method .step { padding: 30px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; display: flex; flex-direction: column; gap: 14px; }
+.s-method .step-n { width: 48px; height: 48px; border-radius: 12px; background: var(--violet); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--ff-head); font-weight: 700; font-size: 22px; }
+.s-method .step-title { font-family: var(--ff-head); font-size: 22px; font-weight: 700; }
+.s-method .step-body { font-size: 16px; line-height: 1.5; color: var(--white70); }
+
+/* === SLIDE 5 — MATRICE === */
+.s-matrix h2 { font-size: 64px; max-width: 1400px; }
+.s-matrix .sub { font-size: 20px; color: var(--white70); margin-top: 8px; }
+.s-matrix table { border-collapse: collapse; width: 100%; font-size: 16px; margin-top: 16px; }
+.s-matrix th, .s-matrix td { padding: 14px 16px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+.s-matrix thead th { background: rgba(124,58,237,0.20); color: var(--violet-l); font-weight: 600; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; }
+.s-matrix thead th:first-child { background: transparent; border: none; }
+.s-matrix tbody td:first-child { text-align: left; font-weight: 600; color: #fff; background: rgba(255,255,255,0.04); }
+.cell-live { background: rgba(16,185,129,0.14); color: var(--green); font-weight: 700; }
+.cell-demo { background: rgba(124,58,237,0.12); color: var(--violet-l); font-weight: 600; }
+.cell-empty { color: rgba(255,255,255,0.18); }
+.s-matrix .legend { display: flex; gap: 28px; margin-top: 14px; font-size: 16px; color: var(--white70); }
+.s-matrix .legend-dot { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 10px; vertical-align: middle; }
+
+/* === SLIDE 6/7 — CASES === */
+.s-case h2 { font-size: 76px; max-width: 1500px; }
+.s-case .case-sub { font-size: 22px; line-height: 1.5; max-width: 1300px; }
+.cream .case-sub { color: var(--ink70); }
+.dark-flat .case-sub, .midnight .case-sub { color: var(--white70); }
+.s-case .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.s-case .kpi-card { padding: 36px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; }
+.cream .kpi-card { background: var(--midnight); color: #fff; }
+.cream .kpi-card.alt { background: #fff; border: 1px solid rgba(10,22,40,0.08); color: var(--midnight); }
+.midnight .kpi-card, .dark-flat .kpi-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+.midnight .kpi-card.alt, .dark-flat .kpi-card.alt { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.25); }
+.s-case .kpi-num { font-family: var(--ff-head); font-size: 76px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+.violet { color: var(--violet); } .violet-l { color: var(--violet-l); }
+.s-case .kpi-label { font-size: 15px; line-height: 1.5; opacity: 0.75; }
+.s-case .agents-block { display: flex; flex-direction: column; gap: 14px; }
+.s-case .agents-title { font-size: 14px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.6; }
+.s-case .agent-row { display: flex; align-items: center; gap: 18px; padding: 18px 24px; border-radius: 14px; }
+.cream .agent-row { background: #fff; border: 1px solid rgba(10,22,40,0.08); }
+.midnight .agent-row, .dark-flat .agent-row { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+.s-case .agent-id { font-family: var(--ff-head); font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.04em; }
+.cream .agent-id { color: var(--violet); background: rgba(124,58,237,0.10); }
+.midnight .agent-id, .dark-flat .agent-id { color: var(--violet-l); background: rgba(167,139,250,0.12); }
+.s-case .agent-name { font-size: 18px; font-weight: 600; flex: 1; }
+.s-case .agent-kpi { font-size: 16px; font-weight: 700; color: var(--green); }
+.s-case .agent-status { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); background: rgba(16,185,129,0.12); padding: 4px 10px; border-radius: 6px; }
+
+/* === SLIDE 8 — TÉMOIGNAGES === */
+.s-quotes h2 { font-size: 76px; }
+.s-quotes .grid-quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.s-quotes .q-card { padding: 36px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 18px; display: flex; flex-direction: column; gap: 16px; }
+.s-quotes .q-top { display: flex; align-items: center; justify-content: space-between; }
+.s-quotes .q-logo { font-family: var(--ff-head); font-size: 22px; font-weight: 700; }
+.s-quotes .q-ind { font-size: 13px; color: var(--white55); }
+.s-quotes .q-kpi { font-family: var(--ff-head); font-size: 38px; font-weight: 700; color: var(--green); letter-spacing: -0.03em; }
+.s-quotes blockquote { font-size: 19px; line-height: 1.5; color: var(--white70); font-style: italic; flex: 1; }
+.s-quotes .q-who { font-size: 14px; color: var(--white55); font-weight: 600; }
+
+/* === SLIDE 9 — FORFAITS === */
+.s-pricing h2 { font-size: 78px; }
+.s-pricing .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.s-pricing .tier { padding: 40px; border-radius: 22px; display: flex; flex-direction: column; gap: 18px; background: #fff; border: 1.5px solid rgba(10,22,40,0.08); position: relative; }
+.s-pricing .tier.hl { background: var(--midnight); color: #fff; border-color: var(--violet); box-shadow: 0 16px 48px -16px rgba(124,58,237,0.35); }
+.s-pricing .tier-badge { position: absolute; top: -16px; left: 36px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; background: var(--violet); color: #fff; padding: 6px 16px; border-radius: 999px; }
+.s-pricing .tier-name { font-family: var(--ff-head); font-size: 30px; font-weight: 700; color: var(--midnight); }
+.s-pricing .tier.hl .tier-name { color: #fff; }
+.s-pricing .tier-sub { font-size: 16px; color: var(--violet); font-weight: 600; }
+.s-pricing .tier.hl .tier-sub { color: var(--violet-l); }
+.s-pricing .tier-price { display: flex; align-items: baseline; gap: 8px; }
+.s-pricing .tier-from { font-size: 14px; color: var(--ink55); text-transform: uppercase; letter-spacing: 0.08em; }
+.s-pricing .tier.hl .tier-from { color: var(--white55); }
+.s-pricing .tier-val { font-family: var(--ff-head); font-size: 56px; font-weight: 700; color: var(--midnight); letter-spacing: -0.03em; }
+.s-pricing .tier.hl .tier-val { color: #fff; }
+.s-pricing .tier-unit { font-size: 18px; color: var(--ink55); }
+.s-pricing .tier.hl .tier-unit { color: var(--white55); }
+.s-pricing .tier-range { font-size: 14px; color: var(--ink55); }
+.s-pricing .tier.hl .tier-range { color: var(--white55); }
+.s-pricing .tier-feats { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.s-pricing .tier-feats li { font-size: 16px; color: var(--ink70); display: flex; gap: 8px; }
+.s-pricing .tier.hl .tier-feats li { color: var(--white70); }
+.s-pricing .tier-feats li::before { content: '✓'; color: var(--green); font-weight: 700; }
+
+/* === SLIDE 10 — TRUST / GOUVERNANCE === */
+.s-trust h2 { font-size: 78px; }
+.s-trust .pillars { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.s-trust .pillar { padding: 36px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; display: flex; gap: 22px; align-items: flex-start; }
+.s-trust .pillar-icon { width: 56px; height: 56px; border-radius: 14px; background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.25); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+.s-trust .pillar-title { font-family: var(--ff-head); font-size: 24px; font-weight: 700; color: #fff; }
+.s-trust .pillar-body { font-size: 17px; line-height: 1.55; color: var(--white70); margin-top: 8px; }
+
+/* === SLIDE 11 — TRACTION / CHIFFRES === */
+.s-traction h2 { font-size: 84px; }
+.s-traction .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.s-traction .stat-block { padding: 36px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; }
+.s-traction .stat-num { font-family: var(--ff-head); font-size: 90px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; color: #fff; }
+.s-traction .stat-num.green { color: var(--green); }
+.s-traction .stat-num.violet { color: var(--violet-l); }
+.s-traction .stat-label { font-size: 16px; line-height: 1.5; color: var(--white70); margin-top: 18px; }
+
+/* === SLIDE 12 — ROADMAP === */
+.s-roadmap h2 { font-size: 78px; }
+.s-roadmap .timeline { display: flex; gap: 0; align-items: stretch; position: relative; }
+.s-roadmap .timeline::before { content: ''; position: absolute; top: 38px; left: 5%; right: 5%; height: 2px; background: rgba(124,58,237,0.30); z-index: 0; }
+.s-roadmap .stage { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 18px; position: relative; z-index: 1; padding: 0 16px; }
+.s-roadmap .stage-dot { width: 76px; height: 76px; border-radius: 50%; background: var(--midnight); border: 3px solid var(--violet); display: flex; align-items: center; justify-content: center; font-family: var(--ff-head); font-size: 22px; font-weight: 700; color: var(--violet-l); }
+.s-roadmap .stage.now .stage-dot { background: var(--violet); color: #fff; box-shadow: 0 0 0 8px rgba(124,58,237,0.20); }
+.s-roadmap .stage-period { font-family: var(--ff-head); font-size: 18px; font-weight: 700; color: var(--violet-l); letter-spacing: 0.08em; text-transform: uppercase; }
+.s-roadmap .stage-title { font-family: var(--ff-head); font-size: 22px; font-weight: 700; color: #fff; text-align: center; }
+.s-roadmap .stage-body { font-size: 15px; line-height: 1.5; color: var(--white70); text-align: center; }
+
+/* === SLIDE 13 — ÉQUIPE / OPÉRATEUR === */
+.s-team h2 { font-size: 84px; }
+.s-team .lead { font-size: 24px; line-height: 1.5; color: var(--ink70); max-width: 1200px; }
+.s-team .principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.s-team .principle { padding: 32px; background: #fff; border: 1px solid rgba(10,22,40,0.08); border-radius: 18px; }
+.s-team .pr-num { font-family: var(--ff-head); font-size: 36px; font-weight: 700; color: var(--violet); letter-spacing: -0.03em; }
+.s-team .pr-title { font-family: var(--ff-head); font-size: 22px; font-weight: 700; color: var(--midnight); margin-top: 12px; }
+.s-team .pr-body { font-size: 16px; line-height: 1.55; color: var(--ink70); margin-top: 10px; }
+
+/* === SLIDE 14 — ASK / ENGAGEMENT === */
+.s-ask h2 { font-size: 92px; max-width: 1500px; }
+.s-ask .ask-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.s-ask .ask-card { padding: 44px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; display: flex; flex-direction: column; gap: 18px; }
+.s-ask .ask-card.hl { background: var(--violet); }
+.s-ask .ask-tag { font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); }
+.s-ask .ask-card.hl .ask-tag { color: #fff; }
+.s-ask .ask-title { font-family: var(--ff-head); font-size: 38px; font-weight: 700; letter-spacing: -0.02em; color: #fff; line-height: 1.1; }
+.s-ask .ask-body { font-size: 18px; line-height: 1.55; color: var(--white70); }
+.s-ask .ask-card.hl .ask-body { color: rgba(255,255,255,0.85); }
+
+/* === SLIDE 15 — CONTACT === */
+.s-contact .slide-body { justify-content: center; align-items: flex-start; gap: 48px; }
+.s-contact h2 { font-size: 116px; max-width: 1500px; }
+.s-contact .contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%; }
+.s-contact .contact-card { padding: 36px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 18px; display: flex; flex-direction: column; gap: 14px; }
+.s-contact .contact-card.hl { background: var(--violet); }
+.s-contact .contact-tag { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); }
+.s-contact .contact-card.hl .contact-tag { color: rgba(255,255,255,0.85); }
+.s-contact .contact-title { font-family: var(--ff-head); font-size: 26px; font-weight: 700; color: #fff; line-height: 1.2; }
+.s-contact .contact-url { font-size: 18px; color: var(--white70); }
+.s-contact .contact-card.hl .contact-url { color: rgba(255,255,255,0.85); }
+</style>
+</head>
+<body>
+
+<!-- ═══ SLIDE 1 — COVER ═══ -->
+<section class="slide midnight s-cover">
+  <div class="grid"></div>
+  <div class="halo-violet" style="top:-180px; right:-100px;"></div>
+  <div class="halo-green" style="bottom:-150px; left:-100px;"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <div class="logo"><div class="logo-mark">N</div><div class="logo-name">NEURAL</div></div>
+      <span class="eyebrow"><span class="dot"></span>Pitch Deck 2026 · Confidentiel</span>
+    </div>
+    <div class="slide-body">
+      <h1 class="h-display">Des agents IA <span class="h-italic">déployés</span><br/>et auditables.<br/>Pas des démos.</h1>
+      <p class="lead">NEURAL est un opérateur IA spécialisé en déploiement de systèmes multi-agents pour l'entreprise régulée. Audit trail natif. Validation humaine. ROI cadré contractuellement.</p>
+      <div class="meta">
+        <div><div class="meta-num">6</div><div class="meta-label">Secteurs</div></div>
+        <div class="meta-divider"></div>
+        <div><div class="meta-num">7</div><div class="meta-label">Branches métier</div></div>
+        <div class="meta-divider"></div>
+        <div><div class="meta-num"><span>42</span></div><div class="meta-label">Cellules agents</div></div>
+        <div class="meta-divider"></div>
+        <div><div class="meta-num">100%</div><div class="meta-label">Auditables</div></div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL AI Consulting · 2026</span><span>1 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 2 — LE PROBLÈME ═══ -->
+<section class="slide midnight s-problem">
+  <div class="grid"></div>
+  <div class="halo-violet" style="top:-200px; left:-180px;"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow"><span class="dot"></span>Le constat</span>
+      <span class="logo-name">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">80% des projets IA en entreprise<br/><span class="h-italic">n'arrivent jamais</span> en production.</h2>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-num red">80%</div>
+          <div class="stat-label">des projets IA échouent avant la production (McKinsey, 2024)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num ylw">12–18</div>
+          <div class="stat-label">mois perdus en moyenne entre PoC validé et déploiement réel</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num grn">3×</div>
+          <div class="stat-label">plus rapide en production avec une approche agents spécialisés vs LLM générique</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>2 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 3 — POSITIONNEMENT ═══ -->
+<section class="slide cream s-position">
+  <div class="grid"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow dark"><span class="dot"></span>Pourquoi NEURAL</span>
+      <span class="logo-name" style="color:var(--midnight);">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">Opérateur IA, pas vendeur de PoC.</h2>
+      <p class="lead">Une approche industrielle bâtie pour passer la gouvernance interne dès le premier jour, pas après 18 mois de comités.</p>
+      <div class="row">
+        <div class="pos-card bad">
+          <span class="pos-tag">Ce qu'on n'est PAS</span>
+          <div class="pos-title" style="color:var(--midnight);">Vendeur de PoC IA</div>
+          <ul class="pos-list">
+            <li><span class="icon-x">✕</span><span>LLM générique non sectoriel</span></li>
+            <li><span class="icon-x">✕</span><span>Démo qui meurt en gouvernance</span></li>
+            <li><span class="icon-x">✕</span><span>Pas d'audit trail réglementaire</span></li>
+            <li><span class="icon-x">✕</span><span>Estimation ROI floue</span></li>
+          </ul>
+        </div>
+        <div class="pos-card good">
+          <span class="pos-tag">Ce qu'on EST</span>
+          <div class="pos-title" style="color:#fff;">Opérateur IA verticalisé</div>
+          <ul class="pos-list">
+            <li><span class="icon-check">✓</span><span>Agents pré-entraînés par secteur</span></li>
+            <li><span class="icon-check">✓</span><span>Audit trail DORA / RGPD / EASA-ready</span></li>
+            <li><span class="icon-check">✓</span><span>Validation humaine sur chaque action</span></li>
+            <li><span class="icon-check">✓</span><span>ROI engagé contractuellement à J+90</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>3 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 4 — MÉTHODE / ORCHESTRATION ═══ -->
+<section class="slide midnight s-method">
+  <div class="grid"></div>
+  <div class="halo-violet" style="top:-150px; right:-150px;"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow"><span class="dot"></span>Notre méthode</span>
+      <span class="logo-name">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">L'orchestration multi-agents :<br/>de l'intention à la production.</h2>
+      <div class="flow">
+        <div class="flow-node hl">Cadrage métier</div>
+        <div class="flow-node">Agents spécialisés</div>
+        <div class="flow-node">Orchestrateur central</div>
+        <div class="flow-node">Validation humaine</div>
+        <div class="flow-node hl">Production + Audit</div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n">01</div>
+          <div class="step-title">Cadrage contractualisé</div>
+          <div class="step-body">Périmètre, KPIs cibles, critères d'acceptance et jalons ROI inscrits au contrat. Zéro surprise sur le scope.</div>
+        </div>
+        <div class="step">
+          <div class="step-n">02</div>
+          <div class="step-title">Agents spécialisés</div>
+          <div class="step-body">Un agent par domaine métier — finance, comms, supply, RH. Entraînés sur vos contraintes réglementaires sectorielles.</div>
+        </div>
+        <div class="step">
+          <div class="step-n">03</div>
+          <div class="step-title">Audit trail complet</div>
+          <div class="step-body">Chaque décision loguée : agent source, contexte, justification, KPI engagé, timestamp. DORA / RGPD / EASA-ready.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>4 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 5 — MATRICE 7×6 ═══ -->
+<section class="slide midnight s-matrix">
+  <div class="grid"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow"><span class="dot"></span>Framework produit</span>
+      <span class="logo-name">NEURAL</span>
+    </div>
+    <div class="slide-body" style="gap:18px;">
+      <h2 class="h-display">42 cellules agents.<br/><span class="h-italic">Un seul opérateur.</span></h2>
+      <p class="sub">7 branches métier × 6 secteurs · chaque cellule = agents spécialisés, workflows métier, KPIs trackés</p>
+      <table>
+        <thead><tr><th></th><th>Banque</th><th>Assurance</th><th>Luxe</th><th>SaaS</th><th>Transport</th><th>Aéro</th></tr></thead>
+        <tbody>
+          <tr><td>Finance</td><td class="cell-live">● Live</td><td class="cell-live">● Live</td><td class="cell-live">● Live</td><td class="cell-demo">◐ Démo</td><td class="cell-demo">◐ Démo</td><td class="cell-demo">◐ Démo</td></tr>
+          <tr><td>Comptabilité</td><td class="cell-live">● Live</td><td class="cell-live">● Live</td><td class="cell-live">● Live</td><td class="cell-demo">◐ Démo</td><td class="cell-empty">–</td><td class="cell-empty">–</td></tr>
+          <tr><td>Communication</td><td class="cell-live">● Live</td><td class="cell-empty">–</td><td class="cell-live">● Live</td><td class="cell-empty">–</td><td class="cell-empty">–</td><td class="cell-live">● Live</td></tr>
+          <tr><td>Marketing</td><td class="cell-empty">–</td><td class="cell-empty">–</td><td class="cell-demo">◐ Démo</td><td class="cell-live">● Live</td><td class="cell-empty">–</td><td class="cell-live">● Live</td></tr>
+          <tr><td>RH</td><td class="cell-empty">–</td><td class="cell-empty">–</td><td class="cell-demo">◐ Démo</td><td class="cell-demo">◐ Démo</td><td class="cell-empty">–</td><td class="cell-empty">–</td></tr>
+          <tr><td>Supply Chain</td><td class="cell-empty">–</td><td class="cell-demo">◐ Démo</td><td class="cell-empty">–</td><td class="cell-empty">–</td><td class="cell-live">● Live</td><td class="cell-live">● Live</td></tr>
+          <tr><td>SI</td><td class="cell-demo">◐ Démo</td><td class="cell-empty">–</td><td class="cell-empty">–</td><td class="cell-live">● Live</td><td class="cell-demo">◐ Démo</td><td class="cell-demo">◐ Démo</td></tr>
+        </tbody>
+      </table>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:rgba(16,185,129,0.50);"></span>Live — production · données clients réelles</span>
+        <span><span class="legend-dot" style="background:rgba(167,139,250,0.45);"></span>Démo orchestrée — données sectorielles anonymisées</span>
+        <span><span class="legend-dot" style="background:rgba(255,255,255,0.10);"></span>Roadmap — sur demande</span>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>5 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 6 — CAS BANQUE / ASSURANCE ═══ -->
+<section class="slide cream s-case">
+  <div class="grid"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow dark"><span class="dot"></span>Cas d'usage · Banque & Assurance</span>
+      <span class="logo-name" style="color:var(--midnight);">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">Bâle IV, IFRS 17 et KYC :<br/>la charge réglementaire <span class="h-italic">absorbée</span>.</h2>
+      <p class="case-sub">Le secteur financier est le terrain le plus exigeant. Conformité stricte, données sensibles, audit permanent — NEURAL y a déployé ses agents les plus critiques.</p>
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-num green">−68%</div><div class="kpi-label">Temps de clôture mensuelle (direction financière, maison CAC 40)</div></div>
+        <div class="kpi-card"><div class="kpi-num violet-l">IFRS 17</div><div class="kpi-label">Bascule absorbée sans incident · zéro erreur sur deux nuits de traitement</div></div>
+        <div class="kpi-card alt"><div class="kpi-num green">−85%</div><div class="kpi-label">Relecture manuelle des communications réglementaires (RegBankComms)</div></div>
+      </div>
+      <div class="agents-block">
+        <div class="agents-title">Agents en production</div>
+        <div class="agent-row"><span class="agent-id">AG-B001</span><span class="agent-name">RegBankComms — conformité communications</span><span class="agent-kpi">−85% relecture</span><span class="agent-status">Live</span></div>
+        <div class="agent-row"><span class="agent-id">AG-B002</span><span class="agent-name">BankCrisisComms — gestion communications de crise</span><span class="agent-kpi">&lt;4h activation</span><span class="agent-status">Live</span></div>
+        <div class="agent-row"><span class="agent-id">AG-B006</span><span class="agent-name">BankEvidenceGuard — audit trail décisions crédit</span><span class="agent-kpi">100% traçabilité</span><span class="agent-status">Live</span></div>
+      </div>
+    </div>
+    <div class="slide-footer dark"><span>NEURAL · Pitch Deck 2026</span><span>6 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 7 — CAS LUXE / TRANSPORT ═══ -->
+<section class="slide midnight s-case">
+  <div class="grid"></div>
+  <div class="halo-violet" style="bottom:-200px; right:-150px;"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow"><span class="dot"></span>Cas d'usage · Luxe & Transport</span>
+      <span class="logo-name">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">ESG, brand voice<br/>et P&L par ligne de planning.</h2>
+      <p class="case-sub">Le luxe exige une précision lexicale absolue et une traçabilité ESG irréprochable. Le transport exige une réponse sub-heure sur 3 000 références. NEURAL y répond avec des agents distincts.</p>
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-num green">−68%</div><div class="kpi-label">Temps de reporting mensuel — maison luxe CAC 40</div></div>
+        <div class="kpi-card"><div class="kpi-num violet-l">+42%</div><div class="kpi-label">Précision des prévisions supply — transporteur européen</div></div>
+        <div class="kpi-card alt"><div class="kpi-num green">100%</div><div class="kpi-label">Claims ESG vérifiables automatiquement avant publication</div></div>
+      </div>
+      <div class="agents-block">
+        <div class="agents-title">Agents en production</div>
+        <div class="agent-row"><span class="agent-id">AG-001</span><span class="agent-name">MaisonVoiceGuard — brand voice & compliance éditoriale luxe</span><span class="agent-kpi">−90% erreurs ton</span><span class="agent-status">Live</span></div>
+        <div class="agent-row"><span class="agent-id">AG-005</span><span class="agent-name">GreenClaimChecker — validation claims ESG</span><span class="agent-kpi">100% claims vérifiés</span><span class="agent-status">Live</span></div>
+        <div class="agent-row"><span class="agent-id">AG-T001</span><span class="agent-name">LogisticsOptimizer — planification & prévisions temps réel</span><span class="agent-kpi">+42% précision</span><span class="agent-status">Live</span></div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>7 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 8 — TÉMOIGNAGES ═══ -->
+<section class="slide midnight s-quotes">
+  <div class="grid"></div>
+  <div class="halo-green" style="top:-150px; right:-100px;"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow green"><span class="dot"></span>Ce qu'ils en disent</span>
+      <span class="logo-name">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">La preuve avant<br/>le rendez-vous.</h2>
+      <div class="grid-quotes">
+        <div class="q-card">
+          <div class="q-top"><span class="q-logo">LVMH</span><span class="q-ind">Luxe · Finance</span></div>
+          <div class="q-kpi">−68%</div>
+          <blockquote>« Ils n'ont pas vendu de l'IA. Ils ont livré un agent qui a remplacé 3 semaines de reporting manuel en 4 jours. »</blockquote>
+          <div class="q-who">Direction Financière · Maison de luxe (CAC 40)</div>
+        </div>
+        <div class="q-card">
+          <div class="q-top"><span class="q-logo">ADP</span><span class="q-ind">Transport · Supply</span></div>
+          <div class="q-kpi">+42%</div>
+          <blockquote>« La première fois qu'une présentation IA se termine par "et voici la ligne de P&L concernée". »</blockquote>
+          <div class="q-who">COO · Transporteur européen</div>
+        </div>
+        <div class="q-card">
+          <div class="q-top"><span class="q-logo">AXA</span><span class="q-ind">Assurance · Compta</span></div>
+          <div class="q-kpi">IFRS 17 ✓</div>
+          <blockquote>« Leur agent a absorbé la bascule IFRS 17 pendant que mes équipes dormaient. Deux nuits, zéro erreur. »</blockquote>
+          <div class="q-who">CFO · Assureur mutualiste</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>8 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 9 — FORFAITS ═══ -->
+<section class="slide cream s-pricing">
+  <div class="grid"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow dark"><span class="dot"></span>Tarification</span>
+      <span class="logo-name" style="color:var(--midnight);">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">Trois niveaux d'engagement.<br/><span class="h-italic">Sans surprise.</span></h2>
+      <div class="tiers">
+        <div class="tier">
+          <div>
+            <div class="tier-name">Starter</div>
+            <div class="tier-sub">AI Essentials · 1–50 utilisateurs</div>
+          </div>
+          <div class="tier-price"><span class="tier-from">dès</span><span class="tier-val">290</span><span class="tier-unit">€/mois</span></div>
+          <div class="tier-range">jusqu'à 1 290 €/mois</div>
+          <ul class="tier-feats">
+            <li>1–2 branches métier</li>
+            <li>Agents pré-configurés</li>
+            <li>Dashboard basique</li>
+            <li>Support email</li>
+          </ul>
+        </div>
+        <div class="tier hl">
+          <div class="tier-badge">Le plus déployé</div>
+          <div>
+            <div class="tier-name">Business</div>
+            <div class="tier-sub">AI Accelerator · 50–500 utilisateurs</div>
+          </div>
+          <div class="tier-price"><span class="tier-from">dès</span><span class="tier-val">4 900</span><span class="tier-unit">€/mois</span></div>
+          <div class="tier-range">jusqu'à 16 500 €/mois</div>
+          <ul class="tier-feats">
+            <li>3–4 branches métier</li>
+            <li>Agents customisés</li>
+            <li>Analytics avancés</li>
+            <li>Support prioritaire</li>
+          </ul>
+        </div>
+        <div class="tier">
+          <div>
+            <div class="tier-name">Enterprise</div>
+            <div class="tier-sub">AI Transformation · 500–5 000 utilisateurs</div>
+          </div>
+          <div class="tier-price"><span class="tier-from">dès</span><span class="tier-val">35 000</span><span class="tier-unit">€/mois</span></div>
+          <div class="tier-range">jusqu'à 110 000 €/mois</div>
+          <ul class="tier-feats">
+            <li>5–7 branches métier</li>
+            <li>Agents sur mesure</li>
+            <li>CSM dédié</li>
+            <li>Cadrage défini avec vous</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark"><span>NEURAL · Pitch Deck 2026</span><span>9 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 10 — TRUST ═══ -->
+<section class="slide midnight s-trust">
+  <div class="grid"></div>
+  <div class="halo-violet" style="bottom:-200px; left:-150px;"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow"><span class="dot"></span>Gouvernance & sécurité</span>
+      <span class="logo-name">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">Conçu pour <span class="h-italic">passer</span><br/>les audits internes.</h2>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="pillar-icon" style="color:var(--violet-l);">🛡</div>
+          <div>
+            <div class="pillar-title">Audit trail complet</div>
+            <div class="pillar-body">Chaque décision agent loguée avec contexte, source et justification. Exploitable dans vos audits DORA, RGPD, EASA, IFRS 17.</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon" style="color:var(--green);">✓</div>
+          <div>
+            <div class="pillar-title">Validation humaine</div>
+            <div class="pillar-body">Aucune action à fort impact sans approbation humaine explicite. Workflow de gouvernance intégré dès le premier agent en production.</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon" style="color:var(--violet-l);">🔒</div>
+          <div>
+            <div class="pillar-title">Isolation des données</div>
+            <div class="pillar-body">Vos données ne quittent pas votre infrastructure. Hébergement EU exclusif (Frankfurt + Paris). Déploiement on-premise ou VPC privé sur demande Enterprise.</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon" style="color:var(--green);">€</div>
+          <div>
+            <div class="pillar-title">Engagement contractuel à J+90</div>
+            <div class="pillar-body">KPIs engagés dans le contrat. Rapport mensuel automatique. Si les KPIs ne sont pas atteints à J+90, ajustement du dispositif sans frais supplémentaires.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>10 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 11 — TRACTION ═══ -->
+<section class="slide midnight s-traction">
+  <div class="grid"></div>
+  <div class="halo-green" style="top:-100px; right:-100px;"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow"><span class="dot"></span>Traction</span>
+      <span class="logo-name">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">Mesurable.<br/>Pas projeté.</h2>
+      <div class="stats-grid">
+        <div class="stat-block"><div class="stat-num green">17</div><div class="stat-label">cellules <strong>Live</strong> en production avec données clients réelles</div></div>
+        <div class="stat-block"><div class="stat-num violet">11</div><div class="stat-label">cellules en <strong>démo orchestrée</strong> sur données sectorielles anonymisées</div></div>
+        <div class="stat-block"><div class="stat-num">42</div><div class="stat-label">cellules totales déployables · 7 branches × 6 secteurs</div></div>
+        <div class="stat-block"><div class="stat-num green">4–8</div><div class="stat-label">semaines moyennes du cadrage à la première mise en production</div></div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>11 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 12 — ROADMAP ═══ -->
+<section class="slide midnight s-roadmap">
+  <div class="grid"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow"><span class="dot"></span>Roadmap 2026</span>
+      <span class="logo-name">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">Du PoC <span class="h-italic">défensif</span><br/>à l'opérateur multi-pays.</h2>
+      <div class="timeline">
+        <div class="stage">
+          <div class="stage-dot">Q1</div>
+          <div class="stage-period">Q1 2026</div>
+          <div class="stage-title">Foundation</div>
+          <div class="stage-body">17 cellules Live · 11 démos orchestrées · framework matrice 7×6 publié.</div>
+        </div>
+        <div class="stage now">
+          <div class="stage-dot">Q2</div>
+          <div class="stage-period">Q2 2026 · Aujourd'hui</div>
+          <div class="stage-title">Industrialisation</div>
+          <div class="stage-body">Adobe MCP integration · brochure · 12 démos sectorielles · trust/agent-safety publié.</div>
+        </div>
+        <div class="stage">
+          <div class="stage-dot">Q3</div>
+          <div class="stage-period">Q3 2026</div>
+          <div class="stage-title">Multi-pays</div>
+          <div class="stage-body">Premiers déploiements multi-pays Enterprise · agents reglementaires complets DORA + EASA.</div>
+        </div>
+        <div class="stage">
+          <div class="stage-dot">Q4</div>
+          <div class="stage-period">Q4 2026</div>
+          <div class="stage-title">Operator Gateway</div>
+          <div class="stage-body">Plateforme self-service · catalogue agents public · marketplace partenaires intégrateurs.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>12 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 13 — POURQUOI MAINTENANT ═══ -->
+<section class="slide cream s-team">
+  <div class="grid"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow dark"><span class="dot"></span>Pourquoi maintenant</span>
+      <span class="logo-name" style="color:var(--midnight);">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">Trois fenêtres<br/>se ferment <span class="h-italic">simultanément</span>.</h2>
+      <p class="lead">2026 est l'année où les directions financières, RH et conformité passent du POC IA défensif au déploiement structuré. Trois forces convergent.</p>
+      <div class="principles">
+        <div class="principle">
+          <div class="pr-num">01</div>
+          <div class="pr-title">AI Act EU applicable</div>
+          <div class="pr-body">L'application progressive de l'AI Act exige des audits trails, validations humaines et documentation des systèmes IA à haut risque. NEURAL y répond nativement.</div>
+        </div>
+        <div class="principle">
+          <div class="pr-num">02</div>
+          <div class="pr-title">Souveraineté IA française</div>
+          <div class="pr-body">Hébergement EU exclusif (Frankfurt + Paris). Sous-processeurs publics. NEURAL s'inscrit dans la thèse "Sovereign AI" française et européenne.</div>
+        </div>
+        <div class="principle">
+          <div class="pr-num">03</div>
+          <div class="pr-title">Maturité des agents</div>
+          <div class="pr-body">Claude Sonnet 4.6 + agents spécialisés permettent une fiabilité de production qu'aucun LLM générique ne peut atteindre dans les secteurs régulés.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer dark"><span>NEURAL · Pitch Deck 2026</span><span>13 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 14 — ASK ═══ -->
+<section class="slide midnight s-ask">
+  <div class="grid"></div>
+  <div class="halo-violet" style="top:-150px; right:-150px;"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <span class="eyebrow"><span class="dot"></span>L'engagement</span>
+      <span class="logo-name">NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">Un cadrage de 30 min<br/>pour décider en <span class="h-italic">connaissance de cause</span>.</h2>
+      <div class="ask-grid">
+        <div class="ask-card hl">
+          <span class="ask-tag">Ce que vous obtenez</span>
+          <div class="ask-title">Diagnostic sectoriel personnalisé + estimation ROI réaliste sous 7 jours.</div>
+          <div class="ask-body">Pas de pitch commercial. Une analyse technique de vos processus métier, identification des cellules agents adaptées, et chiffrage initial transparent.</div>
+        </div>
+        <div class="ask-card">
+          <span class="ask-tag">Ce qui suit</span>
+          <div class="ask-title">Sprint de cadrage contractualisé en 4–8 semaines.</div>
+          <div class="ask-body">Périmètre, KPIs, jalons, ROI inscrits au contrat. Mise en production du premier agent dans les 2 mois suivants. Engagement à J+90.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL · Pitch Deck 2026</span><span>14 / 15</span></div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 15 — CONTACT ═══ -->
+<section class="slide midnight s-contact">
+  <div class="grid"></div>
+  <div class="halo-violet" style="top:-200px; left:-150px;"></div>
+  <div class="halo-green" style="bottom:-200px; right:-150px;"></div>
+  <div class="slide-inner">
+    <div class="slide-header">
+      <div class="logo"><div class="logo-mark">N</div><div class="logo-name">NEURAL</div></div>
+      <span class="eyebrow"><span class="dot"></span>Parler à NEURAL</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="h-display">Cadrage 30 min,<br/><span class="h-italic">sans engagement</span>.</h2>
+      <div class="contact-grid">
+        <div class="contact-card hl">
+          <span class="contact-tag">Réservation directe</span>
+          <div class="contact-title">Cadrage commercial</div>
+          <div class="contact-url">neural-five.vercel.app/contact</div>
+        </div>
+        <div class="contact-card">
+          <span class="contact-tag">Documentation produit</span>
+          <div class="contact-title">Sécurité des agents IA</div>
+          <div class="contact-url">neural-five.vercel.app/trust/agent-safety</div>
+        </div>
+        <div class="contact-card">
+          <span class="contact-tag">Ressources & insights</span>
+          <div class="contact-title">Articles & publications</div>
+          <div class="contact-url">neural-five.vercel.app/publications</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>NEURAL AI Consulting · ludoviclabs@gmail.com · 2026</span><span>15 / 15</span></div>
+  </div>
+</section>
+
+</body>
+</html>

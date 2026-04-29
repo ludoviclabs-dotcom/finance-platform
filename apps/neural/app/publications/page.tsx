@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
-import { PublicationsExplorer } from "@/components/publications/publications-explorer";
+import { PublicationsRefonte } from "@/components/publications/publications-refonte";
 import { getAllPublications } from "@/lib/publications";
 import { SITE_URL } from "@/lib/site-config";
+
+import "./publications.css";
 
 export const metadata: Metadata = {
   title: "Publications",
@@ -29,5 +31,5 @@ export const metadata: Metadata = {
 export default async function PublicationsPage() {
   const publications = await getAllPublications();
 
-  return <PublicationsExplorer publications={publications} />;
+  return <PublicationsRefonte publications={publications} />;
 }

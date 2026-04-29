@@ -7,6 +7,8 @@ import {
   PREMIUM_DASHBOARD_HOTSPOTS,
 } from "../landing/mockup/premium-dashboard-mockup";
 import { HeroStage } from "../landing/hero/hero-stage";
+import { TrustBadges } from "../landing/trust-badges";
+import { SecurityArchitecture } from "../landing/security-architecture";
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -1047,9 +1049,12 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                     </li>
                   ))}
                 </ul>
-                <button onClick={onEnterApp} className="w-full bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-neutral-100 transition-colors cursor-pointer">
+                <a
+                  href="mailto:contact@carbonco.fr?subject=Demande%20de%20devis%20Enterprise%20%E2%80%94%20CarbonCo&body=Bonjour%2C%0A%0AJe%20souhaite%20%C3%A9changer%20sur%20une%20offre%20Enterprise%20CarbonCo%20pour%20mon%20organisation.%0A%0ASoci%C3%A9t%C3%A9%20%3A%20%0AEffectifs%20%3A%20%0ANombre%20de%20sites%20%2F%20filiales%20%3A%20%0AObligations%20CSRD%20%3A%20%0A%0AMerci%20de%20me%20rappeler%20au%20%3A%20%0A%0ACordialement%2C"
+                  className="w-full inline-flex items-center justify-center bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-neutral-100 transition-colors cursor-pointer"
+                >
                   Parler à un expert
-                </button>
+                </a>
               </Reveal>
             </div>
 
@@ -1065,9 +1070,12 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
         <ProductDemoSection onEnterApp={onEnterApp} />
 
         {/* ══ 10. CONFORMITÉ & SÉCURITÉ ══ */}
-        <section className="py-20 px-8 md:px-12 bg-[#f9f9fb]">
+        <section id="securite" className="py-24 px-8 md:px-12 bg-[#f9f9fb]">
           <div className="max-w-[1440px] mx-auto">
-            <Reveal className="text-center mb-12">
+            <Reveal className="text-center mb-4">
+              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Sécurité & conformité</span>
+            </Reveal>
+            <Reveal className="text-center mb-12" delay={0.05}>
               <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">Sécurité et conformité au cœur de CarbonCo</h2>
               <p className="text-neutral-500 mt-3 text-base">Vos données extra-financières sont aussi sensibles que vos données financières. On les protège en conséquence.</p>
               <div className="mt-6 max-w-3xl mx-auto text-sm text-neutral-600 leading-relaxed space-y-3">
@@ -1079,22 +1087,25 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 </p>
               </div>
             </Reveal>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-              {[
-                { icon: "🔒", title: "RGPD Conforme", desc: "Hébergement EU (Vercel/Neon) · chiffrement TLS 1.3 + AES-256 au repos" },
-                { icon: "🛡️", title: "Audit Trail", desc: "Traçabilité immuable de chaque donnée — prêt pour OTI et commissaire aux comptes" },
-                { icon: "✅", title: "Certifications", desc: "Roadmap sécurité en cours — certifications en évaluation (SOC2, ISO 27001)" },
-                { icon: "🌿", title: "EFRAG 2025", desc: "Couverture ESRS E1 prioritaire · guidelines EFRAG intégrées" },
-              ].map((b) => (
-                <Reveal key={b.title} delay={0.08} className="bg-white rounded-2xl p-6 border border-neutral-200 shadow-sm text-center hover:shadow-md transition-shadow">
-                  <div className="text-3xl mb-3">{b.icon}</div>
-                  <div className="font-bold text-sm text-black mb-1.5">{b.title}</div>
-                  <div className="text-xs text-neutral-500 leading-relaxed">{b.desc}</div>
-                </Reveal>
-              ))}
-            </div>
+
+            {/* Trust badges (8) — preuve visuelle compactée */}
+            <Reveal delay={0.1} className="mb-12">
+              <TrustBadges />
+            </Reveal>
+
+            {/* Schéma d'architecture sécurité — pipeline traçabilité */}
+            <Reveal delay={0.15} className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-6 md:p-10 mb-10">
+              <div className="text-center mb-6">
+                <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Pipeline traçabilité</span>
+                <h3 className="font-extrabold text-xl md:text-2xl tracking-tight text-black mt-2">De la saisie à l&apos;export auditeur</h3>
+              </div>
+              <SecurityArchitecture />
+            </Reveal>
+
             <Reveal delay={0.2} className="text-center">
-              <p className="text-sm text-neutral-400">Chiffrement AES-256 · TLS 1.3 · Audit trail immuable · Backup quotidien</p>
+              <p className="text-sm text-neutral-500">
+                Chaque donnée traverse cette chaîne et conserve sa <strong>provenance, sa méthode de calcul et son hash de chaîne</strong> — auditable ligne par ligne par votre commissaire aux comptes ou OTI.
+              </p>
             </Reveal>
           </div>
         </section>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk, Manrope } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
+import { CookieBanner } from "@/components/cookie-banner";
 import "./globals.css";
 
 const inter = Inter({
@@ -59,14 +60,7 @@ export const metadata: Metadata = {
     description:
       "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
       "et générez vos rapports ESG en quelques clics. Hébergé sur infrastructure EU.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "CarbonCo — Plateforme ESG & CSRD",
-      },
-    ],
+    // OG image: served dynamically by app/opengraph-image.tsx (Next.js convention)
   },
   twitter: {
     card: "summary_large_image",
@@ -74,7 +68,7 @@ export const metadata: Metadata = {
     description:
       "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
       "et générez vos rapports ESG en quelques clics.",
-    images: ["/og-image.png"],
+    // Twitter image: served dynamically by app/opengraph-image.tsx
   },
   robots: {
     index: true,
@@ -110,6 +104,7 @@ export default function RootLayout({
         </a>
         <ToastProvider>
           {children}
+          <CookieBanner />
         </ToastProvider>
       </body>
     </html>

@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
-import { readFileSync, readdirSync, mkdirSync, existsSync } from "fs";
-import { resolve, dirname, join, basename } from "path";
+import { readFileSync, mkdirSync, existsSync } from "fs";
+import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createServer } from "http";
 
@@ -8,8 +8,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 
 const SECTORS = ["banque", "luxe", "assurance", "saas", "transport", "aeronautique"];
-
-const html = (path) => readFileSync(path, "utf-8");
 
 const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml", ".js": "application/javascript; charset=utf-8" };
 

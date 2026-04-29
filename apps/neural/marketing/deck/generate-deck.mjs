@@ -1,5 +1,5 @@
 import { chromium } from "playwright";
-import { readFileSync, mkdirSync, existsSync } from "fs";
+import { readFileSync, mkdirSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createServer } from "http";
@@ -8,8 +8,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DECK_HTML = resolve(__dirname, "neural-pitch-deck-2026.html");
 const PDF_OUT = resolve(__dirname, "neural-pitch-deck-2026.pdf");
 const SLIDES_DIR = resolve(__dirname, "slides");
-
-const MIME = { ".html": "text/html; charset=utf-8" };
 
 const server = createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });

@@ -1,4 +1,4 @@
-import { getPublicationBySlug } from "@/lib/publications";
+import { readPublicationFrontmatter } from "@/lib/publications-frontmatter";
 import { OG_CONTENT_TYPE, OG_SIZE, renderNeuralOg } from "@/lib/og-image";
 
 export const alt = "Publication NEURAL";
@@ -11,7 +11,7 @@ type Props = {
 
 export default async function Image({ params }: Props) {
   const { slug } = await params;
-  const publication = await getPublicationBySlug(slug);
+  const publication = await readPublicationFrontmatter(slug);
 
   if (!publication) {
     return renderNeuralOg({

@@ -484,7 +484,7 @@ async function main() {
   const knownPublishedSlugs = new Set(await listPublishedSlugs());
   const { categories, audiences } = await gatherKnownValues();
 
-  let reports: LintReport[] = [];
+  const reports: LintReport[] = [];
 
   if (all) {
     for (const s of knownPublishedSlugs) {

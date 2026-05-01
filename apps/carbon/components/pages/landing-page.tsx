@@ -9,6 +9,9 @@ import {
 import { HeroStage } from "../landing/hero/hero-stage";
 import { TrustBadges } from "../landing/trust-badges";
 import { SecurityArchitecture } from "../landing/security-architecture";
+import { SectorShowcase } from "../landing/sector-mockups";
+import { Testimonials } from "../landing/testimonials";
+import { CompetitorComparison } from "../landing/competitor-comparison";
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -978,6 +981,51 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 </Reveal>
               ))}
             </div>
+
+            {/* Mockups dashboard sectoriels */}
+            <Reveal delay={0.15} className="mt-16">
+              <div className="text-center mb-8">
+                <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Aperçu produit par secteur</span>
+                <h3 className="font-extrabold text-2xl md:text-3xl tracking-tight text-black mt-2">Le dashboard se reconfigure selon votre secteur</h3>
+              </div>
+              <SectorShowcase />
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ══ 7bis. TÉMOIGNAGES & EARLY ADOPTERS ══ */}
+        <section id="temoignages" className="py-28 px-8 md:px-12 bg-white">
+          <div className="max-w-[1440px] mx-auto">
+            <Reveal className="text-center mb-4">
+              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Ils nous font confiance</span>
+            </Reveal>
+            <Reveal className="text-center mb-12" delay={0.05}>
+              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">Le programme Early Adopter</h2>
+              <p className="text-neutral-500 mt-3 text-base max-w-2xl mx-auto">
+                Plusieurs ETI européennes utilisent CarbonCo pour structurer leur premier reporting CSRD. Voici ce qu&apos;elles en disent.
+              </p>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <Testimonials />
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ══ 7ter. COMPARATIF CONCURRENTS ══ */}
+        <section id="comparatif" className="py-28 px-8 md:px-12 bg-[#f9f9fb]">
+          <div className="max-w-[1440px] mx-auto">
+            <Reveal className="text-center mb-4">
+              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Pourquoi choisir CarbonCo</span>
+            </Reveal>
+            <Reveal className="text-center mb-12" delay={0.05}>
+              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">Comparatif des plateformes ESG</h2>
+              <p className="text-neutral-500 mt-3 text-base max-w-2xl mx-auto">
+                Une lecture honnête face aux acteurs établis et aux nouveaux entrants. Chaque outil a ses forces — voici les critères les plus différenciants pour les ETI européennes.
+              </p>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <CompetitorComparison />
+            </Reveal>
           </div>
         </section>
 
@@ -1167,6 +1215,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             <div>
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Ressources</h4>
               <ul className="space-y-3">
+                <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure 8 pages (PDF)</a></li>
                 {["Guide ESRS 2025", "Blog RSE", "Webinaires", "Documentation API", "Cas clients", "Presse"].map((l) => (
                   <li key={l} className="text-sm text-neutral-500">{l} <span className="text-xs text-neutral-400">· bientôt</span></li>
                 ))}

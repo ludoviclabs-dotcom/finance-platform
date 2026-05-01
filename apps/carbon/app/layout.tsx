@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk, Manrope } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieBanner } from "@/components/cookie-banner";
+import { THEME_INIT_SCRIPT } from "@/components/ui/theme-toggle";
 import "./globals.css";
 
 const inter = Inter({
@@ -95,6 +96,10 @@ export default function RootLayout({
       data-theme="dark"
       className={`${inter.variable} ${spaceGrotesk.variable} ${manrope.variable}`}
     >
+      <head>
+        {/* Applique le thème stocké avant la première peinture pour éviter le flash. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-screen font-sans antialiased">
         <a
           href="#main-content"

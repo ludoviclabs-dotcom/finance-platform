@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Bell, Search, RefreshCw, Download, X, ChevronRight, Sun, Moon, LogOut, Menu } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, Search, RefreshCw, Download, X, ChevronRight, LogOut, Menu } from "lucide-react";
 
 import { AuditModeToggle } from "@/components/ui/audit-mode-toggle";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface HeaderProps {
   title: string;
@@ -26,19 +27,11 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
   const [notifOpen, setNotifOpen] = useState(false);
   const [period, setPeriod] = useState<typeof PERIODS[number]>("Ce mois");
   const [refreshing, setRefreshing] = useState(false);
-  const [isDark, setIsDark] = useState(true);
 
   const handleRefresh = () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1200);
   };
-
-  const toggleTheme = useCallback(() => {
-    const html = document.documentElement;
-    const next = isDark ? "light" : "dark";
-    html.setAttribute("data-theme", next);
-    setIsDark(!isDark);
-  }, [isDark]);
 
   // Close notif dropdown on ESC
   useEffect(() => {
@@ -99,18 +92,8 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
             <kbd className="hidden md:block bg-[var(--color-background)] border border-[var(--color-border)] rounded px-1 text-[10px] text-[var(--color-foreground-subtle)]" aria-hidden="true">⌘K</kbd>
           </button>
 
-          {/* Dark/Light toggle */}
-          <button
-            onClick={toggleTheme}
-            aria-label={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
-            aria-pressed={!isDark}
-            className={iconBtnClass}
-          >
-            {isDark
-              ? <Sun className="w-4 h-4" aria-hidden="true" />
-              : <Moon className="w-4 h-4" aria-hidden="true" />
-            }
-          </button>
+          {/* Dark/Light/System toggle */}
+          <ThemeToggle />
 
           {/* Refresh */}
           <button

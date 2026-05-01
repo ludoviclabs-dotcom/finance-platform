@@ -1,0 +1,25 @@
+WEBVTT
+NOTE
+Sous-titres + chapitres officiels de la démo CarbonCo (90 secondes).
+À brancher sur <track kind="chapters"> et <track kind="subtitles"> d'une balise <video>.
+
+00:00:00.000 --> 00:00:12.000
+Bienvenue. Voici comment CarbonCo transforme votre Excel en rapport CSRD auditable.
+
+00:00:12.000 --> 00:00:24.000
+Étape 1 : import. Votre fichier Excel est analysé, chaque ligne reçoit une provenance.
+
+00:00:24.000 --> 00:00:38.000
+Étape 2 : calcul automatique. Facteurs ADEME, IPCC ou DEFRA appliqués, méthode tracée.
+
+00:00:38.000 --> 00:00:54.000
+Étape 3 : contrôle qualité. Le copilote IA détecte les ruptures et propose des corrections sourcées ESRS.
+
+00:00:54.000 --> 00:01:10.000
+Étape 4 : preuve. Audit trail signé SHA-256 : chaque chiffre justifiable devant l'OTI.
+
+00:01:10.000 --> 00:01:24.000
+Étape 5 : export. Rapport PDF prêt pour votre commissaire aux comptes.
+
+00:01:24.000 --> 00:01:30.000
+CarbonCo — la conformité ESG sans friction.

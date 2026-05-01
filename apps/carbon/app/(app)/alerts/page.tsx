@@ -559,6 +559,27 @@ export default function AlertsPage() {
         ))}
       </div>
 
+      {/* Auto-evaluation schedule (Vercel Cron) */}
+      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex items-start gap-4">
+        <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+          <Bell className="w-5 h-5 text-cyan-500" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-[var(--color-foreground)] mb-1">
+            Évaluation automatique programmée
+          </h3>
+          <p className="text-xs text-[var(--color-foreground-muted)] mb-2">
+            Toutes les règles actives sont évaluées chaque jour à <strong>06:00 UTC</strong>{" "}
+            (Vercel Cron). Les déclenchements sont enregistrés dans l&apos;historique ci-dessous
+            et envoyés au canal configuré (webhook ou email).
+          </p>
+          <p className="text-[11px] text-[var(--color-foreground-subtle)]">
+            Endpoint : <code className="px-1 py-0.5 rounded bg-[var(--color-surface-raised)] font-mono">GET /api/cron/evaluate-alerts</code>
+            {" · "}Configurable dans <code className="font-mono">vercel.json</code>.
+          </p>
+        </div>
+      </div>
+
       {/* Evaluate button */}
       <div className="rounded-2xl border border-carbon-emerald/30 bg-gradient-to-br from-carbon-emerald/10 to-cyan-500/5 p-5 flex items-start gap-4">
         <div className="w-10 h-10 rounded-xl bg-carbon-emerald/20 flex items-center justify-center flex-shrink-0">

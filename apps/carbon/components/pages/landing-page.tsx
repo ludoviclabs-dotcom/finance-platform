@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   PremiumDashboardMockup,
@@ -12,6 +13,8 @@ import { SecurityArchitecture } from "../landing/security-architecture";
 import { SectorShowcase } from "../landing/sector-mockups";
 import { Testimonials } from "../landing/testimonials";
 import { CompetitorComparison } from "../landing/competitor-comparison";
+import { RoiCalculator } from "../landing/roi-calculator";
+import { NewsletterForm } from "../landing/newsletter-form";
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -1111,6 +1114,11 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 Tous les plans incluent l&apos;essai gratuit 14 jours · Engagement mensuel ou annuel (−20%) · Résiliation à tout moment
               </p>
             </Reveal>
+
+            {/* ROI Calculator — justifie la valeur du forfait par rapport au coût manuel */}
+            <Reveal delay={0.35} className="mt-16 max-w-4xl mx-auto">
+              <RoiCalculator />
+            </Reveal>
           </div>
         </section>
 
@@ -1190,6 +1198,13 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
         </section>
       </main>
 
+      {/* ═══ NEWSLETTER ═══ */}
+      <section className="bg-neutral-50 border-t border-neutral-200 py-16 px-8 md:px-12">
+        <div className="max-w-3xl mx-auto">
+          <NewsletterForm source="landing-footer" />
+        </div>
+      </section>
+
       {/* ═══ FOOTER ═══ */}
       <footer className="bg-neutral-50 border-t border-neutral-200 py-16 px-8 md:px-12">
         <div className="max-w-[1440px] mx-auto">
@@ -1205,20 +1220,22 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             <div>
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Produit</h4>
               <ul className="space-y-3">
-                <li><a href="#features" className="text-sm text-neutral-500 hover:text-black transition-colors">Dashboard ESG</a></li>
+                <li><Link href="/produit" className="text-sm text-neutral-500 hover:text-black transition-colors">Modules produit</Link></li>
                 <li><a href="#features" className="text-sm text-neutral-500 hover:text-black transition-colors">Copilote IA</a></li>
                 <li><a href="#pricing" className="text-sm text-neutral-500 hover:text-black transition-colors">Tarifs</a></li>
                 <li><a href="/couverture" className="text-sm text-neutral-500 hover:text-black transition-colors">Couverture ESRS</a></li>
+                <li><a href="/integrations" className="text-sm text-neutral-500 hover:text-black transition-colors">Intégrations ERP</a></li>
                 <li><a href="/etat-du-produit" className="text-sm text-neutral-500 hover:text-black transition-colors">État du produit</a></li>
               </ul>
             </div>
             <div>
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Ressources</h4>
               <ul className="space-y-3">
+                <li><a href="/blog" className="text-sm text-neutral-500 hover:text-black transition-colors">Blog CSRD &amp; ESG</a></li>
+                <li><a href="/guide-csrd-2027" className="text-sm text-neutral-500 hover:text-black transition-colors">Guide CSRD 2027</a></li>
+                <li><a href="/aide" className="text-sm text-neutral-500 hover:text-black transition-colors">Centre d&apos;aide</a></li>
+                <li><a href="/dev" className="text-sm text-neutral-500 hover:text-black transition-colors">Documentation API</a></li>
                 <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure 8 pages (PDF)</a></li>
-                {["Guide ESRS 2025", "Blog RSE", "Webinaires", "Documentation API", "Cas clients", "Presse"].map((l) => (
-                  <li key={l} className="text-sm text-neutral-500">{l} <span className="text-xs text-neutral-400">· bientôt</span></li>
-                ))}
               </ul>
             </div>
             <div>

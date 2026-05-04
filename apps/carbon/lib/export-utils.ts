@@ -4,8 +4,9 @@
  * - CSV : pure string, RFC 4180 (échappement guillemets, séparateur `;` pour
  *   compatibilité Excel FR). Génération côté client via Blob, pas de
  *   dépendance.
- * - XLSX : utilise la lib `xlsx` déjà présente dans package.json. On ne la
- *   charge dynamiquement qu'à l'export pour ne pas alourdir le bundle.
+ * - XLSX : utilise le fork maintenu `@e965/xlsx` pour éviter les advisories
+ *   bloquantes du package SheetJS `xlsx` sur npm. On ne le charge
+ *   dynamiquement qu'à l'export pour ne pas alourdir le bundle.
  */
 
 export type ExportRow = Record<string, string | number | boolean | null | undefined>;
@@ -49,7 +50,7 @@ export async function exportXlsx(
   filename: string,
   sheets: Record<string, readonly ExportRow[]>,
 ) {
-  const XLSX = await import("xlsx");
+  const XLSX = await import("@e965/xlsx");
   const workbook = XLSX.utils.book_new();
   for (const [name, rows] of Object.entries(sheets)) {
     const sheet = XLSX.utils.json_to_sheet(rows as ExportRow[]);

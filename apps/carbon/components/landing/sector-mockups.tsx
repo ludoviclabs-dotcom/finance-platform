@@ -389,7 +389,7 @@ function ScopeDonut({ donut }: { donut: DonutSlice[] }) {
     return acc;
   }, []);
   return (
-    <svg viewBox="0 0 36 36" aria-hidden="true" className="w-[84px] h-[84px] flex-shrink-0 -rotate-90">
+    <svg viewBox="0 0 36 36" aria-hidden="true" className="w-[64px] h-[64px] flex-shrink-0 -rotate-90">
       <circle cx="18" cy="18" r="15.915" fill="none" stroke="rgba(0,0,0,.05)" strokeWidth="4.2" />
       {donut.map((d, i) => (
         <circle
@@ -461,12 +461,12 @@ function DashboardPane({ s }: { s: SectorData }) {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-4 pt-3.5 border-t border-neutral-100">
+      <div className="grid grid-cols-1 gap-3 @[420px]:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] @[420px]:gap-4 pt-3.5 border-t border-neutral-100">
         <div className="min-w-0">
           <SectionLbl>Répartition Scope</SectionLbl>
           <div className="flex items-center gap-3.5">
             <ScopeDonut donut={s.donut} />
-            <ul className="list-none p-0 m-0 flex flex-col gap-1 text-[11px] text-neutral-600 tabular-nums flex-1 min-w-0">
+            <ul className="list-none p-0 m-0 flex flex-col gap-1 text-[11px] text-neutral-600 tabular-nums flex-1 min-w-0 overflow-hidden">
               {s.donut.map((d) => (
                 <li key={d.lbl} className="grid grid-cols-[10px_auto_1fr] gap-2 items-center">
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: d.color }} />

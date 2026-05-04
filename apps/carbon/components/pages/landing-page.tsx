@@ -23,10 +23,14 @@ interface LandingPageProps {
 /* ── Scroll-reveal hook ── */
 function useReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    if (!("IntersectionObserver" in window)) {
+      setVisible(true);
+      return;
+    }
     const observer = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) setVisible(true); },
       { threshold }
@@ -128,7 +132,7 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         {/* Feature cards under dashboard */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-12 md:mt-16 max-w-5xl mx-auto">
           {[
-            { icon: "🔗", title: "Collecte automatisee", desc: "Import depuis vos ERP, APIs et fichiers existants" },
+            { icon: "🔗", title: "Collecte structurée", desc: "Import Excel guidé, factures énergie, API REST. Connecteurs ERP en roadmap." },
             { icon: "📐", title: "Calcul GHG Protocol", desc: "Methodologie certifiee Scopes 1, 2, 3" },
             { icon: "🤖", title: "IA Recommandations", desc: "Plans d'action personnalises et priorises" },
             { icon: "📄", title: "Rapports conformes", desc: "CSRD, CDP, Bilan Carbone en 1 clic" },
@@ -1052,7 +1056,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <Reveal delay={0.1} className="bg-white rounded-2xl p-8 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Starter</div>
                 <div className="text-4xl font-extrabold text-black mb-1">490 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
-                <p className="text-neutral-500 text-sm mb-8">Pour PME en reporting volontaire ou préparation CSRD</p>
+                <p className="text-neutral-500 text-sm mb-8">Pour PME en standard <strong>VSME</strong> volontaire ou préparation CSRD post-Omnibus</p>
                 <ul className="space-y-3 mb-8">
                   {["Scope 1 & 2", "ESRS E1 (Climat) — couverture prioritaire", "1 utilisateur", "Export PDF", "Support email (lun–ven, 9h–18h)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
@@ -1090,8 +1094,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               {/* Enterprise */}
               <Reveal delay={0.2} className="bg-neutral-950 rounded-2xl p-8 border border-neutral-800 shadow-sm hover:shadow-md transition-shadow">
                 <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Enterprise</div>
-                <div className="text-4xl font-extrabold text-white mb-1">Sur devis</div>
-                <p className="text-neutral-400 text-sm mb-8">Pour grands groupes multi-sites — tarif selon périmètre</p>
+                <div className="text-4xl font-extrabold text-white mb-1">À partir de 35&nbsp;k€<span className="text-base font-medium text-neutral-400">/an</span></div>
+                <p className="text-neutral-400 text-sm mb-8">Pour grands groupes multi-sites — fourchette indicative 35–120 k€/an selon périmètre, nombre de filiales et SLA.</p>
                 <ul className="space-y-3 mb-8">
                   {["Scope 1, 2, 3 + CBAM", "ESRS E1 approfondi + autres ESRS en Beta", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "SBTi trajectoire", "Multi-sites & filiales", "SSO & RBAC", "Onboarding accompagné"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-300">
@@ -1157,12 +1161,6 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               </div>
               <SecurityArchitecture />
             </Reveal>
-
-            <Reveal delay={0.2} className="text-center">
-              <p className="text-sm text-neutral-500">
-                Chaque donnée traverse cette chaîne et conserve sa <strong>provenance, sa méthode de calcul et son hash de chaîne</strong> — auditable ligne par ligne par votre commissaire aux comptes ou OTI.
-              </p>
-            </Reveal>
           </div>
         </section>
 
@@ -1214,7 +1212,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <p className="text-sm text-neutral-500 mb-4 leading-relaxed">La conformité ESG & CSRD, simplifiée par l&apos;intelligence artificielle.</p>
               <div className="flex items-center gap-2 text-xs text-neutral-400">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
-                <span>Infrastructure EU (Vercel/Neon) · Chiffrement TLS 1.3</span>
+                <span>Infrastructure EU (Vercel/Neon) · TLS 1.3 · <Link href="/trust" className="underline hover:text-black">Trust Center</Link></span>
               </div>
             </div>
             <div>
@@ -1224,29 +1222,31 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <li><a href="#features" className="text-sm text-neutral-500 hover:text-black transition-colors">Copilote IA</a></li>
                 <li><a href="#pricing" className="text-sm text-neutral-500 hover:text-black transition-colors">Tarifs</a></li>
                 <li><a href="/couverture" className="text-sm text-neutral-500 hover:text-black transition-colors">Couverture ESRS</a></li>
-                <li><a href="/integrations" className="text-sm text-neutral-500 hover:text-black transition-colors">Intégrations ERP</a></li>
+                <li><a href="/integrations" className="text-sm text-neutral-500 hover:text-black transition-colors">Sources &amp; intégrations</a></li>
                 <li><a href="/etat-du-produit" className="text-sm text-neutral-500 hover:text-black transition-colors">État du produit</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Ressources</h4>
+              <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Confiance &amp; sécurité</h4>
+              <ul className="space-y-3">
+                <li><Link href="/trust" className="text-sm text-neutral-500 hover:text-black transition-colors">Trust Center</Link></li>
+                <li><Link href="/trust/sub-processors" className="text-sm text-neutral-500 hover:text-black transition-colors">Sous-traitants</Link></li>
+                <li><Link href="/trust/exit-strategy" className="text-sm text-neutral-500 hover:text-black transition-colors">Stratégie de sortie</Link></li>
+                <li><Link href="/ai-act" className="text-sm text-neutral-500 hover:text-black transition-colors">Conformité AI Act</Link></li>
+                <li><a href="mailto:security@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">security@carbonco.fr</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Ressources &amp; légal</h4>
               <ul className="space-y-3">
                 <li><a href="/blog" className="text-sm text-neutral-500 hover:text-black transition-colors">Blog CSRD &amp; ESG</a></li>
                 <li><a href="/guide-csrd-2027" className="text-sm text-neutral-500 hover:text-black transition-colors">Guide CSRD 2027</a></li>
                 <li><a href="/aide" className="text-sm text-neutral-500 hover:text-black transition-colors">Centre d&apos;aide</a></li>
-                <li><a href="/dev" className="text-sm text-neutral-500 hover:text-black transition-colors">Documentation API</a></li>
-                <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure 8 pages (PDF)</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Légal & Contact</h4>
-              <ul className="space-y-3">
+                <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure (PDF)</a></li>
                 <li><a href="/mentions-legales" className="text-sm text-neutral-500 hover:text-black transition-colors">Mentions légales</a></li>
-                <li><a href="/confidentialite" className="text-sm text-neutral-500 hover:text-black transition-colors">Politique de confidentialité</a></li>
+                <li><a href="/confidentialite" className="text-sm text-neutral-500 hover:text-black transition-colors">Confidentialité</a></li>
                 <li><a href="/cgu" className="text-sm text-neutral-500 hover:text-black transition-colors">CGU</a></li>
-                <li><a href="/cookies" className="text-sm text-neutral-500 hover:text-black transition-colors">Cookies</a></li>
-                <li><a href="mailto:contact@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">Contact commercial</a></li>
-                <li><a href="mailto:support@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">Support</a></li>
+                <li><a href="mailto:contact@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">Contact</a></li>
               </ul>
             </div>
           </div>

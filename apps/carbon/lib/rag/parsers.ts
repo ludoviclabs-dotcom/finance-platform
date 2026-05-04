@@ -1,6 +1,6 @@
 import { extractText, getDocumentProxy } from "unpdf";
 import mammoth from "mammoth";
-import * as XLSX from "xlsx";
+import * as XLSX from "@e965/xlsx";
 
 export type ParsedSegment = {
   text: string;

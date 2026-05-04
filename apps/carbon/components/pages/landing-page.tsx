@@ -11,6 +11,7 @@ import { HeroStage } from "../landing/hero/hero-stage";
 import { TrustBadges } from "../landing/trust-badges";
 import { SecurityArchitecture } from "../landing/security-architecture";
 import { SectorShowcase } from "../landing/sector-mockups";
+import { HowItWorksSection } from "../landing/how-it-works";
 import { Testimonials } from "../landing/testimonials";
 import { CompetitorComparison } from "../landing/competitor-comparison";
 import { RoiCalculator } from "../landing/roi-calculator";
@@ -849,76 +850,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
         {/* ══ 5. DASHBOARD INTERACTIF — HOTSPOTS ══ */}
         <DashboardShowcase onEnterApp={onEnterApp} />
 
-        {/* ══ 6. COMMENT ÇA MARCHE — timeline connectée ══ */}
-        <section id="how" className="py-32 px-8 md:px-12 bg-white">
-          <div className="max-w-[1440px] mx-auto">
-            <Reveal className="text-center mb-4">
-              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Mise en route</span>
-            </Reveal>
-            <Reveal className="text-center mb-20" delay={0.05}>
-              <h2 className="font-extrabold text-4xl md:text-5xl tracking-tighter text-black">
-                Opérationnel en 3 étapes
-              </h2>
-              <p className="text-lg text-neutral-500 mt-4">De l&apos;onboarding à votre premier rapport en moins d&apos;une semaine.</p>
-            </Reveal>
-
-            <div className="relative">
-              {/* Timeline line */}
-              <div className="hidden md:block absolute top-16 left-[calc(16.66%+2rem)] right-[calc(16.66%+2rem)] h-0.5 bg-gradient-to-r from-blue-200 via-purple-200 to-green-300" />
-
-              <div className="grid md:grid-cols-3 gap-8">
-                {[
-                  {
-                    num: "01", color: "blue", icon: (
-                      <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
-                    ),
-                    title: "Connectez vos sources",
-                    desc: "Import Excel structuré, API énergie, fournisseurs. Connecteurs ERP (SAP, Oracle, Sage) en roadmap.",
-                    detail: "Support technique inclus · Import guidé pas à pas",
-                  },
-                  {
-                    num: "02", color: "purple", icon: (
-                      <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
-                    ),
-                    title: "NEURAL analyse & structure",
-                    desc: "Notre copilote détecte les anomalies, enrichit les données avec les facteurs ADEME/IEA et calcule vos scores ESRS.",
-                    detail: "Base ADEME 2024 · Facteurs IEA · Ecoinvent 3.9",
-                  },
-                  {
-                    num: "03", color: "green", icon: (
-                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                    ),
-                    title: "Rapports prêts pour l'audit",
-                    desc: "Exportez vos rapports CSRD en PDF, Excel ou format commissaire aux comptes. Audit trail complet inclus.",
-                    detail: "Compatible OTI · Format XBRL disponible · Signature électronique",
-                  },
-                ].map((step, i) => {
-                  const bgMap: Record<string,string> = { blue: "bg-blue-50", purple: "bg-purple-50", green: "bg-green-50" };
-                  const borderMap: Record<string,string> = { blue: "border-blue-200", purple: "border-purple-200", green: "border-green-200" };
-                  const numMap: Record<string,string> = { blue: "text-blue-200", purple: "text-purple-200", green: "text-green-200" };
-                  return (
-                    <Reveal key={step.num} delay={0.12 * i} className="text-center relative">
-                      <div className="text-[7rem] font-black leading-none mb-4 select-none" style={{ color: step.color === "blue" ? "#dbeafe" : step.color === "purple" ? "#ede9fe" : "#dcfce7" }}>{step.num}</div>
-                      <div className={`w-16 h-16 rounded-2xl ${bgMap[step.color]} border ${borderMap[step.color]} flex items-center justify-center mx-auto mb-6 -mt-10 relative z-10`}>
-                        {step.icon}
-                      </div>
-                      <h3 className="font-bold text-xl text-black mb-3">{step.title}</h3>
-                      <p className="text-neutral-500 text-sm leading-relaxed mb-3 max-w-xs mx-auto">{step.desc}</p>
-                      <p className="text-xs text-neutral-400 font-medium">{step.detail}</p>
-                    </Reveal>
-                  );
-                })}
-              </div>
-            </div>
-
-            <Reveal delay={0.3} className="text-center mt-16">
-              <button onClick={onEnterApp} className="bg-black text-white px-10 py-4 rounded-full font-bold text-base hover:bg-neutral-800 transition-colors cursor-pointer hover:scale-105 transition-transform">
-                Commencer mon onboarding →
-              </button>
-              <p className="text-xs text-neutral-400 mt-3">Aucune carte requise · Onboarding accompagné</p>
-            </Reveal>
-          </div>
-        </section>
+        {/* ══ 6. COMMENT ÇA MARCHE — timeline connectée (REFONTE) ══ */}
+        <HowItWorksSection onEnterApp={onEnterApp} />
 
         {/* ══ 7. SCÉNARIOS SECTORIELS ══ */}
         <section className="py-32 px-8 md:px-12 bg-[#f9f9fb]">

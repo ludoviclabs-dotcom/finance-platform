@@ -1,6 +1,6 @@
 {
-  "version": "Set 2 (EFRAG nov. 2025, post-Omnibus mars 2026)",
-  "generatedAt": "2026-04-26",
+  "version": "Set 2 (EFRAG nov. 2025, post-Omnibus mars 2026) — extended E2-E5, S2-S4",
+  "generatedAt": "2026-05-05",
   "datapoints": [
     {
       "id": "E1-1_transition_plan",
@@ -501,6 +501,728 @@
       "type": "number",
       "unit": "%",
       "mandatory": true
+    },
+    {
+      "id": "E2-1_policies",
+      "standard": "E2",
+      "code": "E2-1",
+      "label_fr": "Politiques relatives à la pollution",
+      "label_en": "Policies related to pollution",
+      "type": "text",
+      "mandatory": true,
+      "description": "Politiques de prévention et contrôle de la pollution (air, eau, sol, substances de très haute préoccupation, microplastiques)."
+    },
+    {
+      "id": "E2-2_actions",
+      "standard": "E2",
+      "code": "E2-2",
+      "label_fr": "Actions et ressources liées à la pollution",
+      "label_en": "Actions and resources related to pollution",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E2-3_targets",
+      "standard": "E2",
+      "code": "E2-3",
+      "label_fr": "Cibles de réduction de la pollution",
+      "label_en": "Pollution reduction targets",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E2-4_air_pollutants_total",
+      "standard": "E2",
+      "code": "E2-4",
+      "label_fr": "Émissions totales de polluants atmosphériques",
+      "label_en": "Total air pollutant emissions",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E2-4_air_nox",
+      "standard": "E2",
+      "code": "E2-4",
+      "label_fr": "Émissions d'oxydes d'azote (NOx)",
+      "label_en": "NOx emissions",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E2-4_air_sox",
+      "standard": "E2",
+      "code": "E2-4",
+      "label_fr": "Émissions d'oxydes de soufre (SOx)",
+      "label_en": "SOx emissions",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E2-4_air_particulates",
+      "standard": "E2",
+      "code": "E2-4",
+      "label_fr": "Émissions de particules (PM10/PM2.5)",
+      "label_en": "Particulate matter emissions",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E2-4_water_pollutants",
+      "standard": "E2",
+      "code": "E2-4",
+      "label_fr": "Rejets de polluants dans l'eau",
+      "label_en": "Water pollutant discharges",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E2-4_soil_pollutants",
+      "standard": "E2",
+      "code": "E2-4",
+      "label_fr": "Rejets de polluants dans le sol",
+      "label_en": "Soil pollutant releases",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E2-5_substances_of_concern",
+      "standard": "E2",
+      "code": "E2-5",
+      "label_fr": "Substances préoccupantes utilisées ou produites",
+      "label_en": "Substances of concern used or produced",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E2-5_substances_very_high_concern",
+      "standard": "E2",
+      "code": "E2-5",
+      "label_fr": "Substances extrêmement préoccupantes (SVHC)",
+      "label_en": "Substances of very high concern",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E2-6_microplastics_emissions",
+      "standard": "E2",
+      "code": "E2-6",
+      "label_fr": "Émissions de microplastiques générées ou utilisées",
+      "label_en": "Microplastics generated or used",
+      "type": "number",
+      "unit": "t",
+      "mandatory": false
+    },
+    {
+      "id": "E2-6_pollution_financial_impact",
+      "standard": "E2",
+      "code": "E2-6",
+      "label_fr": "Impact financier des risques liés à la pollution",
+      "label_en": "Financial effects from pollution-related risks",
+      "type": "number",
+      "unit": "M€",
+      "mandatory": false
+    },
+    {
+      "id": "E3-1_policies",
+      "standard": "E3",
+      "code": "E3-1",
+      "label_fr": "Politiques relatives à l'eau et aux ressources marines",
+      "label_en": "Policies related to water and marine resources",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E3-2_actions",
+      "standard": "E3",
+      "code": "E3-2",
+      "label_fr": "Actions et ressources eau / marines",
+      "label_en": "Actions and resources water / marine",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E3-3_targets",
+      "standard": "E3",
+      "code": "E3-3",
+      "label_fr": "Cibles relatives à l'eau et aux ressources marines",
+      "label_en": "Targets related to water and marine resources",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E3-4_water_consumption_total",
+      "standard": "E3",
+      "code": "E3-4",
+      "label_fr": "Consommation totale d'eau",
+      "label_en": "Total water consumption",
+      "type": "number",
+      "unit": "m3",
+      "mandatory": true
+    },
+    {
+      "id": "E3-4_water_consumption_stress_areas",
+      "standard": "E3",
+      "code": "E3-4",
+      "label_fr": "Consommation d'eau en zones de stress hydrique",
+      "label_en": "Water consumption in water-stress areas",
+      "type": "number",
+      "unit": "m3",
+      "mandatory": true
+    },
+    {
+      "id": "E3-4_water_withdrawal",
+      "standard": "E3",
+      "code": "E3-4",
+      "label_fr": "Prélèvements d'eau totaux",
+      "label_en": "Total water withdrawal",
+      "type": "number",
+      "unit": "m3",
+      "mandatory": true
+    },
+    {
+      "id": "E3-4_water_discharge",
+      "standard": "E3",
+      "code": "E3-4",
+      "label_fr": "Rejets d'eau totaux",
+      "label_en": "Total water discharge",
+      "type": "number",
+      "unit": "m3",
+      "mandatory": true
+    },
+    {
+      "id": "E3-4_water_recycled",
+      "standard": "E3",
+      "code": "E3-4",
+      "label_fr": "Eau recyclée et réutilisée",
+      "label_en": "Water recycled and reused",
+      "type": "number",
+      "unit": "m3",
+      "mandatory": false
+    },
+    {
+      "id": "E3-4_water_intensity",
+      "standard": "E3",
+      "code": "E3-4",
+      "label_fr": "Intensité hydrique par chiffre d'affaires net",
+      "label_en": "Water intensity per net revenue",
+      "type": "number",
+      "unit": "m3/M€",
+      "mandatory": true
+    },
+    {
+      "id": "E3-5_water_financial_effects",
+      "standard": "E3",
+      "code": "E3-5",
+      "label_fr": "Impacts financiers liés à l'eau et aux ressources marines",
+      "label_en": "Financial effects from water and marine resources",
+      "type": "number",
+      "unit": "M€",
+      "mandatory": false
+    },
+    {
+      "id": "E4-1_transition_plan",
+      "standard": "E4",
+      "code": "E4-1",
+      "label_fr": "Plan de transition biodiversité et écosystèmes",
+      "label_en": "Biodiversity and ecosystems transition plan",
+      "type": "text",
+      "mandatory": false
+    },
+    {
+      "id": "E4-2_policies",
+      "standard": "E4",
+      "code": "E4-2",
+      "label_fr": "Politiques biodiversité et écosystèmes",
+      "label_en": "Biodiversity and ecosystems policies",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E4-3_actions",
+      "standard": "E4",
+      "code": "E4-3",
+      "label_fr": "Actions et ressources biodiversité",
+      "label_en": "Biodiversity actions and resources",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E4-4_targets",
+      "standard": "E4",
+      "code": "E4-4",
+      "label_fr": "Cibles biodiversité et écosystèmes",
+      "label_en": "Biodiversity and ecosystems targets",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E4-5_sites_near_sensitive_areas",
+      "standard": "E4",
+      "code": "E4-5",
+      "label_fr": "Sites situés à proximité de zones sensibles à la biodiversité",
+      "label_en": "Sites near biodiversity-sensitive areas",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "E4-5_land_use_change",
+      "standard": "E4",
+      "code": "E4-5",
+      "label_fr": "Changement d'usage des sols",
+      "label_en": "Land-use change",
+      "type": "number",
+      "unit": "ha",
+      "mandatory": true
+    },
+    {
+      "id": "E4-5_deforestation_footprint",
+      "standard": "E4",
+      "code": "E4-5",
+      "label_fr": "Empreinte de déforestation",
+      "label_en": "Deforestation footprint",
+      "type": "number",
+      "unit": "ha",
+      "mandatory": true
+    },
+    {
+      "id": "E4-5_ecosystems_restored",
+      "standard": "E4",
+      "code": "E4-5",
+      "label_fr": "Surface d'écosystèmes restaurés",
+      "label_en": "Area of restored ecosystems",
+      "type": "number",
+      "unit": "ha",
+      "mandatory": false
+    },
+    {
+      "id": "E4-6_biodiversity_financial_effects",
+      "standard": "E4",
+      "code": "E4-6",
+      "label_fr": "Impacts financiers liés à la biodiversité",
+      "label_en": "Financial effects from biodiversity",
+      "type": "number",
+      "unit": "M€",
+      "mandatory": false
+    },
+    {
+      "id": "E5-1_policies",
+      "standard": "E5",
+      "code": "E5-1",
+      "label_fr": "Politiques relatives à l'utilisation des ressources et l'économie circulaire",
+      "label_en": "Policies on resource use and circular economy",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E5-2_actions",
+      "standard": "E5",
+      "code": "E5-2",
+      "label_fr": "Actions et ressources économie circulaire",
+      "label_en": "Circular economy actions and resources",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E5-3_targets",
+      "standard": "E5",
+      "code": "E5-3",
+      "label_fr": "Cibles relatives aux ressources et à l'économie circulaire",
+      "label_en": "Resource and circular economy targets",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "E5-4_resource_inflows_total",
+      "standard": "E5",
+      "code": "E5-4",
+      "label_fr": "Flux de ressources entrants totaux",
+      "label_en": "Total resource inflows",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E5-4_resource_inflows_recycled_pct",
+      "standard": "E5",
+      "code": "E5-4",
+      "label_fr": "Part de matières recyclées dans les flux entrants",
+      "label_en": "Share of recycled inputs in resource inflows",
+      "type": "number",
+      "unit": "%",
+      "mandatory": true
+    },
+    {
+      "id": "E5-4_renewable_inputs_pct",
+      "standard": "E5",
+      "code": "E5-4",
+      "label_fr": "Part d'intrants renouvelables",
+      "label_en": "Share of renewable inputs",
+      "type": "number",
+      "unit": "%",
+      "mandatory": false
+    },
+    {
+      "id": "E5-5_resource_outflows_products",
+      "standard": "E5",
+      "code": "E5-5",
+      "label_fr": "Flux de ressources sortants — produits",
+      "label_en": "Resource outflows — products",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E5-5_resource_outflows_packaging",
+      "standard": "E5",
+      "code": "E5-5",
+      "label_fr": "Flux de ressources sortants — emballages",
+      "label_en": "Resource outflows — packaging",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E5-5_waste_total",
+      "standard": "E5",
+      "code": "E5-5",
+      "label_fr": "Déchets totaux générés",
+      "label_en": "Total waste generated",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true,
+      "dependencies": [
+        "E5-5_waste_diverted_from_disposal",
+        "E5-5_waste_directed_to_disposal"
+      ]
+    },
+    {
+      "id": "E5-5_waste_hazardous",
+      "standard": "E5",
+      "code": "E5-5",
+      "label_fr": "Déchets dangereux",
+      "label_en": "Hazardous waste",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E5-5_waste_diverted_from_disposal",
+      "standard": "E5",
+      "code": "E5-5",
+      "label_fr": "Déchets détournés de l'élimination (recyclés/valorisés)",
+      "label_en": "Waste diverted from disposal",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E5-5_waste_directed_to_disposal",
+      "standard": "E5",
+      "code": "E5-5",
+      "label_fr": "Déchets dirigés vers l'élimination",
+      "label_en": "Waste directed to disposal",
+      "type": "number",
+      "unit": "t",
+      "mandatory": true
+    },
+    {
+      "id": "E5-6_circular_financial_effects",
+      "standard": "E5",
+      "code": "E5-6",
+      "label_fr": "Impacts financiers liés à l'économie circulaire",
+      "label_en": "Financial effects from resource use and circular economy",
+      "type": "number",
+      "unit": "M€",
+      "mandatory": false
+    },
+    {
+      "id": "S2-1_policies",
+      "standard": "S2",
+      "code": "S2-1",
+      "label_fr": "Politiques relatives aux travailleurs de la chaîne de valeur",
+      "label_en": "Policies related to value chain workers",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S2-2_engagement_processes",
+      "standard": "S2",
+      "code": "S2-2",
+      "label_fr": "Processus d'engagement avec les travailleurs de la chaîne de valeur",
+      "label_en": "Processes for engaging with value chain workers",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S2-3_remediation_channels",
+      "standard": "S2",
+      "code": "S2-3",
+      "label_fr": "Canaux de remontée et remédiation pour la chaîne de valeur",
+      "label_en": "Channels to raise concerns and remediation for value chain",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S2-4_actions",
+      "standard": "S2",
+      "code": "S2-4",
+      "label_fr": "Actions liées aux travailleurs de la chaîne de valeur",
+      "label_en": "Actions related to value chain workers",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S2-5_targets",
+      "standard": "S2",
+      "code": "S2-5",
+      "label_fr": "Cibles relatives aux travailleurs de la chaîne de valeur",
+      "label_en": "Targets for value chain workers",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S2-5_value_chain_workers_estimate",
+      "standard": "S2",
+      "code": "S2-5",
+      "label_fr": "Estimation du nombre de travailleurs de la chaîne de valeur",
+      "label_en": "Estimated number of value chain workers",
+      "type": "number",
+      "mandatory": false
+    },
+    {
+      "id": "S2-5_human_rights_incidents",
+      "standard": "S2",
+      "code": "S2-5",
+      "label_fr": "Incidents droits humains dans la chaîne de valeur",
+      "label_en": "Human rights incidents in the value chain",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S2-5_severe_human_rights_incidents",
+      "standard": "S2",
+      "code": "S2-5",
+      "label_fr": "Incidents graves de droits humains",
+      "label_en": "Severe human rights incidents",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S2-5_child_labor_incidents",
+      "standard": "S2",
+      "code": "S2-5",
+      "label_fr": "Incidents de travail des enfants",
+      "label_en": "Child labour incidents",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S2-5_forced_labor_incidents",
+      "standard": "S2",
+      "code": "S2-5",
+      "label_fr": "Incidents de travail forcé",
+      "label_en": "Forced labour incidents",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S2-5_human_rights_fines",
+      "standard": "S2",
+      "code": "S2-5",
+      "label_fr": "Amendes liées aux droits humains chaîne de valeur",
+      "label_en": "Fines related to human rights in value chain",
+      "type": "number",
+      "unit": "€",
+      "mandatory": false
+    },
+    {
+      "id": "S3-1_policies",
+      "standard": "S3",
+      "code": "S3-1",
+      "label_fr": "Politiques relatives aux communautés affectées",
+      "label_en": "Policies related to affected communities",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S3-2_engagement_processes",
+      "standard": "S3",
+      "code": "S3-2",
+      "label_fr": "Processus d'engagement avec les communautés affectées",
+      "label_en": "Processes for engaging with affected communities",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S3-3_remediation_channels",
+      "standard": "S3",
+      "code": "S3-3",
+      "label_fr": "Canaux de remontée et remédiation pour les communautés",
+      "label_en": "Channels to raise concerns and remediation for communities",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S3-4_actions",
+      "standard": "S3",
+      "code": "S3-4",
+      "label_fr": "Actions liées aux communautés affectées",
+      "label_en": "Actions related to affected communities",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S3-5_targets",
+      "standard": "S3",
+      "code": "S3-5",
+      "label_fr": "Cibles relatives aux communautés affectées",
+      "label_en": "Targets related to affected communities",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S3-5_communities_affected",
+      "standard": "S3",
+      "code": "S3-5",
+      "label_fr": "Nombre de communautés significativement affectées",
+      "label_en": "Number of materially affected communities",
+      "type": "number",
+      "mandatory": false
+    },
+    {
+      "id": "S3-5_indigenous_consent_disputes",
+      "standard": "S3",
+      "code": "S3-5",
+      "label_fr": "Litiges relatifs au consentement préalable des peuples autochtones",
+      "label_en": "Indigenous free, prior, informed consent disputes",
+      "type": "number",
+      "mandatory": false
+    },
+    {
+      "id": "S3-5_displacement_incidents",
+      "standard": "S3",
+      "code": "S3-5",
+      "label_fr": "Incidents de déplacement de populations",
+      "label_en": "Community displacement incidents",
+      "type": "number",
+      "mandatory": false
+    },
+    {
+      "id": "S3-5_community_human_rights_incidents",
+      "standard": "S3",
+      "code": "S3-5",
+      "label_fr": "Incidents droits humains affectant les communautés",
+      "label_en": "Human rights incidents affecting communities",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S4-1_policies",
+      "standard": "S4",
+      "code": "S4-1",
+      "label_fr": "Politiques relatives aux consommateurs et utilisateurs finaux",
+      "label_en": "Policies related to consumers and end-users",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S4-2_engagement_processes",
+      "standard": "S4",
+      "code": "S4-2",
+      "label_fr": "Processus d'engagement avec les consommateurs",
+      "label_en": "Processes for engaging with consumers",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S4-3_remediation_channels",
+      "standard": "S4",
+      "code": "S4-3",
+      "label_fr": "Canaux de remontée et remédiation pour les consommateurs",
+      "label_en": "Channels to raise concerns and remediation for consumers",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S4-4_actions",
+      "standard": "S4",
+      "code": "S4-4",
+      "label_fr": "Actions liées aux consommateurs et utilisateurs finaux",
+      "label_en": "Actions related to consumers and end-users",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S4-5_targets",
+      "standard": "S4",
+      "code": "S4-5",
+      "label_fr": "Cibles relatives aux consommateurs",
+      "label_en": "Targets related to consumers",
+      "type": "text",
+      "mandatory": true
+    },
+    {
+      "id": "S4-5_data_privacy_incidents",
+      "standard": "S4",
+      "code": "S4-5",
+      "label_fr": "Incidents liés à la protection des données personnelles",
+      "label_en": "Data privacy incidents",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S4-5_data_breaches",
+      "standard": "S4",
+      "code": "S4-5",
+      "label_fr": "Violations de données personnelles confirmées",
+      "label_en": "Confirmed personal data breaches",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S4-5_product_safety_incidents",
+      "standard": "S4",
+      "code": "S4-5",
+      "label_fr": "Incidents de sécurité produit",
+      "label_en": "Product safety incidents",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S4-5_product_recalls",
+      "standard": "S4",
+      "code": "S4-5",
+      "label_fr": "Rappels de produits",
+      "label_en": "Product recalls",
+      "type": "number",
+      "mandatory": false
+    },
+    {
+      "id": "S4-5_substantiated_complaints",
+      "standard": "S4",
+      "code": "S4-5",
+      "label_fr": "Plaintes substantiées de consommateurs",
+      "label_en": "Substantiated consumer complaints",
+      "type": "number",
+      "mandatory": true
+    },
+    {
+      "id": "S4-5_consumer_protection_fines",
+      "standard": "S4",
+      "code": "S4-5",
+      "label_fr": "Amendes liées à la protection des consommateurs",
+      "label_en": "Fines related to consumer protection",
+      "type": "number",
+      "unit": "€",
+      "mandatory": false
     }
   ]
 }

@@ -49,14 +49,6 @@ function authHeaders(extra: Record<string, string> = {}): Record<string, string>
   return token ? { Authorization: `Bearer ${token}`, ...extra } : { ...extra };
 }
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function startOfYearIso(): string {
-  return `${new Date().getFullYear()}-01-01`;
-}
-
 function endOfYearIso(): string {
   return `${new Date().getFullYear() - 1}-12-31`;
 }

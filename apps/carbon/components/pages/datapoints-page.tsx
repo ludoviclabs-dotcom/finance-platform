@@ -15,8 +15,11 @@ import {
   ExternalLink,
   X,
   Loader2,
+  Wand2,
+  ArrowRight,
 } from "lucide-react";
 import { SectionTitle } from "@/components/ui/section-title";
+import { ValidatorPanel } from "@/components/datapoints/validator-panel";
 import { getAuthToken } from "@/lib/api";
 import type {
   EsrsDatapointDef,
@@ -85,6 +88,7 @@ export function DatapointsPage() {
   const [openDrawer, setOpenDrawer] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [uploadedDocs, setUploadedDocs] = useState<UploadFileResult[]>([]);
+  const [loadingDemo, setLoadingDemo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -228,6 +232,30 @@ export function DatapointsPage() {
     [],
   );
 
+  const handleLoadDemo = useCallback(async () => {
+    setLoadingDemo(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/datapoints/load-demo", {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
+        throw new Error(body.message ?? body.error ?? `Chargement démo échoué (${res.status})`);
+      }
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur chargement démo");
+    } finally {
+      setLoadingDemo(false);
+    }
+  }, [refresh]);
+
+  const stateIsEmpty = data
+    ? Object.keys(data.state.datapoints).length === 0 && uploadedDocs.length === 0
+    : false;
+
   const drawerExtraction = openDrawer && data ? data.state.datapoints[openDrawer] : null;
   const drawerDef = openDrawer && data ? data.definitions.find((d) => d.id === openDrawer) : null;
 
@@ -246,12 +274,57 @@ export function DatapointsPage() {
         }
       />
 
+      {/* Banner démo — visible uniquement si state vide */}
+      {stateIsEmpty && (
+        <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-carbon-emerald/5 to-blue-500/10 p-5 flex items-start gap-4">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
+            <Wand2 className="w-5 h-5 text-cyan-600" aria-hidden />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-display font-bold text-sm text-[var(--color-foreground)]">
+              Découvrez l&apos;app avec un jeu de démo
+            </h3>
+            <p className="text-xs text-[var(--color-foreground-muted)] mt-0.5 leading-relaxed">
+              30 datapoints ESRS pré-remplis (E1 climat · S1 effectifs · G1 corruption …) avec
+              sources fictives mais formellement valides. Vous pourrez ensuite tester{" "}
+              <span className="font-semibold">Validation CSRD</span> et l&apos;export iXBRL ESEF
+              sans avoir à uploader vos propres documents.
+            </p>
+            <div className="flex items-center gap-3 mt-3 flex-wrap">
+              <button
+                type="button"
+                onClick={handleLoadDemo}
+                disabled={loadingDemo}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 text-white text-xs font-semibold hover:bg-cyan-700 disabled:opacity-50 transition-colors"
+                data-testid="load-demo-button"
+              >
+                {loadingDemo ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Wand2 className="w-3.5 h-3.5" />
+                )}
+                {loadingDemo ? "Chargement…" : "Charger les données de démo"}
+              </button>
+              <a
+                href="/review"
+                className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
+              >
+                Aller directement à la review <ArrowRight className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         <StatCard label="Total" value={stats.total} tone="neutral" />
         <StatCard label="Extraits" value={stats.extracted} tone="emerald" />
         <StatCard label="Validés" value={stats.validated} tone="success" />
         <StatCard label="Rejetés / faible confiance" value={stats.rejected} tone="danger" />
       </div>
+
+      {/* Validation audit-grade — visible dès qu'on a au moins 1 datapoint */}
+      {!stateIsEmpty && <ValidatorPanel />}
 
       <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <div className="flex items-start justify-between gap-4 flex-wrap">

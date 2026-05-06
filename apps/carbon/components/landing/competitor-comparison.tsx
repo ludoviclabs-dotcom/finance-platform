@@ -17,14 +17,15 @@ interface Row {
 }
 
 const ROWS: readonly Row[] = [
-  { feature: "Couverture ESRS E1 prioritaire",          carbonco: "yes",     workiva: "yes",     enablon: "yes",     greenly: "yes" },
-  { feature: "Audit trail signé SHA-256 (append-only)", carbonco: "yes",     workiva: "partial", enablon: "partial", greenly: "no" },
-  { feature: "Copilote IA avec citations ESRS",         carbonco: "yes",     workiva: "no",      enablon: "no",      greenly: "partial" },
-  { feature: "Hébergement & traitement IA UE",          carbonco: "yes",     workiva: "partial", enablon: "yes",     greenly: "partial" },
-  { feature: "Mise en route < 3 semaines",              carbonco: "yes",     workiva: "no",      enablon: "no",      greenly: "yes" },
+  { feature: "ESRS Set 2 complet (E1-E5, S1-S4, G1)",   carbonco: "yes",     workiva: "yes",     enablon: "partial", greenly: "no",      hint: "Greenly : E1 seul. Enablon : config manuelle" },
+  { feature: "Export iXBRL ESEF natif",                  carbonco: "yes",     workiva: "yes",     enablon: "partial", greenly: "no" },
+  { feature: "Validator audit-grade (30+ règles)",       carbonco: "yes",     workiva: "partial", enablon: "partial", greenly: "no" },
+  { feature: "Audit trail signé SHA-256 (append-only)",  carbonco: "yes",     workiva: "partial", enablon: "partial", greenly: "no" },
+  { feature: "Copilote IA avec citations ESRS",          carbonco: "yes",     workiva: "no",      enablon: "no",      greenly: "partial" },
+  { feature: "Hébergement & traitement IA UE",           carbonco: "yes",     workiva: "partial", enablon: "yes",     greenly: "partial" },
+  { feature: "Mise en route < 3 semaines",               carbonco: "yes",     workiva: "no",      enablon: "no",      greenly: "yes" },
   { feature: "Tarif ETI lisible (à partir de 490 €)",    carbonco: "yes",     workiva: "no",      enablon: "no",      greenly: "partial", hint: "Workiva/Enablon : sur devis enterprise" },
-  { feature: "Import Excel structuré (lignée préservée)", carbonco: "yes",   workiva: "yes",     enablon: "yes",     greenly: "partial" },
-  { feature: "Export PDF prêt OTI signé",               carbonco: "yes",     workiva: "yes",     enablon: "yes",     greenly: "partial" },
+  { feature: "Review datapoints + score audit 0-100",    carbonco: "yes",     workiva: "partial", enablon: "no",      greenly: "no" },
 ];
 
 const Yes = (

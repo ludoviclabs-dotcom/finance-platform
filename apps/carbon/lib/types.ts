@@ -7,6 +7,7 @@ export type Page =
   | "fournisseurs"
   | "qc"
   | "revue"
+  | "review"
   | "social"
   | "dpp"
   | "finance"

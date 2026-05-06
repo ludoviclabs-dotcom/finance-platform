@@ -9,7 +9,7 @@ import {
   FileBarChart, CreditCard, Leaf, LogOut,
   ChevronLeft, ChevronRight, X, Scale,
   Sparkles, ShieldCheck, Database, Upload, ClipboardList, History, Settings, Bell,
-  Inbox, Factory, ListChecks,
+  Inbox, Factory, ListChecks, ClipboardCheck,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -43,6 +43,10 @@ const navItems: {
   { id: "fournisseurs", href: "/fournisseurs", label: "Fournisseurs", icon: <Factory className="w-5 h-5" />, badge: { text: "Scope 3", color: "bg-blue-500/15 text-blue-400" } },
   { id: "qc", href: "/qc", label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
   { id: "revue", href: "/revue", label: "Inbox revue", icon: <Inbox className="w-5 h-5" /> },
+  {
+    id: "review", href: "/review", label: "Review datapoints", icon: <ClipboardCheck className="w-5 h-5" />,
+    badge: { text: "Audit", color: "bg-amber-500/15 text-amber-600" },
+  },
   // social, dpp, finance — archivés Sprint 1 Phase 0 (hors wedge CSRD fournisseurs)
   {
     id: "copilot", href: "/copilot", label: "Copilote IA", icon: <Bot className="w-5 h-5" />,

@@ -20,6 +20,7 @@ import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
 import { exportEsgSynthesisPdf } from "@/lib/pdf-export";
 import { generateReportPdf } from "@/lib/api";
 import { useConsolidatedSnapshot } from "@/lib/hooks/use-consolidated-snapshot";
+import { ExportIxbrlButton } from "@/components/ixbrl/export-ixbrl-button";
 
 const reports = [
   {
@@ -228,6 +229,59 @@ export function ReportsPage() {
             Aperçu navigateur (jsPDF)
           </button>
         </div>
+      </div>
+
+      {/* ── Export iXBRL ESEF (Phase 2) ── */}
+      <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-rose-500/5 p-6">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+            <Shield className="w-6 h-6 text-amber-600" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h2 className="font-display text-lg font-bold text-[var(--color-foreground)]">
+                Export ESEF iXBRL
+              </h2>
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Audit-grade
+              </span>
+            </div>
+            <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed">
+              Document XHTML conforme <strong>EFRAG taxonomie 2024-12-04</strong> couvrant E1-E5,
+              S1-S4, G1 (107 datapoints obligatoires Set 2). Prêt pour soumission auditeur (ISAE
+              3000) ou dépôt ESEF.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <div className="rounded-lg bg-[var(--color-surface)]/60 border border-[var(--color-border)] p-3">
+            <p className="text-[10px] uppercase font-semibold text-[var(--color-foreground-muted)]">
+              Standards couverts
+            </p>
+            <p className="text-sm font-bold text-[var(--color-foreground)] mt-0.5">
+              E1·E2·E3·E4·E5·S1·S2·S3·S4·G1
+            </p>
+          </div>
+          <div className="rounded-lg bg-[var(--color-surface)]/60 border border-[var(--color-border)] p-3">
+            <p className="text-[10px] uppercase font-semibold text-[var(--color-foreground-muted)]">
+              Format de sortie
+            </p>
+            <p className="text-sm font-bold text-[var(--color-foreground)] mt-0.5">
+              .xhtml inline-XBRL
+            </p>
+          </div>
+          <div className="rounded-lg bg-[var(--color-surface)]/60 border border-[var(--color-border)] p-3">
+            <p className="text-[10px] uppercase font-semibold text-[var(--color-foreground-muted)]">
+              Trace audit
+            </p>
+            <p className="text-sm font-bold text-[var(--color-foreground)] mt-0.5">
+              SHA-256 + acteur + horodatage
+            </p>
+          </div>
+        </div>
+
+        <ExportIxbrlButton variant="primary" size="md" />
       </div>
 
       {/* Stats */}

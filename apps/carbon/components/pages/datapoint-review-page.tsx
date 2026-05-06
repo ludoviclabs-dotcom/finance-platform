@@ -28,6 +28,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { SourceSidePanel } from "@/components/review/source-side-panel";
+import { ExportIxbrlButton } from "@/components/ixbrl/export-ixbrl-button";
+import { ValidatorPanel } from "@/components/datapoints/validator-panel";
 import { getAuthToken } from "@/lib/api";
 import type {
   EsrsDatapointDef,
@@ -304,21 +306,25 @@ export function DatapointReviewPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="font-display text-2xl font-bold text-[var(--color-foreground)] tracking-tight flex items-center gap-2">
-          <CheckCircle2 className="w-6 h-6 text-carbon-emerald" aria-hidden />
-          Review des datapoints ESRS
-        </h1>
-        <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
-          Validez, surchargez ou rejetez les valeurs extraites par le copilote IA avant export iXBRL.
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-[var(--color-foreground)] tracking-tight flex items-center gap-2">
+            <CheckCircle2 className="w-6 h-6 text-carbon-emerald" aria-hidden />
+            Validation CSRD — Review datapoints
+          </h1>
+          <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
+            Validez, surchargez ou rejetez les valeurs extraites par le copilote IA avant export iXBRL.
+          </p>
+        </div>
+        <ExportIxbrlButton variant="primary" size="md" />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Stats + score audit compact */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
         <StatCard label="En attente" count={stats.extracted} color="text-blue-600" />
         <StatCard label="Validés" count={stats.validated} color="text-[var(--color-success)]" />
         <StatCard label="Rejetés" count={stats.rejected} color="text-[var(--color-danger)]" />
+        <ValidatorPanel compact />
       </div>
 
       {/* Filters */}

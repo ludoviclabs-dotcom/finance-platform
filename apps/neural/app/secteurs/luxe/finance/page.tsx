@@ -52,7 +52,7 @@ const financeAgents = [
     iconClass: "bg-violet-400/10 text-violet-200",
     norms: ["IFRS 10", "IFRS 3", "IAS 36", "IAS 21"],
     description:
-      "Agent le plus mature publiquement : il alimente la branche Finance avec des donnees runtime et un export visible.",
+      "Agent le plus mature publiquement : il alimente la branche Finance avec des données runtime et un export visible.",
     kpiLabel: "CA consolide",
   },
   {
@@ -63,9 +63,9 @@ const financeAgents = [
     iconClass: "bg-emerald-400/10 text-emerald-200",
     norms: ["IAS 2", "IFRS 15", "IAS 36"],
     description:
-      "Surface de demonstration appuyee sur un workbook runtime, encore en attente d'une exposition publique complete.",
+      "Surface de démonstration appuyee sur un workbook runtime, encore en attente d'une exposition publique complète.",
     kpiLabel: "Statut public",
-    kpiValue: "Demo",
+    kpiValue: "Démo",
   },
   {
     title: "Multi-Currency IAS 21",
@@ -75,7 +75,7 @@ const financeAgents = [
     iconClass: "bg-sky-400/10 text-sky-200",
     norms: ["IAS 21", "IFRS 9", "IAS 39"],
     description:
-      "Brique devise deja presente dans le runtime, exposee ici comme capacite du framework et non comme simulateur final.",
+      "Brique devise déjà présenté dans le runtime, exposée ici comme capacité du framework et non comme simulateur final.",
     kpiLabel: "Preuve",
     kpiValue: "Runtime",
   },
@@ -87,13 +87,13 @@ const financeAgents = [
     iconClass: "bg-amber-400/10 text-amber-200",
     norms: ["IAS 38", "IFRS 15", "IAS 24", "Pilier 2"],
     description:
-      "Brique normative prete a etre mieux emballee. La page la montre comme demonstration de profondeur finance.",
+      "Brique normative prête a être mieux emballee. La page la montre comme démonstration de profondeur finance.",
     kpiLabel: "Preuve",
     kpiValue: "Runtime",
   },
 ];
 
-const branchStats = [
+const brancheStats = [
   { label: "Surfaces finance", value: String(financeAgents.length), icon: Layers },
   {
     label: "Agents live",
@@ -143,7 +143,7 @@ export default function LuxeFinancePage() {
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/68">
               Luxe Finance ne promet pas quatre simulateurs egalement finalises. Elle montre
-              un agent live, trois surfaces de demonstration branchees au runtime et des
+              un agent live, trois surfaces de démonstration branchées au runtime et des
               exports qui rendent la valeur visible.
             </p>
           </motion.div>
@@ -154,7 +154,7 @@ export default function LuxeFinancePage() {
             transition={{ duration: 0.45, delay: 0.15 }}
             className="mt-12 grid gap-4 md:grid-cols-4"
           >
-            {branchStats.map((item) => (
+            {brancheStats.map((item) => (
               <div
                 key={item.label}
                 className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5"
@@ -179,15 +179,15 @@ export default function LuxeFinancePage() {
           </span>
           <ArrowRight className="h-3.5 w-3.5 text-white/30" />
           <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-emerald-200">
-            Inventaire demo
+            Inventaire démo
           </span>
           <ArrowRight className="h-3.5 w-3.5 text-white/30" />
           <span className="rounded-full border border-sky-300/20 bg-sky-300/10 px-3 py-1.5 text-sky-200">
-            Multi-currency demo
+            Multi-currency démo
           </span>
           <ArrowRight className="h-3.5 w-3.5 text-white/30" />
           <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-amber-200">
-            Royalty demo
+            Royalty démo
           </span>
           <p className="w-full pt-2 text-sm text-white/52">
             Le visiteur voit clairement quelle brique est live et lesquelles restent en exposition.
@@ -202,11 +202,11 @@ export default function LuxeFinancePage() {
               Surfaces agent
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
-              Chaque carte indique son vrai niveau de preparation.
+              Chaque carte indique son vrai niveau de préparation.
             </h2>
             <p className="mt-3 text-base leading-relaxed text-white/62">
-              Les badges, les livrables et les CTA suivent la meme logique partout :
-              live avec donnees reelles, demo adossee au runtime ou readiness page.
+              Les badges, les livrables et les CTA suivent la même logique partout :
+              live avec données réelles, démo adossee au runtime ou readiness page.
             </p>
           </div>
 
@@ -241,11 +241,11 @@ export default function LuxeFinancePage() {
 
                 <div className="mt-6 grid gap-3">
                   <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Donnees utilisees</p>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Données utilisees</p>
                     <p className="mt-2 text-sm text-white/70">{agent.entry.dataUsed}</p>
                   </div>
                   <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Livrable genere</p>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Livrable généré</p>
                     <p className="mt-2 text-sm text-white/70">{agent.entry.deliverable}</p>
                   </div>
                 </div>
@@ -282,7 +282,7 @@ export default function LuxeFinancePage() {
             status={financeCatalog.status}
             proofLevel={financeCatalog.proofLevel}
           />
-          <ScopeCard title="Perimetre public Finance" does={financeCatalog.scopeNow} doesnt={financeCatalog.notYet} />
+          <ScopeCard title="Périmètre public Finance" does={financeCatalog.scopeNow} doesnt={financeCatalog.notYet} />
         </div>
       </section>
 
@@ -297,8 +297,8 @@ export default function LuxeFinancePage() {
                 La preuve ne s&apos;arrete pas a l&apos;interface.
               </h2>
               <p className="mt-3 text-base leading-relaxed text-white/62">
-                Cette branche expose deja des exports, ce qui aide a vendre une sortie metier
-                concrete plutot qu&apos;une simple vitrine UI.
+                Cette branche expose déjà des exports, ce qui aide à vendre une sortie métier
+                concrète plutot qu&apos;une simple vitrine UI.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">

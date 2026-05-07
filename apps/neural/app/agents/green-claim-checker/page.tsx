@@ -7,9 +7,9 @@ import { JurisdictionHeatmap } from "@/components/luxe-comms/JurisdictionHeatmap
 import { LUXE_COMMS_SUMMARY } from "@/lib/data/luxe-comms-catalog";
 
 export const metadata: Metadata = {
-  title: "GreenClaimChecker — conformite Green Claims Directive | NEURAL",
+  title: "GreenClaimChecker — conformité Green Claims Directive | NEURAL",
   description:
-    "AG-005 GreenClaimChecker : verifie chaque affirmation RSE contre preuves reelles et regulations (EU Green Claims Directive 2024, Loi Climat FR, CMA UK, FTC US). Matrice 5 juridictions. Demo live disponible.",
+    "AG-005 GreenClaimChecker : verifie chaque affirmation RSE contre preuves réelles et regulations (EU Green Claims Directive 2024, Loi Climat FR, CMA UK, FTC US). Matrice 5 juridictions. Démo live disponible.",
 };
 
 export default function GreenClaimCheckerPage() {
@@ -20,15 +20,15 @@ export default function GreenClaimCheckerPage() {
         {/* PEPITE : demo live */}
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-rose-200">
-            Demo live — Sprint 4
+            Démo live — Sprint 4
           </p>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
             Testez un claim RSE contre 5 juridictions.
           </h2>
           <p className="mt-3 max-w-3xl text-white/60">
-            Entrez votre affirmation, selectionnez la juridiction cible. L&apos;agent match contre la
-            claim library, score le risque et cite la regulation concernee. Mode fallback deterministique
-            si AI Gateway indisponible — vous verrez une decision coherente dans tous les cas.
+            Entrez votre affirmation, sélectionnez la juridiction cible. L&apos;agent match contre la
+            claim library, score le risque et cite la régulation concernée. Mode fallback déterministe
+            si AI Gateway indisponible — vous verrez une decision cohérente dans tous les cas.
           </p>
           <div className="mt-6">
             <ClaimCheckLive />
@@ -46,7 +46,7 @@ export default function GreenClaimCheckerPage() {
             GreenClaimChecker detecte chaque affirmation RSE dans un draft, la matche contre la base
             de claims eprouves (ou declenche un BLOCK si aucun), score le risque selon le wording
             (ABSOLUTE / QUALIFIED / COMPARATIVE) et la juridiction cible. L&apos;EU Green Claims Directive
-            entre en application pleine en 2026 — l&apos;agent permet de s&apos;y preparer des aujourd&apos;hui.
+            entre en application pleine en 2026 — l&apos;agent permet de s&apos;y preparer dès aujourd&apos;hui.
           </p>
         </div>
 

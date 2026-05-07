@@ -3,7 +3,7 @@ const quotes = [
     logo: "Cadrage",
     ind: "Banque · DORA",
     kpi: "retour non signe",
-    q: "Le cadrage outcome avant code clarifie enfin ce qui doit etre prouve avant de parler de deploiement.",
+    q: "Le cadrage outcome avant code clarifie enfin ce qui doit être prouve avant de parler de deploiement.",
     who: "Direction risques, prospect anonymise",
   },
   {

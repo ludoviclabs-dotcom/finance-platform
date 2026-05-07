@@ -57,7 +57,7 @@ export function BankMarketingConsole() {
       <div className="rounded-[20px] border border-white/10 bg-white/[0.045] p-3">
         <div className="px-2 pb-3 pt-1">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/45">
-            Console scenario-id
+            Console scénario-id
           </p>
           <p className="mt-2 text-sm leading-relaxed text-white/62">
             12 cas synthetiques issus des workbooks. Aucun texte libre, aucun appel LLM.
@@ -176,8 +176,8 @@ export function BankMarketingConsole() {
             </p>
             <div className="mt-5 space-y-3">
               {[
-                ["Decision", activeScenario.verdict],
-                ["Mode", "scenario-id only"],
+                ["Décision", activeScenario.verdict],
+                ["Mode", "scénario-id only"],
                 ["HITL", activeScenario.verdict === "PASS" ? "logged" : "required"],
                 ["Trace", "workbook hash seed"],
               ].map(([label, value]) => (

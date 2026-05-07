@@ -11,7 +11,7 @@ import {
 export const metadata = {
   title: "Proof Console — NEURAL",
   description:
-    "Etat reel du catalogue NEURAL : workbooks Excel, agents avec donnees, runtime public, demos et limites connues.",
+    "Etat réel du catalogue NEURAL : workbooks Excel, agents avec données, runtime public, démos et limites connues.",
 };
 
 const STATUS_CLASSES: Record<AgentProofStatus, string> = {
@@ -25,7 +25,7 @@ export default function ProofPage() {
   const catalog = getProofCatalog();
   const metricCards = [
     {
-      label: "Agents avec donnees Excel",
+      label: "Agents avec données Excel",
       value: catalog.counts.liveAgentsWithExcel,
       detail: "Source: agents-registry",
       icon: Layers3,
@@ -33,17 +33,17 @@ export default function ProofPage() {
     {
       label: "Workbooks runtime",
       value: catalog.counts.runtimeWorkbooks,
-      detail: "Embarques dans apps/neural/data",
+      detail: "Embarqués dans apps/neural/data",
       icon: Database,
     },
     {
-      label: "Workbooks NEURAL audites",
+      label: "Workbooks NEURAL audités",
       value: catalog.counts.desktopNeuralWorkbooks,
       detail: "Desktop, hors Carbon and Co",
       icon: FileSpreadsheet,
     },
     {
-      label: "Cellules alimentees",
+      label: "Cellules alimentées",
       value: `${catalog.counts.liveCells}/${catalog.counts.frameworkCells}`,
       detail: "Secteur x branche",
       icon: ShieldCheck,
@@ -65,8 +65,8 @@ export default function ProofPage() {
             Ce que NEURAL peut prouver maintenant
           </h1>
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/68">
-            Cette console distingue les actifs Excel, les donnees parsees, les demos publiques et
-            les briques vendables. Les 168 agents restent une capacite cible, pas le perimetre live.
+            Cette console distingue les actifs Excel, les données parsées, les démos publiques et
+            les briques vendables. Les 168 agents restent une capacité cible, pas le périmètre live.
           </p>
           <p className="mt-3 text-[11px] uppercase tracking-[0.18em] text-white/35">
             Derniere verification : {catalog.lastVerifiedAt}
@@ -92,7 +92,7 @@ export default function ProofPage() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <span className="inline-flex items-center rounded-full border border-cyan-400/25 bg-cyan-400/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-200">
-                Maturite
+                Maturité
               </span>
               <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
                 4 statuts, 5 scores
@@ -124,7 +124,7 @@ export default function ProofPage() {
               Model cards
             </span>
             <h2 className="mt-3 max-w-3xl break-words font-display text-3xl font-bold tracking-tight">
-              5 agents flagship documentes comme preuves produit
+              5 agents flagship documentés comme preuves produit
             </h2>
           </div>
           <div className="mt-8 grid min-w-0 gap-4 lg:grid-cols-2">
@@ -208,7 +208,7 @@ export default function ProofPage() {
                 <div className="min-w-0">
                   <p className="line-clamp-2 break-words text-xs leading-relaxed text-white/58">{agent.workbookSource}</p>
                   <p className="mt-1 break-words text-xs text-white/35">
-                    {agent.proofLimitations[0] ?? "Limites documentees dans la fiche."}
+                    {agent.proofLimitations[0] ?? "Limites documentées dans la fiche."}
                   </p>
                 </div>
               </Link>
@@ -221,11 +221,11 @@ export default function ProofPage() {
         <div className="mx-auto grid max-w-[1320px] min-w-0 gap-6 lg:grid-cols-2">
           <WorkbookPanel
             title="Workbooks runtime"
-            subtitle="Ce qui est embarque dans le repo et peut alimenter le site."
+            subtitle="Ce qui est embarqué dans le repo et peut alimenter le site."
             groups={catalog.workbookGroups.runtimeRepo}
           />
           <WorkbookPanel
-            title="Workbooks Desktop audites"
+            title="Workbooks Desktop audités"
             subtitle="Actifs NEURAL existants hors Carbon and Co, a rapatrier ou parser."
             groups={catalog.workbookGroups.desktopExternal}
           />

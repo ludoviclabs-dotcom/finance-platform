@@ -1,6 +1,6 @@
 /**
  * LuxeCommsAgentPage — Server Component template partage par les 5 pages agents
- * de la branche Luxe / Communication.
+ * de la branchee Luxe / Communication.
  *
  * Chaque page passe :
  *  - son slug agent (tire de LUXE_COMMS_AGENTS)
@@ -51,13 +51,13 @@ export function LuxeCommsAgentPage({
   if (!publicEntry) throw new Error(`Missing public catalog entry for agent: ${slug}`);
 
   const commsEntry = getBranchEntry("communication");
-  if (!commsEntry) throw new Error("Missing communication branch entry.");
+  if (!commsEntry) throw new Error("Missing communication branche entry.");
 
   const Icon = AGENT_ICON[slug];
   const tint = GATE_TINT[agent.primaryGate];
   const safetyProfile = getAgentSafetyProfile(slug);
 
-  // Autres agents de la branche, pour cross-link
+  // Autres agents de la branchee, pour cross-link
   const siblings = LUXE_COMMS_AGENTS.filter((a) => a.slug !== slug);
 
   return (
@@ -73,7 +73,7 @@ export function LuxeCommsAgentPage({
             className="mb-8 inline-flex items-center gap-2 text-sm text-white/55 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour a la branche Communication
+            Retour à la branche Communication
           </Link>
 
           <div className="flex flex-wrap items-start gap-6">
@@ -142,13 +142,13 @@ export function LuxeCommsAgentPage({
             Scope vs. promesse
           </p>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
-            Ce que l&apos;agent fait deja vs. ce qui arrive.
+            Ce que l&apos;agent fait déjà vs. ce qui arrive.
           </h2>
 
           <div className="mt-8 grid gap-5 md:grid-cols-2">
             <div className="rounded-[24px] border border-emerald-400/20 bg-emerald-400/[0.04] p-6">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-300">
-                Deja operable
+                Déjà opérable
               </p>
               <ul className="mt-4 space-y-2">
                 {publicEntry.scopeNow.map((s: string) => (
@@ -191,10 +191,10 @@ export function LuxeCommsAgentPage({
               <div className="flex flex-wrap items-center justify-between gap-6">
                 <div className="max-w-2xl">
                   <span className="inline-flex rounded-full border border-violet-400/30 bg-violet-400/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-200">
-                    Demo Sprint 3
+                    Démo Sprint 3
                   </span>
                   <h3 className="mt-4 font-display text-2xl font-bold tracking-tight md:text-3xl">
-                    Demo interactive en arrivee
+                    Démo interactive en arrivee
                   </h3>
                   <p className="mt-2 text-white/65">
                     L&apos;endpoint <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-violet-200">{agent.demoEndpoint}</code> exposera
@@ -221,7 +221,7 @@ export function LuxeCommsAgentPage({
             Les 4 autres agents de la branche
           </p>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
-            Pipeline complet — chaque agent a un role dedie.
+            Pipeline complet — chaque agent à un rôle dédié.
           </h2>
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {siblings.map((s) => {

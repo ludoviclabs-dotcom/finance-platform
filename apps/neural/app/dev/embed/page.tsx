@@ -16,7 +16,7 @@ export function MyApp() {
       tenant="my-tenant-id"
       auth={{ mode: "jwt", token: process.env.NEURAL_JWT }}
       onDecision={(decision) => {
-        console.log("Decision:", decision);
+        console.log("Décision:", decision);
         // decision.outcome, decision.signedBy, decision.cost…
       }}
     />

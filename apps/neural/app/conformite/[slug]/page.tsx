@@ -156,8 +156,8 @@ export default async function CompliancePage({
                   Classification cible des 168 agents
                 </h2>
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
-                  Les 168 agents forment la cible du framework. Le perimetre live reste limite aux
-                  agents documentes dans la Proof Console.
+                  Les 168 agents forment la cible du framework. Le périmètre live reste limite aux
+                  agents documentés dans la Proof Console.
                 </p>
               </div>
             </div>
@@ -222,7 +222,7 @@ export default async function CompliancePage({
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-white/65">
                   Model Cards publiques, audit trail signé, certifications ISO :
-                  tout est tracé sur la roadmap publique avec dates cibles trimestrielles.
+                  tout est tracé sur la roadmap publique avec dates ciblés trimestrielles.
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">

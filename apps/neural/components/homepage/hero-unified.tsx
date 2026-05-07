@@ -20,10 +20,10 @@ export function HeroUnified() {
               <span>prouvee.</span>
             </h1>
             <p className="nhp-hero-lead">
-              {PUBLIC_METRICS.liveAgents} agents avec donnees Excel,{" "}
-              {PUBLIC_METRICS.runtimeWorkbooks} workbooks embarques et{" "}
-              {PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentees.
-              Les 168 agents restent la capacite cible du framework, pas le perimetre live.
+              {PUBLIC_METRICS.liveAgents} agents avec données Excel,{" "}
+              {PUBLIC_METRICS.runtimeWorkbooks} workbooks embarqués et{" "}
+              {PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentées.
+              Les 168 agents restent la capacité cible du framework, pas le périmètre live.
             </p>
             <div className="nhp-hero-ctas">
               <Link href="/proof" className="nhp-btn nhp-btn-primary nhp-btn-xl">
@@ -43,7 +43,7 @@ export function HeroUnified() {
             <AndroidVisual size={460}>
               <div className="nhp-badge nhp-badge-tl">
                 <div className="nhp-hab-k">{PUBLIC_METRICS.liveAgents}</div>
-                <div className="nhp-hab-l">agents avec donnees</div>
+                <div className="nhp-hab-l">agents avec données</div>
               </div>
               <div className="nhp-badge nhp-badge-br">
                 <div className="nhp-hab-k">{PUBLIC_METRICS.runtimeWorkbooks}</div>
@@ -51,7 +51,7 @@ export function HeroUnified() {
               </div>
               <div className="nhp-badge nhp-badge-bl">
                 <div className="nhp-hab-pulse"><span/><span/><span/></div>
-                <div className="nhp-hab-l">{PUBLIC_METRICS.liveCells}/42 cellules alimentees</div>
+                <div className="nhp-hab-l">{PUBLIC_METRICS.liveCells}/42 cellules alimentées</div>
               </div>
             </AndroidVisual>
           </div>

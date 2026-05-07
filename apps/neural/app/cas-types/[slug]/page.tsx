@@ -214,7 +214,7 @@ export default async function CasTypePage({
         <div className="mx-auto max-w-[1320px]">
           <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
             <TrendingUp className="h-3 w-3" />
-            Métriques cibles
+            Métriques ciblés
           </span>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
             {data.metrics.title}
@@ -312,7 +312,7 @@ export default async function CasTypePage({
                   Cadrage outcome 30 minutes
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-white/65">
-                  Adapter cette démarche à votre contexte précis : périmètre, KPI cibles, agents
+                  Adapter cette démarche à votre contexte précis : périmètre, KPI ciblés, agents
                   applicables, calendrier réaliste. Sortie : feuille de route signée.
                 </p>
               </div>

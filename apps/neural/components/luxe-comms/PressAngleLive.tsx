@@ -55,7 +55,7 @@ const PRESETS = [
   {
     id: "jewelry",
     label: "Lancement joaillerie",
-    brief: "Lancement d'une collection joaillerie pour les 100 ans de la maison — 12 pieces numerotees inspirees des archives de 1923, ciselees a la main a Paris.",
+    brief: "Lancement d'une collection joaillerie pour les 100 ans de la maison — 12 pieces numerotees inspirees des archives de 1923, ciselees à la main a Paris.",
     media: "Lifestyle" as const,
   },
   {
@@ -135,7 +135,7 @@ export function PressAngleLive() {
       setResult(data.result);
       setMeta(data.meta ?? null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur reseau");
+      setError(err instanceof Error ? err.message : "Erreur réseau");
     } finally {
       setLoading(false);
     }
@@ -160,13 +160,13 @@ export function PressAngleLive() {
         </div>
         <div>
           <p className={`text-[11px] font-bold uppercase tracking-[0.22em] ${tint.text}`}>
-            Demo live · LuxePressAgent
+            Démo live · LuxePressAgent
           </p>
           <h3 className="font-display text-2xl font-bold text-white">
             Angle presse adapte — outlet par outlet
           </h3>
           <p className="mt-2 max-w-xl text-sm text-white/60">
-            Un meme brief → 7 angles differents selon l&apos;outlet (Vogue vs. FT).
+            Un même brief → 7 angles differents selon l&apos;outlet (Vogue vs. FT).
             Accroche, lede, structure, quote CEO — conforme charte luxe.
           </p>
         </div>
@@ -253,7 +253,7 @@ export function PressAngleLive() {
         {meta?.mode === "fallback" && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-200">
             <Sparkles className="h-3 w-3" />
-            Mode demo
+            Mode démo
           </span>
         )}
         {meta?.mode === "gateway" && (
@@ -386,7 +386,7 @@ export function PressAngleLive() {
                     Pas de quote CEO
                   </p>
                   <p className="mt-3 text-sm text-white/55">
-                    Ce media ne s&apos;attend pas a une citation executive pour ce format.
+                    Ce media ne s&apos;attend pas à une citation executive pour ce format.
                   </p>
                 </div>
               )}
@@ -419,7 +419,7 @@ export function PressAngleLive() {
               <div className="rounded-2xl border border-rose-400/20 bg-rose-400/[0.04] p-5">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-300">
                   <XOctagon className="mr-1 inline h-3 w-3" />
-                  Red flags a eviter
+                  Red flags a éviter
                 </p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {result.red_flags.map((r, i) => (

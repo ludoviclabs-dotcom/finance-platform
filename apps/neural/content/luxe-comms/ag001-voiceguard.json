@@ -63,7 +63,7 @@
       {
         "rule_id": "R-006",
         "categorie": "Heritage",
-        "regle": "Reference historique datee doit etre sourcee",
+        "regle": "Reference historique datee doit être sourcée",
         "niveau": "HIGH",
         "poids": 15,
         "lang": "FR",

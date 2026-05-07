@@ -563,7 +563,7 @@ export default function BankCommsDashboardPage() {
               {
                 ok: BANK_COMMS_SUMMARY.readiness.demo_live,
                 title: "Démos live (4 agents publics)",
-                hint: "Scenario-id only · gates serveur · LLM overridé",
+                hint: "Scénario-id only · gates serveur · LLM overridé",
               },
               {
                 ok: BANK_COMMS_SUMMARY.readiness.export_pack_ready,

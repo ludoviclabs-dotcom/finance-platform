@@ -39,8 +39,8 @@ export function HeritageSourceTree() {
           Sources patrimoniales cataloguees
         </h3>
         <p className="mt-1 text-sm text-white/55">
-          Aucune sortie publiee sans source active + citation formatee.
-          Les sources tertiaires declenchent une revue automatique.
+          Aucune sortie publiée sans source active + citation formatee.
+          Les sources tertiaires déclenchent une revue automatique.
         </p>
       </div>
 

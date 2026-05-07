@@ -19,13 +19,13 @@ export function SafetyDecisionDemo() {
     <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5 md:p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="font-mono text-xs text-white/42">Demo policy engine</p>
+          <p className="font-mono text-xs text-white/42">Démo policy engine</p>
           <h3 className="mt-2 font-display text-2xl font-bold text-white">
             ALLOW / REVIEW / BLOCK sur un cas concret
           </h3>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/62">
-            Choisissez un scenario. La sortie change localement pour montrer comment NEURAL
-            transforme une intention agent en decision gouvernee.
+            Choisissez un scénario. La sortie change localement pour montrer comment NEURAL
+            transforme une intention agent en décision gouvernée.
           </p>
         </div>
         <button
@@ -34,7 +34,7 @@ export function SafetyDecisionDemo() {
           className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/[0.09]"
         >
           <RotateCcw className="h-4 w-4" />
-          Reinitialiser
+          Réinitialiser
         </button>
       </div>
 
@@ -76,7 +76,7 @@ export function SafetyDecisionDemo() {
         <div className="rounded-[22px] border border-emerald-400/20 bg-emerald-400/[0.05] p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="font-mono text-xs text-emerald-200/75">
-              Decision NEURAL
+              Décision NEURAL
             </p>
             <VerdictBadge verdict={active.verdict} />
           </div>

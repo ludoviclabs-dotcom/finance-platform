@@ -28,7 +28,7 @@ function validateBody(raw: unknown):
   }
 
   const lang = r.lang ?? "FR";
-  if (lang !== "FR" && lang !== "EN") return { ok: false, error: "lang doit etre FR ou EN." };
+  if (lang !== "FR" && lang !== "EN") return { ok: false, error: "lang doit être FR ou EN." };
 
   return { ok: true, brief: trimmed, mediaType: mediaType as MediaType, lang };
 }

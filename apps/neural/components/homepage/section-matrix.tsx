@@ -25,8 +25,8 @@ const demoCells = new Set([
   "Assurance|Marketing",
 ]);
 
-function cellStatus(sector: string, branch: string) {
-  const key = `${sector}|${branch}`;
+function cellStatus(sector: string, branche: string) {
+  const key = `${sector}|${branche}`;
   if (liveCells.has(key)) return { marker: "live", label: "data" };
   if (demoCells.has(key)) return { marker: "demo", label: "demo" };
   return { marker: "planned", label: "plan" };
@@ -39,28 +39,28 @@ export function SectionMatrix() {
       <div className="nhp-container">
         <div className="nhp-section-head">
           <div className="eyebrow">Matrice 7 x 6</div>
-          <h2 className="h-display h-tight">42 combinaisons possibles.<br/><span className="muted">7 deja alimentees.</span></h2>
+          <h2 className="h-display h-tight">42 combinaisons possibles.<br/><span className="muted">7 déjà alimentées.</span></h2>
         </div>
         <div className="nhp-matrix-wrap">
           <div className="nhp-matrix-table">
             <div className="nhp-matrix-corner">Secteur x Branche</div>
-            {branches.map((branch) => <div key={branch} className="nhp-matrix-col-head">{branch}</div>)}
+            {branches.map((branche) => <div key={branche} className="nhp-matrix-col-head">{branche}</div>)}
             {sectors.map((sector, sectorIndex) => (
               <Fragment key={sector}>
                 <div className="nhp-matrix-row-head">{sector}</div>
-                {branches.map((branch, branchIndex) => {
-                  const key = `${sectorIndex}-${branchIndex}`;
-                  const status = cellStatus(sector, branch);
+                {branches.map((branche, brancheIndex) => {
+                  const key = `${sectorIndex}-${brancheIndex}`;
+                  const status = cellStatus(sector, branche);
                   return (
                     <div
-                      key={branch}
+                      key={branche}
                       className={`nhp-matrix-cell is-${status.marker}${hover === key ? " is-hover" : ""}`}
                       onMouseEnter={() => setHover(key)}
                       onMouseLeave={() => setHover(null)}
                     >
                       <div className="nhp-matrix-cell-inner">
                         <span className="nhp-matrix-n">{status.label}</span>
-                        <span className="nhp-matrix-cell-label">{sector.slice(0, 3)}·{branch.slice(0, 3)}</span>
+                        <span className="nhp-matrix-cell-label">{sector.slice(0, 3)}·{branche.slice(0, 3)}</span>
                       </div>
                     </div>
                   );

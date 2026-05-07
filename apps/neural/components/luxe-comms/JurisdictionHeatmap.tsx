@@ -82,7 +82,7 @@ export function JurisdictionHeatmap() {
         </table>
       </div>
       <p className="mt-4 text-[11px] text-white/45">
-        Note : une meme formulation peut etre <span className="text-emerald-300">autorisee EU</span> et{" "}
+        Note : une même formulation peut être <span className="text-emerald-300">autorisee EU</span> et{" "}
         <span className="text-rose-300">interdite FR</span> (Loi Climat 2023 sur &quot;carbon neutral&quot;).
       </p>
     </div>

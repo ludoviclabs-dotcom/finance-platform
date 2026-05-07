@@ -52,7 +52,7 @@
     {
       "id": "event-pack",
       "label": "Event Pack Builder",
-      "description": "Pack contenu défilé/expo cross-format (invitations, scripts, social, captions).",
+      "description": "Pack contenu défilé/expose déjàcross-format (invitations, scripts, social, captions).",
       "category": "Communication Luxe",
       "agent": "LuxeEventComms",
       "agentSlug": "luxe-event-comms",

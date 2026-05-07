@@ -123,7 +123,7 @@ export default function SaasSectorPage() {
           <p className="text-xs leading-relaxed text-amber-100/80">
             <span className="font-semibold">Verticale planifiée</span> — la SaaS reste visible
             comme angle d&apos;offre, mais elle n&apos;est pas encore une preuve produit comparable
-            au noyau Luxe. Cette page expose le positionnement et les agents potentiels, pas un
+            au noyau Luxe. Cette page exposeee le positionnement et les agents potentiels, pas un
             runtime live.
           </p>
         </div>

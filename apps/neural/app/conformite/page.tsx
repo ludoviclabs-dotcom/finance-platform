@@ -62,7 +62,7 @@ export default function ConformiteIndexPage() {
             Cadres réglementaires &amp; NEURAL
           </h1>
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/68">
-            Pour chaque cadre réglementaire structurant, NEURAL documente publiquement ses
+            Pour chaque cadre réglementaire structurant, NEURAL documenté publiquement ses
             engagements et ses limites. Article par article, sans promesse non vérifiable.
           </p>
         </div>

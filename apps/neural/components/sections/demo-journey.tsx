@@ -22,7 +22,7 @@ export function DemoJourney() {
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[var(--color-foreground-muted)]">
             Le site suit maintenant un seul chemin lisible. Un visiteur comprend en quelques
-            secondes ce qui est live, ce qui sert de demo et ce qui reste en preparation.
+            secondes ce qui est live, ce qui sert de demo et ce qui reste en préparation.
           </p>
         </div>
 

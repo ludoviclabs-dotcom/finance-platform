@@ -27,7 +27,7 @@
       {
         "agent_id": "AG-002",
         "agent_name": "LuxePressAgent",
-        "mission": "Rediger communiques dans le registre du luxe, adapter presse lifestyle vs. business, relations Vogue/HB",
+        "mission": "Rediger communiqués dans le registre du luxe, adapter presse lifestyle vs. business, relations Vogue/HB",
         "owner": "PR Director",
         "status": "ACTIVE",
         "priority": "P0",
@@ -66,7 +66,7 @@
       {
         "agent_id": "AG-005",
         "agent_name": "GreenClaimChecker",
-        "mission": "Verifier chaque affirmation RSE / developpement durable contre donnees reelles et reglements (Green Claims)",
+        "mission": "Verifier chaque affirmation RSE / developpement durable contre données réelles et reglements (Green Claims)",
         "owner": "ESG Lead",
         "status": "ACTIVE",
         "priority": "P0",
@@ -83,7 +83,7 @@
         "source": "USER",
         "destination": "AG-002",
         "trigger": "Brief presse depose",
-        "payload": "Brief + Angle + Media cibles",
+        "payload": "Brief + Angle + Media ciblés",
         "auto": "NO",
         "gate": "-",
         "escalation": "-",
@@ -273,7 +273,7 @@
         "sla_hours": 72,
         "escalate_to": "CEO",
         "crisis_fast_track_h": 24,
-        "note": "Reference patrimoine non sourcee"
+        "note": "Reference patrimoine non sourcée"
       },
       {
         "gate_id": "G-004",
@@ -283,7 +283,7 @@
         "sla_hours": 24,
         "escalate_to": "CEO",
         "crisis_fast_track_h": 4,
-        "note": "Contenu juridique / revendication regulee"
+        "note": "Contenu juridique / revendication régulée"
       },
       {
         "gate_id": "G-005",
@@ -322,7 +322,7 @@
       {
         "risk_id": "RK-002",
         "domaine": "Claim",
-        "description": "Expiration evidence non surveillee -> claim diffuse alors que preuve perimee",
+        "description": "Expiration evidence non surveillée -> claim diffuse alors que preuve perimee",
         "likelihood": "HIGH",
         "impact": "CRITICAL",
         "score": null,

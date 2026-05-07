@@ -8,7 +8,7 @@ import { LUXE_COMMS_SUMMARY } from "@/lib/data/luxe-comms-catalog";
 export const metadata: Metadata = {
   title: "MaisonVoiceGuard — score brand + hard-fail | NEURAL",
   description:
-    "AG-001 MaisonVoiceGuard : scorer chaque communication sur la conformite charte. 15 regles ponderees, 17 hard-fail FR+EN, seuils configurables par maison. Demo live scorer.",
+    "AG-001 MaisonVoiceGuard : scorer chaque communication sur la conformité charte. 15 règles ponderees, 17 hard-fail FR+EN, seuils configurables par maison. Démo live scorer.",
 };
 
 export default function MaisonVoiceGuardPage() {
@@ -19,14 +19,14 @@ export default function MaisonVoiceGuardPage() {
         {/* PEPITE : Live Scorer en haut */}
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-200">
-            Demo live — Sprint 3
+            Démo live — Sprint 3
           </p>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
             Testez l&apos;agent avec votre texte.
           </h2>
           <p className="mt-3 max-w-3xl text-white/60">
             Collez un communique, un post, une invitation. Verdict en moins de 3 secondes — avec
-            score /100, hard-fail detectes, et suggestion de reecriture. Aucune donnee stockee,
+            score /100, hard-fail detectes, et suggestion de réécriture. Aucune donnée stockee,
             rate-limit 20 requetes/min par IP, traces Langfuse anonymes.
           </p>
           <div className="mt-6">
@@ -40,12 +40,12 @@ export default function MaisonVoiceGuardPage() {
             Ce que voit l&apos;agent
           </p>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
-            {s.brandRulesCount} regles ponderees · {s.hardFailRulesCount} hard-fail · {s.forbiddenTermsCount} mots interdits
+            {s.brandRulesCount} règles ponderees · {s.hardFailRulesCount} hard-fail · {s.forbiddenTermsCount} mots interdits
           </h2>
           <p className="mt-3 max-w-3xl text-white/60">
-            MaisonVoiceGuard lit trois sources : la charte editoriale (15 regles avec poids CRITICAL/HIGH/MEDIUM),
+            MaisonVoiceGuard lit trois sources : la charte éditoriale (15 règles avec poids CRITICAL/HIGH/MEDIUM),
             le dictionnaire hard-fail (17 patterns zero-tolerance FR+EN) et le vocabulaire normatif (25 termes FR).
-            Score /100 calcule en temps reel, decision APPROVE/REWORK/REJECT selon seuil par langue.
+            Score /100 calcule en temps réel, décision APPROVE/REWORK/REJECT selon seuil par langue.
           </p>
           <div className="mt-8">
             <BrandVocabShowcase />

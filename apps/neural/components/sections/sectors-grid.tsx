@@ -24,7 +24,7 @@ export function SectorsGrid() {
             6 secteurs, un statut clair par verticale
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--color-foreground-muted)]">
-            Chaque carte montre le statut public, les donnees utilisees et le livrable visible
+            Chaque carte montre le statut public, les données utilisees et le livrable visible
           </p>
         </div>
 
@@ -51,7 +51,7 @@ export function SectorsGrid() {
                   <div className="mt-5 grid gap-3">
                     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-3">
                       <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-foreground-subtle)]">
-                        Donnees utilisees
+                        Données utilisees
                       </p>
                       <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
                         {sector.dataUsed}
@@ -59,7 +59,7 @@ export function SectorsGrid() {
                     </div>
                     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-3">
                       <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-foreground-subtle)]">
-                        Livrable genere
+                        Livrable généré
                       </p>
                       <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
                         {sector.deliverable}

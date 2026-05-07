@@ -39,7 +39,7 @@ export function MediaMatrixGrid({ max = 15 }: { max?: number }) {
             {MEDIA_DIRECTORY.length} medias references
           </h3>
           <p className="mt-1 text-sm text-white/55">
-            Angle editorial + embargo + statut relation par outlet.
+            Angle éditorial + embargo + statut relation par outlet.
           </p>
         </div>
       </div>

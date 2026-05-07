@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "NEURAL — Aéronautique / Marketing",
     description:
-      "AeroTechContent, DefenseCommsGuard, AeroEventAI, AeroSustainabilityComms. Workbooks Excel auditables et scenarios OK / WARN / KO.",
+      "AeroTechContent, DefenseCommsGuard, AeroEventAI, AeroSustainabilityComms. Workbooks Excel auditables et scénarios OK / WARN / KO.",
   },
 };
 
@@ -411,7 +411,7 @@ export default function AeroMarketingPage() {
             <SectionHeader
               eyebrow="Services transverses"
               title="Veille + traçabilité = défendabilité."
-              lead="Deux services transverses encadrent les 4 agents : RegWatch alimente le référentiel des règles, EvidenceGuard conserve les preuves de chaque décision."
+              lead="Deux services transverses encadrent les 4 agents : RegWatch alimenté le référentiel des règles, EvidenceGuard conserve les preuves de chaque décision."
             />
             <div className="mt-6 grid gap-3">
               {AERO_MKT_SERVICES.map((service) => (

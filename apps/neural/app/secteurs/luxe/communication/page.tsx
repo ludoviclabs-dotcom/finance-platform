@@ -29,7 +29,7 @@ import { MediaMatrixGrid } from "@/components/luxe-comms/MediaMatrixGrid";
 import { LuxeCommsFlow } from "@/components/luxe-comms/LuxeCommsFlow";
 
 const commsEntryRaw = getBranchEntry("communication");
-if (!commsEntryRaw) throw new Error("Missing public catalog entry for communication branch.");
+if (!commsEntryRaw) throw new Error("Missing public catalog entry for communication branche.");
 const commsEntry = commsEntryRaw;
 
 export const metadata: Metadata = {
@@ -64,9 +64,9 @@ export default function LuxeCommunicationPage() {
   const s = LUXE_COMMS_SUMMARY;
 
   const heroStats = [
-    { label: "Regles de charte", value: String(s.brandRulesCount), hint: `dont ${s.criticalRulesCount} CRITICAL`, Icon: ShieldCheck },
+    { label: "Règles de charte", value: String(s.brandRulesCount), hint: `dont ${s.criticalRulesCount} CRITICAL`, Icon: ShieldCheck },
     { label: "Termes normes FR", value: String(s.vocabFrCount), hint: `${s.forbiddenTermsCount} interdits`, Icon: Database },
-    { label: "Claims audites", value: String(s.claimsTotal), hint: `EU / FR / UK / US / CH`, Icon: Leaf },
+    { label: "Claims audités", value: String(s.claimsTotal), hint: `EU / FR / UK / US / CH`, Icon: Leaf },
     { label: "Sources patrimoniales", value: String(s.heritageSourcesCount), hint: `${s.primarySourcesCount} primaires`, Icon: Landmark },
     { label: "Medias references", value: String(s.mediaDirectoryCount), hint: `${s.p1MediaCount} priorite 1`, Icon: Newspaper },
     { label: "Juridictions mappees", value: String(s.juridictionsCovered), hint: `${s.jurisdictionsCount} claims-types`, Icon: Globe },
@@ -74,7 +74,7 @@ export default function LuxeCommunicationPage() {
 
   const problemSolution = [
     {
-      probleme: "Controle absolu du brand voice",
+      probleme: "Contrôle absolu du brand voice",
       solution: "MaisonVoiceGuard score chaque sortie sur la charte ; refus automatique si score insuffisant",
       agent: "AG-001",
     },
@@ -85,7 +85,7 @@ export default function LuxeCommunicationPage() {
     },
     {
       probleme: "Evenementiel de prestige",
-      solution: "LuxeEventComms genere invitations VIP, scripts, social live pour defiles / lancements / expos",
+      solution: "LuxeEventComms généré invitations VIP, scripts, social live pour defiles / lancements / expos",
       agent: "AG-003",
     },
     {
@@ -123,7 +123,7 @@ export default function LuxeCommunicationPage() {
             </p>
             <StatusBadge status={commsEntry.status} proofLevel={commsEntry.proofLevel} className="mt-4" />
             <h1 className="mt-6 font-display text-5xl font-extrabold tracking-[-0.05em] md:text-6xl">
-              La voix de votre maison, <span className="text-violet-300">scoree</span>, <span className="text-amber-300">sourcee</span>, <span className="text-emerald-300">prouvee</span>.
+              La voix de votre maison, <span className="text-violet-300">scorée</span>, <span className="text-amber-300">sourcée</span>, <span className="text-emerald-300">prouvee</span>.
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/68">
               5 agents qui travaillent ensemble sur chaque communication externe. Chaque sortie
@@ -201,7 +201,7 @@ export default function LuxeCommunicationPage() {
             Les 5 agents
           </p>
           <h2 className="mt-3 font-display text-4xl font-bold tracking-tight">
-            Chaque agent est une surface operable, avec son own runtime.
+            Chaque agent est une surface opérable, avec son own runtime.
           </h2>
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -227,7 +227,7 @@ export default function LuxeCommunicationPage() {
                       {hasLiveDemo ? (
                         <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-200">
                           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
-                          Demo live
+                          Démo live
                         </span>
                       ) : null}
                     </div>
@@ -259,7 +259,7 @@ export default function LuxeCommunicationPage() {
               <div>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-200">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
-                  4 demos live disponibles
+                  4 démos live disponibles
                 </span>
                 <h3 className="mt-4 font-display text-xl font-bold text-white">
                   Voice Scorer · Claim Checker · Heritage Quote · Press Angle
@@ -311,7 +311,7 @@ export default function LuxeCommunicationPage() {
               Ce que les agents lisent reellement — sources workbook visibles.
             </h2>
             <p className="mt-3 max-w-3xl text-white/60">
-              Toutes les donnees affichees ci-dessous sont extraites en SSR des 7 workbooks runtime
+              Toutes les données affichees ci-dessous sont extraites en SSR des 7 workbooks runtime
               de la branche (Foundations + Master + 5 agents), synchronises via
               <code className="mx-1 rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs">scripts/sync-luxe-comms.ts</code>.
               Pas de stub, pas de placeholder.
@@ -337,13 +337,13 @@ export default function LuxeCommunicationPage() {
           <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-200">
-                Prochaine etape
+                Prochaine étape
               </p>
               <h2 className="mt-3 font-display text-4xl font-bold tracking-tight md:text-5xl">
                 Audit gratuit de votre comms — sous 15 jours.
               </h2>
               <p className="mt-4 max-w-2xl text-lg text-white/70">
-                On branche vos 3 derniers communiques sur AG-001 et AG-005. Vous recevez un rapport
+                On branche vos 3 derniers communiqués sur AG-001 et AG-005. Vous recevez un rapport
                 avec score brand, claims a risque, suggestions de rewrite. Sans engagement.
               </p>
               <div className="mt-6 flex flex-wrap gap-2 text-xs text-white/55">

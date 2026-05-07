@@ -1,6 +1,6 @@
 /**
  * AgentCard — card individuelle d'un agent dans le catalogue /agents.
- * Premium polish : hover lift, badges status + risk + branch, lien direct.
+ * Premium polish : hover lift, badges status + risk + branche, lien direct.
  */
 
 import Link from "next/link";
@@ -45,7 +45,7 @@ const RISK_LABELS: Record<string, string> = {
 };
 
 export interface AgentMeta {
-  branch: string;
+  branche: string;
   sectors: string[];
   aiActRisk: "interdit" | "haut-risque" | "limite" | "minimal";
   deployTime: string;
@@ -87,7 +87,7 @@ export function AgentCard({ agent }: { agent: EnrichedAgent }) {
           {agent.label}
         </h3>
         <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-violet-200/80">
-          {BRANCH_LABELS[agent.meta.branch] || agent.meta.branch}
+          {BRANCH_LABELS[agent.meta.branche] || agent.meta.branche}
           {agent.meta.sectors.length > 0
             ? ` · ${agent.meta.sectors.length} secteur${
                 agent.meta.sectors.length > 1 ? "s" : ""

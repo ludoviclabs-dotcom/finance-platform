@@ -209,10 +209,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // ── Branches solutions ───────────────────────────────────
-  for (const branch of BRANCH_ENTRIES) {
-    if (branch.status === "planned") continue;
+  for (const branche of BRANCH_ENTRIES) {
+    if (branche.status === "planned") continue;
     entries.push({
-      url: `${baseUrl}${branch.href}`,
+      url: `${baseUrl}${branche.href}`,
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.6,

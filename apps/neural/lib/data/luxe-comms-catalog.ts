@@ -463,7 +463,7 @@ export const LUXE_COMMS_AGENTS = [
       "Verifie chaque affirmation RSE contre preuves reelles et reglements (EU Green Claims, Loi Climat FR, CMA UK, FTC US).",
     primaryGate: "CLAIM" as const,
     inputMain: "Claim + wording type + juridiction cible",
-    outputMain: "Decision PASS/BLOCK + risk level + evidence",
+    outputMain: "Décision PASS/BLOCK + risk level + evidence",
     demoEndpoint: "/api/demo/claim-check",
     iconName: "Leaf",
   },
@@ -495,7 +495,7 @@ export type LuxeCommRunTrace = {
   hardFailCount: number | null;
   /** Risk level si AG-005. */
   riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | null;
-  /** Decision finale : APPROVE / REWORK / REJECT / PASS / BLOCK / PASS_WITH_REVIEW. */
+  /** Décision finale : APPROVE / REWORK / REJECT / PASS / BLOCK / PASS_WITH_REVIEW. */
   decision: string;
   /** Langue du contenu. */
   lang: BrandLang;

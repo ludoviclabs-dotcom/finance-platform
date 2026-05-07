@@ -49,8 +49,8 @@ export default function AgentSafetyPage() {
                 Pourquoi un agent NEURAL ne peut pas tout supprimer
               </h1>
               <p className="mt-5 max-w-3xl text-lg leading-relaxed text-white/70">
-                NEURAL ne demande pas aux clients de faire confiance au modele.
-                L&apos;agent propose, la gateway controle, les gates serveur gardent le
+                NEURAL ne demande pas aux clients de faire confiance au modèle.
+                L&apos;agent propose, la gateway contrôle, les gates serveur gardent le
                 dernier mot, et l&apos;humain valide quand l&apos;impact l&apos;exige.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -72,12 +72,12 @@ export default function AgentSafetyPage() {
             </div>
 
             <div className="min-w-0 rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
-              <p className="font-mono text-xs text-white/42">Position de securite</p>
+              <p className="font-mono text-xs text-white/42">Position de sécurité</p>
               <div className="mt-5 space-y-4">
                 {[
                   "Pas d'acces direct, large et non supervise aux environnements critiques.",
                   "Pas d'action irreversible ou reglementee sans validation humaine.",
-                  "Pas de decision finale du LLM quand une gate deterministe contredit la sortie.",
+                  "Pas de décision finale du LLM quand une gate déterministe contredit la sortie.",
                 ].map((item) => (
                   <div key={item} className="flex gap-3">
                     <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-400/25 bg-emerald-400/[0.08]">
@@ -95,13 +95,13 @@ export default function AgentSafetyPage() {
       <section className="border-b border-white/8 px-6 py-16 md:px-12">
         <div className="mx-auto max-w-[1320px]">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold text-violet-200">Flowchart securite</p>
+            <p className="text-sm font-semibold text-violet-200">Flowchart sécurité</p>
             <h2 className="mt-3 font-display text-3xl font-bold">
-              La chaine de controle avant toute sortie agent
+              La chaîne de contrôle avant toute sortie agent
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-white/65">
-              Le LLM est une etape possible, pas le centre de gravite. Les controles
-              sont appliques avant, apres, et au moment de livrer.
+              Le LLM est une étape possible, pas le centre de gravité. Les contrôles
+              sont appliqués avant, après, et au moment de livrer.
             </p>
           </div>
           <div className="mt-8">
@@ -118,11 +118,11 @@ export default function AgentSafetyPage() {
                 Les trois regimes d&apos;usage
               </p>
               <h2 className="mt-3 font-display text-3xl font-bold">
-                Assiste, automatise, agentique : ne jamais les confondre
+                Assiste, automatisé, agentique : ne jamais les confondre
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-white/65">
-                La posture NEURAL consiste a rendre le changement de classe de
-                risque visible et documente au lieu de le masquer dans une interface.
+                La posture NEURAL consiste à rendre le changement de classe de
+                risque visible et documenté au lieu de le masquer dans une interface.
               </p>
             </div>
             <div className="overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.04]">
@@ -163,7 +163,7 @@ export default function AgentSafetyPage() {
               ALLOW, REVIEW ou BLOCK
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-white/65">
-              Le verdict final est une decision de politique applicative, pas une
+              Le verdict final est une décision de politique applicative, pas une
               impression du modele.
             </p>
           </div>
@@ -186,10 +186,10 @@ export default function AgentSafetyPage() {
               Workflows d&apos;incident evite
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold">
-              Quatre cas qui montrent le controle en action
+              Quatre cas qui montrent le contrôle en action
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-white/65">
-              Ces scenarios sont volontairement concrets : autopublication,
+              Ces scénarios sont volontairement concrets : autopublication,
               source manquante, claim ESG risque et export massif.
             </p>
           </div>
@@ -206,12 +206,12 @@ export default function AgentSafetyPage() {
               Audit trail timeline
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold">
-              Reconstruire une decision apres coup
+              Reconstruire une décision après coup
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-white/65">
               Le bon niveau de confiance n&apos;est pas une promesse abstraite :
-              c&apos;est la capacite a relire ce qui s&apos;est passe, qui a valide,
-              quelle gate a bloque et quel pack a ete livre.
+              c&apos;est la capacité a relire ce qui s&apos;est pass?, qui a validé,
+              quelle gate a bloqué et quel pack a été livré.
             </p>
             <Link
               href="/docs/audit-trail"
@@ -232,7 +232,7 @@ export default function AgentSafetyPage() {
               Model Cards prioritaires
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold">
-              Cinq agents avec perimetre, outils et limites visibles
+              Cinq agents avec périmètre, outils et limites visibles
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-white/65">
               Ces cartes rendent explicite ce qui est autorise, interdit et soumis
@@ -257,7 +257,7 @@ export default function AgentSafetyPage() {
               Professionnel ne veut pas dire magique
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-white/65">
-              NEURAL montre ce qui est deja prouve et ce qui reste en trajectoire.
+              NEURAL montre ce qui est déjà prouve et ce qui reste en trajectoire.
               C&apos;est plus solide qu&apos;un discours de certification premature.
             </p>
           </div>
@@ -266,12 +266,12 @@ export default function AgentSafetyPage() {
               {
                 icon: LockKeyhole,
                 title: "Pas de zero risque",
-                body: "Les controles reduisent le blast radius. Ils ne promettent pas l'infaillibilite.",
+                body: "Les contrôles reduisent le blast radius. Ils ne promettent pas l'infaillibilite.",
               },
               {
                 icon: Network,
                 title: "Gateway MVP",
-                body: "La page Operator Gateway est encore en partie demo et roadmap.",
+                body: "La page Operator Gateway est encore en partie démo et roadmap.",
               },
               {
                 icon: FileText,
@@ -305,7 +305,7 @@ export default function AgentSafetyPage() {
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-center">
               <div>
                 <h2 className="font-display text-3xl font-bold">
-                  Prouver la securite avant de vendre l&apos;autonomie
+                  Prouver la sécurité avant de vendre l&apos;autonomie
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/68">
                   Le bon pilote NEURAL montre une sortie utile, une action bloquee,
@@ -316,7 +316,7 @@ export default function AgentSafetyPage() {
                     href="/contact?subject=agent-safety"
                     className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0A1628] transition-colors hover:bg-violet-100"
                   >
-                    Demander une demo securite
+                    Demander une démo sécurité
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                   <Link

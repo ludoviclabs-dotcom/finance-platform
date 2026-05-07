@@ -53,7 +53,7 @@ export default function TrustPage() {
             et plus credible, pas plus large qu&apos;il ne l&apos;est reellement.
           </p>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-4">
+          <div className="mt-10 grid gap-4 md:grid-cols-5">
             <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Agents live</p>
               <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.liveAgents}</p>
@@ -69,8 +69,12 @@ export default function TrustPage() {
               <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.runtimeWorkbooks}</p>
             </div>
             <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Capacite framework</p>
-              <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.frameworkAgents}</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Workbooks audites</p>
+              <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.externalNeuralWorkbooks}</p>
+            </div>
+            <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Capacite cible</p>
+              <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.frameworkTargetAgents}</p>
             </div>
           </div>
         </div>

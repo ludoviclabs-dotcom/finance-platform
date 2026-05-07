@@ -62,7 +62,7 @@ export function BranchesGrid() {
                   <div className="mt-3 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-neural-green" />
                     <span className="text-[10px] font-medium text-[var(--color-foreground-subtle)]">
-                      {branch.agents} agents actifs
+                      {branch.agents} agents cibles
                     </span>
                   </div>
                 </motion.div>

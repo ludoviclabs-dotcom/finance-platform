@@ -2,6 +2,7 @@ import "./homepage.css";
 
 import { HeroUnified }          from "@/components/homepage/hero-unified";
 import { SectionStats }         from "@/components/homepage/section-stats";
+import { SectionProofConsole }  from "@/components/homepage/section-proof-console";
 import { SectionAgentDemo }     from "@/components/homepage/section-agent-demo";
 import { SectionProblem }       from "@/components/homepage/section-problem";
 import { SectionOrchestration } from "@/components/homepage/section-orchestration";
@@ -21,6 +22,7 @@ export default function HomePage() {
     <div>
       <HeroUnified />
       <SectionStats />
+      <SectionProofConsole />
       <SectionAgentDemo />
       <SectionProblem />
       <SectionOrchestration />

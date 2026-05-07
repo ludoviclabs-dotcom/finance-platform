@@ -162,7 +162,7 @@ export function AndroidSvg({ className = "" }: { className?: string }) {
         <rect x="228" y="522" width="28" height="10" rx="2" fill="#7C3AED" opacity="0.6" />
         <rect x="262" y="522" width="20" height="10" rx="2" fill="#10B981" opacity="0.6" />
         <rect x="288" y="522" width="44" height="10" rx="2" fill="#A78BFA" opacity="0.45" />
-        <text x="232" y="530" fontFamily="monospace" fontSize="6" fill="#ffffff" opacity="0.9">168</text>
+        <text x="232" y="530" fontFamily="monospace" fontSize="6" fill="#ffffff" opacity="0.9">27</text>
         <text x="266" y="530" fontFamily="monospace" fontSize="6" fill="#ffffff" opacity="0.9">OK</text>
       </g>
 

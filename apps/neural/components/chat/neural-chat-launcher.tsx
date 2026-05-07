@@ -147,11 +147,10 @@ export function NeuralChatLauncher() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Ouvrir le chat NEURAL"
-          className="fixed bottom-6 right-6 z-[60] inline-flex items-center gap-2 rounded-full bg-neural-violet px-5 py-3 text-sm font-semibold text-white shadow-2xl shadow-neural-violet/40 transition-all hover:scale-105 hover:bg-neural-violet-dark"
+          title="Ouvrir le chat NEURAL"
+          className="fixed bottom-4 right-2 z-[60] inline-flex h-10 w-10 items-center justify-center rounded-full bg-neural-violet text-white shadow-2xl shadow-neural-violet/40 transition-all hover:scale-105 hover:bg-neural-violet-dark sm:right-3"
         >
           <MessageCircle className="h-4 w-4" />
-          <span className="hidden sm:inline">Discuter avec NEURAL</span>
-          <span className="sm:hidden">Chat</span>
         </button>
       ) : null}
 

@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+import { PUBLIC_METRICS } from "@/lib/public-catalog";
 import { AndroidVisual } from "./shared/android-visual";
 
 export function HeroUnified() {
@@ -7,43 +9,49 @@ export function HeroUnified() {
       <div className="nhp-hero-grain" />
       <div className="nhp-hero-inner nhp-container">
         <div className="nhp-hero-eyebrow">
-          <span className="nhp-dot nhp-dot-green" /> Claude Sonnet · Partenaire Anthropic
+          <span className="nhp-dot nhp-dot-green" /> Workbooks Excel · agents gouvernes
         </div>
 
         <div className="nhp-hero-grid">
           <div className="nhp-hero-left">
             <h1 className="nhp-hero-title">
               <span>L&apos;intelligence</span>
-              <span>augmentée,</span>
-              <span>déployée.</span>
+              <span>augmentee,</span>
+              <span>prouvee.</span>
             </h1>
             <p className="nhp-hero-lead">
-              168 agents Claude spécialisés. 7 branches métier. 6 secteurs.
-              ROI contractualisé avant toute ligne de code.
+              {PUBLIC_METRICS.liveAgents} agents avec donnees Excel,{" "}
+              {PUBLIC_METRICS.runtimeWorkbooks} workbooks embarques et{" "}
+              {PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentees.
+              Les 168 agents restent la capacite cible du framework, pas le perimetre live.
             </p>
             <div className="nhp-hero-ctas">
-              <Link href="/contact" className="nhp-btn nhp-btn-primary nhp-btn-xl">Réserver un audit →</Link>
-              <Link href="/marketplace" className="nhp-btn nhp-btn-link">Voir la démo ▸</Link>
+              <Link href="/proof" className="nhp-btn nhp-btn-primary nhp-btn-xl">
+                Voir la preuve →
+              </Link>
+              <Link href="/secteurs/luxe/finance" className="nhp-btn nhp-btn-link">
+                Ouvrir le noyau live ▸
+              </Link>
             </div>
             <div className="nhp-hero-foot">
-              <div className="nhp-haf-l">Déployé chez</div>
-              <div className="nhp-haf-logos">LVMH · Air France · AXA · Bouygues · Kering · BNP</div>
+              <div className="nhp-haf-l">Etat du catalogue</div>
+              <div className="nhp-haf-logos">Luxe Finance + Luxe Communication en noyau prouve</div>
             </div>
           </div>
 
           <div className="nhp-hero-right">
             <AndroidVisual size={460}>
               <div className="nhp-badge nhp-badge-tl">
-                <div className="nhp-hab-k">168</div>
-                <div className="nhp-hab-l">agents actifs</div>
+                <div className="nhp-hab-k">{PUBLIC_METRICS.liveAgents}</div>
+                <div className="nhp-hab-l">agents avec donnees</div>
               </div>
               <div className="nhp-badge nhp-badge-br">
-                <div className="nhp-hab-k">+340<span>%</span></div>
-                <div className="nhp-hab-l">ROI an 1</div>
+                <div className="nhp-hab-k">{PUBLIC_METRICS.runtimeWorkbooks}</div>
+                <div className="nhp-hab-l">workbooks runtime</div>
               </div>
               <div className="nhp-badge nhp-badge-bl">
                 <div className="nhp-hab-pulse"><span/><span/><span/></div>
-                <div className="nhp-hab-l">claude-sonnet · en ligne</div>
+                <div className="nhp-hab-l">{PUBLIC_METRICS.liveCells}/42 cellules alimentees</div>
               </div>
             </AndroidVisual>
           </div>

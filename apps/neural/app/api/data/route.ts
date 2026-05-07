@@ -11,6 +11,7 @@ import { parseRoyalty } from '@/lib/neural-hub/parsers/parse-royalty';
 import { parseArtisanTalent } from '@/lib/neural-hub/parsers/parse-artisan-talent';
 import { parseCompBenchmark } from '@/lib/neural-hub/parsers/parse-comp-benchmark';
 import { parseOnboarding } from '@/lib/neural-hub/parsers/parse-onboarding';
+import { parseProofWorkbookPacks } from '@/lib/neural-hub/parsers/parse-workbook-pack';
 
 // Revalidate every hour — Excel files are static between deploys.
 // Next.js also invalidates the cache automatically on each new deployment.
@@ -25,6 +26,7 @@ export async function GET() {
     const artisanTalent = parseArtisanTalent();
     const compBenchmark = parseCompBenchmark();
     const onboarding = parseOnboarding();
+    const proofPacks = parseProofWorkbookPacks();
 
     return NextResponse.json({
       // Finance branch
@@ -36,6 +38,8 @@ export async function GET() {
       artisanTalent,
       compBenchmark,
       onboarding,
+      // Proof packs: metadata parsers for workbook families already embedded in apps/neural/data.
+      proofPacks,
       parsedAt: new Date().toISOString(),
     });
   } catch (error) {

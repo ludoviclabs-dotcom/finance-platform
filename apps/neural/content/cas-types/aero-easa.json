@@ -26,7 +26,7 @@
       {
         "id": "cadrage",
         "label": "Phase 1 — Cadrage outcome (semaines 1-2)",
-        "description": "Identification des 4 chantiers Marketing aéro prioritaires : technique B2B, défense (ITAR/EAR), événements salons, sustainability anti-greenwashing. Mapping des 44 règles réglementaires applicables. Définition des KPI cibles.",
+        "description": "Identification des 4 chantiers Marketing aéro prioritaires : technique B2B, défense (ITAR/EAR), événements salons, sustainability anti-greenwashing. Mapping des 44 règles réglementaires applicables. Définition des KPI ciblés.",
         "deliverable": "Document de cadrage · 44 règles documentées · agent map"
       },
       {
@@ -57,7 +57,7 @@
     { "slug": "green-claim-checker", "label": "GreenClaimChecker", "role": "Validation claims sustainability transverses" }
   ],
   "metrics": {
-    "title": "Métriques cibles (estimés méthodologiques)",
+    "title": "Métriques ciblés (estimés méthodologiques)",
     "items": [
       { "label": "Délai validation white paper technique B2B", "before": "6-8 semaines avec va-et-vient", "after": "2-3 semaines tracé", "delta": "−65%" },
       { "label": "Filtrage automatique ITAR/EAR/sanctions", "before": "0% (revue manuelle Compliance)", "after": "100% pré-screening", "delta": "complet" },

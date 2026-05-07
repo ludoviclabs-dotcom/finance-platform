@@ -34,9 +34,9 @@ const luxeCatalog = luxeEntry;
 const financeCatalog = financeEntry;
 const rhCatalog = rhEntry;
 
-const branchCards = [
+const brancheCards = [
   {
-    title: "Finance & comptabilite IFRS",
+    title: "Finance & comptabilité IFRS",
     href: financeCatalog.href,
     entry: financeCatalog,
     accent: "from-violet-500/20 via-violet-500/5 to-transparent",
@@ -50,16 +50,16 @@ const branchCards = [
     accent: "from-emerald-500/20 via-emerald-500/5 to-transparent",
     badgeClass: "text-emerald-200",
     highlight:
-      "Workbooks RH presents, parcours de demonstration et surfaces agent encore en exposition.",
+      "Workbooks RH présents, parcours de démonstration et surfaces agent encore en exposition.",
   },
 ];
 
 const topMetrics = [
-  { label: "Agents avec donnees reelles", value: String(PUBLIC_METRICS.liveAgents), icon: Layers },
+  { label: "Agents avec données réelles", value: String(PUBLIC_METRICS.liveAgents), icon: Layers },
   { label: "Workbooks runtime", value: String(PUBLIC_METRICS.runtimeWorkbooks), icon: Database },
-  { label: "Branche live / demo", value: "1 / 1", icon: ShieldCheck },
+  { label: "Branche live / démo", value: "1 / 1", icon: ShieldCheck },
   {
-    label: "Cellules alimentees",
+    label: "Cellules alimentées",
     value: `${PUBLIC_METRICS.liveCells}/${PUBLIC_METRICS.frameworkCells}`,
     icon: Sparkles,
   },
@@ -88,20 +88,20 @@ export default function LuxeHubPage() {
                 <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-200">
                   Secteur Luxe
                 </p>
-                <p className="text-sm text-white/55">Framework multi-branches avec sous-ensemble deja live</p>
+                <p className="text-sm text-white/55">Framework multi-branches avec sous-ensemble déjà live</p>
               </div>
             </div>
 
             <StatusBadge status={luxeCatalog.status} proofLevel={luxeCatalog.proofLevel} />
 
             <h1 className="mt-6 max-w-4xl font-display text-5xl font-extrabold tracking-[-0.05em] text-white md:text-6xl lg:text-7xl">
-              Le noyau public le plus credible de NEURAL.
+              Le noyau public le plus crédible de NEURAL.
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/68 md:text-xl">
-              Luxe est aujourd&apos;hui la verticale la plus prouvee publiquement. Elle montre un
-              framework multi-secteurs, un Data Hub branche au runtime actuel, une branche Finance
-              live, une branche RH en demonstration et des livrables deja visibles.
+              Luxe est aujourd&apos;hui la verticale la plus prouvée publiquement. Elle montre un
+              framework multi-secteurs, un Data Hub branché au runtime actuel, une branche Finance
+              live, une branche RH en démonstration et des livrables déjà visibles.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -152,61 +152,61 @@ export default function LuxeHubPage() {
               Branches visibles
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
-              Meme langage produit, deux niveaux de maturite.
+              Même langage produit, deux niveaux de maturité.
             </h2>
             <p className="mt-3 text-base leading-relaxed text-white/62">
               Finance et RH restent visibles cote a cote, mais avec un balisage clair : ce qui
-              est live, ce qui est en demonstration et ce qui reste a industrialiser.
+              est live, ce qui est en démonstration et ce qui reste a industrialiser.
             </p>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            {branchCards.map((branch, index) => (
+            {brancheCards.map((branche, index) => (
               <motion.div
-                key={branch.title}
+                key={branche.title}
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.08 * index }}
               >
                 <Link
-                  href={branch.href}
+                  href={branche.href}
                   className="group block rounded-[28px] border border-white/10 bg-white/[0.04] p-7 transition-colors hover:border-white/18 hover:bg-white/[0.06]"
                 >
-                  <div className={`absolute inset-x-0 top-0 h-32 rounded-t-[28px] bg-gradient-to-b ${branch.accent} opacity-70`} />
+                  <div className={`absolute inset-x-0 top-0 h-32 rounded-t-[28px] bg-gradient-to-b ${branche.accent} opacity-70`} />
                   <div className="relative">
-                    <StatusBadge status={branch.entry.status} proofLevel={branch.entry.proofLevel} />
+                    <StatusBadge status={branche.entry.status} proofLevel={branche.entry.proofLevel} />
                     <h3 className="mt-5 font-display text-2xl font-bold tracking-tight text-white">
-                      {branch.title}
+                      {branche.title}
                     </h3>
-                    <p className={`mt-2 text-sm font-medium ${branch.badgeClass}`}>
-                      {branch.entry.tagline}
+                    <p className={`mt-2 text-sm font-medium ${branche.badgeClass}`}>
+                      {branche.entry.tagline}
                     </p>
                     <p className="mt-4 text-sm leading-relaxed text-white/64">
-                      {branch.entry.description}
+                      {branche.entry.description}
                     </p>
 
                     <div className="mt-6 grid gap-3">
                       <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                         <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Statut</p>
-                        <p className="mt-2 text-sm text-white/72">{branch.highlight}</p>
+                        <p className="mt-2 text-sm text-white/72">{branche.highlight}</p>
                       </div>
                       <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                         <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">
-                          Donnees utilisees
+                          Données utilisees
                         </p>
-                        <p className="mt-2 text-sm text-white/72">{branch.entry.dataUsed}</p>
+                        <p className="mt-2 text-sm text-white/72">{branche.entry.dataUsed}</p>
                       </div>
                       <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                         <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">
-                          Livrable genere
+                          Livrable généré
                         </p>
-                        <p className="mt-2 text-sm text-white/72">{branch.entry.deliverable}</p>
+                        <p className="mt-2 text-sm text-white/72">{branche.entry.deliverable}</p>
                       </div>
                       <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                         <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">
-                          Ce qui est deja operationnel
+                          Ce qui est déjà opérationnel
                         </p>
-                        <p className="mt-2 text-sm text-white/72">{branch.entry.readyNow}</p>
+                        <p className="mt-2 text-sm text-white/72">{branche.entry.readyNow}</p>
                       </div>
                     </div>
 
@@ -231,7 +231,7 @@ export default function LuxeHubPage() {
             status={luxeCatalog.status}
             proofLevel={luxeCatalog.proofLevel}
           />
-          <ScopeCard title="Perimetre public Luxe" does={luxeCatalog.scopeNow} doesnt={luxeCatalog.notYet} />
+          <ScopeCard title="Périmètre public Luxe" does={luxeCatalog.scopeNow} doesnt={luxeCatalog.notYet} />
         </div>
       </section>
 
@@ -240,14 +240,14 @@ export default function LuxeHubPage() {
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-7">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-200">
-                Parcours de demo
+                Parcours de démo
               </p>
               <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white">
                 Accueil, branche, export, contact.
               </h2>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/62">
                 La verticale Luxe sert de parcours public complet : on voit le secteur, on
-                ouvre une branche, on observe un hub branche a des donnees reelles, puis on
+                ouvre une branche, on observe un hub branché à des données réelles, puis on
                 termine sur un export ou une prise de contact.
               </p>
 
@@ -255,13 +255,13 @@ export default function LuxeHubPage() {
                 <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                   <p className="text-sm font-semibold text-white">1. Data Hub</p>
                   <p className="mt-2 text-sm text-white/62">
-                    Workbooks embarques, API /api/data et preuves runtime.
+                    Workbooks embarqués, API /api/data et preuves runtime.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                  <p className="text-sm font-semibold text-white">2. Surface metier</p>
+                  <p className="text-sm font-semibold text-white">2. Surface métier</p>
                   <p className="mt-2 text-sm text-white/62">
-                    Branche Finance live, RH clairement balisee comme demo.
+                    Branche Finance live, RH clairement balisée comme démo.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
@@ -303,7 +303,7 @@ export default function LuxeHubPage() {
                   href="/contact"
                   className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-4 text-sm text-white/76 transition-colors hover:bg-white/[0.06]"
                 >
-                  Demander une demonstration
+                  Demander une démonstration
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>

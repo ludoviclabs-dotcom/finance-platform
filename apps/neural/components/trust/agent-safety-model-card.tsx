@@ -26,7 +26,7 @@ export function AgentSafetyModelCard({
                 Mini Model Card · {profile.agentId}
               </p>
               <h2 className="mt-2 font-display text-3xl font-bold text-white">
-                {profile.agentName} · perimetre de securite
+                {profile.agentName} · périmètre de sécurité
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/65">
                 {profile.dataScope}
@@ -43,7 +43,7 @@ export function AgentSafetyModelCard({
             <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-emerald-200">
                 <ShieldCheck className="h-4 w-4" />
-                Outils autorises
+                Outils autorisés
               </div>
               <ul className="mt-3 space-y-2">
                 {profile.allowedTools.map((item) => (
@@ -83,7 +83,7 @@ export function AgentSafetyModelCard({
 
           <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="rounded-2xl border border-white/10 bg-black/10 p-4">
-              <p className="text-xs text-white/42">Gates deterministes</p>
+              <p className="text-xs text-white/42">Gates déterministes</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {profile.deterministicGates.map((gate) => (
                   <span
@@ -121,7 +121,7 @@ export function AgentSafetyModelCard({
               href="/trust/agent-safety"
               className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/[0.09]"
             >
-              Voir la preuve securite agents
+              Voir la preuve sécurité agents
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

@@ -17,11 +17,11 @@ export default function ResourcesPage() {
             Ressources
           </span>
           <h1 className="mt-6 font-display text-5xl font-bold tracking-tight md:text-6xl">
-            Publications live, outils en preparation
+            Publications live, outils en préparation
           </h1>
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/68">
             Le hub ressources conserve une navigation propre tout en rendant explicite ce qui est
-            deja disponible publiquement.
+            déjà disponible publiquement.
           </p>
 
           <div className="mt-10 grid gap-4 md:grid-cols-2">
@@ -32,7 +32,7 @@ export default function ResourcesPage() {
               <StatusBadge status="live" />
               <h2 className="mt-4 font-display text-3xl font-bold tracking-tight">Publications</h2>
               <p className="mt-3 text-sm leading-relaxed text-white/68">
-                Hub editorial deja en ligne avec analyses, benchmarks et pages article.
+                Hub éditorial déjà en ligne avec analyses, benchmarks et pages article.
               </p>
             </Link>
 

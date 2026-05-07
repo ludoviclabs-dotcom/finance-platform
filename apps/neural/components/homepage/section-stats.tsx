@@ -6,25 +6,25 @@ import { CountUp } from "./shared/count-up";
 const stats = [
   {
     value: PUBLIC_METRICS.liveAgents,
-    label: "Agents avec donnees Excel",
+    label: "Agents avec données Excel",
     suffix: "",
     decimals: 0,
   },
   {
     value: PUBLIC_METRICS.runtimeWorkbooks,
-    label: "Workbooks embarques",
+    label: "Workbooks embarqués",
     suffix: "",
     decimals: 0,
   },
   {
     value: PUBLIC_METRICS.externalNeuralWorkbooks,
-    label: "Workbooks NEURAL audites",
+    label: "Workbooks NEURAL audités",
     suffix: "",
     decimals: 0,
   },
   {
     value: PUBLIC_METRICS.liveCells,
-    label: `Cellules alimentees / ${PUBLIC_METRICS.frameworkCells}`,
+    label: `Cellules alimentées / ${PUBLIC_METRICS.frameworkCells}`,
     suffix: "",
     decimals: 0,
   },

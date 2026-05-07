@@ -188,7 +188,7 @@ const NODE_DETAILS: Record<string, NodeDetail> = {
     description:
       "Pack de 4 fichiers Excel interconnectés : Consolidation, Inventaire, MultiCurrency, Royalties. Les taux de change et les marges se propagent automatiquement entre les fichiers.",
     features: [
-      'Consolidation : paramètres, goodwill, bilan, P&L',
+      'Consolidation : paramètrès, goodwill, bilan, P&L',
       'Inventaire : stocks par catégorie, test NRV',
       'MultiCurrency : taux mensuels, écarts de conversion',
       'Export ZIP avec README de documentation',

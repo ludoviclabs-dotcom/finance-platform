@@ -3,7 +3,7 @@
 /**
  * NEURAL — DecisionNode (Sprint 4)
  *
- * Custom React Flow node for a single AgentDecision step.
+ * Custom React Flow node for a single AgentDécision step.
  * Renders: kind badge, duration, truncated input/output, sources list.
  *
  * Source icons (Lucide React):

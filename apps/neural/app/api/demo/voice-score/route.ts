@@ -50,12 +50,12 @@ function validateBody(raw: unknown): { ok: true; body: ScoreBody } | { ok: false
 
   const lang = r.lang;
   if (lang !== undefined && (typeof lang !== "string" || !VALID_LANGS.has(lang))) {
-    return { ok: false, error: "`lang` doit etre 'FR' ou 'EN'." };
+    return { ok: false, error: "`lang` doit être 'FR' ou 'EN'." };
   }
 
   const context = r.context;
   if (context !== undefined && (typeof context !== "string" || context.length > 120)) {
-    return { ok: false, error: "`context` doit etre une string <= 120 caracteres." };
+    return { ok: false, error: "`context` doit être une string <= 120 caracteres." };
   }
 
   return {

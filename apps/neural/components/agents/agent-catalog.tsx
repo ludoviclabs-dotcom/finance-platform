@@ -39,26 +39,26 @@ const RISK_OPTIONS = [
 ];
 
 export function AgentCatalog({ agents }: AgentCatalogProps) {
-  const [branch, setBranch] = useState<string | null>(null);
+  const [branche, setBranch] = useState<string | null>(null);
   const [sector, setSector] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [risk, setRisk] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return agents.filter((a) => {
-      if (branch && a.meta.branch !== branch) return false;
+      if (branche && a.meta.branche !== branche) return false;
       if (sector && !a.meta.sectors.includes(sector)) return false;
       if (status && a.status !== status) return false;
       if (risk && a.meta.aiActRisk !== risk) return false;
       return true;
     });
-  }, [agents, branch, sector, status, risk]);
+  }, [agents, branche, sector, status, risk]);
 
   const totalLive = agents.filter((a) => a.status === "live").length;
   const totalDemo = agents.filter((a) => a.status === "demo").length;
   const totalPlanned = agents.filter((a) => a.status === "planned").length;
 
-  const hasActiveFilter = Boolean(branch || sector || status || risk);
+  const hasActiveFilter = Boolean(branche || sector || status || risk);
 
   return (
     <div>
@@ -97,7 +97,7 @@ export function AgentCatalog({ agents }: AgentCatalogProps) {
         <FilterRow
           label="Branche"
           options={BRANCH_OPTIONS}
-          value={branch}
+          value={branche}
           onChange={setBranch}
         />
         <FilterRow

@@ -29,11 +29,11 @@ import {
 export const metadata: Metadata = {
   title: "Banque / Marketing - AMF, ACPR, MiFID, MiCA et segmentation | NEURAL",
   description:
-    "Branche Banque / Marketing : 4 agents portfolio, 2 services reserves, 10 gates deterministes et 6 workbooks Excel generes. Demo scenario-id only, donnees synthetiques et validation humaine.",
+    "Branche Banque / Marketing : 4 agents portfolio, 2 services réservés, 10 gates déterministes et 6 workbooks Excel générés. Démo scénario-id only, données synthétiques et validation humaine.",
   openGraph: {
     title: "NEURAL - Banque / Marketing",
     description:
-      "BankMarketingComplianceGuard, FinLiteracyContent, SegmentedBankMarketing, MiFIDProductMarketingGuard. Workbooks Excel et scenarios PASS / REVIEW / BLOCK.",
+      "BankMarketingComplianceGuard, FinLiteracyContent, SegmentedBankMarketing, MiFIDProductMarketingGuard. Workbooks Excel et scénarios PASS / REVIEW / BLOCK.",
   },
 };
 
@@ -63,7 +63,7 @@ export default function BankMarketingPage() {
             <div className="min-w-0 max-w-[320px] sm:max-w-none">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-100">
-                  Demo Excel-first
+                  Démo Excel-first
                 </span>
                 <span className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1 font-mono text-[11px] text-white/62">
                   veille {BANK_MKT_SUMMARY.sourceDate}
@@ -76,10 +76,10 @@ export default function BankMarketingPage() {
                 </span>
               </h1>
               <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/68">
-                Une branche dediee aux campagnes bancaires : publicites AMF/ACPR,
-                education financiere, segmentation CRM, MiFID/PRIIPs et MiCA. La
-                demo reste volontairement scenario-id only pour eviter tout conseil
-                personnalise ou hallucination.
+                Une branche dédiée aux campagnes bancaires : publicites AMF/ACPR,
+                éducation financière, segmentation CRM, MiFID/PRIIPs et MiCA. La
+                démo reste volontairement scénario-id only pour éviter tout conseil
+                personnalisé ou hallucination.
               </p>
               <div className="mt-8 flex max-w-[320px] min-w-0 flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap">
                 <a
@@ -94,7 +94,7 @@ export default function BankMarketingPage() {
                   className="inline-flex w-full max-w-full items-center justify-center gap-2 rounded-xl border border-white/[0.18] bg-white/[0.04] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/[0.08] sm:w-auto"
                 >
                   <FileSpreadsheet className="h-4 w-4" />
-                  6 workbooks generes
+                  6 workbooks générés
                 </a>
               </div>
             </div>
@@ -103,9 +103,9 @@ export default function BankMarketingPage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {[
                   { label: "agents", value: BANK_MKT_SUMMARY.agents },
-                  { label: "services reserves", value: BANK_MKT_SUMMARY.reservedServices },
+                  { label: "services réservés", value: BANK_MKT_SUMMARY.reservedServices },
                   { label: "gates MVP", value: BANK_MKT_SUMMARY.gates },
-                  { label: "scenarios", value: BANK_MKT_SUMMARY.scenarios },
+                  { label: "scénarios", value: BANK_MKT_SUMMARY.scenarios },
                 ].map((stat) => (
                   <div key={stat.label} className="rounded-2xl border border-white/10 bg-[#0d1c2b] p-4">
                     <p className="font-display text-4xl font-bold tracking-tight text-white">{stat.value}</p>
@@ -119,7 +119,7 @@ export default function BankMarketingPage() {
                   <p className="text-sm font-semibold">Guardrail central</p>
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-amber-100/70">
-                  Aucun contenu ne devient conseil financier personnalise. Les
+                  Aucun contenu ne devient conseil financier personnalisé. Les
                   gates du workbook priment, et la validation humaine reste obligatoire.
                 </p>
               </div>
@@ -129,7 +129,7 @@ export default function BankMarketingPage() {
           <div className="mt-12 grid max-w-[320px] gap-3 sm:max-w-none md:grid-cols-4">
             {[
               { label: "Gates bloquantes", value: blockingGates, Icon: ShieldCheck },
-              { label: "Sources reglementaires", value: BANK_MKT_SOURCES.length, Icon: Database },
+              { label: "Sources réglementaires", value: BANK_MKT_SOURCES.length, Icon: Database },
               { label: "Workbooks", value: BANK_MKT_WORKBOOKS.length, Icon: FileSpreadsheet },
               { label: "Services transverses", value: BANK_MKT_SERVICES.length, Icon: Network },
             ].map((item) => (
@@ -146,9 +146,9 @@ export default function BankMarketingPage() {
       <section className="border-b border-white/[0.08] px-6 py-14 md:px-12">
         <div className="mx-auto max-w-[1320px]" style={{ width: "calc(100vw - 72px)" }}>
           <SectionHeader
-            eyebrow="Cadrage metier"
+            eyebrow="Cadrage métier"
             title="4 problemes marketing bancaires, 4 agents controlables."
-            lead="La branche separe clairement communication corporate et marketing client. Elle garde les contraintes AMF/ACPR, RGPD, AI Act, MiFID, PRIIPs et MiCA visibles des le workbook."
+            lead="La branche sépare clairement communication corporate et marketing client. Elle garde les contraintes AMF/ACPR, RGPD, AI Act, MiFID, PRIIPs et MiCA visibles des le workbook."
           />
           <div className="mt-8 overflow-x-auto rounded-[24px] border border-white/10">
             <table className="w-full min-w-[760px] text-left text-sm">
@@ -180,9 +180,9 @@ export default function BankMarketingPage() {
       <section id="console" className="border-b border-white/[0.08] px-6 py-14 md:px-12">
         <div className="mx-auto max-w-[1320px]" style={{ width: "calc(100vw - 72px)" }}>
           <SectionHeader
-            eyebrow="Demo locale"
-            title="Une console scenario-id, pas un generateur libre."
-            lead="Chaque scenario vient du pack Excel audite. Le verdict est previsible, explicable et defendable : l'interface montre le produit sans inventer de conseil financier."
+            eyebrow="Démo locale"
+            title="Une console scénario-id, pas un generateur libre."
+            lead="Chaque scénario vient du pack Excel audite. Le verdict est previsible, explicable et defendable : l'interface montre le produit sans inventer de conseil financier."
           />
           <div className="mt-8">
             <BankMarketingConsole />
@@ -195,7 +195,7 @@ export default function BankMarketingPage() {
           <SectionHeader
             eyebrow="Agents"
             title="Un workbook, une responsabilite, un owner."
-            lead="Les quatre agents sont des surfaces portfolio : donnees synthetiques, gates explicites et revue humaine. Les services AG-BM005 et AG-BM006 restent reserves."
+            lead="Les quatre agents sont des surfaces portfolio : données synthétiques, gates explicites et revue humaine. Les services AG-BM005 et AG-BM006 restent réservés."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {BANK_MKT_AGENTS.map((agent) => {
@@ -235,7 +235,7 @@ export default function BankMarketingPage() {
             <SectionHeader
               eyebrow="Gates"
               title="La couche anti-hallucination avant toute sortie."
-              lead="La page expose les memes gates que les workbooks : si une source, un chiffre, un consentement ou un target market manque, le verdict bloque."
+              lead="La page expose les mêmes gates que les workbooks : si une source, un chiffre, un consentement ou un target market manque, le verdict bloque."
             />
             <div className="mt-6 space-y-2">
               {BANK_MKT_GATES.map((gate) => (
@@ -260,8 +260,8 @@ export default function BankMarketingPage() {
           <div>
             <SectionHeader
               eyebrow="Sourcebook"
-              title="Veille informationnelle integree au design."
-              lead="Les sources restent visibles et datees pour rendre le produit defendable. Elles cadrent une demo, pas un avis juridique."
+              title="Veille informationnelle intégrée au design."
+              lead="Les sources restent visibles et datees pour rendre le produit defendable. Elles cadrent une démo, pas un avis juridique."
             />
             <div className="mt-6 overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.035]">
               {BANK_MKT_SOURCES.map((source) => (
@@ -292,12 +292,12 @@ export default function BankMarketingPage() {
                 Livrable actuel
               </p>
               <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
-                6 fichiers Excel prets pour presentation.
+                6 fichiers Excel prêts pour presentation.
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-white/62">
-                Les fichiers restent dans le dossier data dedie. Cette page est
-                l'increment web : elle expose le narratif, les gates et une surface
-                interactive sans pretendre a une integration production.
+                Les fichiers restent dans le dossier data dédié. Cette page est
+                l'increment web : elle exposé le narratif, les gates et une surface
+                interactive sans prétendre à une integration production.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 {BANK_MKT_SERVICES.map((service) => (
@@ -327,7 +327,7 @@ export default function BankMarketingPage() {
               href="/contact?subject=Banque%20Marketing"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[#07111c] transition-colors hover:bg-cyan-50"
             >
-              Presenter ce chantier
+              Présenter ce chantier
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link

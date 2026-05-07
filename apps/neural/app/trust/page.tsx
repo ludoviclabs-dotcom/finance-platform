@@ -48,9 +48,9 @@ export default function TrustPage() {
             Ce que NEURAL prouve publiquement
           </h1>
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/68">
-            Cette page relie le discours public a une seule source de verite : statuts, claims
-            autorises, niveau de preuve et limites connues. Elle sert a rendre le site plus lisible
-            et plus credible, pas plus large qu&apos;il ne l&apos;est reellement.
+            Cette page relie le discours public à une seule source de vérité : statuts, claims
+            autorisés, niveau de preuve et limites connues. Elle sert à rendre le site plus lisible
+            et plus crédible, pas plus large qu&apos;il ne l&apos;est reellement.
           </p>
 
           <div className="mt-10 grid gap-4 md:grid-cols-5">
@@ -59,7 +59,7 @@ export default function TrustPage() {
               <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.liveAgents}</p>
             </div>
             <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Cellules alimentees</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Cellules alimentées</p>
               <p className="mt-3 font-display text-4xl font-bold">
                 {PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells}
               </p>
@@ -69,11 +69,11 @@ export default function TrustPage() {
               <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.runtimeWorkbooks}</p>
             </div>
             <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Workbooks audites</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Workbooks audités</p>
               <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.externalNeuralWorkbooks}</p>
             </div>
             <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Capacite cible</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Capacité cible</p>
               <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.frameworkTargetAgents}</p>
             </div>
           </div>
@@ -161,8 +161,8 @@ export default function TrustPage() {
             <div>
               <h2 className="font-display text-3xl font-bold tracking-tight">Fondations IA</h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
-                Cette couche active l&apos;etape 1 en production et prepare deja les etapes 2 et
-                3 : routage unifie, fallback de modele et journalisation legere.
+                Cette couche active l&apos;étape 1 en production et préparé déjà les étapes 2 et
+                3 : routage unifié, fallback de modèle et journalisation légère.
               </p>
             </div>
             <Link href="/secteurs/luxe/finance" className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200">
@@ -188,17 +188,17 @@ export default function TrustPage() {
               </p>
             </div>
             <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Surface preparee</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Surface préparée</p>
               <p className="mt-3 font-display text-2xl font-bold">{aiRuntime.preparedSurface.label}</p>
               <p className="mt-2 text-sm leading-relaxed text-white/55">
-                Preparee pour l&apos;etape 2 et branchee au meme routeur.
+                Préparée pour l&apos;étape 2 et branchée au même routeur.
               </p>
             </div>
             <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Telemetry</p>
               <p className="mt-3 font-display text-2xl font-bold">{telemetry.trackedFields.length} champs</p>
               <p className="mt-2 text-sm leading-relaxed text-white/55">
-                Base legere preparee pour l&apos;etape 3 sans back-office lourd.
+                Base légère préparée pour l&apos;étape 3 sans back-office lourd.
               </p>
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function TrustPage() {
                         <p className="mt-1 text-sm leading-relaxed text-white/60">{surface.dataScope}</p>
                       </div>
                       <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                        {surface.stage === "live" ? "Live" : "Preparee"}
+                        {surface.stage === "live" ? "Live" : "Préparée"}
                       </span>
                     </div>
                     <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -224,7 +224,7 @@ export default function TrustPage() {
                         <p className="mt-2 text-sm text-white/70">{surface.primaryModel}</p>
                       </div>
                       <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3">
-                        <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Fallback prepare</p>
+                        <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Fallback préparé</p>
                         <p className="mt-2 text-sm text-white/70">{surface.fallbackModels.join(", ")}</p>
                       </div>
                     </div>
@@ -235,10 +235,10 @@ export default function TrustPage() {
             </div>
 
             <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-6">
-              <h3 className="font-display text-2xl font-bold">Journalisation preparee</h3>
+              <h3 className="font-display text-2xl font-bold">Journalisation préparée</h3>
               <p className="mt-2 text-sm leading-relaxed text-white/65">
-                L&apos;observabilite reste legere dans cette phase, mais la structure est deja
-                prete pour suivre les appels et preparer un vrai cockpit plus tard.
+                L&apos;observabilité reste légère dans cette phase, mais la structure est déjà
+                prête pour suivre les appels et préparer un vrai cockpit plus tard.
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {telemetry.trackedFields.map((field) => (
@@ -274,8 +274,8 @@ export default function TrustPage() {
                 Pourquoi un agent NEURAL ne peut pas tout supprimer
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/65">
-                Une page dediee montre le flowchart de controle, les verdicts
-                ALLOW / REVIEW / BLOCK, les scenarios d&apos;incident evite et les
+                Une page dédiée montre le flowchart de contrôle, les verdicts
+                ALLOW / REVIEW / BLOCK, les scénarios d&apos;incident evite et les
                 mini Model Cards des agents prioritaires.
               </p>
             </div>
@@ -288,7 +288,7 @@ export default function TrustPage() {
                   >
                     <p className="text-sm font-semibold text-emerald-200">{item}</p>
                     <p className="mt-2 text-xs leading-relaxed text-white/55">
-                      Controle technique visible dans le parcours Trust.
+                      Contrôle technique visible dans le parcours Trust.
                     </p>
                   </div>
                 ))}
@@ -298,7 +298,7 @@ export default function TrustPage() {
                   href="/trust/agent-safety"
                   className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#0A1628] transition-colors hover:bg-violet-100"
                 >
-                  Ouvrir la preuve securite
+                  Ouvrir la preuve sécurité
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
@@ -324,7 +324,7 @@ export default function TrustPage() {
               </p>
             </div>
             <Link href="/contact" className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200">
-              Demander une demo guidee <ArrowRight className="h-4 w-4" />
+              Demander une démo guidee <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
 
@@ -376,8 +376,8 @@ export default function TrustPage() {
         <div className="mx-auto max-w-[1320px]">
           <h2 className="font-display text-3xl font-bold tracking-tight">Claims publics</h2>
           <p className="mt-2 text-sm leading-relaxed text-white/65">
-            Les claims actives restent visibles, les claims retirees restent documentees ici pour
-            montrer le nettoyage editorial deja effectue.
+            Les claims actifs restent visibles, les claims retirés restent documentés ici pour
+            montrer le nettoyage éditorial déjà effectué.
           </p>
 
           <div className="mt-8 overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.04]">
@@ -398,7 +398,7 @@ export default function TrustPage() {
                   ) : null}
                 </div>
                 <div className="text-sm font-medium text-white/70">
-                  {claim.status === "retired" ? "Retire" : claim.status === "qualified" ? "Qualifie" : "Actif"}
+                  {claim.status === "retired" ? "Retiré" : claim.status === "qualified" ? "Qualifié" : "Actif"}
                 </div>
                 <div className="text-sm leading-relaxed text-white/55">{claim.source}</div>
               </div>

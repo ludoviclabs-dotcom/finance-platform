@@ -212,7 +212,7 @@ function lisibiliteGate(scenario: ClientScenario): {
   };
 }
 
-// ─── Decision ────────────────────────────────────────────────────────────────
+// ─── Décision ────────────────────────────────────────────────────────────────
 
 function decisionFromGates(gates: ClientGateResult[]): ClientVerdict["decision"] {
   const blocked = gates.some((g) => g.blocking && !g.passed);
@@ -278,7 +278,7 @@ function fallbackVerdict(scenario: ClientScenario): ClientVerdict {
     reviewer_comment:
       decision === "PASS"
         ? "Draft conforme : mentions présentes, canal respecté, ton neutre, lisibilité adaptée."
-        : `Decision: ${decision}. Blockers: ${blockers.join(", ") || "—"}.`,
+        : `Décision: ${decision}. Blockers: ${blockers.join(", ") || "—"}.`,
   };
 }
 

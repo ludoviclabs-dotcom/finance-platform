@@ -2,10 +2,10 @@
  * NEURAL — Explainability trace types (Sprint 4)
  *
  * Shared type definitions for the agent decision graph.
- * These mirror the Prisma models (AgentRun, AgentDecision) but are
+ * These mirror the Prisma models (AgentRun, AgentDécision) but are
  * plain TypeScript so they can be used in both server and client code.
  *
- * Source → the atomic citation unit. Each AgentDecision carries a Source[]
+ * Source → the atomic citation unit. Each AgentDécision carries a Source[]
  * that links its reasoning to verifiable external documents:
  *   - excel      : workbook cell range  (e.g. "Consolidation.xlsx B12:C15")
  *   - bofip      : BOFiP paragraph      (e.g. "BOFiP IS §200-10")
@@ -32,7 +32,7 @@ export type Source = {
   url?: string;
 };
 
-// ── Decision kinds ────────────────────────────────────────────────────────────
+// ── Décision kinds ────────────────────────────────────────────────────────────
 
 export type DecisionKind = "RETRIEVE" | "COMPUTE" | "REASON" | "VALIDATE";
 

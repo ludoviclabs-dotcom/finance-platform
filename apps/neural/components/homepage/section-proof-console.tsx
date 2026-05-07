@@ -7,22 +7,22 @@ export function SectionProofConsole() {
   const cards = [
     {
       value: catalog.counts.liveAgentsWithExcel,
-      label: "agents avec donnees",
+      label: "agents avec données",
       detail: "source registry Excel",
     },
     {
       value: catalog.counts.runtimeWorkbooks,
       label: "workbooks runtime",
-      detail: "embarques dans apps/neural/data",
+      detail: "embarqués dans apps/neural/data",
     },
     {
       value: catalog.counts.desktopNeuralWorkbooks,
-      label: "workbooks audites",
+      label: "workbooks audités",
       detail: "hors Carbon and Co",
     },
     {
       value: `${catalog.counts.liveCells}/${catalog.counts.frameworkCells}`,
-      label: "cellules alimentees",
+      label: "cellules alimentées",
       detail: "secteur x branche",
     },
   ];
@@ -33,9 +33,9 @@ export function SectionProofConsole() {
         <div className="nhp-proof-head">
           <div>
             <div className="eyebrow">Proof Console</div>
-            <h2 className="h-display h-tight">Le catalogue reel, pas la promesse.</h2>
+            <h2 className="h-display h-tight">Le catalogue réel, pas la promesse.</h2>
             <p className="lead">
-              NEURAL distingue maintenant les workbooks crees, les donnees parsees, les demos
+              NEURAL distingue maintenant les workbooks crees, les données parsées, les démos
               publiques et les briques vraiment vendables.
             </p>
           </div>

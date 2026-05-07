@@ -28,7 +28,7 @@ const forfaits = [
     subtitle: "AI Transformation",
     price: "35 000 - 110 000",
     users: "500-5 000 users",
-    features: ["5-7 branches", "Agents sur mesure", "CSM dedie", "Cadrage et preuves sur demande"],
+    features: ["5-7 branches", "Agents sur mesure", "CSM dédié", "Cadrage et preuves sur demande"],
     highlighted: false,
   },
 ];
@@ -49,7 +49,7 @@ export function PricingPreview() {
             Des forfaits adaptes a votre ambition
           </h2>
           <p className="mt-4 text-lg text-[var(--color-foreground-muted)]">
-            Du POC a la transformation complete
+            Du POC a la transformation complète
           </p>
         </div>
 
@@ -111,7 +111,7 @@ export function PricingPreview() {
             href="/contact"
             className="inline-flex items-center gap-2 text-sm font-semibold text-neural-violet hover:underline"
           >
-            Demander un cadrage personnalise
+            Demander un cadrage personnalisé
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

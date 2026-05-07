@@ -316,7 +316,7 @@ function fallbackVerdict(scenario: EsgScenario): EsgVerdict {
     reviewer_comment:
       decision === "PASS"
         ? "Claim ESG conforme — qualifieur chiffré présent, preuve ACTIVE disponible."
-        : `Decision: ${decision} (${risk}). Blockers: ${blockers.join(", ") || "—"}.`,
+        : `Décision: ${decision} (${risk}). Blockers: ${blockers.join(", ") || "—"}.`,
   };
 }
 

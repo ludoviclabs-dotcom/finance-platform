@@ -64,7 +64,7 @@ const PRESETS = [
   },
   {
     id: "qualified",
-    label: "Qualifie — or recycle",
+    label: "Qualifié — or recycle",
     text: "Or certifie 80% recycle selon l'audit LBMA 2026.",
   },
 ] as const;
@@ -143,7 +143,7 @@ export function ClaimCheckLive() {
       setResult(data.result);
       setMeta(data.meta ?? null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur reseau");
+      setError(err instanceof Error ? err.message : "Erreur réseau");
     } finally {
       setLoading(false);
     }
@@ -160,14 +160,14 @@ export function ClaimCheckLive() {
         </div>
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-rose-200">
-            Demo live · GreenClaimChecker
+            Démo live · GreenClaimChecker
           </p>
           <h3 className="font-display text-2xl font-bold text-white">
             Verifiez un claim RSE contre 5 juridictions
           </h3>
           <p className="mt-2 max-w-xl text-sm text-white/60">
             L&apos;agent matche votre affirmation contre la claim library (17 patterns), la matrice
-            juridictionnelle et le registre evidence. Regulation citee, risk class, rewrite qualifie.
+            juridictionnelle et le registre evidence. Régulation citée, risk class, rewrite qualifié.
           </p>
         </div>
       </div>
@@ -252,7 +252,7 @@ export function ClaimCheckLive() {
         {meta?.mode === "fallback" && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-200">
             <Sparkles className="h-3 w-3" />
-            Mode demo
+            Mode démo
           </span>
         )}
         {meta?.mode === "gateway" && (
@@ -285,7 +285,7 @@ export function ClaimCheckLive() {
             transition={{ duration: 0.4 }}
             className="mt-8 space-y-4"
           >
-            {/* Decision banner */}
+            {/* Décision banner */}
             <div className={`rounded-[24px] border p-6 ${decCfg.border} ${decCfg.bg}`}>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
@@ -294,7 +294,7 @@ export function ClaimCheckLive() {
                   </div>
                   <div>
                     <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${decCfg.text}`}>
-                      Decision {juri}
+                      Décision {juri}
                     </p>
                     <p className="mt-1 font-display text-2xl font-bold text-white">{decCfg.label}</p>
                   </div>
@@ -382,7 +382,7 @@ export function ClaimCheckLive() {
                 <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.04] p-5">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300">
                     <Wand2 className="mr-1 inline h-3 w-3" />
-                    Reformulation qualifiee
+                    Reformulation qualifiée
                   </p>
                   <p className="mt-3 text-sm italic leading-relaxed text-white/80">
                     &ldquo;{result.qualified_rewrite}&rdquo;
@@ -407,14 +407,14 @@ export function ClaimCheckLive() {
                       Ce claim ne passerait pas la gate CLAIM.
                     </p>
                     <p className="mt-1 text-sm text-white/65">
-                      Audit gratuit de vos claims en cours — on traite vos 5 derniers communiques RSE.
+                      Audit gratuit de vos claims en cours — on traite vos 5 derniers communiqués RSE.
                     </p>
                   </div>
                   <Link
                     href="/contact?subject=claim-check-audit"
                     className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#0A1628] transition-colors hover:bg-rose-100"
                   >
-                    Parler conformite
+                    Parler conformité
                   </Link>
                 </div>
               </div>

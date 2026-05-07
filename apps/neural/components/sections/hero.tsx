@@ -27,7 +27,7 @@ export function Hero() {
               transition={{ duration: 0.5 }}
             >
               <span className="inline-flex items-center gap-2 rounded-full border border-neural-violet/30 bg-neural-violet/10 px-4 py-1.5 text-sm font-medium text-neural-violet-light backdrop-blur-sm">
-                Framework multi-secteurs · source de verite publique
+                Framework multi-secteurs · source de vérité publique
               </span>
             </motion.div>
 
@@ -48,7 +48,7 @@ export function Hero() {
               >
                 multi-secteurs
               </span>{" "}
-              avec un noyau deja live
+              avec un noyau déjà live
             </motion.h1>
 
             <motion.p
@@ -57,19 +57,19 @@ export function Hero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-6 max-w-xl text-lg leading-relaxed text-gray-300"
             >
-              NEURAL expose maintenant une seule verite publique :{" "}
+              NEURAL exposé maintenant une seule vérité publique :{" "}
               <strong className="font-semibold text-white">
-                {PUBLIC_METRICS.liveAgents} agents avec donnees reelles
+                {PUBLIC_METRICS.liveAgents} agents avec données réelles
               </strong>
               ,{" "}
               <strong className="font-semibold text-white">
-                {PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentees
+                {PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentées
               </strong>{" "}
               et{" "}
               <strong className="font-semibold text-white">
                 {PUBLIC_METRICS.runtimeWorkbooks} workbooks runtime
               </strong>
-              . Le reste reste visible, mais clairement qualifie comme demo ou preparation.
+              . Le reste reste visible, mais clairement qualifié comme démo ou préparation.
             </motion.p>
 
             <motion.div
@@ -105,7 +105,7 @@ export function Hero() {
                   Preuve runtime
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-white/68">
-                  Le Data Hub et les exports montrent deja une sortie metier, pas seulement une
+                  Le Data Hub et les exports montrent déjà une sortie métier, pas seulement une
                   interface.
                 </p>
               </div>
@@ -115,8 +115,8 @@ export function Hero() {
                   Cadre vs realite
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-white/68">
-                  Les {PUBLIC_METRICS.frameworkAgents} agents decrivent la capacite du framework,
-                  pas le perimetre public deja operable.
+                  Les {PUBLIC_METRICS.frameworkAgents} agents decrivent la capacité du framework,
+                  pas le périmètre public déjà opérable.
                 </p>
               </div>
               <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
@@ -125,8 +125,8 @@ export function Hero() {
                   Clarite produit
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-white/68">
-                  Chaque page publique est maintenant qualifiee comme live, demo orchestree ou en
-                  preparation.
+                  Chaque page publique est maintenant qualifiée comme live, démo orchestrée ou en
+                  préparation.
                 </p>
               </div>
             </motion.div>
@@ -158,7 +158,7 @@ export function Hero() {
 
               <div className="absolute -right-3 top-6 z-20 rounded-2xl border border-white/10 bg-neural-midnight/82 px-4 py-3 backdrop-blur-md shadow-xl">
                 <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">
-                  Perimetre live
+                  Périmètre live
                 </p>
                 <p className="mt-1 font-display text-xl font-bold text-white">
                   {PUBLIC_METRICS.liveAgents} agents
@@ -206,7 +206,7 @@ export function Hero() {
             </p>
             <p className="mt-3 font-display text-3xl font-bold">{PUBLIC_METRICS.publicBranches}</p>
             <p className="mt-2 text-sm leading-relaxed text-gray-400">
-              Toutes les branches restent visibles, mais leur niveau de preparation est explicite.
+              Toutes les branches restent visibles, mais leur niveau de préparation est explicite.
             </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
@@ -215,7 +215,7 @@ export function Hero() {
             </p>
             <p className="mt-3 font-display text-3xl font-bold">{PUBLIC_METRICS.publicSectors}</p>
             <p className="mt-2 text-sm leading-relaxed text-gray-400">
-              Luxe reste la verticale la plus prouvee, Transport la demo la plus avancee.
+              Luxe reste la verticale la plus prouvee, Transport la démo la plus avancée.
             </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
@@ -224,8 +224,8 @@ export function Hero() {
             </p>
             <p className="mt-3 font-display text-3xl font-bold">AI Gateway</p>
             <p className="mt-2 text-sm leading-relaxed text-gray-400">
-              Claude Sonnet 4.6 pilote le chat public, avec GPT-5.4 prepare en fallback via une
-              couche de routage unifiee.
+              Claude Sonnet 4.6 pilote le chat public, avec GPT-5.4 préparé en fallback via une
+              couche de routage unifiée.
             </p>
           </div>
         </motion.div>

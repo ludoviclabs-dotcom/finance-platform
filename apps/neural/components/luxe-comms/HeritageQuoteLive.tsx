@@ -46,7 +46,7 @@ const FORMATS = ["Maison-style", "Chicago", "APA", "Juridique"] as const;
 type CitationFormat = (typeof FORMATS)[number];
 
 const PRESETS = [
-  { id: "origin", label: "Origine maison", text: "Quand la maison a-t-elle ete fondee ?" },
+  { id: "origin", label: "Origine maison", text: "Quand la maison a-t-elle été fondée ?" },
   { id: "galliera", label: "Musee Galliera", text: "Piece de la maison au Musee Galliera" },
   { id: "atelier", label: "Geste atelier", text: "Origine du geste de ciselure dans l'atelier" },
   { id: "retro", label: "Retrospective 1987", text: "Exposition retrospective Arts Deco 1987" },
@@ -109,7 +109,7 @@ export function HeritageQuoteLive() {
       setResult(data.result);
       setMeta(data.meta ?? null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur reseau");
+      setError(err instanceof Error ? err.message : "Erreur réseau");
     } finally {
       setLoading(false);
     }
@@ -125,13 +125,13 @@ export function HeritageQuoteLive() {
         </div>
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-200">
-            Demo live · HeritageComms
+            Démo live · HeritageComms
           </p>
           <h3 className="font-display text-2xl font-bold text-white">
             Sourcing patrimonial zero-hallucination
           </h3>
           <p className="mt-2 max-w-xl text-sm text-white/60">
-            L&apos;agent cherche un fait valide dans APPROVED_FACTS + HERITAGE_SOURCES.
+            L&apos;agent cherche un fait validé dans APPROVED_FACTS + HERITAGE_SOURCES.
             Si pas de match, il le dit clairement — jamais d&apos;invention.
           </p>
         </div>
@@ -184,7 +184,7 @@ export function HeritageQuoteLive() {
           onKeyDown={(e) => {
             if (e.key === "Enter" && canSubmit) submit();
           }}
-          placeholder="Ex : Quand le motif iconique a-t-il ete cree ?"
+          placeholder="Ex : Quand le motif iconique a-t-il été créé ?"
           className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-violet-400/50 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
           maxLength={300}
         />
@@ -223,7 +223,7 @@ export function HeritageQuoteLive() {
         {meta?.mode === "fallback" && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-200">
             <Sparkles className="h-3 w-3" />
-            Mode demo
+            Mode démo
           </span>
         )}
         {meta?.mode === "gateway" && (

@@ -23,7 +23,7 @@ export default function AgentSafetyDeckPage() {
             className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200 hover:text-violet-100"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour a la preuve securite
+            Retour à la preuve sécurité
           </Link>
           <Link
             href="/contact?subject=agent-safety-deck"
@@ -44,11 +44,11 @@ export default function AgentSafetyDeckPage() {
                 Deck 10 slides
               </span>
               <h1 className="mt-5 font-display text-4xl font-bold md:text-5xl">
-                Preuve de securite des agents IA
+                Preuve de sécurité des agents IA
               </h1>
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/65">
                 Version HTML imprimable pour rendez-vous client, due diligence RSSI/DPO
-                ou support de demonstration.
+                ou support de démonstration.
               </p>
             </div>
             <p className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 font-mono text-xs text-white/55">

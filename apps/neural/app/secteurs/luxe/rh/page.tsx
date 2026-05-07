@@ -46,7 +46,7 @@ const rhAgents = [
     entry: artisanCatalog,
     icon: UserCheck,
     iconClass: "bg-emerald-400/10 text-emerald-200",
-    summary: "Cartographie des metiers rares, gaps critiques et plans de succession.",
+    summary: "Cartographie des métiers rares, gaps critiques et plans de succession.",
   },
   {
     title: "Comp & Benchmark",
@@ -68,9 +68,9 @@ const rhAgents = [
 
 const rhStats = [
   { label: "Agents RH visibles", value: String(rhAgents.length), icon: Layers },
-  { label: "Niveau public", value: "Demo", icon: ShieldCheck },
+  { label: "Niveau public", value: "Démo", icon: ShieldCheck },
   { label: "Pays couverts", value: "7", icon: Globe },
-  { label: "Metiers rares", value: "30+", icon: Gem },
+  { label: "Métiers rares", value: "30+", icon: Gem },
 ];
 
 export default function LuxeRHPage() {
@@ -101,11 +101,11 @@ export default function LuxeRHPage() {
             </p>
             <StatusBadge status={rhCatalog.status} proofLevel={rhCatalog.proofLevel} className="mt-4" />
             <h1 className="mt-6 font-display text-5xl font-extrabold tracking-[-0.05em] text-white md:text-6xl">
-              Des donnees RH pretes, une surface encore en demonstration.
+              Des données RH prêtes, une surface encore en démonstration.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/68">
-              La branche RH reste visible parce qu&apos;elle est strategiquement forte pour le
-              luxe, mais elle est volontairement presentee comme demo : datasets presents,
+              La branche RH reste visible parce qu&apos;elle est stratégiquement forte pour le
+              luxe, mais elle est volontairement présentée comme démo : datasets présents,
               narration produit claire, industrialisation publique encore en cours.
             </p>
           </motion.div>
@@ -148,7 +148,7 @@ export default function LuxeRHPage() {
             Onboarding Luxe
           </span>
           <p className="w-full pt-2 text-sm text-white/52">
-            Les trois briques restent publiques, mais avec un statut uniforme de demonstration.
+            Les trois briques restent publiques, mais avec un statut uniforme de démonstration.
           </p>
         </div>
       </section>
@@ -160,11 +160,11 @@ export default function LuxeRHPage() {
               Surfaces agent
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
-              Une meme grammaire de preuve pour les trois outils RH.
+              Une même grammaire de preuve pour les trois outils RH.
             </h2>
             <p className="mt-3 text-base leading-relaxed text-white/62">
-              Chaque carte rappelle le statut, la source de donnees et le livrable vise, sans
-              laisser croire a un niveau de preparation egal a la branche Finance.
+              Chaque carte rappelle le statut, la source de données et le livrable visé, sans
+              laisser croire à un niveau de préparation égal à la branche Finance.
             </p>
           </div>
 
@@ -188,11 +188,11 @@ export default function LuxeRHPage() {
 
                 <div className="mt-6 grid gap-3">
                   <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Donnees utilisees</p>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Données utilisees</p>
                     <p className="mt-2 text-sm text-white/70">{agent.entry.dataUsed}</p>
                   </div>
                   <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Livrable genere</p>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">Livrable généré</p>
                     <p className="mt-2 text-sm text-white/70">{agent.entry.deliverable}</p>
                   </div>
                 </div>
@@ -213,13 +213,13 @@ export default function LuxeRHPage() {
       <section className="border-y border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-20 md:px-12">
         <div className="mx-auto grid max-w-[1440px] gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <EvidenceCard
-            title="Ce que la branche RH prouve deja"
+            title="Ce que la branche RH prouve déjà"
             dataUsed={rhCatalog.dataUsed}
             deliverable={rhCatalog.deliverable}
             status={rhCatalog.status}
             proofLevel={rhCatalog.proofLevel}
           />
-          <ScopeCard title="Perimetre public RH" does={rhCatalog.scopeNow} doesnt={rhCatalog.notYet} />
+          <ScopeCard title="Périmètre public RH" does={rhCatalog.scopeNow} doesnt={rhCatalog.notYet} />
         </div>
       </section>
 
@@ -234,9 +234,9 @@ export default function LuxeRHPage() {
                 Une surface commerciale utile, pas une sur-promesse.
               </h2>
               <p className="mt-3 text-base leading-relaxed text-white/62">
-                Cette branche reste tres utile pour raconter le positionnement RH de NEURAL
+                Cette branche reste très utile pour raconter le positionnement RH de NEURAL
                 dans le luxe. Le travail prioritaire maintenant est de relier au moins un
-                de ces agents a une sortie publique aussi tangible qu&apos;un export Finance.
+                de ces agents à une sortie publique aussi tangible qu&apos;un export Finance.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -250,7 +250,7 @@ export default function LuxeRHPage() {
                 href="/contact"
                 className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition-transform hover:-translate-y-0.5"
               >
-                Demander une demo RH
+                Demander une démo RH
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

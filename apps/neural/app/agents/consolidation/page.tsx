@@ -103,7 +103,7 @@ export default function ConsolidationPage() {
 
         {/* ── Paramètres ── */}
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-          <h2 className="font-display font-bold text-lg mb-4">Paramètres</h2>
+          <h2 className="font-display font-bold text-lg mb-4">Paramètrès</h2>
           <div className="space-y-4 text-sm">
             <div>
               <label className="block text-[var(--color-foreground-muted)] mb-1">Groupe</label>

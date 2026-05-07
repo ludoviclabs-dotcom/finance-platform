@@ -61,11 +61,11 @@ export function PriceSimulator() {
   const [users, setUsers] = useState<number>(50);
   const [step, setStep] = useState(1);
 
-  const toggleBranch = (branch: Branch) => {
+  const toggleBranch = (branche: Branch) => {
     setBranches((prev) =>
-      prev.includes(branch)
-        ? prev.filter((b) => b !== branch)
-        : [...prev, branch]
+      prev.includes(branche)
+        ? prev.filter((b) => b !== branche)
+        : [...prev, branche]
     );
   };
 
@@ -78,15 +78,15 @@ export function PriceSimulator() {
       0
     );
 
-    const branchDiscount =
+    const brancheDiscount =
       branches.length >= 5 ? 0.8 : branches.length >= 3 ? 0.9 : 1;
 
-    const setup = Math.round(branchesSetup * branchDiscount);
+    const setup = Math.round(branchesSetup * brancheDiscount);
 
     const baseMonthly =
       users <= 50 ? 1290 : users <= 250 ? 9500 : users <= 1000 ? 45000 : 110000;
-    const branchSurcharge = branches.length * 800;
-    const monthly = Math.round((baseMonthly + branchSurcharge) * sectorMult);
+    const brancheSurcharge = branches.length * 800;
+    const monthly = Math.round((baseMonthly + brancheSurcharge) * sectorMult);
 
     const hoursSavedPerUser = branches.length * 3.5;
     const annualSaving = users * hoursSavedPerUser * 48 * 65;

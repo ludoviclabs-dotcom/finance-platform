@@ -43,7 +43,7 @@
       "title": "Licéité du traitement",
       "summary": "Tout traitement doit reposer sur une base légale : consentement, contrat, obligation légale, intérêt vital, mission d'intérêt public, intérêts légitimes.",
       "neuralDoes": "Le déploiement NEURAL chez vous repose typiquement sur l'intérêt légitime ou l'exécution contractuelle. Documentation par agent disponible.",
-      "neuralDoesNot": "Nous ne définissons pas votre base légale. Vous l'identifiez et la documentez dans votre registre RGPD article 30."
+      "neuralDoesNot": "Nous ne définissons pas votre base légale. Vous l'identifiez et la documentéz dans votre registre RGPD article 30."
     },
     {
       "id": "art-13-14",
@@ -59,7 +59,7 @@
       "title": "Décision individuelle automatisée — y compris profilage",
       "summary": "Une personne a le droit de ne pas faire l'objet d'une décision fondée exclusivement sur un traitement automatisé produisant des effets juridiques ou similaires. Exceptions : nécessité contractuelle, autorisation EU/EM, consentement explicite.",
       "neuralDoes": "Aucun agent NEURAL ne prend de décision finale automatisée sur cas sensibles. Human-in-the-loop systématique pour les décisions à effet juridique ou similaire (recrutement, crédit, accès services).",
-      "neuralDoesNot": "Nous ne pouvons pas empêcher votre usage de basculer en décision automatique seule — vos paramètres de supervision sont configurables et auditables."
+      "neuralDoesNot": "Nous ne pouvons pas empêcher votre usage de basculer en décision automatique seule — vos paramètrès de supervision sont configurables et auditables."
     },
     {
       "id": "art-25",

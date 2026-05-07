@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "NEURAL — Assurance / Marketing",
     description:
-      "InsurSimplifier, DDA_MarketingGuard, MultiChannelInsur, PreventionContent. Workbooks Excel auditables et scenarios OK / WARN / KO.",
+      "InsurSimplifier, DDA_MarketingGuard, MultiChannelInsur, PreventionContent. Workbooks Excel auditables et scénarios OK / WARN / KO.",
   },
 };
 
@@ -416,7 +416,7 @@ export default function InsuranceMarketingPage() {
             <SectionHeader
               eyebrow="Services transverses"
               title="Veille + traçabilité = défendabilité."
-              lead="Deux services transverses encadrent les 4 agents : RegWatch alimente le référentiel des règles, EvidenceGuard conserve les preuves de chaque décision."
+              lead="Deux services transverses encadrent les 4 agents : RegWatch alimenté le référentiel des règles, EvidenceGuard conserve les preuves de chaque décision."
             />
             <div className="mt-6 grid gap-3">
               {INSURANCE_MKT_SERVICES.map((service) => (

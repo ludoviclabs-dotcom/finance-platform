@@ -19,7 +19,7 @@ const KEY_FACTS = [
   { label: "Spécialité", value: "Opérateur agents IA EU régulés" },
   { label: "Modèle", value: "Claude Sonnet 4.6 via Vercel AI Gateway" },
   { label: "Hébergement", value: "Frankfurt + Paris (CDG)" },
-  { label: "Secteurs cibles", value: "Banque · Luxe · Aéro · Assurance · Transport · SaaS" },
+  { label: "Secteurs ciblés", value: "Banque · Luxe · Aéro · Assurance · Transport · SaaS" },
   { label: "Branches métier", value: "7 branches × 6 secteurs = 42 combinaisons" },
   { label: "Forme juridique", value: "SAS française" },
 ];

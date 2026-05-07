@@ -49,12 +49,12 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "NEURAL — Framework multi-secteurs pour agents metier",
+    default: "NEURAL — Framework multi-secteurs pour agents métier",
     template: "%s | NEURAL",
   },
   description:
-    "NEURAL expose un framework multi-secteurs avec un sous-ensemble deja live : " +
-    "data hub, surfaces Luxe Finance/RH, demo orchestree Transport et page trust explicite.",
+    "NEURAL exposé un framework multi-secteurs avec un sous-ensemble déjà live : " +
+    "data hub, surfaces Luxe Finance/RH, démo orchestrée Transport et page trust explicite.",
   keywords: [
     "IA entreprise",
     "Claude",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     "agent IA",
     "data hub",
     "verticale luxe",
-    "demo orchestration",
+    "démo orchestration",
     "Anthropic",
   ],
   authors: [{ name: "NEURAL AI Consulting" }],
@@ -72,22 +72,22 @@ export const metadata: Metadata = {
     locale: "fr_FR",
     url: SITE_URL,
     siteName: "NEURAL",
-    title: "NEURAL — Framework multi-secteurs pour agents metier",
+    title: "NEURAL — Framework multi-secteurs pour agents métier",
     description:
-      "Framework multi-secteurs, noyau Luxe deja live, demo orchestree Transport et page trust.",
+      "Framework multi-secteurs, noyau Luxe déjà live, démo orchestrée Transport et page trust.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "NEURAL — Framework multi-secteurs pour agents metier",
+        alt: "NEURAL — Framework multi-secteurs pour agents métier",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "NEURAL — Framework multi-secteurs pour agents metier",
-    description: "Noyau Luxe live, demo Transport et statuts publics explicites.",
+    title: "NEURAL — Framework multi-secteurs pour agents métier",
+    description: "Noyau Luxe live, démo Transport et statuts publics explicites.",
     images: ["/opengraph-image"],
   },
   robots: {

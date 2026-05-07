@@ -19,7 +19,7 @@ import { PUBLIC_METRICS } from "@/lib/public-catalog";
 const SECTORS: { id: Sector; label: string; emoji: string }[] = [
   { id: "transport", label: "Transport", emoji: SECTORS_META.transport.emoji },
   { id: "luxe", label: "Luxe", emoji: SECTORS_META.luxe.emoji },
-  { id: "aeronautique", label: "Aero", emoji: SECTORS_META.aeronautique.emoji },
+  { id: "aeronautique", label: "Aéro", emoji: SECTORS_META.aeronautique.emoji },
   { id: "saas", label: "SaaS", emoji: SECTORS_META.saas.emoji },
   { id: "banque", label: "Banque", emoji: SECTORS_META.banque.emoji },
   { id: "assurance", label: "Assurance", emoji: SECTORS_META.assurance.emoji },
@@ -35,20 +35,20 @@ const BRANCHES: { id: Branch; label: string }[] = [
   { id: "supply-chain", label: BRANCHES_META["supply-chain"].shortLabel },
 ];
 
-function getDestination(sector: Sector, branch: Branch) {
-  if (sector === "luxe" && branch === "finance") {
+function getDestination(sector: Sector, branche: Branch) {
+  if (sector === "luxe" && branche === "finance") {
     return "/secteurs/luxe/finance";
   }
 
-  if (sector === "luxe" && branch === "rh") {
+  if (sector === "luxe" && branche === "rh") {
     return "/secteurs/luxe/rh";
   }
 
-  if (sector === "transport" && branch === "comptabilite") {
+  if (sector === "transport" && branche === "comptabilite") {
     return "/secteurs/transport";
   }
 
-  return `/solutions/${branch}?sector=${sector}`;
+  return `/solutions/${branche}?sector=${sector}`;
 }
 
 export function SectorBranchMatrix() {
@@ -64,30 +64,30 @@ export function SectorBranchMatrix() {
             Framework
           </span>
           <h2 className="mt-4 font-display text-4xl font-extrabold tracking-tighter md:text-5xl">
-            Capacite du framework, <span className="text-neural-violet">sous-ensemble prouve</span>{" "}
+            Capacité du framework, <span className="text-neural-violet">sous-ensemble prouve</span>{" "}
             en public.
           </h2>
           <p className="mt-4 text-lg text-[var(--color-foreground-muted)]">
-            La matrice garde la vision complete, mais affiche explicitement ce qui est alimente
+            La matrice garde la vision complète, mais affiche explicitement ce qui est alimenté
             aujourd&apos;hui
           </p>
           <div className="mt-3 flex items-center justify-center gap-4 text-sm">
             <span className="flex items-center gap-1.5">
               <Database className="h-3.5 w-3.5 text-neural-green" />
               <span className="text-foreground-muted">
-                {liveAgents} agents avec donnees reelles
+                {liveAgents} agents avec données réelles
               </span>
             </span>
             <span className="flex items-center gap-1.5">
               <Circle className="h-3.5 w-3.5 fill-neural-violet text-neural-violet" />
               <span className="text-foreground-muted">
-                {liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentees
+                {liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentées
               </span>
             </span>
           </div>
           <p className="mt-3 text-xs text-[var(--color-foreground-subtle)]">
             {PUBLIC_METRICS.frameworkCells} combinaisons / {PUBLIC_METRICS.frameworkAgents} agents
-            correspondent a la capacite du framework, pas au scope public live.
+            correspondent à la capacité du framework, pas au scope public live.
           </p>
         </div>
 
@@ -98,12 +98,12 @@ export function SectorBranchMatrix() {
                 <th className="p-3 text-left text-sm font-semibold text-foreground-muted">
                   Secteur \ Branche
                 </th>
-                {BRANCHES.map((branch) => (
+                {BRANCHES.map((branche) => (
                   <th
-                    key={branch.id}
+                    key={branche.id}
                     className="p-3 text-center text-sm font-semibold text-foreground-muted"
                   >
-                    {branch.label}
+                    {branche.label}
                   </th>
                 ))}
               </tr>
@@ -115,16 +115,16 @@ export function SectorBranchMatrix() {
                     <span className="mr-2">{sector.emoji}</span>
                     {sector.label}
                   </td>
-                  {BRANCHES.map((branch) => {
-                    const cellId = `${sector.id}-${branch.id}`;
-                    const cell = getCell(sector.id, branch.id);
+                  {BRANCHES.map((branche) => {
+                    const cellId = `${sector.id}-${branche.id}`;
+                    const cell = getCell(sector.id, branche.id);
                     const hasData = Boolean(cell);
                     const isHovered = hoveredCell === cellId;
                     const theoreticalAgents = cell?.agents.length ?? 4;
 
                     return (
                       <td
-                        key={branch.id}
+                        key={branche.id}
                         className="p-1.5"
                         onMouseEnter={() => setHoveredCell(cellId)}
                         onMouseLeave={() => setHoveredCell(null)}
@@ -160,7 +160,7 @@ export function SectorBranchMatrix() {
                               <div className="text-[10px] font-medium">{cell.topAgent}</div>
                               <div className="text-[9px] opacity-80">{cell.roiHighlight}</div>
                               <Link
-                                href={getDestination(sector.id, branch.id)}
+                                href={getDestination(sector.id, branche.id)}
                                 className="flex items-center justify-center gap-1 text-[10px] text-white underline"
                               >
                                 Ouvrir <ChevronRight className="h-3 w-3" />
@@ -175,7 +175,7 @@ export function SectorBranchMatrix() {
                               className="mt-1"
                             >
                               <Link
-                                href={getDestination(sector.id, branch.id)}
+                                href={getDestination(sector.id, branche.id)}
                                 className="flex items-center justify-center gap-1 text-[10px] text-white underline"
                               >
                                 Readiness <ChevronRight className="h-3 w-3" />

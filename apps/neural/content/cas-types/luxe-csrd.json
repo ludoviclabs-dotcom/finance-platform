@@ -26,7 +26,7 @@
       {
         "id": "cadrage",
         "label": "Phase 1 — Cadrage outcome (semaines 1-3)",
-        "description": "Mapping des 1 144 datapoints ESRS prioritaires sur l'exercice (E1 + S1 + G1 d'abord). Identification des 6-8 chantiers à fort impact reporting. Définition des KPI cibles d'automatisation (couverture datapoints, traçabilité, délai de production).",
+        "description": "Mapping des 1 144 datapoints ESRS prioritaires sur l'exercice (E1 + S1 + G1 d'abord). Identification des 6-8 chantiers à fort impact reporting. Définition des KPI ciblés d'automatisation (couverture datapoints, traçabilité, délai de production).",
         "deliverable": "Mapping datapoints · 8 OKR ESG · agent map"
       },
       {
@@ -58,7 +58,7 @@
     { "slug": "luxe-press-agent", "label": "LuxePressAgent", "role": "Rédaction presse business + lifestyle" }
   ],
   "metrics": {
-    "title": "Métriques cibles (estimés méthodologiques)",
+    "title": "Métriques ciblés (estimés méthodologiques)",
     "items": [
       { "label": "Couverture datapoints ESRS E1 automatisée", "before": "~25% (manuel)", "after": "~85% (avec audit trail)", "delta": "+60 pts" },
       { "label": "Délai de production rapport CSRD annuel", "before": "5-7 mois équipe ESG", "after": "8-10 semaines + revue", "delta": "−65%" },

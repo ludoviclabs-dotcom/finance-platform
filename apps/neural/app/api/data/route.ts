@@ -29,12 +29,12 @@ export async function GET() {
     const proofPacks = parseProofWorkbookPacks();
 
     return NextResponse.json({
-      // Finance branch
+      // Finance branche
       consolidation,
       inventaire,
       multiCurrency,
       royalty,
-      // RH branch
+      // RH branche
       artisanTalent,
       compBenchmark,
       onboarding,
@@ -45,7 +45,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error parsing Excel data:', error);
     return NextResponse.json(
-      { error: 'Failed to parse Excel data', details: String(error) },
+      { error: 'Failed to parsé Excel data', details: String(error) },
       { status: 500 }
     );
   }

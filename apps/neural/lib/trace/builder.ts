@@ -84,7 +84,7 @@ export async function failRun(runId: string, errorMessage?: string) {
   });
 }
 
-// ── Decision appending ────────────────────────────────────────────────────────
+// ── Décision appending ────────────────────────────────────────────────────────
 
 export type AppendDecisionOptions = {
   runId: string;
@@ -96,7 +96,7 @@ export type AppendDecisionOptions = {
   durationMs: number;
 };
 
-/** Append a single AgentDecision step to an existing run. */
+/** Append a single AgentDécision step to an existing run. */
 export async function appendDecision(opts: AppendDecisionOptions) {
   return db.agentDecision.create({
     data: {

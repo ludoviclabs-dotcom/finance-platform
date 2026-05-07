@@ -11,9 +11,9 @@ const tiers = [
     badge: "Diagnostic",
     feats: [
       "Inventaire workbooks + process",
-      "Score de maturite par agent",
-      "Backlog 30 jours priorise",
-      "Synthese risques / preuves",
+      "Score de maturité par agent",
+      "Backlog 30 jours priorisé",
+      "Synthèse risques / preuves",
     ],
   },
   {
@@ -23,19 +23,19 @@ const tiers = [
     to: "20 000",
     unit: "sprint",
     highlight: true,
-    badge: "Priorite",
+    badge: "Priorité",
     feats: [
-      "1 agent branche et testable",
+      "1 agent branché et testable",
       "Sourcebook + model card",
       "Exemple input/output",
-      "Export ou trace d'execution",
+      "Export ou trace d'exécution",
     ],
   },
   {
     name: "Governed Runtime Sprint",
     sub: "Operator Gateway MVP",
     price: "Sur devis",
-    to: "apres design partner",
+    to: "après design partner",
     unit: "90 jours",
     highlight: false,
     badge: "Enterprise",
@@ -43,7 +43,7 @@ const tiers = [
       "2-3 agents sous gouvernance",
       "Audit trail et cost tracking",
       "RBAC, owners et kill switch",
-      "DPA / security pack preparatoire",
+      "DPA / security pack préparatoire",
     ],
   },
 ];
@@ -54,7 +54,7 @@ export function SectionPricing() {
       <div className="nhp-container">
         <div className="nhp-section-head">
           <div className="eyebrow">Offres prouvables</div>
-          <h2 className="h-display h-tight">Vendre un agent verifiable avant une plateforme.</h2>
+          <h2 className="h-display h-tight">Vendre un agent vérifiable avant une plateforme.</h2>
         </div>
         <div className="nhp-pricing-grid">
           {tiers.map((tier) => (
@@ -76,7 +76,7 @@ export function SectionPricing() {
               <div className="nhp-tier-price-to">
                 {tier.price === "Sur devis"
                   ? `${tier.to} · ${tier.unit}`
-                  : `jusqu'a ${tier.to} EUR · ${tier.unit}`}
+                  : `jusqu'? ${tier.to} EUR · ${tier.unit}`}
               </div>
               <ul className="nhp-tier-feats">
                 {tier.feats.map((feature) => (

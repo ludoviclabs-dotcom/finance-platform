@@ -90,7 +90,7 @@ export const AERO_MKT_AGENTS: AeroMktAgent[] = [
     name: "AeroSustainabilityComms",
     owner: "ESG / Responsable RSE signataire CSRD",
     mission:
-      "Auditer les claims SAF / hydrogène / électrique / eVTOL / compensation carbone vs Green Claims Directive 2024 + Loi Climat & Résilience FR + ReFuelEU Aviation + CSRD ESRS E1 + EASA Decision 2024/015. Détection greenwashing avant diffusion + cohérence reporting.",
+      "Auditer les claims SAF / hydrogène / électrique / eVTOL / compensation carbone vs Green Claims Directive 2024 + Loi Climat & Résilience FR + ReFuelEU Aviation + CSRD ESRS E1 + EASA Décision 2024/015. Détection greenwashing avant diffusion + cohérence reporting.",
     primaryRule: "RULE-LCA-EVIDENCE",
     workbook: "AeroSustainabilityComms_NEURAL.xlsx",
     kpis: ["% claims sans LCA 0", "Score Green Claims > 80%", "Cohérence ESRS E1 100%"],
@@ -320,7 +320,7 @@ const PROBLEMS_DATA: Array<{
   {
     problem: "Greenwashing aéro (claims SAF/H2/électrique vagues, risque DGCCRF)",
     solution:
-      "AeroSustainabilityComms audite claims contre Green Claims Directive + ReFuelEU + ESRS E1 + EASA Decision 2024/015. Reflet du contexte 2026 (ZEROe reporté 2040, Lilium liquidée).",
+      "AeroSustainabilityComms audite claims contre Green Claims Directive + ReFuelEU + ESRS E1 + EASA Décision 2024/015. Reflet du contexte 2026 (ZEROe reporté 2040, Lilium liquidée).",
     agent: "AM-A004",
   },
 ];

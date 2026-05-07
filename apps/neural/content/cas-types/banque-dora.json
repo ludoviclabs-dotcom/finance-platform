@@ -26,7 +26,7 @@
       {
         "id": "cadrage",
         "label": "Phase 1 — Cadrage outcome (semaines 1-2)",
-        "description": "Identification des 3 chantiers DORA prioritaires avec ROI signé : registre TIC tiers, notification incidents, communications régulées. Définition des KPI cibles et des conditions de succès.",
+        "description": "Identification des 3 chantiers DORA prioritaires avec ROI signé : registre TIC tiers, notification incidents, communications régulées. Définition des KPI ciblés et des conditions de succès.",
         "deliverable": "Document de cadrage signé · 3 OKR DORA · agent map"
       },
       {
@@ -57,7 +57,7 @@
     { "slug": "reg-watch-bank", "label": "RegWatchBank", "role": "Veille réglementaire continue" }
   ],
   "metrics": {
-    "title": "Métriques cibles (estimés méthodologiques)",
+    "title": "Métriques ciblés (estimés méthodologiques)",
     "items": [
       { "label": "Délai de constitution du registre TIC", "before": "8-12 mois manuel", "after": "10-12 semaines avec NEURAL", "delta": "−65%" },
       { "label": "Notification incident ACPR (chronomètre cible DORA : 4h)", "before": "12-24h ad hoc", "after": "< 2h tracé", "delta": "−85%" },

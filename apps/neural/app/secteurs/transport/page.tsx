@@ -40,11 +40,11 @@ const accountingCatalog = accountingEntry;
 const demoAgents = [
   {
     title: "TVA Transport",
-    subtitle: "Decision TVA, lignes CA3, exceptions transfrontalieres.",
+    subtitle: "Décision TVA, lignes CA3, exceptions transfrontalières.",
     icon: Receipt,
     color: "text-sky-200",
     bg: "bg-sky-400/10",
-    note: "Scenario de demo axe fiscalite transport et regles europeennes.",
+    note: "Scénario de démo axe fiscalité transport et règles européennes.",
   },
   {
     title: "Fleet Accounting",
@@ -52,7 +52,7 @@ const demoAgents = [
     icon: Truck,
     color: "text-emerald-200",
     bg: "bg-emerald-400/10",
-    note: "Demonstration metier pour actifs de flotte et logique IAS 16 / IAS 36.",
+    note: "Démonstration métier pour actifs de flotte et logique IAS 16 / IAS 36.",
   },
   {
     title: "Concession Accounting",
@@ -60,11 +60,11 @@ const demoAgents = [
     icon: Landmark,
     color: "text-violet-200",
     bg: "bg-violet-400/10",
-    note: "Surface de demo normative, pas encore sortie publique liee au runtime.",
+    note: "Surface de démo normative, pas encore sortie publique liée au runtime.",
   },
   {
     title: "Orchestrateur",
-    subtitle: "Route, sequence, valide et consolide les sorties.",
+    subtitle: "Route, séquence, valide et consolide les sorties.",
     icon: Workflow,
     color: "text-amber-200",
     bg: "bg-amber-400/10",
@@ -73,10 +73,10 @@ const demoAgents = [
 ];
 
 const transportMetrics = [
-  { label: "Agents scenarises", value: "3", icon: Layers },
+  { label: "Agents scénarisés", value: "3", icon: Layers },
   { label: "Orchestrateur visible", value: "1", icon: Workflow },
-  { label: "Niveau public", value: "Demo", icon: ShieldCheck },
-  { label: "Sortie promise", value: "Cloture", icon: Sparkles },
+  { label: "Niveau public", value: "Démo", icon: ShieldCheck },
+  { label: "Sortie promise", value: "Clôture", icon: Sparkles },
 ];
 
 export default function TransportPage() {
@@ -102,20 +102,20 @@ export default function TransportPage() {
                 <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-sky-200">
                   Secteur Transport
                 </p>
-                <p className="text-sm text-white/55">Demonstration d&apos;orchestration metier</p>
+                <p className="text-sm text-white/55">Démonstration d&apos;orchestration métier</p>
               </div>
             </div>
 
             <StatusBadge status={transportCatalog.status} proofLevel={transportCatalog.proofLevel} />
 
             <h1 className="mt-6 max-w-4xl font-display text-5xl font-extrabold tracking-[-0.05em] text-white md:text-6xl lg:text-7xl">
-              Une demo qui montre l&apos;ambition, pas un workflow deja opere.
+              Une démo qui montre l&apos;ambition, pas un workflow déjà opéré.
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/68 md:text-xl">
-              Transport reste public parce qu&apos;il raconte tres bien la promesse NEURAL :
-              agents specialises, orchestration et validation humaine. Mais cette page doit
-              etre lue comme une demo orchestree, pas comme un runtime pleinement branche.
+              Transport reste public parce qu&apos;il raconte très bien la promesse NEURAL :
+              agents spécialisés, orchestration et validation humaine. Mais cette page doit
+              être lue comme une démo orchestrée, pas comme un runtime pleinement branché.
             </p>
 
             <div className="mt-8 rounded-[24px] border border-amber-300/15 bg-amber-300/[0.08] p-5">
@@ -124,9 +124,9 @@ export default function TransportPage() {
                 <div>
                   <p className="text-sm font-semibold text-amber-100">Lecture correcte de cette page</p>
                   <p className="mt-2 text-sm leading-relaxed text-white/70">
-                    La valeur ici est la demonstration du design produit, de la sequence de cloture
+                    La valeur ici est la démonstration du design produit, de la séquence de clôture
                     et des points de validation humaine. Les workbooks transport ne sont pas encore
-                    exposes comme preuves runtime publiques au meme niveau que Luxe Finance.
+                    exposés comme preuves runtime publiques au même niveau que Luxe Finance.
                   </p>
                 </div>
               </div>
@@ -175,8 +175,8 @@ export default function TransportPage() {
             Orchestrateur
           </span>
           <p className="w-full pt-2 text-sm text-white/52">
-            Ce flux represente un parcours de demonstration, utile pour vendre la vision et
-            clarifier le sequenceur HITL.
+            Ce flux represente un parcours de démonstration, utile pour vendre la vision et
+            clarifier le séquenceur HITL.
           </p>
         </div>
       </section>
@@ -185,15 +185,15 @@ export default function TransportPage() {
         <div className="mx-auto max-w-[1440px]">
           <div className="mb-10 max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-200">
-              Briques de demo
+              Briques de démo
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
-              Quatre cartes de valeur, un seul message de maturite.
+              Quatre cartes de valeur, un seul message de maturité.
             </h2>
             <p className="mt-3 text-base leading-relaxed text-white/62">
-              Chaque carte explique un usage metier, mais le statut reste uniforme : demo
-              orchestree. Aucun visiteur ne doit confondre cette surface avec un workflow
-              deja opere publiquement.
+              Chaque carte explique un usage métier, mais le statut reste uniforme : démo
+              orchestrée. Aucun visiteur ne doit confondre cette surface avec un workflow
+              déjà opéré publiquement.
             </p>
           </div>
 
@@ -224,14 +224,14 @@ export default function TransportPage() {
       <section className="border-y border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-20 md:px-12">
         <div className="mx-auto grid max-w-[1440px] gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <EvidenceCard
-            title="Pourquoi cette demo reste pertinente"
+            title="Pourquoi cette démo reste pertinente"
             dataUsed={transportCatalog.dataUsed}
             deliverable={transportCatalog.deliverable}
             status={transportCatalog.status}
             proofLevel={transportCatalog.proofLevel}
           />
           <ScopeCard
-            title="Perimetre public Transport"
+            title="Périmètre public Transport"
             does={transportCatalog.scopeNow}
             doesnt={transportCatalog.notYet}
           />
@@ -243,14 +243,14 @@ export default function TransportPage() {
         <div className="relative mx-auto max-w-[1440px]">
           <div className="mb-10 max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-200">
-              Sequence de demo
+              Séquence de démo
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
               Le workflow sert de preuve de design produit.
             </h2>
             <p className="mt-3 text-base leading-relaxed text-white/62">
               Cette visualisation reste volontairement publique car elle montre la logique
-              d&apos;orchestration, la repartition des roles et les points de validation humaine.
+              d&apos;orchestration, la répartition des rôles et les points de validation humaine.
             </p>
           </div>
           <TransportWorkflowStepper />
@@ -261,15 +261,15 @@ export default function TransportPage() {
         <div className="mx-auto grid max-w-[1440px] gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-7">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
-              Prochaine etape utile
+              Prochaine étape utile
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white">
-              Passer de la demo a la preuve runtime.
+              Passer de la démo à la preuve runtime.
             </h2>
             <p className="mt-4 text-base leading-relaxed text-white/62">
-              Le chantier qui rendra cette verticale beaucoup plus credible n&apos;est pas un
+              Le chantier qui rendra cette verticale beaucoup plus crédible n&apos;est pas un
               nouveau discours. C&apos;est le branchement d&apos;un premier workflow transport a
-              une entree reelle, a une sortie visible et a un export public.
+              une entrée réelle, à une sortie visible et à un export public.
             </p>
           </div>
 
@@ -294,7 +294,7 @@ export default function TransportPage() {
                 href={accountingCatalog.href}
                 className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-4 text-sm text-white/76 transition-colors hover:bg-white/[0.06]"
               >
-                Voir la branche comptabilite
+                Voir la branche comptabilité
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

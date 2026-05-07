@@ -64,7 +64,7 @@ const BRANCHES = [
 ] as const;
 
 const SECTOR_STATS = [
-  { value: "8",  label: "agents actifs"           },
+  { value: "8",  label: "agents en demo"          },
   { value: "9",  label: "workbooks Excel"          },
   { value: "21", label: "sources réglementaires"   },
   { value: "0",  label: "autopublication"          },

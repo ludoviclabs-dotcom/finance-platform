@@ -56,14 +56,20 @@ export const PROOF_LEVEL_LABELS: Record<ProofLevel, string> = {
 // Les seuls chiffres exposés restent ceux du catalogue (liveAgents/liveCells/catalogAgents)
 // ou les constantes structurelles du framework (branches, secteurs, workbooks runtime).
 export const PUBLIC_METRICS = {
+  frameworkTargetAgents: 168, // capacite cible du framework, jamais perimetre live
+  externalNeuralWorkbooks: 44, // audit local Desktop hors Carbon and Co (2026-05-06)
+  excludedCarbonWorkbooks: 6,
   frameworkCells: 42, // 7 branches × 6 secteurs (math structurelle, vérifiable)
   get frameworkAgents() {
     // Somme vraie des agents inscrits dans AGENT_ENTRIES — remplace l'ancien 168.
     return AGENT_ENTRIES.length;
   },
+  get publicAgentPages() {
+    return AGENT_ENTRIES.length;
+  },
   liveAgents: countLiveAgents(),
   liveCells: countLiveCells(),
-  runtimeWorkbooks: 7,
+  runtimeWorkbooks: 35,
   publicSectors: 6,
   publicBranches: 7,
 } as const;
@@ -954,11 +960,19 @@ export const PUBLIC_CLAIMS: PublicClaim[] = [
   },
   {
     id: "framework-capacity",
-    claim: `${PUBLIC_METRICS.frameworkCells} combinaisons / ${PUBLIC_METRICS.frameworkAgents} agents correspondent a la capacite du framework`,
+    claim: `${PUBLIC_METRICS.frameworkTargetAgents} agents restent une capacite cible ; ${PUBLIC_METRICS.frameworkAgents} fiches agents sont publiques`,
     status: "qualified",
     source: "apps/neural/lib/data/agents-registry.ts",
     allowedOn: ["/", "/trust"],
     note: "A presenter comme capacite du framework, pas comme perimetre live.",
+  },
+  {
+    id: "external-workbooks",
+    claim: `${PUBLIC_METRICS.externalNeuralWorkbooks} workbooks NEURAL audites hors Carbon and Co`,
+    status: "qualified",
+    source: "Audit local C:/Users/Ludo/Desktop/IA projet entreprises (2026-05-06)",
+    allowedOn: ["/", "/trust", "/proof"],
+    note: "Actifs Excel existants, pas tous branches au runtime public.",
   },
   {
     id: "live-agents",
@@ -978,14 +992,14 @@ export const PUBLIC_CLAIMS: PublicClaim[] = [
     id: "runtime-workbooks",
     claim: `${PUBLIC_METRICS.runtimeWorkbooks} workbooks embarques dans le runtime public`,
     status: "active",
-    source: "apps/neural/app/api/data/route.ts",
-    allowedOn: ["/", "/trust", "/secteurs/luxe"],
+    source: "apps/neural/data + apps/neural/app/api/data/route.ts",
+    allowedOn: ["/", "/trust", "/secteurs/luxe", "/proof"],
   },
   {
-    id: "anthropic-partner",
-    claim: "Partenaire Anthropic",
+    id: "llm-partner-status",
+    claim: "Aucun partenariat LLM officiel revendique",
     status: "retired",
-    source: "apps/neural/components/sections/hero.tsx",
+    source: "Ancien wording hero public",
     allowedOn: ["/trust"],
     note: "Retire du discours public tant qu'une reconnaissance officielle n'est pas verifiable.",
   },
@@ -1010,6 +1024,7 @@ export const PUBLIC_CLAIMS: PublicClaim[] = [
  */
 export const NAVIGATION = [
   { label: "Preuve produit", href: "/secteurs/luxe/finance" },
+  { label: "Proof Console", href: "/proof" },
   {
     label: "Secteurs",
     href: "/secteurs/luxe",
@@ -1054,6 +1069,7 @@ export const FOOTER_LINKS = {
     status: entry.status,
   })),
   Transparence: [
+    { label: "Proof Console", href: "/proof", status: "live" as PublicStatus },
     { label: "Trust", href: "/trust", status: "live" as PublicStatus },
     { label: "Agent Safety", href: "/trust/agent-safety", status: "live" as PublicStatus },
     { label: "Status", href: "/status", status: "live" as PublicStatus },

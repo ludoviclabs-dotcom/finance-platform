@@ -30,8 +30,8 @@ const testimonials = [
     author: "Sophie R.",
     role: "Directrice Innovation",
     company: "Néo-banque B2B",
-    metric: "+340%",
-    metricLabel: "ROI an 1",
+    metric: "cadre ROI",
+    metricLabel: "a valider",
     avatar: "/images/avatar-testimonial.png",
   },
 ];

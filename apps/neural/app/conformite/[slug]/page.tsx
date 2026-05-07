@@ -153,11 +153,11 @@ export default async function CompliancePage({
                   Classification
                 </span>
                 <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
-                  Classification des 168 agents
+                  Classification cible des 168 agents
                 </h2>
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
-                  Chaque agent passe une grille de classification. Cliquez sur un niveau pour voir
-                  les agents concernés.
+                  Les 168 agents forment la cible du framework. Le perimetre live reste limite aux
+                  agents documentes dans la Proof Console.
                 </p>
               </div>
             </div>

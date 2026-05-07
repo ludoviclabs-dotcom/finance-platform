@@ -29,6 +29,7 @@
     "ai": "^6.0.158",
     "drizzle-orm": "^0.45.2",
     "framer-motion": "^12.6.3",
+    "inngest": "^4.3.0",
     "jose": "^6.2.2",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.487.0",

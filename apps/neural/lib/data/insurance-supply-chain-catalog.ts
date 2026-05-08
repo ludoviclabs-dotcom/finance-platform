@@ -380,7 +380,7 @@ export const INSURANCE_SC_SCENARIOS: InsuranceScScenario[] = [
     verdict: "BLOCK",
     summary: "Blocage RGPD : l'agent ne peut produire qu'une alerte.",
     gates: [
-      { id: "GATE-GDPR-AUTO-DECISION", state: "block", note: "Decision defavorable auto" },
+      { id: "GATE-GDPR-AUTO-DECISION", state: "block", note: "Décision defavorable auto" },
       { id: "GATE-HITL-FRAUD", state: "block", note: "HITL absent" },
       { id: "GATE-SOURCE-ACTIVE", state: "pass", note: "Source active" },
     ],

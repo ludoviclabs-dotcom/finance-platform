@@ -17,14 +17,14 @@ export function CTASection() {
       <div className="relative mx-auto max-w-4xl px-8 text-center md:px-12">
         <div className="reveal">
           <h2 className="font-display text-4xl font-extrabold tracking-tighter md:text-5xl">
-            Passer de la visite a un{" "}
-            <span className="bg-gradient-cta bg-clip-text text-transparent">cadrage reel</span>
+            Passer de la visite à un{" "}
+            <span className="bg-gradient-cta bg-clip-text text-transparent">cadrage réel</span>
           </h2>
         </div>
         <div className="reveal" style={{ animationDelay: "0.1s" }}>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-300">
-            On part du perimetre public actuel, on choisit la meilleure verticale a montrer, puis
-            on cadre ensemble ce qui merite d&apos;etre live ensuite.
+            On part du périmètre public actuel, on choisit la meilleure verticale à montrer, puis
+            on cadre ensemble ce qui merite d&apos;être live ensuite.
           </p>
         </div>
         <div

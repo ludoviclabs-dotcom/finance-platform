@@ -17,13 +17,13 @@
     { "id": "q2", "axis": "cadrage", "label": "Comment cadrez-vous la responsabilité partagée éditeur/déployeur ?", "options": [
       { "id": "none", "label": "Pas formalisée", "score": 0 },
       { "id": "verbal", "label": "Discussions verbales avec partenaires", "score": 1 },
-      { "id": "documented", "label": "Doc écrite par projet", "score": 2 },
+      { "id": "documentéd", "label": "Doc écrite par projet", "score": 2 },
       { "id": "framework", "label": "Framework standardisé incluant article 26 AI Act", "score": 3 }
     ]},
     { "id": "q3", "axis": "donnees", "label": "Vos sources de données ont-elles des contrats avec SLA ?", "options": [
       { "id": "no", "label": "Pas de contrats explicites", "score": 0 },
       { "id": "informal", "label": "Accords informels par équipe", "score": 1 },
-      { "id": "documented", "label": "Data contracts documentés", "score": 2 },
+      { "id": "documentéd", "label": "Data contracts documentés", "score": 2 },
       { "id": "monitored", "label": "Data contracts monitorés avec pénalités producteurs", "score": 3 }
     ]},
     { "id": "q4", "axis": "donnees", "label": "Le drift de qualité de données est-il monitoré en continu ?", "options": [

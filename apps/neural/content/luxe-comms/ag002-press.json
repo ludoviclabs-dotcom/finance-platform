@@ -96,7 +96,7 @@
         "pickup": "YES",
         "reach": 280000,
         "sentiment": "POSITIF",
-        "tonalite": "Tres favorable"
+        "tonalite": "Très favorable"
       },
       {
         "pickup_id": "PK-003",
@@ -180,7 +180,7 @@
         "pickup": "YES",
         "reach": 110000,
         "sentiment": "POSITIF",
-        "tonalite": "Rapport ESG credible"
+        "tonalite": "Rapport ESG crédible"
       },
       {
         "pickup_id": "PK-010",

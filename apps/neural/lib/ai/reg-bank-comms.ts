@@ -211,7 +211,7 @@ function fallbackVerdict(scenario: RegBankScenario): RegBankVerdict {
   const reviewer_comment =
     decision === "PASS"
       ? "Draft conforme aux gates MVP. À valider sur le fond par DirCom + Juridique."
-      : `Decision: ${decision}. Blockers: ${blockers.join(", ") || "—"}. Warnings: ${warnings.join(", ") || "—"}.`;
+      : `Décision: ${decision}. Blockers: ${blockers.join(", ") || "—"}. Warnings: ${warnings.join(", ") || "—"}.`;
 
   return {
     decision,

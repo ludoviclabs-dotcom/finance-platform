@@ -8,27 +8,27 @@ import { useReveal } from "@/lib/use-reveal";
 
 const cards = [
   {
-    label: "Agents avec donnees reelles",
+    label: "Agents avec données réelles",
     value: `${PUBLIC_METRICS.liveAgents}`,
-    detail: "issus de la source de verite centrale",
+    detail: "issus de la source de vérité centrale",
     icon: Layers3,
   },
   {
-    label: "Cellules alimentees",
+    label: "Cellules alimentées",
     value: `${PUBLIC_METRICS.liveCells}/${PUBLIC_METRICS.frameworkCells}`,
-    detail: "sur la capacite totale du framework",
+    detail: "sur la capacité totale du framework",
     icon: Radar,
   },
   {
     label: "Workbooks runtime",
     value: `${PUBLIC_METRICS.runtimeWorkbooks}`,
-    detail: "embarques dans le runtime public",
+    detail: "embarqués dans le runtime public",
     icon: Database,
   },
   {
-    label: "Claims qualifies",
+    label: "Claims qualifiés",
     value: `${PUBLIC_CLAIMS.filter((claim) => claim.status !== "retired").length}`,
-    detail: "claims publics encore autorises",
+    detail: "claims publics encore autorisés",
     icon: ShieldCheck,
   },
 ];
@@ -48,8 +48,8 @@ export function ProofRail() {
               Ce qui est visible aujourd&apos;hui
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-              NEURAL ne raconte plus une largeur theorique sans contexte. Chaque compteur et chaque
-              claim affiches ici viennent de la source de verite publique branchee au site.
+              NEURAL ne raconte plus une largeur théorique sans contexte. Chaque compteur et chaque
+              claims affichés ici viennent de la source de vérité publique branchée au site.
             </p>
           </div>
           <Link

@@ -98,7 +98,7 @@
       {
         "key": "DATA_VERSION",
         "value": "v2026.04",
-        "note": "Version du referentiel"
+        "note": "Version du référentiel"
       },
       {
         "key": "PROMPT_VERSION",
@@ -145,7 +145,7 @@
       {
         "rule_id": "R-004",
         "categorie": "Identite",
-        "regle": "Eviter nom des concurrents et comparatifs",
+        "regle": "Éviter nom des concurrents et comparatifs",
         "niveau": "CRITICAL",
         "poids": 25,
         "lang": "FR",
@@ -155,7 +155,7 @@
       {
         "rule_id": "R-005",
         "categorie": "Claim",
-        "regle": "Toute affirmation RSE doit etre prouvee (voir AG-005)",
+        "regle": "Toute affirmation RSE doit être prouvee (voir AG-005)",
         "niveau": "CRITICAL",
         "poids": 25,
         "lang": "FR",
@@ -165,7 +165,7 @@
       {
         "rule_id": "R-006",
         "categorie": "Heritage",
-        "regle": "Toute reference historique datee doit etre sourcee",
+        "regle": "Toute reference historique datee doit être sourcée",
         "niveau": "HIGH",
         "poids": 15,
         "lang": "FR",
@@ -460,7 +460,7 @@
         "term_type": "REVIEW",
         "categorie": "Superlatif",
         "niveau": "MEDIUM",
-        "suggestion_remplacement": "reserve, numerotee",
+        "suggestion_remplacement": "réservé, numerotee",
         "contexte": "A encadrer",
         "action": "REVIEW"
       },
@@ -491,7 +491,7 @@
         "categorie": "Positionnement",
         "niveau": "MEDIUM",
         "suggestion_remplacement": "-",
-        "contexte": "Eviter en exces",
+        "contexte": "Éviter en exces",
         "action": "INFO"
       },
       {

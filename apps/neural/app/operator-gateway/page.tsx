@@ -163,18 +163,18 @@ export default function OperatorGatewayPage() {
                 Agent Safety
               </span>
               <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
-                Demonstration ALLOW / REVIEW / BLOCK
+                Démonstration ALLOW / REVIEW / BLOCK
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
-                Cette simulation montre la decision de politique avant execution :
-                action utile, action sensible en revue, ou action hors perimetre bloquee.
+                Cette simulation montre la décision de politique avant exécution :
+                action utile, action sensible en revue, ou action hors périmètre bloquée.
               </p>
             </div>
             <Link
               href="/trust/agent-safety"
               className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200"
             >
-              Lire la preuve securite <ArrowRight className="h-4 w-4" />
+              Lire la preuve sécurité <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="mt-8">

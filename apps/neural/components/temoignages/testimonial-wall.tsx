@@ -73,7 +73,7 @@ export function TestimonialWall({ items, categories }: Props) {
       <div className="mt-10 grid gap-4 md:grid-cols-2">
         {filtered.map((t) => {
           const catLabel = categories.find((c) => c.id === t.category)?.label || t.category;
-          const cls = CATEGORY_CLS[t.category] || CATEGORY_CLS["methodologie"];
+          const cls = CATEGORY_CLS[t.category] || CATEGORY_CLS["méthodologie"];
           return (
             <div
               key={t.id}

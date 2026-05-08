@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["about", "monthly", 0.5],
     ["contact", "weekly", 0.8],
     ["publications", "weekly", 0.8],
+    ["proof", "weekly", 0.9],
     ["solutions", "weekly", 0.7],
     ["forfaits", "monthly", 0.6],
   ];
@@ -208,10 +209,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // ── Branches solutions ───────────────────────────────────
-  for (const branch of BRANCH_ENTRIES) {
-    if (branch.status === "planned") continue;
+  for (const branche of BRANCH_ENTRIES) {
+    if (branche.status === "planned") continue;
     entries.push({
-      url: `${baseUrl}${branch.href}`,
+      url: `${baseUrl}${branche.href}`,
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.6,

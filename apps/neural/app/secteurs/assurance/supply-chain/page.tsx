@@ -25,13 +25,13 @@ import {
 } from "@/lib/data/insurance-supply-chain-catalog";
 
 export const metadata: Metadata = {
-  title: "Assurance / Supply Chain - reparateurs, experts, fraude et Sapin II | NEURAL",
+  title: "Assurance / Supply Chain - réparateurs, experts, fraude et Sapin II | NEURAL",
   description:
-    "Branche Assurance / Supply Chain : 4 agents portfolio, 2 services reserves, 10 gates deterministes, 6 workbooks Excel generes. Libre choix reparateur, mandat expert, fraude HITL, Sapin II et DORA.",
+    "Branche Assurance / Supply Chain : 4 agents portfolio, 2 services réservés, 10 gates déterministes, 6 workbooks Excel générés. Libre choix réparateur, mandat expert, fraude HITL, Sapin II et DORA.",
   openGraph: {
     title: "NEURAL - Assurance / Supply Chain",
     description:
-      "RepairNetworkInsur, ExpertMgmtInsur, FraudDetectSC, Sapin2Compliance. Workbooks Excel, gates deterministes et scenarios PASS / REVIEW / BLOCK.",
+      "RepairNetworkInsur, ExpertMgmtInsur, FraudDetectSC, Sapin2Compliance. Workbooks Excel, gates déterministes et scénarios PASS / REVIEW / BLOCK.",
   },
 };
 
@@ -44,9 +44,9 @@ const AGENT_ICON = {
 
 const PROBLEMS = [
   {
-    problem: "Gestion du reseau de reparateurs",
+    problem: "Gestion du réseau de réparateurs",
     solution:
-      "RepairNetworkInsur pilote qualite, couts et delais sans jamais masquer le libre choix du reparateur.",
+      "RepairNetworkInsur pilote qualite, couts et delais sans jamais masquer le libre choix du réparateur.",
     agent: "ISC-A001",
   },
   {
@@ -62,9 +62,9 @@ const PROBLEMS = [
     agent: "ISC-A003",
   },
   {
-    problem: "Conformite loi Sapin II",
+    problem: "Conformité loi Sapin II",
     solution:
-      "Sapin2Compliance controle evaluation tiers, conflits d'interets, risque pays et preuves comptables.",
+      "Sapin2Compliance contrôle evaluation tiers, conflits d'intérêts, risque pays et preuves comptables.",
     agent: "ISC-A004",
   },
 ];
@@ -97,7 +97,7 @@ export default function InsuranceSupplyChainPage() {
             <div className="min-w-0 max-w-[320px] sm:max-w-none">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-100">
-                  Demo Excel-first
+                  Démo Excel-first
                 </span>
                 <span className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1 font-mono text-[11px] text-white/62">
                   veille {INSURANCE_SC_SUMMARY.sourceDate}
@@ -110,10 +110,10 @@ export default function InsuranceSupplyChainPage() {
                 </span>
               </h1>
               <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/68">
-                Une verticale operationnelle pour securiser reparateurs, experts,
+                Une verticale opérationnelle pour securiser réparateurs, experts,
                 fraude fournisseur et due diligence Sapin II. Le premier livrable
-                est volontairement Excel : auditable, presentable et facile a
-                expliquer a un recruteur.
+                est volontairement Excel : auditable, présentable et facile a
+                expliquer à un recruteur.
               </p>
               <div className="mt-8 flex max-w-[320px] min-w-0 flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap">
                 <a
@@ -128,7 +128,7 @@ export default function InsuranceSupplyChainPage() {
                   className="inline-flex w-full max-w-full items-center justify-center gap-2 rounded-xl border border-white/[0.18] bg-white/[0.04] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/[0.08] sm:w-auto"
                 >
                   <FileSpreadsheet className="h-4 w-4" />
-                  6 workbooks generes
+                  6 workbooks générés
                 </a>
               </div>
             </div>
@@ -137,9 +137,9 @@ export default function InsuranceSupplyChainPage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {[
                   { label: "agents", value: INSURANCE_SC_SUMMARY.agents },
-                  { label: "services reserves", value: INSURANCE_SC_SUMMARY.reservedServices },
+                  { label: "services réservés", value: INSURANCE_SC_SUMMARY.reservedServices },
                   { label: "gates MVP", value: INSURANCE_SC_SUMMARY.gates },
-                  { label: "scenarios", value: INSURANCE_SC_SUMMARY.scenarios },
+                  { label: "scénarios", value: INSURANCE_SC_SUMMARY.scenarios },
                 ].map((stat) => (
                   <div key={stat.label} className="rounded-2xl border border-white/10 bg-[#0d1a16] p-4">
                     <p className="font-display text-4xl font-bold tracking-tight text-white">{stat.value}</p>
@@ -153,8 +153,8 @@ export default function InsuranceSupplyChainPage() {
                   <p className="text-sm font-semibold">Guardrail central</p>
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-amber-100/70">
-                  Aucune sanction fournisseur, refus de sinistre ou decision sensible
-                  ne sort sans revue humaine. Le scoring sert a orienter, pas a juger.
+                  Aucune sanction fournisseur, refus de sinistre ou décision sensible
+                  ne sort sans revue humaine. Le scoring sert à orienter, pas a juger.
                 </p>
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function InsuranceSupplyChainPage() {
           <div className="mt-12 grid max-w-[320px] gap-3 sm:max-w-none md:grid-cols-4">
             {[
               { label: "Gates bloquantes", value: blockingGates, Icon: ShieldCheck },
-              { label: "Sources reglementaires", value: INSURANCE_SC_SOURCES.length, Icon: Database },
+              { label: "Sources réglementaires", value: INSURANCE_SC_SOURCES.length, Icon: Database },
               { label: "Workbooks", value: WORKBOOKS.length, Icon: FileSpreadsheet },
               { label: "Services transverses", value: INSURANCE_SC_SERVICES.length, Icon: Network },
             ].map((item) => (
@@ -180,9 +180,9 @@ export default function InsuranceSupplyChainPage() {
       <section className="border-b border-white/[0.08] px-6 py-14 md:px-12">
         <div className="mx-auto max-w-[1320px]" style={{ width: "calc(100vw - 72px)" }}>
           <SectionHeader
-            eyebrow="Cadrage metier"
+            eyebrow="Cadrage métier"
             title="4 problemes assurantiels, 4 agents controlables."
-            lead="La page reprend le bloc initial mais ajoute les garde-fous reglementaires : libre choix du reparateur, mandat expert, RGPD decision automatisee, Sapin II et DORA."
+            lead="La page reprend le bloc initial mais ajoute les garde-fous réglementaires : libre choix du réparateur, mandat expert, RGPD décision automatisée, Sapin II et DORA."
           />
           <div className="mt-8 overflow-x-auto rounded-[24px] border border-white/10">
             <table className="w-full min-w-[720px] text-left text-sm">
@@ -214,9 +214,9 @@ export default function InsuranceSupplyChainPage() {
       <section id="console" className="border-b border-white/[0.08] px-6 py-14 md:px-12">
         <div className="mx-auto max-w-[1320px]" style={{ width: "calc(100vw - 72px)" }}>
           <SectionHeader
-            eyebrow="Demo locale"
-            title="Une console scenario-id, pas un champ libre."
-            lead="Elle montre comment les workbooks seront convertis plus tard en surface produit : chaque scenario active des gates, produit un verdict et conserve une trace defendable."
+            eyebrow="Démo locale"
+            title="Une console scénario-id, pas un champ libre."
+            lead="Elle montre comment les workbooks seront convertis plus tard en surface produit : chaque scénario active des gates, produit un verdict et conserve une trace defendable."
           />
           <div className="mt-8">
             <InsuranceScConsole />
@@ -228,8 +228,8 @@ export default function InsuranceSupplyChainPage() {
         <div className="mx-auto max-w-[1320px]" style={{ width: "calc(100vw - 72px)" }}>
           <SectionHeader
             eyebrow="Agents"
-            title="Le perimetre MVP reste volontairement net."
-            lead="Chaque agent correspond a un workbook dedie. Les services ISC-A005 et ISC-A006 restent reserves pour la veille et la resolution des preuves."
+            title="Le périmètre MVP reste volontairement net."
+            lead="Chaque agent correspond à un workbook dédié. Les services ISC-A005 et ISC-A006 restent réservés pour la veille et la resolution des preuves."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {INSURANCE_SC_AGENTS.map((agent) => {
@@ -268,8 +268,8 @@ export default function InsuranceSupplyChainPage() {
           <div>
             <SectionHeader
               eyebrow="Gates"
-              title="La couche de controle avant toute sortie."
-              lead="Ces gates sont exactement le socle a transformer en API ou en workflow HITL lors d'une prochaine etape."
+              title="La couche de contrôle avant toute sortie."
+              lead="Ces gates sont exactement le socle à transformer en API ou en workflow HITL lors d'une prochaine étape."
             />
             <div className="mt-6 space-y-2">
               {INSURANCE_SC_GATES.map((gate) => (
@@ -301,8 +301,8 @@ export default function InsuranceSupplyChainPage() {
           <div>
             <SectionHeader
               eyebrow="Sourcebook"
-              title="Veille informationnelle integree au design."
-              lead="La page garde les sources lisibles : c'est utile pour un recruteur, et indispensable pour eviter de vendre une automatisation opaque."
+              title="Veille informationnelle intégrée au design."
+              lead="La page garde les sources lisibles : c'est utile pour un recruteur, et indispensable pour éviter de vendre une automatisation opaque."
             />
             <div className="mt-6 overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.035]">
               {INSURANCE_SC_SOURCES.map((source) => (
@@ -333,12 +333,12 @@ export default function InsuranceSupplyChainPage() {
                 Livrable actuel
               </p>
               <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
-                6 fichiers Excel prets pour presentation.
+                6 fichiers Excel prêts pour presentation.
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-white/62">
-                Les fichiers restent dans le dossier data dedie. Cette page est
-                l'increment web : elle expose le narratif, le design et une
-                premiere surface interactive sans pretendre a une integration
+                Les fichiers restent dans le dossier data dédié. Cette page est
+                l'increment web : elle exposé le narratif, le design et une
+                premiere surface interactive sans prétendre à une integration
                 production.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
@@ -372,7 +372,7 @@ export default function InsuranceSupplyChainPage() {
               href="/contact?subject=Assurance%20Supply%20Chain"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[#07110f] transition-colors hover:bg-cyan-50"
             >
-              Presenter ce chantier
+              Présenter ce chantier
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link

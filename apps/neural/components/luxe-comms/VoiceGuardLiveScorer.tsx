@@ -71,7 +71,7 @@ const PRESETS = [
     id: "clean",
     label: "Conforme — savoir-faire",
     text:
-      "L'atelier parisien devoile une piece ciselee a la main, inspiree des archives de 1923. Un geste artisanal transmis de generation en generation.",
+      "L'atelier parisien devoile une piece ciselee à la main, inspiree des archives de 1923. Un geste artisanal transmis de generation en generation.",
   },
   {
     id: "hardfail",
@@ -187,7 +187,7 @@ export function VoiceGuardLiveScorer() {
       setResult(data.result);
       setMeta(data.meta ?? null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur reseau");
+      setError(err instanceof Error ? err.message : "Erreur réseau");
     } finally {
       setLoading(false);
     }
@@ -242,7 +242,7 @@ export function VoiceGuardLiveScorer() {
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-200">
-                Demo live · MaisonVoiceGuard
+                Démo live · MaisonVoiceGuard
               </p>
               <h3 className="font-display text-2xl font-bold text-white">
                 Scorez votre texte en {"< "}3 secondes
@@ -251,7 +251,7 @@ export function VoiceGuardLiveScorer() {
           </div>
           <p className="mt-3 max-w-xl text-sm text-white/60">
             Collez un communique, un post, une invitation. L&apos;agent applique la charte runtime :
-            15 regles, 17 hard-fail, 25 termes normes. Aucun stockage.
+            15 règles, 17 hard-fail, 25 termes normes. Aucun stockage.
           </p>
         </div>
         <div className="flex items-center gap-2 text-[10px] text-white/40">
@@ -284,7 +284,7 @@ export function VoiceGuardLiveScorer() {
           ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value.slice(0, 2000))}
-          placeholder="Ex : L'atelier devoile une piece ciselee a la main, inspiree des archives de 1923..."
+          placeholder="Ex : L'atelier devoile une piece ciselee à la main, inspiree des archives de 1923..."
           className="min-h-[140px] w-full resize-y rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white placeholder:text-white/30 focus:border-violet-400/50 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
           maxLength={2000}
         />
@@ -324,7 +324,7 @@ export function VoiceGuardLiveScorer() {
         {meta?.mode === "fallback" && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-200">
             <Sparkles className="h-3 w-3" />
-            Mode demo (gateway off)
+            Mode démo (gateway off)
           </span>
         )}
         {meta?.mode === "gateway" && meta.latencyMs && (
@@ -452,7 +452,7 @@ export function VoiceGuardLiveScorer() {
                 <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.04] p-5">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300">
                     <Wand2 className="mr-1 inline h-3 w-3" />
-                    Suggestion de reecriture
+                    Suggestion de réécriture
                   </p>
                   <p className="mt-3 text-sm italic leading-relaxed text-white/80">
                     &ldquo;{result.rewrite_suggestion}&rdquo;
@@ -462,7 +462,7 @@ export function VoiceGuardLiveScorer() {
                 <div className="flex flex-col items-start justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.04] p-5">
                   <CheckCircle2 className="mb-2 h-5 w-5 text-emerald-300" />
                   <p className="text-sm text-emerald-100">
-                    Aucune reecriture necessaire — texte conforme a la charte.
+                    Aucune réécriture necessaire — texte conforme à la charte.
                   </p>
                 </div>
               )}
@@ -477,14 +477,14 @@ export function VoiceGuardLiveScorer() {
                       Ce texte ne passerait pas la gate brand.
                     </p>
                     <p className="mt-1 text-sm text-white/65">
-                      Discutez avec nous — on audit vos 3 derniers communiques sans engagement.
+                      Discutez avec nous — on audit vos 3 derniers communiqués sans engagement.
                     </p>
                   </div>
                   <Link
                     href="/contact?subject=voice-score-audit"
                     className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#0A1628] transition-colors hover:bg-violet-100"
                   >
-                    Parler a un expert
+                    Parler à un expert
                   </Link>
                 </div>
               </div>

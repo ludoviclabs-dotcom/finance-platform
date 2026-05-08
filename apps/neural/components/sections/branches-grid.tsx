@@ -42,27 +42,27 @@ export function BranchesGrid() {
         </div>
 
         <div className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {branches.map((branch, i) => (
-            <div key={branch.id} className="reveal" style={{ animationDelay: `${0.1 + i * 0.06}s` }}>
-              <Link href={`/solutions/${branch.id}`} className="block h-full">
+          {branches.map((branche, i) => (
+            <div key={branche.id} className="reveal" style={{ animationDelay: `${0.1 + i * 0.06}s` }}>
+              <Link href={`/solutions/${branche.id}`} className="block h-full">
                 <motion.div
                   whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)" }}
                   transition={{ type: "spring", stiffness: 300, damping: 22 }}
                   className="card-interactive p-6 h-full"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neural-violet/10">
-                    <branch.icon className="h-5 w-5 text-neural-violet" />
+                    <branche.icon className="h-5 w-5 text-neural-violet" />
                   </div>
                   <h3 className="mt-3 font-display text-sm font-bold">
-                    {branch.label}
+                    {branche.label}
                   </h3>
                   <p className="mt-1 text-xs text-[var(--color-foreground-muted)] leading-relaxed">
-                    {branch.desc}
+                    {branche.desc}
                   </p>
                   <div className="mt-3 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-neural-green" />
                     <span className="text-[10px] font-medium text-[var(--color-foreground-subtle)]">
-                      {branch.agents} agents actifs
+                      {branche.agents} agents ciblés
                     </span>
                   </div>
                 </motion.div>

@@ -67,23 +67,23 @@ function getForfaitTier(users: number): { label: string; basePrice: number; perB
 
 function computeRoi(inputs: Required<Inputs>) {
   const tier = getForfaitTier(inputs.users);
-  const branchCount = inputs.branches.length;
+  const brancheCount = inputs.branches.length;
 
-  const branchImpact =
+  const brancheImpact =
     inputs.branches
       .map((id) => BRANCHES.find((b) => b.id === id)?.impact ?? 1)
-      .reduce((acc, v) => acc + v, 0) / Math.max(branchCount, 1);
+      .reduce((acc, v) => acc + v, 0) / Math.max(brancheCount, 1);
 
   const freq = FREQUENCIES.find((f) => f.id === inputs.frequency);
   const hoursPerUserMonth = freq?.hoursPerUserMonth ?? 4;
 
   // Coût NEURAL/mo
-  const neuralMonthly = tier.basePrice + branchCount * tier.perBranchPrice;
+  const neuralMonthly = tier.basePrice + brancheCount * tier.perBranchPrice;
 
   // Heures économisées par mois total (couverture partielle des users — 35%)
   const adoptionRate = 0.35;
   const activeUsers = inputs.users * adoptionRate;
-  const hoursSavedMonth = activeUsers * branchCount * hoursPerUserMonth * branchImpact;
+  const hoursSavedMonth = activeUsers * brancheCount * hoursPerUserMonth * brancheImpact;
 
   // Valeur monétaire des heures gagnées
   const monthlySavings = hoursSavedMonth * ETP_HOURLY_LOADED;

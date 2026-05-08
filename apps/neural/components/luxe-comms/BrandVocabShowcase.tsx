@@ -64,7 +64,7 @@ export function BrandVocabShowcase() {
           </div>
         </div>
         <p className="mt-3 text-sm text-white/60">
-          Termes preferes qui bonifient le score brand — savoir-faire, heritage, metier.
+          Termes préférés qui bonifient le score brand — savoir-faire, héritage, métier.
         </p>
         <ul className="mt-5 space-y-2">
           {preferred.map((v) => (

@@ -339,7 +339,7 @@ export default function BankCommsPage() {
           <Header
             eyebrow="2 services transverses"
             title="Consommés par les 4 agents."
-            lead="RegWatchBank alimente la veille réglementaire. BankEvidenceGuard résout les sources admissibles avant génération — résolveur 100 % déterministe, sans LLM."
+            lead="RegWatchBank alimenté la veille réglementaire. BankEvidenceGuard résout les sources admissibles avant génération — résolveur 100 % déterministe, sans LLM."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {services.map((s) => {

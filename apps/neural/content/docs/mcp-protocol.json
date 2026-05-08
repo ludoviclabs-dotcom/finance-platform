@@ -8,7 +8,7 @@
   "sections": [
     {
       "heading": "1. Qu'est-ce que MCP ?",
-      "body": "MCP (Model Context Protocol) est un protocole ouvert publié par Anthropic en 2024. Il standardise la communication entre un modèle LLM et les outils qu'il peut invoquer (lecture base de données, appel API, calcul, etc.). C'est l'équivalent USB pour les agents IA : un même outil peut être branché sur n'importe quel modèle compatible MCP.\n\nNEURAL utilise MCP pour :\n• Connecter Claude aux outils internes (NEURAL Data Hub, Luxe Comms MCP, Bank Comms MCP, etc.)\n• Centraliser la gouvernance via l'Operator Gateway\n• Garantir la portabilité des agents entre fournisseurs LLM"
+      "body": "MCP (Model Context Protocol) est un protocole ouvert publié par Anthropic en 2024. Il standardise la communication entre un modèle LLM et les outils qu'il peut invoquer (lecture base de données, appel API, calcul, etc.). C'est l'équivalent USB pour les agents IA : un même outil peut être branche sur n'importe quel modèle compatible MCP.\n\nNEURAL utilise MCP pour :\n• Connecter Claude aux outils internes (NEURAL Data Hub, Luxe Comms MCP, Bank Comms MCP, etc.)\n• Centraliser la gouvernance via l'Operator Gateway\n• Garantir la portabilité des agents entre fournisseurs LLM"
     },
     {
       "heading": "2. L'Operator Gateway",

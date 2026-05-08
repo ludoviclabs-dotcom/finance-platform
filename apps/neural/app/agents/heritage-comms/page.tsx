@@ -8,7 +8,7 @@ import { LUXE_COMMS_SUMMARY } from "@/lib/data/luxe-comms-catalog";
 export const metadata: Metadata = {
   title: "HeritageComms — sourcing patrimonial sans hallucination | NEURAL",
   description:
-    "AG-004 HeritageComms : sourcing patrimonial discipline. Aucune sortie sans source cataloguee + citation formatee. 10 sources classifiees PRIMARY/SECONDARY/TERTIARY. Demo live disponible.",
+    "AG-004 HeritageComms : sourcing patrimonial discipline. Aucune sortie sans source cataloguee + citation formatee. 10 sources classifiées PRIMARY/SECONDARY/TERTIARY. Demo live disponible.",
 };
 
 export default function HeritageCommsPage() {
@@ -42,8 +42,8 @@ export default function HeritageCommsPage() {
             {s.heritageSourcesCount} sources cataloguees · {s.primarySourcesCount} primaires
           </h2>
           <p className="mt-3 max-w-3xl text-white/60">
-            HeritageComms applique la regle d&apos;or : aucune affirmation historique sans source active.
-            Les sources TERTIARY declenchent une revue obligatoire. La date de revision est surveillee
+            HeritageComms applique la règle d&apos;or : aucune affirmation historique sans source active.
+            Les sources TERTIARY déclenchent une revue obligatoire. La date de révision est surveillée
             par un CF J-30 automatique — une source STALE bloque l&apos;usage.
           </p>
           <div className="mt-8">

@@ -37,7 +37,7 @@ const DOCUMENTS: PublicDocument[] = [
     id: "bcp",
     title: "Plan de Continuité d'Activité (résumé public)",
     description:
-      "Stratégie de reprise, RPO/RTO cibles, fréquence des tests de bascule.",
+      "Stratégie de reprise, RPO/RTO ciblés, fréquence des tests de bascule.",
     status: "preparing",
     format: "PDF · résumé public",
   },

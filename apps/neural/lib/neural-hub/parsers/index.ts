@@ -5,3 +5,4 @@ export { parseRoyalty } from './parse-royalty';
 export { parseArtisanTalent } from './parse-artisan-talent';
 export { parseCompBenchmark } from './parse-comp-benchmark';
 export { parseOnboarding } from './parse-onboarding';
+export { parseProofWorkbookPacks, parseWorkbookPack } from './parse-workbook-pack';

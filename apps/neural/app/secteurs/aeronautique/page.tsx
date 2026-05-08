@@ -40,7 +40,7 @@ const BRANCHES = [
     kpis: ["4 agents", "5 workbooks Excel", "44 règles encodées"],
     accent: "#7C3AED",
     bg: "#0e0824",
-    cls: "branch-mkt",
+    cls: "branche-mkt",
     status: "ACTIVE" as const,
   },
   {
@@ -59,7 +59,7 @@ const BRANCHES = [
     kpis: ["6 workbooks générés", "Foundations + Master", "À venir Q2-Q3 2026"],
     accent: "#0891B2",
     bg: "#0a1f24",
-    cls: "branch-comms",
+    cls: "branche-comms",
     status: "COMING" as const,
   },
 ] as const;
@@ -75,9 +75,9 @@ export default function AeronautiquePage() {
   return (
     <main style={{ background: "#0e0824", minHeight: "100vh", color: "#f1f5f9", fontFamily: "Arial, sans-serif" }}>
       <style>{`
-        .branch-card { transition: border-color .2s, transform .2s; }
-        .branch-mkt:hover    { border-color: #7C3AED !important; transform: translateY(-3px); }
-        .branch-comms:hover  { border-color: #0891B2 !important; transform: translateY(-3px); }
+        .branche-card { transition: border-color .2s, transform .2s; }
+        .branche-mkt:hover    { border-color: #7C3AED !important; transform: translateY(-3px); }
+        .branche-comms:hover  { border-color: #0891B2 !important; transform: translateY(-3px); }
       `}</style>
 
       {/* ── NAV ─────────────────────────────────────── */}
@@ -125,51 +125,51 @@ export default function AeronautiquePage() {
           </h2>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(440px, 1fr))", gap: "24px" }}>
-            {BRANCHES.map((branch) => {
-              const isActive = branch.status === "ACTIVE";
+            {BRANCHES.map((branche) => {
+              const isActive = branche.status === "ACTIVE";
               const Wrapper = ({ children }: { children: React.ReactNode }) =>
                 isActive ? (
-                  <Link href={branch.href} style={{ textDecoration: "none", display: "block" }}>
+                  <Link href={branche.href} style={{ textDecoration: "none", display: "block" }}>
                     {children}
                   </Link>
                 ) : (
                   <div style={{ display: "block", opacity: 0.85 }}>{children}</div>
                 );
               return (
-                <Wrapper key={branch.slug}>
+                <Wrapper key={branche.slug}>
                   <div
-                    className={`branch-card ${branch.cls}`}
-                    style={{ background: branch.bg, border: `1px solid ${branch.accent}40`, borderRadius: "16px", padding: "36px", cursor: isActive ? "pointer" : "default" }}
+                    className={`branche-card ${branche.cls}`}
+                    style={{ background: branche.bg, border: `1px solid ${branche.accent}40`, borderRadius: "16px", padding: "36px", cursor: isActive ? "pointer" : "default" }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
                       <div>
-                        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", color: branch.accent, textTransform: "uppercase", marginBottom: "6px", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", color: branche.accent, textTransform: "uppercase", marginBottom: "6px", display: "flex", alignItems: "center", gap: "8px" }}>
                           Branche
                           {!isActive && (
-                            <span style={{ background: `${branch.accent}30`, color: branch.accent, padding: "2px 8px", borderRadius: "10px", fontSize: "9px" }}>
+                            <span style={{ background: `${branche.accent}30`, color: branche.accent, padding: "2px 8px", borderRadius: "10px", fontSize: "9px" }}>
                               <Clock size={9} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} />
                               à venir
                             </span>
                           )}
                         </div>
-                        <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#fff", lineHeight: 1.1 }}>{branch.label}</div>
-                        <div style={{ fontSize: "13px", color: "#94a3b8", marginTop: "4px" }}>{branch.tagline}</div>
+                        <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#fff", lineHeight: 1.1 }}>{branche.label}</div>
+                        <div style={{ fontSize: "13px", color: "#94a3b8", marginTop: "4px" }}>{branche.tagline}</div>
                       </div>
-                      <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: `${branch.accent}20`, display: "flex", alignItems: "center", justifyContent: "center", color: branch.accent, flexShrink: 0 }}>
+                      <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: `${branche.accent}20`, display: "flex", alignItems: "center", justifyContent: "center", color: branche.accent, flexShrink: 0 }}>
                         {isActive ? <ArrowRight size={18} /> : <Clock size={18} />}
                       </div>
                     </div>
 
                     <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.65, marginBottom: "24px" }}>
-                      {branch.description}
+                      {branche.description}
                     </p>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "24px" }}>
-                      {branch.agents.map((agent) => {
+                      {branche.agents.map((agent) => {
                         const Icon = agent.icon;
                         return (
                           <div key={agent.name} style={{ background: "rgba(255,255,255,.04)", borderRadius: "8px", padding: "10px 12px", display: "flex", alignItems: "center", gap: "10px" }}>
-                            <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: `${branch.accent}20`, display: "flex", alignItems: "center", justifyContent: "center", color: branch.accent, flexShrink: 0 }}>
+                            <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: `${branche.accent}20`, display: "flex", alignItems: "center", justifyContent: "center", color: branche.accent, flexShrink: 0 }}>
                               <Icon size={14} />
                             </div>
                             <div>
@@ -182,8 +182,8 @@ export default function AeronautiquePage() {
                     </div>
 
                     <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      {branch.kpis.map((k) => (
-                        <span key={k} style={{ background: `${branch.accent}18`, border: `1px solid ${branch.accent}35`, borderRadius: "20px", padding: "3px 10px", fontSize: "11px", color: branch.accent, fontWeight: 600 }}>
+                      {branche.kpis.map((k) => (
+                        <span key={k} style={{ background: `${branche.accent}18`, border: `1px solid ${branche.accent}35`, borderRadius: "20px", padding: "3px 10px", fontSize: "11px", color: branche.accent, fontWeight: 600 }}>
                           {k}
                         </span>
                       ))}

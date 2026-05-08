@@ -8,24 +8,24 @@ import { useReveal } from "@/lib/use-reveal";
 
 const faqs = [
   {
-    q: "Quel niveau de verite publique appliquez-vous sur le site ?",
-    a: "Chaque page publique est maintenant qualifiee comme live avec donnees reelles, demo orchestree ou en preparation. Le but est de montrer ce qui est deja prouve, sans presenter le reste comme deja opere.",
+    q: "Quel niveau de vérité publique appliquez-vous sur le site ?",
+    a: "Chaque page publique est maintenant qualifiée comme live avec données réelles, démo orchestrée ou en préparation. Le but est de montrer ce qui est déjà prouve, sans présenter le reste comme déjà opéré.",
   },
   {
     q: "Que signifie exactement 'Chat public route via Vercel AI Gateway' ?",
-    a: "Cela signifie que le chat public passe maintenant par une couche de routage unique, avec Claude Sonnet 4.6 comme modele principal et un fallback GPT-5.4 prepare. Cela remplace un branchement provider direct et pose une meilleure base pour l'observabilite.",
+    a: "Cela signifie que le chat public passe maintenant par une couche de routage unique, avec Claude Sonnet 4.6 comme modèle principal et un fallback GPT-5.4 préparé. Cela remplace un branchement provider direct et pose une meilleure base pour l'observabilité.",
   },
   {
-    q: "Quelle est la meilleure demo a regarder aujourd'hui ?",
-    a: "Le noyau Luxe est la verticale la plus prouvee publiquement. Transport reste la meilleure demonstration d'orchestration, mais doit etre lu comme une demo et non comme un workflow completement industrialise.",
+    q: "Quelle est la meilleure démo a regarder aujourd'hui ?",
+    a: "Le noyau Luxe est la verticale la plus prouvée publiquement. Transport reste la meilleure démonstration d'orchestration, mais doit être lu comme une démo et non comme un workflow complètement industrialisé.",
   },
   {
-    q: "Pourquoi avoir retire certaines promesses techniques ?",
-    a: "Des formulations comme SLA 99.9%, hebergement europeen, AES-256 ou claims generiques de conformite ont ete retirees du discours public tant qu'elles ne sont pas documentees ou demonstrables dans le produit.",
+    q: "Pourquoi avoir retiré certaines promesses techniques ?",
+    a: "Des formulations comme SLA 99.9%, hébergement européen, AES-256 ou claims génériques de conformité ont été retirées du discours public tant qu'elles ne sont pas documentées ou démontrables dans le produit.",
   },
   {
     q: "Que dois-je faire si je veux un cadrage concret ?",
-    a: "Le plus utile est de partir d'une verticale ou d'un agent cible, puis d'organiser une demo guidee ou un cadrage court. La page Contact permet d'ouvrir directement une demande structuree.",
+    a: "Le plus utile est de partir d'une verticale ou d'un agent cible, puis d'organiser une démo guidee ou un cadrage court. La page Contact permet d'ouvrir directement une demande structurée.",
   },
 ];
 
@@ -41,7 +41,7 @@ export function FAQAccordion() {
         </div>
         <div className="reveal mb-14 text-center" style={{ animationDelay: "0.05s" }}>
           <h2 className="font-display text-4xl font-extrabold tracking-tighter md:text-5xl">
-            Questions frequentes
+            Questions fréquentes
           </h2>
         </div>
 

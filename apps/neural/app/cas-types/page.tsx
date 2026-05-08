@@ -67,7 +67,7 @@ export default function CasTypesIndexPage() {
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/68">
             Trois contextes sectoriels types, trois démarches NEURAL chiffrées. Chaque cas-type
             détaille le défi initial, la méthodologie en 4 phases, les agents mobilisés, les
-            métriques cibles et le calendrier 30/60/90 jours.
+            métriques ciblés et le calendrier 30/60/90 jours.
           </p>
         </div>
       </section>

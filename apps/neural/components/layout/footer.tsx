@@ -52,7 +52,7 @@ export function Footer() {
             </span>
           </div>
           <p className="text-xs text-gray-600">
-            &copy; {new Date().getFullYear()} NEURAL AI Consulting SAS. Tous droits reserves.
+            &copy; {new Date().getFullYear()} NEURAL AI Consulting SAS. Tous droits réservés.
           </p>
         </div>
       </div>

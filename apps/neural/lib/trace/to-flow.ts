@@ -1,7 +1,7 @@
 /**
  * NEURAL — Trace → React Flow converter (Sprint 4)
  *
- * Converts an AgentDecision[] (linear sequence) into React Flow nodes + edges.
+ * Converts an AgentDécision[] (linear sequence) into React Flow nodes + edges.
  * Layout: horizontal left-to-right, one node per decision.
  *
  * The returned nodes use the custom type "decisionNode" which must be registered

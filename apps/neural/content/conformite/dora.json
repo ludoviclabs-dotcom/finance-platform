@@ -34,7 +34,7 @@
       "number": "Article 5-15",
       "title": "Cadre de gestion du risque TIC",
       "summary": "Les entités financières mettent en place un cadre de gestion du risque TIC robuste : gouvernance, identification des actifs critiques, protection, détection, réponse, récupération.",
-      "neuralDoes": "Risk register par agent et par sous-processeur. Page Trust documente l'infrastructure et les sous-processeurs avec engagement de notification 30j. Operator Gateway (en cours) journalise les décisions agent.",
+      "neuralDoes": "Risk register par agent et par sous-processeur. Page Trust documenté l'infrastructure et les sous-processeurs avec engagement de notification 30j. Operator Gateway (en cours) journalise les décisions agent.",
       "neuralDoesNot": "Nous ne sommes pas votre cadre interne DORA — vous restez l'entité financière responsable. Nous outillons votre conformité, vous portez la stratégie."
     },
     {
@@ -49,7 +49,7 @@
       "id": "art-24",
       "number": "Article 24-27",
       "title": "Tests de résilience opérationnelle digitale",
-      "summary": "Programme de tests : vulnerability assessments annuels, scenario-based tests, threat-led penetration testing (TLPT) tous les 3 ans pour les entités significatives.",
+      "summary": "Programme de tests : vulnerability assessments annuels, scénario-based tests, threat-led penetration testing (TLPT) tous les 3 ans pour les entités significatives.",
       "neuralDoes": "Vulnerability Disclosure Policy + bug bounty privé sur YesWeHack (roadmap T3 2026). Tests de prompt injection automatisés sur les agents.",
       "neuralDoesNot": "Nous ne sommes pas auditeur TLPT — vous mandatez vos prestataires habilités."
     },

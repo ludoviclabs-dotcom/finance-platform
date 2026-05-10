@@ -132,7 +132,7 @@ export const datapointExtractOne = inngest.createFunction(
     id: "datapoint-extract-one",
     name: "Datapoint — Extract single ESRS datapoint",
     triggers: [{ event: "datapoints/extract.one" }],
-    concurrency: { limit: 8 }, // 8 extractions parallèles (rate limit Anthropic)
+    concurrency: { limit: 5 }, // 5 extractions parallèles (plan Inngest gratuit)
     retries: 3,
   },
   async ({ event, step }) => {

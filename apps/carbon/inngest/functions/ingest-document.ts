@@ -41,7 +41,7 @@ export const ragDocumentIngest = inngest.createFunction(
     id: "rag-document-ingest",
     name: "RAG — Ingest single document",
     triggers: [{ event: "rag/document.ingest" }],
-    concurrency: { limit: 10 }, // 10 docs en parallèle global
+    concurrency: { limit: 5 }, // 5 docs en parallèle (plan Inngest gratuit)
     retries: 3, // retry automatique sur erreur transient (Voyage 5xx, blob 503)
   },
   async ({ event, step }) => {

@@ -76,7 +76,7 @@ export function SectionPricing() {
               <div className="nhp-tier-price-to">
                 {tier.price === "Sur devis"
                   ? `${tier.to} · ${tier.unit}`
-                  : `jusqu'? ${tier.to} EUR · ${tier.unit}`}
+                  : `jusqu'à ${tier.to} EUR · ${tier.unit}`}
               </div>
               <ul className="nhp-tier-feats">
                 {tier.feats.map((feature) => (

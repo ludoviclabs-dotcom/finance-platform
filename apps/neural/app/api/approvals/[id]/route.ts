@@ -4,12 +4,13 @@
  * Body: { action: "approve" | "reject", reason?: string }
  * reason is required when action = "reject".
  *
- * Auth: expects x-reviewer-id header (replace with NextAuth session in production).
+ * Auth: INTERNAL_REVIEW_TOKEN when configured, x-reviewer-id only for local/dev fallback.
  */
 
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { approveRun, rejectRun } from "@/lib/hitl";
+import { getInternalReviewer } from "@/lib/internal-review-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -22,11 +23,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  // TODO: replace with session.user.id from NextAuth
-  const reviewerId = req.headers.get("x-reviewer-id");
-  if (!reviewerId) {
-    return Response.json({ error: "Non authentifié." }, { status: 401 });
-  }
+  const reviewer = getInternalReviewer(req);
+  if (!reviewer.ok) return Response.json({ error: reviewer.error }, { status: reviewer.status });
+  const reviewerId = reviewer.reviewerId;
 
   const { id: approvalId } = await params;
 

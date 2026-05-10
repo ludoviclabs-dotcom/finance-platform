@@ -9,21 +9,22 @@ export function HeroUnified() {
       <div className="nhp-hero-grain" />
       <div className="nhp-hero-inner nhp-container">
         <div className="nhp-hero-eyebrow">
-          <span className="nhp-dot nhp-dot-green" /> Workbooks Excel · agents gouvernes
+          <span className="nhp-dot nhp-dot-green" /> Workbooks Excel · agents gouvernés
         </div>
 
         <div className="nhp-hero-grid">
           <div className="nhp-hero-left">
             <h1 className="nhp-hero-title">
               <span>L&apos;intelligence</span>
-              <span>augmentee,</span>
-              <span>prouvee.</span>
+              <span>augmentée,</span>
+              <span>prouvée.</span>
             </h1>
             <p className="nhp-hero-lead">
-              {PUBLIC_METRICS.liveAgents} agents avec données Excel,{" "}
-              {PUBLIC_METRICS.runtimeWorkbooks} workbooks embarqués et{" "}
-              {PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentées.
-              Les 168 agents restent la capacité cible du framework, pas le périmètre live.
+              <span>{PUBLIC_METRICS.liveAgents} agents avec données Excel.</span>{" "}
+              <span>{PUBLIC_METRICS.runtimeWorkbooks} workbooks embarqués.</span>{" "}
+              <span>{PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentées.</span>{" "}
+              <span>168 reste la capacité cible.</span>{" "}
+              <span>Pas le périmètre live.</span>
             </p>
             <div className="nhp-hero-ctas">
               <Link href="/proof" className="nhp-btn nhp-btn-primary nhp-btn-xl">
@@ -34,8 +35,11 @@ export function HeroUnified() {
               </Link>
             </div>
             <div className="nhp-hero-foot">
-              <div className="nhp-haf-l">Etat du catalogue</div>
-              <div className="nhp-haf-logos">Luxe Finance + Luxe Communication en noyau prouve</div>
+              <div className="nhp-haf-l">État du catalogue</div>
+              <div className="nhp-haf-logos">
+                <span>Luxe Finance + Luxe Communication</span>{" "}
+                <span>en noyau prouvé</span>
+              </div>
             </div>
           </div>
 

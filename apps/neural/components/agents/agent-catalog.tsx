@@ -55,8 +55,8 @@ export function AgentCatalog({ agents }: AgentCatalogProps) {
   }, [agents, branche, sector, status, risk]);
 
   const totalLive = agents.filter((a) => a.status === "live").length;
-  const totalDemo = agents.filter((a) => a.status === "demo").length;
-  const totalPlanned = agents.filter((a) => a.status === "planned").length;
+  const totalExportAudit = agents.filter((a) => (a.proof?.score ?? 0) >= 3).length;
+  const totalClientReady = agents.filter((a) => (a.proof?.score ?? 0) >= 4).length;
 
   const hasActiveFilter = Boolean(branche || sector || status || risk);
 
@@ -76,19 +76,19 @@ export function AgentCatalog({ agents }: AgentCatalogProps) {
           </p>
           <p className="mt-1 text-xs text-white/55">avec données réelles</p>
         </div>
-        <div className="rounded-[20px] border border-violet-400/25 bg-violet-400/[0.06] p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-violet-300/70">Demo</p>
-          <p className="mt-2 font-display text-3xl font-bold tabular-nums text-violet-100">
-            {totalDemo}
-          </p>
-          <p className="mt-1 text-xs text-white/55">démonstration UI</p>
-        </div>
         <div className="rounded-[20px] border border-amber-400/25 bg-amber-400/[0.06] p-4">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-amber-300/70">Planifiés</p>
-          <p className="mt-2 font-display text-3xl font-bold tabular-nums text-amber-200">
-            {totalPlanned}
+          <p className="text-[11px] uppercase tracking-[0.18em] text-amber-300/70">Export / audit</p>
+          <p className="mt-2 font-display text-3xl font-bold tabular-nums text-amber-100">
+            {totalExportAudit}
           </p>
-          <p className="mt-1 text-xs text-white/55">en préparation</p>
+          <p className="mt-1 text-xs text-white/55">avec sortie exploitable</p>
+        </div>
+        <div className="rounded-[20px] border border-emerald-400/25 bg-emerald-400/[0.06] p-4">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-300/70">Client-ready</p>
+          <p className="mt-2 font-display text-3xl font-bold tabular-nums text-emerald-100">
+            {totalClientReady}
+          </p>
+          <p className="mt-1 text-xs text-white/55">critères stricts validés</p>
         </div>
       </div>
 

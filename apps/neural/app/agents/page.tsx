@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bot, ArrowRight } from "lucide-react";
 
 import { AGENT_ENTRIES } from "@/lib/public-catalog";
+import { PROOF_SCORE_LABELS, PROOF_STATUS_LABELS, getAgentProofRecords } from "@/lib/proof-catalog";
 import { AgentCatalog } from "@/components/agents/agent-catalog";
 import type { EnrichedAgent, AgentMeta } from "@/components/agents/agent-card";
 import agentsMeta from "@/content/agents-meta.json";
@@ -15,11 +16,23 @@ export const metadata = {
 const META_MAP = agentsMeta.items as Record<string, AgentMeta>;
 
 export default function AgentsPage() {
+  const proofMap = new Map(getAgentProofRecords().map((agent) => [agent.id, agent]));
   // Enrich AGENT_ENTRIES with metadata; only keep those with metadata
   // (others would be displayed without filters context)
   const enriched: EnrichedAgent[] = AGENT_ENTRIES.filter((a) => META_MAP[a.slug]).map((a) => ({
     ...a,
     meta: META_MAP[a.slug],
+    proof: proofMap.has(a.slug)
+      ? {
+          score: proofMap.get(a.slug)!.proofScore,
+          label: PROOF_SCORE_LABELS[proofMap.get(a.slug)!.proofScore],
+          statusLabel: PROOF_STATUS_LABELS[proofMap.get(a.slug)!.proofStatus],
+          exportAvailable: proofMap.get(a.slug)!.exportAvailable,
+          auditTrailAvailable: proofMap.get(a.slug)!.auditTrailAvailable,
+          nextAction: proofMap.get(a.slug)!.nextAction,
+          isFlagship: proofMap.get(a.slug)!.isFlagship,
+        }
+      : undefined,
   }));
 
   return (

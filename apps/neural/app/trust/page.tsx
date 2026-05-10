@@ -92,8 +92,9 @@ export default function TrustPage() {
                 Où vivent les données
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
-                Quatre couches, quatre régions documentées. Aucun transit hors UE pour les
-                données applicatives. Modèles IA appelés via Vercel AI Gateway avec rétention zéro.
+                Quatre couches et régions documentées. Les données applicatives sont conçues pour
+                rester dans les services déclarés; tout pilot client devra confirmer les régions,
+                sous-traitants et options de rétention dans le DPA.
               </p>
             </div>
           </div>
@@ -138,8 +139,8 @@ export default function TrustPage() {
                 Engagements et trajectoire
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
-                Aucune fausse promesse. Chaque cadre est marqué selon son état réel : conforme par
-                design, en cours de certification, ou planifié avec date.
+                Aucune fausse promesse. Chaque cadre est marqué selon son état réel : conçu pour,
+                en cours de préparation, ou planifié avec date.
               </p>
             </div>
             <Link
@@ -161,7 +162,7 @@ export default function TrustPage() {
             <div>
               <h2 className="font-display text-3xl font-bold tracking-tight">Fondations IA</h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
-                Cette couche active l&apos;étape 1 en production et préparé déjà les étapes 2 et
+                Cette couche active l&apos;étape 1 en production et prépare déjà les étapes 2 et
                 3 : routage unifié, fallback de modèle et journalisation légère.
               </p>
             </div>

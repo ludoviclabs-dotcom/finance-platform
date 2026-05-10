@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, CircleDot, ShieldAlert } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleDot, Download, ShieldAlert } from "lucide-react";
 
 import {
   INSURANCE_SC_AGENTS,
@@ -44,6 +44,34 @@ export function InsuranceScConsole() {
     const firstScenario = INSURANCE_SC_SCENARIOS.find((scenario) => scenario.agentSlug === slug);
     setActiveAgent(slug);
     setActiveScenarioId(firstScenario?.id ?? "");
+  }
+
+  function downloadScenarioReport() {
+    if (!activeAgentMeta || !activeScenario) return;
+    const payload = {
+      agent: activeAgentMeta.name,
+      agentId: activeAgentMeta.id,
+      generatedAt: new Date().toISOString(),
+      workbookSource: activeAgentMeta.workbook,
+      input: { scenarioId: activeScenario.id, agentSlug: activeAgent },
+      output: activeScenario,
+      proofStatus: "public_demo",
+      humanSupervision:
+        "Claims, fraude et compliance revoient toute alerte; aucune décision sensible n'est automatisée.",
+      limitations: [
+        "Console scenario-id publique, sans données sinistres réelles.",
+        "Pas encore de fiche agent dédiée ni de connecteur SI assurance.",
+      ],
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `NEURAL_${activeAgentMeta.id}_${activeScenario.id}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   if (!activeAgentMeta || !activeScenario) {
@@ -119,6 +147,16 @@ export function InsuranceScConsole() {
               {scenario.id}
             </button>
           ))}
+        </div>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={downloadScenarioReport}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/[0.08] px-4 py-2 text-xs font-semibold text-amber-100 transition-colors hover:bg-amber-300/[0.12]"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Exporter le rapport scénario
+          </button>
         </div>
 
         <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_280px]">

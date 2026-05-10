@@ -16,6 +16,7 @@ export type AgentProofStatus =
   | "excel_created"
   | "runtime_parsed"
   | "public_demo"
+  | "export_audit"
   | "client_ready";
 
 export type ProofScore = 0 | 1 | 2 | 3 | 4;
@@ -43,6 +44,12 @@ export interface AgentProofRecord {
   runtimeAvailable: boolean;
   publicPage: string;
   proofLimitations: string[];
+  humanSupervision: string;
+  exportAvailable: boolean;
+  auditTrailAvailable: boolean;
+  evidenceAssets: string[];
+  nextAction: string;
+  isFlagship: boolean;
   lastVerifiedAt: string;
 }
 
@@ -57,15 +64,30 @@ export interface PriorityModelCard {
   exampleOutput: string;
   humanSupervision: string;
   exportAvailable: string;
+  auditTrailAvailable: string;
+  lastTrace: string;
   limitation: string;
+  clientReadyBlocker: string;
+  pilotCta: string;
 }
 
-export const PROOF_LAST_VERIFIED_AT = "2026-05-06";
+interface AgentProofOverride {
+  proofScore?: ProofScore;
+  humanSupervision: string;
+  exportAvailable: boolean;
+  auditTrailAvailable: boolean;
+  evidenceAssets: string[];
+  nextAction: string;
+  isFlagship?: boolean;
+}
+
+export const PROOF_LAST_VERIFIED_AT = "2026-05-10";
 
 export const PROOF_STATUS_LABELS: Record<AgentProofStatus, string> = {
   excel_created: "Excel cree",
   runtime_parsed: "Runtime parsé",
   public_demo: "Démo publique",
+  export_audit: "Export / audit",
   client_ready: "Prêt client",
 };
 
@@ -263,8 +285,89 @@ export const RUNTIME_WORKBOOK_GROUPS: WorkbookGroup[] = [
   },
 ];
 
-const EXPORT_OR_AUDIT_AGENT_SLUGS = new Set(["consolidation"]);
+const EXPORT_OR_AUDIT_AGENT_SLUGS = new Set([
+  "consolidation",
+  "maison-voice-guard",
+  "green-claim-checker",
+  "reg-bank-comms",
+  "bank-evidence-guard",
+]);
 const CLIENT_READY_AGENT_SLUGS = new Set<string>();
+
+const PROOF_OVERRIDES: Record<string, AgentProofOverride> = {
+  consolidation: {
+    proofScore: 3,
+    humanSupervision:
+      "DAF ou contrôleur groupe valide périmètre, hypothèses WACC et traitements IFRS avant usage.",
+    exportAvailable: true,
+    auditTrailAvailable: true,
+    evidenceAssets: ["Export XLSX public", "KPIs runtime Luxe Finance", "Pack complet ZIP"],
+    nextAction: "Ajouter un audit trail client connecté à un pilot réel.",
+    isFlagship: true,
+  },
+  "maison-voice-guard": {
+    proofScore: 3,
+    humanSupervision:
+      "Brand lead ou direction communication arbitre les alertes sensibles avant publication.",
+    exportAvailable: true,
+    auditTrailAvailable: true,
+    evidenceAssets: [
+      "Démo live Voice Scorer",
+      "Rapport JSON téléchargeable côté client",
+      "Trace API x-neural-voice-score-trace",
+    ],
+    nextAction: "Brancher un workflow de validation DAM/CMS avec historique signé.",
+    isFlagship: true,
+  },
+  "green-claim-checker": {
+    proofScore: 3,
+    humanSupervision:
+      "Juridique, DPO ou RSE valide les preuves et la reformulation avant diffusion.",
+    exportAvailable: true,
+    auditTrailAvailable: true,
+    evidenceAssets: [
+      "Démo live Claim Checker",
+      "Rapport JSON téléchargeable côté client",
+      "Trace API x-neural-claim-check-trace",
+    ],
+    nextAction: "Connecter une source juridique externe ou un registre de preuves client.",
+    isFlagship: true,
+  },
+  "reg-bank-comms": {
+    proofScore: 3,
+    humanSupervision:
+      "DirCom et conformité bancaire valident toute sortie PASS_WITH_REVIEW ou BLOCK avant diffusion.",
+    exportAvailable: true,
+    auditTrailAvailable: true,
+    evidenceAssets: ["Pack Markdown signé SHA-256", "5 scénarios figés", "4 gates serveur"],
+    nextAction: "Protéger l'inbox reviewer et relier les runs à un vrai tenant client.",
+    isFlagship: true,
+  },
+  "bank-evidence-guard": {
+    proofScore: 3,
+    humanSupervision:
+      "Compliance maintient le registre fermé de sources et valide les politiques de fraîcheur.",
+    exportAvailable: true,
+    auditTrailAvailable: true,
+    evidenceAssets: ["Résolveur déterministe", "Testset auditable", "Endpoint interne de résolution"],
+    nextAction: "Ajouter un export de registre complet et une gouvernance de mise à jour des sources.",
+    isFlagship: true,
+  },
+  "fraud-detect-sc": {
+    proofScore: 2,
+    humanSupervision:
+      "Equipe fraude et conformité revoient toute alerte; aucune sanction ou décision sensible automatisée.",
+    exportAvailable: true,
+    auditTrailAvailable: true,
+    evidenceAssets: [
+      "Console Assurance Supply Chain",
+      "Scénarios PASS / REVIEW / BLOCK",
+      "Gates HITL fraude",
+    ],
+    nextAction: "Créer une fiche agent dédiée et un export investigateur structuré.",
+    isFlagship: true,
+  },
+};
 
 export const PRIORITY_MODEL_CARDS: PriorityModelCard[] = [
   {
@@ -272,78 +375,102 @@ export const PRIORITY_MODEL_CARDS: PriorityModelCard[] = [
     name: "Consolidation Groupe",
     href: "/agents/consolidation",
     workbookSource: "NEURAL_Consolidation_Groupe.xlsx",
-    proofStatus: "public_demo",
+    proofStatus: "export_audit",
     proofScore: 3,
     exampleInput: "Clôture mensuelle, 7 entites, taux FX, WACC, goodwill et périmètre IFRS.",
     exampleOutput: "KPIs consolidation, goodwill, éliminations interco, risques et export Excel.",
     humanSupervision: "DAF ou contrôleur groupe valide périmètre, hypothèses WACC et seuils IAS 36.",
     exportAvailable: "Oui: export Excel consolidation disponible publiquement.",
+    auditTrailAvailable: "Oui: export horodaté et pack ZIP; audit trail client encore à connecter.",
+    lastTrace: "export/consolidation + export/full-pack",
     limitation: "Démo mono-scénario; pas encore connectée a l'ERP ni à un audit trail client.",
+    clientReadyBlocker: "Connexion ERP, tenant client et journal d'audit signé.",
+    pilotCta: "/contact?subject=Agent%20Pack%2030%20jours%20-%20Consolidation",
   },
   {
     id: "maison-voice-guard",
     name: "MaisonVoiceGuard",
     href: "/agents/maison-voice-guard",
     workbookSource: "NEURAL_AG001_MaisonVoiceGuard.xlsx",
-    proofStatus: "public_demo",
-    proofScore: 2,
+    proofStatus: "export_audit",
+    proofScore: 3,
     exampleInput: "Message marque, canal, contexte marche, niveau de risque reputationnel.",
     exampleOutput: "Score de coherence maison, alertes tonales et recommandations de reformulation.",
     humanSupervision: "Communication ou brand lead tranche les alertes sensibles avant publication.",
-    exportAvailable: "Non: sortie visible en démo, export a durcir.",
+    exportAvailable: "Oui: rapport JSON téléchargeable après analyse.",
+    auditTrailAvailable: "Oui: trace API exposée dans le rapport, sans tenant client.",
+    lastTrace: "x-neural-voice-score-trace",
     limitation: "Ne prouve pas encore l'exécution dans DAM, CMS ou workflow de validation client.",
+    clientReadyBlocker: "Workflow de validation client et historique signé.",
+    pilotCta: "/contact?subject=Agent%20Pack%2030%20jours%20-%20MaisonVoiceGuard",
   },
   {
     id: "green-claim-checker",
     name: "GreenClaimChecker",
     href: "/agents/green-claim-checker",
     workbookSource: "NEURAL_AG005_GreenClaimChecker.xlsx",
-    proofStatus: "public_demo",
-    proofScore: 2,
+    proofStatus: "export_audit",
+    proofScore: 3,
     exampleInput: "Claim environnemental, preuves disponibles, marche cible et canal de diffusion.",
     exampleOutput: "Niveau de risque greenwashing, preuves manquantes et wording alternatif.",
     humanSupervision: "DPO, juridique ou RSE valide la preuve et la formulation avant diffusion.",
-    exportAvailable: "Non: export preuve/risque à ajouter.",
+    exportAvailable: "Oui: rapport JSON preuve/risque téléchargeable après analyse.",
+    auditTrailAvailable: "Oui: trace API exposée dans le rapport, sans registre client.",
+    lastTrace: "x-neural-claim-check-trace",
     limitation: "Classification indicative; ne remplace pas une revue juridique documentée.",
+    clientReadyBlocker: "Registre de preuves client et validation juridique externe.",
+    pilotCta: "/contact?subject=Agent%20Pack%2030%20jours%20-%20GreenClaimChecker",
   },
   {
-    id: "inventaire-luxe",
-    name: "Inventaire Luxe",
-    href: "/agents/inventaire-luxe",
-    workbookSource: "NEURAL_Inventaire_Luxe.xlsx",
-    proofStatus: "runtime_parsed",
-    proofScore: 1,
-    exampleInput: "Stocks multi-maisons, catégories, rotation, NRV, devise et seuils IAS 2.",
-    exampleOutput: "Alertes surstock, dépréciation potentielle, rotation et synthese inventaire.",
-    humanSupervision: "Contrôle de gestion et supply valident les seuils et arbitrages de dépréciation.",
-    exportAvailable: "Non: données parsées, export agent à construire.",
-    limitation: "Workbook embarqué; page publique et interaction agent encore incompletes.",
+    id: "reg-bank-comms",
+    name: "RegBankComms / BankEvidenceGuard",
+    href: "/agents/reg-bank-comms",
+    workbookSource: "NEURAL_BANK_COMMS_MASTER.xlsx + registre sources banque",
+    proofStatus: "export_audit",
+    proofScore: 3,
+    exampleInput: "Scénario de communication bancaire régulée, période, chiffres validés et sources actives.",
+    exampleOutput: "Verdict PASS / REVIEW / BLOCK, blockers, checklist reviewer et pack Markdown signé.",
+    humanSupervision: "DirCom, conformité et juridique bancaire valident tout draft sensible.",
+    exportAvailable: "Oui: pack Markdown signé SHA-256 disponible depuis la démo.",
+    auditTrailAvailable: "Oui: trace de run, gates serveur et registre de sources fermé.",
+    lastTrace: "x-neural-regbank-trace",
+    limitation: "Scénarios figés; pas de texte libre pour éviter données privilégiées non publiques.",
+    clientReadyBlocker: "Tenant client, auth reviewer et registre de sources client à connecter.",
+    pilotCta: "/contact?subject=Agent%20Pack%2030%20jours%20-%20RegBankComms",
   },
   {
-    id: "royalty",
-    name: "Royalty Accounting",
-    href: "/agents/royalty",
-    workbookSource: "NEURAL_Royalty_Accounting.xlsx",
-    proofStatus: "runtime_parsed",
-    proofScore: 1,
-    exampleInput: "Contrats de licence, ventes inter-entites, taux de royalties et devise.",
-    exampleOutput: "Calculs royalties, écritures attendues et points de contrôle comptable.",
-    humanSupervision: "Comptabilité groupe valide contrats, taux et traitements intercompany.",
-    exportAvailable: "Non: export dédié à ajouter.",
-    limitation: "Actif runtime present, mais preuve publique moins forte que Consolidation Groupe.",
+    id: "insurance-supply-chain-guard",
+    name: "Insurance Supply Chain Guard",
+    href: "/secteurs/assurance/supply-chain",
+    workbookSource: "NEURAL_INSURANCE_SC_MASTER.xlsx + ISC-A001..A004",
+    proofStatus: "public_demo",
+    proofScore: 2,
+    exampleInput: "Scénario réparateur, expert, fraude fournisseur ou due diligence Sapin II.",
+    exampleOutput: "Verdict PASS / REVIEW / BLOCK, gates, HITL requis et limite de décision.",
+    humanSupervision: "Claims, fraude et compliance revoient toute alerte; aucun refus automatique.",
+    exportAvailable: "Oui: rapport JSON scénario téléchargeable côté console.",
+    auditTrailAvailable: "Partiel: trace scenario-id et gates visibles, sans persistance client.",
+    lastTrace: "scenario-id + hash workbook",
+    limitation: "Console scenario-id; pas encore de fiche agent dédiée ni d'intégration SI sinistre.",
+    clientReadyBlocker: "Fiche agent, export investigateur et données client anonymisées.",
+    pilotCta: "/contact?subject=Agent%20Pack%2030%20jours%20-%20Assurance%20Supply%20Chain",
   },
 ];
 
 function scoreFromEntry(entry: PublicEntry): ProofScore {
+  const override = PROOF_OVERRIDES[entry.slug];
+  if (override?.proofScore !== undefined) return override.proofScore;
   if (CLIENT_READY_AGENT_SLUGS.has(entry.slug)) return 4;
   if (EXPORT_OR_AUDIT_AGENT_SLUGS.has(entry.slug)) return 3;
   if (entry.status === "live") return 2;
+  if (entry.status !== "planned" && entry.proofLevel === "ui_demo") return 2;
   if (entry.proofLevel === "runtime_data") return 1;
   return 0;
 }
 
 function statusFromScore(score: ProofScore): AgentProofStatus {
   if (score >= 4) return "client_ready";
+  if (score >= 3) return "export_audit";
   if (score >= 2) return "public_demo";
   if (score >= 1) return "runtime_parsed";
   return "excel_created";
@@ -351,6 +478,7 @@ function statusFromScore(score: ProofScore): AgentProofStatus {
 
 function toProofRecord(entry: PublicEntry): AgentProofRecord {
   const proofScore = scoreFromEntry(entry);
+  const override = PROOF_OVERRIDES[entry.slug];
   return {
     id: entry.slug,
     name: entry.label,
@@ -363,6 +491,13 @@ function toProofRecord(entry: PublicEntry): AgentProofRecord {
     runtimeAvailable: entry.proofLevel === "runtime_data" || entry.status === "live",
     publicPage: entry.href,
     proofLimitations: entry.notYet,
+    humanSupervision:
+      override?.humanSupervision ?? "Supervision humaine à définir avant tout usage client.",
+    exportAvailable: override?.exportAvailable ?? proofScore >= 3,
+    auditTrailAvailable: override?.auditTrailAvailable ?? proofScore >= 3,
+    evidenceAssets: override?.evidenceAssets ?? [entry.dataUsed, entry.deliverable],
+    nextAction: override?.nextAction ?? entry.nextStep,
+    isFlagship: override?.isFlagship ?? false,
     lastVerifiedAt: PROOF_LAST_VERIFIED_AT,
   };
 }
@@ -419,7 +554,7 @@ export function getProofCatalog() {
         description: "Surface publique ou démo visible, sans promettre production client.",
       },
       {
-        status: "public_demo" as AgentProofStatus,
+        status: "export_audit" as AgentProofStatus,
         score: 3 as ProofScore,
         label: PROOF_SCORE_LABELS[3],
         description: "Démo enrichie par export, trace ou preuve de sortie métier.",
@@ -435,6 +570,27 @@ export function getProofCatalog() {
       desktopExternal: DESKTOP_NEURAL_WORKBOOK_GROUPS,
       runtimeRepo: RUNTIME_WORKBOOK_GROUPS,
     },
+    excludedWorkbooks: [
+      {
+        label: "Carbon and Co",
+        count: PUBLIC_METRICS.excludedCarbonWorkbooks,
+        reason: "Produit adjacent ESG/CSRD, exclu du compteur NEURAL pour garder une preuve nette.",
+      },
+    ],
+    clientReadyCriteria: [
+      "Demo publique stable",
+      "Export ou rapport exploitable",
+      "Trace d'audit horodatée",
+      "Limites visibles",
+      "Supervision humaine explicite",
+      "Fallback erreur documenté",
+      "CTA pilot et owner clair",
+    ],
+    warnings: [
+      "168 reste une capacité cible du framework, pas un nombre d'agents actifs.",
+      "Aucun agent n'est marqué client-ready sans tenant, support, security pack et responsabilité contractuelle.",
+      "Les workbooks Excel prouvent un actif de conception; seuls les workbooks parsés ou exposés prouvent un produit public.",
+    ],
     agentProofs,
     priorityModelCards: PRIORITY_MODEL_CARDS,
   };

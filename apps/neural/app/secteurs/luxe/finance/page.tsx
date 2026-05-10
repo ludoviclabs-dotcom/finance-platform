@@ -169,6 +169,22 @@ export default function LuxeFinancePage() {
               </div>
             ))}
           </motion.div>
+
+          <div className="mt-6 grid gap-3 lg:grid-cols-4">
+            {[
+              ["Preuve disponible", "Consolidation Groupe expose données runtime, KPIs et export XLSX."],
+              ["Agent branché", "1 agent finance est export/audit; 3 surfaces restent en démonstration."],
+              ["Limite assumée", "Pas encore de connexion ERP ni d'audit trail client signé."],
+              ["Offre pilot", "Agent Pack 30 jours: consolidation, baseline, export et revue DAF."],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
+                  {label}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-white/68">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

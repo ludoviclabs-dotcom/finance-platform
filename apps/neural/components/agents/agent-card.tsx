@@ -4,7 +4,7 @@
  */
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileDown, ShieldCheck } from "lucide-react";
 
 import type { PublicEntry } from "@/lib/public-catalog";
 
@@ -54,6 +54,15 @@ export interface AgentMeta {
 
 export interface EnrichedAgent extends PublicEntry {
   meta: AgentMeta;
+  proof?: {
+    score: number;
+    label: string;
+    statusLabel: string;
+    exportAvailable: boolean;
+    auditTrailAvailable: boolean;
+    nextAction: string;
+    isFlagship: boolean;
+  };
 }
 
 export function AgentCard({ agent }: { agent: EnrichedAgent }) {
@@ -80,6 +89,26 @@ export function AgentCard({ agent }: { agent: EnrichedAgent }) {
           {RISK_LABELS[agent.meta.aiActRisk]}
         </span>
       </div>
+
+      {agent.proof ? (
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/65">
+            Score {agent.proof.score} · {agent.proof.label}
+          </span>
+          {agent.proof.exportAvailable ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-400/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-200">
+              <FileDown className="h-3 w-3" />
+              Export
+            </span>
+          ) : null}
+          {agent.proof.auditTrailAvailable ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-200">
+              <ShieldCheck className="h-3 w-3" />
+              Trace
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Title */}
       <div>
@@ -109,6 +138,16 @@ export function AgentCard({ agent }: { agent: EnrichedAgent }) {
           <span className="text-white/40">Impact typique</span>
           <span className="text-emerald-300/90 text-right">{agent.meta.roiEstimate}</span>
         </div>
+        {agent.proof ? (
+          <div className="rounded-xl border border-white/8 bg-white/[0.03] p-3">
+            <p className="text-[10px] uppercase tracking-[0.16em] text-white/35">
+              Prochaine preuve
+            </p>
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/58">
+              {agent.proof.nextAction}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       {/* Hover indicator */}

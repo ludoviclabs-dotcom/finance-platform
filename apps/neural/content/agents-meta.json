@@ -79,6 +79,20 @@
       "deployTime": "10-14 sem.",
       "roiEstimate": "Coût due diligence -50%"
     },
+    "reg-bank-comms": {
+      "branche": "communication",
+      "sectors": ["banque"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Cycle validation -50%"
+    },
+    "bank-evidence-guard": {
+      "branche": "communication",
+      "sectors": ["banque"],
+      "aiActRisk": "minimal",
+      "deployTime": "4-6 sem.",
+      "roiEstimate": "Sourcing preuve -60%"
+    },
     "maison-voice-guard": {
       "branche": "communication",
       "sectors": ["luxe"],

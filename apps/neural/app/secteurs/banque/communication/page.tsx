@@ -121,6 +121,22 @@ export default function BankCommsPage() {
             ))}
           </div>
 
+          <div className="mt-6 grid gap-3 lg:grid-cols-4">
+            {[
+              ["Preuve disponible", "RegBankComms + BankEvidenceGuard sont exposés avec export et testset."],
+              ["Agents branchés", "4 agents publics + 2 services transverses, sur scénarios figés."],
+              ["Limite assumée", "Pas de texte libre public pour éviter les données privilégiées."],
+              ["Offre pilot", "Agent Pack 30 jours: 1 agent, sources client, export et revue HITL."],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
+                  {label}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-white/68">{value}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/secteurs/banque/communication/dashboard"

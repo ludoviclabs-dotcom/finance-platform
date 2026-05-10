@@ -4,20 +4,18 @@
  * Returns all non-expired PENDING approvals.
  * Optional query param: ?orgId=xxx (filters by organisation).
  *
- * Auth: expects x-reviewer-id header (replace with NextAuth session in production).
+ * Auth: INTERNAL_REVIEW_TOKEN when configured, x-reviewer-id only for local/dev fallback.
  */
 
 import { NextRequest } from "next/server";
 import { listPendingApprovals } from "@/lib/hitl";
+import { getInternalReviewer } from "@/lib/internal-review-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  // TODO: replace with session.user.id from NextAuth
-  const reviewerId = req.headers.get("x-reviewer-id");
-  if (!reviewerId) {
-    return Response.json({ error: "Non authentifié." }, { status: 401 });
-  }
+  const reviewer = getInternalReviewer(req);
+  if (!reviewer.ok) return Response.json({ error: reviewer.error }, { status: reviewer.status });
 
   const orgId = req.nextUrl.searchParams.get("orgId") ?? undefined;
 

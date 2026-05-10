@@ -25,9 +25,9 @@ import {
 } from "@/lib/ai/bank-comms-persistence";
 
 export const metadata: Metadata = {
-  title: "Inbox HITL — Banque / Communication | NEURAL",
+  title: "Inbox HITL ? Banque / Communication | NEURAL",
   description:
-    "Runs persistés dans AgentRun, filtrables par agent et par status. WAITING_APPROVAL en priorité. Mode dégradé si DATABASE_URL absent.",
+    "Runs persist?s dans AgentRun, filtrables par agent et par status. WAITING_APPROVAL en priorit?. Mode d?grad? si DATABASE_URL absent.",
 };
 
 export const dynamic = "force-dynamic";
@@ -153,19 +153,19 @@ export default async function InboxPage({
             </div>
             <div>
               <p className="font-mono text-[11px] uppercase tracking-wider text-white/50">
-                Inbox HITL · Banque / Communication
+                Inbox HITL ? Banque / Communication
               </p>
               <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
-                Runs à relire
+                Runs ? relire
               </h1>
             </div>
           </div>
           <p className="mt-4 max-w-3xl text-white/70">
-            Runs des 4 agents publics persistés dans{" "}
+            Runs des 4 agents publics persist?s dans{" "}
             <code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs">
               AgentRun
             </code>
-            . PASS → DONE, PASS_WITH_REVIEW → WAITING_APPROVAL, BLOCK →
+            . PASS ? DONE, PASS_WITH_REVIEW ? WAITING_APPROVAL, BLOCK ?
             FAILED. Prioriser WAITING_APPROVAL.
           </p>
 
@@ -173,11 +173,11 @@ export default async function InboxPage({
             <div className="mt-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
               <p className="flex items-center gap-2 font-semibold">
                 <Database className="h-4 w-4" />
-                DATABASE_URL non configuré
+                DATABASE_URL non configur?
               </p>
               <p className="mt-1 text-amber-100/90">
-                La persistance est en no-op : les runs des démos publiques ne
-                sont pas enregistrés. Les 4 agents continuent à répondre
+                La persistance est en no-op : les runs des d?mos publiques ne
+                sont pas enregistr?s. Les 4 agents continuent ? r?pondre
                 normalement, seule cette inbox reste vide.
               </p>
               <p className="mt-2 text-[11px] text-amber-100/70">
@@ -185,7 +185,7 @@ export default async function InboxPage({
                 <code className="rounded bg-amber-400/10 px-1.5 py-0.5 font-mono">
                   cp .env.example .env.local
                 </code>{" "}
-                + DATABASE_URL. Vercel : intégration Neon via Marketplace.
+                + DATABASE_URL. Vercel : int?gration Neon via Marketplace.
               </p>
             </div>
           ) : null}
@@ -302,12 +302,12 @@ export default async function InboxPage({
               <p className="mt-4 font-semibold text-white">
                 {dbReady
                   ? "Aucun run pour ces filtres."
-                  : "Aucun run persisté (DB non configurée)."}
+                  : "Aucun run persist? (DB non configur?e)."}
               </p>
               <p className="mt-1 text-[11px] text-white/55">
                 {dbReady
-                  ? "Changer un filtre, ou lancer une démo depuis la page secteur pour générer un run."
-                  : "Brancher Neon (Vercel Marketplace) puis relancer une démo."}
+                  ? "Changer un filtre, ou lancer une d?mo depuis la page secteur pour g?n?rer un run."
+                  : "Brancher Neon (Vercel Marketplace) puis relancer une d?mo."}
               </p>
             </div>
           ) : (
@@ -368,7 +368,7 @@ export default async function InboxPage({
                               BLOCK
                             </span>
                           ) : (
-                            <span className="text-[11px] text-white/40">—</span>
+                            <span className="text-[11px] text-white/40">?</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -380,13 +380,13 @@ export default async function InboxPage({
                           </span>
                         </td>
                         <td className="px-4 py-3 text-[11px] text-white/55">
-                          {r.model ?? "—"}
+                          {r.model ?? "?"}
                         </td>
                         <td className="px-4 py-3 text-[11px] text-white/55">
                           {timeAgo(r.startedAt)}
                         </td>
                         <td className="px-4 py-3 font-mono text-[10px] text-white/40">
-                          {r.id.slice(0, 8)}…
+                          {r.id.slice(0, 8)}&
                         </td>
                       </tr>
                     );
@@ -396,7 +396,7 @@ export default async function InboxPage({
             </div>
           )}
           <p className="mt-4 text-[11px] text-white/50">
-            Limite : {limit} runs les plus récents. Trace complète côté Langfuse
+            Limite : {limit} runs les plus r?cents. Trace compl?te c?t? Langfuse
             pour les runs en mode gateway.
           </p>
         </div>

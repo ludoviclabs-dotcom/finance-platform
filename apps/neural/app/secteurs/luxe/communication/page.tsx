@@ -147,6 +147,22 @@ export default function LuxeCommunicationPage() {
               </div>
             ))}
           </div>
+
+          <div className="mt-6 grid gap-3 lg:grid-cols-4">
+            {[
+              ["Preuve disponible", "MaisonVoiceGuard et GreenClaimChecker ont démo live, trace et export JSON."],
+              ["Agents branchés", "5 agents runtime, dont 4 démos live et 2 agents vitrines export/audit."],
+              ["Limite assumée", "Pas encore de DAM, CMS ou workflow de validation client connecté."],
+              ["Offre pilot", "Proof Audit: 3 communications réelles, scoring brand, claims et rapport."],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
+                  {label}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-white/68">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -678,6 +678,64 @@ export const AGENT_ENTRIES: PublicEntry[] = [
     notYet: ["Pas encore de screening externe.", "Pas de connecteur compliance production."],
   },
 
+  // BANQUE x COMMUNICATION - agents vitrine gouvernés
+  {
+    slug: "reg-bank-comms",
+    label: "RegBankComms",
+    href: "/agents/reg-bank-comms",
+    kind: "agent",
+    status: "live",
+    proofLevel: "runtime_data",
+    tagline: "Communication bancaire régulée avec gates serveur et export signé",
+    description:
+      "Agent Banque / Communication pour relire des communications régulées sur scénarios figés. Les gates serveur bloquent chiffres non validés, information privilégiée, source inactive et wording restreint avant tout enrichissement LLM.",
+    readyNow:
+      "5 scénarios figés, 4 gates déterministes, démo live, export Markdown signé SHA-256 et registre de sources ACTIVE.",
+    nextStep:
+      "Brancher un tenant client, protéger l'inbox reviewer et connecter un registre de sources propre au client.",
+    dataUsed: "NEURAL_BANK_COMMS_MASTER.xlsx + content/bank-comms/foundations.json",
+    deliverable: "Démo live RegBankComms + pack d'export Markdown signé.",
+    ctaHref: "/secteurs/banque/communication",
+    ctaLabel: "Voir Banque / Communication",
+    scopeNow: [
+      "Expose une logique agentique défendable en secteur régulé.",
+      "Produit un verdict PASS / REVIEW / BLOCK avec blockers lisibles.",
+      "Prouve l'export audit et la séparation gates serveur / génération.",
+    ],
+    notYet: [
+      "Pas de texte libre public pour éviter les informations non publiques.",
+      "Pas encore de SSO reviewer ni de tenant client.",
+    ],
+  },
+  {
+    slug: "bank-evidence-guard",
+    label: "BankEvidenceGuard",
+    href: "/agents/bank-evidence-guard",
+    kind: "agent",
+    status: "live",
+    proofLevel: "runtime_data",
+    tagline: "Résolveur déterministe de sources pour agents banque",
+    description:
+      "Service transversal consommé par les agents Banque / Communication. Il filtre un registre fermé par type de communication, juridiction, subjects et fraîcheur, sans appel LLM.",
+    readyNow:
+      "Résolveur live, testset auditable, registre enrichi de sources et endpoint interne de résolution.",
+    nextStep:
+      "Ajouter un export complet du registre, une gouvernance de mise à jour et un owner client.",
+    dataUsed: "content/bank-comms/foundations.json + registre sources banque",
+    deliverable: "Démo résolveur live + testset auditable.",
+    ctaHref: "/secteurs/banque/communication",
+    ctaLabel: "Voir Banque / Communication",
+    scopeNow: [
+      "Prouve le mécanisme anti-hallucination par registre fermé.",
+      "Rend les sources rejetées aussi visibles que les sources retenues.",
+      "Fonctionne comme service zero-LLM reproductible.",
+    ],
+    notYet: [
+      "Pas encore de registre client versionné.",
+      "Pas d'export complet téléchargeable du sourcebook.",
+    ],
+  },
+
   {
     slug: "maison-voice-guard",
     label: "MaisonVoiceGuard",
@@ -1047,6 +1105,7 @@ export const NAVIGATION = [
     ],
   },
   { label: "Publications", href: "/publications" },
+  { label: "Dossier", href: "/dossier" },
   { label: "À propos", href: "/about" },
   { label: "Contact", href: "/contact" },
 ] as const;
@@ -1070,6 +1129,7 @@ export const FOOTER_LINKS = {
   })),
   Transparence: [
     { label: "Proof Console", href: "/proof", status: "live" as PublicStatus },
+    { label: "Dossier", href: "/dossier", status: "live" as PublicStatus },
     { label: "Trust", href: "/trust", status: "live" as PublicStatus },
     { label: "Agent Safety", href: "/trust/agent-safety", status: "live" as PublicStatus },
     { label: "Status", href: "/status", status: "live" as PublicStatus },
@@ -1097,6 +1157,7 @@ export const FOOTER_LINKS = {
   Entreprise: [
     { label: "À propos", href: "/about", status: "demo" as PublicStatus },
     { label: "Publications", href: "/publications", status: "live" as PublicStatus },
+    { label: "Dossier", href: "/dossier", status: "live" as PublicStatus },
     { label: "Newsletter", href: "/newsletter", status: "live" as PublicStatus },
     { label: "Témoignages", href: "/temoignages", status: "live" as PublicStatus },
     { label: "Presse", href: "/presse", status: "live" as PublicStatus },

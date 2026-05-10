@@ -174,6 +174,22 @@ export default function InsuranceSupplyChainPage() {
               </div>
             ))}
           </div>
+
+          <div className="mt-6 grid max-w-[320px] gap-3 sm:max-w-none lg:grid-cols-4">
+            {[
+              ["Preuve disponible", "Console scenario-id, 6 workbooks et export JSON de scénario."],
+              ["Agents branchés", "4 agents de portefeuille, dont FraudDetectSC en vitrine HITL."],
+              ["Limite assumée", "Pas de données sinistres réelles ni de connecteur SI assurance."],
+              ["Offre pilot", "Agent Pack 30 jours: fraude fournisseur ou Sapin II avec revue humaine."],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
+                  {label}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-white/68">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

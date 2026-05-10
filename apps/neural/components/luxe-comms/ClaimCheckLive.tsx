@@ -13,6 +13,7 @@ import {
   AlertCircle,
   AlertTriangle,
   CheckCircle2,
+  Download,
   Leaf,
   Loader2,
   RefreshCcw,
@@ -39,7 +40,7 @@ type ClaimCheckResult = {
 
 type ApiResponse = {
   result?: ClaimCheckResult;
-  meta?: { mode: "gateway" | "fallback"; latencyMs: number };
+  meta?: { traceId?: string; mode: "gateway" | "fallback"; latencyMs: number };
   error?: string;
 };
 
@@ -149,6 +150,34 @@ export function ClaimCheckLive() {
     }
   }, [canSubmit, claim, juri]);
 
+  const downloadReport = useCallback(() => {
+    if (!result) return;
+    const payload = {
+      agent: "GreenClaimChecker",
+      generatedAt: new Date().toISOString(),
+      workbookSource: "NEURAL_AG005_GreenClaimChecker.xlsx",
+      input: { claim, jurisdiction: juri },
+      output: result,
+      meta,
+      proofStatus: "export_audit",
+      humanSupervision:
+        "Juridique, DPO ou RSE valide les preuves et la reformulation avant diffusion.",
+      limitations: [
+        "Rapport de démo publique, non relié à un registre de preuves client.",
+        "Classification indicative; ne remplace pas une revue juridique documentée.",
+      ],
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `NEURAL_GreenClaimChecker_${payload.generatedAt.slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [claim, juri, meta, result]);
+
   const decCfg = result ? decisionStyle(result.decision) : null;
 
   return (
@@ -249,6 +278,15 @@ export function ClaimCheckLive() {
             Effacer
           </button>
         )}
+        {result ? (
+          <button
+            onClick={downloadReport}
+            className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/[0.08] px-4 py-2 text-sm font-semibold text-amber-100 transition-colors hover:bg-amber-300/[0.12]"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Exporter le rapport JSON
+          </button>
+        ) : null}
         {meta?.mode === "fallback" && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-200">
             <Sparkles className="h-3 w-3" />

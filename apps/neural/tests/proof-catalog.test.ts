@@ -21,6 +21,19 @@ describe("proof catalog", () => {
     expect(catalog.agentProofs.every((agent) => agent.proofScore < 4)).toBe(true);
   });
 
+  it("exposes strict proof fields for flagship agents", () => {
+    const catalog = getProofCatalog();
+    const flagship = catalog.agentProofs.filter((agent) => agent.isFlagship);
+
+    expect(catalog.counts.exportOrAudit).toBeGreaterThanOrEqual(5);
+    expect(flagship.length).toBeGreaterThanOrEqual(5);
+    expect(catalog.clientReadyCriteria).toContain("Supervision humaine explicite");
+    expect(catalog.excludedWorkbooks[0]?.count).toBe(6);
+    expect(
+      flagship.every((agent) => agent.humanSupervision && agent.nextAction),
+    ).toBe(true);
+  });
+
   it("keeps the 168-agent number as target capacity only", () => {
     const catalog = getProofCatalog();
 

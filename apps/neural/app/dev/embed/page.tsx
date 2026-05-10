@@ -87,8 +87,8 @@ export default function EmbedPage() {
             Embarquez les agents NEURAL
           </h1>
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/68">
-            Pour les éditeurs SaaS qui veulent enrichir leur produit avec un agent IA conforme
-            AI Act, RGPD-native et opérable depuis le jour 1. Pas besoin de réinventer
+            Pour les éditeurs SaaS qui veulent enrichir leur produit avec un agent IA conçu pour
+            les exigences AI Act, RGPD et opérable depuis le jour 1. Pas besoin de réinventer
             l&apos;orchestration, le hosting EU, ou les Model Cards — embarquez et opérez.
           </p>
         </div>

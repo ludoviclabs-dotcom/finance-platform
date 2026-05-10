@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+.vercel
+.next/cache
+node_modules
+test-results
+qa-artifacts
+*.png
+*.mp4

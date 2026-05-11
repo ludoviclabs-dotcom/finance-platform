@@ -15,6 +15,8 @@
     "qa:site": "tsx scripts/qa/neural-qa.ts site",
     "qa:visual": "tsx scripts/qa/neural-qa.ts visual",
     "qa:prod": "tsx scripts/qa/neural-qa.ts prod",
+    "deploy:prod": "node scripts/deploy-vercel.mjs --prod --yes",
+    "deploy:preview": "node scripts/deploy-vercel.mjs --yes",
     "env:pull": "vercel env pull .env.local",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

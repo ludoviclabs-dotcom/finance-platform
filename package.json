@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "deploy:neural:prod": "cd apps/neural && npm run deploy:prod",
+    "deploy:neural:preview": "cd apps/neural && npm run deploy:preview",
+    "qa:neural:prod": "cd apps/neural && npm run qa:prod"
+  },
   "devDependencies": {
     "@types/pdf-parse": "^1.1.5",
     "mammoth": "^1.12.0",

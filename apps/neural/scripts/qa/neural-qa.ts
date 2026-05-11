@@ -3,6 +3,7 @@ import { join, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const ROOT = resolve(__dirname, "../..");
+const PROD_BASE_URL = process.env.QA_PROD_URL ?? "https://neural-five.vercel.app";
 const TEXT_EXTENSIONS = new Set([".ts", ".tsx", ".json", ".md", ".css"]);
 const IGNORED_DIRS = new Set([
   ".next",
@@ -168,7 +169,7 @@ async function main() {
   const baseUrl = process.env.QA_BASE_URL ?? "http://127.0.0.1:3002";
   if (mode === "copy") return runCopyCheck();
   if (mode === "site") return runSiteCheck(baseUrl);
-  if (mode === "prod") return runSiteCheck("https://neural-five.vercel.app");
+  if (mode === "prod") return runSiteCheck(PROD_BASE_URL);
   if (mode === "visual") return runVisualCheck(baseUrl);
   fail(`Mode inconnu: ${mode}`);
 }

@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server";
 
+import { isProductionRuntime, readRequestToken } from "@/lib/security/tokens";
+
 export function getInternalReviewer(req: NextRequest):
   | { ok: true; reviewerId: string; mode: "token" | "dev-header" }
   | { ok: false; error: string; status: number } {
@@ -7,6 +9,13 @@ export function getInternalReviewer(req: NextRequest):
   const reviewerId = req.headers.get("x-reviewer-id")?.trim() || "internal-reviewer";
 
   if (!configuredToken) {
+    if (isProductionRuntime()) {
+      return {
+        ok: false,
+        error: "Route interne verrouillée: INTERNAL_REVIEW_TOKEN doit être configuré en production.",
+        status: 401,
+      };
+    }
     if (!req.headers.get("x-reviewer-id")) {
       return {
         ok: false,
@@ -18,10 +27,7 @@ export function getInternalReviewer(req: NextRequest):
     return { ok: true, reviewerId, mode: "dev-header" };
   }
 
-  const auth = req.headers.get("authorization")?.trim();
-  const bearer = auth?.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
-  const headerToken = req.headers.get("x-internal-review-token")?.trim();
-  const receivedToken = bearer || headerToken;
+  const receivedToken = readRequestToken(req, "x-internal-review-token");
 
   if (receivedToken !== configuredToken) {
     return {

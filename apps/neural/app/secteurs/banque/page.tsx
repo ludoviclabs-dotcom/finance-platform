@@ -214,7 +214,7 @@ export default function BanquePage() {
           {
             kind: "glossary",
             label: "Audit trail signé",
-            description: "Journal immuable et signé des décisions IA, opposable juridiquement.",
+            description: "Journal immuable et signé des décisions IA, préparé pour revue juridique.",
             href: "/glossaire/audit-trail",
           },
         ]}

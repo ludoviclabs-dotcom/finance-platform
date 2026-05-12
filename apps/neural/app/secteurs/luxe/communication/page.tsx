@@ -33,17 +33,17 @@ if (!commsEntryRaw) throw new Error("Missing public catalog entry for communicat
 const commsEntry = commsEntryRaw;
 
 export const metadata: Metadata = {
-  title: "Luxe / Communication — 5 agents pour scorer, rediger, prouver | NEURAL",
+  title: "Luxe / Communication - 5 agents pour scorer, rédiger, prouver | NEURAL",
   description:
-    "Branche Communication LUXE : MaisonVoiceGuard, LuxePressAgent, LuxeEventComms, HeritageComms, GreenClaimChecker. Charte brand + registre claims EU/FR/UK/US/CH + sources patrimoniales sourcees.",
+    "Branche Communication Luxe : MaisonVoiceGuard, LuxePressAgent, LuxeEventComms, HeritageComms, GreenClaimChecker. Charte brand, registre claims EU/FR/UK/US/CH et sources patrimoniales sourcées.",
   openGraph: {
-    title: "NEURAL — Luxe / Communication",
+    title: "NEURAL - Luxe / Communication",
     description:
       "5 agents pour contrôler la voix, rédiger la presse, préparer les événements, sourcer l'héritage et bloquer le greenwashing.",
   },
 };
 
-// Icones mappees pour les 5 agents
+// Icônes mappées pour les 5 agents
 const AGENT_ICON: Record<LuxeCommsAgentSlug, typeof ShieldCheck> = {
   "maison-voice-guard": ShieldCheck,
   "luxe-press-agent": Newspaper,
@@ -68,34 +68,34 @@ export default function LuxeCommunicationPage() {
     { label: "Termes normes FR", value: String(s.vocabFrCount), hint: `${s.forbiddenTermsCount} interdits`, Icon: Database },
     { label: "Claims audités", value: String(s.claimsTotal), hint: `EU / FR / UK / US / CH`, Icon: Leaf },
     { label: "Sources patrimoniales", value: String(s.heritageSourcesCount), hint: `${s.primarySourcesCount} primaires`, Icon: Landmark },
-    { label: "Medias references", value: String(s.mediaDirectoryCount), hint: `${s.p1MediaCount} priorite 1`, Icon: Newspaper },
-    { label: "Juridictions mappees", value: String(s.juridictionsCovered), hint: `${s.jurisdictionsCount} claims-types`, Icon: Globe },
+    { label: "Médias référencés", value: String(s.mediaDirectoryCount), hint: `${s.p1MediaCount} priorité 1`, Icon: Newspaper },
+    { label: "Juridictions mappées", value: String(s.juridictionsCovered), hint: `${s.jurisdictionsCount} claims-types`, Icon: Globe },
   ];
 
   const problemSolution = [
     {
-      probleme: "Contrôle absolu du brand voice",
+      probleme: "Contrôle du brand voice",
       solution: "MaisonVoiceGuard score chaque sortie sur la charte ; refus automatique si score insuffisant",
       agent: "AG-001",
     },
     {
       probleme: "Relations presse haute couture / joaillerie",
-      solution: "LuxePressAgent redige dans le registre luxe ; adapte Vogue/Harper's Bazaar vs. FT/BoF",
+      solution: "LuxePressAgent rédige dans le registre luxe ; adapte Vogue/Harper's Bazaar vs. FT/BoF",
       agent: "AG-002",
     },
     {
-      probleme: "Evenementiel de prestige",
-      solution: "LuxeEventComms généré invitations VIP, scripts, social live pour defiles / lancements / expos",
+      probleme: "Événementiel de prestige",
+      solution: "LuxeEventComms génère invitations VIP, scripts et social live pour défilés, lancements et expositions",
       agent: "AG-003",
     },
     {
       probleme: "Communication patrimoniale",
-      solution: "HeritageComms valorise l'heritage — zero citation sans source active, 4 formats normes",
+      solution: "HeritageComms valorise l'héritage - zéro citation sans source active, 4 formats normés",
       agent: "AG-004",
     },
     {
       probleme: "Anti-greenwashing",
-      solution: "GreenClaimChecker verifie chaque claim RSE contre la Green Claims Directive + juridictions",
+      solution: "GreenClaimChecker vérifie chaque claim RSE contre la Green Claims Directive et les juridictions",
       agent: "AG-005",
     },
   ];
@@ -123,12 +123,12 @@ export default function LuxeCommunicationPage() {
             </p>
             <StatusBadge status={commsEntry.status} proofLevel={commsEntry.proofLevel} className="mt-4" />
             <h1 className="mt-6 font-display text-5xl font-extrabold tracking-[-0.05em] md:text-6xl">
-              La voix de votre maison, <span className="text-violet-300">scorée</span>, <span className="text-amber-300">sourcée</span>, <span className="text-emerald-300">prouvee</span>.
+              La voix de votre maison, <span className="text-violet-300">scorée</span>, <span className="text-amber-300">sourcée</span>, <span className="text-emerald-300">prouvée</span>.
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/68">
               5 agents qui travaillent ensemble sur chaque communication externe. Chaque sortie
               traverse un gate brand, un gate claim (si RSE), un gate heritage (si patrimoine).
-              Zero publication sans traçabilite.
+              Zéro publication sans traçabilité.
             </p>
           </div>
 
@@ -150,7 +150,7 @@ export default function LuxeCommunicationPage() {
 
           <div className="mt-6 grid gap-3 lg:grid-cols-4">
             {[
-              ["Preuve disponible", "MaisonVoiceGuard et GreenClaimChecker ont démo live, trace et export JSON."],
+              ["Preuve disponible", "MaisonVoiceGuard et GreenClaimChecker ont une démo live, une trace et un export JSON."],
               ["Agents branchés", "5 agents runtime, dont 4 démos live et 2 agents vitrines export/audit."],
               ["Limite assumée", "Pas encore de DAM, CMS ou workflow de validation client connecté."],
               ["Offre pilot", "Proof Audit: 3 communications réelles, scoring brand, claims et rapport."],
@@ -170,7 +170,7 @@ export default function LuxeCommunicationPage() {
       <section className="border-b border-white/5 px-6 py-16 md:px-12">
         <div className="mx-auto max-w-[1440px]">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-violet-200">
-            5 problematiques, 5 agents
+            5 problématiques, 5 agents
           </p>
           <h2 className="mt-3 font-display text-4xl font-bold tracking-tight">
             Une branche qui adresse le pipeline de communication luxe de bout en bout.
@@ -180,9 +180,9 @@ export default function LuxeCommunicationPage() {
             <table className="w-full text-left">
               <thead className="bg-white/[0.04] text-xs uppercase tracking-wider text-white/55">
                 <tr>
-                  <th className="px-6 py-4">Problematique</th>
+                  <th className="px-6 py-4">Problématique</th>
                   <th className="px-6 py-4">Agent NEURAL</th>
-                  <th className="px-6 py-4 text-right">Reference</th>
+                  <th className="px-6 py-4 text-right">Référence</th>
                 </tr>
               </thead>
               <tbody>
@@ -217,7 +217,7 @@ export default function LuxeCommunicationPage() {
             Les 5 agents
           </p>
           <h2 className="mt-3 font-display text-4xl font-bold tracking-tight">
-            Chaque agent est une surface opérable, avec son own runtime.
+            Chaque agent est une surface opérable, avec son runtime propre.
           </h2>
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">

@@ -21,8 +21,20 @@
 
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp";
 import { createNeuralMcpServer } from "@/lib/mcp/server";
+import { requireConfiguredToken } from "@/lib/security/tokens";
 
 async function handleMcp(req: Request): Promise<Response> {
+  const auth = requireConfiguredToken(req, {
+    envKey: "MCP_PUBLIC_TOKEN",
+    headerName: "x-mcp-token",
+    allowDevWithoutToken: true,
+    missingMessage: "Endpoint MCP désactivé tant que MCP_PUBLIC_TOKEN n'est pas configuré.",
+    invalidMessage: "Token MCP manquant ou invalide.",
+  });
+  if (!auth.ok) {
+    return Response.json({ error: auth.error }, { status: auth.status });
+  }
+
   const transport = new WebStandardStreamableHTTPServerTransport();
   const server = createNeuralMcpServer();
   await server.connect(transport);

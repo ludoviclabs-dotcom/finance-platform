@@ -4,22 +4,11 @@ import { useState } from "react";
 
 type FormState = "idle" | "submitting" | "success" | "error" | "not_configured";
 
-/**
- * NEURAL contact form.
- *
- * Sprint P0 — ne poste plus en mailto (code client) mais en POST /api/contact
- * (Resend côté serveur). L'adresse destinataire n'est plus exposée dans le bundle.
- *
- * États UI :
- *   idle           → formulaire actif
- *   submitting     → bouton disabled
- *   success        → bloc confirmation, bouton disabled
- *   error          → bannière erreur, re-submit possible
- *   not_configured → 503 : Resend non configuré, proposer fallback email manuel
- */
 export function ContactForm() {
   const [company, setCompany] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [need, setNeed] = useState("");
   const [scope, setScope] = useState("");
   const [state, setState] = useState<FormState>("idle");
@@ -36,7 +25,7 @@ export function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, company, need, context: scope }),
+        body: JSON.stringify({ name, email, phone, company, need, context: scope }),
       });
 
       if (res.status === 503) {
@@ -44,14 +33,11 @@ export function ContactForm() {
         return;
       }
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-          issues?: unknown;
-        };
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
         setState("error");
         setErrorMsg(
           data.error === "validation"
-            ? "Champs invalides — vérifiez nom (≥2), société, besoin (≥2) et contexte (≥10 car.)."
+            ? "Champs invalides: vérifiez nom, email, société, besoin et contexte."
             : "L'envoi a échoué. Réessayez dans un instant.",
         );
         return;
@@ -70,8 +56,8 @@ export function ContactForm() {
           Message reçu.
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-white/75">
-          Merci {name}. Je reviens vers vous sous 24 h ouvrées avec un premier angle de
-          cadrage et la suite proposée.
+          Merci {name}. La demande est transmise avec votre email de réponse. Je
+          reviens vers vous sous 24 h ouvrées avec un premier angle de cadrage.
         </p>
       </div>
     );
@@ -86,8 +72,8 @@ export function ContactForm() {
         Demander un cadrage
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-white/65">
-        Un formulaire, une réponse sous 24 h ouvrées. Pas de back-office imposé,
-        pas de relance automatisée.
+        Email obligatoire, téléphone optionnel. Pas de CRM automatisé ni de
+        relance séquencée.
       </p>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -100,8 +86,23 @@ export function ContactForm() {
             onChange={(event) => setName(event.target.value)}
             required
             minLength={2}
+            autoComplete="name"
             className="w-full rounded-xl border border-white/12 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-neural-violet/40 focus:outline-none"
             placeholder="Votre nom"
+          />
+        </label>
+        <label className="block text-sm text-white/80">
+          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
+            Email
+          </span>
+          <input
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            type="email"
+            autoComplete="email"
+            className="w-full rounded-xl border border-white/12 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-neural-violet/40 focus:outline-none"
+            placeholder="vous@entreprise.fr"
           />
         </label>
         <label className="block text-sm text-white/80">
@@ -112,8 +113,22 @@ export function ContactForm() {
             value={company}
             onChange={(event) => setCompany(event.target.value)}
             required
+            autoComplete="organization"
             className="w-full rounded-xl border border-white/12 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-neural-violet/40 focus:outline-none"
             placeholder="Nom de votre société"
+          />
+        </label>
+        <label className="block text-sm text-white/80">
+          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
+            Téléphone optionnel
+          </span>
+          <input
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            type="tel"
+            autoComplete="tel"
+            className="w-full rounded-xl border border-white/12 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-neural-violet/40 focus:outline-none"
+            placeholder="+33..."
           />
         </label>
       </div>
@@ -128,7 +143,7 @@ export function ContactForm() {
           required
           minLength={2}
           className="w-full rounded-xl border border-white/12 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-neural-violet/40 focus:outline-none"
-          placeholder="Exemple : cadrage Luxe Finance, démo transport, audit du projet"
+          placeholder="Exemple: Proof Audit, agent Luxe Finance, pilot banque"
         />
       </label>
 
@@ -143,7 +158,7 @@ export function ContactForm() {
           minLength={10}
           rows={6}
           className="w-full rounded-xl border border-white/12 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-neural-violet/40 focus:outline-none"
-          placeholder="Décrivez le secteur, le processus à automatiser ou la verticale prioritaire."
+          placeholder="Décrivez le secteur, le processus à cadrer, les données disponibles et la contrainte principale."
         />
       </label>
 
@@ -166,15 +181,13 @@ export function ContactForm() {
         </div>
       ) : null}
 
-      <div className="mt-6">
-        <button
-          type="submit"
-          disabled={state === "submitting"}
-          className="inline-flex items-center justify-center rounded-xl bg-neural-violet px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-neural-violet-dark disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {state === "submitting" ? "Envoi en cours…" : "Envoyer"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={state === "submitting"}
+        className="mt-6 inline-flex items-center justify-center rounded-xl bg-neural-violet px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-neural-violet-dark disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {state === "submitting" ? "Envoi en cours..." : "Envoyer la demande"}
+      </button>
     </form>
   );
 }

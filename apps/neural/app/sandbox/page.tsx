@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FlaskConical, ArrowRight, Clock, Cpu } from "lucide-react";
+import { FlaskConical, ArrowRight, Clock, Cpu, Route } from "lucide-react";
 
 import demosData from "@/content/sandbox/demos.json";
 
@@ -47,6 +47,16 @@ export default function SandboxPage() {
             pré-extraites. Aucune inscription, aucun email demandé. Les démos live appellent
             réellement Claude Sonnet 4.6 via Vercel AI Gateway avec rate-limiting par IP.
           </p>
+          <div className="mt-6">
+            <Link
+              href="/simulation"
+              className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+            >
+              <Route className="h-4 w-4 text-violet-200" />
+              Ouvrir le parcours guidé
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </section>
 

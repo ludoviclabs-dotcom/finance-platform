@@ -93,7 +93,7 @@
         { "id": "none", "label": "Pas de trace structurée", "score": 0 },
         { "id": "logs", "label": "Logs techniques sans corrélation business", "score": 1 },
         { "id": "audit-trail", "label": "Audit trail signé avec versioning prompts", "score": 2 },
-        { "id": "exportable", "label": "Trace exportable client + opposable juridiquement", "score": 3 }
+        { "id": "exportable", "label": "Trace exportable client + préparée pour revue juridique", "score": 3 }
       ]
     },
     {

@@ -50,7 +50,7 @@ const FEATURES = [
   {
     icon: Zap,
     title: "Audit trail propagé",
-    description: "Chaque décision émet un event vers votre webhook. Hash signé, version prompt, signataire — opposable juridiquement.",
+    description: "Chaque décision émet un event vers votre webhook. Hash signé, version prompt et signataire pour revue juridique.",
   },
   {
     icon: Boxes,

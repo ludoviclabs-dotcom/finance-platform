@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Database, FileSpreadsheet, Layers3, ShieldCheck } from "lucide-react";
+import { ArrowRight, Database, FileSpreadsheet, Layers3, Route, ShieldCheck } from "lucide-react";
 
 import {
   PROOF_SCORE_LABELS,
@@ -137,9 +137,15 @@ export default function ProofPage() {
                 5 statuts, 5 scores
               </h2>
             </div>
-            <Link href="/api/proof-catalog" className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200">
-              API JSON <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/simulation" className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200">
+                <Route className="h-4 w-4" />
+                Simulation Studio <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/api/proof-catalog" className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200">
+                API JSON <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
           <div className="mt-8 grid min-w-0 gap-4 md:grid-cols-5">
             {catalog.maturityLevels.map((level) => (

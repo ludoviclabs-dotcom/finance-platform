@@ -1,34 +1,27 @@
 /**
- * POST /api/contact — formulaire de contact NEURAL.
+ * POST /api/contact: formulaire de contact NEURAL.
  *
- * Sprint P0 — remplace l'ancien mailto: client par un vrai submit serveur.
- *
- * - Validation Zod stricte (taille, présence des 4 champs).
- * - Envoi via Resend SDK.
- * - Dégrade en 503 si RESEND_API_KEY n'est pas provisionnée (la UI affiche
- *   un fallback "Écrivez à ludoviclabs@gmail.com").
- * - L'adresse destinataire est uniquement côté serveur (pas d'exposition bundle).
+ * Validation serveur stricte. En production, l'envoi dépend de RESEND_API_KEY.
  */
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
 
 const ContactSchema = z.object({
-  name:    z.string().min(2).max(120),
+  name: z.string().min(2).max(120),
+  email: z.string().email().max(320),
   company: z.string().min(1).max(200),
-  need:    z.string().min(2).max(200),
+  need: z.string().min(2).max(200),
   context: z.string().min(10).max(4000),
+  phone: z.string().max(80).optional().or(z.literal("")),
 });
 
-export const runtime = "nodejs"; // Fluid Compute — Resend SDK requires Node.
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "email_not_configured" },
-      { status: 503 },
-    );
+    return NextResponse.json({ error: "email_not_configured" }, { status: 503 });
   }
 
   let body: unknown;
@@ -47,18 +40,21 @@ export async function POST(req: Request) {
   }
 
   const resend = new Resend(apiKey);
-  const { name, company, need, context } = parsed.data;
+  const { name, email, company, need, context, phone } = parsed.data;
   const fromEmail = process.env.CONTACT_FROM_EMAIL?.trim() || "contact@neural.fr";
   const toEmail = process.env.CONTACT_TO_EMAIL?.trim() || "ludoviclabs@gmail.com";
 
   const { error } = await resend.emails.send({
     from: fromEmail,
     to: [toEmail],
-    subject: `[NEURAL contact] ${company} — ${need}`,
+    replyTo: email,
+    subject: `[NEURAL contact] ${company} - ${need}`,
     text: [
-      `Nom:     ${name}`,
+      `Nom: ${name}`,
+      `Email: ${email}`,
+      `Téléphone: ${phone?.trim() || "non renseigné"}`,
       `Société: ${company}`,
-      `Besoin:  ${need}`,
+      `Besoin: ${need}`,
       "",
       "Contexte:",
       context,

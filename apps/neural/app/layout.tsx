@@ -49,21 +49,19 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "NEURAL — Framework multi-secteurs pour agents métier",
+    default: "NEURAL - Opérateur d'agents IA gouvernés",
     template: "%s | NEURAL",
   },
   description:
-    "NEURAL exposé un framework multi-secteurs avec un sous-ensemble déjà live : " +
-    "data hub, surfaces Luxe Finance/RH, démo orchestrée Transport et page trust explicite.",
+    "NEURAL expose un catalogue qualifié d'agents métier avec preuve publique, limites, gouvernance et parcours pilote.",
   keywords: [
     "IA entreprise",
-    "Claude",
     "intelligence artificielle",
     "agent IA",
     "data hub",
     "verticale luxe",
-    "démo orchestration",
-    "Anthropic",
+    "gouvernance IA",
+    "agents métier",
   ],
   authors: [{ name: "NEURAL AI Consulting" }],
   creator: "NEURAL AI Consulting",
@@ -72,22 +70,22 @@ export const metadata: Metadata = {
     locale: "fr_FR",
     url: SITE_URL,
     siteName: "NEURAL",
-    title: "NEURAL — Framework multi-secteurs pour agents métier",
+    title: "NEURAL - Opérateur d'agents IA gouvernés",
     description:
-      "Framework multi-secteurs, noyau Luxe déjà live, démo orchestrée Transport et page trust.",
+      "Catalogue qualifié d'agents métier avec preuves publiques, limites et parcours pilote.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "NEURAL — Framework multi-secteurs pour agents métier",
+        alt: "NEURAL - Opérateur d'agents IA gouvernés",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "NEURAL — Framework multi-secteurs pour agents métier",
-    description: "Noyau Luxe live, démo Transport et statuts publics explicites.",
+    title: "NEURAL - Opérateur d'agents IA gouvernés",
+    description: "Preuves publiques, limites et statuts de maturité agent par agent.",
     images: ["/opengraph-image"],
   },
   robots: {

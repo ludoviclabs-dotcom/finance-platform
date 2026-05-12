@@ -7,7 +7,7 @@
       "fullName": "Règlement Général sur la Protection des Données (UE 2016/679)",
       "status": "by-design",
       "statusLabel": "Conforme par design",
-      "description": "Architecture pensée pour la minimisation, la portabilité et la souveraineté. Sous-processeurs publics, DPA disponible.",
+      "description": "Architecture pensée pour la minimisation, la portabilité et la souveraineté. Sous-processeurs publics, DPA préparatoire.",
       "evidenceUrl": "/trust",
       "expectedDate": null
     },

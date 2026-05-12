@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Send, CheckCircle2, AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Mail, Send } from "lucide-react";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -25,14 +25,17 @@ export function SubscribeForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setStatus("success");
-        setMessage("Inscription enregistrée. Vérifiez votre boîte email pour confirmer.");
+        setMessage(
+          data.message ??
+            "Préinscription reçue. La liste automatisée n'est pas encore branchée.",
+        );
         setEmail("");
       } else {
-        const data = await res.json().catch(() => ({}));
         setStatus("error");
-        setMessage(data.message || "Erreur lors de l'inscription. Réessayez plus tard.");
+        setMessage(data.message || "Erreur lors de la préinscription.");
       }
     } catch {
       setStatus("error");
@@ -47,14 +50,17 @@ export function SubscribeForm() {
     >
       <div className="flex items-center gap-2 text-violet-300">
         <Mail className="h-4 w-4" />
-        <span className="text-[11px] uppercase tracking-[0.18em]">S&apos;inscrire</span>
+        <span className="text-[11px] uppercase tracking-[0.18em]">
+          Préinscription
+        </span>
       </div>
       <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-white">
-        Recevoir la newsletter NEURAL
+        Recevoir les prochaines éditions NEURAL
       </h3>
       <p className="mt-2 text-sm leading-relaxed text-white/65">
-        Une édition par mois. Cadrage AI Act, retours d&apos;expérience secteurs régulés EU,
-        nouveautés produit. Pas de relance commerciale.
+        Une édition mensuelle est prévue, mais l'automatisation newsletter n'est
+        pas encore branchée. Le formulaire signale votre intérêt sans promettre
+        une inscription durable.
       </p>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -71,7 +77,7 @@ export function SubscribeForm() {
           disabled={status === "submitting"}
           className="inline-flex items-center justify-center gap-2 rounded-full bg-neural-violet px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-neural-violet/20 transition-all hover:bg-neural-violet-dark disabled:opacity-50 disabled:hover:bg-neural-violet"
         >
-          {status === "submitting" ? "Envoi..." : "S'inscrire"}
+          {status === "submitting" ? "Envoi..." : "Signaler mon intérêt"}
           {status !== "submitting" ? <Send className="h-4 w-4" /> : null}
         </button>
       </div>
@@ -90,10 +96,10 @@ export function SubscribeForm() {
       ) : null}
 
       <ul className="mt-6 space-y-2 border-t border-white/8 pt-4 text-xs text-white/55">
-        <li>• Désinscription en 1 clic dans chaque email</li>
-        <li>• Données stockées chez Resend (région EU)</li>
-        <li>• Pas de partage avec des tiers, jamais</li>
-        <li>• Pas de retargeting publicitaire</li>
+        <li>• Liste marketing automatisée non branchée à ce stade</li>
+        <li>• Pas de tracking publicitaire revendiqué</li>
+        <li>• Pas de partage avec des tiers</li>
+        <li>• Une intégration opt-in devra être documentée avant lancement réel</li>
       </ul>
     </form>
   );

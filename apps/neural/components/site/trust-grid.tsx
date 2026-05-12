@@ -56,7 +56,7 @@ export const DEFAULT_TRUST_BADGES: TrustBadge[] = [
     icon: Cloud,
     status: "by-design",
     tooltip:
-      "Vercel (Frankfurt/CDG) + Neon Postgres (eu-central) + Anthropic API. Architecture régionale documentée.",
+      "Architecture EU-first visée avec Vercel, Neon et fournisseurs IA à documenter fournisseur par fournisseur.",
     href: "/trust",
   },
   {
@@ -65,16 +65,16 @@ export const DEFAULT_TRUST_BADGES: TrustBadge[] = [
     icon: ShieldCheck,
     status: "by-design",
     tooltip:
-      "Sous-processeurs publics, DPA disponible, minimisation des données dans le runtime public.",
+      "Sous-processeurs publics, DPA préparatoire, minimisation des données dans le runtime public.",
     href: "/trust",
   },
   {
     id: "ai-act",
-    label: "AI Act Ready",
+    label: "AI Act by design",
     icon: FileCheck2,
     status: "by-design",
     tooltip:
-      "Classification des agents par niveau de risque, supervision humaine par défaut, audit trail.",
+      "Classification des agents par niveau de risque, supervision humaine par défaut, audit trail en préparation.",
     href: "/conformite/ai-act",
   },
   {
@@ -83,7 +83,7 @@ export const DEFAULT_TRUST_BADGES: TrustBadge[] = [
     icon: ScrollText,
     status: "in-progress",
     tooltip:
-      "Operator Gateway : journalisation signée des décisions agent. Démo publique en construction.",
+      "Operator Gateway : journalisation structurée des décisions agent. Démo publique en construction.",
     href: "/roadmap",
   },
   {
@@ -92,7 +92,7 @@ export const DEFAULT_TRUST_BADGES: TrustBadge[] = [
     icon: Sparkles,
     status: "active",
     tooltip:
-      "Chat public routé via Vercel AI Gateway. Claude Sonnet 4.6 principal, GPT préparé en fallback.",
+      "Chat public routé via Vercel AI Gateway si configuré. Claude principal, fallback GPT préparé.",
     href: "/trust",
   },
   {

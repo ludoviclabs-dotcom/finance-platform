@@ -1,18 +1,5 @@
 import { NextResponse } from "next/server";
 
-/**
- * POST /api/newsletter/subscribe
- *
- * Endpoint d'inscription newsletter. Posture honnête :
- * - Validation email côté serveur
- * - Pas de stockage immédiat — log côté serveur en attendant l'intégration
- *   Resend / Loops.so officielle (roadmap T3 2026)
- * - Pas de spam, pas de double opt-in artificiel
- *
- * En production : remplacer le log par un appel à Resend audiences
- * ou Loops.so pour persistence.
- */
-
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
@@ -33,13 +20,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Pour l'instant : log serveur (à remplacer par Resend audiences API en prod)
-    console.log("[newsletter] Nouvelle inscription :", email);
+    const domain = email.split("@")[1] ?? "unknown";
+    console.info("[newsletter] Préinscription non persistée reçue.", { domain });
 
     return NextResponse.json(
       {
         ok: true,
-        message: "Inscription enregistrée.",
+        message:
+          "Préinscription reçue. La liste automatisée n'est pas encore branchée; aucune promesse d'opt-in durable n'est faite.",
       },
       { status: 200 },
     );

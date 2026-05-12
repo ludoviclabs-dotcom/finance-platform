@@ -1,45 +1,36 @@
 /**
  * GET /api/cron/regulatory-watch
  *
- * Vercel Cron job — runs daily at 07:00 UTC.
- * Scheduled in vercel.ts: { path: "/api/cron/regulatory-watch", schedule: "0 7 * * *" }
- *
- * Security: Vercel sends `Authorization: Bearer <CRON_SECRET>` when the env var
- * is set. Requests without a valid token are rejected with 401.
- *
- * Manual trigger (dev / ops):
- *   curl -X GET https://neural-five.vercel.app/api/cron/regulatory-watch \
- *     -H "Authorization: Bearer $CRON_SECRET"
+ * Vercel Cron job: runs daily at 07:00 UTC.
+ * Security: requires Authorization: Bearer <CRON_SECRET> in production.
  */
 
 import { NextRequest } from "next/server";
-import { runRegulatoryWatch } from "@/lib/regulatory";
 
-export const maxDuration = 300; // Vercel max for hobby / Pro — classification can take time
+import { runRegulatoryWatch } from "@/lib/regulatory";
+import { requireConfiguredToken } from "@/lib/security/tokens";
+
+export const maxDuration = 300;
 
 export async function GET(req: NextRequest) {
-  // ── Auth ────────────────────────────────────────────────────────────────────
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "").trim();
-    if (token !== cronSecret) {
-      return Response.json({ error: "Non autorisé." }, { status: 401 });
-    }
+  const auth = requireConfiguredToken(req, {
+    envKey: "CRON_SECRET",
+    allowDevWithoutToken: true,
+    missingMessage: "CRON_SECRET doit être configuré pour exécuter cette tâche.",
+    invalidMessage: "Token cron manquant ou invalide.",
+  });
+  if (!auth.ok) {
+    return Response.json({ error: auth.error }, { status: auth.status });
   }
 
-  // ── Run watch ────────────────────────────────────────────────────────────────
   const startedAt = Date.now();
 
   try {
-    const results = await runRegulatoryWatch(
-      3,    // look back 3 days
-      false, // skip already-persisted publications
-    );
+    const results = await runRegulatoryWatch(3, false);
 
-    const totalFetched  = results.reduce((s, r) => s + r.fetched, 0);
-    const totalNew      = results.reduce((s, r) => s + r.newAlerts, 0);
-    const totalSkipped  = results.reduce((s, r) => s + r.skipped, 0);
+    const totalFetched = results.reduce((s, r) => s + r.fetched, 0);
+    const totalNew = results.reduce((s, r) => s + r.newAlerts, 0);
+    const totalSkipped = results.reduce((s, r) => s + r.skipped, 0);
 
     return Response.json({
       ok: true,

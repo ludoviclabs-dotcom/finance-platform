@@ -36,7 +36,7 @@
       { "id": "no", "label": "Logs techniques seulement", "score": 0 },
       { "id": "logs", "label": "Logs business mais pas signés", "score": 1 },
       { "id": "signed", "label": "Audit trail avec hash immuable", "score": 2 },
-      { "id": "exportable", "label": "Audit trail signé exportable + opposable juridiquement", "score": 3 }
+      { "id": "exportable", "label": "Audit trail signé exportable + préparé pour revue juridique", "score": 3 }
     ]},
     { "id": "q6", "axis": "gouvernance", "label": "Avez-vous une policy engine séparée du LLM pour appliquer vos règles métier ?", "options": [
       { "id": "no", "label": "Tout dans le prompt LLM", "score": 0 },

@@ -1,22 +1,35 @@
 # NEURAL security audit note
 
-Date: 2026-05-10
+Date: 2026-05-12
 
 ## Actions applied
 
-- `npm audit fix` applied non-breaking dependency updates.
-- `next` updated from `16.2.0` to `16.2.6`.
-- `.vercelignore` added at repository root and app level to exclude `.env*` from deployment uploads while keeping `.env.example`.
-- Internal approval endpoints now support `INTERNAL_REVIEW_TOKEN` and only fall back to `x-reviewer-id` when the token is not configured.
+- Sensitive routes are now private by default in production:
+  - `/api/cron/regulatory-watch` requires `CRON_SECRET`.
+  - `/api/mcp` requires `MCP_PUBLIC_TOKEN`.
+  - `/api/internal/*` and `/api/approvals` require `INTERNAL_REVIEW_TOKEN`.
+- Public EvidenceGuard UI now calls `/api/demo/evidence-guard/resolve`; the internal resolver remains protected.
+- Contact form now requires `email`, supports optional `phone`, validates with Zod server-side, and sends `replyTo`.
+- Cal.com embed was removed from `/contact` until a verified slug is configured.
+- Public legal and privacy pages were rewritten with editor, hosting, data categories, purposes, retention, rights, cookies and embeds.
+- `/forfaits`, `/secteurs` and `/secteurs/luxe/rh` no longer return public 404s.
+- `qa:prod` / `qa:site` now crawls internal links, checks 404s, favicon/manifest assets, mojibake and protected endpoints in production.
+
+## Required production env vars
+
+- `CRON_SECRET`: required for `/api/cron/regulatory-watch`.
+- `MCP_PUBLIC_TOKEN`: required if `/api/mcp` remains active.
+- `INTERNAL_REVIEW_TOKEN`: required for `/api/internal/*` and `/api/approvals`.
+- `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_TO_EMAIL`: required for live contact delivery.
 
 ## Residual npm audit findings
 
 `npm audit --omit=dev` still reports 8 vulnerabilities:
 
-- `xlsx`: high severity, no fix available upstream. NEURAL uses `xlsx` for local workbook parsing/export. Mitigation: keep public uploads disabled, process only bundled or controlled workbooks, and plan migration or isolation before customer-provided files.
-- `@hono/node-server` through `@modelcontextprotocol/sdk` and Prisma tooling: moderate severity, no non-breaking fix available in the current dependency graph.
+- `xlsx`: high severity, no fix available upstream. Current mitigation: no public workbook upload, trusted bundled workbooks only, size-controlled files, and migration/isolation required before accepting client-provided Excel files.
+- `@hono/node-server` through `@modelcontextprotocol/sdk` and Prisma tooling: moderate severity, no non-breaking fix available in the current dependency graph. Current mitigation: `/api/mcp` is token-protected in production.
 - `postcss` through `next`: moderate severity. Next `16.2.6` is installed; npm still reports the bundled transitive PostCSS issue with no direct non-breaking fix.
 
 ## Do not force yet
 
-`npm audit fix --force` proposes breaking changes around Prisma/Vercel config. Do not run it without a dedicated migration/test pass.
+Do not run `npm audit fix --force` without a dedicated migration pass. It can introduce breaking changes in Prisma / Vercel-related dependencies.

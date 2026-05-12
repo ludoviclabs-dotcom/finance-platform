@@ -121,7 +121,7 @@ export function EvidenceResolverLive() {
     setError(null);
     setPkg(null);
     try {
-      const res = await fetch("/api/internal/evidence-guard/resolve", {
+      const res = await fetch("/api/demo/evidence-guard/resolve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -17,9 +17,15 @@ import {
   getRecentBankCommsRuns,
   type BankCommsRunStatus,
 } from "@/lib/ai/bank-comms-persistence";
+import { getInternalReviewer } from "@/lib/internal-review-auth";
 import { withGuardrails } from "@/lib/security";
 
 async function handler(req: NextRequest): Promise<Response> {
+  const reviewer = getInternalReviewer(req);
+  if (!reviewer.ok) {
+    return NextResponse.json({ error: reviewer.error }, { status: reviewer.status });
+  }
+
   if (req.method !== "GET") {
     return NextResponse.json({ error: "Méthode non autorisée." }, { status: 405 });
   }

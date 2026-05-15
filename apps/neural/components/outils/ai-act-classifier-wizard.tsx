@@ -2,12 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, RotateCcw, Mail } from "lucide-react";
+import { ArrowRight, Check, RotateCcw, Mail, FileDown, Loader2 } from "lucide-react";
 
 import data from "@/content/outils/ai-act-classifier.json";
+import { computeAiActResult } from "@/lib/outils/compute/ai-act-classifier";
 import { WizardShell, ChoiceList } from "./wizard-shell";
-
-type ResultClass = "interdit" | "haut" | "limite" | "minimal";
 
 const COLOR_CLASSES: Record<string, { bg: string; border: string; text: string }> = {
   red: {
@@ -32,27 +31,11 @@ const COLOR_CLASSES: Record<string, { bg: string; border: string; text: string }
   },
 };
 
-function computeResult(answers: Record<string, string>): ResultClass {
-  const questions = data.questions;
-  const weights = questions.map((q) => {
-    const optId = answers[q.id];
-    const opt = q.options.find((o) => o.id === optId);
-    return opt?.weight as string | undefined;
-  });
-
-  // Priorité décroissante : interdit > haut > limite > minimal
-  if (weights.some((w) => w === "interdit")) return "interdit";
-  if (weights.some((w) => w === "haut" || w === "haut_aggrave" || w === "annexe_iii")) {
-    return "haut";
-  }
-  if (weights.some((w) => w === "limite")) return "limite";
-  return "minimal";
-}
-
 export function AiActClassifierWizard() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showResult, setShowResult] = useState(false);
+  const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle");
 
   const questions = data.questions;
   const currentQuestion = questions[step];
@@ -61,10 +44,35 @@ export function AiActClassifierWizard() {
 
   const result = useMemo(() => {
     if (!showResult) return null;
-    const cls = computeResult(answers);
-    const r = data.results[cls];
-    return { cls, ...r };
+    const computed = computeAiActResult(answers);
+    return { cls: computed.class, ...computed };
   }, [showResult, answers]);
+
+  const handleDownloadPdf = async () => {
+    setDownloadState("loading");
+    try {
+      const resp = await fetch("/api/outils/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tool: "ai-act-classifier", answers }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const hash = resp.headers.get("X-Receipt-Hash") ?? "synthese";
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `neural-ai-act-classifier-${hash.slice(0, 8)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setDownloadState("idle");
+    } catch (err) {
+      console.error("PDF download failed", err);
+      setDownloadState("error");
+    }
+  };
 
   const handleNext = () => {
     if (isLastQuestion) {
@@ -145,25 +153,57 @@ export function AiActClassifierWizard() {
           <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl">
               <div className="flex items-center gap-2 text-emerald-300">
-                <Mail className="h-4 w-4" />
-                <span className="text-[11px] uppercase tracking-[0.18em]">Rapport complet</span>
+                <FileDown className="h-4 w-4" />
+                <span className="text-[11px] uppercase tracking-[0.18em]">Synthèse signée</span>
               </div>
               <h3 className="mt-2 font-display text-xl font-bold tracking-tight text-white">
-                Recevoir le rapport personnalisé
+                Télécharger la synthèse en PDF
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-white/65">
-                Synthèse PDF avec votre classification, vos obligations détaillées par article, et
-                les agents NEURAL adaptés à votre cas. Envoyé sous 24h.
+                Vos réponses, la classification, les obligations applicables et les prochaines
+                étapes. Pied de page signé (hash SHA-256 + URL de vérification) pour partage
+                interne.
               </p>
             </div>
-            <Link
-              href="/contact?source=ai-act-classifier"
-              className="inline-flex items-center gap-2 rounded-full bg-emerald-500/90 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400"
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={downloadState === "loading"}
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-500/90 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Recevoir par email
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              {downloadState === "loading" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Génération…
+                </>
+              ) : (
+                <>
+                  Télécharger le PDF
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </div>
+          {downloadState === "error" ? (
+            <p className="mt-4 text-xs text-red-300">
+              Génération échouée. Réessayez ou{" "}
+              <Link href="/contact?source=ai-act-classifier" className="underline">
+                demandez la synthèse par email
+              </Link>
+              .
+            </p>
+          ) : (
+            <p className="mt-4 text-xs text-white/40">
+              Besoin d&apos;un envoi par email ou d&apos;une analyse détaillée ?{" "}
+              <Link
+                href="/contact?source=ai-act-classifier"
+                className="inline-flex items-center gap-1 text-emerald-300 hover:text-emerald-200"
+              >
+                <Mail className="h-3 w-3" />
+                Nous contacter
+              </Link>
+            </p>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-4">

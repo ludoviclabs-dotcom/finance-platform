@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-15T20:00:00Z",
+  "lastUpdated": "2026-05-15T21:00:00Z",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -67,11 +67,12 @@
     {
       "id": "model-cards-30",
       "title": "Model Cards publiques pour les 30 agents prioritaires",
-      "description": "Composant AgentSafetyModelCard livré (objectif, données, limites, classification AI Act, mitigations). 3 agents documentés sur 30 cibles — déploiement systématique en cours.",
+      "description": "22 model cards rédigées (objectif, données, outils autorisés, actions interdites, HITL obligatoire, gates déterministes, fallback, limites connues, testset). Couverture : 6 agents Bank Comms, 5 Luxe Comms, 11 catalog-meta (finance, RH, supply chain, assurance). Pages live wirées (bank + luxe), 8 agents catalog-meta restent à wirer une fois leur page publique en ligne.",
       "category": "conformite",
       "status": "now",
-      "progress": 15,
-      "expectedDate": "2026-Q3"
+      "progress": 70,
+      "expectedDate": "2026-Q3",
+      "href": "/trust/agent-safety"
     },
     {
       "id": "agents-catalog",

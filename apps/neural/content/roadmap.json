@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-27",
+  "lastUpdated": "2026-05-15",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -38,16 +38,17 @@
     {
       "id": "status-page",
       "title": "Status Page publique avec uptime 90j",
-      "description": "Composants surveillés, historique incidents, transparence opérationnelle.",
+      "description": "Page /status en ligne, calcul uptime 90j depuis composants déclarés. Branchement health checks externes (UptimeRobot/BetterStack) en cours.",
       "category": "plateforme",
-      "status": "shipped",
-      "shippedDate": "2026-04",
+      "status": "now",
+      "progress": 60,
+      "expectedDate": "2026-Q3",
       "href": "/status"
     },
     {
       "id": "ai-act-page",
       "title": "Page AI Act complète",
-      "description": "Classification 168 agents, articles applicables, supervision humaine documentée.",
+      "description": "Cadre AI Act : 4 niveaux de risque, 8 articles applicables, supervision humaine documentée. Classification par agent disponible sur chaque fiche agent.",
       "category": "conformite",
       "status": "shipped",
       "shippedDate": "2026-04",
@@ -65,28 +66,31 @@
     {
       "id": "model-cards-30",
       "title": "Model Cards publiques pour les 30 agents prioritaires",
-      "description": "Objectif, données, limites, classification AI Act, mesures de mitigation. Format standardisé.",
+      "description": "Composant AgentSafetyModelCard livré (objectif, données, limites, classification AI Act, mitigations). 3 agents documentés sur 30 cibles — déploiement systématique en cours.",
       "category": "conformite",
-      "status": "now",
-      "progress": 25,
-      "expectedDate": "2026-Q3"
-    },
-    {
-      "id": "agents-catalog",
-      "title": "Catalogue /agents filtrable",
-      "description": "Grid des agents par branche × secteur × niveau de risque AI Act + ROI estimé. SEO long-tail.",
-      "category": "produit",
       "status": "now",
       "progress": 15,
       "expectedDate": "2026-Q3"
     },
     {
+      "id": "agents-catalog",
+      "title": "Catalogue /agents filtrable",
+      "description": "Grid /agents filtrable par branche × secteur × statut × niveau de risque AI Act (live). Colonne ROI estimé à câbler depuis agents-meta.json. SEO long-tail.",
+      "category": "produit",
+      "status": "now",
+      "progress": 70,
+      "expectedDate": "2026-Q3",
+      "href": "/agents"
+    },
+    {
       "id": "outils-viraux",
       "title": "Outils gratuits : AI Act Classifier, ROI Calculator, Maturity Quiz",
-      "description": "Lead-gen + viralité. Outputs PDF signés.",
+      "description": "Routes /outils/ai-act-classifier, /outils/roi, /outils/maturite en ligne. Génération PDF signé des résultats à câbler. Outils annexes (DPIA, Empreinte IA, Operator Score) en finalisation.",
       "category": "produit",
-      "status": "next",
-      "expectedDate": "2026-Q3"
+      "status": "now",
+      "progress": 60,
+      "expectedDate": "2026-Q3",
+      "href": "/outils"
     },
     {
       "id": "soc2-type-i",
@@ -106,27 +110,31 @@
     },
     {
       "id": "connecteurs-eu-50",
-      "title": "50 connecteurs EU certifiés",
-      "description": "SAP, Sage, Cegid, Pennylane, Lucca, M365, Salesforce, Workday EU, Sopra Banking, Murex...",
+      "title": "Catalogue 50 connecteurs EU",
+      "description": "Catalogue /connecteurs publié avec 50 entrées : 8 live (Pennylane, Qonto, Salesforce, HubSpot, Lucca, M365, Slack, Didomi...), 11 beta, 31 roadmap. Certifications par connecteur à compléter.",
       "category": "connecteurs",
-      "status": "next",
-      "expectedDate": "2026-Q4"
+      "status": "shipped",
+      "shippedDate": "2026-04",
+      "href": "/connecteurs"
     },
     {
       "id": "sandbox-public",
-      "title": "Sandbox public agents (5 agents prioritaires)",
-      "description": "Démo cliquable sans login pour Consolidation, KYC, MRO, ESG, Voice Guard.",
+      "title": "Sandbox public agents (5 démos)",
+      "description": "Hub /sandbox avec 5 démos cliquables sans login + Document Processing : Voice Guard, Press Angle, Heritage Quote, Event, Claims. Runtime via Vercel AI Gateway, rate-limit par IP.",
       "category": "produit",
-      "status": "next",
-      "expectedDate": "2026-Q4"
+      "status": "shipped",
+      "shippedDate": "2026-04",
+      "href": "/sandbox"
     },
     {
       "id": "doc-portal",
       "title": "Documentation produit publique (docs.neural-ai.fr)",
-      "description": "Mintlify ou Nextra. API Reference, tutoriels, model cards.",
+      "description": "Hub /docs en ligne avec 4 sections (Getting Started, Agents Architecture, MCP Protocol, Audit Trail). Migration vers domaine dédié docs.neural-ai.fr (Mintlify/Nextra) + API Reference à faire.",
       "category": "produit",
-      "status": "next",
-      "expectedDate": "2026-Q4"
+      "status": "now",
+      "progress": 30,
+      "expectedDate": "2026-Q4",
+      "href": "/docs"
     },
     {
       "id": "iso-42001",

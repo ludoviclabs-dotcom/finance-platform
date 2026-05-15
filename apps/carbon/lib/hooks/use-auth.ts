@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 import {
   fetchMe,
+  getAuthToken,
   loginRequest,
   logoutRequest,
   refreshTokenRequest,
@@ -100,42 +101,72 @@ export function useAuth() {
   }, [silentRefresh]);
 
   // ---------------------------------------------------------------------------
-  // Hydratation au montage : tenter de rétablir la session via le cookie refresh
+  // Hydratation au montage.
+  //
+  // Ordre :
+  //   1. Si un access token est déjà en mémoire (cas : navigation client après
+  //      login fraîchement réussi sur une autre page), on valide via /auth/me
+  //      directement. Évite un silentRefresh qui, en cas d'échec cookie cross-
+  //      site (vercel.app sur PSL → cookie SameSite bloqué), écraserait
+  //      `_authToken` à null et casserait la session.
+  //   2. Sinon (premier mount, rechargement page), on tente la rotation
+  //      silencieuse via le cookie refresh.
   // ---------------------------------------------------------------------------
   useEffect(() => {
     let cancelled = false;
 
     setOnTokenExpired(silentRefresh);
 
-    silentRefresh()
-      .then(async (token) => {
-        if (cancelled) return;
-        if (!token) {
-          setReady(true);
-          return;
-        }
-        // Revalidation contre /auth/me (détecte révocation côté serveur)
+    const hydrate = async (): Promise<void> => {
+      const inMemoryToken = getAuthToken();
+
+      // Cas 1 : token déjà présent → validation directe via /auth/me.
+      if (inMemoryToken) {
         try {
           const res = await fetchMe();
-          if (!cancelled) {
-            setAuth({
-              status: "authenticated",
-              email: res.user.email,
-              role: res.user.role,
-              companyId: res.user.company_id ?? 1,
-            });
-          }
+          if (cancelled) return;
+          setAuth({
+            status: "authenticated",
+            email: res.user.email,
+            role: res.user.role,
+            companyId: res.user.company_id ?? 1,
+          });
+          return;
         } catch {
-          // /auth/me a échoué → la session est invalide
-          if (!cancelled) {
-            setAuthToken(null);
-            setAuth({ status: "unauthenticated" });
-          }
+          // Le token en mémoire est invalide → on tombe sur le path refresh.
+          // setAuthToken(null) est volontairement omis ici : silentRefresh
+          // s'en chargera si la rotation échoue aussi.
         }
-      })
-      .finally(() => {
-        if (!cancelled) setReady(true);
-      });
+      }
+
+      // Cas 2 : tenter une rotation silencieuse via le cookie refresh.
+      const token = await silentRefresh();
+      if (cancelled) return;
+      if (!token) return;
+
+      // Le silentRefresh a déjà setAuth({authenticated}). On revalide quand
+      // même via /auth/me pour détecter une révocation serveur immédiate.
+      try {
+        const res = await fetchMe();
+        if (!cancelled) {
+          setAuth({
+            status: "authenticated",
+            email: res.user.email,
+            role: res.user.role,
+            companyId: res.user.company_id ?? 1,
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setAuthToken(null);
+          setAuth({ status: "unauthenticated" });
+        }
+      }
+    };
+
+    hydrate().finally(() => {
+      if (!cancelled) setReady(true);
+    });
 
     return () => {
       cancelled = true;

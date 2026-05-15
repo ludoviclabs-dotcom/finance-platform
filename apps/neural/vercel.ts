@@ -29,8 +29,8 @@ const config: VercelConfig = {
     // Sprint 7 — daily EUR-Lex / BOFiP / EBA / IFRS regulatory scan at 07:00 UTC
     { path: "/api/cron/regulatory-watch", schedule: "0 7 * * *" },
     // 2026-05 — internal status probes (platform, DB, rate-limit, publications)
-    // feeding the public /status page. Every 5 minutes; cheap, no LLM calls.
-    { path: "/api/cron/status-probe", schedule: "*/5 * * * *" },
+    // feeding the public /status page. Hourly (Vercel Pro min interval).
+    { path: "/api/cron/status-probe", schedule: "0 * * * *" },
     // Sprint 3 (future) — weekly Braintrust eval regression check
     // { path: "/api/cron/eval-drift", schedule: "0 2 * * 1" },
   ],

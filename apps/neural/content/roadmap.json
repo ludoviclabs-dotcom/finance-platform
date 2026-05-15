@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-15T18:00:00Z",
+  "lastUpdated": "2026-05-15T19:00:00Z",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -57,11 +57,12 @@
     {
       "id": "operator-gateway-mvp",
       "title": "Operator Gateway — MVP audit trail signé",
-      "description": "Couche de journalisation centralisée des décisions agent : prompt hash, modèle, latence, coût, signataire. Démo publique.",
+      "description": "Infrastructure complète : modèle GatewayEvent + chaîne SHA-256 signée (sequence, prompt hash, decision ALLOW/REVIEW/BLOCK, model, prev-signature), service logGatewayEvent thread-safe (pg_advisory_xact_lock), API verifyChain détectant tampering/missing events, et page publique /verify/signature/{hash} avec 5 états (verified/tampered/unknown/db-down/invalid). La page /operator-gateway bascule en mode \"Données live\" dès que des évènements arrivent. Reste à câbler la production d'évènements depuis chaque agent runtime.",
       "category": "produit",
       "status": "now",
-      "progress": 60,
-      "expectedDate": "2026-Q3"
+      "progress": 90,
+      "expectedDate": "2026-Q3",
+      "href": "/operator-gateway"
     },
     {
       "id": "model-cards-30",

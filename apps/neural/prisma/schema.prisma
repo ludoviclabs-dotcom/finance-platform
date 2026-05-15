@@ -490,3 +490,118 @@ model RegulatoryAlert {
   @@index([source, publishedAt])
   @@index([impactScore])
 }
+
+// ==========================================
+// OUTILS — Free tool receipts
+// Added 2026-05-15. Backs the public /verify/outil/{hash} page so a third
+// party can confirm a NEURAL-issued PDF receipt is genuine. Stored
+// metadata stays non-sensitive (no user answers, no PII).
+// ==========================================
+
+model OutilReceipt {
+  id          String   @id @default(cuid())
+  /// SHA-256 hex digest computed by lib/outils/sign.ts.
+  hash        String   @unique
+  /// Machine ID: "ai-act-classifier" | "roi-calculator" | "maturity-quiz".
+  tool        String
+  /// Human label shown on the verify page.
+  toolLabel   String
+  /// Short, non-sensitive result label (e.g. "Haut risque", "ROI +147 %").
+  resultLabel String
+  /// ISO timestamp the receipt was signed at — same field that goes into
+  /// the hash, so it's deterministic and reproducible.
+  generatedAt DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([tool, createdAt])
+}
+
+// ==========================================
+// STATUS — Active component health probes
+// Added 2026-05-15. Backs the public /status page with real probe data
+// instead of declared uptime numbers. Each row records a single probe
+// run for one component (platform, database, rate-limit, ...).
+// Components that cannot be probed without external credentials stay
+// declarative — see lib/status/probes.ts for the actual probe list.
+// ==========================================
+
+model StatusProbe {
+  id          String   @id @default(cuid())
+  /// Matches an id in content/status/components.json (e.g. "platform",
+  /// "database", "rate-limit").
+  componentId String
+  /// "operational" | "degraded" | "outage" — degraded means latency or
+  /// partial failure; outage means the probe could not complete.
+  status      String
+  /// Round-trip latency observed by the probe, null when the probe failed
+  /// before completing.
+  latencyMs   Int?
+  /// Short error tag (e.g. "timeout", "5xx", "no-db-url"). Never PII.
+  error       String?
+  probedAt    DateTime @default(now())
+
+  @@index([componentId, probedAt])
+}
+
+// ==========================================
+// OPERATOR GATEWAY — Signed audit trail
+// Added 2026-05-15. Backs the public /operator-gateway page with real
+// signed events instead of mock data. Each GatewayEvent records one
+// gateway-level enforcement decision (ALLOW / REVIEW / BLOCK) with a
+// SHA-256 signature chained to the previous event so any tampering is
+// detectable end-to-end.
+//
+// Distinct from AgentDecision which records explainability steps
+// (RETRIEVE / COMPUTE / REASON / VALIDATE) inside an AgentRun.
+// ==========================================
+
+model GatewayEvent {
+  id             String   @id @default(cuid())
+  /// Logical sequence number — strictly increasing per tenant. Used to
+  /// verify the chain even if id ordering drifts.
+  sequence       Int
+  /// Tenant identifier. Defaults to "default" so single-tenant setups
+  /// produce a single, contiguous chain.
+  tenantId       String   @default("default")
+  /// Optional link back to an AgentRun for cross-referencing explainability.
+  runId          String?
+  /// Stable agent slug, e.g. "green-claim-checker".
+  agentId        String
+  /// Semantic version of the agent prompt/profile at decision time.
+  agentVersion   String
+  /// LLM identifier when applicable, e.g. "anthropic/claude-sonnet-4-6".
+  model          String?
+  /// SHA-256 (hex) of the canonical prompt sent to the LLM. Never the
+  /// prompt itself — privacy by construction.
+  promptHash     String
+  /// Final policy decision applied by the gateway.
+  decision       GatewayDecision
+  /// Short human label describing what happened (e.g. "Claim CRITICAL
+  /// escaladé Legal+ESG Lead"). Avoid PII.
+  outcome        String
+  /// Short human label describing why this decision was made (e.g.
+  /// "Pattern matching ABSOLUTE sans evidence USABLE").
+  trigger        String?
+  tokens         Int?
+  latencyMs      Int?
+  costEur        Decimal? @db.Decimal(10, 6)
+  /// Hash of the previous event in the chain (per tenant). Empty string for
+  /// the very first event of a tenant.
+  prevSignature  String
+  /// SHA-256 chained signature over (sequence, tenantId, agentId,
+  /// agentVersion, model, promptHash, decision, prevSignature, recordedAt).
+  signature      String   @unique
+  /// Wall-clock when the event was recorded. The signature includes the
+  /// epoch millis so it's deterministic.
+  recordedAt     DateTime @default(now())
+
+  @@unique([tenantId, sequence])
+  @@index([tenantId, recordedAt])
+  @@index([agentId, recordedAt])
+}
+
+enum GatewayDecision {
+  ALLOW
+  REVIEW
+  BLOCK
+}

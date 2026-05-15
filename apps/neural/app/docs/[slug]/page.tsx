@@ -6,6 +6,7 @@ import gettingStarted from "@/content/docs/getting-started.json";
 import agentsArch from "@/content/docs/agents-architecture.json";
 import mcp from "@/content/docs/mcp-protocol.json";
 import auditTrail from "@/content/docs/audit-trail.json";
+import apiReference from "@/content/docs/api-reference.json";
 
 type DocData = typeof gettingStarted;
 
@@ -14,6 +15,7 @@ const DOCS: Record<string, DocData> = {
   "agents-architecture": agentsArch,
   "mcp-protocol": mcp,
   "audit-trail": auditTrail,
+  "api-reference": apiReference,
 };
 
 export function generateStaticParams() {
@@ -34,36 +36,91 @@ export async function generateMetadata({
   };
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderInline(value: string): string {
+  return escapeHtml(value)
+    .replace(/\*\*(.+?)\*\*/g, "<strong class='text-white font-semibold'>$1</strong>")
+    .replace(/`(.+?)`/g, "<code class='rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs'>$1</code>");
+}
+
 function renderBody(text: string) {
-  // Simple markdown-like renderer : ** = bold, • = bullet, single newlines preserved
-  const parts = text.split(/\n\n/);
-  return parts.map((para, i) => {
-    if (para.trim().startsWith("•")) {
+  // Split into blocks separated by blank lines. Each block is rendered
+  // independently based on its leading marker: ``` for code, ## for
+  // subheading, • for bullets, otherwise paragraph.
+  const blocks = text.split(/\n\n/);
+  const out: React.ReactNode[] = [];
+  for (let i = 0; i < blocks.length; i += 1) {
+    const para = blocks[i].trim();
+    if (!para) continue;
+
+    // Code block (full block wrapped in ``` ... ```)
+    if (para.startsWith("```")) {
+      const lines = para.split("\n");
+      // Strip the opening ``` (and optional language tag) and any closing ```
+      const inner = lines
+        .slice(1, lines[lines.length - 1].trim() === "```" ? -1 : undefined)
+        .join("\n");
+      out.push(
+        <pre
+          key={i}
+          className="overflow-x-auto rounded-2xl border border-white/10 bg-black/40 p-4 font-mono text-xs leading-relaxed text-emerald-200"
+        >
+          <code>{inner}</code>
+        </pre>,
+      );
+      continue;
+    }
+
+    // Subheading (## …)
+    if (para.startsWith("## ")) {
+      const heading = para.slice(3).trim();
+      out.push(
+        <h3
+          key={i}
+          className="mt-4 font-display text-lg font-bold tracking-tight text-white"
+        >
+          {heading}
+        </h3>,
+      );
+      continue;
+    }
+
+    // Bullet list (block starting with • on the first line)
+    if (para.startsWith("•")) {
       const lines = para.split("\n").filter((l) => l.trim());
-      return (
+      out.push(
         <ul key={i} className="space-y-2">
           {lines.map((line, j) => {
             const clean = line.replace(/^•\s*/, "");
             return (
               <li key={j} className="flex gap-3 text-sm leading-relaxed text-white/75">
                 <span className="mt-2 h-1 w-1 flex-shrink-0 rounded-full bg-violet-400" />
-                <span dangerouslySetInnerHTML={{ __html: clean.replace(/\*\*(.+?)\*\*/g, "<strong class='text-white font-semibold'>$1</strong>").replace(/`(.+?)`/g, "<code class='rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs'>$1</code>") }} />
+                <span dangerouslySetInnerHTML={{ __html: renderInline(clean) }} />
               </li>
             );
           })}
-        </ul>
+        </ul>,
       );
+      continue;
     }
-    return (
+
+    out.push(
       <p
         key={i}
         className="text-sm leading-relaxed text-white/75"
-        dangerouslySetInnerHTML={{
-          __html: para.replace(/\*\*(.+?)\*\*/g, "<strong class='text-white font-semibold'>$1</strong>").replace(/`(.+?)`/g, "<code class='rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs'>$1</code>"),
-        }}
-      />
+        dangerouslySetInnerHTML={{ __html: renderInline(para) }}
+      />,
     );
-  });
+  }
+  return out;
 }
 
 export default async function DocPage({

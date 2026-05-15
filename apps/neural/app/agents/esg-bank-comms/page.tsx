@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Leaf, Scale, ShieldCheck, Sparkles } from "lucide-react";
 
 import { EsgBankCommsLive } from "@/components/bank-comms/EsgBankCommsLive";
+import { AgentSafetyModelCard } from "@/components/trust/agent-safety-model-card";
 import {
   ESG_CLAIM_LIBRARY,
   ESG_EVIDENCE_REGISTRY,
@@ -10,6 +11,7 @@ import {
   ESG_SCENARIOS,
   getAgentBySlug,
 } from "@/lib/data/bank-comms-catalog";
+import { getAgentSafetyProfile } from "@/lib/data/agent-safety";
 
 const SLUG = "esg-bank-comms";
 
@@ -21,6 +23,7 @@ export const metadata: Metadata = {
 
 export default function EsgBankAgentPage() {
   const agent = getAgentBySlug(SLUG);
+  const safetyProfile = getAgentSafetyProfile(SLUG);
 
   return (
     <div data-theme="dark" className="min-h-screen bg-[#0A1628] text-white">
@@ -69,6 +72,8 @@ export default function EsgBankAgentPage() {
           </div>
         </div>
       </section>
+
+      {safetyProfile ? <AgentSafetyModelCard profile={safetyProfile} /> : null}
 
       <section className="border-b border-white/5 px-6 py-14 md:px-12">
         <div className="mx-auto max-w-[1280px]">

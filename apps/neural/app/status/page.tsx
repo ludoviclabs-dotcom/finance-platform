@@ -5,14 +5,18 @@ import statusData from "@/content/status/components.json";
 import { ComponentRow } from "@/components/status/component-row";
 import { GlobalStatusPill } from "@/components/status/global-status-pill";
 import { IncidentTimeline } from "@/components/status/incident-timeline";
+import { getLiveUptimes, isProbed } from "@/lib/status/uptime";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata = {
   title: "Status | NEURAL",
   description:
-    "Statut déclaratif des composants NEURAL: plateforme, agents, AI Gateway, base de données et observabilité.",
+    "Statut public des composants NEURAL : plateforme, base de données, rate-limit et publications mesurés en continu ; AI Gateway, auth et observabilité documentés en attendant l'instrumentation.",
 };
 
-export default function StatusPage() {
+export default async function StatusPage() {
   const items = statusData.items as Array<{
     id: string;
     name: string;
@@ -22,8 +26,35 @@ export default function StatusPage() {
     category: string;
   }>;
 
+  const liveUptimes = await getLiveUptimes();
+  const liveCount = liveUptimes.size;
+  const probedCount = items.filter((i) => isProbed(i.id)).length;
+
+  // Compute display data: prefer live probe data when available, fall back to declared.
+  const display = items.map((item) => {
+    const live = liveUptimes.get(item.id);
+    if (live) {
+      return {
+        ...item,
+        status: live.latestStatus,
+        uptime90d: live.uptime90d,
+        source: "live" as const,
+        latestProbeAt: live.latestProbeAt,
+        meanLatencyMs: live.meanLatencyMs,
+        sampleSize: live.sampleSize,
+      };
+    }
+    return {
+      ...item,
+      source: "declared" as const,
+      latestProbeAt: undefined,
+      meanLatencyMs: null,
+      sampleSize: 0,
+    };
+  });
+
   const avgUptime =
-    items.reduce((acc, item) => acc + item.uptime90d, 0) / items.length;
+    display.reduce((acc, item) => acc + item.uptime90d, 0) / display.length;
 
   return (
     <main className="min-h-screen overflow-hidden bg-gradient-neural text-white">
@@ -37,12 +68,24 @@ export default function StatusPage() {
             Status
           </span>
           <h1 className="mt-6 font-display text-5xl font-bold tracking-tight md:text-6xl">
-            Statut déclaratif NEURAL
+            Statut public NEURAL
           </h1>
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/68">
-            Cette page n'est pas encore branchée à des health checks externes.
-            Elle documente l'état déclaré des composants, les incidents connus et
-            la méthode à compléter avant engagement client.
+            {liveCount > 0 ? (
+              <>
+                {liveCount} composant{liveCount > 1 ? "s" : ""} sur {probedCount}{" "}
+                instrumenté{liveCount > 1 ? "s" : ""} affiche{liveCount > 1 ? "nt" : ""}{" "}
+                un uptime réel calculé à partir de sondes automatiques (toutes les 5
+                minutes). Les composants restants sont déclaratifs en attendant
+                l&apos;instrumentation correspondante.
+              </>
+            ) : (
+              <>
+                Les sondes actives sont configurées ({probedCount} composants probables)
+                mais aucune mesure n&apos;est encore en base. La page reste déclarative
+                tant que le cron <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs">/api/cron/status-probe</code> n&apos;a pas tourné.
+              </>
+            )}
           </p>
           <div className="mt-10">
             <GlobalStatusPill
@@ -83,20 +126,26 @@ export default function StatusPage() {
       <section className="relative border-t border-white/8 px-6 py-16 md:px-12">
         <div className="mx-auto max-w-[1320px]">
           <h2 className="font-display text-3xl font-bold tracking-tight">
-            Composants déclarés
+            Composants
           </h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
-            Les barres restent indicatives tant qu'elles ne sont pas reliées à un
-            monitoring automatique. Ce statut ne doit pas être vendu comme SLA.
+            Les composants tagués <span className="text-emerald-300">Live</span> sont
+            mesurés en continu (sonde toutes les 5 minutes, fenêtre 90 jours). Les
+            autres restent <span className="text-white/55">déclarés</span> jusqu&apos;à
+            instrumentation. Ce statut ne doit pas être vendu comme SLA contractuel.
           </p>
           <div className="mt-8 space-y-4">
-            {items.map((item) => (
+            {display.map((item) => (
               <ComponentRow
                 key={item.id}
                 name={item.name}
                 description={item.description}
                 status={item.status}
                 uptime90d={item.uptime90d}
+                source={item.source}
+                latestProbeAt={item.latestProbeAt}
+                meanLatencyMs={item.meanLatencyMs}
+                sampleSize={item.sampleSize}
               />
             ))}
           </div>

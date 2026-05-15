@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Network, ArrowRight, Zap, ShieldCheck, ScrollText, Coins } from "lucide-react";
+import { Activity, Network, ArrowRight, Zap, ShieldCheck, ScrollText, Coins } from "lucide-react";
 
 import demoState from "@/content/operator-gateway/demo-state.json";
 import { McpServersList } from "@/components/operator-gateway/mcp-servers-list";
@@ -7,14 +7,75 @@ import { AuditTrailStream } from "@/components/operator-gateway/audit-trail-stre
 import { CostDashboard } from "@/components/operator-gateway/cost-dashboard";
 import { PolicyEngineList } from "@/components/operator-gateway/policy-engine-list";
 import { SafetyDecisionDemo } from "@/components/trust/safety-decision-demo";
+import { getLiveGatewayState, type GatewayAuditEntry } from "@/lib/gateway/state";
+import { shortSig } from "@/lib/gateway/sign";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export const metadata = {
   title: "Operator Gateway — NEURAL",
   description:
-    "La couche d'orchestration des agents IA NEURAL : MCP servers gouvernés, audit trail signé, policies enforced, cost tracking par agent. Différenciant face aux iPaaS génériques.",
+    "La couche d'orchestration des agents IA NEURAL : MCP servers gouvernés, audit trail signé (SHA-256 chaîné), policies enforced, cost tracking par agent. Différenciant face aux iPaaS génériques.",
 };
 
-export default function OperatorGatewayPage() {
+const EUR = new Intl.NumberFormat("fr-FR", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 3,
+});
+
+function liveAuditToComponent(events: GatewayAuditEntry[]): Array<{
+  id: string;
+  timestamp: string;
+  agent: string;
+  decision: string;
+  promptHash: string;
+  promptVersion: string;
+  model: string;
+  tokens: number;
+  latency: string;
+  cost: string;
+  tenant: string;
+  signedBy: string;
+  outcome: string;
+  trigger: string;
+}> {
+  return events.map((e) => ({
+    id: e.id,
+    timestamp: e.recordedAt,
+    agent: e.agentId,
+    decision: e.decision,
+    promptHash: `sha256:${e.promptHash.slice(0, 8)}…${e.promptHash.slice(-8)}`,
+    promptVersion: e.agentVersion,
+    model: e.model ?? "—",
+    tokens: e.tokens ?? 0,
+    latency: e.latencyMs !== null ? `${(e.latencyMs / 1000).toFixed(1)}s` : "—",
+    cost: e.costEur !== null ? EUR.format(e.costEur) : "—",
+    tenant: "default",
+    signedBy: shortSig(e.signature),
+    outcome: e.outcome,
+    trigger: e.trigger ?? "—",
+  }));
+}
+
+export default async function OperatorGatewayPage() {
+  const live = await getLiveGatewayState();
+  const usingLive = live !== null;
+
+  const stats = usingLive
+    ? {
+        decisions24h: live.stats.decisions24h,
+        agentsActifs: live.stats.distinctAgents24h,
+        auditTrailIntegrity: live.chain.valid ? "100 %" : `Brisée @${live.chain.brokenAt}`,
+        policiesEnforced: demoState.globalStats.policiesEnforced,
+        incidentsBlocked24h: live.stats.blocked24h,
+      }
+    : demoState.globalStats;
+
+  const auditEntries = usingLive
+    ? liveAuditToComponent(live.recentEvents)
+    : (demoState.auditTrail as Parameters<typeof AuditTrailStream>[0]["entries"]);
   return (
     <div className="min-h-screen overflow-hidden bg-gradient-neural text-white">
       <div className="absolute -left-40 top-20 h-[360px] w-[360px] rounded-full bg-violet-500/10 blur-[140px]" />
@@ -28,9 +89,16 @@ export default function OperatorGatewayPage() {
               <Network className="h-3.5 w-3.5" />
               Operator Gateway
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/25 bg-amber-400/[0.10] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200">
-              Demo · données mock réalistes
-            </span>
+            {usingLive ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/[0.10] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200">
+                <Activity className="h-3 w-3" />
+                Données live · chaîne {live!.chain.valid ? "OK" : "brisée"}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/25 bg-amber-400/[0.10] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200">
+                Demo · données mock réalistes
+              </span>
+            )}
           </div>
           <h1 className="mt-6 font-display text-5xl font-bold tracking-tight md:text-6xl">
             La couche d&apos;orchestration agents
@@ -44,29 +112,39 @@ export default function OperatorGatewayPage() {
           <div className="mt-10 grid gap-4 md:grid-cols-5">
             <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-4">
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Agents actifs</p>
-              <p className="mt-2 font-display text-3xl font-bold tabular-nums">
-                {demoState.globalStats.agentsActifs}
-              </p>
+              <p className="mt-2 font-display text-3xl font-bold tabular-nums">{stats.agentsActifs}</p>
             </div>
             <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-4">
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Décisions 24h</p>
               <p className="mt-2 font-display text-3xl font-bold tabular-nums">
-                {new Intl.NumberFormat("fr-FR").format(demoState.globalStats.decisions24h)}
+                {new Intl.NumberFormat("fr-FR").format(stats.decisions24h)}
               </p>
             </div>
-            <div className="rounded-[20px] border border-emerald-400/25 bg-emerald-400/[0.06] p-4">
+            <div
+              className={`rounded-[20px] border p-4 ${
+                usingLive && !live!.chain.valid
+                  ? "border-red-500/30 bg-red-500/[0.06]"
+                  : "border-emerald-400/25 bg-emerald-400/[0.06]"
+              }`}
+            >
               <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-300/70">
                 Audit trail
               </p>
-              <p className="mt-2 font-display text-3xl font-bold tabular-nums text-emerald-200">
-                {demoState.globalStats.auditTrailIntegrity}
+              <p
+                className={`mt-2 font-display text-3xl font-bold tabular-nums ${
+                  usingLive && !live!.chain.valid ? "text-red-300" : "text-emerald-200"
+                }`}
+              >
+                {stats.auditTrailIntegrity}
               </p>
-              <p className="mt-1 text-[10px] text-white/45">Intégrité signée</p>
+              <p className="mt-1 text-[10px] text-white/45">
+                {usingLive ? `Chaîne signée · ${live!.chain.total} events` : "Intégrité signée"}
+              </p>
             </div>
             <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-4">
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Policies</p>
               <p className="mt-2 font-display text-3xl font-bold tabular-nums">
-                {demoState.globalStats.policiesEnforced}
+                {stats.policiesEnforced}
               </p>
             </div>
             <div className="rounded-[20px] border border-amber-400/25 bg-amber-400/[0.06] p-4">
@@ -74,7 +152,7 @@ export default function OperatorGatewayPage() {
                 Bloqués 24h
               </p>
               <p className="mt-2 font-display text-3xl font-bold tabular-nums text-amber-200">
-                {demoState.globalStats.incidentsBlocked24h}
+                {stats.incidentsBlocked24h}
               </p>
               <p className="mt-1 text-[10px] text-white/45">Policy enforcement</p>
             </div>
@@ -120,12 +198,21 @@ export default function OperatorGatewayPage() {
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
                 Chaque décision est journalisée avec prompt hash signé, version, modèle, latence,
-                coût et signataire. Cliquez pour déplier les métadonnées complètes.
+                coût et signature SHA-256 chaînée à l&apos;évènement précédent. Cliquez pour
+                déplier les métadonnées complètes.{" "}
+                {usingLive ? (
+                  <Link
+                    href="/verify/signature"
+                    className="inline-flex items-center gap-1 font-semibold text-emerald-300 hover:text-emerald-200"
+                  >
+                    Vérifier une signature →
+                  </Link>
+                ) : null}
               </p>
             </div>
           </div>
           <div className="mt-8">
-            <AuditTrailStream entries={demoState.auditTrail} />
+            <AuditTrailStream entries={auditEntries} />
           </div>
         </div>
       </section>
@@ -219,12 +306,14 @@ export default function OperatorGatewayPage() {
             <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
               <div className="max-w-2xl">
                 <h2 className="font-display text-2xl font-bold tracking-tight md:text-3xl">
-                  L&apos;Operator Gateway en runtime public
+                  {usingLive
+                    ? "Audit trail signé, ouvert au runtime"
+                    : "L'Operator Gateway en runtime public"}
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-white/65">
-                  Cette page utilise des données mock pour montrer la mécanique. La version
-                  runtime publique est sur la roadmap T3 2026 — voir l&apos;item « Operator
-                  Gateway MVP » sur la roadmap.
+                  {usingLive
+                    ? "Les évènements affichés au-dessus sont issus du registre live GatewayEvent. Chaque signature SHA-256 est chaînée à la précédente — vérifiable publiquement via /verify/signature."
+                    : "Cette page utilise des données mock pour montrer la mécanique. L'infrastructure backend (GatewayEvent, signatures chaînées, /verify/signature/{hash}) est livrée — il manque seulement la production d'évènements live."}
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">

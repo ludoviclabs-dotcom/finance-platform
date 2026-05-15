@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { ClientBankCommsLive } from "@/components/bank-comms/ClientBankCommsLive";
+import { AgentSafetyModelCard } from "@/components/trust/agent-safety-model-card";
 import {
   CLIENT_CHANNELS,
   CLIENT_NOTICES,
@@ -19,6 +20,7 @@ import {
   CLIENT_USE_CASES,
   getAgentBySlug,
 } from "@/lib/data/bank-comms-catalog";
+import { getAgentSafetyProfile } from "@/lib/data/agent-safety";
 
 const SLUG = "client-bank-comms";
 
@@ -38,6 +40,7 @@ export const metadata: Metadata = {
 
 export default function ClientBankCommsAgentPage() {
   const agent = getAgentBySlug(SLUG);
+  const safetyProfile = getAgentSafetyProfile(SLUG);
 
   return (
     <div data-theme="dark" className="min-h-screen bg-[#0A1628] text-white">
@@ -88,6 +91,8 @@ export default function ClientBankCommsAgentPage() {
           </div>
         </div>
       </section>
+
+      {safetyProfile ? <AgentSafetyModelCard profile={safetyProfile} /> : null}
 
       <section className="border-b border-white/5 px-6 py-14 md:px-12">
         <div className="mx-auto max-w-[1280px]">

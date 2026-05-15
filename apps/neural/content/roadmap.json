@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-27",
+  "lastUpdated": "2026-05-15T23:00:00Z",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -38,16 +38,17 @@
     {
       "id": "status-page",
       "title": "Status Page publique avec uptime 90j",
-      "description": "Composants surveillés, historique incidents, transparence opérationnelle.",
+      "description": "Page /status live avec sondes actives toutes les 5 minutes (cron Vercel) sur platform, database, rate-limit, publications. Uptime 90j calculé depuis StatusProbe. Composants restants (AI Gateway, auth, Langfuse) tagués \"Déclaré\" en attendant leur instrumentation propre.",
       "category": "plateforme",
-      "status": "shipped",
-      "shippedDate": "2026-04",
+      "status": "now",
+      "progress": 80,
+      "expectedDate": "2026-Q3",
       "href": "/status"
     },
     {
       "id": "ai-act-page",
       "title": "Page AI Act complète",
-      "description": "Classification 168 agents, articles applicables, supervision humaine documentée.",
+      "description": "Cadre AI Act : 4 niveaux de risque, 8 articles applicables, supervision humaine documentée. Classification par agent disponible sur chaque fiche agent.",
       "category": "conformite",
       "status": "shipped",
       "shippedDate": "2026-04",
@@ -56,37 +57,39 @@
     {
       "id": "operator-gateway-mvp",
       "title": "Operator Gateway — MVP audit trail signé",
-      "description": "Couche de journalisation centralisée des décisions agent : prompt hash, modèle, latence, coût, signataire. Démo publique.",
+      "description": "Infrastructure complète : modèle GatewayEvent + chaîne SHA-256 signée (sequence, prompt hash, decision ALLOW/REVIEW/BLOCK, model, prev-signature), service logGatewayEvent thread-safe (pg_advisory_xact_lock), API verifyChain détectant tampering/missing events, et page publique /verify/signature/{hash} avec 5 états (verified/tampered/unknown/db-down/invalid). La page /operator-gateway bascule en mode \"Données live\" dès que des évènements arrivent. Reste à câbler la production d'évènements depuis chaque agent runtime.",
       "category": "produit",
       "status": "now",
-      "progress": 60,
-      "expectedDate": "2026-Q3"
+      "progress": 90,
+      "expectedDate": "2026-Q3",
+      "href": "/operator-gateway"
     },
     {
       "id": "model-cards-30",
       "title": "Model Cards publiques pour les 30 agents prioritaires",
-      "description": "Objectif, données, limites, classification AI Act, mesures de mitigation. Format standardisé.",
+      "description": "30 model cards rédigées (objectif, données, outils autorisés, actions interdites, HITL obligatoire, gates déterministes, fallback, limites connues, testset). Couverture : 6 agents Bank Comms + 5 Luxe Comms (pages publiques wirées), 19 catalog-meta (finance IFRS 9/IFRS 3/Pilier 2 OCDE, assurance IFRS 17, supply chain CSDDD/EUDR, RH artisan AI Act Annexe III, sinistres assurance, anti-greenwashing). Card publique exposable via composant AgentSafetyModelCard dès qu'une page agent est créée.",
       "category": "conformite",
-      "status": "now",
-      "progress": 25,
-      "expectedDate": "2026-Q3"
+      "status": "shipped",
+      "shippedDate": "2026-05",
+      "href": "/trust/agent-safety"
     },
     {
       "id": "agents-catalog",
       "title": "Catalogue /agents filtrable",
-      "description": "Grid des agents par branche × secteur × niveau de risque AI Act + ROI estimé. SEO long-tail.",
+      "description": "Grid /agents filtrable par branche × secteur × statut × niveau de risque AI Act, avec ROI estimé (impact typique) et temps de déploiement par fiche. 18 agents documentés sur les branches finance, RH, communication, supply-chain. SEO long-tail : 11 pages agents avec metadata Next.js.",
       "category": "produit",
-      "status": "now",
-      "progress": 15,
-      "expectedDate": "2026-Q3"
+      "status": "shipped",
+      "shippedDate": "2026-05",
+      "href": "/agents"
     },
     {
       "id": "outils-viraux",
       "title": "Outils gratuits : AI Act Classifier, ROI Calculator, Maturity Quiz",
-      "description": "Lead-gen + viralité. Outputs PDF signés.",
+      "description": "3 outils en ligne avec téléchargement PDF signé (SHA-256 + URL /verify/outil/{hash} dans le pied de page). Page publique de vérification opérationnelle, registre OutilReceipt en base. Outils annexes (DPIA, Empreinte IA, Operator Score) en finalisation hors scope de cet item.",
       "category": "produit",
-      "status": "next",
-      "expectedDate": "2026-Q3"
+      "status": "shipped",
+      "shippedDate": "2026-05",
+      "href": "/outils"
     },
     {
       "id": "soc2-type-i",
@@ -106,27 +109,31 @@
     },
     {
       "id": "connecteurs-eu-50",
-      "title": "50 connecteurs EU certifiés",
-      "description": "SAP, Sage, Cegid, Pennylane, Lucca, M365, Salesforce, Workday EU, Sopra Banking, Murex...",
+      "title": "Catalogue 50 connecteurs EU",
+      "description": "Catalogue /connecteurs publié avec 50 entrées : 8 live (Pennylane, Qonto, Salesforce, HubSpot, Lucca, M365, Slack, Didomi...), 11 beta, 31 roadmap. Certifications par connecteur à compléter.",
       "category": "connecteurs",
-      "status": "next",
-      "expectedDate": "2026-Q4"
+      "status": "shipped",
+      "shippedDate": "2026-04",
+      "href": "/connecteurs"
     },
     {
       "id": "sandbox-public",
-      "title": "Sandbox public agents (5 agents prioritaires)",
-      "description": "Démo cliquable sans login pour Consolidation, KYC, MRO, ESG, Voice Guard.",
+      "title": "Sandbox public agents (5 démos)",
+      "description": "Hub /sandbox avec 5 démos cliquables sans login + Document Processing : Voice Guard, Press Angle, Heritage Quote, Event, Claims. Runtime via Vercel AI Gateway, rate-limit par IP.",
       "category": "produit",
-      "status": "next",
-      "expectedDate": "2026-Q4"
+      "status": "shipped",
+      "shippedDate": "2026-04",
+      "href": "/sandbox"
     },
     {
       "id": "doc-portal",
       "title": "Documentation produit publique (docs.neural-ai.fr)",
-      "description": "Mintlify ou Nextra. API Reference, tutoriels, model cards.",
+      "description": "Hub /docs avec 5 documents fondamentaux : Getting Started, Agents Architecture, MCP Protocol, Audit Trail et API Reference (POST /api/outils/pdf, /verify/outil/{hash}, /verify/signature/{hash}, cron endpoints). Renderer enrichi (code blocks ```...```, sous-headings ##). Rewrite docs.neural-ai.fr → /docs en place côté proxy ; reste l'activation DNS + alias Vercel pour basculer le sous-domaine.",
       "category": "produit",
-      "status": "next",
-      "expectedDate": "2026-Q4"
+      "status": "now",
+      "progress": 75,
+      "expectedDate": "2026-Q4",
+      "href": "/docs"
     },
     {
       "id": "iso-42001",

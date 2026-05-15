@@ -24,13 +24,13 @@ const config: VercelConfig = {
     },
   },
 
-  // Scheduled jobs
+  // Scheduled jobs — Vercel Hobby allows 1 cron max
   crons: [
     // Sprint 7 — daily EUR-Lex / BOFiP / EBA / IFRS regulatory scan at 07:00 UTC
     { path: "/api/cron/regulatory-watch", schedule: "0 7 * * *" },
-    // 2026-05 — internal status probes (platform, DB, rate-limit, publications)
-    // feeding the public /status page. Daily at midnight UTC (Vercel Hobby limit).
-    { path: "/api/cron/status-probe", schedule: "0 0 * * *" },
+    // status-probe removed: Hobby plan is limited to 1 cron job.
+    // Trigger /api/cron/status-probe manually or via GitHub Actions if needed.
+    // { path: "/api/cron/status-probe", schedule: "0 0 * * *" },
     // Sprint 3 (future) — weekly Braintrust eval regression check
     // { path: "/api/cron/eval-drift", schedule: "0 2 * * 1" },
   ],

@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-15T21:00:00Z",
+  "lastUpdated": "2026-05-15T23:00:00Z",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -67,11 +67,10 @@
     {
       "id": "model-cards-30",
       "title": "Model Cards publiques pour les 30 agents prioritaires",
-      "description": "22 model cards rédigées (objectif, données, outils autorisés, actions interdites, HITL obligatoire, gates déterministes, fallback, limites connues, testset). Couverture : 6 agents Bank Comms, 5 Luxe Comms, 11 catalog-meta (finance, RH, supply chain, assurance). Pages live wirées (bank + luxe), 8 agents catalog-meta restent à wirer une fois leur page publique en ligne.",
+      "description": "30 model cards rédigées (objectif, données, outils autorisés, actions interdites, HITL obligatoire, gates déterministes, fallback, limites connues, testset). Couverture : 6 agents Bank Comms + 5 Luxe Comms (pages publiques wirées), 19 catalog-meta (finance IFRS 9/IFRS 3/Pilier 2 OCDE, assurance IFRS 17, supply chain CSDDD/EUDR, RH artisan AI Act Annexe III, sinistres assurance, anti-greenwashing). Card publique exposable via composant AgentSafetyModelCard dès qu'une page agent est créée.",
       "category": "conformite",
-      "status": "now",
-      "progress": 70,
-      "expectedDate": "2026-Q3",
+      "status": "shipped",
+      "shippedDate": "2026-05",
       "href": "/trust/agent-safety"
     },
     {

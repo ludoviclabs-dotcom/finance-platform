@@ -7,8 +7,25 @@ import {
 } from "@/lib/data/agent-safety";
 
 describe("agentSafetyProfiles", () => {
-  it("has at least 20 documented profiles (model-cards-30 target track)", () => {
-    expect(agentSafetyProfiles.length).toBeGreaterThanOrEqual(20);
+  it("has at least 30 documented profiles (model-cards-30 target)", () => {
+    expect(agentSafetyProfiles.length).toBeGreaterThanOrEqual(30);
+  });
+
+  it("covers the priority catalog-meta agents added in the model-cards-30 finalisation", () => {
+    const meta = [
+      "hedge-accounting",
+      "pilier2-globe",
+      "goodwill-ifrs3",
+      "ifrs17-engine",
+      "disclosure-ifrs17",
+      "luxe-traceability",
+      "anti-counterfeit-sc",
+      "artisan-scout",
+    ];
+    for (const slug of meta) {
+      const p = getAgentSafetyProfile(slug);
+      expect(p, `missing safety profile for ${slug}`).toBeDefined();
+    }
   });
 
   it("uses distinct routes for every profile", () => {

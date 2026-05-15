@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  PROBED_COMPONENTS,
-  runAllProbes,
-  type ProbeResult,
-} from "@/lib/status/probes";
+import { PROBED_COMPONENTS, runAllProbes } from "@/lib/status/probes";
 import { isProbed, getLiveUptimes } from "@/lib/status/uptime";
 import statusData from "@/content/status/components.json";
 

@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-15",
+  "lastUpdated": "2026-05-15T16:00:00Z",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -85,10 +85,10 @@
     {
       "id": "outils-viraux",
       "title": "Outils gratuits : AI Act Classifier, ROI Calculator, Maturity Quiz",
-      "description": "Routes /outils/ai-act-classifier, /outils/roi, /outils/maturite en ligne. Génération PDF signé des résultats à câbler. Outils annexes (DPIA, Empreinte IA, Operator Score) en finalisation.",
+      "description": "3 outils en ligne avec téléchargement PDF signé (SHA-256 + URL de vérification dans le pied de page) câblé sur /api/outils/pdf. Page publique /verify/outil/{hash} à publier pour fermer la boucle de vérification. Outils annexes (DPIA, Empreinte IA, Operator Score) en finalisation.",
       "category": "produit",
       "status": "now",
-      "progress": 60,
+      "progress": 85,
       "expectedDate": "2026-Q3",
       "href": "/outils"
     },

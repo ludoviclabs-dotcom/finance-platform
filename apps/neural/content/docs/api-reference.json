@@ -1,0 +1,40 @@
+{
+  "slug": "api-reference",
+  "title": "API Reference",
+  "subtitle": "Référence des endpoints publics NEURAL : PDF signé, vérification outil et vérification signature gateway. Stables, documentés, traçables.",
+  "category": "API",
+  "readTime": "12 min",
+  "lastUpdated": "2026-05-15",
+  "sections": [
+    {
+      "heading": "Conventions",
+      "body": "Tous les endpoints publics ci-dessous sont **stables** et conservent la rétro-compatibilité. Les nouvelles fonctionnalités sont ajoutées de manière additive (nouveaux champs optionnels, nouveaux endpoints).\n\n**Format** : JSON (`Content-Type: application/json`) sauf indication contraire (PDF binary, redirects 302).\n\n**Encodage** : UTF-8.\n\n**Fuseau horaire** : UTC pour tout timestamp ISO 8601.\n\n**Codes HTTP** :\n• `200` — succès, corps présent\n• `204` — succès, pas de corps\n• `302` — redirection (utilisé par les redirect handlers de vérification)\n• `400` — JSON invalide ou hash de mauvais format\n• `404` — ressource non trouvée\n• `422` — payload bien formé mais invalide (échec de validation Zod, détails dans `details`)\n• `429` — rate limit dépassé\n• `5xx` — erreur serveur transitoire\n\n**Rate limit** : par défaut, 60 requêtes / minute / IP sur les endpoints publics. Les endpoints `/api/cron/*` sont protégés par `CRON_SECRET` et non rate-limités."
+    },
+    {
+      "heading": "POST /api/outils/pdf",
+      "body": "Génère une synthèse PDF signée pour l'un des trois outils gratuits NEURAL (AI Act Classifier, ROI Calculator, Maturity Quiz). Le PDF embarque dans son pied de page un hash SHA-256 du reçu et une URL `/verify/outil/{hash}` permettant de confirmer son authenticité.\n\n**Authentification** : aucune.\n\n**Body** : JSON discriminé par le champ `tool`.\n\n## Variantes\n\n```\n{ \"tool\": \"ai-act-classifier\", \"answers\": { \"context\": \"rh\", \"manipulation\": \"non\", ... } }\n```\n\n```\n{\n  \"tool\": \"roi-calculator\",\n  \"inputs\": {\n    \"sector\": \"luxe\",\n    \"branches\": [\"finance\", \"marketing\"],\n    \"users\": 500,\n    \"frequency\": \"regulier\"\n  }\n}\n```\n\n```\n{\n  \"tool\": \"maturity-quiz\",\n  \"answers\": { \"q1\": 2, \"q2\": 3, ... },\n  \"answerIds\": { \"q1\": \"yes-recent\", \"q2\": \"yes-mature\", ... }\n}\n```\n\n## Réponse\n\nBinaire PDF avec :\n• `Content-Type: application/pdf`\n• `Content-Disposition: attachment; filename=\"neural-{tool}-{hash8}.pdf\"`\n• `X-Tool-Id` — identifiant de l'outil\n• `X-Receipt-Hash` — hash SHA-256 complet (64 chars hex)\n\n## Notes\n\n• Le hash est **déterministe** : mêmes inputs + même timestamp = même hash.\n• Les réponses (`answers`) ne sont **jamais stockées**. Seul le résumé non sensible (label de résultat) est persisté pour permettre la vérification publique.\n• Erreurs : `400` si le JSON est malformé, `422` si la validation Zod échoue (détails dans `details`)."
+    },
+    {
+      "heading": "GET /verify/outil/{hash}",
+      "body": "Page publique HTML qui résout un hash de reçu vers ses métadonnées non sensibles. Sert à confirmer qu'un PDF généré par `/api/outils/pdf` est authentique.\n\n**Authentification** : aucune.\n\n**Path param** : `hash` — 64 caractères hexadécimaux (SHA-256).\n\n## États retournés\n\nLa page rend l'un des 4 états :\n• **Vérifié** — le hash existe dans le registre `OutilReceipt` (200). Affiche outil + résultat + dates + hash complet.\n• **Inconnu** — format valide mais aucun reçu correspondant (200). Liste les explications légitimes (avant la mise en place du registre, altération, ou PDF non émis par NEURAL).\n• **Format invalide** — n'est pas un SHA-256 hex 64 (200, page d'erreur).\n• **Indisponible** — la base de données n'est pas joignable temporairement (200, message dédié).\n\n## Sortie\n\nHTML SSR (`force-dynamic`, `robots: noindex,nofollow` pour éviter d'indexer chaque check).\n\n## Helper\n\nLe formulaire d'index `/verify/outil` peut être soumis sans JavaScript : `GET /verify/outil/redirect?hash={hash}` normalise (lowercase, trim) et redirige vers la bonne URL."
+    },
+    {
+      "heading": "GET /verify/signature/{hash}",
+      "body": "Page publique HTML qui résout une signature de l'Operator Gateway vers les métadonnées non sensibles de la décision agent associée. Inclut la **détection de tampering** : la signature est recalculée à partir des champs stockés et comparée à celle enregistrée.\n\n**Authentification** : aucune.\n\n**Path param** : `hash` — 64 caractères hexadécimaux (SHA-256).\n\n## États retournés\n\nLa page rend l'un des 5 états :\n• **Vérifié** — signature reconnue **et** recalcul cohérent. Affiche agent + version + décision + modèle + tenant + séquence + signature précédente.\n• **Tampered** — signature reconnue mais le recalcul ne correspond pas. Affiche côte à côte la signature stockée et la signature recalculée pour audit.\n• **Inconnu** — format valide mais aucun évènement correspondant.\n• **Format invalide** — n'est pas un SHA-256 hex 64.\n• **Indisponible** — registre injoignable.\n\n## Pourquoi c'est important\n\nChaque évènement gateway est signé par un hash chaîné à la décision précédente. Modifier rétroactivement un champ casse la chaîne et active l'état **Tampered** lors de la vérification. Aucune réécriture silencieuse n'est possible."
+    },
+    {
+      "heading": "Endpoints internes (cron)",
+      "body": "Les endpoints `/api/cron/*` sont déclenchés par Vercel Cron selon la configuration de `vercel.ts`. Ils requièrent `Authorization: Bearer $CRON_SECRET` en production. Ils ne sont pas destinés à l'usage tiers.\n\n## Endpoints actifs\n\n• **GET /api/cron/regulatory-watch** — scan quotidien des sources réglementaires (EUR-Lex / BOFiP / EBA / IFRS) à 07:00 UTC.\n• **GET /api/cron/status-probe** — sondes internes (platform, database, rate-limit, publications) toutes les 5 minutes. Persiste un `StatusProbe` par composant probé.\n\n## Sortie\n\nJSON `{ ok: boolean, durationMs: number, ... }` avec détails par tâche."
+    },
+    {
+      "heading": "Versionnement et changements",
+      "body": "L'API suit un versioning **additif**. Toute modification rompant la rétro-compatibilité fait l'objet :\n• d'une annonce préalable de minimum 90 jours sur `/changelog`,\n• d'un endpoint versionné parallèle (`/api/v2/...`),\n• d'une période de grace pendant laquelle les deux versions coexistent.\n\n## Historique récent\n\n• **2026-05** — Ajout de `POST /api/outils/pdf` et des deux endpoints de vérification (`/verify/outil/{hash}`, `/verify/signature/{hash}`).\n• **2026-04** — Lancement de la documentation publique et de l'Operator Gateway demo.\n\n## Signaler un bug ou demander un endpoint\n\nOuvrir un sujet via `/contact?source=api-reference`."
+    }
+  ],
+  "nextSteps": [
+    { "label": "Voir l'Operator Gateway", "href": "/operator-gateway" },
+    { "label": "Vérifier une synthèse outil", "href": "/verify/outil" },
+    { "label": "Vérifier une signature agent", "href": "/verify/signature" },
+    { "label": "Changelog public", "href": "/changelog" }
+  ]
+}

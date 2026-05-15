@@ -5,11 +5,12 @@ import gettingStarted from "@/content/docs/getting-started.json";
 import agentsArch from "@/content/docs/agents-architecture.json";
 import mcp from "@/content/docs/mcp-protocol.json";
 import auditTrail from "@/content/docs/audit-trail.json";
+import apiReference from "@/content/docs/api-reference.json";
 
 export const metadata = {
   title: "Documentation — NEURAL",
   description:
-    "Documentation produit NEURAL : démarrage, architecture des agents, protocole MCP, audit trail signé. Pour CIO, CTO, DPO, RSSI.",
+    "Documentation produit NEURAL : démarrage, architecture des agents, protocole MCP, audit trail signé, API Reference. Pour CIO, CTO, DPO, RSSI et développeurs intégrateurs.",
 };
 
 const DOCS = [
@@ -17,6 +18,7 @@ const DOCS = [
   { data: agentsArch, accent: "cyan" },
   { data: mcp, accent: "emerald" },
   { data: auditTrail, accent: "amber" },
+  { data: apiReference, accent: "rose" },
 ];
 
 const ACCENT_CLS: Record<string, { border: string; text: string; gradient: string }> = {
@@ -39,6 +41,11 @@ const ACCENT_CLS: Record<string, { border: string; text: string; gradient: strin
     border: "border-amber-400/25",
     text: "text-amber-200",
     gradient: "from-amber-500/[0.10] via-white/[0.04] to-amber-500/[0.04]",
+  },
+  rose: {
+    border: "border-rose-400/25",
+    text: "text-rose-200",
+    gradient: "from-rose-500/[0.10] via-white/[0.04] to-rose-500/[0.04]",
   },
 };
 

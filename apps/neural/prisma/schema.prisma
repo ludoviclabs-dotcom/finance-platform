@@ -515,3 +515,30 @@ model OutilReceipt {
 
   @@index([tool, createdAt])
 }
+
+// ==========================================
+// STATUS — Active component health probes
+// Added 2026-05-15. Backs the public /status page with real probe data
+// instead of declared uptime numbers. Each row records a single probe
+// run for one component (platform, database, rate-limit, ...).
+// Components that cannot be probed without external credentials stay
+// declarative — see lib/status/probes.ts for the actual probe list.
+// ==========================================
+
+model StatusProbe {
+  id          String   @id @default(cuid())
+  /// Matches an id in content/status/components.json (e.g. "platform",
+  /// "database", "rate-limit").
+  componentId String
+  /// "operational" | "degraded" | "outage" — degraded means latency or
+  /// partial failure; outage means the probe could not complete.
+  status      String
+  /// Round-trip latency observed by the probe, null when the probe failed
+  /// before completing.
+  latencyMs   Int?
+  /// Short error tag (e.g. "timeout", "5xx", "no-db-url"). Never PII.
+  error       String?
+  probedAt    DateTime @default(now())
+
+  @@index([componentId, probedAt])
+}

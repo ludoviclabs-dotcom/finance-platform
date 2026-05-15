@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-15T19:00:00Z",
+  "lastUpdated": "2026-05-15T20:00:00Z",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -128,10 +128,10 @@
     {
       "id": "doc-portal",
       "title": "Documentation produit publique (docs.neural-ai.fr)",
-      "description": "Hub /docs en ligne avec 4 sections (Getting Started, Agents Architecture, MCP Protocol, Audit Trail). Migration vers domaine dédié docs.neural-ai.fr (Mintlify/Nextra) + API Reference à faire.",
+      "description": "Hub /docs avec 5 documents fondamentaux : Getting Started, Agents Architecture, MCP Protocol, Audit Trail et API Reference (POST /api/outils/pdf, /verify/outil/{hash}, /verify/signature/{hash}, cron endpoints). Renderer enrichi (code blocks ```...```, sous-headings ##). Rewrite docs.neural-ai.fr → /docs en place côté proxy ; reste l'activation DNS + alias Vercel pour basculer le sous-domaine.",
       "category": "produit",
       "status": "now",
-      "progress": 30,
+      "progress": 75,
       "expectedDate": "2026-Q4",
       "href": "/docs"
     },

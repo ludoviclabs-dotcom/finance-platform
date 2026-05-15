@@ -490,3 +490,28 @@ model RegulatoryAlert {
   @@index([source, publishedAt])
   @@index([impactScore])
 }
+
+// ==========================================
+// OUTILS — Free tool receipts
+// Added 2026-05-15. Backs the public /verify/outil/{hash} page so a third
+// party can confirm a NEURAL-issued PDF receipt is genuine. Stored
+// metadata stays non-sensitive (no user answers, no PII).
+// ==========================================
+
+model OutilReceipt {
+  id          String   @id @default(cuid())
+  /// SHA-256 hex digest computed by lib/outils/sign.ts.
+  hash        String   @unique
+  /// Machine ID: "ai-act-classifier" | "roi-calculator" | "maturity-quiz".
+  tool        String
+  /// Human label shown on the verify page.
+  toolLabel   String
+  /// Short, non-sensitive result label (e.g. "Haut risque", "ROI +147 %").
+  resultLabel String
+  /// ISO timestamp the receipt was signed at — same field that goes into
+  /// the hash, so it's deterministic and reproducible.
+  generatedAt DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([tool, createdAt])
+}

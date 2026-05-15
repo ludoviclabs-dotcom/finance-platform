@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { lookupReceipt } from "@/lib/outils/receipts";
 import { signReceipt, verifyUrl, shortHash } from "@/lib/outils/sign";
 import { computeAiActResult } from "@/lib/outils/compute/ai-act-classifier";
 import { buildAiActPdfInput } from "@/lib/outils/adapters/ai-act-classifier";
@@ -176,6 +177,26 @@ describe("computeRoi", () => {
     const single = computeRoi({ ...baseInputs, branches: ["marketing"] });
     const triple = computeRoi({ ...baseInputs, branches: ["marketing", "communication", "rh"] });
     expect(triple.hoursSavedMonth).toBeGreaterThan(single.hoursSavedMonth * 2);
+  });
+});
+
+describe("lookupReceipt", () => {
+  it("returns null for malformed hashes without touching the DB", async () => {
+    expect(await lookupReceipt("not-a-hash")).toBeNull();
+    expect(await lookupReceipt("")).toBeNull();
+    // Too short
+    expect(await lookupReceipt("abc123")).toBeNull();
+    // Wrong charset (uppercase / non-hex)
+    expect(await lookupReceipt("Z".repeat(64))).toBeNull();
+    // Correct length but with mixed case (we normalize to lowercase at call sites)
+    expect(await lookupReceipt("A".repeat(64))).toBeNull();
+  });
+
+  it("returns null when the database is not configured", async () => {
+    // In CI / test environment, DATABASE_URL is unset → env.database.ready
+    // is false → lookupReceipt short-circuits and returns null.
+    const validHexHash = "a".repeat(64);
+    expect(await lookupReceipt(validHexHash)).toBeNull();
   });
 });
 

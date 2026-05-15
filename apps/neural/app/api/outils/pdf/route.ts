@@ -5,6 +5,7 @@ import { buildOutilsPdf } from "@/lib/outils/pdf-builder";
 import { buildAiActPdfInput } from "@/lib/outils/adapters/ai-act-classifier";
 import { buildRoiPdfInput } from "@/lib/outils/adapters/roi-calculator";
 import { buildMaturityPdfInput } from "@/lib/outils/adapters/maturity-quiz";
+import { storeReceipt } from "@/lib/outils/receipts";
 import { type OutilId } from "@/lib/outils/sign";
 
 export const runtime = "nodejs";
@@ -77,6 +78,7 @@ async function renderToolPdf(
     case "ai-act-classifier": {
       const { input, receipt } = buildAiActPdfInput(req.answers);
       const bytes = await buildOutilsPdf(input);
+      await storeReceipt(receipt, input.resultHeadline);
       return {
         bytes,
         hash: receipt.hash,
@@ -86,6 +88,7 @@ async function renderToolPdf(
     case "roi-calculator": {
       const { input, receipt } = buildRoiPdfInput(req.inputs);
       const bytes = await buildOutilsPdf(input);
+      await storeReceipt(receipt, input.resultHeadline);
       return {
         bytes,
         hash: receipt.hash,
@@ -95,6 +98,7 @@ async function renderToolPdf(
     case "maturity-quiz": {
       const { input, receipt } = buildMaturityPdfInput(req.answers, req.answerIds ?? {});
       const bytes = await buildOutilsPdf(input);
+      await storeReceipt(receipt, input.resultHeadline);
       return {
         bytes,
         hash: receipt.hash,

@@ -8,11 +8,15 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { AgentSafetyModelCard } from "@/components/trust/agent-safety-model-card";
 import {
   BANK_REG_FEEDS,
   BANK_REG_IMPACT_LEVELS,
   getRecentDigests,
 } from "@/lib/data/bank-comms-catalog";
+import { getAgentSafetyProfile } from "@/lib/data/agent-safety";
+
+const SLUG = "reg-watch-bank";
 
 export const metadata: Metadata = {
   title: "RegWatchBank (AG-B005) — veille réglementaire banque | NEURAL",
@@ -22,6 +26,7 @@ export const metadata: Metadata = {
 
 export default function RegWatchBankPage() {
   const digests = getRecentDigests(20);
+  const safetyProfile = getAgentSafetyProfile(SLUG);
   return (
     <div data-theme="dark" className="min-h-screen bg-[#0A1628] text-white">
       <div className="border-b border-white/5 px-6 py-6 md:px-12">
@@ -64,6 +69,8 @@ export default function RegWatchBankPage() {
           </p>
         </div>
       </section>
+
+      {safetyProfile ? <AgentSafetyModelCard profile={safetyProfile} /> : null}
 
       {/* Feeds */}
       <section className="border-b border-white/5 px-6 py-14 md:px-12">

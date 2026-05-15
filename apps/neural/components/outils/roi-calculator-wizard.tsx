@@ -2,118 +2,24 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, RotateCcw, Mail } from "lucide-react";
+import { ArrowRight, RotateCcw, Mail, FileDown, Loader2 } from "lucide-react";
 
 import { WizardShell, ChoiceList } from "./wizard-shell";
-
-const SECTORS = [
-  { id: "luxe", label: "Luxe / Mode" },
-  { id: "transport", label: "Transport / Logistique" },
-  { id: "aero", label: "Aéronautique / Défense" },
-  { id: "banque", label: "Banque / Asset Management" },
-  { id: "assurance", label: "Assurance / Mutuelle" },
-  { id: "saas", label: "SaaS / Tech" },
-] as const;
-
-const BRANCHES = [
-  { id: "finance", label: "Finance / Comptabilité", impact: 1.2 },
-  { id: "rh", label: "Ressources Humaines", impact: 1.1 },
-  { id: "marketing", label: "Marketing", impact: 1.0 },
-  { id: "communication", label: "Communication", impact: 1.0 },
-  { id: "supply-chain", label: "Supply Chain", impact: 1.15 },
-  { id: "si", label: "Systèmes d'Information", impact: 0.95 },
-  { id: "comptabilite", label: "Comptabilité spécialisée", impact: 1.1 },
-] as const;
-
-const FREQUENCIES = [
-  {
-    id: "occasionnel",
-    label: "Occasionnel",
-    description: "Quelques fois par semaine, ponctuel",
-    hoursPerUserMonth: 1.5,
-  },
-  {
-    id: "regulier",
-    label: "Régulier",
-    description: "Quotidien sur des tâches structurées",
-    hoursPerUserMonth: 4,
-  },
-  {
-    id: "intensif",
-    label: "Intensif",
-    description: "Workflow opérationnel critique, multi-fois par jour",
-    hoursPerUserMonth: 10,
-  },
-] as const;
+import {
+  computeRoi,
+  getForfaitTier,
+  ROI_SECTORS as SECTORS,
+  ROI_BRANCHES as BRANCHES,
+  ROI_FREQUENCIES as FREQUENCIES,
+  ETP_HOURLY_LOADED,
+  type RoiInputs,
+} from "@/lib/outils/compute/roi-calculator";
 
 interface Inputs {
   sector?: string;
   branches: string[];
   users: number;
   frequency?: string;
-}
-
-const ETP_HOURLY_LOADED = 38; // €/h chargé moyen mid-cap français
-
-function getForfaitTier(users: number): { label: string; basePrice: number; perBranchPrice: number } {
-  if (users < 500) {
-    return { label: "Starter — AI Essentials", basePrice: 800, perBranchPrice: 200 };
-  }
-  if (users < 2000) {
-    return { label: "Business — AI Accelerator", basePrice: 9500, perBranchPrice: 1500 };
-  }
-  return { label: "Enterprise — AI Transformation", basePrice: 65000, perBranchPrice: 8000 };
-}
-
-function computeRoi(inputs: Required<Inputs>) {
-  const tier = getForfaitTier(inputs.users);
-  const brancheCount = inputs.branches.length;
-
-  const brancheImpact =
-    inputs.branches
-      .map((id) => BRANCHES.find((b) => b.id === id)?.impact ?? 1)
-      .reduce((acc, v) => acc + v, 0) / Math.max(brancheCount, 1);
-
-  const freq = FREQUENCIES.find((f) => f.id === inputs.frequency);
-  const hoursPerUserMonth = freq?.hoursPerUserMonth ?? 4;
-
-  // Coût NEURAL/mo
-  const neuralMonthly = tier.basePrice + brancheCount * tier.perBranchPrice;
-
-  // Heures économisées par mois total (couverture partielle des users — 35%)
-  const adoptionRate = 0.35;
-  const activeUsers = inputs.users * adoptionRate;
-  const hoursSavedMonth = activeUsers * brancheCount * hoursPerUserMonth * brancheImpact;
-
-  // Valeur monétaire des heures gagnées
-  const monthlySavings = hoursSavedMonth * ETP_HOURLY_LOADED;
-
-  // ETP équivalents
-  const etpEquivalent = hoursSavedMonth / 150; // 150h chargées/mois
-
-  // ROI net
-  const monthlyRoi = monthlySavings - neuralMonthly;
-
-  // Payback (en mois) avec coût setup estimé à 2× monthly NEURAL
-  const setupCost = neuralMonthly * 2;
-  const paybackMonths = monthlyRoi > 0 ? Math.ceil(setupCost / monthlyRoi) : Infinity;
-
-  // ROI annuel %
-  const annualSavings = monthlySavings * 12;
-  const annualCost = neuralMonthly * 12 + setupCost;
-  const roiPct = ((annualSavings - annualCost) / annualCost) * 100;
-
-  return {
-    tier,
-    neuralMonthly,
-    hoursSavedMonth: Math.round(hoursSavedMonth),
-    monthlySavings: Math.round(monthlySavings),
-    etpEquivalent: Math.round(etpEquivalent * 10) / 10,
-    monthlyRoi: Math.round(monthlyRoi),
-    paybackMonths,
-    roiPct: Math.round(roiPct),
-    activeUsers: Math.round(activeUsers),
-  };
 }
 
 function formatEuro(n: number) {
@@ -128,14 +34,50 @@ export function RoiCalculatorWizard() {
   const [step, setStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [inputs, setInputs] = useState<Inputs>({ branches: [], users: 250 });
+  const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle");
 
   const totalSteps = 4;
 
   const result = useMemo(() => {
     if (!showResult) return null;
     if (!inputs.sector || !inputs.frequency || inputs.branches.length === 0) return null;
-    return computeRoi(inputs as Required<Inputs>);
+    return computeRoi(inputs as RoiInputs);
   }, [showResult, inputs]);
+
+  const handleDownloadPdf = async () => {
+    if (!inputs.sector || !inputs.frequency || inputs.branches.length === 0) return;
+    setDownloadState("loading");
+    try {
+      const resp = await fetch("/api/outils/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tool: "roi-calculator",
+          inputs: {
+            sector: inputs.sector,
+            branches: inputs.branches,
+            users: inputs.users,
+            frequency: inputs.frequency,
+          } satisfies RoiInputs,
+        }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const hash = resp.headers.get("X-Receipt-Hash") ?? "estimation";
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `neural-roi-calculator-${hash.slice(0, 8)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setDownloadState("idle");
+    } catch (err) {
+      console.error("PDF download failed", err);
+      setDownloadState("error");
+    }
+  };
 
   const canGoNext = (() => {
     if (step === 0) return Boolean(inputs.sector);
@@ -260,25 +202,57 @@ export function RoiCalculatorWizard() {
           <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl">
               <div className="flex items-center gap-2 text-violet-300">
-                <Mail className="h-4 w-4" />
-                <span className="text-[11px] uppercase tracking-[0.18em]">Cadrage personnalisé</span>
+                <FileDown className="h-4 w-4" />
+                <span className="text-[11px] uppercase tracking-[0.18em]">Estimation signée</span>
               </div>
               <h3 className="mt-2 font-display text-xl font-bold tracking-tight text-white">
-                Recevoir l&apos;estimation détaillée
+                Télécharger l&apos;estimation en PDF
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-white/65">
-                Rapport PDF avec hypothèses ajustées à votre contexte, scénarios optimiste /
-                réaliste / prudent, plan de déploiement chiffré.
+                Paramètres saisis, calcul détaillé (heures économisées, payback, ROI annuel),
+                hypothèses utilisées. Pied de page signé (hash SHA-256 + URL de vérification) pour
+                partage interne.
               </p>
             </div>
-            <Link
-              href={`/contact?source=roi-calculator&sector=${inputs.sector}`}
-              className="inline-flex items-center gap-2 rounded-full bg-neural-violet px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-neural-violet/20 transition-all hover:bg-neural-violet-dark"
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={downloadState === "loading"}
+              className="inline-flex items-center gap-2 rounded-full bg-neural-violet px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-neural-violet/20 transition-all hover:bg-neural-violet-dark disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Cadrage gratuit 30 min
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              {downloadState === "loading" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Génération…
+                </>
+              ) : (
+                <>
+                  Télécharger le PDF
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </div>
+          {downloadState === "error" ? (
+            <p className="mt-4 text-xs text-red-300">
+              Génération échouée. Réessayez ou{" "}
+              <Link href={`/contact?source=roi-calculator&sector=${inputs.sector}`} className="underline">
+                planifiez un cadrage
+              </Link>
+              .
+            </p>
+          ) : (
+            <p className="mt-4 text-xs text-white/40">
+              Besoin d&apos;un cadrage personnalisé 30 min ?{" "}
+              <Link
+                href={`/contact?source=roi-calculator&sector=${inputs.sector}`}
+                className="inline-flex items-center gap-1 text-violet-300 hover:text-violet-200"
+              >
+                <Mail className="h-3 w-3" />
+                Nous contacter
+              </Link>
+            </p>
+          )}
         </div>
       </div>
     );

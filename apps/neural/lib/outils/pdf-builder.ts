@@ -103,7 +103,7 @@ function drawHeader(ctx: RenderContext, title: string): void {
     font: ctx.fontBold,
     color: COLORS.violet,
   });
-  ctx.page.drawText("AI Consulting · Trust-first", {
+  ctx.page.drawText(sanitizeForWinAnsi("AI Consulting · Trust-first"), {
     x: MARGIN.left + 60,
     y: ctx.y + 3,
     size: 8,
@@ -112,7 +112,7 @@ function drawHeader(ctx: RenderContext, title: string): void {
   });
   ctx.y -= 30;
 
-  ctx.page.drawText(title, {
+  ctx.page.drawText(sanitizeForWinAnsi(title), {
     x: MARGIN.left,
     y: ctx.y,
     size: 22,
@@ -136,7 +136,7 @@ function drawResultHeadline(
   headline: string,
   lead?: string,
 ): void {
-  ctx.page.drawText(toolLabel.toUpperCase(), {
+  ctx.page.drawText(sanitizeForWinAnsi(toolLabel.toUpperCase()), {
     x: MARGIN.left,
     y: ctx.y,
     size: 8,
@@ -176,7 +176,7 @@ function drawResultHeadline(
 
 function drawSection(ctx: RenderContext, section: PdfSection): void {
   ensureSpace(ctx, 36);
-  ctx.page.drawText(section.heading.toUpperCase(), {
+  ctx.page.drawText(sanitizeForWinAnsi(section.heading.toUpperCase()), {
     x: MARGIN.left,
     y: ctx.y,
     size: 9,
@@ -240,7 +240,7 @@ function drawSection(ctx: RenderContext, section: PdfSection): void {
       const valueLines = wrapText(row.value, ctx.fontRegular, 10, contentWidth() - keyWidth - 8);
       const blockHeight = Math.max(13, valueLines.length * 13);
       ensureSpace(ctx, blockHeight + 2);
-      ctx.page.drawText(row.key, {
+      ctx.page.drawText(sanitizeForWinAnsi(row.key), {
         x: MARGIN.left,
         y: ctx.y,
         size: 10,
@@ -290,7 +290,7 @@ function drawFootersOnAllPages(ctx: RenderContext, receipt: SignedReceipt<unknow
   const pages = ctx.doc.getPages();
   const generatedLabel = formatTimestamp(receipt.generatedAt);
   const verify = verifyUrl(receipt.hash);
-  const left = `${receipt.toolLabel} · ${generatedLabel}`;
+  const left = sanitizeForWinAnsi(`${receipt.toolLabel} · ${generatedLabel}`);
   const middle = `Hash · ${shortHash(receipt.hash)}`;
   const right = verify;
 
@@ -340,9 +340,32 @@ function contentWidth(): number {
   return PAGE.width - MARGIN.left - MARGIN.right;
 }
 
+/**
+ * Replace characters that the Helvetica WinAnsi encoding cannot render with
+ * ASCII-safe equivalents. The standard PDF fonts only cover Latin-1 + a small
+ * set of typographic glyphs — anything outside that fails at draw time.
+ */
+function sanitizeForWinAnsi(text: string): string {
+  return text
+    .replace(/→/g, "->")
+    .replace(/←/g, "<-")
+    .replace(/↑/g, "^")
+    .replace(/↓/g, "v")
+    .replace(/⇒/g, "=>")
+    .replace(/⇐/g, "<=")
+    .replace(/…/g, "...")
+    .replace(/[“”«»]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/✓/g, "OK")
+    .replace(/✗|✘|❌/g, "X")
+    .replace(/•/g, "-")
+    .replace(/€/g, "EUR ")
+    .replace(/[ -​  ]/g, " ");
+}
+
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
   if (!text) return [];
-  const normalized = text.replace(/\s+/g, " ").trim();
+  const normalized = sanitizeForWinAnsi(text).replace(/\s+/g, " ").trim();
   const words = normalized.split(" ");
   const lines: string[] = [];
   let current = "";

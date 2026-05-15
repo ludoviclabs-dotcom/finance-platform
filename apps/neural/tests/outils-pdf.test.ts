@@ -3,6 +3,10 @@ import { describe, expect, it } from "vitest";
 import { signReceipt, verifyUrl, shortHash } from "@/lib/outils/sign";
 import { computeAiActResult } from "@/lib/outils/compute/ai-act-classifier";
 import { buildAiActPdfInput } from "@/lib/outils/adapters/ai-act-classifier";
+import { computeRoi, type RoiInputs } from "@/lib/outils/compute/roi-calculator";
+import { buildRoiPdfInput } from "@/lib/outils/adapters/roi-calculator";
+import { computeMaturityResult } from "@/lib/outils/compute/maturity-quiz";
+import { buildMaturityPdfInput } from "@/lib/outils/adapters/maturity-quiz";
 import { buildOutilsPdf } from "@/lib/outils/pdf-builder";
 
 describe("signReceipt", () => {
@@ -115,5 +119,85 @@ describe("buildOutilsPdf", () => {
     expect(bytes.byteLength).toBeGreaterThan(1000);
     const head = new TextDecoder().decode(bytes.slice(0, 4));
     expect(head).toBe("%PDF");
+  });
+
+  it("produces a valid PDF for the ROI calculator", async () => {
+    const inputs: RoiInputs = {
+      sector: "luxe",
+      branches: ["finance", "marketing"],
+      users: 500,
+      frequency: "regulier",
+    };
+    const { input } = buildRoiPdfInput(inputs, "2026-05-15T10:00:00.000Z");
+    const bytes = await buildOutilsPdf(input);
+    expect(bytes.byteLength).toBeGreaterThan(1000);
+    expect(new TextDecoder().decode(bytes.slice(0, 4))).toBe("%PDF");
+  });
+
+  it("produces a valid PDF for the maturity quiz", async () => {
+    const answers: Record<string, number> = { q1: 2, q2: 3, q3: 1, q4: 2 };
+    const { input } = buildMaturityPdfInput(answers, {}, "2026-05-15T10:00:00.000Z");
+    const bytes = await buildOutilsPdf(input);
+    expect(bytes.byteLength).toBeGreaterThan(1000);
+    expect(new TextDecoder().decode(bytes.slice(0, 4))).toBe("%PDF");
+  });
+});
+
+describe("computeRoi", () => {
+  const baseInputs: RoiInputs = {
+    sector: "luxe",
+    branches: ["finance"],
+    users: 250,
+    frequency: "regulier",
+  };
+
+  it("picks the Starter tier under 500 users", () => {
+    const r = computeRoi({ ...baseInputs, users: 250 });
+    expect(r.tier.label).toMatch(/^Starter/);
+  });
+
+  it("picks the Business tier between 500 and 2000 users", () => {
+    const r = computeRoi({ ...baseInputs, users: 1000 });
+    expect(r.tier.label).toMatch(/^Business/);
+  });
+
+  it("picks the Enterprise tier at 2000+ users", () => {
+    const r = computeRoi({ ...baseInputs, users: 5000 });
+    expect(r.tier.label).toMatch(/^Enterprise/);
+  });
+
+  it("returns POSITIVE_INFINITY payback when monthly ROI is negative", () => {
+    // Tiny users + occasional usage on a single low-impact branche -> savings < cost.
+    const r = computeRoi({ ...baseInputs, users: 10, frequency: "occasionnel", branches: ["si"] });
+    expect(r.paybackMonths).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  it("scales hours saved linearly with branche count when impact is similar", () => {
+    const single = computeRoi({ ...baseInputs, branches: ["marketing"] });
+    const triple = computeRoi({ ...baseInputs, branches: ["marketing", "communication", "rh"] });
+    expect(triple.hoursSavedMonth).toBeGreaterThan(single.hoursSavedMonth * 2);
+  });
+});
+
+describe("computeMaturityResult", () => {
+  it("returns the explorer tier for low totals", () => {
+    const r = computeMaturityResult({ q1: 0, q2: 0, q3: 1 });
+    expect(r.tier.id).toBe("explorer");
+  });
+
+  it("returns the leader tier for max totals (12 questions × 3)", () => {
+    const answers: Record<string, number> = {};
+    for (let i = 1; i <= 12; i += 1) answers[`q${i}`] = 3;
+    const r = computeMaturityResult(answers);
+    expect(r.tier.id).toBe("leader");
+    expect(r.totalPct).toBe(100);
+  });
+
+  it("provides per-axis breakdown with pct in [0,100]", () => {
+    const r = computeMaturityResult({ q1: 2, q2: 1 });
+    for (const axis of r.axisScores) {
+      expect(axis.pct).toBeGreaterThanOrEqual(0);
+      expect(axis.pct).toBeLessThanOrEqual(100);
+    }
   });
 });

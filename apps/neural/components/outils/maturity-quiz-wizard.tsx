@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, RotateCcw, Mail, Award } from "lucide-react";
+import { ArrowRight, RotateCcw, Mail, Award, FileDown, Loader2 } from "lucide-react";
 
 import data from "@/content/outils/maturity-quiz.json";
+import { computeMaturityResult } from "@/lib/outils/compute/maturity-quiz";
 import { WizardShell, ChoiceList } from "./wizard-shell";
 
 const COLOR_CLASSES: Record<string, { bg: string; border: string; text: string; gradient: string }> = {
@@ -34,42 +35,12 @@ const COLOR_CLASSES: Record<string, { bg: string; border: string; text: string; 
   },
 };
 
-interface AxisScore {
-  id: string;
-  label: string;
-  description: string;
-  score: number;
-  max: number;
-  pct: number;
-}
-
-function computeScores(answers: Record<string, number>) {
-  const totalScore = Object.values(answers).reduce((acc, s) => acc + s, 0);
-  const tier = data.tiers.find((t) => totalScore >= t.min && totalScore <= t.max) || data.tiers[0];
-
-  // Per-axis breakdown
-  const axisScores: AxisScore[] = data.axes.map((axis) => {
-    const axisQuestions = data.questions.filter((q) => q.axis === axis.id);
-    const score = axisQuestions.reduce((acc, q) => acc + (answers[q.id] || 0), 0);
-    const max = axisQuestions.length * 3;
-    return {
-      id: axis.id,
-      label: axis.label,
-      description: axis.description,
-      score,
-      max,
-      pct: Math.round((score / max) * 100),
-    };
-  });
-
-  return { totalScore, tier, axisScores };
-}
-
 export function MaturityQuizWizard() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [answerIds, setAnswerIds] = useState<Record<string, string>>({});
   const [showResult, setShowResult] = useState(false);
+  const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle");
 
   const questions = data.questions;
   const currentQuestion = questions[step];
@@ -78,8 +49,38 @@ export function MaturityQuizWizard() {
 
   const result = useMemo(() => {
     if (!showResult) return null;
-    return computeScores(answers);
+    return computeMaturityResult(answers);
   }, [showResult, answers]);
+
+  const handleDownloadPdf = async () => {
+    setDownloadState("loading");
+    try {
+      const resp = await fetch("/api/outils/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tool: "maturity-quiz",
+          answers,
+          answerIds,
+        }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const hash = resp.headers.get("X-Receipt-Hash") ?? "synthese";
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `neural-maturity-quiz-${hash.slice(0, 8)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setDownloadState("idle");
+    } catch (err) {
+      console.error("PDF download failed", err);
+      setDownloadState("error");
+    }
+  };
 
   const handleNext = () => {
     if (isLastQuestion) {
@@ -127,6 +128,51 @@ export function MaturityQuizWizard() {
             </button>
           </div>
           <p className="mt-5 text-base leading-relaxed text-white/80">{result.tier.summary}</p>
+        </div>
+
+        <div className="rounded-[28px] border border-emerald-400/20 bg-gradient-to-br from-emerald-500/[0.10] via-white/[0.04] to-violet-500/[0.06] p-6 md:p-8">
+          <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-xl">
+              <div className="flex items-center gap-2 text-emerald-300">
+                <FileDown className="h-4 w-4" />
+                <span className="text-[11px] uppercase tracking-[0.18em]">Synthèse signée</span>
+              </div>
+              <h3 className="mt-2 font-display text-xl font-bold tracking-tight text-white">
+                Télécharger la synthèse en PDF
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-white/65">
+                Score global, profil par axe, plan d&apos;action 90 jours, vos réponses détaillées.
+                Pied de page signé (hash SHA-256 + URL de vérification) pour partage interne.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={downloadState === "loading"}
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-500/90 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {downloadState === "loading" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Génération…
+                </>
+              ) : (
+                <>
+                  Télécharger le PDF
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </div>
+          {downloadState === "error" ? (
+            <p className="mt-4 text-xs text-red-300">
+              Génération échouée. Réessayez ou{" "}
+              <Link href={`/contact?source=maturity-quiz&tier=${result.tier.id}`} className="underline">
+                planifiez un audit
+              </Link>
+              .
+            </p>
+          ) : null}
         </div>
 
         {/* Per-axis breakdown */}

@@ -8,7 +8,14 @@ Endpoints :
   GET  /auth/me       → infos user courant
 
 Cookies :
-  cc_refresh  httpOnly, Secure (en prod), SameSite=Lax, Path=/auth, 30 jours
+  cc_refresh  httpOnly, Secure (en prod), SameSite=None en prod / Lax en dev,
+              Path=/auth, 30 jours.
+
+  Note SameSite : le front (carbon-snowy-nine.vercel.app) et l'API
+  (carbonco-api-...vercel.app) sont sur des subdomains de vercel.app, qui
+  figure dans la Public Suffix List → considérés cross-site par les
+  navigateurs. SameSite=Lax bloquerait donc le cookie sur les fetch
+  cross-origin. SameSite=None + Secure permet l'envoi cross-site.
 """
 
 from __future__ import annotations
@@ -130,6 +137,15 @@ def _is_prod() -> bool:
     return os.environ.get("ENV", "development").lower() in ("production", "prod")
 
 
+def _cookie_samesite() -> str:
+    """SameSite policy for the refresh cookie.
+
+    Prod (cross-site fetch front ↔ API): "none" (+ Secure obligatoire).
+    Dev (localhost) : "lax" reste valide et plus restrictif côté DevTools.
+    """
+    return "none" if _is_prod() else "lax"
+
+
 def _set_refresh_cookie(response: Response, raw_token: str, expires_at: datetime) -> None:
     max_age = int((expires_at - datetime.now(timezone.utc)).total_seconds())
     response.set_cookie(
@@ -137,7 +153,7 @@ def _set_refresh_cookie(response: Response, raw_token: str, expires_at: datetime
         value=raw_token,
         httponly=True,
         secure=_is_prod(),
-        samesite="lax",
+        samesite=_cookie_samesite(),
         path=REFRESH_COOKIE_PATH,
         max_age=max(0, max_age),
     )
@@ -149,7 +165,7 @@ def _clear_refresh_cookie(response: Response) -> None:
         path=REFRESH_COOKIE_PATH,
         httponly=True,
         secure=_is_prod(),
-        samesite="lax",
+        samesite=_cookie_samesite(),
     )
 
 

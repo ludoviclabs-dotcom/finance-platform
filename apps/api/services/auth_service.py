@@ -99,26 +99,53 @@ _DEMO_USERS: dict[str, dict] = {
 # DB helpers
 # ---------------------------------------------------------------------------
 
+_DEMO_USERS_SEEDED: bool = False
+
+
 def _ensure_default_users() -> None:
-    """Seed default users if the users table is empty (first run)."""
-    if not db_available():
+    """Seed demo users (idempotent — ON CONFLICT DO NOTHING).
+
+    Anciennement gated sur `count == 0`, ce qui empêchait le seed dès qu'un
+    admin existait déjà (cas prod après `seed_admin.py`). Le bouton "Accès
+    démo (sans compte)" du login restait donc cassé sur prod.
+
+    On garantit maintenant que les comptes démo sont présents sur le premier
+    appel `authenticate()` du process (warm function instance). Le flag
+    module-level évite de rejouer les INSERTs à chaque login.
+    """
+    global _DEMO_USERS_SEEDED
+    if _DEMO_USERS_SEEDED or not db_available():
         return
     try:
         with get_db() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) AS count FROM users")
+                # S'assure que la company "carbonco" existe (créée par seed_admin.py
+                # normalement). On la crée à la volée si absente pour découpler le
+                # bouton démo de l'exécution du script d'init admin.
+                cur.execute(
+                    """
+                    INSERT INTO companies (name, slug, plan)
+                    VALUES ('CarbonCo', 'carbonco', 'pro')
+                    ON CONFLICT (slug) DO NOTHING
+                    """,
+                )
+                cur.execute("SELECT id FROM companies WHERE slug = 'carbonco'")
                 row = cur.fetchone()
-                count = row["count"] if row else 0
-                if count == 0:
-                    for email, data in _DEMO_USERS.items():
-                        cur.execute(
-                            """
-                            INSERT INTO users (company_id, email, password_hash, role)
-                            VALUES (%s, %s, %s, %s)
-                            ON CONFLICT (email) DO NOTHING
-                            """,
-                            (data["company_id"], email, data["password_hash"], data["role"]),
-                        )
+                if not row:
+                    logger.warning("Company carbonco introuvable — seed démo abandonné")
+                    return
+                company_id = row["id"] if isinstance(row, dict) else row[0]
+
+                for email, data in _DEMO_USERS.items():
+                    cur.execute(
+                        """
+                        INSERT INTO users (company_id, email, password_hash, role)
+                        VALUES (%s, %s, %s, %s)
+                        ON CONFLICT (email) DO NOTHING
+                        """,
+                        (company_id, email, data["password_hash"], data["role"]),
+                    )
+        _DEMO_USERS_SEEDED = True
     except Exception as exc:
         logger.warning("Impossible de seeder les users par défaut : %s", exc)
 

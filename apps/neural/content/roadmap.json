@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-15T17:00:00Z",
+  "lastUpdated": "2026-05-15T18:00:00Z",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -38,10 +38,10 @@
     {
       "id": "status-page",
       "title": "Status Page publique avec uptime 90j",
-      "description": "Page /status en ligne, calcul uptime 90j depuis composants déclarés. Branchement health checks externes (UptimeRobot/BetterStack) en cours.",
+      "description": "Page /status live avec sondes actives toutes les 5 minutes (cron Vercel) sur platform, database, rate-limit, publications. Uptime 90j calculé depuis StatusProbe. Composants restants (AI Gateway, auth, Langfuse) tagués \"Déclaré\" en attendant leur instrumentation propre.",
       "category": "plateforme",
       "status": "now",
-      "progress": 60,
+      "progress": 80,
       "expectedDate": "2026-Q3",
       "href": "/status"
     },
@@ -75,11 +75,10 @@
     {
       "id": "agents-catalog",
       "title": "Catalogue /agents filtrable",
-      "description": "Grid /agents filtrable par branche × secteur × statut × niveau de risque AI Act (live). Colonne ROI estimé à câbler depuis agents-meta.json. SEO long-tail.",
+      "description": "Grid /agents filtrable par branche × secteur × statut × niveau de risque AI Act, avec ROI estimé (impact typique) et temps de déploiement par fiche. 18 agents documentés sur les branches finance, RH, communication, supply-chain. SEO long-tail : 11 pages agents avec metadata Next.js.",
       "category": "produit",
-      "status": "now",
-      "progress": 70,
-      "expectedDate": "2026-Q3",
+      "status": "shipped",
+      "shippedDate": "2026-05",
       "href": "/agents"
     },
     {

@@ -25,6 +25,8 @@ export const PROBED_COMPONENTS = [
   "database",
   "rate-limit",
   "publications",
+  "ai-gateway",
+  "telemetry",
 ] as const;
 export type ProbedComponentId = (typeof PROBED_COMPONENTS)[number];
 
@@ -34,6 +36,8 @@ export async function runAllProbes(): Promise<ProbeResult[]> {
     probeDatabase(),
     probeRateLimit(),
     probePublications(),
+    probeAiGateway(),
+    probeLangfuse(),
   ];
   return Promise.all(probes);
 }
@@ -144,6 +148,91 @@ async function probePublications(): Promise<ProbeResult> {
   } catch (err) {
     return {
       componentId: "publications",
+      status: "outage",
+      latencyMs: Math.round(performance.now() - t0),
+      error: tagError(err),
+    };
+  }
+}
+
+async function probeAiGateway(): Promise<ProbeResult> {
+  // The Vercel AI Gateway exposes a public health endpoint that does not
+  // require a key. We hit it from the cron runtime to confirm both DNS +
+  // upstream routing are healthy from our region.
+  if (!env.ai.gatewayReady) {
+    return {
+      componentId: "ai-gateway",
+      status: "outage",
+      latencyMs: null,
+      error: "no-gateway-key",
+    };
+  }
+  const t0 = performance.now();
+  try {
+    const resp = await fetch("https://ai-gateway.vercel.sh/v1/health", {
+      signal: AbortSignal.timeout(3000),
+      cache: "no-store",
+    });
+    const latency = Math.round(performance.now() - t0);
+    if (!resp.ok) {
+      return {
+        componentId: "ai-gateway",
+        status: "outage",
+        latencyMs: latency,
+        error: `http-${resp.status}`,
+      };
+    }
+    return {
+      componentId: "ai-gateway",
+      status: latency > DEGRADED_LATENCY_MS ? "degraded" : "operational",
+      latencyMs: latency,
+      error: null,
+    };
+  } catch (err) {
+    return {
+      componentId: "ai-gateway",
+      status: "outage",
+      latencyMs: Math.round(performance.now() - t0),
+      error: tagError(err),
+    };
+  }
+}
+
+async function probeLangfuse(): Promise<ProbeResult> {
+  // Langfuse exposes /api/public/health on every deployment (cloud + self-hosted).
+  // We probe the configured baseUrl so the result mirrors what the SDK sees.
+  if (!env.observability.ready) {
+    return {
+      componentId: "telemetry",
+      status: "outage",
+      latencyMs: null,
+      error: "no-langfuse-keys",
+    };
+  }
+  const t0 = performance.now();
+  try {
+    const resp = await fetch(`${env.observability.baseUrl}/api/public/health`, {
+      signal: AbortSignal.timeout(3000),
+      cache: "no-store",
+    });
+    const latency = Math.round(performance.now() - t0);
+    if (!resp.ok) {
+      return {
+        componentId: "telemetry",
+        status: "outage",
+        latencyMs: latency,
+        error: `http-${resp.status}`,
+      };
+    }
+    return {
+      componentId: "telemetry",
+      status: latency > DEGRADED_LATENCY_MS ? "degraded" : "operational",
+      latencyMs: latency,
+      error: null,
+    };
+  } catch (err) {
+    return {
+      componentId: "telemetry",
       status: "outage",
       latencyMs: Math.round(performance.now() - t0),
       error: tagError(err),

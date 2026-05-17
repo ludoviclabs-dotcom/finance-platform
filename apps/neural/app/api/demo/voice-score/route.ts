@@ -18,6 +18,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { analyzeVoice } from "@/lib/ai/voice-guard";
+import { recordAgentRun } from "@/lib/gateway/runtime-helper";
 import { withGuardrails, guardInput } from "@/lib/security";
 
 // ── Validation ───────────────────────────────────────────────────────────────
@@ -102,6 +103,16 @@ async function handler(req: NextRequest): Promise<Response> {
       lang: v.body.lang,
       contextLabel: v.body.context,
       userId,
+    });
+
+    await recordAgentRun({
+      agentId: "maison-voice-guard",
+      prompt: v.body.text,
+      decision: "ALLOW",
+      outcome: `voice-score:${meta.mode}`,
+      model: meta.model ?? null,
+      latencyMs: meta.latencyMs,
+      trigger: "sandbox",
     });
 
     return NextResponse.json(

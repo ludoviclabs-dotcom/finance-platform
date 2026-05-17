@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { quoteHeritage, CITATION_FORMATS, type CitationFormat } from "@/lib/ai/heritage-quote";
+import { recordAgentRun } from "@/lib/gateway/runtime-helper";
 import { withGuardrails, guardInput } from "@/lib/security";
 
 const MAX_QUERY = 300;
@@ -51,6 +52,16 @@ async function handler(req: NextRequest): Promise<Response> {
 
   try {
     const { result, meta } = await quoteHeritage({ query: v.query, format: v.format, userId });
+
+    await recordAgentRun({
+      agentId: "heritage-comms",
+      prompt: v.query,
+      decision: "ALLOW",
+      outcome: `heritage-quote:${meta.mode}`,
+      latencyMs: meta.latencyMs,
+      trigger: "sandbox",
+    });
+
     return NextResponse.json(
       { result, meta },
       {

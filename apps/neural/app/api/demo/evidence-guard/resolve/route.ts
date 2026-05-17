@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { resolveEvidence, runResolverTestset } from "@/lib/ai/bank-evidence-guard";
 import { EVIDENCE_RESOLVER_TESTSET } from "@/lib/data/bank-comms-catalog";
+import { recordAgentRun } from "@/lib/gateway/runtime-helper";
 import { withGuardrails } from "@/lib/security";
 
 async function handler(req: NextRequest): Promise<Response> {
@@ -35,6 +36,16 @@ async function handler(req: NextRequest): Promise<Response> {
 
   try {
     const pkg = resolveEvidence(raw);
+
+    await recordAgentRun({
+      agentId: "bank-evidence-guard",
+      prompt: JSON.stringify(raw ?? {}),
+      decision:
+        pkg.verdict === "READY" ? "ALLOW" : pkg.verdict === "BLOCKED" ? "BLOCK" : "REVIEW",
+      outcome: `evidence-guard:${pkg.verdict}:sources=${pkg.sources.length}`,
+      trigger: "sandbox",
+    });
+
     return NextResponse.json(pkg, {
       status: 200,
       headers: {

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { checkClientScenario } from "@/lib/ai/client-bank-comms";
 import { CLIENT_SCENARIOS } from "@/lib/data/bank-comms-catalog";
+import { recordAgentRun } from "@/lib/gateway/runtime-helper";
 import { withGuardrails } from "@/lib/security";
 
 async function handler(req: NextRequest): Promise<Response> {
@@ -54,6 +55,16 @@ async function handler(req: NextRequest): Promise<Response> {
   try {
     const out = await checkClientScenario({ scenarioId, userId });
     if (!out.ok) return NextResponse.json({ error: out.error }, { status: 400 });
+
+    await recordAgentRun({
+      agentId: "client-bank-comms",
+      prompt: scenarioId,
+      decision: "ALLOW",
+      outcome: `client-bank-comms:${out.meta.mode}`,
+      latencyMs: out.meta.latencyMs,
+      trigger: "sandbox",
+    });
+
     return NextResponse.json(
       { result: out.result, meta: out.meta },
       {

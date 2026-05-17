@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-15T23:00:00Z",
+  "lastUpdated": "2026-05-17T12:15:00Z",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -38,10 +38,10 @@
     {
       "id": "status-page",
       "title": "Status Page publique avec uptime 90j",
-      "description": "Page /status live avec sondes actives toutes les 5 minutes (cron Vercel) sur platform, database, rate-limit, publications. Uptime 90j calculé depuis StatusProbe. Composants restants (AI Gateway, auth, Langfuse) tagués \"Déclaré\" en attendant leur instrumentation propre.",
+      "description": "Page /status live avec sondes actives sur 6 composants (platform, database, rate-limit, publications, AI Gateway, Langfuse). Cron horaire via GitHub Actions (limite Vercel Hobby = 1 cron). Uptime 90j calculé depuis StatusProbe. Composant auth reste \"Déclaré\" en attendant son instrumentation propre.",
       "category": "plateforme",
       "status": "now",
-      "progress": 80,
+      "progress": 95,
       "expectedDate": "2026-Q3",
       "href": "/status"
     },
@@ -57,11 +57,10 @@
     {
       "id": "operator-gateway-mvp",
       "title": "Operator Gateway — MVP audit trail signé",
-      "description": "Infrastructure complète : modèle GatewayEvent + chaîne SHA-256 signée (sequence, prompt hash, decision ALLOW/REVIEW/BLOCK, model, prev-signature), service logGatewayEvent thread-safe (pg_advisory_xact_lock), API verifyChain détectant tampering/missing events, et page publique /verify/signature/{hash} avec 5 états (verified/tampered/unknown/db-down/invalid). La page /operator-gateway bascule en mode \"Données live\" dès que des évènements arrivent. Reste à câbler la production d'évènements depuis chaque agent runtime.",
+      "description": "Infrastructure complète : modèle GatewayEvent + chaîne SHA-256 signée (sequence, prompt hash, decision ALLOW/REVIEW/BLOCK, model, prev-signature), service logGatewayEvent thread-safe (pg_advisory_xact_lock), API verifyChain détectant tampering/missing events, et page publique /verify/signature/{hash} avec 5 états. Runtime câblé sur 8 agents sandbox (maison-voice-guard, green-claim-checker, luxe-press-agent, heritage-comms, reg-bank-comms, bank-crisis-comms, esg-bank-comms, client-bank-comms, bank-evidence-guard). La page /operator-gateway bascule automatiquement en mode \"Données live\" dès qu'un évènement arrive.",
       "category": "produit",
-      "status": "now",
-      "progress": 90,
-      "expectedDate": "2026-Q3",
+      "status": "shipped",
+      "shippedDate": "2026-05",
       "href": "/operator-gateway"
     },
     {

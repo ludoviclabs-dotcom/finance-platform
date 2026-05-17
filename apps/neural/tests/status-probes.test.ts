@@ -15,7 +15,8 @@ describe("PROBED_COMPONENTS", () => {
   it("isProbed narrows on the canonical list", () => {
     expect(isProbed("database")).toBe(true);
     expect(isProbed("platform")).toBe(true);
-    expect(isProbed("ai-gateway")).toBe(false);
+    expect(isProbed("ai-gateway")).toBe(true);
+    expect(isProbed("telemetry")).toBe(true);
     expect(isProbed("auth")).toBe(false);
     expect(isProbed("does-not-exist")).toBe(false);
   });
@@ -68,6 +69,27 @@ describe("runAllProbes", () => {
     // The content/ directory exists in this repo; probe should be operational.
     expect(pub!.status).toBe("operational");
     expect(pub!.latencyMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it("ai-gateway probe reports a result (key missing → outage)", async () => {
+    const results = await runAllProbes();
+    const gw = results.find((r) => r.componentId === "ai-gateway");
+    expect(gw).toBeDefined();
+    // In CI without AI_GATEWAY_API_KEY nor VERCEL_ENV, the probe self-gates.
+    if (gw!.error === "no-gateway-key") {
+      expect(gw!.status).toBe("outage");
+      expect(gw!.latencyMs).toBeNull();
+    }
+  });
+
+  it("telemetry (langfuse) probe reports a result (keys missing → outage)", async () => {
+    const results = await runAllProbes();
+    const tel = results.find((r) => r.componentId === "telemetry");
+    expect(tel).toBeDefined();
+    if (tel!.error === "no-langfuse-keys") {
+      expect(tel!.status).toBe("outage");
+      expect(tel!.latencyMs).toBeNull();
+    }
   });
 });
 

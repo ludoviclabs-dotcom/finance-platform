@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { generatePressAngle, MEDIA_TYPES, type MediaType } from "@/lib/ai/press-angle";
+import { recordAgentRun } from "@/lib/gateway/runtime-helper";
 import { withGuardrails, guardInput } from "@/lib/security";
 
 const MAX_BRIEF = 800;
@@ -59,6 +60,16 @@ async function handler(req: NextRequest): Promise<Response> {
       lang: v.lang,
       userId,
     });
+
+    await recordAgentRun({
+      agentId: "luxe-press-agent",
+      prompt: v.brief,
+      decision: "ALLOW",
+      outcome: `press-angle:${meta.mode}`,
+      latencyMs: meta.latencyMs,
+      trigger: "sandbox",
+    });
+
     return NextResponse.json(
       { result, meta },
       {

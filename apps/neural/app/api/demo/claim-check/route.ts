@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { checkClaim, JURISDICTIONS, type Jurisdiction } from "@/lib/ai/claim-check";
+import { recordAgentRun } from "@/lib/gateway/runtime-helper";
 import { withGuardrails, guardInput } from "@/lib/security";
 
 const MAX_CLAIM = 500;
@@ -67,6 +68,16 @@ async function handler(req: NextRequest): Promise<Response> {
       context: v.context,
       userId,
     });
+
+    await recordAgentRun({
+      agentId: "green-claim-checker",
+      prompt: v.claim,
+      decision: "ALLOW",
+      outcome: `claim-check:${meta.mode}`,
+      latencyMs: meta.latencyMs,
+      trigger: "sandbox",
+    });
+
     return NextResponse.json(
       { result, meta },
       {

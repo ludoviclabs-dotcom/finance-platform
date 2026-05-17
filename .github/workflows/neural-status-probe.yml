@@ -1,0 +1,41 @@
+name: Neural Status Probe
+
+on:
+  schedule:
+    # Toutes les heures, à la minute 7 (décalé pour éviter la rush des cron 0)
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+# Un seul probe à la fois : si l'heure précédente n'est pas finie, on attend.
+concurrency:
+  group: neural-status-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: Call /api/cron/status-probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: HTTP GET (Bearer CRON_SECRET)
+        env:
+          CRON_SECRET: ${{ secrets.NEURAL_CRON_SECRET }}
+          TARGET_URL: https://neural-five.vercel.app/api/cron/status-probe
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::NEURAL_CRON_SECRET is not set; skipping probe."
+            exit 1
+          fi
+          response=$(mktemp)
+          http_code=$(curl -sS -o "$response" -w "%{http_code}" \
+            --max-time 30 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$TARGET_URL")
+          echo "HTTP $http_code"
+          # Affiche la réponse (status par composant) sans masquer les éventuels warnings.
+          cat "$response"
+          echo
+          if [ "$http_code" != "200" ]; then
+            echo "::error::Probe returned HTTP $http_code"
+            exit 1
+          fi

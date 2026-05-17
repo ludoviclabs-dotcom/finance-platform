@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { checkRegBankScenario } from "@/lib/ai/reg-bank-comms";
 import { REG_BANK_SCENARIOS } from "@/lib/data/bank-comms-catalog";
+import { recordAgentRun } from "@/lib/gateway/runtime-helper";
 import { withGuardrails } from "@/lib/security";
 
 function validateBody(
@@ -80,6 +81,16 @@ async function handler(req: NextRequest): Promise<Response> {
     if (!out.ok) {
       return NextResponse.json({ error: out.error }, { status: 400 });
     }
+
+    await recordAgentRun({
+      agentId: "reg-bank-comms",
+      prompt: v.scenarioId,
+      decision: "ALLOW",
+      outcome: `reg-bank-comms:${out.meta.mode}`,
+      latencyMs: out.meta.latencyMs,
+      trigger: "sandbox",
+    });
+
     return NextResponse.json(
       { result: out.result, meta: out.meta },
       {

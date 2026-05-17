@@ -62,6 +62,9 @@ const rawSchema = z.object({
 
   // Email (Resend) — Sprint 11 regulatory newsletter
   RESEND_API_KEY: z.string().optional(),
+
+  // Internal review auth — gates /api/internal/* (HITL inbox, evidence resolver)
+  INTERNAL_REVIEW_TOKEN: z.string().optional(),
 });
 
 export type RawEnv = z.infer<typeof rawSchema>;
@@ -149,6 +152,11 @@ export const env = {
     resendKey: raw.RESEND_API_KEY || undefined,
     ready: Boolean(raw.RESEND_API_KEY?.trim()),
   },
+
+  auth: {
+    internalReviewToken: raw.INTERNAL_REVIEW_TOKEN || undefined,
+    internalReviewReady: Boolean(raw.INTERNAL_REVIEW_TOKEN?.trim()),
+  },
 } as const;
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -180,5 +188,6 @@ export function envReport(): Record<string, boolean> {
     security_input_guard: env.security.inputGuardReady,
     memory: env.memory.ready,
     email: env.email.ready,
+    auth_internal_review: env.auth.internalReviewReady,
   };
 }

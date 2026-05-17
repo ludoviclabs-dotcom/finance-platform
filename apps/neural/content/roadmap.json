@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-17T12:15:00Z",
+  "lastUpdated": "2026-05-17T13:00:00Z",
   "categories": [
     { "id": "produit", "label": "Produit", "color": "violet" },
     { "id": "conformite", "label": "Conformité", "color": "emerald" },
@@ -38,11 +38,10 @@
     {
       "id": "status-page",
       "title": "Status Page publique avec uptime 90j",
-      "description": "Page /status live avec sondes actives sur 6 composants (platform, database, rate-limit, publications, AI Gateway, Langfuse). Cron horaire via GitHub Actions (limite Vercel Hobby = 1 cron). Uptime 90j calculé depuis StatusProbe. Composant auth reste \"Déclaré\" en attendant son instrumentation propre.",
+      "description": "Page /status live avec sondes actives sur 7 composants (platform, database, rate-limit, publications, AI Gateway, Langfuse, auth). Le probe auth exerce le gate /api/internal/* avec une requête synthétique non-authentifiée (must 401) et vérifie INTERNAL_REVIEW_TOKEN en production. Cron horaire via GitHub Actions (limite Vercel Hobby = 1 cron). Uptime 90j calculé depuis StatusProbe.",
       "category": "plateforme",
-      "status": "now",
-      "progress": 95,
-      "expectedDate": "2026-Q3",
+      "status": "shipped",
+      "shippedDate": "2026-05",
       "href": "/status"
     },
     {

@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-27T08:30:00Z",
+  "lastUpdated": "2026-05-17T13:00:00Z",
   "globalStatus": "operational",
   "items": [
     {
@@ -37,7 +37,7 @@
     {
       "id": "auth",
       "name": "Authentification",
-      "description": "Sessions et autorisation des surfaces protégées",
+      "description": "Gate /api/internal/* (HITL inbox, evidence resolver) — probe synthétique vérifie que le gate rejette toute requête non-authentifiée et que INTERNAL_REVIEW_TOKEN est configuré en production.",
       "status": "operational",
       "uptime90d": 99.96,
       "category": "core"

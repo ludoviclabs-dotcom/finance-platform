@@ -1,8 +1,11 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
+import type { NextRequest } from "next/server";
+
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import { getInternalReviewer } from "@/lib/internal-review-auth";
 
 export type ProbeStatus = "operational" | "degraded" | "outage";
 
@@ -27,6 +30,7 @@ export const PROBED_COMPONENTS = [
   "publications",
   "ai-gateway",
   "telemetry",
+  "auth",
 ] as const;
 export type ProbedComponentId = (typeof PROBED_COMPONENTS)[number];
 
@@ -38,6 +42,7 @@ export async function runAllProbes(): Promise<ProbeResult[]> {
     probePublications(),
     probeAiGateway(),
     probeLangfuse(),
+    probeAuth(),
   ];
   return Promise.all(probes);
 }
@@ -233,6 +238,63 @@ async function probeLangfuse(): Promise<ProbeResult> {
   } catch (err) {
     return {
       componentId: "telemetry",
+      status: "outage",
+      latencyMs: Math.round(performance.now() - t0),
+      error: tagError(err),
+    };
+  }
+}
+
+async function probeAuth(): Promise<ProbeResult> {
+  // Exercises the real /api/internal/* gate code path with a synthetic
+  // unauthenticated request — no network call needed. The gate MUST return
+  // 401 for an empty Authorization header. We also assert the secret is
+  // configured in production so we don't ship a deployment where the
+  // "fail-closed" gate locks out real reviewers.
+  const t0 = performance.now();
+
+  if (env.runtime.isProduction && !env.auth.internalReviewReady) {
+    return {
+      componentId: "auth",
+      status: "outage",
+      latencyMs: null,
+      error: "no-internal-review-token",
+    };
+  }
+
+  try {
+    const probeReq = new Request("http://probe.local/api/internal", {
+      method: "GET",
+    }) as unknown as NextRequest;
+    const result = getInternalReviewer(probeReq);
+    const latency = Math.round(performance.now() - t0);
+
+    if (result.ok) {
+      // Unauth request was accepted — gate is broken.
+      return {
+        componentId: "auth",
+        status: "outage",
+        latencyMs: latency,
+        error: "gate-not-enforcing",
+      };
+    }
+    if (result.status !== 401) {
+      return {
+        componentId: "auth",
+        status: "degraded",
+        latencyMs: latency,
+        error: `unexpected-status-${result.status}`,
+      };
+    }
+    return {
+      componentId: "auth",
+      status: "operational",
+      latencyMs: latency,
+      error: null,
+    };
+  } catch (err) {
+    return {
+      componentId: "auth",
       status: "outage",
       latencyMs: Math.round(performance.now() - t0),
       error: tagError(err),

@@ -17,7 +17,7 @@ describe("PROBED_COMPONENTS", () => {
     expect(isProbed("platform")).toBe(true);
     expect(isProbed("ai-gateway")).toBe(true);
     expect(isProbed("telemetry")).toBe(true);
-    expect(isProbed("auth")).toBe(false);
+    expect(isProbed("auth")).toBe(true);
     expect(isProbed("does-not-exist")).toBe(false);
   });
 });
@@ -90,6 +90,19 @@ describe("runAllProbes", () => {
       expect(tel!.status).toBe("outage");
       expect(tel!.latencyMs).toBeNull();
     }
+  });
+
+  it("auth probe exercises the real gate code path", async () => {
+    // In test/dev with no INTERNAL_REVIEW_TOKEN, the synthetic unauth request
+    // still gets rejected (no x-reviewer-id header either) → gate enforcing.
+    // The probe should never be "outage" in tests because the gate is purely
+    // in-process.
+    const results = await runAllProbes();
+    const auth = results.find((r) => r.componentId === "auth");
+    expect(auth).toBeDefined();
+    // Whatever the env state, the gate must reject the synthetic unauth call.
+    expect(["operational", "degraded"]).toContain(auth!.status);
+    expect(auth!.latencyMs).not.toBeNull();
   });
 });
 

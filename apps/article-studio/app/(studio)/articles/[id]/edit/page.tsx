@@ -7,6 +7,7 @@ import {
   LENGTH_WORD_TARGETS,
   type ArticleLength,
 } from "@/lib/types/article";
+import { ArticleEditor } from "@/components/studio/article-editor";
 import { RetrievalDebugPanel } from "@/components/studio/retrieval-debug-panel";
 
 export const dynamic = "force-dynamic";
@@ -29,11 +30,30 @@ export default async function EditArticlePage({ params }: PageProps) {
     );
   }
 
-  const article = await db.article.findUnique({ where: { id } });
+  const article = await db.article.findUnique({
+    where: { id },
+    include: {
+      citations: {
+        orderBy: { position: "asc" },
+        select: {
+          position: true,
+          sourceId: true,
+          source: { select: { title: true, filename: true } },
+          chunk: { select: { heading: true } },
+        },
+      },
+    },
+  });
   if (!article) notFound();
 
   const briefResult = articleBriefSchema.safeParse(article.brief);
   const brief = briefResult.success ? briefResult.data : null;
+
+  const citationsForEditor = article.citations.map((c) => ({
+    id: `S${c.position + 1}`,
+    sourceId: c.sourceId,
+    heading: c.chunk?.heading ?? c.source.title ?? c.source.filename,
+  }));
 
   return (
     <div className="grid max-w-7xl gap-8 lg:grid-cols-[1fr_24rem]">
@@ -52,16 +72,11 @@ export default async function EditArticlePage({ params }: PageProps) {
           )}
         </header>
 
-        <section className="rounded border border-white/10 bg-black/20 p-4">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-widest text-[color:var(--muted)]">
-            Éditeur (squelette)
-          </h2>
-          <p className="text-sm">
-            La rédaction Tiptap + génération streamée Claude arrive en Sprint 4. Pour
-            l'instant, utilise le panel à droite pour inspecter le contexte RAG qui
-            sera assemblé à partir des sources sélectionnées.
-          </p>
-        </section>
+        <ArticleEditor
+          articleId={article.id}
+          initialBodyMd={article.bodyMd}
+          initialCitations={citationsForEditor}
+        />
       </main>
 
       <aside className="lg:sticky lg:top-6 lg:self-start">

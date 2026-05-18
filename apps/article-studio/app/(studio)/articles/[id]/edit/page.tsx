@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -59,9 +60,17 @@ export default async function EditArticlePage({ params }: PageProps) {
     <div className="grid max-w-7xl gap-8 lg:grid-cols-[1fr_24rem]">
       <main className="space-y-6">
         <header className="space-y-2">
-          <p className="text-xs uppercase tracking-widest text-[color:var(--muted)]">
-            Brouillon — {article.status}
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-xs uppercase tracking-widest text-[color:var(--muted)]">
+              Brouillon — {article.status}
+            </p>
+            <Link
+              href={`/articles/${article.id}/preview`}
+              className="ml-auto text-sm text-[color:var(--muted)] hover:text-white"
+            >
+              Aperçu &amp; export →
+            </Link>
+          </div>
           <h1 className="text-2xl font-semibold">{article.title}</h1>
           {brief && (
             <p className="text-sm text-[color:var(--muted)]">

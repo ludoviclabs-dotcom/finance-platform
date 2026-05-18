@@ -64,13 +64,34 @@ Export
 | `npm run lint` | ESLint flat config |
 | `npm run test` | Vitest |
 | `npm run db:migrate` | Prisma migrate dev |
+| `npm run db:setup-pgvector` | `CREATE EXTENSION vector` + HNSW index |
 | `npm run db:studio` | Prisma Studio |
 | `npm run seed:corpus` | Charge `content/fixtures/` dans la base |
 | `npm run eval:rag` | Mesure precision@5 sur questions golden |
-| `npm run e2e:smoke` | Ingest → article → export PDF |
+
+## API HTTP
+
+| Méthode + Route | Effet |
+|---|---|
+| `POST /api/ingest` | Multipart `file` ; parse → chunk → embed en background |
+| `GET  /api/sources` / `[id]` | Liste + détail des Sources |
+| `POST /api/articles` | Crée un Article depuis un brief (Zod-validé) |
+| `GET  /api/articles` | Liste des articles |
+| `POST /api/articles/[id]/retrieve` | Debug : expansion + RRF + rerank + context |
+| `POST /api/articles/[id]/generate` | **SSE** — outline + sections streamées |
+| `POST /api/articles/[id]/sections/regenerate` | **SSE** — régénère une section seule |
+| `GET  /api/export/[id]/[format]` | `markdown` · `json` · `html` · `docx` · `pdf` |
+| `GET  /api/health` | État des capacités |
 
 ## État du projet
 
-**Sprint 0 — bootstrap (présent).** Scaffold prêt : env validation, security stack, langfuse, AI router 4 surfaces, schéma Prisma `Source`/`Chunk`/`Article`/`Generation`/`Citation`/`Infographic`, route `/api/health`, layout shell.
+| Sprint | Livraison |
+|---|---|
+| **0 — Bootstrap** | env, security, langfuse, router 4 surfaces, schéma Prisma, layout |
+| **1 — Ingestion** | Parsers markdown / pdf / docx + tests fixtures + dedup sha256 |
+| **2 — Chunking + embeddings + pgvector** | Splitter sémantique, Voyage/OpenAI, HNSW cosine, pipeline async via `after()` |
+| **3 — RAG retrieval** | Query expansion (Haiku) · multi-query + RRF · rerank Cohere/Haiku · context builder |
+| **4 — Génération streamée** | Outline (Opus) + sections (Sonnet) SSE · grounding guard · infographic detector · Tiptap citation mark |
+| **5 — Export + observabilité** | 5 formats · preview iframe · dashboard avec compteurs DB · `.env.example` |
 
-**Sprints suivants** : voir plan d'implémentation `il-me-faut-un-golden-puffin.md`.
+Détails du plan : `il-me-faut-un-golden-puffin.md` (racine `~/.claude/plans/`).

@@ -18,7 +18,9 @@ export type InputGuardResult = {
 };
 
 const INJECTION_PATTERNS: RegExp[] = [
-  /ignore\s+(previous|all|above|prior|any)\s+(instructions?|prompts?|context|rules?)/i,
+  // Matches "ignore X" then 0-3 adjectives (all, previous, the, any, ...) then instructions/prompts/...
+  // Catches "Ignore previous instructions", "Ignore all previous instructions", "Ignore the above prompt", etc.
+  /ignore\s+(?:(?:previous|all|above|prior|any|the|my|your|these|those|these\s+specific)\s+){1,4}(?:instructions?|prompts?|context|rules?|directives?|guidelines?|commands?)/i,
   /forget\s+(everything|all|previous|your\s+instructions?)/i,
   /\b(dan|dude|stan|dev\s*mode|jailbreak|god\s*mode)\s*(mode|activated|enabled|is|:|,)/i,
   /do\s+anything\s+now/i,

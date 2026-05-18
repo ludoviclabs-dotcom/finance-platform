@@ -1,0 +1,204 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  // Connection URLs live in prisma.config.ts (Prisma 7+).
+  extensions = [vector]
+}
+
+// ============================================================================
+// ARTICLE STUDIO — RAG editorial pipeline schema
+// Sprint 0 baseline. Source → Chunk → (embed via pgvector) → retrieved → Article.
+// ============================================================================
+
+/// Uploaded document (markdown, PDF, DOCX). Status machine:
+///   UPLOADED → PARSING → CHUNKING → EMBEDDING → READY
+///   (any step) → FAILED with errorMessage populated.
+model Source {
+  id           String       @id @default(cuid())
+  filename     String
+  mimeType     String
+  byteSize     Int
+  /// SHA-256 of normalized parsed content (not raw bytes) — used for dedup.
+  sha256       String       @unique
+  title        String?
+  author       String?
+  publishedAt  DateTime?
+  language     String       @default("fr")
+  status       SourceStatus @default(UPLOADED)
+  errorMessage String?
+  /// Storage URL (Vercel Blob) for the raw file when configured; null when
+  /// the file lived only in the request body and was discarded post-parse.
+  blobUrl      String?
+  /// Free-form parsed metadata: frontmatter (md), pdf info dict, docx properties.
+  metadata     Json?
+
+  chunks    Chunk[]
+  citations Citation[]
+
+  uploadedAt DateTime  @default(now())
+  parsedAt   DateTime?
+  indexedAt  DateTime?
+
+  @@index([status])
+  @@index([uploadedAt])
+}
+
+enum SourceStatus {
+  UPLOADED
+  PARSING
+  CHUNKING
+  EMBEDDING
+  READY
+  FAILED
+}
+
+/// Semantic chunk produced from a Source. Embedding is stored in a pgvector
+/// column and queried via raw SQL (Prisma has no first-class vector type yet).
+model Chunk {
+  id         String  @id @default(cuid())
+  sourceId   String
+  source     Source  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  orderIndex Int
+  content    String  @db.Text
+  tokenCount Int
+  /// Character offsets in the normalized parsed text (debug / re-extract).
+  charStart  Int
+  charEnd    Int
+  /// Last heading ancestor (H1/H2/H3) — helps citation display.
+  heading    String?
+  /// PDF page number when applicable.
+  pageNumber Int?
+  metadata   Json?
+
+  /// pgvector — declared Unsupported so Prisma keeps the column on migrations.
+  /// All reads/writes go through raw SQL helpers in lib/vector-store/*.
+  /// Index added in raw SQL migration:
+  ///   CREATE INDEX chunk_embedding_idx ON "Chunk" USING hnsw (embedding vector_cosine_ops);
+  embedding Unsupported("vector(1024)")?
+
+  citations Citation[]
+
+  @@index([sourceId, orderIndex])
+}
+
+/// Editorial brief + Tiptap document. Body schema is versioned via
+/// `brief.body.version` to enable forward-only migrations.
+model Article {
+  id                String        @id @default(cuid())
+  title             String
+  slug              String        @unique
+  /// ArticleBrief: angle, audience, length, tone, selected sources, SEO keywords.
+  brief             Json
+  status            ArticleStatus @default(DRAFT)
+  /// OutlineSchema: { sections: [{ id, title, summary, sourceRefs }] }
+  outline           Json?
+  /// Tiptap JSON document (canonical form).
+  body              Json?
+  /// Derived markdown for search/export — regenerated on save.
+  bodyMd            String?       @db.Text
+  metaTitle         String?
+  metaDescription   String?
+  /// IDs of Sources selected for this article's RAG context.
+  selectedSourceIds String[]
+
+  generations  Generation[]
+  citations    Citation[]
+  infographics Infographic[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, updatedAt])
+}
+
+enum ArticleStatus {
+  DRAFT
+  GENERATING
+  READY
+  PUBLISHED
+  ARCHIVED
+}
+
+/// One LLM call against an article: outline, single section, full article,
+/// section regenerate, or review. Stores cost, tokens, grounding score.
+model Generation {
+  id                String           @id @default(cuid())
+  articleId         String
+  article           Article          @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  kind              GenerationKind
+  /// Outline section ID for SECTION / REGENERATE_SECTION; null for FULL/OUTLINE/REVIEW.
+  sectionId         String?
+  model             String
+  promptTokens      Int
+  outputTokens      Int
+  costUsd           Decimal?         @db.Decimal(10, 6)
+  latencyMs         Int
+  /// Chunk IDs assembled into the prompt context for this generation.
+  retrievedChunkIds String[]
+  /// Ratio of paragraphs containing at least one [S\d] citation tag.
+  groundingScore    Float?
+  status            GenerationStatus @default(RUNNING)
+  error             String?
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  @@index([articleId, startedAt])
+}
+
+enum GenerationKind {
+  OUTLINE
+  SECTION
+  FULL
+  REGENERATE_SECTION
+  REVIEW
+}
+
+enum GenerationStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+/// Inline citation: [S1] in an article body maps to one Citation row, which
+/// links back to the Source + Chunk and stores the verbatim quote.
+model Citation {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  sourceId  String
+  source    Source   @relation(fields: [sourceId], references: [id])
+  chunkId   String?
+  chunk     Chunk?   @relation(fields: [chunkId], references: [id])
+  /// Exact passage referenced (for traceability popovers in the editor).
+  quote     String   @db.Text
+  /// Outline section ID where this citation appears.
+  sectionId String?
+  /// Order of appearance in the article body (used to render [S1], [S2], ...).
+  position  Int
+
+  @@index([articleId])
+}
+
+/// Detected infographic candidate. Persisted with the chart spec + the
+/// Citations supporting the underlying data. Visible/hidden toggle is a
+/// UI-side flag (not stored).
+model Infographic {
+  id                String   @id @default(cuid())
+  articleId         String
+  article           Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  /// "bar" | "line" | "pie" | "table" | "stat"
+  kind              String
+  title             String
+  /// ChartSpec validated by Zod schema in lib/infographics/chart-spec.ts.
+  spec              Json
+  /// Citation IDs that ground the data points displayed.
+  sourceCitationIds String[]
+  position          Int
+
+  @@index([articleId, position])
+}

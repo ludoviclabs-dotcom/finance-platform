@@ -1,0 +1,72 @@
+import { notFound } from "next/navigation";
+
+import { db } from "@/lib/db";
+import { env } from "@/lib/env";
+import {
+  articleBriefSchema,
+  LENGTH_WORD_TARGETS,
+  type ArticleLength,
+} from "@/lib/types/article";
+import { RetrievalDebugPanel } from "@/components/studio/retrieval-debug-panel";
+
+export const dynamic = "force-dynamic";
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function EditArticlePage({ params }: PageProps) {
+  const { id } = await params;
+
+  if (!env.database.ready) {
+    return (
+      <div className="max-w-3xl">
+        <h1 className="text-2xl font-semibold">Éditeur</h1>
+        <p className="mt-3 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+          <strong>DATABASE_URL non configurée.</strong>
+        </p>
+      </div>
+    );
+  }
+
+  const article = await db.article.findUnique({ where: { id } });
+  if (!article) notFound();
+
+  const briefResult = articleBriefSchema.safeParse(article.brief);
+  const brief = briefResult.success ? briefResult.data : null;
+
+  return (
+    <div className="grid max-w-7xl gap-8 lg:grid-cols-[1fr_24rem]">
+      <main className="space-y-6">
+        <header className="space-y-2">
+          <p className="text-xs uppercase tracking-widest text-[color:var(--muted)]">
+            Brouillon — {article.status}
+          </p>
+          <h1 className="text-2xl font-semibold">{article.title}</h1>
+          {brief && (
+            <p className="text-sm text-[color:var(--muted)]">
+              {brief.angle} · {brief.audience} ·{" "}
+              {LENGTH_WORD_TARGETS[brief.length as ArticleLength]} mots ·{" "}
+              {brief.selectedSourceIds.length} source(s)
+            </p>
+          )}
+        </header>
+
+        <section className="rounded border border-white/10 bg-black/20 p-4">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-widest text-[color:var(--muted)]">
+            Éditeur (squelette)
+          </h2>
+          <p className="text-sm">
+            La rédaction Tiptap + génération streamée Claude arrive en Sprint 4. Pour
+            l'instant, utilise le panel à droite pour inspecter le contexte RAG qui
+            sera assemblé à partir des sources sélectionnées.
+          </p>
+        </section>
+      </main>
+
+      <aside className="lg:sticky lg:top-6 lg:self-start">
+        <RetrievalDebugPanel articleId={article.id} />
+      </aside>
+    </div>
+  );
+}

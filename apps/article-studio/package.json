@@ -74,6 +74,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "dotenv": "^16.4.7",
     "eslint": "^9",
+    "pdf-lib": "^1.17.1",
     "eslint-config-next": "16.2.0",
     "prisma": "^7.7.0",
     "puppeteer": "^23.11.1",

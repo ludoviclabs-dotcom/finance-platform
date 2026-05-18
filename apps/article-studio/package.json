@@ -17,6 +17,7 @@
     "db:studio": "prisma studio",
     "db:validate": "prisma validate",
     "db:format": "prisma format",
+    "db:setup-pgvector": "tsx --env-file-if-exists=.env.local scripts/setup-pgvector.ts",
     "postinstall": "prisma generate",
     "seed:corpus": "tsx --env-file-if-exists=.env.local scripts/seed-corpus.ts",
     "eval:rag": "tsx --env-file-if-exists=.env.local scripts/eval-rag.ts",

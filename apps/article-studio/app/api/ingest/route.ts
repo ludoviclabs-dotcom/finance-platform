@@ -15,10 +15,11 @@
  *   - 503 if database is not configured
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createHash } from "node:crypto";
 
 import { db } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import { env } from "@/lib/env";
 import { withGuardrails } from "@/lib/security";
 import {
@@ -26,6 +27,7 @@ import {
   UnsupportedFormatError,
   EmptyDocumentError,
 } from "@/lib/parsers";
+import { indexSource } from "@/lib/vector-store/pipeline";
 import type { ParsedDoc } from "@/lib/types/source";
 
 export const runtime = "nodejs";
@@ -123,22 +125,37 @@ async function handler(req: NextRequest): Promise<Response> {
             author: parsed.author,
             publishedAt: parsed.publishedAt,
             language: parsed.language ?? "fr",
-            status: "READY",
+            // Parsed; chunking + embedding runs in background below.
+            status: "CHUNKING",
             metadata: {
               blockCount: parsed.blocks.length,
               blocks: parsed.blocks,
               parser: parsed.metadata,
-            },
+            } as unknown as Prisma.InputJsonValue,
             parsedAt: new Date(),
-            // indexedAt set in Sprint 2 after embeddings are populated.
           },
         });
+
+        // Fire chunking + embedding in the background. The pipeline updates
+        // Source.status itself (CHUNKING → EMBEDDING → READY) and persists
+        // errorMessage on failure.
+        if (env.embeddings.ready) {
+          after(
+            indexSource(source.id).catch((err) => {
+              console.error(
+                `[ingest] background indexing failed for ${source.id}:`,
+                err instanceof Error ? err.message : err,
+              );
+            }),
+          );
+        }
 
         return {
           id: source.id,
           filename: source.filename,
           status: source.status,
           blockCount: parsed.blocks.length,
+          indexingQueued: env.embeddings.ready,
         };
       } catch (err) {
         let errorMessage: string;

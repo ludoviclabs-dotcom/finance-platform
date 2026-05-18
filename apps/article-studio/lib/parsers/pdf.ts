@@ -19,9 +19,7 @@
 
 // Import from lib directly to avoid pdf-parse@1.1.1's top-level debug code
 // (index.js reads a test file when module.parent is null, which breaks ESM/Vitest).
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse: (buffer: Buffer) => Promise<{ text: string; numpages: number; info: unknown; metadata: unknown }> =
-  require("pdf-parse/lib/pdf-parse.js");
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import type { Block, ParsedDoc } from "@/lib/types/source";
 
 const HEADING_LIKE = /^(?:chapter|chapitre|section|partie|part)\s+[0-9ivxlcdm]+/i;

@@ -17,7 +17,11 @@
  *     Source as FAILED with a clear errorMessage.
  */
 
-import pdfParse from "pdf-parse";
+// Import from lib directly to avoid pdf-parse@1.1.1's top-level debug code
+// (index.js reads a test file when module.parent is null, which breaks ESM/Vitest).
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse: (buffer: Buffer) => Promise<{ text: string; numpages: number; info: unknown; metadata: unknown }> =
+  require("pdf-parse/lib/pdf-parse.js");
 import type { Block, ParsedDoc } from "@/lib/types/source";
 
 const HEADING_LIKE = /^(?:chapter|chapitre|section|partie|part)\s+[0-9ivxlcdm]+/i;
@@ -67,15 +71,6 @@ function detectHeadingLevel(line: string): number {
   return 2; // default H2 for surface-detected headings
 }
 
-function splitPages(text: string): { page: number; text: string }[] {
-  // pdf-parse separates pages with form-feed (\f) in some configurations.
-  if (text.includes("\f")) {
-    return text.split("\f").map((t, i) => ({ page: i + 1, text: t }));
-  }
-  // Fallback: single virtual page.
-  return [{ page: 1, text }];
-}
-
 function blocksFromPageText(
   pageText: string,
   pageNumber: number | undefined,
@@ -104,6 +99,13 @@ function blocksFromPageText(
   return blocks;
 }
 
+function splitPages(text: string): { page: number; text: string }[] {
+  if (text.includes("\f")) {
+    return text.split("\f").map((t, i) => ({ page: i + 1, text: t }));
+  }
+  return [{ page: 1, text }];
+}
+
 interface PdfInfo {
   Title?: string;
   Author?: string;
@@ -113,7 +115,6 @@ interface PdfInfo {
 
 function parsePdfDate(raw: string | undefined): Date | undefined {
   if (!raw) return undefined;
-  // PDF date format: D:YYYYMMDDHHmmSS[OHH'mm']
   const m = raw.match(/D:(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?/);
   if (!m) return undefined;
   const [, y, mo, d, h = "00", mi = "00", s = "00"] = m;

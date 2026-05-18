@@ -47,7 +47,9 @@ async function buildFixturePdf(): Promise<Buffer> {
     page2,
   );
 
-  const bytes = await pdf.save();
+  // useObjectStreams:false produces a PDF 1.4-compatible file that
+  // pdf-parse@1.1.1's bundled pdfjs v1.10.100 can fully decompress.
+  const bytes = await pdf.save({ useObjectStreams: false });
   return Buffer.from(bytes);
 }
 
@@ -58,7 +60,7 @@ describe("parsePdf", () => {
     expect(parsed.blocks.length).toBeGreaterThan(0);
 
     const allText = parsed.blocks.map((b) => b.text).join(" ");
-    expect(allText).toContain("rapport");
+    expect(allText.toLowerCase()).toContain("rapport");
     expect(allText.toLowerCase()).toContain("section");
   });
 

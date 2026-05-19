@@ -18,7 +18,8 @@ export type FeatureFlag =
   | "marketplace"
   | "forfaits"
   | "resources"
-  | "rhLuxe";
+  | "rhLuxe"
+  | "neuralV2";
 
 const readFlag = (key: string): boolean =>
   process.env[key] === "1" || process.env[key] === "true";
@@ -28,6 +29,10 @@ export const features: Record<FeatureFlag, boolean> = {
   forfaits:    readFlag("NEXT_PUBLIC_FEATURE_FORFAITS"),
   resources:   readFlag("NEXT_PUBLIC_FEATURE_RESOURCES"),
   rhLuxe:      readFlag("NEXT_PUBLIC_FEATURE_RH_LUXE"),
+  // PR 1 refonte V2 : bascule navbar/footer V1 → V2 et homepage refondue.
+  // Reste off par défaut tout au long des PR 1-5 pour rollback express ;
+  // activé par défaut en PR 6 (retrait du flag).
+  neuralV2:    readFlag("NEXT_PUBLIC_NEURAL_V2"),
 };
 
 export const isFeatureOn = (flag: FeatureFlag): boolean => features[flag];

@@ -99,14 +99,20 @@ function runCopyCheck() {
     if (resolve(file) === selfPath) continue;
     const text = readFileSync(file, "utf8");
     const rel = relative(ROOT, file);
+    const ext = file.slice(file.lastIndexOf("."));
+    // Mojibake : à traquer partout (un fichier de doc avec mojibake reste un bug).
     for (const pattern of MOJIBAKE_PATTERNS) {
       if (pattern.test(text)) failures.push(`${rel}: mojibake ou caractère invalide (${pattern})`);
     }
-    for (const pattern of BANNED_CLAIMS) {
-      if (pattern.test(text)) failures.push(`${rel}: claim interdit ou trop fort (${pattern})`);
-    }
-    for (const pattern of BANNED_TYPOS) {
-      if (pattern.test(text)) failures.push(`${rel}: typo bannie (${pattern})`);
+    // Claims et typos : seulement dans le code rendu (UI / config), pas dans
+    // les docs internes qui ont vocation à citer ces interdits comme exemples.
+    if (ext !== ".md") {
+      for (const pattern of BANNED_CLAIMS) {
+        if (pattern.test(text)) failures.push(`${rel}: claim interdit ou trop fort (${pattern})`);
+      }
+      for (const pattern of BANNED_TYPOS) {
+        if (pattern.test(text)) failures.push(`${rel}: typo bannie (${pattern})`);
+      }
     }
     if (/TODO:\s*replace with NextAuth/i.test(text)) {
       failures.push(`${rel}: TODO auth production encore présent`);

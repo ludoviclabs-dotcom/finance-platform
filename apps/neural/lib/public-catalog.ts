@@ -1072,8 +1072,18 @@ export const PUBLIC_CLAIMS: PublicClaim[] = [
 ];
 
 /**
- * Navigation primaire — 5 items.
- * Sprint P0 (19 avril 2026) : recentrage sur les pages qui créent de la confiance.
+ * Navigation primaire V1 — 9 items (dérive historique).
+ *
+ * @deprecated Refonte V2 (PR 1) : la nouvelle source de vérité est
+ *             `lib/navigation.ts` → `NAV_V2` (6 items). La navbar et le
+ *             footer V2 consomment directement `NAV_V2` et `FOOTER_V2`.
+ *             Cette constante reste exportée jusqu'à PR 6 pour que la V1
+ *             (active par défaut tant que `NEXT_PUBLIC_NEURAL_V2` est off)
+ *             continue de fonctionner. Aucun ajout/modification dans cette
+ *             constante ne doit être fait : éditer `lib/navigation.ts` à la
+ *             place.
+ *
+ * Sprint P0 (19 avril 2026, V1) : recentrage sur les pages qui créent de la confiance.
  * - "Preuve produit" pointe vers la flagship Luxe Finance (seule preuve live complète).
  * - "Secteurs" filtre les status "planned" côté rendu navbar pour ne montrer que Luxe + Transport.
  * - Forfaits / Marketplace / Resources sont retirés de la nav publique et masqués derrière

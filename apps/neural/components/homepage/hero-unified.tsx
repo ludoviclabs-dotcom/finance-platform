@@ -23,8 +23,7 @@ export function HeroUnified() {
               <span>{PUBLIC_METRICS.liveAgents} agents avec données Excel.</span>{" "}
               <span>{PUBLIC_METRICS.runtimeWorkbooks} workbooks embarqués.</span>{" "}
               <span>{PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells} cellules alimentées.</span>{" "}
-              <span>168 reste la capacité cible.</span>{" "}
-              <span>Pas le périmètre live.</span>
+              <span>168 reste la capacité cible, pas le périmètre live.</span>
             </p>
             <div className="nhp-hero-ctas">
               <Link href="/proof" className="nhp-btn nhp-btn-primary nhp-btn-xl">

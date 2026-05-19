@@ -253,7 +253,7 @@ export function MaturityQuizWizard() {
               href={`/contact?source=maturity-quiz&tier=${result.tier.id}`}
               className="inline-flex items-center gap-2 rounded-full bg-emerald-500/90 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400"
             >
-              Audit gratuit 30 min
+              Cadrage offert 30 min
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

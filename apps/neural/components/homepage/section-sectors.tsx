@@ -16,7 +16,7 @@ export function SectionSectors() {
         <div className="nhp-section-head">
           <div className="eyebrow eyebrow-violet">06 secteurs</div>
           <h2 className="h-display h-tight">Calibrés par industrie.</h2>
-          <p className="lead lead-dark">Chaque secteur a ses contraintes. Nos agents arrivent déjà formés aux vôtrès.</p>
+          <p className="lead lead-dark">Chaque secteur a ses contraintes. Nos agents arrivent déjà formés aux vôtres.</p>
         </div>
         <div className="nhp-sectors-grid">
           {sectors.map((s, i) => (

@@ -445,7 +445,7 @@ export function ClaimCheckLive() {
                       Ce claim ne passerait pas la gate CLAIM.
                     </p>
                     <p className="mt-1 text-sm text-white/65">
-                      Audit gratuit de vos claims en cours — on traite vos 5 derniers communiqués RSE.
+                      Cadrage offert sur vos claims en cours — on traite vos 5 derniers communiqués RSE.
                     </p>
                   </div>
                   <Link

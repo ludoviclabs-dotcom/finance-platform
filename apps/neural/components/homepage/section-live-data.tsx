@@ -13,7 +13,7 @@ export function SectionLiveData() {
               <span className="muted-dark">Chaque heure, chaque tâche.</span>
             </h2>
             <p className="lead lead-dark">
-              Chaque déploiement NEURAL embarqué un dashboard DAF : heures économisées,
+              Chaque déploiement NEURAL embarque un dashboard DAF : heures économisées,
               tâches exécutées, consolidations livrées. L’aperçu ci-contre illustre le
               rendu visuel attendu avec des données de démonstration, avant cadrage et
               activation des KPI réels.

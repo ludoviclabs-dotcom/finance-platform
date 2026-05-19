@@ -356,7 +356,7 @@ export default function LuxeCommunicationPage() {
                 Prochaine étape
               </p>
               <h2 className="mt-3 font-display text-4xl font-bold tracking-tight md:text-5xl">
-                Audit gratuit de votre comms — sous 15 jours.
+                Cadrage offert sur votre comms — sous 15 jours.
               </h2>
               <p className="mt-4 max-w-2xl text-lg text-white/70">
                 On branche vos 3 derniers communiqués sur AG-001 et AG-005. Vous recevez un rapport

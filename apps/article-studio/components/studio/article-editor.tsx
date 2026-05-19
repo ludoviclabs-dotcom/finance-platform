@@ -4,12 +4,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
-import { CitationMark, CITATION_RE } from "./citation-mark";
 
-interface Citation {
+import { markdownToHtml, wrapCitationTokens } from "@/lib/markdown/to-html";
+import { CitationMark } from "./citation-mark";
+import { CitationPopover } from "./citation-popover";
+
+export interface Citation {
   id: string;
   sourceId: string;
+  sourceTitle: string;
+  sourceFilename: string;
+  sourceAuthor: string | null;
   heading: string | null;
+  pageNumber: number | null;
+  quote: string;
 }
 
 interface Props {
@@ -54,7 +62,7 @@ export function ArticleEditor({ articleId, initialBodyMd, initialCitations }: Pr
       CitationMark,
     ],
     immediatelyRender: false,
-    content: initialBodyMd ? markdownToHtml(initialBodyMd) : "<p></p>",
+    content: "<p></p>",
     editorProps: {
       attributes: {
         class: "prose prose-invert max-w-none focus:outline-none min-h-[20rem]",
@@ -62,13 +70,24 @@ export function ArticleEditor({ articleId, initialBodyMd, initialCitations }: Pr
     },
   });
 
-  // Re-mount editor content when initialBodyMd arrives async (rare).
+  // Hydrate the editor with the persisted markdown body once it's mounted.
+  // The full remark→HTML pipeline runs client-side here so that lists, tables,
+  // code blocks, and inline citations all round-trip back to ProseMirror nodes.
   useEffect(() => {
-    if (!editor) return;
-    if (initialBodyMd && editor.isEmpty) {
-      editor.commands.setContent(markdownToHtml(initialBodyMd));
-    }
+    if (!editor || !initialBodyMd?.trim()) return;
+    let cancelled = false;
+    void (async () => {
+      const html = await markdownToHtml(initialBodyMd);
+      const withCitations = wrapCitationTokens(html);
+      if (!cancelled) editor.commands.setContent(withCitations, false);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [editor, initialBodyMd]);
+
+  const [activeCitationId, setActiveCitationId] = useState<string | null>(null);
+  const [popoverAnchor, setPopoverAnchor] = useState<{ x: number; y: number } | null>(null);
 
   const citationLookup = useMemo(() => {
     const map = new Map<string, Citation>();
@@ -157,13 +176,15 @@ export function ArticleEditor({ articleId, initialBodyMd, initialCitations }: Pr
           }
           break;
         case "section-end":
-          // Re-render the just-finished section with citation marks applied.
+          // Rebuild the doc from the accumulated markdown so lists/tables/code
+          // blocks re-materialize as proper nodes and [Sn] citations get
+          // wrapped in <cite> tags (CitationMark's parseHTML picks them up).
           if (editor) {
-            // For simplicity, rebuild the whole doc from the accumulated markdown.
-            // Sprint 5 will switch to a per-section node tree update.
-            const html = markdownToHtml(liveBufferRef.current);
-            editor.commands.setContent(html, false);
-            applyCitationMarks(editor);
+            void (async () => {
+              const html = await markdownToHtml(liveBufferRef.current);
+              const withCitations = wrapCitationTokens(html);
+              editor.commands.setContent(withCitations, false);
+            })();
           }
           break;
         case "section-error":
@@ -185,6 +206,27 @@ export function ArticleEditor({ articleId, initialBodyMd, initialCitations }: Pr
   useEffect(() => {
     handleEventRef.current = handleEvent;
   }, [handleEvent]);
+
+  const onEditorClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLElement;
+      const cite = target.closest("cite[data-citation-id]") as HTMLElement | null;
+      if (!cite) {
+        setActiveCitationId(null);
+        setPopoverAnchor(null);
+        return;
+      }
+      const id = cite.getAttribute("data-citation-id");
+      if (!id) return;
+      const rect = cite.getBoundingClientRect();
+      setActiveCitationId(id);
+      setPopoverAnchor({
+        x: rect.left + window.scrollX,
+        y: rect.bottom + window.scrollY + 4,
+      });
+    },
+    [],
+  );
 
   return (
     <div className="space-y-4">
@@ -241,112 +283,53 @@ export function ArticleEditor({ articleId, initialBodyMd, initialCitations }: Pr
         </details>
       )}
 
-      <div className="rounded border border-white/10 bg-black/20 p-4 article-prose">
+      <div
+        className="rounded border border-white/10 bg-black/20 p-4 article-prose"
+        onClick={onEditorClick}
+      >
         <EditorContent editor={editor} />
       </div>
 
-      <CitationLegend citations={initialCitations} lookup={citationLookup} />
+      {activeCitationId && popoverAnchor && (
+        <CitationPopover
+          citation={citationLookup.get(activeCitationId) ?? null}
+          anchor={popoverAnchor}
+          onClose={() => {
+            setActiveCitationId(null);
+            setPopoverAnchor(null);
+          }}
+        />
+      )}
 
       <style jsx global>{`
         .citation-mark {
           color: #6ad1ff;
           font-style: normal;
           text-decoration: underline dotted;
-          cursor: help;
+          cursor: pointer;
         }
-        .article-prose .ProseMirror p {
-          margin: 0.75rem 0;
-          line-height: 1.6;
+        .article-prose .ProseMirror p { margin: 0.75rem 0; line-height: 1.6; }
+        .article-prose .ProseMirror h1 { margin-top: 2rem; font-size: 1.5rem; font-weight: 700; }
+        .article-prose .ProseMirror h2 { margin-top: 1.75rem; font-size: 1.25rem; font-weight: 600; }
+        .article-prose .ProseMirror h3 { margin-top: 1.25rem; font-size: 1.05rem; font-weight: 600; }
+        .article-prose .ProseMirror ul, .article-prose .ProseMirror ol {
+          margin: 0.75rem 0; padding-left: 1.5rem;
         }
-        .article-prose .ProseMirror h2 {
-          margin-top: 1.75rem;
-          font-size: 1.25rem;
-          font-weight: 600;
+        .article-prose .ProseMirror li { margin: 0.25rem 0; }
+        .article-prose .ProseMirror blockquote {
+          border-left: 3px solid rgba(255,255,255,0.12);
+          padding-left: 1rem; color: var(--muted); margin: 1rem 0;
         }
-        .article-prose .ProseMirror h3 {
-          margin-top: 1.25rem;
-          font-size: 1.05rem;
-          font-weight: 600;
+        .article-prose .ProseMirror table {
+          border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem;
+        }
+        .article-prose .ProseMirror th, .article-prose .ProseMirror td {
+          border: 1px solid rgba(255,255,255,0.12); padding: 0.35rem 0.6rem;
+        }
+        .article-prose .ProseMirror code {
+          background: rgba(255,255,255,0.06); padding: 0.1em 0.35em; border-radius: 3px;
         }
       `}</style>
     </div>
   );
-}
-
-function CitationLegend({
-  citations,
-  lookup,
-}: {
-  citations: Citation[];
-  lookup: Map<string, Citation>;
-}) {
-  if (citations.length === 0) return null;
-  return (
-    <details className="rounded border border-white/10 bg-black/20 p-3 text-xs">
-      <summary className="cursor-pointer text-[color:var(--muted)]">
-        Citations ({citations.length})
-      </summary>
-      <ul className="mt-2 space-y-1">
-        {citations.map((c) => (
-          <li key={c.id}>
-            <span className="font-mono text-emerald-300">[{c.id}]</span>{" "}
-            <span className="text-[color:var(--muted)]">
-              {c.heading ?? lookup.get(c.id)?.heading ?? "(passage)"}
-            </span>{" "}
-            <span className="text-[10px] text-[color:var(--muted)]">
-              src={c.sourceId.slice(0, 8)}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </details>
-  );
-}
-
-/**
- * Walk the editor doc, find `[Sn]` runs in text nodes, and apply the
- * `citation` mark over them. Idempotent — running twice is a no-op because
- * the existing mark span swallows the regex match.
- */
-function applyCitationMarks(editor: ReturnType<typeof useEditor>): void {
-  if (!editor) return;
-  editor.state.doc.descendants((node, pos) => {
-    if (!node.isText || !node.text) return true;
-    const text = node.text;
-    const matches = [...text.matchAll(CITATION_RE)];
-    for (const m of matches) {
-      const from = pos + (m.index ?? 0);
-      const to = from + m[0].length;
-      editor.commands.setTextSelection({ from, to });
-      editor.commands.setCitation({ citationId: `S${m[1]}` });
-    }
-    return true;
-  });
-  editor.commands.setTextSelection({ from: 0, to: 0 });
-  editor.commands.blur();
-}
-
-/**
- * Minimal markdown→HTML for paragraphs, H2/H3 headings, and `[Sn]` citations.
- * Sprint 5 swaps this for a real remark→Tiptap mapper.
- */
-function markdownToHtml(md: string): string {
-  const blocks = md.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
-  return blocks
-    .map((block) => {
-      const heading = block.match(/^(#{1,6})\s+(.*)$/);
-      if (heading) {
-        const level = Math.min(6, Math.max(1, heading[1].length));
-        return `<h${level}>${escapeHtml(heading[2])}</h${level}>`;
-      }
-      return `<p>${escapeHtml(block).replace(/\n/g, "<br/>")}</p>`;
-    })
-    .join("");
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 }

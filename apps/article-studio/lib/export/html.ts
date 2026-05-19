@@ -10,13 +10,13 @@
  * cleanly (the PDF exporter reuses this exact template).
  */
 
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkGfm from "remark-gfm";
-import remarkRehype from "remark-rehype";
-import rehypeStringify from "rehype-stringify";
 import DOMPurify from "isomorphic-dompurify";
 
+import { markdownToHtml, wrapCitationTokens } from "@/lib/markdown/to-html";
+import {
+  renderInfographicHtml,
+  INFOGRAPHIC_CSS,
+} from "@/lib/infographics/render-html";
 import type { ExportPayload, ExportResult } from "./types";
 
 export async function exportHtml(payload: ExportPayload): Promise<ExportResult> {
@@ -30,8 +30,10 @@ export async function exportHtml(payload: ExportPayload): Promise<ExportResult> 
 
 /** Exposed for the PDF exporter, which reuses the same template. */
 export async function renderArticleHtml(payload: ExportPayload): Promise<string> {
-  const bodyHtml = await markdownToHtml(payload.bodyMd ?? "");
-  const withCitations = wrapCitations(bodyHtml);
+  const bodyHtml = payload.bodyMd?.trim()
+    ? await markdownToHtml(payload.bodyMd)
+    : "<p><em>Article vide — lancez la génération.</em></p>";
+  const withCitations = wrapCitationTokens(bodyHtml);
   const safeBody = DOMPurify.sanitize(withCitations, {
     ADD_TAGS: ["cite"],
     ADD_ATTR: ["data-citation-id"],
@@ -47,29 +49,6 @@ export async function renderArticleHtml(payload: ExportPayload): Promise<string>
     infographicsHtml: infographicsList,
     updatedAt: payload.updatedAt,
   });
-}
-
-async function markdownToHtml(md: string): Promise<string> {
-  if (!md.trim()) {
-    return "<p><em>Article vide — lancez la génération.</em></p>";
-  }
-  const file = await unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkRehype, { allowDangerousHtml: false })
-    .use(rehypeStringify)
-    .process(md);
-  return String(file);
-}
-
-const CITATION_TOKEN_RE = /\[S(\d+)\]/g;
-
-function wrapCitations(html: string): string {
-  return html.replace(
-    CITATION_TOKEN_RE,
-    (_match, n: string) =>
-      `<cite data-citation-id="S${n}" class="citation">[S${n}]</cite>`,
-  );
 }
 
 function renderCitationsList(payload: ExportPayload): string {
@@ -91,12 +70,9 @@ function renderCitationsList(payload: ExportPayload): string {
 function renderInfographicsList(payload: ExportPayload): string {
   if (payload.infographics.length === 0) return "";
   const items = payload.infographics
-    .map(
-      (g) =>
-        `<li><strong>${escapeHtml(g.title)}</strong> <span class="meta">(${g.spec.kind})</span></li>`,
-    )
-    .join("");
-  return `<section class="infographics"><h2>Infographies détectées</h2><ol>${items}</ol></section>`;
+    .map((g) => renderInfographicHtml(g.spec, g.sourceCitationIds))
+    .join("\n");
+  return `<section class="infographics"><h2>Infographies</h2>${items}</section>`;
 }
 
 function escapeHtml(s: string): string {
@@ -140,7 +116,7 @@ function wrapTemplate(args: TemplateArgs): string {
     pre code { display: block; padding: 0.75rem; overflow-x: auto; }
     table { border-collapse: collapse; margin: 1rem 0; width: 100%; }
     th, td { border: 1px solid #d4d4d8; padding: 0.5rem 0.75rem; text-align: left; }
-    cite.citation {
+    cite.citation-mark {
       font-style: normal; color: #2563eb; text-decoration: none;
       font-variant-numeric: tabular-nums; font-size: 0.85em; padding: 0 0.1em;
     }
@@ -150,6 +126,7 @@ function wrapTemplate(args: TemplateArgs): string {
     .citations li { margin: 0.4rem 0; }
     .cite-id { font-variant-numeric: tabular-nums; color: #2563eb; font-weight: 600; }
     .meta { color: #71717a; font-size: 0.85em; }
+    ${INFOGRAPHIC_CSS}
     footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e4e4e7; color: #71717a; font-size: 0.85rem; }
   </style>
 </head>

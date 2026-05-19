@@ -68,7 +68,7 @@ async function handler(req: NextRequest): Promise<Response> {
   let formData: FormData;
   try {
     formData = await req.formData();
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: "Body invalide : multipart/form-data attendu." },
       { status: 400 },

@@ -18,12 +18,21 @@ const datasetSchema = z.object({
   values: z.array(z.number()),
 });
 
-export const barLineSpecSchema = z.object({
-  kind: z.enum(["bar", "line"]),
+export const barSpecSchema = z.object({
+  kind: z.literal("bar"),
   title: z.string().min(1),
   xAxisLabel: z.string().optional(),
   yAxisLabel: z.string().optional(),
   /** Categories rendered on the x-axis (length must match each dataset.values). */
+  categories: z.array(z.string().min(1)),
+  datasets: z.array(datasetSchema).min(1).max(4),
+});
+
+export const lineSpecSchema = z.object({
+  kind: z.literal("line"),
+  title: z.string().min(1),
+  xAxisLabel: z.string().optional(),
+  yAxisLabel: z.string().optional(),
   categories: z.array(z.string().min(1)),
   datasets: z.array(datasetSchema).min(1).max(4),
 });
@@ -53,7 +62,8 @@ export const statSpecSchema = z.object({
 });
 
 export const chartSpecSchema = z.discriminatedUnion("kind", [
-  barLineSpecSchema,
+  barSpecSchema,
+  lineSpecSchema,
   pieSpecSchema,
   tableSpecSchema,
   statSpecSchema,

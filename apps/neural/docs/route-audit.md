@@ -51,7 +51,7 @@ L'analyse Search Console n'est pas accessible dans ce contexte ; les décisions 
 | `/proof` | 383 | **NAV CHILD (primaire de "Preuves")** | Preuves → Console de preuve | V2 doc §13 ; renommage UI seul, route `/proof` conservée |
 | `/publications` | 35 | NAV CHILD | Ressources → Publications | V2 doc §10 ; sortie du top-level |
 | `/recipes` | 42 | NAV CHILD | Ressources → Recipes | Hub Ressources V2 |
-| `/resources` | 56 | **GATED (flag `resources`)** | — | Déjà masqué, statu quo. Sera réactivé en PR 3 comme hub Ressources (potentiellement renommé /ressources) |
+| `/resources` | 56 | **ARCHIVE (308)** | → `/ressources` | PR 3 : hub Ressources réactivé sous slug FR ; redirect 308 ajouté dans `next.config.ts`. Page gated devient code mort, suppression en PR 6. |
 | `/roadmap` | 112 | NAV CHILD | Preuves → Roadmap | Hub Preuves V2 |
 | `/sandbox` | 166 | NAV CHILD | Ressources → Sandbox | Hub Ressources V2 |
 | `/secteurs` | 93 | **PRIMARY NAV** | Secteurs | 1 des 6 items, dropdown 6 secteurs |
@@ -83,10 +83,12 @@ L'analyse Search Console n'est pas accessible dans ce contexte ; les décisions 
 - `/forfaits` (flag `forfaits`)
 - `/resources` (flag `resources`, sera réactivé comme hub Ressources en PR 3)
 
-### Routes à redirection 308 (aucune en PR 1)
-Aucune route n'est archivée en PR 1. Les renommages "Proof Console → Console de preuve", "Dossier → Dossier de preuve", "Audit gratuit → Cadrage offert" sont des changements UI **sans changement d'URL**, donc sans besoin de redirect.
+### Routes à redirection 308
 
-Le hub Ressources sera réactivé en PR 3 ; s'il prend le slug `/ressources` (français), un redirect `/resources → /ressources` (308) sera ajouté à `next.config.ts` à ce moment-là. Hors scope PR 1.
+PR 1 : aucune.
+
+PR 3 (ajouté) :
+- `/resources` → `/ressources` (308 permanent). Le hub Ressources est créé en français, cohérent avec le reste du site. La page `/resources` (gated derrière `features.resources`) devient code mort et sera supprimée en PR 6.
 
 ## Risques et mitigation
 
@@ -97,10 +99,10 @@ Le hub Ressources sera réactivé en PR 3 ; s'il prend le slug `/ressources` (fr
 | Feature flag `neuralV2` oublié, V2 active par défaut | Default `false` côté `features.ts`. Navbar/Footer V1 restent actifs jusqu'à PR 6. |
 | `/resources` (déjà gated) confondue avec future `/ressources` | Décision : garder `/resources` gated jusqu'à PR 3 ; le slug final (FR vs EN) est tranché à ce moment-là, avec redirect 308 si besoin. |
 
-## Décisions reportées à PR 3
+## Décisions PR 3 (livrées)
 
-- Slug final du hub Ressources : `/ressources` (FR) ou `/resources` (EN actuelle). Décision : aligner sur la convention FR du reste du site → `/ressources`, avec 308 depuis `/resources`.
-- Création de `/produit` (n'existe pas aujourd'hui).
-- Refonte `/trust` pour qu'il devienne un vrai Trust Center hub (rassemblant `/conformite`, `/status`, `/roadmap`, `/changelog`).
+- ✅ Slug du hub Ressources : `/ressources` (FR) avec redirect 308 depuis `/resources`.
+- ✅ Création de `/produit` : hub Démo live + Catalogue agents + Operator Gateway + Connecteurs + Simulation Studio + Branches métier.
+- ✅ Trust Center enrichi : ajout d'une section de navigation vers `/conformite`, `/trust/agent-safety`, `/status`, `/roadmap`, `/changelog`, `/dossier` via `HubCard`.
 
-Ces décisions ne bloquent pas PR 1 : la nav V2 pointe d'ores et déjà vers les routes cibles, même si certaines (comme `/produit`) renvoient un 404 tant que PR 3 n'est pas mergée. Le feature flag `neuralV2` permet de tenir cet état transitoire en preview sans impact production.
+Tous les liens de `NAV_V2` ont désormais une cible valide. Le feature flag `neuralV2` peut être activé en preview sans 404.

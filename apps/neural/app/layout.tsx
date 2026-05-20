@@ -8,11 +8,8 @@ import {
 } from "next/font/google";
 
 import { Footer } from "@/components/layout/footer";
-import { FooterV2 } from "@/components/layout/footer-v2";
 import { Navbar } from "@/components/layout/navbar";
-import { NavbarV2 } from "@/components/layout/navbar-v2";
 import { NeuralChatLauncher } from "@/components/chat/neural-chat-launcher";
-import { isFeatureOn } from "@/lib/features";
 import { NeuralProvider } from "@/lib/neural-hub/context";
 import { SITE_URL } from "@/lib/site-config";
 import "./globals.css";
@@ -109,10 +106,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Refonte V2 (PR 1) : bascule navbar/footer derrière le flag `neuralV2`.
-  // Off par défaut → V1 reste comportement de production jusqu'à PR 6.
-  const useV2 = isFeatureOn("neuralV2");
-
   return (
     <html
       lang="fr"
@@ -128,11 +121,11 @@ export default function RootLayout({
         </a>
         <NeuralProvider>
           <div className="relative flex min-h-screen flex-col">
-            {useV2 ? <NavbarV2 /> : <Navbar />}
+            <Navbar />
             <main id="main-content" className="flex-1">
               {children}
             </main>
-            {useV2 ? <FooterV2 /> : <Footer />}
+            <Footer />
           </div>
           <NeuralChatLauncher />
         </NeuralProvider>

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Menu, X } from "lucide-react";
 
-import { NAVIGATION, PUBLIC_STATUS_LABELS } from "@/lib/public-catalog";
+import { NAV_V2 } from "@/lib/navigation";
+import { StatusChip } from "@/components/site/status-badge";
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -37,47 +38,42 @@ export function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-0.5 lg:flex">
-          {NAVIGATION.map((item, index) => {
-            const isLast = index === NAVIGATION.length - 1;
-            return (
-              <div
-                key={item.label}
-                className="relative"
-                onMouseEnter={() => "children" in item && setOpenDropdown(item.label)}
-                onMouseLeave={() => setOpenDropdown(null)}
+          {NAV_V2.map((item) => (
+            <div
+              key={item.label}
+              className="relative"
+              onMouseEnter={() => item.children && setOpenDropdown(item.label)}
+              onMouseLeave={() => setOpenDropdown(null)}
+            >
+              <Link
+                href={item.href}
+                className={
+                  item.primary
+                    ? "ml-2 inline-flex items-center gap-1 rounded-xl bg-neural-violet px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-neural-violet/25 transition-all hover:bg-neural-violet-dark hover:shadow-xl hover:shadow-neural-violet/30"
+                    : "inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-gray-300 transition-colors hover:text-white"
+                }
               >
-                <Link
-                  href={item.href}
-                  className={
-                    isLast
-                      ? "ml-2 inline-flex items-center gap-1 rounded-xl bg-neural-violet px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-neural-violet/25 transition-all hover:bg-neural-violet-dark hover:shadow-xl hover:shadow-neural-violet/30"
-                      : "inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-gray-300 transition-colors hover:text-white"
-                  }
-                >
-                  {item.label}
-                  {"children" in item ? <ChevronDown className="h-3.5 w-3.5 opacity-50" /> : null}
-                </Link>
-                {"children" in item && openDropdown === item.label ? (
-                  <div className="absolute left-0 top-full pt-2">
-                    <div className="min-w-[280px] rounded-xl border border-white/10 bg-neural-midnight/95 p-2 shadow-xl backdrop-blur-xl">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className="flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm text-gray-300 transition-all hover:bg-white/5 hover:pl-5 hover:text-white"
-                        >
-                          <span>{child.label}</span>
-                          <span className="text-[10px] uppercase tracking-[0.16em] text-gray-500">
-                            {PUBLIC_STATUS_LABELS[child.status]}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
+                {item.label}
+                {item.children ? <ChevronDown className="h-3.5 w-3.5 opacity-50" /> : null}
+              </Link>
+              {item.children && openDropdown === item.label ? (
+                <div className="absolute left-0 top-full pt-2">
+                  <div className="min-w-[280px] rounded-xl border border-white/10 bg-neural-midnight/95 p-2 shadow-xl backdrop-blur-xl">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        className="flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm text-gray-300 transition-all hover:bg-white/5 hover:pl-5 hover:text-white"
+                      >
+                        <span>{child.label}</span>
+                        <StatusChip status={child.status} />
+                      </Link>
+                    ))}
                   </div>
-                ) : null}
-              </div>
-            );
-          })}
+                </div>
+              ) : null}
+            </div>
+          ))}
         </div>
 
         <button
@@ -98,41 +94,36 @@ export function Navbar() {
       >
         <div className="border-t border-white/10 bg-neural-midnight/95 backdrop-blur-xl">
           <div className="space-y-1 px-6 py-4">
-            {NAVIGATION.map((item, index) => {
-              const isLast = index === NAVIGATION.length - 1;
-              return (
-                <div key={item.label}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={
-                      isLast
-                        ? "mt-4 block rounded-xl bg-neural-violet px-4 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-neural-violet/25"
-                        : "block rounded-lg px-3 py-2 text-base font-medium text-gray-300 hover:text-white"
-                    }
-                  >
-                    {item.label}
-                  </Link>
-                  {"children" in item ? (
-                    <div className="ml-4 space-y-1">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          onClick={() => setMobileOpen(false)}
-                          className="flex items-center justify-between gap-3 rounded-lg px-3 py-1.5 text-sm text-gray-400 hover:text-white"
-                        >
-                          <span>{child.label}</span>
-                          <span className="text-[10px] uppercase tracking-[0.16em] text-gray-500">
-                            {PUBLIC_STATUS_LABELS[child.status]}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
+            {NAV_V2.map((item) => (
+              <div key={item.label}>
+                <Link
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={
+                    item.primary
+                      ? "mt-4 block rounded-xl bg-neural-violet px-4 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-neural-violet/25"
+                      : "block rounded-lg px-3 py-2 text-base font-medium text-gray-300 hover:text-white"
+                  }
+                >
+                  {item.label}
+                </Link>
+                {item.children ? (
+                  <div className="ml-4 space-y-1">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center justify-between gap-3 rounded-lg px-3 py-1.5 text-sm text-gray-400 hover:text-white"
+                      >
+                        <span>{child.label}</span>
+                        <StatusChip status={child.status} />
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ))}
           </div>
         </div>
       </div>

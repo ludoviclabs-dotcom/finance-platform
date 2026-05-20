@@ -51,7 +51,7 @@ L'analyse Search Console n'est pas accessible dans ce contexte ; les décisions 
 | `/proof` | 383 | **NAV CHILD (primaire de "Preuves")** | Preuves → Console de preuve | V2 doc §13 ; renommage UI seul, route `/proof` conservée |
 | `/publications` | 35 | NAV CHILD | Ressources → Publications | V2 doc §10 ; sortie du top-level |
 | `/recipes` | 42 | NAV CHILD | Ressources → Recipes | Hub Ressources V2 |
-| `/resources` | 56 | **ARCHIVE (308)** | → `/ressources` | PR 3 : hub Ressources réactivé sous slug FR ; redirect 308 ajouté dans `next.config.ts`. Page gated devient code mort, suppression en PR 6. |
+| `/resources` | 56 | **ARCHIVE (308)** | → `/ressources` | PR 3 : hub Ressources réactivé sous slug FR ; redirect 308 dans `next.config.ts`. PR 6 : `app/resources/page.tsx` supprimé. Le catch-all `app/resources/[...slug]/page.tsx` est conservé car il porte l'alias actif `/resources/blog/*` → `/publications/*`. |
 | `/roadmap` | 112 | NAV CHILD | Preuves → Roadmap | Hub Preuves V2 |
 | `/sandbox` | 166 | NAV CHILD | Ressources → Sandbox | Hub Ressources V2 |
 | `/secteurs` | 93 | **PRIMARY NAV** | Secteurs | 1 des 6 items, dropdown 6 secteurs |

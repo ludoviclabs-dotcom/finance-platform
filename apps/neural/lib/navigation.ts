@@ -1,14 +1,11 @@
 /**
- * Navigation V2 — source unique de vérité (refonte V2, PR 1).
+ * Navigation — source unique de vérité du site.
  *
- * Remplace l'ancienne constante `NAVIGATION` exposée dans `public-catalog.ts`,
- * qui avait dérivé à 9 entrées top-level alors que son commentaire ciblait 5.
+ * Remplace l'ancienne constante `NAVIGATION` de `public-catalog.ts`, qui avait
+ * dérivé à 9 entrées top-level alors que son commentaire ciblait 5.
  *
  * Règle : 6 entrées top-level, dernière = CTA (bouton primaire dans la navbar).
- * Les enfants pointent vers des routes existantes ou vers les hubs créés en
- * PR 3 (`/produit`, `/ressources`). Pendant la transition, un enfant peut
- * pointer vers une route qui n'existe pas encore : c'est acceptable tant que
- * le feature flag `neuralV2` reste off.
+ * Tous les enfants pointent vers des routes existantes.
  *
  * Cf. `docs/route-audit.md` pour le mapping route → décision.
  */

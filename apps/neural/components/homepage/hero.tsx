@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { PUBLIC_METRICS } from "@/lib/public-catalog";
-import { AndroidVisual } from "../shared/android-visual";
+import { AndroidVisual } from "./shared/android-visual";
 
-export function HeroV2() {
+export function Hero() {
   return (
     <section className="nhp-hero">
       <div className="nhp-hero-grain" />

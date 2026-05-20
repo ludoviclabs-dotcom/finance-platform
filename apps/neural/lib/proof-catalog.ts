@@ -84,7 +84,7 @@ interface AgentProofOverride {
 export const PROOF_LAST_VERIFIED_AT = "2026-05-10";
 
 export const PROOF_STATUS_LABELS: Record<AgentProofStatus, string> = {
-  excel_created: "Excel cree",
+  excel_created: "Excel créé",
   runtime_parsed: "Runtime parsé",
   public_demo: "Démo publique",
   export_audit: "Export / audit",
@@ -539,7 +539,7 @@ export function getProofCatalog() {
         status: "excel_created" as AgentProofStatus,
         score: 0 as ProofScore,
         label: PROOF_SCORE_LABELS[0],
-        description: "Workbook cree, utile comme actif de conception, pas encore runtime.",
+        description: "Workbook créé, utile comme actif de conception, pas encore runtime.",
       },
       {
         status: "runtime_parsed" as AgentProofStatus,

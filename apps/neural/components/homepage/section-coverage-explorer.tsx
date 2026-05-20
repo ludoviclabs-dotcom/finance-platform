@@ -10,7 +10,7 @@ export function SectionCoverageExplorer() {
             Une matrice unique, lue depuis la source de vérité.
           </h2>
           <p className="lead">
-            Plus deux représentations divergentes : la couverture publique est désormais générée
+            Fini les représentations divergentes : la couverture publique est désormais générée
             depuis le registre d&apos;agents. Cliquez une cellule pour ouvrir la page secteur,
             filtrez par statut pour isoler ce qui est déjà testable.
           </p>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Bot, ArrowRight } from "lucide-react";
 
 import { AGENT_ENTRIES } from "@/lib/public-catalog";
-import { PROOF_SCORE_LABELS, PROOF_STATUS_LABELS, getAgentProofRecords } from "@/lib/proof-catalog";
+import { PROOF_SCORE_LABELS, getAgentProofRecords } from "@/lib/proof-catalog";
 import { AgentCatalog } from "@/components/agents/agent-catalog";
 import type { EnrichedAgent, AgentMeta } from "@/components/agents/agent-card";
 import agentsMeta from "@/content/agents-meta.json";
@@ -26,7 +26,6 @@ export default function AgentsPage() {
       ? {
           score: proofMap.get(a.slug)!.proofScore,
           label: PROOF_SCORE_LABELS[proofMap.get(a.slug)!.proofScore],
-          statusLabel: PROOF_STATUS_LABELS[proofMap.get(a.slug)!.proofStatus],
           exportAvailable: proofMap.get(a.slug)!.exportAvailable,
           auditTrailAvailable: proofMap.get(a.slug)!.auditTrailAvailable,
           nextAction: proofMap.get(a.slug)!.nextAction,

@@ -57,7 +57,6 @@ export interface EnrichedAgent extends PublicEntry {
   proof?: {
     score: number;
     label: string;
-    statusLabel: string;
     exportAvailable: boolean;
     auditTrailAvailable: boolean;
     nextAction: string;

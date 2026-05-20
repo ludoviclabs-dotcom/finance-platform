@@ -68,9 +68,10 @@ la V2 est désormais le **comportement par défaut**, la V1 est supprimée.
   les 3 sources brutes restent à aligner (ou la divergence à assumer
   explicitement par convention).
 - ✅ PR 9 : `ProofBadge` branché sur `/proof` (Proof Console) — palette
-  alignée, badges ad-hoc + map `STATUS_CLASSES` locale supprimés. Restant :
-  badge proof dans `components/agents/agent-card.tsx` (migration plus
-  invasive, modifie l'API du composant).
+  alignée, badges ad-hoc + map `STATUS_CLASSES` locale supprimés.
+- ✅ PR 10 : `agent-card.tsx` n'avait pas de badge de statut ad-hoc (juste
+  un chip "Score N", distinct) ; le champ mort `EnrichedAgent.proof.statusLabel`
+  (calculé mais jamais rendu) a été supprimé. Plus aucun badge proof ad-hoc.
 - `/secteurs/[slug]` (fallback dynamique) non migré : route inerte tant que
   les 6 secteurs ont une page explicite, priorité basse.
 

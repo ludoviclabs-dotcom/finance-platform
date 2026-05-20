@@ -29,7 +29,7 @@ export function Footer() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="flex items-center justify-between gap-3 text-sm text-gray-500 transition-colors hover:text-white"
+                      className="flex items-center justify-between gap-3 text-sm text-gray-400 transition-colors hover:text-white"
                     >
                       <span>{link.label}</span>
                       <StatusChip status={link.status} />
@@ -50,7 +50,7 @@ export function Footer() {
               NEURAL AI Consulting
             </span>
           </div>
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-gray-400">
             &copy; {new Date().getFullYear()} NEURAL AI Consulting SAS. Tous droits réservés.
           </p>
         </div>

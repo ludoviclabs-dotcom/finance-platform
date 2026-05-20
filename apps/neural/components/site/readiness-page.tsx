@@ -6,18 +6,22 @@ import { EvidenceCard } from "@/components/site/evidence-card";
 import { ScopeCard } from "@/components/site/scope-card";
 import { StatusBadge } from "@/components/site/status-badge";
 import { type PublicEntry } from "@/lib/public-catalog";
-import { type Branch } from "@/lib/data/agents-registry";
+import { type Branch, type Sector } from "@/lib/data/agents-registry";
 
 export function ReadinessPage({
   entry,
   eyebrow,
   coverageBranch,
+  coverageSector,
 }: {
   entry: PublicEntry;
   eyebrow?: string;
   /** Quand fourni (pages branches /solutions/[slug]), affiche la couverture
    *  de cette branche sur les 6 secteurs, lue depuis le registry. */
   coverageBranch?: Branch;
+  /** Quand fourni (pages secteur /secteurs/[slug]), affiche la couverture
+   *  de ce secteur sur les 7 branches, lue depuis le registry. */
+  coverageSector?: Sector;
 }) {
   return (
     <div className="min-h-screen overflow-hidden bg-gradient-neural text-white">
@@ -105,6 +109,17 @@ export function ReadinessPage({
             <CoverageGridFiltered
               branch={coverageBranch}
               description="Couverture de cette branche métier sur les 6 secteurs, lue depuis le registry."
+            />
+          </div>
+        </section>
+      ) : null}
+
+      {coverageSector ? (
+        <section className="relative border-t border-white/8 px-8 py-14 md:px-12">
+          <div className="mx-auto max-w-[1320px]">
+            <CoverageGridFiltered
+              sector={coverageSector}
+              description="Couverture de ce secteur sur les 7 branches métier, lue depuis le registry."
             />
           </div>
         </section>

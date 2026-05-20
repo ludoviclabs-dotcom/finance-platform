@@ -25,27 +25,12 @@ import { INSURANCE_SC_AGENTS } from "@/lib/data/insurance-supply-chain-catalog";
 
 /**
  * Agents présents dans un catalogue spécialisé mais pas encore exposés dans
- * AGENT_ENTRIES. Liste à résorber au fil des PR (chaque agent doit finir par
- * avoir une page publique et une entrée AGENT_ENTRIES, ou être marqué comme
- * service transverse non vitrine).
+ * AGENT_ENTRIES. Vide depuis PR 11 : les 12 agents Marketing (Aéro / Banque /
+ * Assurance) ont été promus dans AGENT_ENTRIES avec un statut conservateur
+ * (`planned` / `content_only`). Toute nouvelle entrée ici doit être temporaire
+ * et résorbée — un agent de catalogue doit finir par avoir une fiche publique.
  */
-const KNOWN_CATALOG_ONLY_AGENTS = new Set<string>([
-  // aero-marketing-catalog : pas encore d'AGENT_ENTRIES correspondantes.
-  "aero-tech-content",
-  "defense-comms-guard",
-  "aero-event-ai",
-  "aero-sustainability-comms",
-  // bank-marketing-catalog : pas encore d'AGENT_ENTRIES correspondantes.
-  "bank-marketing-compliance-guard",
-  "fin-literacy-content",
-  "segmented-bank-marketing",
-  "mifid-product-marketing-guard",
-  // insurance-marketing-catalog : pas encore d'AGENT_ENTRIES correspondantes.
-  "insur-simplifier",
-  "dda-marketing-guard",
-  "multi-channel-insur",
-  "prevention-content",
-]);
+const KNOWN_CATALOG_ONLY_AGENTS = new Set<string>([]);
 
 function collectKnownAgentIds(): Set<string> {
   const out = new Set<string>();

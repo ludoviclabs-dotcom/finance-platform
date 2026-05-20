@@ -424,6 +424,224 @@ export const BRANCH_ENTRIES: PublicEntry[] = [
   }),
 ];
 
+/**
+ * Agents Marketing (Aéronautique / Banque / Assurance) — promus depuis les
+ * catalogues techniques (`lib/data/*-marketing-catalog.ts`) vers le catalogue
+ * public.
+ *
+ * Statut volontairement conservateur : `planned` / `content_only`, soit un
+ * score de preuve 0 ("Excel créé"). Ces agents ont un workbook source et des
+ * règles de contrôle documentées, mais pas de surface runtime ni de démo
+ * publique — la fiche ne promet donc rien au-delà du vérifiable.
+ */
+interface MarketingAgentSource {
+  slug: string;
+  label: string;
+  owner: string;
+  mission: string;
+  tagline: string;
+  primaryGate: string;
+  workbook: string;
+  scenarioCount: number;
+  sectorLabel: string;
+  ctaHref: string;
+}
+
+const MARKETING_AGENT_SOURCE: MarketingAgentSource[] = [
+  // ── Aéronautique × Marketing ────────────────────────────────────────────
+  {
+    slug: "aero-tech-content",
+    label: "AeroTechContent",
+    owner: "Marketing technique / Bureau d'études",
+    mission:
+      "Auditer les contenus marketing aéro B2B (white papers, fiches techniques, RFP, brochures salons) avant diffusion : sources actives, chiffres validés, mention DGA, anti-greenwashing, mention cyber, flag export.",
+    tagline: "Audit des contenus marketing aéro B2B avant diffusion",
+    primaryGate: "RULE-NUM-VALIDATED",
+    workbook: "AeroTechContent_NEURAL.xlsx",
+    scenarioCount: 1,
+    sectorLabel: "Aéronautique",
+    ctaHref: "/secteurs/aeronautique/marketing",
+  },
+  {
+    slug: "defense-comms-guard",
+    label: "DefenseCommsGuard",
+    owner: "Compliance Export-Control",
+    mission:
+      "Auditer toute communication marketing contre 12 règles export-control et sanctions consolidées : ITAR, EAR, EU dual-use Reg. 2021/821, France L.2335-1 LMG, OFAC SDN, sanctions EU, UK OFSI, AUKUS OGL, FDPR drones, AI Act art. 50, ASD Charter.",
+    tagline: "Audit export-control et sanctions des communications marketing",
+    primaryGate: "RULE-EXPORT-AWARE",
+    workbook: "DefenseCommsGuard_NEURAL.xlsx",
+    scenarioCount: 1,
+    sectorLabel: "Aéronautique",
+    ctaHref: "/secteurs/aeronautique/marketing",
+  },
+  {
+    slug: "aero-event-ai",
+    label: "AeroEventAI",
+    owner: "Événementiel / DirCom",
+    mission:
+      "Générer et auditer des packs événementiels (briefs presse, posts social, talking points VIP) pour les grands salons aéro/défense : ILA Berlin, Eurosatory, Farnborough, MEBAA. Tonalité ASD, AI Act, multi-fuseau et multi-langue.",
+    tagline: "Packs événementiels pour les grands salons aéro/défense",
+    primaryGate: "RULE-ASD-RESPONSIBLE",
+    workbook: "AeroEventAI_NEURAL.xlsx",
+    scenarioCount: 1,
+    sectorLabel: "Aéronautique",
+    ctaHref: "/secteurs/aeronautique/marketing",
+  },
+  {
+    slug: "aero-sustainability-comms",
+    label: "AeroSustainabilityComms",
+    owner: "ESG / Responsable RSE signataire CSRD",
+    mission:
+      "Auditer les claims SAF, hydrogène, électrique, eVTOL et compensation carbone au regard de la Green Claims Directive 2024, de la Loi Climat & Résilience, de ReFuelEU Aviation, de CSRD ESRS E1 et de la décision EASA 2024/015. Détection du greenwashing avant diffusion et cohérence du reporting.",
+    tagline: "Détection greenwashing des claims SAF / hydrogène / eVTOL",
+    primaryGate: "RULE-LCA-EVIDENCE",
+    workbook: "AeroSustainabilityComms_NEURAL.xlsx",
+    scenarioCount: 1,
+    sectorLabel: "Aéronautique",
+    ctaHref: "/secteurs/aeronautique/marketing",
+  },
+  // ── Banque × Marketing ──────────────────────────────────────────────────
+  {
+    slug: "bank-marketing-compliance-guard",
+    label: "BankMarketingComplianceGuard",
+    owner: "Marketing Compliance",
+    mission:
+      "Auditer les campagnes bancaires, d'épargne et de crédit au regard des attentes AMF/ACPR : communications claires, exactes, équilibrées, sourcées et non trompeuses.",
+    tagline: "Audit AMF/ACPR des campagnes bancaires",
+    primaryGate: "GATE-AMF-ACPR-CLEAR-NOT-MISLEADING",
+    workbook: "NEURAL_AGBM001_BankMarketingComplianceGuard.xlsx",
+    scenarioCount: 3,
+    sectorLabel: "Banque",
+    ctaHref: "/secteurs/banque/marketing",
+  },
+  {
+    slug: "fin-literacy-content",
+    label: "FinLiteracyContent",
+    owner: "Education + Brand",
+    mission:
+      "Produire des contenus d'éducation financière avec contrôles de source, de lisibilité et de frontière du conseil. Aucun conseil personnalisé déguisé.",
+    tagline: "Contenus d'éducation financière sous contrôle de conseil",
+    primaryGate: "GATE-SOURCE-ACTIVE",
+    workbook: "NEURAL_AGBM002_FinLiteracyContent.xlsx",
+    scenarioCount: 3,
+    sectorLabel: "Banque",
+    ctaHref: "/secteurs/banque/marketing",
+  },
+  {
+    slug: "segmented-bank-marketing",
+    label: "SegmentedBankMarketing",
+    owner: "CRM Marketing + DPO",
+    mission:
+      "Adapter le marketing bancaire par segment de clientèle en préservant le consentement, la base de profilage, l'équité et la transparence IA.",
+    tagline: "Marketing bancaire segmenté : consentement et profilage contrôlés",
+    primaryGate: "GATE-GDPR-CONSENT-PROFILING",
+    workbook: "NEURAL_AGBM003_SegmentedBankMarketing.xlsx",
+    scenarioCount: 3,
+    sectorLabel: "Banque",
+    ctaHref: "/secteurs/banque/marketing",
+  },
+  {
+    slug: "mifid-product-marketing-guard",
+    label: "MiFIDProductMarketingGuard",
+    owner: "Investment Compliance",
+    mission:
+      "Vérifier le marketing des produits d'investissement, des produits complexes et des crypto-actifs au regard du marché cible MiFID, du KID PRIIPs et de la cohérence MiCA.",
+    tagline: "Contrôle MiFID / PRIIPs / MiCA du marketing produits",
+    primaryGate: "GATE-MIFID-TARGET-MARKET",
+    workbook: "NEURAL_AGBM004_MiFIDProductMarketingGuard.xlsx",
+    scenarioCount: 3,
+    sectorLabel: "Banque",
+    ctaHref: "/secteurs/banque/marketing",
+  },
+  // ── Assurance × Marketing ───────────────────────────────────────────────
+  {
+    slug: "insur-simplifier",
+    label: "InsurSimplifier",
+    owner: "Lecture client / Juridique",
+    mission:
+      "Vulgariser les clauses CGV, CGU et IPID au niveau B1-B2, calculer le score Flesch FR et générer un glossaire des termes techniques.",
+    tagline: "Vulgarisation B1-B2 des clauses CGV / CGU / IPID",
+    primaryGate: "RULE-CLARTE-FLESCH",
+    workbook: "InsurSimplifier_NEURAL.xlsx",
+    scenarioCount: 1,
+    sectorLabel: "Assurance",
+    ctaHref: "/secteurs/assurance/marketing",
+  },
+  {
+    slug: "dda-marketing-guard",
+    label: "DDA_MarketingGuard",
+    owner: "Compliance / Marketing",
+    mission:
+      "Auditer les communications marketing contre 12 points DDA, l'Acte délégué clarté, les attentes ACPR et l'AI Act art. 50, puis délivrer un verdict DIFFUSION OK / RELECTURE / BLOQUÉ.",
+    tagline: "Audit DDA 12 points des communications assurance",
+    primaryGate: "RULE-DDA-12POINTS",
+    workbook: "DDA_MarketingGuard_NEURAL.xlsx",
+    scenarioCount: 1,
+    sectorLabel: "Assurance",
+    ctaHref: "/secteurs/assurance/marketing",
+  },
+  {
+    slug: "multi-channel-insur",
+    label: "MultiChannelInsur",
+    owner: "Marketing canal",
+    mission:
+      "Décliner un brief commercial sur 4 canaux — agent général, courtier, direct/digital, comparateur — avec mentions légales adaptées et compliance DSA/DMA pour les comparateurs.",
+    tagline: "Déclinaison multicanale conforme des briefs assurance",
+    primaryGate: "RULE-CANAL-COHERENCE",
+    workbook: "MultiChannelInsur_NEURAL.xlsx",
+    scenarioCount: 1,
+    sectorLabel: "Assurance",
+    ctaHref: "/secteurs/assurance/marketing",
+  },
+  {
+    slug: "prevention-content",
+    label: "PreventionContent",
+    owner: "Prévention / DPO",
+    mission:
+      "Détecter les patterns de claim avoidance, auditer la collecte de données sensibles (RGPD art. 9) et reformuler les contenus de prévention pour les rendre conformes.",
+    tagline: "Détection claim avoidance et audit RGPD des contenus prévention",
+    primaryGate: "RULE-CLAIMGUARD-RGPD",
+    workbook: "PreventionContent_NEURAL.xlsx",
+    scenarioCount: 1,
+    sectorLabel: "Assurance",
+    ctaHref: "/secteurs/assurance/marketing",
+  },
+];
+
+function buildMarketingAgentEntry(a: MarketingAgentSource): PublicEntry {
+  const plural = a.scenarioCount > 1 ? "s" : "";
+  return {
+    slug: a.slug,
+    label: a.label,
+    href: `/agents/${a.slug}`,
+    kind: "agent",
+    status: "planned",
+    proofLevel: "content_only",
+    tagline: a.tagline,
+    description: a.mission,
+    readyNow: `Workbook ${a.workbook} créé, règle de contrôle principale ${a.primaryGate}, ${a.scenarioCount} scénario${plural} de test PASS/REVIEW/BLOCK documenté${plural} dans le catalogue technique.`,
+    nextStep:
+      "Publier une surface agent dédiée avec entrées, sorties et preuve d'exécution runtime.",
+    dataUsed: a.workbook,
+    deliverable: `Workbook et règles de conformité ${a.sectorLabel} Marketing documentés dans le catalogue technique.`,
+    ctaHref: a.ctaHref,
+    ctaLabel: `Voir ${a.sectorLabel} Marketing`,
+    scopeNow: [
+      `Documente les règles de contrôle ${a.sectorLabel} Marketing dans un workbook structuré.`,
+      `Définit des scénarios de test PASS / REVIEW / BLOCK (responsable : ${a.owner}).`,
+    ],
+    notYet: [
+      "Pas encore de surface agent publique opérable.",
+      "Workbook créé mais non branché au runtime public.",
+      "Pas de tenant client ni d'export signé.",
+    ],
+  };
+}
+
+const MARKETING_AGENT_ENTRIES: PublicEntry[] =
+  MARKETING_AGENT_SOURCE.map(buildMarketingAgentEntry);
+
 export const AGENT_ENTRIES: PublicEntry[] = [
   {
     slug: "consolidation",
@@ -866,6 +1084,7 @@ export const AGENT_ENTRIES: PublicEntry[] = [
       "Base de jurisprudence non connectée en v1.",
     ],
   },
+  ...MARKETING_AGENT_ENTRIES,
 ];
 
 export const RESOURCE_ENTRIES: PublicEntry[] = [

@@ -61,8 +61,12 @@ la V2 est désormais le **comportement par défaut**, la V1 est supprimée.
   transport, aeronautique, saas) intègrent `CoverageGridFiltered`.
 - ✅ PR 8 : les 7 pages branches `/solutions/[slug]` intègrent
   `CoverageGridFiltered` via la prop `coverageBranch` de `ReadinessPage`.
-- 12 agents catalog-only à promouvoir dans `AGENT_ENTRIES` (cf.
-  `KNOWN_CATALOG_ONLY_AGENTS` dans `tests/branch-catalogs-consistency.test.ts`).
+- ✅ PR 11 : les 12 agents Marketing (Aéro / Banque / Assurance) promus dans
+  `AGENT_ENTRIES` avec statut conservateur `planned` / `content_only`
+  (score de preuve 0). `KNOWN_CATALOG_ONLY_AGENTS` est désormais vide.
+  Restant optionnel : ajouter ces 12 agents dans `content/agents-meta.json`
+  pour qu'ils apparaissent dans le catalogue filtrable `/agents` (nécessite
+  une classification AI Act par agent).
 - 5 agents Banque × Communication dans `KNOWN_STATUS_DIVERGENCES` — le module
   `lib/proof-status.ts` modélise désormais leur statut multidimensionnel, mais
   les 3 sources brutes restent à aligner (ou la divergence à assumer

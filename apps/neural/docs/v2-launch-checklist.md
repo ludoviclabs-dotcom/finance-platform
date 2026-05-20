@@ -67,7 +67,10 @@ la V2 est désormais le **comportement par défaut**, la V1 est supprimée.
   `lib/proof-status.ts` modélise désormais leur statut multidimensionnel, mais
   les 3 sources brutes restent à aligner (ou la divergence à assumer
   explicitement par convention).
-- Migration progressive des badges proof ad-hoc vers `<ProofBadge>`.
+- ✅ PR 9 : `ProofBadge` branché sur `/proof` (Proof Console) — palette
+  alignée, badges ad-hoc + map `STATUS_CLASSES` locale supprimés. Restant :
+  badge proof dans `components/agents/agent-card.tsx` (migration plus
+  invasive, modifie l'API du composant).
 - `/secteurs/[slug]` (fallback dynamique) non migré : route inerte tant que
   les 6 secteurs ont une page explicite, priorité basse.
 

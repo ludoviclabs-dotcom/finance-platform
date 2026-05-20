@@ -22,8 +22,9 @@ export function Hero() {
             <p className="nhp-hero-lead">
               NEURAL expose un noyau public vérifiable : {PUBLIC_METRICS.liveAgents} agents avec
               données Excel, {PUBLIC_METRICS.runtimeWorkbooks} workbooks embarqués et{" "}
-              {PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells} combinaisons secteur ×
-              métier alimentées. La capacité cible reste 168 — pas le périmètre live d&apos;aujourd&apos;hui.
+              {PUBLIC_METRICS.liveCells}/{PUBLIC_METRICS.frameworkCells}{" "}
+              combinaisons secteur × métier alimentées. La capacité cible reste 168 — pas le
+              périmètre live d&apos;aujourd&apos;hui.
             </p>
             <div className="nhp-hero-ctas">
               <Link href="/secteurs/luxe/finance" className="nhp-btn nhp-btn-primary nhp-btn-xl">

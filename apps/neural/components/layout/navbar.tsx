@@ -86,9 +86,9 @@ export function Navbar() {
       </nav>
 
       <div
-        className="overflow-hidden transition-all duration-300 ease-in-out lg:hidden"
+        className="overflow-y-auto overscroll-contain transition-all duration-300 ease-in-out lg:hidden"
         style={{
-          maxHeight: mobileOpen ? "640px" : "0px",
+          maxHeight: mobileOpen ? "calc(100dvh - 4rem)" : "0px",
           opacity: mobileOpen ? 1 : 0,
         }}
       >

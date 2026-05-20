@@ -50,10 +50,35 @@ la V2 est désormais le **comportement par défaut**, la V1 est supprimée.
 - [x] `npm run test` — 165 tests verts
 - [x] `npm run qa:copy` — vert
 - [x] `npm run build` — compile, `/produit` et `/ressources` statiques
-- [ ] Preview Vercel validée visuellement (navbar, footer, homepage, hubs, mobile)
-- [ ] Lighthouse a11y/perf homepage ≥ baseline V1
-- [ ] Suivre 3 redirects archivés en preview → 200 final
+- [x] Validation visuelle locale — 2026-05-20 (navbar, footer, homepage, hubs, mobile) ; 2 bugs corrigés, cf. section ci-dessous
+- [ ] Lighthouse a11y/perf homepage ≥ baseline V1 — à exécuter sur la preview Vercel (build prod ; mesure non fiable en `next dev`)
+- [x] Redirects vérifiés (local) — `/resources` → 308 → `/ressources` (200) ; `/resources/blog/*` → 307 → `/publications/*` (200)
 - [ ] Search Console : surveillance J+7 et J+14 post-déploiement (action ops)
+
+## Validation visuelle — 2026-05-20
+
+Branche `review-neural-project-r91jp` (PR 11) sortie en worktree, `next dev`,
+parcours desktop (1440×900) et mobile (≤500 px) sur Chrome.
+
+### Bugs trouvés et corrigés
+
+- **CoverageGrid invisible (homepage).** `SectionCoverageExplorer` place `CoverageGrid`
+  — composant conçu pour fond sombre (texte blanc, `bg-white/[0.02]`) — dans la section
+  claire `.nhp-branches` (`#FAF8F5`). Libellés d'axes (`<th>`), légende et boutons de
+  filtre rendus blanc sur clair, donc invisibles. *Correctif :* `.nhp-branches` passée
+  en thème sombre dans `homepage.css`.
+- **Menu mobile tronqué.** Le panneau de nav mobile (`navbar.tsx`) était plafonné à
+  `max-height: 640px` + `overflow: hidden` ; le contenu de la nav V2 mesure 1167 px.
+  « Ressources », « À propos » et le CTA « Contact » étaient inaccessibles.
+  *Correctif :* panneau scrollable, hauteur bornée au viewport (`calc(100dvh - 4rem)`).
+- **Hero — espace manquant.** « 7/42combinaisons » → « 7/42 combinaisons » (`hero.tsx`).
+
+### À arbitrer (non corrigé)
+
+- `section-coverage-explorer.tsx` : « Plus deux représentations divergentes » —
+  formulation ambiguë (intention probable : « Plus de représentations divergentes »).
+- `proof-catalog.ts` : libellé de statut « Excel cree » sans accents — pré-existant,
+  hors périmètre V2.
 
 ## Dette technique tracée (post-V2)
 

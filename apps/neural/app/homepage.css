@@ -65,7 +65,7 @@
 .nhp-agent-demo   { color: #fff; }
 .nhp-problem      { color: #fff; }
 .nhp-orch         { color: #0A1628; }
-.nhp-branches     { color: #0A1628; }
+.nhp-branches     { color: #fff; }
 .nhp-sectors      { color: #fff; }
 .nhp-matrix       { color: #0A1628; }
 .nhp-pricing      { color: #0A1628; }
@@ -448,7 +448,7 @@
 /* ================================================================
    BRANCHES
    ================================================================ */
-.nhp-branches { padding: 120px 0; background: #FAF8F5; color: #0A1628; position: relative; overflow: hidden; }
+.nhp-branches { padding: 120px 0; background: #0A1628; color: #fff; position: relative; overflow: hidden; border-top: 1px solid rgba(255,255,255,0.06); }
 .nhp-section-head { margin-bottom: 64px; max-width: 780px; }
 .nhp-section-head .lead { margin-top: 16px; }
 .nhp-coverage-map {

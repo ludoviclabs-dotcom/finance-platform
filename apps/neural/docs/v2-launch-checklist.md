@@ -59,8 +59,8 @@ la V2 est désormais le **comportement par défaut**, la V1 est supprimée.
 
 - ✅ PR 7 : les 6 pages secteur principales (luxe, banque, assurance,
   transport, aeronautique, saas) intègrent `CoverageGridFiltered`.
-- Restant : pages branches `/solutions/[slug]` et fallback dynamique
-  `/secteurs/[slug]` à migrer vers `CoverageGridFiltered` (variant `branch`).
+- ✅ PR 8 : les 7 pages branches `/solutions/[slug]` intègrent
+  `CoverageGridFiltered` via la prop `coverageBranch` de `ReadinessPage`.
 - 12 agents catalog-only à promouvoir dans `AGENT_ENTRIES` (cf.
   `KNOWN_CATALOG_ONLY_AGENTS` dans `tests/branch-catalogs-consistency.test.ts`).
 - 5 agents Banque × Communication dans `KNOWN_STATUS_DIVERGENCES` — le module
@@ -68,6 +68,8 @@ la V2 est désormais le **comportement par défaut**, la V1 est supprimée.
   les 3 sources brutes restent à aligner (ou la divergence à assumer
   explicitement par convention).
 - Migration progressive des badges proof ad-hoc vers `<ProofBadge>`.
+- `/secteurs/[slug]` (fallback dynamique) non migré : route inerte tant que
+  les 6 secteurs ont une page explicite, priorité basse.
 
 ## Rollback
 

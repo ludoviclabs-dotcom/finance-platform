@@ -5,7 +5,7 @@ export function SectionCoverageExplorer() {
     <section className="nhp-branches">
       <div className="nhp-container">
         <div className="nhp-section-head">
-          <div className="eyebrow">Couverture</div>
+          <div className="eyebrow eyebrow-violet">Couverture</div>
           <h2 className="h-display h-tight">
             Une matrice unique, lue depuis la source de vérité.
           </h2>

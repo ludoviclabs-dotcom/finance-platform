@@ -51,7 +51,7 @@ la V2 est désormais le **comportement par défaut**, la V1 est supprimée.
 - [x] `npm run qa:copy` — vert
 - [x] `npm run build` — compile, `/produit` et `/ressources` statiques
 - [x] Validation visuelle locale — 2026-05-20 (navbar, footer, homepage, hubs, mobile) ; 2 bugs corrigés, cf. section ci-dessous
-- [ ] Lighthouse a11y/perf homepage ≥ baseline V1 — à exécuter sur la preview Vercel (build prod ; mesure non fiable en `next dev`)
+- [x] Lighthouse a11y (build prod local) — **accessibilité 96/100** ; perf non fiable en local (60–82 selon charge machine), à re-mesurer sur preview Vercel
 - [x] Redirects vérifiés (local) — `/resources` → 308 → `/ressources` (200) ; `/resources/blog/*` → 307 → `/publications/*` (200)
 - [ ] Search Console : surveillance J+7 et J+14 post-déploiement (action ops)
 
@@ -73,12 +73,23 @@ parcours desktop (1440×900) et mobile (≤500 px) sur Chrome.
   *Correctif :* panneau scrollable, hauteur bornée au viewport (`calc(100dvh - 4rem)`).
 - **Hero — espace manquant.** « 7/42combinaisons » → « 7/42 combinaisons » (`hero.tsx`).
 
-### À arbitrer (non corrigé)
+### Copy corrigée
 
-- `section-coverage-explorer.tsx` : « Plus deux représentations divergentes » —
-  formulation ambiguë (intention probable : « Plus de représentations divergentes »).
-- `proof-catalog.ts` : libellé de statut « Excel cree » sans accents — pré-existant,
-  hors périmètre V2.
+- `section-coverage-explorer.tsx` : « Plus deux représentations divergentes »
+  → « Fini les représentations divergentes ».
+- `proof-catalog.ts` : « Excel cree » / « Workbook cree » → « Excel créé » /
+  « Workbook créé ».
+
+### Lighthouse — homepage, build prod local
+
+- **Accessibilité : 96/100.** Seul audit en échec : `color-contrast`. Les
+  2 contrastes introduits par le passage en thème sombre ont été corrigés
+  (eyebrow `.eyebrow-violet`, en-tête CoverageGrid `text-white/55`). Restent
+  **39 nœuds pré-existants** : liens de footer (×30, `text-gray-500`),
+  sous-labels proof-console (×5), prix (×4) — cleanup a11y à planifier hors V2.
+- **Performance : non fiable en local** (60 puis 82 sur deux runs, selon la
+  charge machine ; TBT très sensible). LCP ~5 s = point à surveiller. Mesure
+  de référence à prendre sur la preview Vercel.
 
 ## Dette technique tracée (post-V2)
 

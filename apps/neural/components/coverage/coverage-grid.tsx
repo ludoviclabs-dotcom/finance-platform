@@ -78,7 +78,7 @@ export function CoverageGrid() {
         <table className="w-full min-w-[640px] border-separate border-spacing-1">
           <thead>
             <tr>
-              <th className="text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              <th className="text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">
                 Secteur \\ Branche
               </th>
               {COVERAGE_BRANCHES_ORDER.map((branch) => {

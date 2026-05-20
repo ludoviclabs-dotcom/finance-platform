@@ -16,6 +16,7 @@ import {
   Workflow,
 } from "lucide-react";
 
+import { CoverageGridFiltered } from "@/components/coverage/coverage-grid-filtered";
 import { EvidenceCard } from "@/components/site/evidence-card";
 import { LearnMoreBlock } from "@/components/site/learn-more-block";
 import { ScopeCard } from "@/components/site/scope-card";
@@ -154,6 +155,16 @@ export default function TransportPage() {
               </div>
             ))}
           </motion.div>
+        </div>
+      </section>
+
+      <section className="border-b border-[var(--color-border)] px-6 py-12 md:px-12">
+        <div className="mx-auto max-w-[1440px]">
+          <CoverageGridFiltered
+            sector="transport"
+            title="Couverture Transport — 7 branches métier"
+            description="Vue intégrale lue depuis le registry."
+          />
         </div>
       </section>
 

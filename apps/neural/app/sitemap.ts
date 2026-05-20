@@ -16,8 +16,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
   // ── Core pages ────────────────────────────────────────────
+  // Refonte V2 : `produit` et `ressources` sont des hubs de nav primaire.
+  // `resources` (sans accent) est volontairement absent : il redirige en 308
+  // vers `ressources` (cf. next.config.ts → REDIRECTS), une URL redirigée ne
+  // doit pas figurer dans le sitemap.
   const corePages: Array<[string, MetadataRoute.Sitemap[number]["changeFrequency"], number]> = [
     ["", "weekly", 1.0],
+    ["produit", "weekly", 0.9],
+    ["ressources", "weekly", 0.8],
     ["about", "monthly", 0.5],
     ["contact", "weekly", 0.8],
     ["dossier", "weekly", 0.8],

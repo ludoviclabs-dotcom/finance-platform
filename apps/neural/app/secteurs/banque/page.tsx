@@ -13,6 +13,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { CoverageGridFiltered } from "@/components/coverage/coverage-grid-filtered";
 import { LearnMoreBlock } from "@/components/site/learn-more-block";
 
 export const metadata: Metadata = {
@@ -112,6 +113,14 @@ export default function BanquePage() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="pb-12">
+          <CoverageGridFiltered
+            sector="banque"
+            title="Couverture Banque — 7 branches métier"
+            description="Vue intégrale lue depuis le registry. Communication et Marketing sont détaillées en éditorial ci-dessous."
+          />
         </section>
 
         <section className="pb-20">

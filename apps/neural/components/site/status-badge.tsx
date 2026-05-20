@@ -4,11 +4,19 @@ import {
   type ProofLevel,
   type PublicStatus,
 } from "@/lib/public-catalog";
+import { STATUS_LABELS_SHORT, type NavStatus } from "@/lib/navigation";
 
 const statusClasses: Record<PublicStatus, string> = {
   live: "border-emerald-400/25 bg-emerald-400/[0.12] text-emerald-300",
   demo: "border-violet-400/25 bg-violet-400/[0.12] text-violet-200",
   planned: "border-amber-400/25 bg-amber-400/[0.12] text-amber-200",
+};
+
+const compactStatusClasses: Record<NavStatus, string> = {
+  live: "bg-emerald-400/[0.15] text-emerald-300",
+  demo: "bg-violet-400/[0.15] text-violet-200",
+  planned: "bg-amber-400/[0.15] text-amber-200",
+  unknown: "bg-white/[0.08] text-white/50",
 };
 
 const proofClasses: Record<ProofLevel, string> = {
@@ -42,5 +50,26 @@ export function StatusBadge({
         </span>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Variante compacte (Live / Démo / Prépa / —) — destinée aux navbar, footer,
+ * tableaux denses. Pour les pages publiques où le statut est l'information
+ * principale, utiliser `StatusBadge` (libellés longs).
+ */
+export function StatusChip({
+  status,
+  className = "",
+}: {
+  status: NavStatus;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${compactStatusClasses[status]} ${className}`}
+    >
+      {STATUS_LABELS_SHORT[status]}
+    </span>
   );
 }

@@ -5,21 +5,13 @@ import {
   PROOF_SCORE_LABELS,
   PROOF_STATUS_LABELS,
   getProofCatalog,
-  type AgentProofStatus,
 } from "@/lib/proof-catalog";
+import { ProofBadge } from "@/components/ui/proof-badge";
 
 export const metadata = {
   title: "Proof Console — NEURAL",
   description:
     "État réel du catalogue NEURAL : workbooks Excel, agents avec données, runtime public, démos et limites connues.",
-};
-
-const STATUS_CLASSES: Record<AgentProofStatus, string> = {
-  excel_created: "border-slate-400/25 bg-slate-400/[0.08] text-slate-200",
-  runtime_parsed: "border-cyan-400/25 bg-cyan-400/[0.08] text-cyan-200",
-  public_demo: "border-violet-400/25 bg-violet-400/[0.10] text-violet-200",
-  export_audit: "border-amber-400/25 bg-amber-400/[0.10] text-amber-200",
-  client_ready: "border-emerald-400/25 bg-emerald-400/[0.10] text-emerald-200",
 };
 
 export default function ProofPage() {
@@ -192,9 +184,7 @@ export default function ProofPage() {
                     <span className="rounded-full border border-violet-400/25 bg-violet-400/[0.10] px-3 py-1 text-xs font-bold text-violet-200">
                       Score {card.proofScore}
                     </span>
-                    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_CLASSES[card.proofStatus]}`}>
-                      {PROOF_STATUS_LABELS[card.proofStatus]}
-                    </span>
+                    <ProofBadge status={card.proofStatus} />
                   </div>
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -258,9 +248,7 @@ export default function ProofPage() {
                   <p className="text-xs text-white/45">{PROOF_SCORE_LABELS[agent.proofScore]}</p>
                 </div>
                 <div className="min-w-0">
-                  <span className={`inline-flex max-w-full rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_CLASSES[agent.proofStatus]}`}>
-                    {PROOF_STATUS_LABELS[agent.proofStatus]}
-                  </span>
+                  <ProofBadge status={agent.proofStatus} className="max-w-full" />
                 </div>
                 <div className="min-w-0">
                   <p className="line-clamp-2 break-words text-xs leading-relaxed text-white/58">{agent.workbookSource}</p>

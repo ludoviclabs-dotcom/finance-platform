@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ReadinessPage } from "@/components/site/readiness-page";
-import { SECTORS_META } from "@/lib/data/agents-registry";
+import { BRANCHES_META, SECTORS_META, type Branch } from "@/lib/data/agents-registry";
 import { getBranchEntry } from "@/lib/public-catalog";
 
 export default async function SolutionBranchPage({
@@ -24,5 +24,8 @@ export default async function SolutionBranchPage({
       ? `Solution · ${SECTORS_META[sector].label}`
       : "Solution";
 
-  return <ReadinessPage entry={entry} eyebrow={eyebrow} />;
+  // Le slug d'une BRANCH_ENTRY est une valeur de `Branch` (cf. buildBranchEntry).
+  const coverageBranch = slug in BRANCHES_META ? (slug as Branch) : undefined;
+
+  return <ReadinessPage entry={entry} eyebrow={eyebrow} coverageBranch={coverageBranch} />;
 }

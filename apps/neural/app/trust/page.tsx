@@ -20,6 +20,7 @@ import { SubProcessorTable } from "@/components/trust/sub-processor-table";
 import { CertBadges } from "@/components/trust/cert-badges";
 import { DocumentsGrid } from "@/components/trust/documents-grid";
 import { SecurityContact } from "@/components/trust/security-contact";
+import { HubCard } from "@/components/hubs/hub-card";
 
 export const metadata = {
   title: "Trust — NEURAL",
@@ -76,6 +77,62 @@ export default function TrustPage() {
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Capacité cible</p>
               <p className="mt-3 font-display text-4xl font-bold">{PUBLIC_METRICS.frameworkTargetAgents}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Trust Center hub — navigation vers sous-pages transparence ────── */}
+      <section className="relative border-t border-white/8 px-8 py-16 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">
+              Trust Center
+            </span>
+            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">
+              Tout ce que NEURAL publie sur la confiance
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/65">
+              Cinq surfaces transverses — conformité, sécurité d&apos;agents, status, roadmap et
+              changelog — accessibles depuis ce hub plutôt que dispersées dans le footer.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <HubCard
+              href="/conformite"
+              title="Conformité"
+              description="AI Act, RGPD, DORA, ESRS. Mapping des cadres applicables avec niveau de couverture documenté."
+              status="live"
+            />
+            <HubCard
+              href="/trust/agent-safety"
+              title="Agent Safety"
+              description="Garde-fous, gates serveur, supervision humaine et limites partagées. Le contrat de sécurité publique des agents NEURAL."
+              status="live"
+            />
+            <HubCard
+              href="/status"
+              title="Status"
+              description="État opérationnel : agents probés, gateway, runtime. Probes vivantes mises à jour côté serveur."
+              status="live"
+            />
+            <HubCard
+              href="/roadmap"
+              title="Roadmap publique"
+              description="Trajectoire produit visible. Aucune date inventée — chaque item est marqué selon son état réel."
+              status="live"
+            />
+            <HubCard
+              href="/changelog"
+              title="Changelog"
+              description="Journal de bord des changements produit et sécurité. Daté, signé, traçable."
+              status="live"
+            />
+            <HubCard
+              href="/dossier"
+              title="Dossier de preuve"
+              description="Pack acheteur condensé : 27 agents, claims actifs, model cards prioritaires et limites visibles."
+              status="live"
+            />
           </div>
         </div>
       </section>

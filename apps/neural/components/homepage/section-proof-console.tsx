@@ -35,7 +35,7 @@ export function SectionProofConsole() {
             <div className="eyebrow">Proof Console</div>
             <h2 className="h-display h-tight">Le catalogue réel, pas la promesse.</h2>
             <p className="lead">
-              NEURAL distingue maintenant les workbooks crees, les données parsées, les démos
+              NEURAL distingue maintenant les workbooks créés, les données parsées, les démos
               publiques et les briques vraiment vendables.
             </p>
           </div>

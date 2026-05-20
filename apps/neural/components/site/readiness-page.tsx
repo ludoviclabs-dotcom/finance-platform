@@ -1,17 +1,23 @@
 import Link from "next/link";
 import { ArrowRight, ClipboardList, Compass, Sparkles } from "lucide-react";
 
+import { CoverageGridFiltered } from "@/components/coverage/coverage-grid-filtered";
 import { EvidenceCard } from "@/components/site/evidence-card";
 import { ScopeCard } from "@/components/site/scope-card";
 import { StatusBadge } from "@/components/site/status-badge";
 import { type PublicEntry } from "@/lib/public-catalog";
+import { type Branch } from "@/lib/data/agents-registry";
 
 export function ReadinessPage({
   entry,
   eyebrow,
+  coverageBranch,
 }: {
   entry: PublicEntry;
   eyebrow?: string;
+  /** Quand fourni (pages branches /solutions/[slug]), affiche la couverture
+   *  de cette branche sur les 6 secteurs, lue depuis le registry. */
+  coverageBranch?: Branch;
 }) {
   return (
     <div className="min-h-screen overflow-hidden bg-gradient-neural text-white">
@@ -92,6 +98,17 @@ export function ReadinessPage({
           />
         </div>
       </section>
+
+      {coverageBranch ? (
+        <section className="relative border-t border-white/8 px-8 py-14 md:px-12">
+          <div className="mx-auto max-w-[1320px]">
+            <CoverageGridFiltered
+              branch={coverageBranch}
+              description="Couverture de cette branche métier sur les 6 secteurs, lue depuis le registry."
+            />
+          </div>
+        </section>
+      ) : null}
 
       <section className="relative border-t border-white/8 px-8 py-14 md:px-12">
         <div className="mx-auto grid max-w-[1320px] gap-6 md:grid-cols-2">

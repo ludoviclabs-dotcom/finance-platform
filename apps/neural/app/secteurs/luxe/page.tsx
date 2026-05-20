@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { CoverageGridFiltered } from "@/components/coverage/coverage-grid-filtered";
 import { EvidenceCard } from "@/components/site/evidence-card";
 import { LearnMoreBlock } from "@/components/site/learn-more-block";
 import { ScopeCard } from "@/components/site/scope-card";
@@ -145,11 +146,21 @@ export default function LuxeHubPage() {
         </div>
       </section>
 
+      <section className="px-6 py-12 md:px-12">
+        <div className="mx-auto max-w-[1440px]">
+          <CoverageGridFiltered
+            sector="luxe"
+            title="Couverture Luxe — 7 branches métier"
+            description="Vue intégrale lue depuis le registry. Chaque carte ouvre la fiche branche correspondante. Le détail éditorial Finance + RH suit ci-dessous."
+          />
+        </div>
+      </section>
+
       <section className="px-6 py-20 md:px-12">
         <div className="mx-auto max-w-[1440px]">
           <div className="mb-10 max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-200">
-              Branches visibles
+              Focus éditorial
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
               Même langage produit, deux niveaux de maturité.

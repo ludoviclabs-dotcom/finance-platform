@@ -11,6 +11,7 @@ import {
   Wrench,
 } from "lucide-react";
 
+import { CoverageGridFiltered } from "@/components/coverage/coverage-grid-filtered";
 import { LearnMoreBlock } from "@/components/site/learn-more-block";
 
 export const metadata: Metadata = {
@@ -114,6 +115,15 @@ export default function AssurancePage() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* ── COUVERTURE REGISTRY ─────────────────────── */}
+        <section style={{ paddingBottom: "48px" }}>
+          <CoverageGridFiltered
+            sector="assurance"
+            title="Couverture Assurance — 7 branches métier"
+            description="Vue intégrale lue depuis le registry. Le détail éditorial des branches suit ci-dessous."
+          />
         </section>
 
         {/* ── BRANCHES ────────────────────────────────── */}

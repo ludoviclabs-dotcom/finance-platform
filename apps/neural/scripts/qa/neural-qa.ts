@@ -50,6 +50,16 @@ const BANNED_CLAIMS = [
   /aucun\s+transit\s+hors\s+UE/i,
   /DPA\s+disponible/i,
   /opposable\s+juridiquement/i,
+  // PR 0 hygiène : "Audit gratuit" contredit l'offre payante "Proof Audit" 1 500–3 500 EUR.
+  // Le bon libellé est "Cadrage offert" (échange découverte sans engagement).
+  /audit\s+gratuit/i,
+];
+
+const BANNED_TYPOS = [
+  /\bvôtrès\b/,
+  /workbooks\s+crees/i,
+  /embarqué\s+un\s+dashboard/i,
+  /Pas\s+le\s+périmètre\s+live\b/,
 ];
 
 const MOJIBAKE_PATTERNS = [
@@ -84,14 +94,25 @@ function fail(message: string): never {
 function runCopyCheck() {
   const failures: string[] = [];
   const files = walk(ROOT);
+  const selfPath = resolve(__filename);
   for (const file of files) {
+    if (resolve(file) === selfPath) continue;
     const text = readFileSync(file, "utf8");
     const rel = relative(ROOT, file);
+    const ext = file.slice(file.lastIndexOf("."));
+    // Mojibake : à traquer partout (un fichier de doc avec mojibake reste un bug).
     for (const pattern of MOJIBAKE_PATTERNS) {
       if (pattern.test(text)) failures.push(`${rel}: mojibake ou caractère invalide (${pattern})`);
     }
-    for (const pattern of BANNED_CLAIMS) {
-      if (pattern.test(text)) failures.push(`${rel}: claim interdit ou trop fort (${pattern})`);
+    // Claims et typos : seulement dans le code rendu (UI / config), pas dans
+    // les docs internes qui ont vocation à citer ces interdits comme exemples.
+    if (ext !== ".md") {
+      for (const pattern of BANNED_CLAIMS) {
+        if (pattern.test(text)) failures.push(`${rel}: claim interdit ou trop fort (${pattern})`);
+      }
+      for (const pattern of BANNED_TYPOS) {
+        if (pattern.test(text)) failures.push(`${rel}: typo bannie (${pattern})`);
+      }
     }
     if (/TODO:\s*replace with NextAuth/i.test(text)) {
       failures.push(`${rel}: TODO auth production encore présent`);

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { FOOTER_LINKS, PUBLIC_STATUS_LABELS } from "@/lib/public-catalog";
+import { FOOTER_V2 } from "@/lib/navigation";
+import { StatusChip } from "@/components/site/status-badge";
 import { TrustGrid } from "@/components/site/trust-grid";
 
 export function Footer() {
@@ -18,7 +19,7 @@ export function Footer() {
         </div>
 
         <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-5">
-          {Object.entries(FOOTER_LINKS).map(([category, links]) => (
+          {Object.entries(FOOTER_V2).map(([category, links]) => (
             <div key={category}>
               <h3 className="font-display text-xs font-bold uppercase tracking-widest text-white/80">
                 {category}
@@ -31,9 +32,7 @@ export function Footer() {
                       className="flex items-center justify-between gap-3 text-sm text-gray-500 transition-colors hover:text-white"
                     >
                       <span>{link.label}</span>
-                      <span className="text-[10px] uppercase tracking-[0.16em] text-gray-600">
-                        {PUBLIC_STATUS_LABELS[link.status]}
-                      </span>
+                      <StatusChip status={link.status} />
                     </Link>
                   </li>
                 ))}

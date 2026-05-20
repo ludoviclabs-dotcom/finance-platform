@@ -57,8 +57,10 @@ la V2 est désormais le **comportement par défaut**, la V1 est supprimée.
 
 ## Dette technique tracée (post-V2)
 
-- 14 pages secteur restantes à migrer vers `CoverageGridFiltered` (pattern
-  démontré sur `/secteurs/luxe` en PR 4).
+- ✅ PR 7 : les 6 pages secteur principales (luxe, banque, assurance,
+  transport, aeronautique, saas) intègrent `CoverageGridFiltered`.
+- Restant : pages branches `/solutions/[slug]` et fallback dynamique
+  `/secteurs/[slug]` à migrer vers `CoverageGridFiltered` (variant `branch`).
 - 12 agents catalog-only à promouvoir dans `AGENT_ENTRIES` (cf.
   `KNOWN_CATALOG_ONLY_AGENTS` dans `tests/branch-catalogs-consistency.test.ts`).
 - 5 agents Banque × Communication dans `KNOWN_STATUS_DIVERGENCES` — le module

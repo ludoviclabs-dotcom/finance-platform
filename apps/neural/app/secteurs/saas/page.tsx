@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { CoverageGridFiltered } from "@/components/coverage/coverage-grid-filtered";
 import { StatusBadge } from "@/components/site/status-badge";
 import { getSectorEntry } from "@/lib/public-catalog";
 
@@ -154,6 +155,17 @@ export default function SaasSectorPage() {
           <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/68">
             {sectorEntry.description}
           </p>
+        </div>
+      </section>
+
+      {/* ── Couverture registry ──────────────────────────────────────────── */}
+      <section className="relative border-t border-white/8 px-8 py-12 md:px-12">
+        <div className="mx-auto max-w-[1320px]">
+          <CoverageGridFiltered
+            sector="saas"
+            title="Couverture SaaS — 7 branches métier"
+            description="SaaS est un secteur en préparation : la matrice montre l'état réel, branche par branche."
+          />
         </div>
       </section>
 

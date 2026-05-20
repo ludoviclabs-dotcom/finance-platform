@@ -8,28 +8,34 @@
  *
  * Ce test empêche toute divergence statut/preuve introduite par les PR 2-5
  * (refonte homepage, hubs, branches & secteurs) de passer en main sans
- * détection. Il documente également les divergences connues, intentionnelles,
- * reportées à PR 5 (modélisation propre via `lib/proof-status.ts`).
+ * détection. Les divergences connues et intentionnelles sont modélisées par
+ * `lib/proof-status.ts` (PR 5) et vérifiées via cette couche canonique.
  */
 
 import { describe, expect, it } from "vitest";
 
 import { MATRIX } from "@/lib/data/agents-registry";
 import { AGENT_ENTRIES } from "@/lib/public-catalog";
+import { getUnifiedStatus } from "@/lib/proof-status";
 
 /**
- * Divergences connues au moment de PR 1 (sprint hygiène V2).
+ * Divergence registry × public-catalog assumée par convention (V2, PR 5+).
  *
- * Toutes concernent la cellule Banque × Communication : registry les marque
- * `planned` parce que `excelSource: null` (pas de workbook source), mais
- * `public-catalog` les expose `live` parce qu'une démo publique avec 5
- * scénarios figés + export Markdown signé SHA-256 existe réellement, et
- * `proof-catalog` les inclut dans `EXPORT_OR_AUDIT_AGENT_SLUGS` à juste titre.
+ * Périmètre : la cellule Banque × Communication. Ses agents sont marqués
+ * `planned` côté registry (`excelSource: null`, pas de workbook source) alors
+ * que leur surface publique existe réellement — démo avec scénarios figés +
+ * export Markdown signé SHA-256. Les agents de cette cellule effectivement
+ * publiés dans `public-catalog` (`reg-bank-comms`, `bank-evidence-guard`) y
+ * sont donc `live` : d'où une divergence registry↔catalog. Les autres ne sont
+ * pas encore catalogués publiquement mais restent pré-listés ici pour que
+ * leur future promotion soit déjà documentée (sinon le 1er test échouerait).
  *
- * Ces 3 statuts ne désignent PAS la même chose : data source / démo publique
- * / preuve d'export. PR 5 introduira `lib/proof-status.ts` pour modéliser
- * ces 3 dimensions distinctes. D'ici là, la liste ci-dessous documente les
- * exceptions tolérées sans en cacher l'existence.
+ * Ces statuts ne désignent PAS la même chose — data source / démo publique /
+ * preuve d'export — et ne sont pas ordonnés par précédence. PR 5 a livré
+ * `lib/proof-status.ts`, source canonique qui compose ces dimensions sans les
+ * aplatir. Cette liste n'est donc pas une dette à résorber mais le périmètre
+ * stable du motif « démo publique sans workbook » ; le 3e test ci-dessous
+ * vérifie que la couche canonique résout chaque divergence réelle.
  */
 const KNOWN_STATUS_DIVERGENCES = new Set<string>([
   "reg-bank-comms",
@@ -110,6 +116,34 @@ describe("Sources consistency (registry × public-catalog)", () => {
     }
 
     expect(staleExceptions, staleExceptions.join("\n")).toEqual([]);
+  });
+
+  it("resolves every real divergence coherently through proof-status.ts (canonical layer)", () => {
+    const registry = collectRegistryAgents();
+    const catalog = collectCatalogAgents();
+
+    let checked = 0;
+    for (const slug of KNOWN_STATUS_DIVERGENCES) {
+      const registryStatus = registry.get(slug);
+      const catalogStatus = catalog.get(slug);
+      // La divergence n'existe que pour les agents présents dans les 2
+      // sources ; les autres sont pré-listés sans cas concret à vérifier.
+      if (!registryStatus || !catalogStatus) continue;
+
+      const unified = getUnifiedStatus(slug);
+      expect(unified.registryStatus, `${slug}: registryStatus`).toBe(registryStatus);
+      expect(unified.catalogStatus, `${slug}: catalogStatus`).toBe(catalogStatus);
+
+      // La couche canonique ne dégrade jamais une démo publique réelle vers
+      // `planned` / `unknown` : elle la résout en surface publique.
+      expect(unified.displayStatus, `${slug}: displayStatus`).not.toBe("planned");
+      expect(unified.displayStatus, `${slug}: displayStatus`).not.toBe("unknown");
+      checked += 1;
+    }
+
+    // Garde-fou : au moins une divergence réelle doit être couverte, sinon
+    // KNOWN_STATUS_DIVERGENCES n'a plus de cas concret (à nettoyer).
+    expect(checked, "aucune divergence registry∩catalog vérifiée").toBeGreaterThan(0);
   });
 
   // Note : on ne vérifie PAS que tout agent du catalog existe dans registry.

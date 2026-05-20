@@ -47,13 +47,13 @@ la V2 est désormais le **comportement par défaut**, la V1 est supprimée.
 
 - [x] `npm run lint` — vert
 - [x] `npm run typecheck` — vert
-- [x] `npm run test` — 165 tests verts
+- [x] `npm run test` — 166 tests verts
 - [x] `npm run qa:copy` — vert
 - [x] `npm run build` — compile, `/produit` et `/ressources` statiques
 - [x] Validation visuelle locale — 2026-05-20 (navbar, footer, homepage, hubs, mobile) ; 2 bugs corrigés, cf. section ci-dessous
-- [x] Lighthouse a11y (build prod local) — **accessibilité 96/100** ; perf non fiable en local (60–82 selon charge machine), à re-mesurer sur preview Vercel
+- [x] Lighthouse — **a11y 96/100** ; perf mesurée sur preview Vercel le 2026-05-20 (LCP 706 ms, CLS 0). Les 39 nœuds `color-contrast` pré-existants corrigés, cf. « Cleanup a11y » ci-dessous
 - [x] Redirects vérifiés (local) — `/resources` → 308 → `/ressources` (200) ; `/resources/blog/*` → 307 → `/publications/*` (200)
-- [ ] Search Console : surveillance J+7 et J+14 post-déploiement (action ops)
+- [ ] Search Console : surveillance J+7 (2026-05-27) et J+14 (2026-06-03) post-déploiement — rappels planifiés (action ops)
 
 ## Validation visuelle — 2026-05-20
 
@@ -80,16 +80,30 @@ parcours desktop (1440×900) et mobile (≤500 px) sur Chrome.
 - `proof-catalog.ts` : « Excel cree » / « Workbook cree » → « Excel créé » /
   « Workbook créé ».
 
-### Lighthouse — homepage, build prod local
+### Lighthouse — homepage
 
-- **Accessibilité : 96/100.** Seul audit en échec : `color-contrast`. Les
-  2 contrastes introduits par le passage en thème sombre ont été corrigés
-  (eyebrow `.eyebrow-violet`, en-tête CoverageGrid `text-white/55`). Restent
-  **39 nœuds pré-existants** : liens de footer (×30, `text-gray-500`),
-  sous-labels proof-console (×5), prix (×4) — cleanup a11y à planifier hors V2.
-- **Performance : non fiable en local** (60 puis 82 sur deux runs, selon la
-  charge machine ; TBT très sensible). LCP ~5 s = point à surveiller. Mesure
-  de référence à prendre sur la preview Vercel.
+- **Accessibilité : 96/100** (build prod local). Seul audit en échec :
+  `color-contrast`. Les 2 contrastes introduits par le passage en thème sombre
+  ont été corrigés (eyebrow `.eyebrow-violet`, en-tête CoverageGrid
+  `text-white/55`). Les 39 nœuds pré-existants ont depuis été corrigés —
+  cf. « Cleanup a11y » ci-dessous.
+- **Performance : mesurée sur preview Vercel le 2026-05-20** — LCP 706 ms,
+  CLS 0, TTFB 17 ms (desktop, sans throttling). Le LCP ~5 s observé en local
+  était un artefact de charge machine. SEO 63/100 sur la preview : les
+  2 échecs (`x-robots-tag: noindex`, manifest 401) sont des artefacts de la
+  protection preview Vercel, absents du domaine de production.
+
+### Cleanup a11y — 2026-05-20
+
+Les 39 nœuds `color-contrast` pré-existants (homepage) corrigés pour franchir
+le seuil WCAG AA 4.5:1 :
+
+- **Liens de footer** (`footer.tsx`) — `text-gray-500` → `text-gray-400`
+  (liens) et `text-gray-600` → `text-gray-400` (copyright).
+- **Sous-labels proof-levels** (`homepage.css`, `.nhp-proof-level`) —
+  `rgba(10,22,40,0.52)` → `0.65`.
+- **Prix** (`homepage.css`, `.nhp-tp-from` / `.nhp-tp-u` /
+  `.nhp-tier-price-to`) — `opacity: 0.55` → `0.65`.
 
 ## Dette technique tracée (post-V2)
 
@@ -100,20 +114,27 @@ parcours desktop (1440×900) et mobile (≤500 px) sur Chrome.
 - ✅ PR 11 : les 12 agents Marketing (Aéro / Banque / Assurance) promus dans
   `AGENT_ENTRIES` avec statut conservateur `planned` / `content_only`
   (score de preuve 0). `KNOWN_CATALOG_ONLY_AGENTS` est désormais vide.
-  Restant optionnel : ajouter ces 12 agents dans `content/agents-meta.json`
-  pour qu'ils apparaissent dans le catalogue filtrable `/agents` (nécessite
-  une classification AI Act par agent).
-- 5 agents Banque × Communication dans `KNOWN_STATUS_DIVERGENCES` — le module
-  `lib/proof-status.ts` modélise désormais leur statut multidimensionnel, mais
-  les 3 sources brutes restent à aligner (ou la divergence à assumer
-  explicitement par convention).
+- ✅ Post-V2 (2026-05-20) : les 12 agents Marketing ajoutés dans
+  `content/agents-meta.json` — ils apparaissent désormais dans le catalogue
+  filtrable `/agents`. Classification AI Act : `limite` pour les 12 (motif
+  art. 50, contenu marketing IA-généré / audité), cohérente avec les agents
+  Communication existants. `deployTime` / `roiEstimate` sont des estimations
+  à faire valider par NEURAL.
+- ✅ Post-V2 (2026-05-20) : divergence Banque × Communication assumée par
+  convention. Les 3 sources mesurent 3 choses distinctes (data source / démo
+  publique / preuve d'export) et ne sont pas alignables sans mentir sur l'une
+  d'elles ; `lib/proof-status.ts` (PR 5) les compose canoniquement.
+  `sources-consistency.test.ts` documente le motif et vérifie via
+  `getUnifiedStatus` que la couche canonique résout chaque divergence réelle
+  (`reg-bank-comms`, `bank-evidence-guard`).
 - ✅ PR 9 : `ProofBadge` branché sur `/proof` (Proof Console) — palette
   alignée, badges ad-hoc + map `STATUS_CLASSES` locale supprimés.
 - ✅ PR 10 : `agent-card.tsx` n'avait pas de badge de statut ad-hoc (juste
   un chip "Score N", distinct) ; le champ mort `EnrichedAgent.proof.statusLabel`
   (calculé mais jamais rendu) a été supprimé. Plus aucun badge proof ad-hoc.
-- `/secteurs/[slug]` (fallback dynamique) non migré : route inerte tant que
-  les 6 secteurs ont une page explicite, priorité basse.
+- ✅ Post-V2 (2026-05-20) : `/secteurs/[slug]` (fallback dynamique) migré —
+  `ReadinessPage` reçoit une prop `coverageSector` qui rend
+  `CoverageGridFiltered`, en miroir de `coverageBranch` (`/solutions/[slug]`).
 
 ## Rollback
 

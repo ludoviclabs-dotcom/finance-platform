@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-27",
+  "lastUpdated": "2026-05-20",
   "comment": "Métadonnées additionnelles aux AGENT_ENTRIES pour le catalogue /agents. Branch, sectors, classification AI Act, durée de déploiement estimée, ROI typique.",
   "items": {
     "consolidation": {
@@ -127,6 +127,90 @@
       "aiActRisk": "limite",
       "deployTime": "6-10 sem.",
       "roiEstimate": "Risque greenwashing -90%"
+    },
+    "aero-tech-content": {
+      "branche": "marketing",
+      "sectors": ["aero"],
+      "aiActRisk": "limite",
+      "deployTime": "6-10 sem.",
+      "roiEstimate": "Time-to-pitch -50%"
+    },
+    "defense-comms-guard": {
+      "branche": "marketing",
+      "sectors": ["aero"],
+      "aiActRisk": "limite",
+      "deployTime": "10-14 sem.",
+      "roiEstimate": "Risque ITAR/EAR -90%"
+    },
+    "aero-event-ai": {
+      "branche": "marketing",
+      "sectors": ["aero"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Production pack salon -55%"
+    },
+    "aero-sustainability-comms": {
+      "branche": "marketing",
+      "sectors": ["aero"],
+      "aiActRisk": "limite",
+      "deployTime": "6-10 sem.",
+      "roiEstimate": "Risque greenwashing -90%"
+    },
+    "bank-marketing-compliance-guard": {
+      "branche": "marketing",
+      "sectors": ["banque"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Cycle validation conformité -50%"
+    },
+    "fin-literacy-content": {
+      "branche": "marketing",
+      "sectors": ["banque"],
+      "aiActRisk": "limite",
+      "deployTime": "6-10 sem.",
+      "roiEstimate": "Production contenu pédago -40%"
+    },
+    "segmented-bank-marketing": {
+      "branche": "marketing",
+      "sectors": ["banque"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Engagement par segment +25%"
+    },
+    "mifid-product-marketing-guard": {
+      "branche": "marketing",
+      "sectors": ["banque"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Risque non-conformité MiFID -85%"
+    },
+    "insur-simplifier": {
+      "branche": "marketing",
+      "sectors": ["assurance"],
+      "aiActRisk": "limite",
+      "deployTime": "4-8 sem.",
+      "roiEstimate": "Lisibilité contrat +40 pts Flesch"
+    },
+    "dda-marketing-guard": {
+      "branche": "marketing",
+      "sectors": ["assurance"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Diffusion conforme 1er passage +60%"
+    },
+    "multi-channel-insur": {
+      "branche": "marketing",
+      "sectors": ["assurance"],
+      "aiActRisk": "limite",
+      "deployTime": "8-12 sem.",
+      "roiEstimate": "Production multicanal -70%"
+    },
+    "prevention-content": {
+      "branche": "marketing",
+      "sectors": ["assurance"],
+      "aiActRisk": "limite",
+      "deployTime": "6-10 sem.",
+      "roiEstimate": "Conformité RGPD art. 9 +60 pts"
     }
   }
 }

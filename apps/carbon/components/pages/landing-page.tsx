@@ -21,6 +21,17 @@ interface LandingPageProps {
   onEnterApp: () => void;
 }
 
+const NAV_LINKS = [
+  { href: "#hero", label: "Accueil" },
+  { href: "#about", label: "Pourquoi CarbonCo" },
+  { href: "#features", label: "Fonctionnalités" },
+  { href: "/produit", label: "Produit" },
+  { href: "/proof", label: "Preuve" },
+  { href: "#how", label: "Comment ça marche" },
+  { href: "#pricing", label: "Tarifs" },
+  { href: "#video-section", label: "Démo" },
+] as const;
+
 /* ── Scroll-reveal hook ── */
 function useReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -526,13 +537,21 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
         <div className="flex justify-between items-center px-8 md:px-12 py-5 max-w-[1440px] mx-auto">
           <div className="text-2xl font-extrabold tracking-tighter text-black">Carbon<span className="text-green-600">&</span>Co</div>
 
-          <div className="hidden md:flex items-center gap-8">
-            {[["#hero","Accueil"],["#about","Pourquoi CarbonCo"],["#features","Fonctionnalités"],["#how","Comment ça marche"],["#pricing","Tarifs"],["#video-section","Démo"]].map(([href,label]) => (
-              <a key={href} href={href} className="text-sm font-semibold text-neutral-500 hover:text-black transition-colors tracking-wide">{label}</a>
+          <div className="hidden lg:flex items-center gap-5 xl:gap-7">
+            {NAV_LINKS.map(({ href, label }) => (
+              href.startsWith("/") ? (
+                <Link key={href} href={href} className="whitespace-nowrap text-xs xl:text-sm font-semibold text-neutral-500 hover:text-black transition-colors tracking-wide">
+                  {label}
+                </Link>
+              ) : (
+                <a key={href} href={href} className="whitespace-nowrap text-xs xl:text-sm font-semibold text-neutral-500 hover:text-black transition-colors tracking-wide">
+                  {label}
+                </a>
+              )
             ))}
           </div>
 
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden xl:flex items-center gap-3">
             <button onClick={onEnterApp} className="border border-neutral-300 text-black px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-50 transition-colors cursor-pointer">
               Se connecter
             </button>
@@ -541,7 +560,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             </button>
           </div>
           <button
-            className="md:hidden w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center cursor-pointer"
+            className="lg:hidden w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center cursor-pointer"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Menu"
             aria-expanded={mobileMenuOpen}
@@ -554,10 +573,14 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </button>
         </div>
 
-        <div className="md:hidden overflow-hidden transition-all duration-300 ease-in-out" style={{ maxHeight: mobileMenuOpen ? 500 : 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)" }}>
+        <div className="lg:hidden overflow-hidden transition-all duration-300 ease-in-out" style={{ maxHeight: mobileMenuOpen ? 620 : 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)" }}>
           <div className="flex flex-col px-8 pb-6 pt-2 border-t border-neutral-100">
-            {[["#hero","Accueil"],["#about","Pourquoi CarbonCo"],["#features","Fonctionnalités"],["#how","Comment ça marche"],["#pricing","Tarifs"]].map(([href,label]) => (
-              <a key={href} href={href} className="text-sm font-semibold text-neutral-600 py-3 border-b border-neutral-100 hover:text-black transition-colors" onClick={() => setMobileMenuOpen(false)}>{label}</a>
+            {NAV_LINKS.map(({ href, label }) => (
+              href.startsWith("/") ? (
+                <Link key={href} href={href} className="text-sm font-semibold text-neutral-600 py-3 border-b border-neutral-100 hover:text-black transition-colors" onClick={() => setMobileMenuOpen(false)}>{label}</Link>
+              ) : (
+                <a key={href} href={href} className="text-sm font-semibold text-neutral-600 py-3 border-b border-neutral-100 hover:text-black transition-colors" onClick={() => setMobileMenuOpen(false)}>{label}</a>
+              )
             ))}
             <div className="flex gap-3 mt-4">
               <button onClick={onEnterApp} className="flex-1 border border-neutral-300 text-black py-3 rounded-xl font-semibold text-sm cursor-pointer">Se connecter</button>

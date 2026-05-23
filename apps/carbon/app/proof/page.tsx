@@ -90,26 +90,24 @@ export default function ProofPage() {
             </div>
           </div>
 
-          <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.05] p-5 shadow-2xl">
-            <div className="rounded-2xl border border-emerald-400/15 bg-neutral-950 p-5">
-              <div className="mb-5 flex items-center justify-between gap-4 border-b border-white/10 pb-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Statut public</p>
-                  <p className="mt-1 text-sm text-neutral-400">CarbonCo + NEURAL</p>
-                </div>
-                <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-200">
-                  Live-ready
-                </span>
+          <div className="rounded-[1.5rem] border border-emerald-400/15 bg-white/[0.06] p-6 shadow-2xl">
+            <div className="mb-5 flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Statut public</p>
+                <p className="mt-1 text-sm text-neutral-400">CarbonCo + NEURAL</p>
               </div>
-              <ul className="space-y-4">
-                {publicChecks.map((check) => (
-                  <li key={check} className="flex gap-3 text-sm leading-relaxed text-neutral-200">
-                    <BadgeCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-300" aria-hidden="true" />
-                    <span>{check}</span>
-                  </li>
-                ))}
-              </ul>
+              <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-200">
+                Live-ready
+              </span>
             </div>
+            <ul className="space-y-4">
+              {publicChecks.map((check) => (
+                <li key={check} className="flex gap-3 text-sm leading-relaxed text-neutral-200">
+                  <BadgeCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-300" aria-hidden="true" />
+                  <span>{check}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>

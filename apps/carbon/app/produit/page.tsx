@@ -51,10 +51,28 @@ export default function ProductIndexPage() {
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-neutral-900 mb-4">
           8 modules, une plateforme.
         </h1>
-        <p className="text-lg text-neutral-600 max-w-2xl mb-12 leading-relaxed">
+        <p className="text-lg text-neutral-600 max-w-2xl mb-6 leading-relaxed">
           Chaque module est conçu pour s&apos;intégrer aux autres et offrir une couverture
           complète du reporting CSRD/ESRS, sans empilement d&apos;outils.
         </p>
+
+        <Link
+          href="/proof"
+          className="mb-12 flex flex-col gap-4 rounded-2xl border border-green-200 bg-green-50/70 p-6 transition-all hover:border-green-500 hover:bg-green-50 md:flex-row md:items-center md:justify-between"
+        >
+          <span>
+            <span className="block text-xs font-bold uppercase tracking-[0.24em] text-green-700">
+              Proof Twin public
+            </span>
+            <span className="mt-2 block text-lg font-extrabold tracking-tight text-neutral-950">
+              Audit trail, hash SHA-256 et Proof Console NEURAL
+            </span>
+            <span className="mt-2 block max-w-2xl text-sm leading-relaxed text-neutral-600">
+              Un point d&apos;entrée public pour retrouver les incrémentations de preuve et éviter les décalages entre CarbonCo et NEURAL.
+            </span>
+          </span>
+          <span className="text-sm font-extrabold text-green-700">Voir la page preuve →</span>
+        </Link>
 
         <div className="grid md:grid-cols-2 gap-6">
           {PRODUCT_MODULES.map((m) => {

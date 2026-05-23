@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const corePages: MetadataRoute.Sitemap = [
     { url: baseUrl, changeFrequency: "weekly", priority: 1.0 },
     { url: `${baseUrl}/produit`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${baseUrl}/proof`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/integrations`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${baseUrl}/blog`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/aide`, changeFrequency: "monthly", priority: 0.8 },

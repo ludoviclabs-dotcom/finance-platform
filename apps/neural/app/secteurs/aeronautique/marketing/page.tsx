@@ -25,6 +25,29 @@ import {
   AERO_MKT_WORKBOOKS,
   type AeroMktAgentSlug,
 } from "@/lib/data/aero-marketing-catalog";
+import master from "@/content/aero-marketing/master.json";
+import { ExportRuleChecker } from "@/components/aero-marketing/ExportRuleChecker";
+import { StatusBadge } from "@/components/site/status-badge";
+
+type MasterScenario = {
+  scenario_id: string;
+  agent_slug: string;
+  label: string;
+  verdict: string;
+};
+type MasterAgent = { slug: string; name: string };
+const MASTER_SCENARIOS = master.data.MASTER_SCENARIOS as unknown as MasterScenario[];
+const MASTER_AGENTS = master.data.MASTER_AGENTS as unknown as MasterAgent[];
+const AGENT_NAME_BY_SLUG: Record<string, string> = Object.fromEntries(
+  MASTER_AGENTS.map((a) => [a.slug, a.name]),
+);
+const CHECKER_SCENARIOS = MASTER_SCENARIOS.map((s) => ({
+  id: s.scenario_id,
+  agentSlug: s.agent_slug,
+  agentName: AGENT_NAME_BY_SLUG[s.agent_slug] ?? s.agent_slug,
+  label: s.label,
+  verdict: s.verdict as "OK" | "WARN" | "KO",
+}));
 
 export const metadata: Metadata = {
   title:
@@ -85,9 +108,7 @@ export default function AeroMarketingPage() {
           <div className="mt-10 grid w-full min-w-0 gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-end">
             <div className="min-w-0 max-w-[320px] sm:max-w-none">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-violet-300/30 bg-violet-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-violet-100">
-                  Démo Excel-first
-                </span>
+                <StatusBadge status="live" proofLevel="runtime_data" />
                 <span className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1 font-mono text-[11px] text-white/62">
                   veille {AERO_MKT_SUMMARY.sourceDate}
                 </span>
@@ -362,6 +383,25 @@ export default function AeroMarketingPage() {
                 </article>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="checker"
+        className="border-b border-white/[0.08] px-6 py-14 md:px-12"
+      >
+        <div
+          className="mx-auto max-w-[1320px]"
+          style={{ width: "calc(100vw - 72px)" }}
+        >
+          <SectionHeader
+            eyebrow="Démo runtime"
+            title="Auditez un scénario réel. En direct, sans LLM."
+            lead="L'ExportRuleChecker interroge l'API /api/demo/aero-export-check : verdict OK / WARN / KO, règles aéronautiques déclenchées, sources réglementaires citées — tout vient des JSON synchronisés depuis les 5 workbooks Excel. Réponse déterministe et reproductible."
+          />
+          <div className="mt-8">
+            <ExportRuleChecker scenarios={CHECKER_SCENARIOS} />
           </div>
         </div>
       </section>

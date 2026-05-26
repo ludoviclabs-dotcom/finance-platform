@@ -12,6 +12,7 @@ import {
 
 import { CoverageGridFiltered } from "@/components/coverage/coverage-grid-filtered";
 import { LearnMoreBlock } from "@/components/site/learn-more-block";
+import { StatusBadge } from "@/components/site/status-badge";
 
 export const metadata: Metadata = {
   title: "Aéronautique — Marketing & Communications | NEURAL",
@@ -66,8 +67,8 @@ const BRANCHES = [
 ] as const;
 
 const SECTOR_STATS = [
-  { value: "4",  label: "agents marketing actifs"  },
-  { value: "5",  label: "workbooks Excel livrés"   },
+  { value: "5",  label: "workbooks runtime"        },
+  { value: "4",  label: "scénarios live"           },
   { value: "12", label: "sources réglementaires"   },
   { value: "0",  label: "autopublication"          },
 ];
@@ -96,6 +97,10 @@ export default function AeronautiquePage() {
         <section style={{ padding: "72px 0 56px" }}>
           <div style={{ display: "inline-block", background: "rgba(124,58,237,.15)", border: "1px solid rgba(124,58,237,.4)", borderRadius: "20px", padding: "4px 14px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", color: "#a78bfa", textTransform: "uppercase", marginBottom: "20px" }}>
             Secteur Aéronautique
+          </div>
+
+          <div style={{ marginBottom: "20px" }}>
+            <StatusBadge status="live" proofLevel="runtime_data" />
           </div>
 
           <h1 style={{ fontSize: "clamp(2rem,5vw,3.2rem)", fontWeight: 800, lineHeight: 1.1, margin: "0 0 20px", color: "#fff" }}>

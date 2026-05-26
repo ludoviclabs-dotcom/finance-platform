@@ -1,0 +1,127 @@
+{
+  "_meta": {
+    "sourceFile": "AeroTechContent_NEURAL.xlsx",
+    "generatedAt": "2026-05-26",
+    "sheets": [
+      "AGENT_META",
+      "SOURCES",
+      "RULES",
+      "SCENARIOS"
+    ]
+  },
+  "data": {
+    "AGENT_META": [
+      {
+        "key": "id",
+        "value": "AM-A001"
+      },
+      {
+        "key": "slug",
+        "value": "aero-tech-content"
+      },
+      {
+        "key": "name",
+        "value": "AeroTechContent"
+      },
+      {
+        "key": "owner",
+        "value": "Marketing technique / Bureau d'études"
+      },
+      {
+        "key": "mission",
+        "value": "Auditer les contenus marketing aéro B2B (white papers, fiches techniques, RFP, brochures salons) avant diffusion : sources actives, chiffres validés, mention DGA, anti-greenwashing, mention cyber, flag export."
+      },
+      {
+        "key": "primary_rule",
+        "value": "RULE-NUM-VALIDATED"
+      },
+      {
+        "key": "workbook",
+        "value": "AeroTechContent_NEURAL.xlsx"
+      },
+      {
+        "key": "kpi_1",
+        "value": "Score qualité > 80%"
+      },
+      {
+        "key": "kpi_2",
+        "value": "% chiffres sourcés 100%"
+      },
+      {
+        "key": "kpi_3",
+        "value": "Time-to-pitch < 5j"
+      }
+    ],
+    "SOURCES": [
+      {
+        "source_id": "AM-S006",
+        "authority": "UE",
+        "domain": "Intelligence artificielle",
+        "title": "EU AI Act — UE 2024/1689 art. 50",
+        "date": "Applicable 02/08/2026",
+        "impact": "Disclosure obligatoire de tout contenu marketing IA-généré. Sanctions jusqu'à 15 M EUR / 3% CA mondial. Concerne les 4 agents Aéro/Marketing."
+      },
+      {
+        "source_id": "AM-S009",
+        "authority": "UE",
+        "domain": "CSRD",
+        "title": "Directive CSRD UE 2022/2464 + ESRS E1 Climate change",
+        "date": "Obligatoire 2025 grandes entreprises aéro",
+        "impact": "Reporting climat ESRS E1 obligatoire pour Airbus, Safran, Thales, Dassault. Cohérence claim marketing ↔ rapport CSRD requise."
+      },
+      {
+        "source_id": "AM-S010",
+        "authority": "ASD Europe",
+        "domain": "Tonalité défense",
+        "title": "ASD Europe — Charter on Responsible Defence Communications",
+        "date": "mars 2025",
+        "impact": "Pas de glorification, pas de visuel choquant, contexte stratégique sourcé, pas de mention spécifique opérations en cours. Volontaire mais critique réputationnel post-Ukraine."
+      },
+      {
+        "source_id": "AM-S011",
+        "authority": "UE",
+        "domain": "Cybersécurité",
+        "title": "NIS2 (Décret FR 2024-1308) + DORA Reg. UE 2022/2554",
+        "date": "DORA applicable 17/01/2025",
+        "impact": "Mention NIS2/DORA obligatoire pour systèmes embarqués critiques + sous-traitants ICT aéro/défense. Certification CC EAL ou SecNumCloud requise."
+      }
+    ],
+    "RULES": [
+      {
+        "rule_id": "AM-A001-R001",
+        "agent_slug": "aero-tech-content",
+        "regle": "Regle primaire RULE-NUM-VALIDATED - controle bloquant avant diffusion.",
+        "niveau": "BLOCK",
+        "source_ref": "AM-S006",
+        "lang": "fr"
+      },
+      {
+        "rule_id": "AM-A001-R002",
+        "agent_slug": "aero-tech-content",
+        "regle": "Disclosure AI Act art. 50 obligatoire sur tout contenu marketing IA-genere.",
+        "niveau": "BLOCK",
+        "source_ref": "AM-S006",
+        "lang": "fr"
+      },
+      {
+        "rule_id": "AM-A001-R003",
+        "agent_slug": "aero-tech-content",
+        "regle": "Tonalite responsable conforme ASD Europe Charter (pas de glorification).",
+        "niveau": "REVIEW",
+        "source_ref": "AM-S010",
+        "lang": "fr"
+      }
+    ],
+    "SCENARIOS": [
+      {
+        "scenario_id": "SCN-AM-001",
+        "agent_slug": "aero-tech-content",
+        "label": "White paper drone surveillance — claims marketing greenwashing",
+        "input_line": "« Notre famille de mini-drones surveillance offre une autonomie révolutionnaire de 6 heures, charge utile 2,5 kg, signature radar quasi-nulle. La technologie de propulsion électrique 100% verte garantit zéro émission de CO2. »",
+        "verdict": "KO",
+        "summary": "Score qualité initial 55%. 3 KO : (1) « 100% verte » + « zéro émission cycle complet » = greenwashing (Green Claims Directive), (2) chiffres « révolutionnaire 6h » non sourcés (R02), (3) absence disclosure IA art. 50. 5 redlines proposées.",
+        "metrics_json": "[{\"label\":\"Score qualité\",\"before\":\"55%\",\"after\":\"92%\"},{\"label\":\"KO bloquants\",\"before\":\"3\",\"after\":\"0\"},{\"label\":\"Redlines\",\"before\":\"—\",\"after\":\"5\"}]"
+      }
+    ]
+  }
+}

@@ -156,27 +156,30 @@ export const SECTOR_ENTRIES: PublicEntry[] = [
     ],
   }),
   buildSectorEntry("aeronautique", {
-    status: "demo",
-    proofLevel: "ui_demo",
-    tagline: "Premier wedge public : Marketing aéro (B2B + defense + sustainability)",
+    status: "live",
+    proofLevel: "runtime_data",
+    tagline: "Marketing aéro runtime : 5 workbooks live, ExportRuleChecker scénario-id only",
     description:
-      "L'aéronautique dispose maintenant d'un premier wedge visible : Marketing B2B technique, conformité ITAR/EAR/sanctions, packs salons 2026 (Farnborough, ILA, Eurosatory, MEBAA) et anti-greenwashing SAF/H2/eVTOL. La page expose 4 agents, 2 services réservés, 44 règles et les 5 workbooks Excel générés.",
-    readyNow: "Page Aéronautique / Marketing, hub /secteurs/aeronautique, 5 workbooks Excel locaux et référentiel 2026 documenté (AI Act art. 50, OFAC SDN, Green Claims Directive, ReFuelEU).",
+      "L'aéronautique est désormais en preuve runtime : 5 workbooks Excel synchronisés vers content JSON committés, démo /api/demo/aero-export-check scénario-id only (zéro LLM, zéro texte libre), verdicts déterministes adossés à 12 sources réglementaires (ITAR, EAR, EU dual-use, OFAC, AI Act art. 50, Green Claims Directive, ReFuelEU, CSRD, ASD Charter). Branche Communications & Affaires publiques toujours en COMING.",
+    readyNow:
+      "Page /secteurs/aeronautique/marketing avec ExportRuleChecker live, 5 workbooks .xlsx générés depuis le catalogue TS, JSON committés dans content/aero-marketing/, API démo POST déterministe (latence <50ms), 4 scénarios PASS/REVIEW/BLOCK et 12 sources réglementaires exposées.",
     nextStep:
-      "Brancher les workbooks au runtime public et ajouter la branche Communications & Affaires publiques (corporate, gov relations).",
-    dataUsed: "AeroTechContent + DefenseCommsGuard + AeroEventAI + AeroSustainabilityComms + Aero_Marketing_OVERVIEW (5 workbooks NEURAL).",
-    deliverable: "Page /secteurs/aeronautique/marketing avec sourcebook réglementaire 12 sources et catalogue TS.",
+      "Ouvrir la branche Communications & Affaires publiques (corporate, gov relations) et brancher une veille DDTC/BIS/OFAC automatisée (AeroRegWatch).",
+    dataUsed:
+      "5 workbooks NEURAL (AeroTechContent, DefenseCommsGuard, AeroEventAI, AeroSustainabilityComms, Aero_Marketing_OVERVIEW) → JSON déterministes content/aero-marketing/* synchronisés via scripts/sync-aero-marketing.ts.",
+    deliverable:
+      "Page live /secteurs/aeronautique/marketing + composant ExportRuleChecker + API /api/demo/aero-export-check + 5 workbooks .xlsx auditables.",
     ctaHref: "/secteurs/aeronautique/marketing",
-    ctaLabel: "Ouvrir Aéronautique / Marketing",
+    ctaLabel: "Tester l'ExportRuleChecker aéro",
     scopeNow: [
-      "Expose un cas d'usage aéro concret sans données classifiées.",
-      "Montre les guardrails réglementaires : ITAR/EAR, sanctions, AI Act art. 50, anti-greenwashing.",
-      "Reste honnête : démo UI et workbooks portfolio, pas production live.",
+      "Expose 4 agents marketing aéro avec workbooks runtime parsés et JSON committés.",
+      "Démo scénario-id only — zéro texte libre, zéro appel LLM côté serveur.",
+      "Trace verdict, règles déclenchées et sources réglementaires pour chaque scénario.",
     ],
     notYet: [
-      "Pas encore de parsing runtime des fichiers Excel aéro.",
-      "Pas encore de pages agents dédiées avec API de démo.",
-      "Pas encore de branche Communications & Affaires publiques publiée (corporate aéro-comms en attente).",
+      "Pas encore de veille DDTC/BIS/OFAC automatisée (RegWatch en planning).",
+      "Pas de branche Communications & Affaires publiques publiée.",
+      "Pas d'EvidenceGuard signé SHA-256 exposé publiquement.",
     ],
   }),
   buildSectorEntry("saas", {

@@ -1,0 +1,119 @@
+{
+  "_meta": {
+    "sourceFile": "AeroEventAI_NEURAL.xlsx",
+    "generatedAt": "2026-05-26",
+    "sheets": [
+      "AGENT_META",
+      "SOURCES",
+      "RULES",
+      "SCENARIOS"
+    ]
+  },
+  "data": {
+    "AGENT_META": [
+      {
+        "key": "id",
+        "value": "AM-A003"
+      },
+      {
+        "key": "slug",
+        "value": "aero-event-ai"
+      },
+      {
+        "key": "name",
+        "value": "AeroEventAI"
+      },
+      {
+        "key": "owner",
+        "value": "Événementiel / DirCom"
+      },
+      {
+        "key": "mission",
+        "value": "Générer et auditer des packs événementiels (briefs presse, posts social, talking points VIP) pour les 4 salons aéro/défense majeurs Q2-Q4 2026 : ILA Berlin (juin), Eurosatory (juin), Farnborough (juillet), MEBAA (décembre). Tonalité ASD + AI Act + multi-fuseau + multi-langue."
+      },
+      {
+        "key": "primary_rule",
+        "value": "RULE-ASD-RESPONSIBLE"
+      },
+      {
+        "key": "workbook",
+        "value": "AeroEventAI_NEURAL.xlsx"
+      },
+      {
+        "key": "kpi_1",
+        "value": "Score adaptation > 85%"
+      },
+      {
+        "key": "kpi_2",
+        "value": "Couverture 8 salons/an"
+      },
+      {
+        "key": "kpi_3",
+        "value": "Multi-langue EN/FR/DE/AR"
+      }
+    ],
+    "SOURCES": [
+      {
+        "source_id": "AM-S006",
+        "authority": "UE",
+        "domain": "Intelligence artificielle",
+        "title": "EU AI Act — UE 2024/1689 art. 50",
+        "date": "Applicable 02/08/2026",
+        "impact": "Disclosure obligatoire de tout contenu marketing IA-généré. Sanctions jusqu'à 15 M EUR / 3% CA mondial. Concerne les 4 agents Aéro/Marketing."
+      },
+      {
+        "source_id": "AM-S010",
+        "authority": "ASD Europe",
+        "domain": "Tonalité défense",
+        "title": "ASD Europe — Charter on Responsible Defence Communications",
+        "date": "mars 2025",
+        "impact": "Pas de glorification, pas de visuel choquant, contexte stratégique sourcé, pas de mention spécifique opérations en cours. Volontaire mais critique réputationnel post-Ukraine."
+      },
+      {
+        "source_id": "AM-S012",
+        "authority": "UE",
+        "domain": "Financement défense",
+        "title": "EDIP + EDF + EDIRPA + ASAP — EU Defence Industrial Strategy",
+        "date": "EDIP Reg. UE 2025/588 (mars 2025)",
+        "impact": "Si projet financé EU : mention obligatoire programme + % cofinancement. EDIP 1.5 Md EUR, EDF 8 Md EUR, ASAP étendu 2026."
+      }
+    ],
+    "RULES": [
+      {
+        "rule_id": "AM-A003-R001",
+        "agent_slug": "aero-event-ai",
+        "regle": "Regle primaire RULE-ASD-RESPONSIBLE - controle bloquant avant diffusion.",
+        "niveau": "BLOCK",
+        "source_ref": "AM-S006",
+        "lang": "fr"
+      },
+      {
+        "rule_id": "AM-A003-R002",
+        "agent_slug": "aero-event-ai",
+        "regle": "Disclosure AI Act art. 50 obligatoire sur tout contenu marketing IA-genere.",
+        "niveau": "BLOCK",
+        "source_ref": "AM-S006",
+        "lang": "fr"
+      },
+      {
+        "rule_id": "AM-A003-R003",
+        "agent_slug": "aero-event-ai",
+        "regle": "Tonalite responsable conforme ASD Europe Charter (pas de glorification).",
+        "niveau": "REVIEW",
+        "source_ref": "AM-S010",
+        "lang": "fr"
+      }
+    ],
+    "SCENARIOS": [
+      {
+        "scenario_id": "SCN-AM-003",
+        "agent_slug": "aero-event-ai",
+        "label": "Pack événementiel Farnborough 2026 — propulsion hybride régionale",
+        "input_line": "Brief : annoncer démonstrateur hybride-électrique régional. EMBARGO 20/07/2026 06:00 BST. Vol démonstration 21 juillet. Premier client UK identifié.",
+        "verdict": "OK",
+        "summary": "Pack généré pour Farnborough 2026 (20-24 juillet) : 1 brief presse EN + 5 posts LinkedIn EN/FR/DE + talking points VIP. Score adaptation 75% en v1 (BLOQUÉ AI Act manquant). Après redlines : disclosure IA ajoutée + précision LCA + version FR/DE = 92%.",
+        "metrics_json": "[{\"label\":\"Score adaptation\",\"before\":\"75%\",\"after\":\"92%\"},{\"label\":\"Variantes langues\",\"before\":\"1 (EN)\",\"after\":\"3 (EN/FR/DE)\"},{\"label\":\"Décision\",\"before\":\"BLOQUÉ\",\"after\":\"DIFFUSION OK\"}]"
+      }
+    ]
+  }
+}

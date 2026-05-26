@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-05-26",
+  "workbooks": {
+    "am-a001-tech": {
+      "file": "AeroTechContent_NEURAL.xlsx",
+      "sheets": [
+        "AGENT_META",
+        "SOURCES",
+        "RULES",
+        "SCENARIOS"
+      ],
+      "rows": {
+        "AGENT_META": 10,
+        "SOURCES": 4,
+        "RULES": 3,
+        "SCENARIOS": 1
+      }
+    },
+    "am-a002-defense": {
+      "file": "DefenseCommsGuard_NEURAL.xlsx",
+      "sheets": [
+        "AGENT_META",
+        "SOURCES",
+        "RULES",
+        "SCENARIOS"
+      ],
+      "rows": {
+        "AGENT_META": 10,
+        "SOURCES": 7,
+        "RULES": 3,
+        "SCENARIOS": 1
+      }
+    },
+    "am-a003-event": {
+      "file": "AeroEventAI_NEURAL.xlsx",
+      "sheets": [
+        "AGENT_META",
+        "SOURCES",
+        "RULES",
+        "SCENARIOS"
+      ],
+      "rows": {
+        "AGENT_META": 10,
+        "SOURCES": 3,
+        "RULES": 3,
+        "SCENARIOS": 1
+      }
+    },
+    "am-a004-sustainability": {
+      "file": "AeroSustainabilityComms_NEURAL.xlsx",
+      "sheets": [
+        "AGENT_META",
+        "SOURCES",
+        "RULES",
+        "SCENARIOS"
+      ],
+      "rows": {
+        "AGENT_META": 10,
+        "SOURCES": 4,
+        "RULES": 3,
+        "SCENARIOS": 1
+      }
+    },
+    "master": {
+      "file": "Aero_Marketing_OVERVIEW_NEURAL.xlsx",
+      "sheets": [
+        "MASTER_AGENTS",
+        "MASTER_SOURCES",
+        "MASTER_SCENARIOS",
+        "MASTER_SERVICES",
+        "MASTER_PROBLEMS"
+      ],
+      "rows": {
+        "MASTER_AGENTS": 4,
+        "MASTER_SOURCES": 12,
+        "MASTER_SCENARIOS": 4,
+        "MASTER_SERVICES": 2,
+        "MASTER_PROBLEMS": 4
+      }
+    }
+  }
+}

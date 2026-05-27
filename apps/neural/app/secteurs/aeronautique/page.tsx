@@ -47,22 +47,22 @@ const BRANCHES = [
   },
   {
     slug: "communications",
-    href: "#",
+    href: "/secteurs/aeronautique/communications",
     label: "Communications & Affaires publiques",
-    tagline: "Corporate, presse CEO, gov relations",
+    tagline: "Corporate, presse CEO, gov relations, ESG corporate",
     description:
-      "Briefs presse CEO, communications programme, relations gouvernementales, communications ESG corporate. 4 agents en cours de finalisation : AeroDefenseCommsGuard, ProgramCommsAero, GovRelationsAero, GreenAeroComms.",
+      "Briefs presse CEO, communications programme, relations gouvernementales, communications ESG corporate. 4 agents : AeroDefenseCommsGuard (ITAR/EAR/AUKUS), ProgramCommsAero (cohérence IFRS), GovRelationsAero (Transparence UE + HATVP), GreenAeroComms (CSRD + SBTi).",
     agents: [
       { icon: Briefcase,    name: "AeroDefenseCommsGuard",  tag: "Corporate defense"    },
       { icon: Briefcase,    name: "ProgramCommsAero",       tag: "Communications programme" },
       { icon: Briefcase,    name: "GovRelationsAero",       tag: "Gov relations"        },
       { icon: Briefcase,    name: "GreenAeroComms",         tag: "ESG corporate"        },
     ],
-    kpis: ["6 workbooks générés", "Foundations + Master", "À venir Q2-Q3 2026"],
+    kpis: ["4 agents documentés", "10 sources réglementaires", "22 règles encodées"],
     accent: "#0891B2",
     bg: "#0a1f24",
     cls: "branche-comms",
-    status: "COMING" as const,
+    status: "ACTIVE" as const,
   },
 ] as const;
 

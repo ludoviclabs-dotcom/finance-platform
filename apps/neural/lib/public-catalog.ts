@@ -162,22 +162,23 @@ export const SECTOR_ENTRIES: PublicEntry[] = [
     description:
       "L'aéronautique est désormais en preuve runtime : 5 workbooks Excel synchronisés vers content JSON committés, démo /api/demo/aero-export-check scénario-id only (zéro LLM, zéro texte libre), verdicts déterministes adossés à 12 sources réglementaires (ITAR, EAR, EU dual-use, OFAC, AI Act art. 50, Green Claims Directive, ReFuelEU, CSRD, ASD Charter). Branche Communications & Affaires publiques toujours en COMING.",
     readyNow:
-      "Page /secteurs/aeronautique/marketing avec ExportRuleChecker live, 5 workbooks .xlsx générés depuis le catalogue TS, JSON committés dans content/aero-marketing/, API démo POST déterministe (latence <50ms), 4 scénarios PASS/REVIEW/BLOCK et 12 sources réglementaires exposées.",
+      "Page /secteurs/aeronautique/marketing avec ExportRuleChecker live, 5 workbooks .xlsx générés depuis le catalogue TS, JSON committés dans content/aero-marketing/, API démo POST déterministe (latence <50ms), 4 scénarios PASS/REVIEW/BLOCK et 12 sources réglementaires exposées. Veille OFAC SDN active via /secteurs/aeronautique/regwatch (cron Vercel quotidien 06:00 UTC, hash SHA-256 déterministe).",
     nextStep:
-      "Ouvrir la branche Communications & Affaires publiques (corporate, gov relations) et brancher une veille DDTC/BIS/OFAC automatisée (AeroRegWatch).",
+      "Ouvrir la branche Communications & Affaires publiques (corporate, gov relations) et élargir AeroRegWatch à BIS Entity List, EU OFSI, EUR-Lex AI Act et EASA Décisions.",
     dataUsed:
-      "5 workbooks NEURAL (AeroTechContent, DefenseCommsGuard, AeroEventAI, AeroSustainabilityComms, Aero_Marketing_OVERVIEW) → JSON déterministes content/aero-marketing/* synchronisés via scripts/sync-aero-marketing.ts.",
+      "5 workbooks NEURAL (AeroTechContent, DefenseCommsGuard, AeroEventAI, AeroSustainabilityComms, Aero_Marketing_OVERVIEW) → JSON déterministes content/aero-marketing/* synchronisés via scripts/sync-aero-marketing.ts. AeroRegWatch persiste les snapshots OFAC dans Upstash Redis.",
     deliverable:
-      "Page live /secteurs/aeronautique/marketing + composant ExportRuleChecker + API /api/demo/aero-export-check + 5 workbooks .xlsx auditables.",
+      "Page live /secteurs/aeronautique/marketing + composant ExportRuleChecker + API /api/demo/aero-export-check + 5 workbooks .xlsx auditables + cron /api/cron/aero-regwatch + page /secteurs/aeronautique/regwatch.",
     ctaHref: "/secteurs/aeronautique/marketing",
     ctaLabel: "Tester l'ExportRuleChecker aéro",
     scopeNow: [
       "Expose 4 agents marketing aéro avec workbooks runtime parsés et JSON committés.",
       "Démo scénario-id only — zéro texte libre, zéro appel LLM côté serveur.",
       "Trace verdict, règles déclenchées et sources réglementaires pour chaque scénario.",
+      "Veille OFAC SDN quotidienne avec hash SHA-256 et historique persistant.",
     ],
     notYet: [
-      "Pas encore de veille DDTC/BIS/OFAC automatisée (RegWatch en planning).",
+      "AeroRegWatch ne couvre qu'OFAC SDN — BIS Entity List, UK OFSI, EUR-Lex AI Act et EASA Décisions à venir.",
       "Pas de branche Communications & Affaires publiques publiée.",
       "Pas d'EvidenceGuard signé SHA-256 exposé publiquement.",
     ],

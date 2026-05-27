@@ -210,6 +210,26 @@ export default function AeronautiquePage() {
           </div>
         </section>
 
+        {/* ── REGWATCH TEASER ─────────────────────────── */}
+        <section style={{ paddingBottom: "40px" }}>
+          <Link
+            href="/secteurs/aeronautique/regwatch"
+            style={{ textDecoration: "none", display: "block" }}
+          >
+            <div style={{ background: "rgba(124,58,237,.06)", border: "1px solid rgba(124,58,237,.25)", borderRadius: "16px", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", color: "#a78bfa", textTransform: "uppercase", marginBottom: "4px" }}>
+                  AeroRegWatch · cron Vercel quotidien
+                </div>
+                <div style={{ fontSize: "15px", fontWeight: 600, color: "#f1f5f9" }}>
+                  Veille OFAC SDN active : hash SHA-256, historique persistant, alertes aux agents.
+                </div>
+              </div>
+              <span style={{ color: "#a78bfa", fontSize: "14px", fontWeight: 600 }}>Ouvrir →</span>
+            </div>
+          </Link>
+        </section>
+
         {/* ── FOOTER NAV ──────────────────────────────── */}
         <section style={{ borderTop: "1px solid rgba(124,58,237,.2)", padding: "40px 0", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
           <Link href="/secteurs" style={{ color: "#64748b", textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>

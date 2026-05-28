@@ -12,18 +12,24 @@ export default function MentionsLegalesPage() {
       <Section title="Éditeur du site">
         <p>
           Le présent site est édité par <strong>CarbonCo</strong>, plateforme de pilotage
-          ESG &amp; CSRD.
+          ESG &amp; CSRD. Le projet est porté par une société en cours d'immatriculation au
+          Registre du Commerce et des Sociétés français.
         </p>
         <p>
-          Les informations légales détaillées (raison sociale, forme juridique, capital social,
-          numéro RCS, siège social, numéro de TVA intracommunautaire) seront publiées lors de la
-          mise en service commerciale de la plateforme.
+          Les informations légales détaillées (raison sociale définitive, forme juridique,
+          capital social, numéro RCS, siège social, numéro de TVA intracommunautaire) seront
+          publiées sur cette page dès l'enregistrement effectif de la société, prévu en 2026.
+          Dans l'intervalle, toute demande d'information juridique précontractuelle peut être
+          adressée à <strong>contact@carbonco.fr</strong> et obtient une réponse sous 5 jours
+          ouvrés.
         </p>
       </Section>
 
       <Section title="Directeur de la publication">
         <p>
-          Le directeur de la publication est le représentant légal de la société éditrice.
+          Le directeur de la publication est le fondateur du projet CarbonCo. Identité
+          complète publiée à l'enregistrement de la société. Contact :{" "}
+          <a href="mailto:contact@carbonco.fr">contact@carbonco.fr</a>.
         </p>
       </Section>
 

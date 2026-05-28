@@ -78,7 +78,7 @@ function Page({
       <div className="text-neutral-700 leading-relaxed">{children}</div>
       <footer className="mt-12 pt-4 border-t border-neutral-200 flex justify-between text-[10px] text-neutral-400">
         <span>carbonco.fr · contact@carbonco.fr</span>
-        <span>Édition 2026 · Confidentiel</span>
+        <span>Édition 2026</span>
       </footer>
     </section>
   );

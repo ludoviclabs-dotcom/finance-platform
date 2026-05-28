@@ -48,7 +48,7 @@ export default function Image() {
             marginTop: "30px",
           }}
         >
-          ESRS E1 - Scope 1 2 3 - Infrastructure EU
+          ESRS E1 - Scope 1 2 3 - Données métier en zone UE
         </div>
       </div>
     ),

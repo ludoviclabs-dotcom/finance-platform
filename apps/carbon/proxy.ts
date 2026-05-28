@@ -64,6 +64,9 @@ function buildCsp(): string {
     "https://*.vercel.sh",
     "https://ai-gateway.vercel.sh",
     "https://api.anthropic.com",
+    // Vercel Analytics & Speed Insights — pixel et data ingestion
+    "https://vitals.vercel-insights.com",
+    "https://va.vercel-scripts.com",
     isDev ? "ws://localhost:*" : null,
     isDev ? "http://localhost:*" : null,
   ]

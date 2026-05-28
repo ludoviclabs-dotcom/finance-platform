@@ -46,7 +46,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
     category: "CSRD",
     question: "Mon ETI est-elle concernée par la CSRD ?",
     answer:
-      "Vague 2 (publication 2027 sur exercice 2026) : entreprises dépassant 2 des 3 seuils suivants — 250 salariés, 50 M€ de chiffre d'affaires, 25 M€ de bilan. Vague 3 (publication 2028) : PME cotées et autres entités d'intérêt public. Si vous êtes filiale d'un groupe coté UE, vous reportez via la consolidation mère.",
+      "Calendrier post stop-the-clock (Directive UE 2025/794) : Vague 2 reportée à publication 2028 sur exercice 2027 — grandes entreprises dépassant 2 des 3 seuils 250 salariés / 50 M€ CA / 25 M€ bilan. Vague 3 à publication 2029 sur exercice 2028 — PME cotées et autres entités d'intérêt public. Si vous êtes filiale d'un groupe coté UE, vous reportez via la consolidation mère. Les seuils peuvent évoluer en cas d'adoption définitive du paquet Omnibus.",
   },
   {
     id: "scope-3-categorie-importante",

@@ -1,36 +1,13 @@
 import type { Metadata } from "next";
+import { ENDPOINTS } from "@/lib/openapi";
 
 export const metadata: Metadata = {
   title: "Documentation API — CarbonCo",
   description:
     "Référence des endpoints REST CarbonCo : authentification, datapoints, RAG, copilote IA, " +
-    "Stripe et invitations.",
+    "Stripe et invitations. Spécification OpenAPI 3.1 disponible.",
   alternates: { canonical: "https://carbonco.fr/dev" },
 };
-
-interface Endpoint {
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  path: string;
-  scope: string;
-  auth: "Bearer" | "Public" | "Webhook";
-  blurb: string;
-}
-
-const ENDPOINTS: readonly Endpoint[] = [
-  { method: "POST", path: "/api/copilot",                 scope: "Copilote IA", auth: "Bearer", blurb: "Streaming Anthropic. Body : messages[]. Retourne SSE." },
-  { method: "POST", path: "/api/upload",                  scope: "Ingestion",   auth: "Bearer", blurb: "Upload Excel/Word/PDF. multipart/form-data." },
-  { method: "POST", path: "/api/rag/upload",              scope: "RAG",         auth: "Bearer", blurb: "Indexation document dans Upstash Vector." },
-  { method: "POST", path: "/api/rag/ingest",              scope: "RAG",         auth: "Bearer", blurb: "Re-ingestion d'un corpus existant." },
-  { method: "POST", path: "/api/rag/search",              scope: "RAG",         auth: "Bearer", blurb: "Recherche sémantique sur la base ESRS." },
-  { method: "POST", path: "/api/datapoints/extract",      scope: "Datapoints",  auth: "Bearer", blurb: "Extraction LLM de datapoints depuis un document." },
-  { method: "GET",  path: "/api/datapoints/list",         scope: "Datapoints",  auth: "Bearer", blurb: "Lecture des datapoints du tenant courant." },
-  { method: "POST", path: "/api/value-mapping-variant",   scope: "ESG",         auth: "Bearer", blurb: "Variantes de mapping de la chaîne de valeur." },
-  { method: "POST", path: "/api/invites",                 scope: "Utilisateurs", auth: "Bearer", blurb: "Crée un lien d'invitation signé. Capacité : manage:users." },
-  { method: "POST", path: "/api/stripe/checkout",         scope: "Billing",     auth: "Public", blurb: "Crée une session Stripe Checkout. Body : { plan, customerEmail }." },
-  { method: "POST", path: "/api/stripe/portal",           scope: "Billing",     auth: "Bearer", blurb: "Crée une session de portail client Stripe." },
-  { method: "POST", path: "/api/stripe/webhook",          scope: "Billing",     auth: "Webhook", blurb: "Réception des évènements Stripe (signature v1 SHA-256)." },
-  { method: "POST", path: "/api/csp-report",              scope: "Sécurité",    auth: "Public", blurb: "Réception des rapports de violation CSP." },
-];
 
 export default function DevDocPage() {
   return (
@@ -120,7 +97,11 @@ export default function DevDocPage() {
         </section>
 
         <p className="mt-12 text-xs text-neutral-400">
-          Spécification OpenAPI 3.1 prochainement publiée à <code>/api/openapi.json</code>.
+          Spécification OpenAPI 3.1 disponible à{" "}
+          <a href="/api/openapi" className="underline hover:text-neutral-700">
+            <code>/api/openapi</code>
+          </a>
+          {" "}— consommable directement par Postman, Insomnia, Swagger Editor ou Stoplight.
           Pour toute question : <a href="mailto:contact@carbonco.fr" className="underline">contact@carbonco.fr</a>.
         </p>
       </div>

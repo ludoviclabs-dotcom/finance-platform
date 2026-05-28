@@ -132,10 +132,10 @@ const STATUS_SECTIONS: Array<{
     dot: "bg-neutral-300",
     features: [
       {
-        title: "Connecteurs ERP natifs",
+        title: "Connecteurs ERP additionnels",
         description:
-          "Connexions directes aux principaux ERP du marché (SAP ECC/S4HANA, Oracle, Sage, Cegid, Microsoft Dynamics). Synchronisation automatique des données sans manipulation manuelle de fichiers. Priorité SAP si un client industriel le demande.",
-        tag: "SAP · Oracle · Sage · Cegid",
+          "Connecteurs Sage, Cegid et SAP S/4HANA déjà disponibles (voir /integrations). Sur la roadmap : Oracle NetSuite/Fusion, Workday Financials, Microsoft Dynamics 365 avancé (le connecteur actuel est en beta), et synchronisation événementielle temps réel. Priorité fixée selon les demandes clients.",
+        tag: "Oracle · Workday · Dynamics avancé",
       },
       {
         title: "Export iXBRL ESRS",

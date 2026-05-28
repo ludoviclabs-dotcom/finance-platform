@@ -52,19 +52,21 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
           {/* Orbs */}
           <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] rounded-full bg-green-600/10 blur-[120px] animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-cyan-500/8 blur-[100px] animate-pulse [animation-delay:3s]" />
-          {/* Points décoratifs */}
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 rounded-full bg-green-400/30"
-              style={{
-                left: `${10 + (i * 37) % 80}%`,
-                top: `${5 + (i * 53) % 90}%`,
-              }}
-              animate={{ opacity: [0.2, 0.8, 0.2] }}
-              transition={{ duration: 3 + (i % 3), repeat: Infinity, delay: i * 0.3 }}
-            />
-          ))}
+          {/* Points décoratifs — purement visuels, masqués aux technologies d'assistance */}
+          <div aria-hidden="true">
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 rounded-full bg-green-400/30"
+                style={{
+                  left: `${10 + (i * 37) % 80}%`,
+                  top: `${5 + (i * 53) % 90}%`,
+                }}
+                animate={{ opacity: [0.2, 0.8, 0.2] }}
+                transition={{ duration: 3 + (i % 3), repeat: Infinity, delay: i * 0.3 }}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Logo */}
@@ -113,7 +115,7 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
               {[
                 { icon: CheckCircle, text: "Couverture prioritaire ESRS E1 + ESRS 1&2", color: "text-green-400" },
                 { icon: Shield, text: "Audit trail append-only · hash SHA-256 chaîné", color: "text-cyan-400" },
-                { icon: Lock, text: "Infrastructure EU (Vercel) · chiffrement TLS 1.3", color: "text-green-400" },
+                { icon: Lock, text: "Données métier zone UE (Neon Postgres) · TLS 1.3", color: "text-green-400" },
               ].map(({ icon: Icon, text, color }) => (
                 <div key={text} className="flex items-center gap-3">
                   <Icon className={`w-5 h-5 ${color} flex-shrink-0`} />
@@ -265,22 +267,22 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
               className="w-full py-3 rounded-xl border border-white/20 text-white font-semibold text-sm hover:bg-white/10 transition-all hover:scale-[1.01] cursor-pointer flex items-center justify-center gap-2"
             >
               Accès démo (sans compte)
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
 
           {/* Trust signals */}
           <div className="mt-6 flex items-center justify-center gap-6 flex-wrap">
             <div className="flex items-center gap-1.5 text-white/30">
-              <span className="text-base">🇫🇷</span>
-              <span className="text-xs">Hébergé en France</span>
+              <span className="text-base" aria-hidden="true">🇪🇺</span>
+              <span className="text-xs">Données zone UE (Neon)</span>
             </div>
             <div className="flex items-center gap-1.5 text-white/30">
-              <Lock className="w-3.5 h-3.5" />
+              <Lock className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="text-xs">AES-256</span>
             </div>
             <div className="flex items-center gap-1.5 text-white/30">
-              <CheckCircle className="w-3.5 h-3.5" />
+              <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="text-xs">RGPD natif</span>
             </div>
           </div>

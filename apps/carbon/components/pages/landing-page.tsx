@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   PremiumDashboardMockup,
   PREMIUM_DASHBOARD_HOTSPOTS,
@@ -16,6 +16,7 @@ import { Testimonials } from "../landing/testimonials";
 import { CompetitorComparison } from "../landing/competitor-comparison";
 import { RoiCalculator } from "../landing/roi-calculator";
 import { NewsletterForm } from "../landing/newsletter-form";
+import { useAnalytics } from "@/lib/hooks/use-analytics";
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -55,14 +56,20 @@ function useReveal(threshold = 0.15) {
 
 function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const { ref, visible } = useReveal();
+  const prefersReducedMotion = useReducedMotion();
+  // Quand l'utilisateur a activé prefers-reduced-motion (réglage OS), on saute
+  // l'animation : le contenu est visible immédiatement, sans transition.
+  const shown = prefersReducedMotion || visible;
   return (
     <div
       ref={ref}
       className={className}
       style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(32px)",
-        transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
+        opacity: shown ? 1 : 0,
+        transform: shown ? "translateY(0)" : "translateY(32px)",
+        transition: prefersReducedMotion
+          ? "none"
+          : `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
       }}
     >
       {children}
@@ -101,6 +108,7 @@ function CountUp({ target, suffix = "", decimals = 0, duration = 1800 }: { targe
 
 /* ── Dashboard Showcase (Premium mockup + hotspots) ── */
 function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
+  const { track } = useAnalytics();
   return (
     <section className="py-32 px-8 md:px-12 bg-[#f9f9fb] overflow-hidden">
       <div className="max-w-[1440px] mx-auto">
@@ -144,7 +152,7 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         {/* Feature cards under dashboard */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-12 md:mt-16 max-w-5xl mx-auto">
           {[
-            { icon: "🔗", title: "Collecte structurée", desc: "Import Excel guidé, factures énergie, API REST. Connecteurs ERP en roadmap." },
+            { icon: "🔗", title: "Collecte structurée", desc: "Import Excel guidé, factures énergie, API REST. Connecteurs Sage, Cegid et SAP S/4HANA disponibles." },
             { icon: "📐", title: "Calcul GHG Protocol", desc: "Methodologie certifiee Scopes 1, 2, 3" },
             { icon: "🤖", title: "IA Recommandations", desc: "Plans d'action personnalises et priorises" },
             { icon: "📄", title: "Rapports conformes", desc: "CSRD, CDP, Bilan Carbone en 1 clic" },
@@ -163,8 +171,14 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
 
         {/* CTA */}
         <Reveal delay={0.3} className="text-center mt-12">
-          <button onClick={onEnterApp} className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
-            Explorer le dashboard →
+          <button
+            onClick={() => {
+              track("trial_started", { source: "dashboard_showcase_cta" });
+              onEnterApp();
+            }}
+            className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+          >
+            Explorer le dashboard <span aria-hidden="true">→</span>
           </button>
           <p className="text-xs text-neutral-400 mt-3">Essai gratuit 14 jours · Aucune carte requise</p>
         </Reveal>
@@ -297,6 +311,7 @@ const PRODUCT_DEMO_STEPS: DemoStep[] = [
 ];
 
 function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
+  const { track } = useAnalytics();
   const [activeDemoStep, setActiveDemoStep] = useState(0);
   const [autoplayPaused, setAutoplayPaused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -407,7 +422,10 @@ function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
             <div className="grid sm:grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={onEnterApp}
+                onClick={() => {
+                  track("trial_started", { source: "product_demo_primary" });
+                  onEnterApp();
+                }}
                 data-analytics="demo-primary-cta"
                 className="rounded-2xl bg-white text-black px-5 py-4 text-sm font-extrabold hover:bg-neutral-100 transition-colors cursor-pointer"
               >
@@ -509,7 +527,15 @@ function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
 
 /* ══════════════════════════════════════════════════════════ */
 export function LandingPage({ onEnterApp }: LandingPageProps) {
+  const { track } = useAnalytics();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Helper : track + enter — wrap onEnterApp avec un événement analytics.
+  // Le source est passé explicitement pour distinguer hero / header / pricing / etc.
+  const trackedEnter = (source: string, event: "demo_requested" | "trial_started" = "trial_started") => () => {
+    track(event, { source });
+    onEnterApp();
+  };
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -552,10 +578,10 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
 
           <div className="hidden xl:flex items-center gap-3">
-            <button onClick={onEnterApp} className="border border-neutral-300 text-black px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-50 transition-colors cursor-pointer">
+            <button onClick={trackedEnter("header_login")} className="border border-neutral-300 text-black px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-50 transition-colors cursor-pointer">
               Se connecter
             </button>
-            <button onClick={onEnterApp} className="bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-neutral-800 transition-colors cursor-pointer">
+            <button onClick={trackedEnter("header_trial")} className="bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-neutral-800 transition-colors cursor-pointer">
               Essai gratuit — 14j
             </button>
           </div>
@@ -583,8 +609,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               )
             ))}
             <div className="flex gap-3 mt-4">
-              <button onClick={onEnterApp} className="flex-1 border border-neutral-300 text-black py-3 rounded-xl font-semibold text-sm cursor-pointer">Se connecter</button>
-              <button onClick={onEnterApp} className="flex-1 bg-black text-white py-3 rounded-xl font-bold text-sm cursor-pointer">Essai gratuit</button>
+              <button onClick={trackedEnter("mobile_menu_login")} className="flex-1 border border-neutral-300 text-black py-3 rounded-xl font-semibold text-sm cursor-pointer">Se connecter</button>
+              <button onClick={trackedEnter("mobile_menu_trial")} className="flex-1 bg-black text-white py-3 rounded-xl font-bold text-sm cursor-pointer">Essai gratuit</button>
             </div>
           </div>
         </div>
@@ -618,11 +644,11 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
 
               <p className="text-xl text-neutral-500 max-w-lg mb-10 leading-relaxed">
                 Collectez, analysez et générez vos rapports ESRS en quelques clics — pas en quelques mois.
-                Hébergé sur infrastructure EU (Vercel), IA assistant CSRD.
+                Application Vercel · base de données Neon en zone UE · copilote IA assistant CSRD.
               </p>
 
               <div className="flex flex-wrap gap-4 mb-10">
-                <button onClick={onEnterApp} className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
+                <button onClick={trackedEnter("hero_primary")} className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
                   Démarrer gratuitement — 14 jours
                 </button>
                 <a href="#video-section" className="flex items-center gap-2.5 bg-neutral-100 text-black px-7 py-4 rounded-full font-bold text-base transition-all duration-200 hover:bg-neutral-200 hover:scale-105">
@@ -635,8 +661,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
 
               <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-400">
                 <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Aucune carte bancaire</span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>ESRS Set 2 complet + iXBRL ESEF</span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Infrastructure EU (Vercel/Neon)</span>
+                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>ESRS Set 2 — voir <Link href="/couverture" className="underline hover:text-neutral-600">couverture</Link></span>
+                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Données métier en zone UE (Neon Postgres)</span>
               </div>
             </Reveal>
 
@@ -755,7 +781,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                     ["Données centralisées via import Excel structuré", "Modèle téléchargeable, named ranges contrôlés, validation stricte"],
                     ["Collecte assistée par copilote NEURAL", "Réduction du temps de reporting estimée — résultats variables selon taille"],
                     ["Audit trail append-only signé SHA-256", "Chaque donnée tracée avec sa source, méthode et hash de chaîne"],
-                    ["ESRS Set 2 complet (E1-E5, S1-S4, G1) + export iXBRL ESEF", "127 datapoints couverts, validator audit-grade 30+ règles, export conforme EFRAG 2024"],
+                    ["ESRS Set 2 — 10 standards référencés (E1-E5, S1-S4, G1) + iXBRL ESEF en beta", "Moteur 127 datapoints (taxonomie EFRAG 2024). Couverture commerciale par paliers — voir /couverture pour le statut Live / Beta / Planifié par standard. Validator 30+ règles."],
                     ["Rapports PDF + Evidence Pack ZIP signé", "Vérifiable publiquement via /verify/{hash} — sans aucun outil tiers"],
                     ["Scope 3 fournisseurs via questionnaire public", "Liens partagés sans compte requis — réponses intégrées au bilan"],
                     ["Facteurs d'émission ADEME Base Empreinte® 2025", "502 facteurs versionnés, traçabilité par fact_id"],
@@ -823,9 +849,9 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   color: "green", icon: (
                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
                   ),
-                  title: "ESRS Set 2 complet",
-                  desc: "10 standards ESRS (E1-E5, S1-S4, G1) avec 127 datapoints, validator audit-grade 30+ règles et export iXBRL ESEF conforme EFRAG.",
-                  highlights: ["127 datapoints Set 2", "Validator audit-grade", "Export iXBRL ESEF"],
+                  title: "ESRS Set 2 — moteur complet",
+                  desc: "10 standards référencés (E1-E5, S1-S4, G1), moteur 127 datapoints (taxonomie EFRAG 2024). Couverture commerciale Live / Beta / Planifié par standard — voir /couverture. Validator 30+ règles, export iXBRL ESEF en beta.",
+                  highlights: ["127 datapoints (moteur)", "Validator 30+ règles", "iXBRL ESEF (beta)"],
                 },
               ].map((card, i) => {
                 const bgMap: Record<string,string> = { blue: "bg-blue-50", purple: "bg-purple-50", orange: "bg-orange-50", green: "bg-green-50" };
@@ -851,7 +877,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             {/* Feature highlight secondaire */}
             <div className="grid md:grid-cols-3 gap-6 mt-8">
               {[
-                { emoji: "🔌", title: "Import & API", desc: "Import Excel structuré · API REST · Connecteurs ERP en roadmap" },
+                { emoji: "🔌", title: "Import & API", desc: "Import Excel structuré · API REST · Connecteurs Sage, Cegid, SAP S/4HANA disponibles" },
                 { emoji: "🛡️", title: "Audit trail complet", desc: "Validator 30+ règles, review datapoint par datapoint, score audit 0-100" },
                 { emoji: "📊", title: "Benchmark sectoriel", desc: "Comparez-vous aux leaders de votre industrie" },
                 { emoji: "🌐", title: "Multi-sites & filiales", desc: "Consolidation automatique des données groupe" },
@@ -900,7 +926,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   icon: "🏭",
                   context: "ETI industrielle (~800 salariés, 3 sites de production). Fournisseur de donneurs d'ordre soumis à la CSRD.",
                   challenge: "Collecter les émissions Scope 3 amont (achats matières premières, transport) et répondre aux questionnaires ESG de ses clients grands comptes.",
-                  fit: ["Import Excel des factures énergie", "Calcul Scope 3 fournisseurs", "Export iXBRL ESEF Set 2 complet pour auditeur"],
+                  fit: ["Import Excel des factures énergie", "Calcul Scope 3 fournisseurs", "Export iXBRL ESEF Set 2 en beta pour pré-tagging auditeur"],
                   tag: "Scénario illustratif",
                 },
                 {
@@ -908,7 +934,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   icon: "🏢",
                   context: "PME de services (~120 salariés, siège unique). Reporting CSRD volontaire pour répondre aux appels d'offres publics.",
                   challenge: "Structurer un premier bilan carbone fiable sans expertise interne, avec un budget limité.",
-                  fit: ["Bilan carbone Scope 1 & 2 guidé", "Copilote IA pour les 10 standards ESRS", "Export PDF + iXBRL avec score audit"],
+                  fit: ["Bilan carbone Scope 1 & 2 guidé", "Copilote IA sourcé sur le corpus ESRS Set 2", "Export PDF audit-grade + iXBRL en beta"],
                   tag: "Scénario illustratif",
                 },
                 {
@@ -1014,14 +1040,14 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-black mb-1">490 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
                 <p className="text-neutral-500 text-sm mb-8">Pour PME en standard <strong>VSME</strong> volontaire ou préparation CSRD post-Omnibus</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1 & 2", "ESRS Set 2 complet (10 standards)", "1 utilisateur", "Export PDF + iXBRL ESEF", "Support email (lun–ven, 9h–18h)"].map((f) => (
+                  {["Scope 1 & 2", "ESRS Set 2 — 10 standards référencés · couverture commerciale par paliers", "1 utilisateur", "Export PDF audit-grade · iXBRL ESEF en beta", "Support email (lun–ven, 9h–18h)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
                     </li>
                   ))}
                 </ul>
-                <button onClick={onEnterApp} className="w-full bg-neutral-100 text-black py-3 rounded-xl font-bold text-sm hover:bg-neutral-200 transition-colors cursor-pointer">
+                <button onClick={trackedEnter("pricing_starter")} className="w-full bg-neutral-100 text-black py-3 rounded-xl font-bold text-sm hover:bg-neutral-200 transition-colors cursor-pointer">
                   Commencer l&apos;essai
                 </button>
               </Reveal>
@@ -1035,14 +1061,14 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-black mb-1">1 290 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
                 <p className="text-neutral-500 text-sm mb-8">Pour ETI fournisseurs de grands comptes soumis à la CSRD</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1, 2 & 3", "ESRS Set 2 complet + validator audit-grade", "5 utilisateurs", "Copilote IA avec citations ESRS sourcées", "Export iXBRL ESEF + audit trail", "API REST + import Excel structuré", "Support email prioritaire (lun–ven)"].map((f) => (
+                  {["Scope 1, 2 & 3", "ESRS Set 2 — validator 30+ règles · couverture par paliers (voir /couverture)", "5 utilisateurs", "Copilote IA avec citations ESRS sourcées", "Export PDF audit-grade · iXBRL ESEF en beta · audit trail SHA-256", "API REST + import Excel structuré · connecteurs Sage / Cegid / SAP", "Support email prioritaire (lun–ven)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
                     </li>
                   ))}
                 </ul>
-                <button onClick={onEnterApp} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 transition-colors cursor-pointer">
+                <button onClick={trackedEnter("pricing_business")} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 transition-colors cursor-pointer">
                   Démarrer l&apos;essai gratuit
                 </button>
               </Reveal>
@@ -1053,7 +1079,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-white mb-1">À partir de 35&nbsp;k€<span className="text-base font-medium text-neutral-400">/an</span></div>
                 <p className="text-neutral-400 text-sm mb-8">Pour grands groupes multi-sites — fourchette indicative 35–120 k€/an selon périmètre, nombre de filiales et SLA.</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1, 2, 3 + CBAM", "ESRS Set 2 complet + iXBRL ESEF audit-grade", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "Validator 30+ règles + review datapoints", "Multi-sites & filiales", "SSO & RBAC", "Onboarding accompagné"].map((f) => (
+                  {["Scope 1, 2, 3 + CBAM", "ESRS Set 2 — couverture étendue par paliers · iXBRL ESEF en beta", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "Validator 30+ règles + review datapoint par datapoint", "Multi-sites & filiales", "SSO & RBAC", "Onboarding accompagné"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-300">
                       <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1099,7 +1125,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   Le <strong className="text-neutral-800">règlement DORA et les exigences CSRD</strong> imposent une traçabilité totale des données extra-financières déclarées. Chaque chiffre publié dans votre rapport doit pouvoir être justifié devant un commissaire aux comptes ou un OTI (Organisme Tiers Indépendant).
                 </p>
                 <p>
-                  CarbonCo est conçu pour ce contexte : <strong className="text-neutral-800">infrastructure hébergée en Europe</strong> (Vercel EU, base de données Neon), chiffrement TLS 1.3 en transit, AES-256 au repos, audit trail immuable et traitement prioritaire en UE via Vercel AI Gateway.
+                  CarbonCo est conçu pour ce contexte : <strong className="text-neutral-800">données métier hébergées en zone UE</strong> (Neon Postgres eu-central-1), application Vercel (CDN mondial, fonctions par défaut US — voir <Link href="/trust" className="underline">Trust Center</Link>), chiffrement TLS 1.3 en transit, AES-256 au repos, audit trail immuable et traitement IA prioritaire en UE via Vercel AI Gateway.
                 </p>
               </div>
             </Reveal>
@@ -1140,10 +1166,10 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               Rejoignez les pionniers qui structurent leur conformité CSRD dès maintenant — avant que vos concurrents ne le fassent.
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
-              <button onClick={onEnterApp} className="bg-white text-black px-12 py-5 rounded-full font-extrabold text-lg hover:bg-neutral-200 transition-colors cursor-pointer hover:scale-105 transition-transform">
-                Demander une démo →
+              <button onClick={trackedEnter("cta_final_demo", "demo_requested")} className="bg-white text-black px-12 py-5 rounded-full font-extrabold text-lg hover:bg-neutral-200 transition-colors cursor-pointer hover:scale-105 transition-transform">
+                Demander une démo <span aria-hidden="true">→</span>
               </button>
-              <button onClick={onEnterApp} className="border-2 border-white/40 text-white px-12 py-5 rounded-full font-bold text-lg hover:border-white hover:bg-white/10 transition-colors cursor-pointer">
+              <button onClick={trackedEnter("cta_final_signup")} className="border-2 border-white/40 text-white px-12 py-5 rounded-full font-bold text-lg hover:border-white hover:bg-white/10 transition-colors cursor-pointer">
                 Créer un compte gratuit
               </button>
             </div>
@@ -1168,7 +1194,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <p className="text-sm text-neutral-500 mb-4 leading-relaxed">La conformité ESG & CSRD, simplifiée par l&apos;intelligence artificielle.</p>
               <div className="flex items-center gap-2 text-xs text-neutral-400">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
-                <span>Infrastructure EU (Vercel/Neon) · TLS 1.3 · <Link href="/trust" className="underline hover:text-black">Trust Center</Link></span>
+                <span>Données métier zone UE (Neon Postgres) · TLS 1.3 · <Link href="/trust" className="underline hover:text-black">Trust Center</Link></span>
               </div>
             </div>
             <div>
@@ -1198,7 +1224,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <li><a href="/blog" className="text-sm text-neutral-500 hover:text-black transition-colors">Blog CSRD &amp; ESG</a></li>
                 <li><a href="/guide-csrd-2027" className="text-sm text-neutral-500 hover:text-black transition-colors">Guide CSRD 2027</a></li>
                 <li><a href="/aide" className="text-sm text-neutral-500 hover:text-black transition-colors">Centre d&apos;aide</a></li>
-                <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure (PDF)</a></li>
+                <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure (imprimable)</a></li>
                 <li><a href="/mentions-legales" className="text-sm text-neutral-500 hover:text-black transition-colors">Mentions légales</a></li>
                 <li><a href="/confidentialite" className="text-sm text-neutral-500 hover:text-black transition-colors">Confidentialité</a></li>
                 <li><a href="/cgu" className="text-sm text-neutral-500 hover:text-black transition-colors">CGU</a></li>
@@ -1207,8 +1233,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             </div>
           </div>
           <div className="border-t border-neutral-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-neutral-400">© 2026 CarbonCo SAS. Tous droits réservés. RGPD · Hébergement EU · <a href="/etat-du-produit" className="hover:text-black underline">État réel du produit</a></p>
-            <p className="text-xs text-neutral-400">Conçu à Paris · Hébergé en EU (Vercel/Neon) · Made with 💚</p>
+            <p className="text-xs text-neutral-400">© 2026 CarbonCo SAS. Tous droits réservés. RGPD · Données métier en zone UE · <a href="/etat-du-produit" className="hover:text-black underline">État réel du produit</a></p>
+            <p className="text-xs text-neutral-400">Conçu à Paris · Base de données Neon Postgres en zone UE · Made with 💚</p>
           </div>
         </div>
       </footer>

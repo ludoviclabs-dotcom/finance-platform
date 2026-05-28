@@ -349,7 +349,10 @@ function PublicShell({ children, title }: { children: React.ReactNode; title: st
 
         <p className="mt-6 text-center text-xs text-[var(--color-foreground-muted)]">
           Propulsé par{" "}
-          <a href="https://carbon-snowy-nine.vercel.app" className="text-carbon-emerald hover:underline">
+          <a
+            href={process.env.NEXT_PUBLIC_SITE_URL ?? "https://carbonco.fr"}
+            className="text-carbon-emerald hover:underline"
+          >
             CarbonCo
           </a>{" "}
           — Plateforme de reporting ESG & Bilan Carbone

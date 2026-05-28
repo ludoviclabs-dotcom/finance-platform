@@ -46,7 +46,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/mentions-legales`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  return [...corePages, ...blogPages, ...productPages, ...legalPages].map((entry) => ({
+  // —— Pages Trust & AI Act ——
+  const trustPages: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/trust`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/trust/sub-processors`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/trust/exit-strategy`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/ai-act`, changeFrequency: "monthly", priority: 0.6 },
+  ];
+
+  return [...corePages, ...blogPages, ...productPages, ...legalPages, ...trustPages].map((entry) => ({
     lastModified: now,
     ...entry,
   }));

@@ -12,9 +12,14 @@
  *   - Coût CarbonCo = forfait annuel selon plan détecté (FTE)
  *
  * Le composant ne stocke rien et n'envoie rien à un serveur — calcul 100 % côté client.
+ *
+ * Accessibilité :
+ *   - Chaque champ a un htmlFor explicite via useId (labels associés sans nesting).
+ *   - Le bloc résultat est annoncé via aria-live="polite" pour les lecteurs d'écran
+ *     lors d'un changement de valeur.
  */
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 type Sector = "industrie" | "services" | "agro" | "btp" | "distribution";
 type Scope3Complexity = "simple" | "medium" | "complex";
@@ -124,57 +129,69 @@ export function RoiCalculator() {
         {/* Inputs */}
         <div className="space-y-5">
           <Field label="Effectif total (FTE)">
-            <input
-              type="number"
-              min={10}
-              max={5000}
-              value={inputs.fte}
-              onChange={(e) =>
-                setInputs((s) => ({ ...s, fte: Math.max(10, parseInt(e.target.value) || 0) }))
-              }
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none"
-            />
+            {(id) => (
+              <input
+                id={id}
+                type="number"
+                min={10}
+                max={5000}
+                value={inputs.fte}
+                onChange={(e) =>
+                  setInputs((s) => ({ ...s, fte: Math.max(10, parseInt(e.target.value) || 0) }))
+                }
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none"
+              />
+            )}
           </Field>
 
           <Field label="Nombre de sites / établissements">
-            <input
-              type="number"
-              min={1}
-              max={100}
-              value={inputs.sites}
-              onChange={(e) =>
-                setInputs((s) => ({ ...s, sites: Math.max(1, parseInt(e.target.value) || 0) }))
-              }
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none"
-            />
+            {(id) => (
+              <input
+                id={id}
+                type="number"
+                min={1}
+                max={100}
+                value={inputs.sites}
+                onChange={(e) =>
+                  setInputs((s) => ({ ...s, sites: Math.max(1, parseInt(e.target.value) || 0) }))
+                }
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none"
+              />
+            )}
           </Field>
 
           <Field label="Secteur">
-            <select
-              value={inputs.sector}
-              onChange={(e) =>
-                setInputs((s) => ({ ...s, sector: e.target.value as Sector }))
-              }
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none bg-white"
-            >
-              {Object.entries(SECTOR_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
+            {(id) => (
+              <select
+                id={id}
+                value={inputs.sector}
+                onChange={(e) =>
+                  setInputs((s) => ({ ...s, sector: e.target.value as Sector }))
+                }
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none bg-white"
+              >
+                {Object.entries(SECTOR_LABELS).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+            )}
           </Field>
 
           <Field label="Complexité Scope 3">
-            <select
-              value={inputs.scope3}
-              onChange={(e) =>
-                setInputs((s) => ({ ...s, scope3: e.target.value as Scope3Complexity }))
-              }
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none bg-white"
-            >
-              {Object.entries(SCOPE3_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
+            {(id) => (
+              <select
+                id={id}
+                value={inputs.scope3}
+                onChange={(e) =>
+                  setInputs((s) => ({ ...s, scope3: e.target.value as Scope3Complexity }))
+                }
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none bg-white"
+              >
+                {Object.entries(SCOPE3_LABELS).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+            )}
           </Field>
 
           <label className="flex items-center gap-3 cursor-pointer">
@@ -192,8 +209,13 @@ export function RoiCalculator() {
           </label>
         </div>
 
-        {/* Résultat */}
-        <div className="rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-5">
+        {/* Résultat — annoncé via aria-live aux lecteurs d'écran lors du recalcul */}
+        <div
+          className="rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-5"
+          role="region"
+          aria-label="Estimation ROI annuelle"
+          aria-live="polite"
+        >
           <p className="text-xs font-bold uppercase tracking-widest text-green-700 mb-3">
             Estimation annuelle
           </p>
@@ -233,12 +255,21 @@ export function RoiCalculator() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: (id: string) => React.ReactNode;
+}) {
+  const id = useId();
   return (
-    <label className="block">
-      <span className="block text-sm font-semibold text-neutral-700 mb-1.5">{label}</span>
-      {children}
-    </label>
+    <div className="block">
+      <label htmlFor={id} className="block text-sm font-semibold text-neutral-700 mb-1.5">
+        {label}
+      </label>
+      {children(id)}
+    </div>
   );
 }
 

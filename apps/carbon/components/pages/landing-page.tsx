@@ -11,6 +11,7 @@ import { HeroStage } from "../landing/hero/hero-stage";
 import { TrustBadges } from "../landing/trust-badges";
 import { SecurityArchitecture } from "../landing/security-architecture";
 import { SectorShowcase } from "../landing/sector-mockups";
+import { SectorImpactDrawer } from "../landing/sector-impact-drawer";
 import { HowItWorksSection } from "../landing/how-it-works";
 import { Testimonials } from "../landing/testimonials";
 import { CompetitorComparison } from "../landing/competitor-comparison";
@@ -529,6 +530,7 @@ function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
 export function LandingPage({ onEnterApp }: LandingPageProps) {
   const { track } = useAnalytics();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [impactsOpen, setImpactsOpen] = useState(false);
 
   // Helper : track + enter — wrap onEnterApp avec un événement analytics.
   // Le source est passé explicitement pour distinguer hero / header / pricing / etc.
@@ -799,6 +801,24 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 </ul>
               </Reveal>
             </div>
+
+            {/* CTA discret → drawer « Impacts sectoriels » */}
+            <Reveal delay={0.32} className="text-center mt-12">
+              <button
+                type="button"
+                onClick={() => {
+                  track("impacts_sectoriels_cta", { source: "problem_section" });
+                  setImpactsOpen(true);
+                }}
+                className="group inline-flex items-center gap-2 text-sm font-semibold text-neutral-700 border border-neutral-300 bg-white/60 px-6 py-3 rounded-full hover:border-green-500 hover:text-green-700 hover:bg-white transition-all duration-200 cursor-pointer"
+              >
+                Explorer les impacts sectoriels
+                <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+              </button>
+              <p className="text-xs text-neutral-400 mt-3 max-w-md mx-auto">
+                Les impacts environnementaux réels que le reporting ESG doit rendre mesurables — chiffres publics sourcés.
+              </p>
+            </Reveal>
           </div>
         </section>
 
@@ -1238,6 +1258,13 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
         </div>
       </footer>
+
+      {/* Drawer « Impacts sectoriels » — monté une fois */}
+      <SectorImpactDrawer
+        open={impactsOpen}
+        onClose={() => setImpactsOpen(false)}
+        onEnterApp={onEnterApp}
+      />
     </div>
   );
 }

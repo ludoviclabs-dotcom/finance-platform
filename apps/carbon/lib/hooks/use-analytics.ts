@@ -31,7 +31,8 @@ export type AnalyticsEvent =
   | "newsletter_subscribed"
   | "pricing_viewed"
   | "brochure_opened"
-  | "trust_link_clicked";
+  | "trust_link_clicked"
+  | "impacts_sectoriels_cta";
 
 export interface AnalyticsProps {
   source?: string;

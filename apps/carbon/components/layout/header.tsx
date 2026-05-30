@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Search, RefreshCw, Download, X, ChevronRight, LogOut, Menu } from "lucide-react";
 
 import { AuditModeToggle } from "@/components/ui/audit-mode-toggle";
@@ -16,16 +16,17 @@ interface HeaderProps {
 }
 
 const NOTIFICATIONS = [
-  { id: 1, type: "alert", text: "Seuil Scope 3 dépassé de 12%", time: "il y a 5 min", color: "text-orange-400" },
-  { id: 2, type: "success", text: "Import ERP SAP terminé — 1 842 lignes", time: "il y a 23 min", color: "text-green-400" },
-  { id: 3, type: "info", text: "Rapport CSRD Q2 disponible", time: "il y a 2h", color: "text-blue-400" },
+  { id: 1, type: "alert" as const,   text: "Seuil Scope 3 dépassé de 12 %",         time: "il y a 5 min" },
+  { id: 2, type: "ok" as const,      text: "Import ERP SAP terminé — 1 842 lignes", time: "il y a 23 min" },
+  { id: 3, type: "info" as const,    text: "Rapport CSRD Q2 disponible",            time: "il y a 2 h" },
 ];
 
 const PERIODS = ["Ce mois", "Ce trimestre", "Cette année"] as const;
+type Period = typeof PERIODS[number];
 
 export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobileMenuClick }: HeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false);
-  const [period, setPeriod] = useState<typeof PERIODS[number]>("Ce mois");
+  const [period, setPeriod] = useState<Period>("Ce mois");
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = () => {
@@ -33,7 +34,6 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
     setTimeout(() => setRefreshing(false), 1200);
   };
 
-  // Close notif dropdown on ESC
   useEffect(() => {
     if (!notifOpen) return;
     const handler = (e: KeyboardEvent) => {
@@ -43,72 +43,67 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
     return () => document.removeEventListener("keydown", handler);
   }, [notifOpen]);
 
-  const iconBtnClass =
-    "w-9 h-9 rounded-lg border border-[var(--color-border)] flex items-center justify-center " +
-    "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] " +
-    "hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer " +
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-emerald/60";
-
   return (
-    <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]" role="banner">
-      {/* Main row */}
-      <div className="h-16 flex items-center justify-between px-4 md:px-6 gap-2 md:gap-4">
-        {/* Title + freshness */}
-        <div className="flex items-center gap-2 md:gap-4 min-w-0">
-          {onMobileMenuClick && (
-            <button
-              type="button"
-              onClick={onMobileMenuClick}
-              className={`lg:hidden ${iconBtnClass}`}
-              aria-label="Ouvrir le menu de navigation"
-            >
-              <Menu className="w-4 h-4" aria-hidden="true" />
-            </button>
-          )}
+    <header role="banner">
+      {/* Ligne principale : titre + actions */}
+      <div className="cc-top">
+        {onMobileMenuClick && (
+          <button
+            type="button"
+            onClick={onMobileMenuClick}
+            className="lg:hidden cc-icon-btn"
+            aria-label="Ouvrir le menu de navigation"
+          >
+            <Menu className="w-4 h-4" aria-hidden="true" />
+          </button>
+        )}
+
+        <div className="cc-top-l min-w-0">
           <div className="min-w-0">
-            <h1 className="font-display font-bold text-base md:text-lg text-[var(--color-foreground)] leading-tight truncate">{title}</h1>
-            {subtitle && <p className="hidden sm:block text-xs text-[var(--color-foreground-muted)] truncate">{subtitle}</p>}
-          </div>
-          <div className="hidden md:flex items-center gap-2 text-xs text-[var(--color-foreground-subtle)] whitespace-nowrap" aria-live="polite">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-success)] animate-pulse" aria-hidden="true" />
-            <span>Données au {new Date().toLocaleDateString("fr-FR")} · il y a 12 min</span>
+            <h1 className="cc-top-title truncate">{title}</h1>
+            {subtitle && (
+              <div className="cc-top-fresh">
+                <span className="cc-live-dot" aria-hidden="true" />
+                <span className="truncate">
+                  {subtitle} · Données au{" "}
+                  <strong>{new Date().toLocaleDateString("fr-FR")}</strong>
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right actions */}
-        <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0" role="toolbar" aria-label="Actions du tableau de bord">
-          {/* Search */}
+        <div className="cc-top-r" role="toolbar" aria-label="Actions du tableau de bord">
+          {/* Search (sm+) */}
           <button
+            type="button"
             aria-label="Rechercher (Cmd+K)"
-            className={
-              "hidden sm:flex items-center gap-2 px-3 h-9 rounded-lg border border-[var(--color-border)] " +
-              "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] " +
-              "hover:bg-[var(--color-surface-raised)] transition-colors text-xs font-medium cursor-pointer " +
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-emerald/60"
-            }
+            className="cc-search-btn hidden sm:inline-flex"
           >
             <Search className="w-3.5 h-3.5" aria-hidden="true" />
-            <span className="hidden md:block">Rechercher</span>
-            <kbd className="hidden md:block bg-[var(--color-background)] border border-[var(--color-border)] rounded px-1 text-[10px] text-[var(--color-foreground-subtle)]" aria-hidden="true">⌘K</kbd>
+            <span className="hidden md:inline">Rechercher</span>
+            <kbd className="cc-kbd hidden md:inline" aria-hidden="true">⌘K</kbd>
           </button>
 
-          {/* Dark/Light/System toggle */}
+          {/* Theme */}
           <ThemeToggle />
 
           {/* Refresh */}
           <button
+            type="button"
             onClick={handleRefresh}
             aria-label="Actualiser les données"
             aria-busy={refreshing}
-            className={`hidden md:flex ${iconBtnClass}`}
+            className={`cc-icon-btn hidden md:grid ${refreshing ? "spin" : ""}`}
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} aria-hidden="true" />
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
           </button>
 
           {/* Export */}
           <button
+            type="button"
             aria-label="Exporter le tableau de bord"
-            className={`hidden md:flex ${iconBtnClass}`}
+            className="cc-icon-btn hidden md:grid"
           >
             <Download className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -116,65 +111,52 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
           {/* Notifications */}
           <div className="relative">
             <button
-              onClick={() => setNotifOpen(!notifOpen)}
+              type="button"
+              onClick={() => setNotifOpen((v) => !v)}
               aria-label={`Notifications — ${NOTIFICATIONS.length} non lues`}
               aria-expanded={notifOpen}
               aria-haspopup="true"
-              className={`relative ${iconBtnClass}`}
+              className="cc-icon-btn"
             >
               <Bell className="w-4 h-4" aria-hidden="true" />
-              <span
-                className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-carbon-emerald text-[10px] text-white font-bold flex items-center justify-center"
-                aria-hidden="true"
-              >
-                {NOTIFICATIONS.length}
-              </span>
+              <span className="cc-notif-c" aria-hidden="true">{NOTIFICATIONS.length}</span>
             </button>
 
-            {/* Dropdown notifications */}
             {notifOpen && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} aria-hidden="true" />
-                <div
-                  role="dialog"
-                  aria-label="Notifications"
-                  className="absolute right-0 top-11 w-80 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl z-40"
-                >
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
-                    <span className="text-sm font-semibold text-[var(--color-foreground)]">Notifications</span>
+                <div role="dialog" aria-label="Notifications" className="cc-dropdown">
+                  <div className="cc-dropdown-head">
+                    <span className="cc-dropdown-title">Notifications</span>
                     <button
+                      type="button"
                       onClick={() => setNotifOpen(false)}
                       aria-label="Fermer les notifications"
-                      className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-emerald/60 rounded"
+                      className="cc-icon-btn"
+                      style={{ width: 28, height: 28 }}
                     >
-                      <X className="w-4 h-4" aria-hidden="true" />
+                      <X className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </div>
-                  <ul className="divide-y divide-[var(--color-border)]" role="list">
-                    {NOTIFICATIONS.map((n) => (
-                      <li key={n.id}>
-                        <button className="w-full flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer text-left focus-visible:outline-none focus-visible:bg-[var(--color-surface-raised)]">
-                          <span className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${n.color.replace("text-", "bg-")}`} aria-hidden="true" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-[var(--color-foreground)]">{n.text}</p>
-                            <p className="text-xs text-[var(--color-foreground-muted)]">{n.time}</p>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-[var(--color-foreground-subtle)] flex-shrink-0 mt-0.5" aria-hidden="true" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="px-4 py-2.5 border-t border-[var(--color-border)]">
-                    <button className="text-xs text-carbon-emerald-light hover:underline cursor-pointer w-full text-center focus-visible:outline-none focus-visible:underline">
-                      Voir toutes les notifications
+                  {NOTIFICATIONS.map((n) => (
+                    <button key={n.id} type="button" className="cc-dropdown-row">
+                      <span className={`cc-dropdown-pip ${n.type}`} aria-hidden="true" />
+                      <div className="flex-1 min-w-0">
+                        <p className="cc-dropdown-txt">{n.text}</p>
+                        <p className="cc-dropdown-time">{n.time}</p>
+                      </div>
+                      <ChevronRight className="w-3.5 h-3.5 text-[var(--cc-subtle)] flex-shrink-0 mt-1" aria-hidden="true" />
                     </button>
-                  </div>
+                  ))}
+                  <button type="button" className="cc-dropdown-foot w-full">
+                    Voir toutes les notifications
+                  </button>
                 </div>
               </>
             )}
           </div>
 
-          {/* Audit mode toggle (Phase 2) */}
+          {/* Audit mode */}
           <AuditModeToggle />
 
           {/* Avatar + logout */}
@@ -182,8 +164,8 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
             <div className="flex items-center gap-1.5">
               <div
                 title={userEmail}
-                className="w-9 h-9 rounded-full bg-carbon-emerald/20 flex items-center justify-center text-carbon-emerald-light font-bold text-xs cursor-default select-none"
-                aria-label={`Connecté en tant que ${userEmail}`}
+                className="cc-avatar-pill"
+                aria-label={`Connecté en tant que ${userEmail ?? "utilisateur"}`}
               >
                 {userEmail ? userEmail[0].toUpperCase() : "U"}
               </div>
@@ -192,7 +174,7 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
                 onClick={onLogout}
                 aria-label="Se déconnecter"
                 title="Se déconnecter"
-                className={iconBtnClass}
+                className="cc-icon-btn"
               >
                 <LogOut className="w-4 h-4" aria-hidden="true" />
               </button>
@@ -200,48 +182,46 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
           ) : (
             <div className="flex items-center gap-2">
               {demoHint && (
-                <span className="hidden lg:block text-[10px] text-[var(--color-foreground-subtle)] font-mono bg-[var(--color-background)] border border-[var(--color-border)] rounded px-2 py-1">
+                <span className="hidden lg:block text-[10px] text-[var(--cc-subtle)] font-mono bg-[var(--cc-surface-2)] border border-[var(--cc-border)] rounded px-2 py-1">
                   démo : {demoHint}
                 </span>
               )}
-              <div className="w-9 h-9 rounded-full bg-carbon-emerald/20 flex items-center justify-center text-carbon-emerald-light font-bold text-xs cursor-default select-none">
-                ?
-              </div>
+              <div className="cc-avatar-pill">?</div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Period selector row */}
-      <div className="hidden sm:flex px-6 pb-3 items-center gap-3">
-        <span className="text-xs text-[var(--color-foreground-muted)]" id="period-label">Période :</span>
+      {/* Ligne secondaire : période + échéances */}
+      <div className="cc-subtop hidden sm:flex">
+        <span className="cc-subtop-l" id="period-label">Période</span>
         <div
           role="radiogroup"
           aria-labelledby="period-label"
-          className="flex items-center gap-1 bg-[var(--color-background)] rounded-lg p-0.5 border border-[var(--color-border)]"
+          className="cc-seg"
         >
           {PERIODS.map((p) => (
             <button
               key={p}
+              type="button"
               role="radio"
               aria-checked={period === p}
               onClick={() => setPeriod(p)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-carbon-emerald/60 ${
-                period === p
-                  ? "bg-[var(--color-surface)] text-[var(--color-foreground)] shadow-sm"
-                  : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              }`}
+              className={`cc-seg-b ${period === p ? "is-on" : ""}`}
             >
               {p}
             </button>
           ))}
         </div>
-        {/* Échéances */}
-        <div className="hidden md:flex items-center gap-2 ml-auto text-xs text-[var(--color-foreground-muted)]" aria-live="polite">
-          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" aria-hidden="true" />
-          <span>Rapport E1 dans <strong className="text-orange-400">15 jours</strong></span>
-          <span className="text-[var(--color-border)]" aria-hidden="true">·</span>
-          <span>CSRD filing dans <strong className="text-red-400">45 jours</strong></span>
+        <div className="cc-dl-chips hidden md:flex ml-auto" aria-live="polite">
+          <div className="cc-dl-chip warn" title="Rapport ESRS E1">
+            <span className="cc-dl-dot" aria-hidden="true" />
+            <span>Rapport E1 · 15j</span>
+          </div>
+          <div className="cc-dl-chip alert" title="Dépôt CSRD (iXBRL)">
+            <span className="cc-dl-dot" aria-hidden="true" />
+            <span>CSRD · 45j</span>
+          </div>
         </div>
       </div>
     </header>

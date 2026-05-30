@@ -43,10 +43,10 @@ function ThemeButton({ value, current, label, icon, onSelect }: ThemeButtonProps
       aria-pressed={active}
       aria-label={label}
       onClick={() => onSelect(value)}
-      className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors cursor-pointer ${
+      className={`flex items-center justify-center w-7 h-7 rounded-md transition-colors cursor-pointer ${
         active
-          ? "bg-green-600 text-white"
-          : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+          ? "bg-[rgba(52,211,153,0.18)] text-[var(--cc-em)]"
+          : "text-[var(--cc-muted)] hover:bg-[var(--cc-surface-2)] hover:text-[var(--cc-fg)]"
       }`}
     >
       {icon}
@@ -91,7 +91,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     <div
       role="group"
       aria-label="Choix de thème"
-      className={`inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white p-1 ${className}`}
+      className={`inline-flex items-center gap-1 rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-2)] p-1 ${className}`}
     >
       <ThemeButton value="light"  current={theme} onSelect={choose} label="Thème clair"   icon={<Sun className="w-4 h-4" />} />
       <ThemeButton value="dark"   current={theme} onSelect={choose} label="Thème sombre"  icon={<Moon className="w-4 h-4" />} />

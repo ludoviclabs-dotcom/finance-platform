@@ -147,8 +147,9 @@ export function Sidebar({
           </div>
           {!collapsed && (
             <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="font-display font-bold text-lg text-[var(--color-foreground)] flex-1">
+              className="font-display font-bold text-lg text-[var(--color-foreground)] flex-1 flex items-center gap-2 min-w-0">
               CarbonCo
+              <span className="cc-logo-tag">cockpit</span>
             </motion.span>
           )}
           {onMobileClose && (

@@ -1,79 +1,83 @@
 "use client";
 
+/* ════════════════════════════════════════════════════════════════════════════
+   ESRS / CSRD — Cockpit CarbonCo (refonte)
+   Hero : jauge de conformité 270° + radar de couverture + barres par pilier ·
+   Priorités : 3 normes qui bloquent l'objectif · Liste groupée par pilier ·
+   Live data via useEsgSnapshot avec fallback démo.
+   ════════════════════════════════════════════════════════════════════════════ */
+
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  CheckCircle,
-  Clock,
-  Circle,
-  ChevronDown,
-  ChevronUp,
-  AlertTriangle,
-  Filter,
-} from "lucide-react";
-import { SectionTitle } from "@/components/ui/section-title";
-import { ChartCard } from "@/components/ui/chart-card";
-import { esrsStandards, esrsRadialData } from "@/lib/data";
-import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
+import { AlertTriangle, Info } from "lucide-react";
+
+import { esrsStandards } from "@/lib/data";
 import { useEsgSnapshot } from "@/lib/hooks/use-esg-snapshot";
 import type { MaterialiteIssue } from "@/lib/api";
 
-type StatusKey = "compliant" | "in_progress" | "not_started";
+import {
+  EsrsHero, EsrsPriorities, StandardsList,
+  type EsrsStandard, type EsrsTotals, type EsrsPillarMap, type EsrsPillar, type EsrsPillarSummary,
+  type EsrsStatusKey, type EsrsMaterialIssue,
+} from "@/components/cockpit/esrs-sections";
 
-const statusConfig = {
-  compliant: { label: "Conforme", icon: CheckCircle, color: "text-[var(--color-success)]", bg: "bg-[var(--color-success)]/15" },
-  in_progress: { label: "En cours", icon: Clock, color: "text-[var(--color-warning)]", bg: "bg-[var(--color-warning)]/15" },
-  not_started: { label: "Non démarré", icon: Circle, color: "text-[var(--color-foreground-subtle)]", bg: "bg-[var(--color-foreground-subtle)]/15" },
+/* ─── Palette piliers ESRS (cohérente avec le design cockpit) ─────────────── */
+const PILLARS: EsrsPillarMap = {
+  E:   { label: "Environnement", color: "#34D399" },
+  S:   { label: "Social",        color: "#60A5FA" },
+  G:   { label: "Gouvernance",   color: "#A78BFA" },
+  GEN: { label: "Général",       color: "#22D3EE" },
 };
 
-type CategoryKey = "ALL" | "E" | "S" | "G";
-const CATEGORIES: { key: CategoryKey; label: string }[] = [
-  { key: "ALL", label: "Tous" },
-  { key: "E", label: "Environnement" },
-  { key: "S", label: "Social" },
-  { key: "G", label: "Gouvernance" },
-];
-
-interface LiveStandard {
-  id: string;
+/* ─── Métadonnées par norme : description, action, pilote ────────────────── */
+const STANDARD_META: Record<string, {
+  code: string;
   name: string;
-  fullName: string;
-  progress: number;
-  status: StatusKey;
-  description: string;
-  dataPoints: number;
-  completedPoints: number;
-  categorie: "E" | "S" | "G" | "GEN";
-  materialIssues: MaterialiteIssue[];
-}
-
-const STANDARD_META: Record<string, { name: string; fullName: string; description: string; categorie: "E" | "S" | "G" | "GEN" }> = {
-  "ESRS E1": { name: "Changement climatique", fullName: "ESRS E1 — Changement climatique", description: "Atténuation, adaptation, énergie", categorie: "E" },
-  "ESRS E2": { name: "Pollution", fullName: "ESRS E2 — Pollution", description: "Air, eau, sol, substances préoccupantes", categorie: "E" },
-  "ESRS E3": { name: "Eau & ressources marines", fullName: "ESRS E3 — Eau et ressources marines", description: "Consommation, rejets, écosystèmes marins", categorie: "E" },
-  "ESRS E4": { name: "Biodiversité", fullName: "ESRS E4 — Biodiversité et écosystèmes", description: "Impacts, dépendances, zones sensibles", categorie: "E" },
-  "ESRS E5": { name: "Économie circulaire", fullName: "ESRS E5 — Utilisation des ressources et économie circulaire", description: "Flux de ressources, déchets, recyclage", categorie: "E" },
-  "ESRS S1": { name: "Effectifs propres", fullName: "ESRS S1 — Effectifs de l'entreprise", description: "Conditions de travail, égalité, santé-sécurité", categorie: "S" },
-  "ESRS S2": { name: "Travailleurs chaîne", fullName: "ESRS S2 — Travailleurs de la chaîne de valeur", description: "Conditions, droits, travail forcé", categorie: "S" },
-  "ESRS S3": { name: "Communautés", fullName: "ESRS S3 — Communautés affectées", description: "Droits des communautés, impact territorial", categorie: "S" },
-  "ESRS S4": { name: "Consommateurs", fullName: "ESRS S4 — Consommateurs et utilisateurs finaux", description: "Sécurité, vie privée, inclusion", categorie: "S" },
-  "ESRS G1": { name: "Gouvernance", fullName: "ESRS G1 — Conduite des affaires", description: "Éthique, corruption, lobbying, paiements", categorie: "G" },
-  "ESRS 1": { name: "Exigences générales", fullName: "ESRS 1 — Exigences générales", description: "Principes, périmètre, double matérialité", categorie: "GEN" },
-  "ESRS 2": { name: "Infos générales", fullName: "ESRS 2 — Informations générales", description: "Stratégie, gouvernance, gestion des impacts", categorie: "GEN" },
+  pillar: EsrsPillar;
+  desc: string;
+  owner: string;
+  action: string;
+}> = {
+  "ESRS E1": { code: "E1", name: "Changement climatique",      pillar: "E",   desc: "Atténuation, adaptation au changement climatique, énergie.", owner: "Dir. RSE",  action: "Finaliser le plan de transition climat (E1-1)." },
+  "ESRS E2": { code: "E2", name: "Pollution",                  pillar: "E",   desc: "Pollution de l'air, de l'eau, des sols, substances préoccupantes.", owner: "Dir. Ops", action: "Compléter l'inventaire des substances préoccupantes." },
+  "ESRS E3": { code: "E3", name: "Eau & ressources marines",   pillar: "E",   desc: "Consommation d'eau, rejets, écosystèmes marins.", owner: "Dir. Ops", action: "Mesurer la consommation d'eau sur 3 sites manquants." },
+  "ESRS E4": { code: "E4", name: "Biodiversité",               pillar: "E",   desc: "Impacts, dépendances, zones sensibles à la biodiversité.", owner: "Dir. RSE", action: "Cartographier les zones sensibles proches des sites." },
+  "ESRS E5": { code: "E5", name: "Économie circulaire",        pillar: "E",   desc: "Flux de ressources, déchets, recyclage et réemploi.", owner: "Dir. Ops", action: "Tracer les flux de déchets par catégorie." },
+  "ESRS S1": { code: "S1", name: "Effectifs propres",          pillar: "S",   desc: "Conditions de travail, égalité, santé & sécurité.", owner: "DRH", action: "Vérifier les indicateurs d'égalité salariale." },
+  "ESRS S2": { code: "S2", name: "Travailleurs chaîne de valeur", pillar: "S", desc: "Conditions de travail, droits humains, travail forcé.", owner: "Achats", action: "Lancer le questionnaire fournisseurs droits humains." },
+  "ESRS S3": { code: "S3", name: "Communautés affectées",      pillar: "S",   desc: "Droits des communautés, impact territorial.", owner: "Dir. RSE", action: "Démarrer la consultation des parties prenantes." },
+  "ESRS S4": { code: "S4", name: "Consommateurs & clients",    pillar: "S",   desc: "Sécurité produits, vie privée, inclusion.", owner: "DSI", action: "Collecter les données satisfaction & vie privée." },
+  "ESRS G1": { code: "G1", name: "Conduite des affaires",      pillar: "G",   desc: "Éthique, anti-corruption, lobbying, paiements.", owner: "Direction", action: "Documenter la politique anti-corruption." },
+  "ESRS 1":  { code: "1",  name: "Exigences générales",        pillar: "GEN", desc: "Principes, périmètre, double matérialité.", owner: "Dir. RSE", action: "Valider le périmètre de consolidation." },
+  "ESRS 2":  { code: "2",  name: "Informations générales",     pillar: "GEN", desc: "Stratégie, gouvernance, gestion des impacts (IRO).", owner: "Dir. RSE", action: "Compléter la description de la gouvernance ESG." },
 };
+
+const DEFAULT_DP: Record<string, { dp: number; done: number }> = {
+  "ESRS E1": { dp: 48, done: 41 },
+  "ESRS E2": { dp: 32, done: 23 },
+  "ESRS E3": { dp: 28, done: 17 },
+  "ESRS E4": { dp: 36, done: 16 },
+  "ESRS E5": { dp: 24, done: 13 },
+  "ESRS S1": { dp: 52, done: 47 },
+  "ESRS S2": { dp: 30, done: 12 },
+  "ESRS S3": { dp: 22, done: 7  },
+  "ESRS S4": { dp: 20, done: 7  },
+  "ESRS G1": { dp: 26, done: 20 },
+  "ESRS 1":  { dp: 18, done: 17 },
+  "ESRS 2":  { dp: 42, done: 37 },
+};
+
+const TARGET = 80;
+
+function classifyStatus(progress: number): EsrsStatusKey {
+  if (progress >= 80) return "compliant";
+  if (progress >= 40) return "in_progress";
+  return "not_started";
+}
 
 function normalizeNorme(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const trimmed = raw.trim().toUpperCase();
   if (!trimmed) return null;
-  // Accept "E1", "ESRS E1", "ESRS-E1" etc.
   const match = trimmed.match(/(E1|E2|E3|E4|E5|S1|S2|S3|S4|G1)/);
   if (match) return `ESRS ${match[1]}`;
   if (trimmed.includes("ESRS 1") || trimmed === "ESRS1") return "ESRS 1";
@@ -81,352 +85,210 @@ function normalizeNorme(raw: unknown): string | null {
   return null;
 }
 
-function classifyStatus(progress: number): StatusKey {
-  if (progress >= 80) return "compliant";
-  if (progress >= 40) return "in_progress";
-  return "not_started";
-}
+/* ─── Composant principal ───────────────────────────────────────────────── */
 
 export function ESRSPage() {
+  const [hovered, setHovered] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<CategoryKey>("ALL");
 
   const esgSnap = useEsgSnapshot();
   const isLive = esgSnap.status === "ready";
   const esgError = esgSnap.status === "error" ? esgSnap.error : null;
 
-  // Derive per-norm standards from materialite.issues when live data is available
-  const liveStandards: LiveStandard[] | null = useMemo(() => {
-    if (esgSnap.status !== "ready") return null;
-    const issues = esgSnap.data.materialite.issues ?? [];
-
-    // Bucket issues by norm
-    const buckets = new Map<string, MaterialiteIssue[]>();
-    for (const issue of issues) {
-      const normId = normalizeNorme(issue.normeEsrs);
-      if (!normId) continue;
-      const existing = buckets.get(normId);
-      if (existing) existing.push(issue);
-      else buckets.set(normId, [issue]);
-    }
-
-    return Object.entries(STANDARD_META).map(([id, meta]) => {
-      const bucketIssues = buckets.get(id) ?? [];
-      const total = bucketIssues.length;
-      const materiels = bucketIssues.filter((i) => i.materiel === true).length;
-      const evaluated = bucketIssues.filter((i) => i.scoreImpact != null).length;
-
-      // Progress basé sur le scoreImpactTotal moyen normalisé sur 0-5 → 0-100%
-      // Si scoreImpactTotal absent, on utilise scoreImpact seul
-      // Fallback final : ratio matériels/total
-      let progress = 0;
-      const scoredIssues = bucketIssues.filter(
-        (i) => typeof i.scoreImpactTotal === "number" || typeof i.scoreImpact === "number"
-      );
-      if (scoredIssues.length > 0) {
-        const avgScore =
-          scoredIssues.reduce((sum, i) => {
-            const s = typeof i.scoreImpactTotal === "number"
-              ? i.scoreImpactTotal
-              : (i.scoreImpact as number);
-            return sum + s;
-          }, 0) / scoredIssues.length;
-        // Échelle 0-5 → 0-100%
-        progress = Math.min(100, Math.round((avgScore / 5) * 100));
-      } else if (total > 0) {
-        progress = Math.round((materiels / total) * 100);
+  // ── Standards (live ou démo) ────────────────────────────────────────
+  const standards: EsrsStandard[] = useMemo(() => {
+    if (esgSnap.status === "ready") {
+      const issues = esgSnap.data.materialite.issues ?? [];
+      const buckets = new Map<string, MaterialiteIssue[]>();
+      for (const issue of issues) {
+        const normId = normalizeNorme(issue.normeEsrs);
+        if (!normId) continue;
+        const existing = buckets.get(normId);
+        if (existing) existing.push(issue);
+        else buckets.set(normId, [issue]);
       }
-
+      const numOrNull = (v: unknown): number | null =>
+        typeof v === "number" && Number.isFinite(v) ? v : null;
+      return Object.entries(STANDARD_META).map(([id, meta]) => {
+        const bucket = buckets.get(id) ?? [];
+        const total = bucket.length;
+        const materiels = bucket.filter((i) => i.materiel === true).length;
+        const scored = bucket
+          .map((i) => numOrNull(i.scoreImpactTotal) ?? numOrNull(i.scoreImpact))
+          .filter((v): v is number => v !== null);
+        let progress = 0;
+        if (scored.length > 0) {
+          const avg = scored.reduce((s, v) => s + v, 0) / scored.length;
+          progress = Math.min(100, Math.round((avg / 5) * 100));
+        } else if (total > 0) {
+          progress = Math.round((materiels / total) * 100);
+        }
+        const dpFallback = DEFAULT_DP[id] ?? { dp: total || 0, done: materiels };
+        return {
+          id,
+          code: meta.code,
+          name: meta.name,
+          pillar: meta.pillar,
+          progress,
+          dp: dpFallback.dp,
+          done: dpFallback.done,
+          missing: Math.max(0, dpFallback.dp - dpFallback.done),
+          status: classifyStatus(progress),
+          desc: meta.desc,
+          owner: meta.owner,
+          action: meta.action,
+          materialIssues: bucket
+            .filter((i) => i.materiel === true)
+            .slice(0, 6)
+            .map<EsrsMaterialIssue>((i) => ({
+              code: i.code,
+              label: i.label ?? i.code,
+              score: numOrNull(i.scoreImpactTotal) ?? numOrNull(i.scoreImpact) ?? 0,
+            })),
+        };
+      });
+    }
+    // Fallback démo
+    return esrsStandards.map<EsrsStandard>((s) => {
+      const meta = STANDARD_META[s.id] ?? {
+        code: s.id.replace("ESRS ", ""),
+        name: s.name,
+        pillar: "GEN" as EsrsPillar,
+        desc: s.description,
+        owner: "—",
+        action: "—",
+      };
+      const dp = DEFAULT_DP[s.id] ?? { dp: s.dataPoints, done: s.completedPoints };
       return {
-        id,
+        id: s.id,
+        code: meta.code,
         name: meta.name,
-        fullName: meta.fullName,
-        progress,
-        status: classifyStatus(progress),
-        description: meta.description,
-        dataPoints: evaluated || total,
-        completedPoints: materiels,
-        categorie: meta.categorie,
-        materialIssues: bucketIssues.filter((i) => i.materiel === true),
+        pillar: meta.pillar,
+        progress: s.progress,
+        dp: dp.dp,
+        done: dp.done,
+        missing: Math.max(0, dp.dp - dp.done),
+        status: classifyStatus(s.progress),
+        desc: meta.desc,
+        owner: meta.owner,
+        action: meta.action,
+        materialIssues: [],
       };
     });
   }, [esgSnap]);
 
-  // Use live standards when available, otherwise fall back to mocks
-  const standards = liveStandards ?? esrsStandards.map((s) => ({
-    id: s.id,
-    name: s.name,
-    fullName: s.fullName,
-    progress: s.progress,
-    status: s.status as StatusKey,
-    description: s.description,
-    dataPoints: s.dataPoints,
-    completedPoints: s.completedPoints,
-    categorie: (STANDARD_META[s.id]?.categorie ?? "GEN") as "E" | "S" | "G" | "GEN",
-    materialIssues: [] as MaterialiteIssue[],
-  }));
+  // ── Totaux & résumé par pilier ──────────────────────────────────────
+  const totals: EsrsTotals = useMemo(() => {
+    const n = standards.length;
+    return {
+      avg: n > 0 ? Math.round(standards.reduce((a, s) => a + s.progress, 0) / n) : 0,
+      compliant: standards.filter((s) => s.status === "compliant").length,
+      inProgress: standards.filter((s) => s.status === "in_progress").length,
+      notStarted: standards.filter((s) => s.status === "not_started").length,
+      dpDone: standards.reduce((a, s) => a + s.done, 0),
+      dpTotal: standards.reduce((a, s) => a + s.dp, 0),
+      target: TARGET,
+    };
+  }, [standards]);
 
-  const filteredStandards = standards.filter((s) => {
-    if (categoryFilter === "ALL") return true;
-    return s.categorie === categoryFilter;
-  });
-
-  const radarData = liveStandards
-    ? liveStandards
-        .filter((s) => s.categorie !== "GEN")
-        .map((s) => ({
-          subject: `${s.id.replace("ESRS ", "")} ${s.name.split(" ")[0]}`.slice(0, 14),
-          value: s.progress,
-          fullMark: 100,
-        }))
-    : esrsRadialData;
-
-  const avgProgress = liveStandards
-    ? Math.round(
-        liveStandards.reduce((acc, s) => acc + s.progress, 0) /
-          Math.max(liveStandards.length, 1)
-      )
-    : Math.round(
-        esrsStandards.reduce((acc, s) => acc + s.progress, 0) / esrsStandards.length
-      );
+  const pillarSummary: EsrsPillarSummary[] = useMemo(() => {
+    return (Object.keys(PILLARS) as EsrsPillar[]).map((p) => {
+      const items = standards.filter((s) => s.pillar === p);
+      const avg = items.length > 0
+        ? Math.round(items.reduce((a, s) => a + s.progress, 0) / items.length)
+        : 0;
+      return { pillar: p, label: PILLARS[p].label, color: PILLARS[p].color, count: items.length, avg };
+    });
+  }, [standards]);
 
   return (
-    <motion.div {...pageVariants} className="p-6 space-y-6">
-      <SectionTitle
-        title="Normes ESRS / CSRD"
-        subtitle="Suivi de conformité aux 12 normes European Sustainability Reporting Standards"
-      />
-
-      {/* Live badge / error banner / demo banner */}
-      {isLive && (
-        <div className="flex items-center gap-2 text-xs text-[var(--color-foreground-muted)]">
-          <span className="inline-flex w-1.5 h-1.5 rounded-full bg-[var(--color-success)] animate-pulse" />
-          <span>Données live — dérivées de la matrice de matérialité ESG</span>
-        </div>
-      )}
-      {esgError && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-700">
-            <span className="font-semibold">Snapshot ESG indisponible.</span>{" "}
-            Affichage des données de démonstration. <span className="opacity-70">({esgError})</span>
-          </div>
-        </div>
-      )}
-      {!isLive && !esgError && esgSnap.status !== "loading" && (
-        <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50">
-          <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-xs text-blue-700 flex-1">
-            <strong>Données de démonstration</strong> — les taux de progression affichés sont fictifs.
-            Complétez votre{" "}
-            <a href="/materialite" className="underline font-semibold hover:text-blue-900">matrice de matérialité</a>{" "}
-            pour voir votre conformité ESRS réelle.
-          </p>
-        </div>
-      )}
-
-      {/* Overview cards */}
-      <motion.div
-        variants={staggerContainer}
-        initial="initial"
-        animate="animate"
-        className="grid grid-cols-1 md:grid-cols-4 gap-4"
-      >
-        <motion.div
-          variants={staggerItem}
-          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-center"
-        >
-          <p className="text-sm text-[var(--color-foreground-muted)] mb-1">Conformité globale</p>
-          <p className="text-3xl font-display font-bold text-carbon-emerald">{avgProgress}%</p>
-        </motion.div>
-        {(["compliant", "in_progress", "not_started"] as const).map((status) => {
-          const count = standards.filter((s) => s.status === status).length;
-          const cfg = statusConfig[status];
-          const Icon = cfg.icon;
-          return (
-            <motion.div
-              key={status}
-              variants={staggerItem}
-              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex items-center gap-3"
-            >
-              <Icon className={`w-5 h-5 ${cfg.color}`} />
-              <div>
-                <p className="text-2xl font-display font-bold text-[var(--color-foreground)]">{count}</p>
-                <p className="text-xs text-[var(--color-foreground-muted)]">{cfg.label}</p>
-              </div>
-            </motion.div>
-          );
-        })}
-      </motion.div>
-
-      {/* Category filter */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Filter className="w-4 h-4 text-[var(--color-foreground-muted)]" />
-        <span className="text-xs text-[var(--color-foreground-muted)] mr-2">Filtrer par pilier</span>
-        {CATEGORIES.map((cat) => {
-          const active = categoryFilter === cat.key;
-          return (
-            <button
-              key={cat.key}
-              type="button"
-              onClick={() => setCategoryFilter(cat.key)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                active
-                  ? "bg-carbon-emerald text-white"
-                  : "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-foreground-muted)] hover:border-carbon-emerald"
-              }`}
-            >
-              {cat.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Radar + List */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Radar chart */}
-        <ChartCard title="Couverture ESRS" subtitle="Score par norme" className="lg:col-span-2">
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-                <PolarGrid stroke="var(--color-border)" />
-                <PolarAngleAxis
-                  dataKey="subject"
-                  tick={{ fill: "var(--color-foreground-muted)", fontSize: 11 }}
-                />
-                <Radar
-                  name="Progression"
-                  dataKey="value"
-                  stroke="#059669"
-                  fill="#059669"
-                  fillOpacity={0.2}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartCard>
-
-        {/* ESRS list */}
-        <div className="lg:col-span-3 space-y-2">
-          {filteredStandards.length === 0 && (
-            <div className="rounded-xl border border-dashed border-[var(--color-border)] p-6 text-center text-sm text-[var(--color-foreground-muted)]">
-              Aucune norme ne correspond à ce filtre.
+    <div className="cc-app">
+      <div className="px-6 pt-4 pb-6 space-y-4">
+        {/* Top bar */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="min-w-0">
+            <h1 className="font-display font-bold text-2xl leading-tight">ESRS / CSRD</h1>
+            <div className="flex items-center gap-2 text-xs text-[var(--cc-subtle)] mt-1">
+              <span className="cc-live-dot" />
+              <span>
+                Conformité réglementaire · {standards.length} norme{standards.length > 1 ? "s" : ""}{" "}
+                · {totals.avg}% global
+              </span>
             </div>
-          )}
-          {filteredStandards.map((standard) => {
-            const isOpen = expanded === standard.id;
-            const cfg = statusConfig[standard.status];
-            const Icon = cfg.icon;
+          </div>
+          <div className="ml-auto flex items-center gap-2 flex-wrap">
+            <div className="cc-dl-chip warn" title="Rapport ESRS E1">
+              <span className="cc-dl-dot" />
+              <span className="cc-dl-days">E1 · 15j</span>
+            </div>
+            <div className="cc-dl-chip alert" title="Dépôt CSRD">
+              <span className="cc-dl-dot" />
+              <span className="cc-dl-days">CSRD · 45j</span>
+            </div>
+          </div>
+        </div>
 
-            return (
-              <motion.div
-                key={standard.id}
-                variants={staggerItem}
-                initial="initial"
-                animate="animate"
-                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden"
-              >
-                <button
-                  onClick={() => setExpanded(isOpen ? null : standard.id)}
-                  className="w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer"
-                >
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${cfg.color}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-carbon-emerald">{standard.id}</span>
-                      <span className="text-sm font-medium text-[var(--color-foreground)]">
-                        {standard.name}
-                      </span>
-                    </div>
-                    {/* Progress bar */}
-                    <div className="mt-2 flex items-center gap-3">
-                      <div className="flex-1 h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{
-                            width: `${standard.progress}%`,
-                            backgroundColor:
-                              standard.progress >= 80
-                                ? "var(--color-success)"
-                                : standard.progress >= 50
-                                ? "var(--color-warning)"
-                                : "var(--color-foreground-subtle)",
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs font-mono text-[var(--color-foreground-muted)] w-10 text-right">
-                        {standard.progress}%
-                      </span>
-                    </div>
-                  </div>
-                  {isOpen ? (
-                    <ChevronUp className="w-4 h-4 text-[var(--color-foreground-muted)]" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-[var(--color-foreground-muted)]" />
-                  )}
-                </button>
+        {/* Banners */}
+        {isLive && (
+          <div className="flex items-center gap-2 text-xs text-[var(--cc-muted)]">
+            <span className="cc-live-dot" />
+            <span>Données live — dérivées de la matrice de matérialité ESG</span>
+          </div>
+        )}
+        {esgError && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-700">
+              <span className="font-semibold">Snapshot ESG indisponible.</span>{" "}
+              Affichage des données de démonstration. <span className="opacity-70">({esgError})</span>
+            </div>
+          </div>
+        )}
+        {!isLive && !esgError && esgSnap.status !== "loading" && (
+          <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700">
+            <Info className="w-4 h-4 flex-shrink-0" />
+            <p className="text-xs flex-1">
+              <strong>Données de démonstration</strong> — les taux de progression affichés sont fictifs.
+              Complétez votre{" "}
+              <a href="/materialite" className="underline font-semibold hover:text-blue-900">
+                matrice de matérialité
+              </a>{" "}
+              pour voir votre conformité ESRS réelle.
+            </p>
+          </div>
+        )}
 
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-4 pb-4 pt-1 border-t border-[var(--color-border)]">
-                        <p className="text-sm text-[var(--color-foreground-muted)] mb-3">
-                          {standard.description}
-                        </p>
-                        <div className="flex items-center gap-4 text-xs mb-3">
-                          <span className="text-[var(--color-foreground-subtle)]">
-                            {isLive ? "Enjeux matériels" : "Data points"} :{" "}
-                            {standard.completedPoints} / {standard.dataPoints}
-                          </span>
-                          <span className={cfg.color}>{cfg.label}</span>
-                        </div>
-                        {isLive && standard.materialIssues.length > 0 && (
-                          <div className="space-y-1.5 pt-2 border-t border-[var(--color-border)]">
-                            <p className="text-xs font-semibold text-[var(--color-foreground-muted)] uppercase tracking-wide mb-2">
-                              Enjeux matériels identifiés
-                            </p>
-                            {standard.materialIssues.slice(0, 5).map((issue) => (
-                              <div
-                                key={issue.code}
-                                className="flex items-center justify-between text-xs gap-3"
-                              >
-                                <span className="text-[var(--color-foreground)] truncate">
-                                  <span className="font-mono text-carbon-emerald mr-2">
-                                    {issue.code}
-                                  </span>
-                                  {issue.label}
-                                </span>
-                                {typeof issue.scoreImpactTotal === "number" && (
-                                  <span className="font-mono text-[var(--color-foreground-muted)] flex-shrink-0">
-                                    {(issue.scoreImpactTotal as number).toFixed(1)}
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                            {standard.materialIssues.length > 5 && (
-                              <p className="text-xs text-[var(--color-foreground-subtle)] pt-1">
-                                + {standard.materialIssues.length - 5} autres…
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+        {/* Hero conformité */}
+        <EsrsHero
+          standards={standards}
+          totals={totals}
+          pillars={PILLARS}
+          pillarSummary={pillarSummary}
+          hovered={hovered}
+          setHovered={setHovered}
+        />
+
+        {/* Priorités de conformité */}
+        <EsrsPriorities
+          standards={standards}
+          pillars={PILLARS}
+          onOpen={setExpanded}
+        />
+
+        {/* Liste des normes groupée par pilier */}
+        <StandardsList
+          standards={standards}
+          pillars={PILLARS}
+          hovered={hovered}
+          setHovered={setHovered}
+          expanded={expanded}
+          setExpanded={setExpanded}
+        />
+
+        <div className="text-center text-[11px] text-[var(--cc-subtle)] font-mono py-2">
+          Conformité ESRS dérivée de la matrice de matérialité · objectif {TARGET}%
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

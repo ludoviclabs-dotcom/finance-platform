@@ -129,6 +129,12 @@ export default function RootLayout({
       lang="fr"
       data-theme="dark"
       className={`${inter.variable} ${spaceGrotesk.variable} ${manrope.variable}`}
+      // `data-theme` est réécrit par THEME_INIT_SCRIPT avant la première peinture
+      // (cf. <script> dans <head> ci-dessous) pour respecter la préférence stockée
+      // dans localStorage ou `prefers-color-scheme`. Sans `suppressHydrationWarning`,
+      // React détecte la différence SSR vs DOM et émet un avertissement d'hydratation.
+      // Pattern standard recommandé par Next.js et utilisé par next-themes.
+      suppressHydrationWarning
     >
       <head>
         {/* Applique le thème stocké avant la première peinture pour éviter le flash. */}

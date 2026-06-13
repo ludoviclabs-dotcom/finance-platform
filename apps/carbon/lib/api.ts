@@ -528,6 +528,27 @@ export function saveVsmeDatapoint(
   return apiSend("POST", "/vsme/mapping/datapoint", signal, body);
 }
 
+// Rapport VSME (T3.3) : POST /vsme/report → télécharge le ZIP (PDF + Excel).
+export async function downloadVsmeReport(signal?: AbortSignal): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/vsme/report`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /vsme/report`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "rapport-vsme.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 // --- ESG ---
 export function fetchEsgSnapshot(signal?: AbortSignal): Promise<EsgSnapshot> {
   return apiGet<EsgSnapshot>("/esg/snapshot", signal);

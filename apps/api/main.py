@@ -43,6 +43,7 @@ from routers import (
     verify,
     vsme,
     vsme_datapoints,
+    vsme_export,
     vsme_mapping,
 )
 
@@ -161,6 +162,7 @@ app.include_router(carbon.router, prefix="/carbon", tags=["carbon"])
 app.include_router(vsme.router, prefix="/vsme", tags=["vsme"])
 app.include_router(vsme_datapoints.router, prefix="/vsme/datapoints", tags=["vsme (T3.1)"])
 app.include_router(vsme_mapping.router, prefix="/vsme/mapping", tags=["vsme (T3.2)"])
+app.include_router(vsme_export.router, prefix="/vsme/report", tags=["vsme (T3.3)"])
 app.include_router(esg.router, prefix="/esg", tags=["esg"])
 app.include_router(finance.router, prefix="/finance", tags=["finance"])
 app.include_router(ingest.router, tags=["ingest"])

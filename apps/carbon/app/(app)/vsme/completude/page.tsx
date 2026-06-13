@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  downloadVsmeReport,
   fetchVsmeMappingStatus,
   saveVsmeDatapoint,
   type VsmeDatapointRow,
@@ -90,6 +91,7 @@ export default function VsmeCompletudePage() {
   const [data, setData] = useState<VsmeMappingStatus | null>(null);
   const [error, setError] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(() => {
     const ctrl = new AbortController();
@@ -124,10 +126,30 @@ export default function VsmeCompletudePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-extrabold tracking-tight mb-1">Complétude VSME</h1>
-      <p className="text-sm text-neutral-500 mb-6">
-        Référentiel {data.version} · {c.mandatory_filled}/{c.mandatory_total} datapoints obligatoires renseignés
-      </p>
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight mb-1">Complétude VSME</h1>
+          <p className="text-sm text-neutral-500">
+            Référentiel {data.version} · {c.mandatory_filled}/{c.mandatory_total} datapoints obligatoires renseignés
+          </p>
+        </div>
+        <button
+          onClick={async () => {
+            setExporting(true);
+            try {
+              await downloadVsmeReport();
+            } catch {
+              /* ignore */
+            } finally {
+              setExporting(false);
+            }
+          }}
+          disabled={exporting}
+          className="shrink-0 px-4 py-2 rounded-full bg-black text-white text-sm font-semibold hover:scale-105 transition-transform disabled:opacity-40"
+        >
+          {exporting ? "Génération…" : "Télécharger le rapport VSME"}
+        </button>
+      </div>
 
       <div className="rounded-2xl border border-neutral-200 p-5 mb-8">
         <div className="flex items-center justify-between mb-3">

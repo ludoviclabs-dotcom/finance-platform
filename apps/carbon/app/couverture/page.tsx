@@ -1,23 +1,21 @@
 import type { Metadata } from "next";
 
+import {
+  esrsRows,
+  esrsCounts,
+  lastUpdateLabel,
+  type FeatureStatus,
+} from "@/lib/feature-registry";
+
 export const metadata: Metadata = {
   title: "Couverture ESRS — CarbonCo",
   description:
     "Ce que CarbonCo couvre vraiment : matrice complète des standards ESRS avec statut réel (Live / Beta / Planifié).",
 };
 
-type CoverageStatus = "live" | "beta" | "planned";
-
-type EsrsRow = {
-  id: string;
-  name: string;
-  description: string;
-  status: CoverageStatus;
-  exports: string[];
-  note?: string;
-};
-
-const STATUS_CONFIG: Record<CoverageStatus, { label: string; color: string; bg: string; dot: string }> = {
+// Présentation par statut. Les DONNÉES (lignes ESRS) proviennent exclusivement
+// du registre lib/feature-registry — aucun statut codé en dur ici.
+const STATUS_CONFIG: Record<FeatureStatus, { label: string; color: string; bg: string; dot: string }> = {
   live: {
     label: "Live",
     color: "text-emerald-700",
@@ -30,7 +28,7 @@ const STATUS_CONFIG: Record<CoverageStatus, { label: string; color: string; bg: 
     bg: "bg-amber-50 border-amber-200",
     dot: "bg-amber-400",
   },
-  planned: {
+  planifie: {
     label: "Planifié",
     color: "text-neutral-500",
     bg: "bg-neutral-50 border-neutral-200",
@@ -38,100 +36,7 @@ const STATUS_CONFIG: Record<CoverageStatus, { label: string; color: string; bg: 
   },
 };
 
-const ESRS_COVERAGE: EsrsRow[] = [
-  {
-    id: "ESRS 1",
-    name: "Exigences générales",
-    description: "Principes de reporting, périmètre, double matérialité, chaîne de valeur",
-    status: "live",
-    exports: ["PDF", "Excel"],
-    note: "Couvre les exigences de présentation et de périmètre",
-  },
-  {
-    id: "ESRS 2",
-    name: "Informations générales",
-    description: "Stratégie, gouvernance, matérialité, gestion des impacts risques et opportunités",
-    status: "live",
-    exports: ["PDF", "Excel"],
-    note: "Questionnaire double matérialité intégré",
-  },
-  {
-    id: "ESRS E1",
-    name: "Changement climatique",
-    description: "Atténuation, adaptation, énergie — Scope 1, 2 & 3, GHG Protocol, ADEME Base Empreinte®",
-    status: "live",
-    exports: ["PDF", "Excel", "Audit trail"],
-    note: "Module principal — couverture la plus approfondie",
-  },
-  {
-    id: "ESRS E2",
-    name: "Pollution",
-    description: "Pollution de l'air, de l'eau et des sols, substances préoccupantes",
-    status: "beta",
-    exports: ["PDF"],
-    note: "Collecte de données disponible, calculs en cours de validation",
-  },
-  {
-    id: "ESRS E3",
-    name: "Eau & ressources marines",
-    description: "Consommation d'eau, rejets, impact sur les écosystèmes aquatiques et marins",
-    status: "planned",
-    exports: [],
-  },
-  {
-    id: "ESRS E4",
-    name: "Biodiversité & écosystèmes",
-    description: "Impacts, dépendances, zones sensibles, contribution à la perte de biodiversité",
-    status: "planned",
-    exports: [],
-  },
-  {
-    id: "ESRS E5",
-    name: "Utilisation des ressources",
-    description: "Économie circulaire, flux de ressources, déchets, réparation et réutilisation",
-    status: "planned",
-    exports: [],
-  },
-  {
-    id: "ESRS S1",
-    name: "Effectifs propres",
-    description: "Conditions de travail, santé-sécurité, égalité, rémunérations",
-    status: "beta",
-    exports: ["PDF"],
-    note: "Formulaire de collecte disponible, scoring en développement",
-  },
-  {
-    id: "ESRS S2",
-    name: "Travailleurs chaîne de valeur",
-    description: "Conditions de travail, droits fondamentaux, travail forcé dans la chaîne d'approvisionnement",
-    status: "planned",
-    exports: [],
-  },
-  {
-    id: "ESRS S3",
-    name: "Communautés affectées",
-    description: "Droits des communautés riveraines, impact territorial, engagement parties prenantes",
-    status: "planned",
-    exports: [],
-  },
-  {
-    id: "ESRS S4",
-    name: "Consommateurs & utilisateurs",
-    description: "Sécurité des produits, vie privée, inclusion, accessibilité",
-    status: "planned",
-    exports: [],
-  },
-  {
-    id: "ESRS G1",
-    name: "Conduite des affaires",
-    description: "Éthique des affaires, corruption, lobbying, paiements aux pouvoirs publics",
-    status: "live",
-    exports: ["PDF"],
-    note: "Questionnaire structuré + export rapport narratif",
-  },
-];
-
-function StatusBadge({ status }: { status: CoverageStatus }) {
+function StatusBadge({ status }: { status: FeatureStatus }) {
   const cfg = STATUS_CONFIG[status];
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.bg} ${cfg.color}`}>
@@ -142,11 +47,8 @@ function StatusBadge({ status }: { status: CoverageStatus }) {
 }
 
 export default function CouverturePage() {
-  const counts = {
-    live: ESRS_COVERAGE.filter((r) => r.status === "live").length,
-    beta: ESRS_COVERAGE.filter((r) => r.status === "beta").length,
-    planned: ESRS_COVERAGE.filter((r) => r.status === "planned").length,
-  };
+  const rows = esrsRows();
+  const counts = esrsCounts();
 
   return (
     <div className="min-h-screen bg-white">
@@ -172,7 +74,7 @@ export default function CouverturePage() {
             </div>
             <div className="flex items-center gap-2 text-sm text-neutral-300">
               <span className="w-2 h-2 rounded-full bg-neutral-400" />
-              <strong className="text-white">{counts.planned} standards</strong> planifiés
+              <strong className="text-white">{counts.planifie} standards</strong> planifiés
             </div>
           </div>
         </div>
@@ -191,7 +93,7 @@ export default function CouverturePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {ESRS_COVERAGE.map((row) => (
+              {rows.map((row) => (
                 <tr key={row.id} className="hover:bg-neutral-50 transition-colors">
                   <td className="py-4 pr-6">
                     <span className="font-bold text-black">{row.id}</span>
@@ -204,7 +106,7 @@ export default function CouverturePage() {
                     )}
                   </td>
                   <td className="py-4 pr-6">
-                    <StatusBadge status={row.status} />
+                    <StatusBadge status={row.statut} />
                   </td>
                   <td className="py-4">
                     {row.exports.length > 0 ? (
@@ -243,7 +145,7 @@ export default function CouverturePage() {
             </li>
           </ul>
           <p className="mt-4 text-xs text-neutral-400">
-            Dernière mise à jour : avril 2026 · Facteurs d&apos;émission ADEME Base Empreinte® · Référentiel EFRAG 2024
+            Dernière mise à jour : {lastUpdateLabel()} · Facteurs d&apos;émission ADEME Base Empreinte® · Référentiel EFRAG 2024
           </p>
         </div>
       </div>

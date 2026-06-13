@@ -12,6 +12,7 @@ from routers import (
     admin,
     alerts,
     audit,
+    auditor,
     auth,
     carbon,
     clients,
@@ -158,6 +159,7 @@ app.include_router(esg.router, prefix="/esg", tags=["esg"])
 app.include_router(finance.router, prefix="/finance", tags=["finance"])
 app.include_router(ingest.router, tags=["ingest"])
 app.include_router(audit.router, prefix="/audit", tags=["audit"])
+app.include_router(auditor.router, prefix="/auditor", tags=["auditor (T2.2)"])
 app.include_router(history.router, prefix="/history", tags=["history"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(dpp.router, prefix="/dpp", tags=["dpp"])

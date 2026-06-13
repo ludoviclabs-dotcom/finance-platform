@@ -27,7 +27,9 @@ from services import export_package
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-MAX_VERIFY_ZIP = 25 * 1024 * 1024  # 25 Mo — un pack inclut PDF + pièces
+# Aligné sur main.MAX_BODY_SIZE (16 Mo) : le middleware de taille de corps rejette
+# toute requête plus grande AVANT ce handler, donc un cap supérieur serait inatteignable.
+MAX_VERIFY_ZIP = 16 * 1024 * 1024  # 16 Mo
 
 
 class VerifyPublicResponse(BaseModel):

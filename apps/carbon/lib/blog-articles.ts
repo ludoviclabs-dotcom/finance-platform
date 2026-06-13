@@ -24,6 +24,16 @@ export interface BlogArticleMeta {
 
 export const BLOG_ARTICLES: BlogArticleMeta[] = [
   {
+    slug: "vsme-standard-chaine-valeur",
+    title: "VSME : le standard de la chaîne de valeur après l'Omnibus",
+    description:
+      "Après l'Omnibus, la pression ESG ne disparaît pas pour les PME : elle change de canal. Le standard volontaire VSME (EFRAG) devient le langage commun des banques et donneurs d'ordre.",
+    date: "2026-06-13",
+    readingTime: "7 min",
+    category: "Réglementation",
+    tags: ["VSME", "EFRAG", "PME", "Omnibus"],
+  },
+  {
     slug: "csrd-2027-checklist",
     title: "Préparer son audit CSRD 2027 — checklist en 12 points",
     description:

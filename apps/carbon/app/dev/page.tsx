@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Référence des endpoints REST CarbonCo : authentification, datapoints, RAG, copilote IA, " +
     "Stripe et invitations. Spécification OpenAPI 3.1 disponible.",
-  alternates: { canonical: "https://carbonco.fr/dev" },
+  alternates: { canonical: "/dev" },
 };
 
 export default function DevDocPage() {
@@ -22,7 +22,7 @@ export default function DevDocPage() {
           </h1>
           <p className="mt-3 text-neutral-600 max-w-2xl">
             Référence des endpoints REST exposés par la plateforme. Tous les appels sont
-            préfixés par <code className="px-1.5 py-0.5 rounded bg-neutral-100 text-sm">https://carbonco.fr</code>.
+            préfixés par <code className="px-1.5 py-0.5 rounded bg-neutral-100 text-sm">https://carbon-snowy-nine.vercel.app</code>.
             L&apos;authentification se fait via un en-tête <code className="px-1.5 py-0.5 rounded bg-neutral-100 text-sm">Authorization: Bearer &lt;jwt&gt;</code>.
           </p>
         </header>
@@ -90,7 +90,7 @@ export default function DevDocPage() {
             Exemple — appel datapoints
           </h2>
           <pre className="text-xs leading-relaxed font-mono overflow-x-auto">
-{`curl -X GET "https://carbonco.fr/api/datapoints/list" \\
+{`curl -X GET "https://carbon-snowy-nine.vercel.app/api/datapoints/list" \\
   -H "Authorization: Bearer $CARBONCO_JWT" \\
   -H "Content-Type: application/json"`}
           </pre>
@@ -102,7 +102,7 @@ export default function DevDocPage() {
             <code>/api/openapi</code>
           </a>
           {" "}— consommable directement par Postman, Insomnia, Swagger Editor ou Stoplight.
-          Pour toute question : <a href="mailto:contact@carbonco.fr" className="underline">contact@carbonco.fr</a>.
+          Pour toute question : <a href="mailto:ludoviclabs@gmail.com" className="underline">ludoviclabs@gmail.com</a>.
         </p>
       </div>
     </main>

@@ -106,17 +106,17 @@ export function buildOpenApiSpec() {
         "Les endpoints marqués `x-status: beta` peuvent évoluer sans préavis.",
       contact: {
         name: "CarbonCo Support",
-        email: "contact@carbonco.fr",
-        url: "https://carbonco.fr/aide",
+        email: "ludoviclabs@gmail.com",
+        url: "https://carbon-snowy-nine.vercel.app/aide",
       },
       license: {
         name: "Propriétaire — usage soumis aux CGU",
-        url: "https://carbonco.fr/cgu",
+        url: "https://carbon-snowy-nine.vercel.app/cgu",
       },
     },
     servers: [
       {
-        url: "https://carbonco.fr",
+        url: "https://carbon-snowy-nine.vercel.app",
         description: "Production",
       },
     ],

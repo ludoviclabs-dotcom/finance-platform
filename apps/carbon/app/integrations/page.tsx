@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "Ce que CarbonCo permet d'importer aujourd'hui (import Excel structuré, API REST) et ce qui " +
     "est planifié (imports fichiers AWS, GCP, Qonto, FEC) ou en roadmap (connecteurs ERP). " +
     "Statut honnête, sans promesse de connecteur non livré.",
-  alternates: { canonical: "https://carbonco.fr/integrations" },
+  alternates: { canonical: "/integrations" },
 };
 
 const SECTIONS: { key: IntegrationSection; title: string; subtitle: string }[] = [
@@ -115,7 +115,7 @@ export default function IntegrationsPage() {
               Voir la doc API
             </Link>
             <a
-              href="mailto:contact@carbonco.fr?subject=Connecteur%20custom%20CarbonCo"
+              href="mailto:ludoviclabs@gmail.com?subject=Connecteur%20custom%20CarbonCo"
               className="px-4 py-2 rounded-lg border border-neutral-300 text-neutral-900 text-sm font-semibold hover:bg-white transition-colors"
             >
               Décrire mon besoin
@@ -134,7 +134,7 @@ export default function IntegrationsPage() {
             auditable. C&apos;est le meilleur moment pour cadrer ensemble vos sources de données.
           </p>
           <a
-            href="mailto:contact@carbonco.fr?subject=Programme%20pilote%20CarbonCo%20%E2%80%94%20exercice%202026"
+            href="mailto:ludoviclabs@gmail.com?subject=Programme%20pilote%20CarbonCo%20%E2%80%94%20exercice%202026"
             className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-white text-neutral-900 text-sm font-semibold hover:bg-neutral-100 transition-colors"
           >
             Échanger sur le programme pilote

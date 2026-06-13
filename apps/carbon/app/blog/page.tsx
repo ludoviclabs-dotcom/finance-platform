@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Articles fondateurs sur la CSRD, ESRS, Scope 1/2/3, audit OTI et taxonomie verte. " +
     "Une lecture par semaine pour les équipes RSE et DAF.",
-  alternates: { canonical: "https://carbonco.fr/blog" },
+  alternates: { canonical: "/blog" },
 };
 
 const CATEGORIES = ["Tous", "CSRD", "ESRS", "Méthodologie", "OTI", "Réglementation"] as const;

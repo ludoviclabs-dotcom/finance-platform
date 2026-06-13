@@ -72,10 +72,10 @@ export function AideClient() {
           Réponses rapides aux questions les plus fréquentes. Pour un sujet spécifique,
           écrivez-nous à{" "}
           <a
-            href="mailto:contact@carbonco.fr"
+            href="mailto:ludoviclabs@gmail.com"
             className="text-green-700 hover:underline"
           >
-            contact@carbonco.fr
+            ludoviclabs@gmail.com
           </a>
           .
         </p>
@@ -124,8 +124,8 @@ export function AideClient() {
             <p className="text-base text-neutral-700 mb-2">Aucun résultat pour cette recherche.</p>
             <p className="text-sm text-neutral-500">
               Écrivez-nous à{" "}
-              <a href="mailto:contact@carbonco.fr" className="text-green-700 hover:underline">
-                contact@carbonco.fr
+              <a href="mailto:ludoviclabs@gmail.com" className="text-green-700 hover:underline">
+                ludoviclabs@gmail.com
               </a>{" "}
               — réponse sous 24 h ouvrées.
             </p>
@@ -171,11 +171,11 @@ export function AideClient() {
             <p className="text-xs font-bold uppercase tracking-widest text-green-400 mb-2">
               Vous n&apos;avez pas trouvé&nbsp;?
             </p>
-            <p className="font-bold text-lg mb-1">contact@carbonco.fr</p>
+            <p className="font-bold text-lg mb-1">ludoviclabs@gmail.com</p>
             <p className="text-sm text-neutral-300">Réponse sous 24 h ouvrées.</p>
           </div>
           <a
-            href="mailto:contact@carbonco.fr"
+            href="mailto:ludoviclabs@gmail.com"
             className="px-5 py-3 rounded-lg bg-white text-neutral-900 text-sm font-semibold hover:bg-neutral-100 transition-colors"
           >
             Nous écrire

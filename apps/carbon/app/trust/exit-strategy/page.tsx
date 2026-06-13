@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Stratégie de sortie — CarbonCo",
   description:
     "Comment récupérer toutes vos données ESG si vous quittez CarbonCo : formats d'export, SLA de restitution, manifeste Evidence Pack vérifiable hors-ligne.",
-  alternates: { canonical: "https://carbonco.fr/trust/exit-strategy" },
+  alternates: { canonical: "/trust/exit-strategy" },
 };
 
 export default function ExitStrategyPage() {

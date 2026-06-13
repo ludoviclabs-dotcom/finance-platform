@@ -840,7 +840,7 @@ function SectorCard({ s }: { s: SectorData }) {
             <span className="w-2 h-2 rounded-full bg-neutral-300" />
           </span>
           <span className="text-[11px] text-neutral-500 tabular-nums">
-            carbonco.fr/{tab} · {s.name}
+            carbon-snowy-nine.vercel.app/{tab} · {s.name}
           </span>
         </div>
 

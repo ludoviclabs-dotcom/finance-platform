@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { CookieBanner } from "@/components/cookie-banner";
 import { THEME_INIT_SCRIPT } from "@/components/ui/theme-toggle";
 import { JsonLd } from "@/components/seo/json-ld";
+import { siteUrl, CONTACT_EMAIL } from "@/lib/site-url";
 import "./globals.css";
 
 // Organization schema — servi sur toutes les pages via le root layout.
@@ -15,26 +16,16 @@ const ORGANIZATION_SCHEMA = {
   "@type": "Organization",
   name: "CarbonCo",
   alternateName: "Carbon&Co",
-  url: "https://carbonco.fr",
-  logo: "https://carbonco.fr/logo.png",
+  url: siteUrl(),
+  logo: `${siteUrl()}/logo.png`,
   description:
     "Plateforme de pilotage ESG & CSRD augmentée par l'IA. Données métier hébergées en zone UE.",
   contactPoint: [
     {
       "@type": "ContactPoint",
       contactType: "customer support",
-      email: "contact@carbonco.fr",
+      email: CONTACT_EMAIL,
       availableLanguage: ["French", "English"],
-    },
-    {
-      "@type": "ContactPoint",
-      contactType: "security",
-      email: "security@carbonco.fr",
-    },
-    {
-      "@type": "ContactPoint",
-      contactType: "privacy",
-      email: "privacy@carbonco.fr",
     },
   ],
 } as const;
@@ -61,7 +52,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://carbonco.fr"),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
     template: "%s | CarbonCo",
@@ -89,7 +80,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://carbonco.fr",
+    url: "/",
     siteName: "CarbonCo",
     title: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
     description:
@@ -115,7 +106,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://carbonco.fr",
+    canonical: "/",
   },
 };
 

@@ -40,7 +40,7 @@ export async function generateMetadata({
   return {
     title: `${m.title} — Module CarbonCo`,
     description: m.pitch,
-    alternates: { canonical: `https://carbonco.fr/produit/${m.slug}` },
+    alternates: { canonical: `/produit/${m.slug}` },
   };
 }
 
@@ -144,7 +144,7 @@ export default async function ProductModulePage({
             </p>
             <p className="font-bold text-lg mb-3">30 minutes, sur invitation.</p>
             <Link
-              href="mailto:contact@carbonco.fr?subject=Demande%20de%20démo%20CarbonCo"
+              href="mailto:ludoviclabs@gmail.com?subject=Demande%20de%20démo%20CarbonCo"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-neutral-900 text-sm font-semibold hover:bg-neutral-100 transition-colors"
             >
               Demander une démo

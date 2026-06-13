@@ -1091,7 +1091,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   ))}
                 </ul>
                 <a
-                  href="mailto:contact@carbonco.fr?subject=Demande%20de%20devis%20Enterprise%20%E2%80%94%20CarbonCo&body=Bonjour%2C%0A%0AJe%20souhaite%20%C3%A9changer%20sur%20une%20offre%20Enterprise%20CarbonCo%20pour%20mon%20organisation.%0A%0ASoci%C3%A9t%C3%A9%20%3A%20%0AEffectifs%20%3A%20%0ANombre%20de%20sites%20%2F%20filiales%20%3A%20%0AObligations%20CSRD%20%3A%20%0A%0AMerci%20de%20me%20rappeler%20au%20%3A%20%0A%0ACordialement%2C"
+                  href="mailto:ludoviclabs@gmail.com?subject=Demande%20de%20devis%20Enterprise%20%E2%80%94%20CarbonCo&body=Bonjour%2C%0A%0AJe%20souhaite%20%C3%A9changer%20sur%20une%20offre%20Enterprise%20CarbonCo%20pour%20mon%20organisation.%0A%0ASoci%C3%A9t%C3%A9%20%3A%20%0AEffectifs%20%3A%20%0ANombre%20de%20sites%20%2F%20filiales%20%3A%20%0AObligations%20CSRD%20%3A%20%0A%0AMerci%20de%20me%20rappeler%20au%20%3A%20%0A%0ACordialement%2C"
                   className="w-full inline-flex items-center justify-center bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-neutral-100 transition-colors cursor-pointer"
                 >
                   Parler à un expert
@@ -1233,7 +1233,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <li><Link href="/trust/sub-processors" className="text-sm text-neutral-500 hover:text-black transition-colors">Sous-traitants</Link></li>
                 <li><Link href="/trust/exit-strategy" className="text-sm text-neutral-500 hover:text-black transition-colors">Stratégie de sortie</Link></li>
                 <li><Link href="/ai-act" className="text-sm text-neutral-500 hover:text-black transition-colors">Conformité AI Act</Link></li>
-                <li><a href="mailto:security@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">security@carbonco.fr</a></li>
+                <li><a href="mailto:ludoviclabs@gmail.com" className="text-sm text-neutral-500 hover:text-black transition-colors">ludoviclabs@gmail.com</a></li>
               </ul>
             </div>
             <div>
@@ -1246,12 +1246,12 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <li><a href="/mentions-legales" className="text-sm text-neutral-500 hover:text-black transition-colors">Mentions légales</a></li>
                 <li><a href="/confidentialite" className="text-sm text-neutral-500 hover:text-black transition-colors">Confidentialité</a></li>
                 <li><a href="/cgu" className="text-sm text-neutral-500 hover:text-black transition-colors">CGU</a></li>
-                <li><a href="mailto:contact@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">Contact</a></li>
+                <li><a href="mailto:ludoviclabs@gmail.com" className="text-sm text-neutral-500 hover:text-black transition-colors">Contact</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-neutral-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-neutral-400">© 2026 CarbonCo — projet en développement, non commercialisé · contact : <a href="mailto:contact@carbonco.fr" className="hover:text-black underline">contact@carbonco.fr</a> · RGPD · Données métier en zone UE · <a href="/etat-du-produit" className="hover:text-black underline">État réel du produit</a></p>
+            <p className="text-xs text-neutral-400">© 2026 CarbonCo — projet en développement, non commercialisé · contact : <a href="mailto:ludoviclabs@gmail.com" className="hover:text-black underline">ludoviclabs@gmail.com</a> · RGPD · Données métier en zone UE · <a href="/etat-du-produit" className="hover:text-black underline">État réel du produit</a></p>
             <p className="text-xs text-neutral-400">Conçu à Paris · Base de données Neon Postgres en zone UE · Made with 💚</p>
           </div>
         </div>

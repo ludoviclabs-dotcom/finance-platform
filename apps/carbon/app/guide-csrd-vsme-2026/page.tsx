@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     "Le guide pratique CarbonCo après la directive Omnibus : qui reste soumis à la CSRD, " +
     "pourquoi le standard volontaire VSME devient le langage de la chaîne de valeur, et 12 points " +
     "opérationnels pour produire un reporting auditable.",
-  alternates: { canonical: "https://carbonco.fr/guide-csrd-vsme-2026" },
+  alternates: { canonical: "/guide-csrd-vsme-2026" },
 };
 
 const PRINT_STYLE = `
@@ -215,8 +215,8 @@ export default function GuidePage() {
         <footer className="mt-12 pt-6 border-t border-neutral-200 text-xs text-neutral-500">
           <p>
             © CarbonCo 2026 · Édition gratuite, libre redistribution sans modification ·{" "}
-            <a href="https://carbonco.fr" className="text-green-700 hover:underline">
-              carbonco.fr
+            <a href="https://carbon-snowy-nine.vercel.app" className="text-green-700 hover:underline">
+              carbon-snowy-nine.vercel.app
             </a>
           </p>
         </footer>

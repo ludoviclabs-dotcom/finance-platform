@@ -12,7 +12,7 @@
  *   - STRIPE_WEBHOOK_SECRET        (whsec_…)
  *   - STRIPE_PRICE_STARTER         (price_… 490 €/mois)
  *   - STRIPE_PRICE_BUSINESS        (price_… 1 290 €/mois)
- *   - NEXT_PUBLIC_APP_URL          (https://carbonco.fr)
+ *   - NEXT_PUBLIC_APP_URL          (https://carbon-snowy-nine.vercel.app)
  */
 
 export type StripePlanId = "starter" | "business";
@@ -50,7 +50,7 @@ export async function createCheckoutSession(
     return { error: `Aucun price Stripe configuré pour le plan ${params.plan}.` };
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://carbonco.fr";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://carbon-snowy-nine.vercel.app";
   const body = new URLSearchParams();
   body.append("mode", "subscription");
   body.append("success_url", `${appUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`);
@@ -87,7 +87,7 @@ export async function createBillingPortalSession(
 ): Promise<{ url: string } | { error: string }> {
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret) return { error: "Stripe n'est pas configuré sur cette instance." };
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://carbonco.fr";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://carbon-snowy-nine.vercel.app";
 
   const body = new URLSearchParams();
   body.append("customer", customerId);

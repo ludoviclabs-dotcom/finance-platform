@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { BLOG_ARTICLES } from "@/lib/blog-articles";
 import { PRODUCT_MODULES } from "@/lib/product-modules";
+import { siteUrl } from "@/lib/site-url";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://carbonco.fr";
+  const baseUrl = siteUrl();
   const now = new Date();
 
   // —— Pages publiques principales ——

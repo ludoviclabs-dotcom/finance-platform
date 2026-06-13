@@ -562,7 +562,7 @@ export function PremiumDashboardMockup() {
                 <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
-              app.carbonco.fr/dashboard{activeHotspot ? `/${activeId}` : ""}
+              app.carbon-snowy-nine.vercel.app/dashboard{activeHotspot ? `/${activeId}` : ""}
             </div>
           </div>
           <div className={styles.titlebarRight}>

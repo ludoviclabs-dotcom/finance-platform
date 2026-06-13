@@ -77,7 +77,7 @@ function Page({
       )}
       <div className="text-neutral-700 leading-relaxed">{children}</div>
       <footer className="mt-12 pt-4 border-t border-neutral-200 flex justify-between text-[10px] text-neutral-400">
-        <span>carbonco.fr · contact@carbonco.fr</span>
+        <span>carbon-snowy-nine.vercel.app · ludoviclabs@gmail.com</span>
         <span>Édition 2026</span>
       </footer>
     </section>
@@ -308,11 +308,11 @@ export function BrochureClient() {
             <p className="text-xs uppercase tracking-widest text-green-400 font-bold mb-1">
               Pour aller plus loin
             </p>
-            <p className="font-bold text-lg">contact@carbonco.fr</p>
+            <p className="font-bold text-lg">ludoviclabs@gmail.com</p>
             <p className="text-sm text-neutral-300">Réponse sous 24 h ouvrées · démo 30 min sur invitation.</p>
           </div>
           <a
-            href="mailto:contact@carbonco.fr?subject=Demande%20de%20d%C3%A9mo%20CarbonCo"
+            href="mailto:ludoviclabs@gmail.com?subject=Demande%20de%20d%C3%A9mo%20CarbonCo"
             className="px-5 py-3 rounded-lg bg-white text-neutral-900 text-sm font-semibold hover:bg-neutral-100 transition-colors"
           >
             Demander une démo

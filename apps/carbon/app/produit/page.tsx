@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Modules produit — CarbonCo",
   description:
     "Les 8 modules de la plateforme CarbonCo : collecte, calcul, audit trail, rapport, Scope 1/2/3 et préparation OTI. Une page dédiée par module.",
-  alternates: { canonical: "https://carbonco.fr/produit" },
+  alternates: { canonical: "/produit" },
 };
 
 const ILLUS = {

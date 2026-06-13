@@ -51,6 +51,6 @@ export async function verifyInvite(token: string): Promise<InvitePayload | null>
 
 /** URL absolue d'une invitation prête à envoyer par email. */
 export function buildInviteUrl(token: string, base?: string): string {
-  const root = base ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://carbonco.fr";
+  const root = base ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://carbon-snowy-nine.vercel.app";
   return `${root}/invite/${encodeURIComponent(token)}`;
 }

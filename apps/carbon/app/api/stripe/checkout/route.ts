@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error:
-          "Le paiement en ligne n'est pas encore activé. Contactez contact@carbonco.fr pour souscrire.",
+          "Le paiement en ligne n'est pas encore activé. Contactez ludoviclabs@gmail.com pour souscrire.",
       },
       { status: 503 },
     );

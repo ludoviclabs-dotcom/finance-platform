@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <LegalLayout title="Cookies et traceurs" lastUpdated="14 avril 2026">
+    <LegalLayout title="Cookies et traceurs" lastUpdated="13 juin 2026">
       <Section title="Notre approche">
         <p>
           CarbonCo n'utilise <strong>aucun cookie publicitaire</strong> ni traceur de mesure
@@ -64,7 +64,7 @@ export default function CookiesPage() {
           réauthentifier à chaque visite.
         </p>
         <p>
-          Pour toute question, écrivez à <strong>privacy@carbonco.fr</strong>.
+          Pour toute question, écrivez à <strong>ludoviclabs@gmail.com</strong>.
         </p>
       </Section>
     </LegalLayout>

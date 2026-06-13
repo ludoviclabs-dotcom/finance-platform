@@ -248,7 +248,7 @@ export function ReportsPage() {
             </div>
             <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed">
               Document XHTML conforme <strong>EFRAG taxonomie 2024-12-04</strong> couvrant E1-E5,
-              S1-S4, G1 (107 datapoints obligatoires Set 2). Prêt pour soumission auditeur (ISAE
+              S1-S4, G1 (107 datapoints obligatoires du référentiel ESRS). Prêt pour soumission auditeur (ISAE
               3000) ou dépôt ESEF.
             </p>
           </div>

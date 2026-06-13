@@ -104,11 +104,11 @@ export default function BlogIndexPage() {
               </p>
               <p className="font-bold text-xl mb-1">Une analyse, un cas concret, zéro spam.</p>
               <p className="text-sm text-neutral-300">
-                Recevez le guide « Préparer son audit CSRD 2027 » dès l&apos;inscription.
+                Recevez le guide « CSRD &amp; VSME après l&apos;Omnibus (2026) » dès l&apos;inscription.
               </p>
             </div>
             <Link
-              href="/guide-csrd-2027"
+              href="/guide-csrd-vsme-2026"
               className="px-5 py-3 rounded-lg bg-green-500 text-white text-sm font-semibold hover:bg-green-400 transition-colors whitespace-nowrap"
             >
               Télécharger le guide

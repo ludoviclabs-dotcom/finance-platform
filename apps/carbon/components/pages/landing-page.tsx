@@ -645,8 +645,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               </h1>
 
               <p className="text-xl text-neutral-500 max-w-lg mb-10 leading-relaxed">
-                Collectez, analysez et générez vos rapports ESRS en quelques clics — pas en quelques mois.
-                Application Vercel · base de données Neon en zone UE · copilote IA assistant CSRD.
+                Votre reporting ESG volontaire (VSME) et votre bilan GES, traçables jusqu&apos;à la cellule source — et vérifiables par votre auditeur sans aucun outil propriétaire.
               </p>
 
               <div className="flex flex-wrap gap-4 mb-10">
@@ -663,7 +662,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
 
               <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-400">
                 <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Aucune carte bancaire</span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>ESRS Set 2 — voir <Link href="/couverture" className="underline hover:text-neutral-600">couverture</Link></span>
+                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Standards ESRS — voir <Link href="/couverture" className="underline hover:text-neutral-600">couverture</Link></span>
                 <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Données métier en zone UE (Neon Postgres)</span>
               </div>
             </Reveal>
@@ -691,7 +690,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             {/* Indicateurs réglementaires */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-neutral-100 pt-10">
               {[
-                { value: "127", label: "Datapoints ESRS Set 2", note: "E1-E5, S1-S4, G1" },
+                { value: "127", label: "Datapoints ESRS prioritaires", note: "Sous-ensemble outillé · post-Omnibus" },
                 { value: "iXBRL", label: "Export ESEF conforme", note: "Taxonomie EFRAG 2024" },
                 { value: "GHG", label: "Protocol Scope 1, 2 & 3", note: "Méthodologie GHG Protocol" },
                 { value: "ADEME", label: "Base Empreinte® intégrée", note: "Facteurs d'émission FR" },
@@ -710,17 +709,14 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
         <section id="about" className="py-32 px-8 md:px-12 bg-[#f9f9fb]">
           <div className="max-w-[1440px] mx-auto">
             <Reveal className="text-center mb-4">
-              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Le problème</span>
+              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Le contexte réglementaire</span>
             </Reveal>
             <Reveal className="text-center mb-6" delay={0.05}>
               <h2 className="font-extrabold text-4xl md:text-5xl tracking-tighter text-black mb-5">
-                Votre reporting ESG ressemble à ça ?
+                La pression ne disparaît pas. Elle change de canal.
               </h2>
               <p className="text-lg text-neutral-600 max-w-3xl mx-auto leading-relaxed">
-                Depuis 2025, toutes les <strong className="text-black">grandes entreprises et ETI européennes</strong> doivent publier un rapport ESG détaillé
-                — y compris sur les émissions indirectes de leurs fournisseurs, leurs serveurs ou leurs locaux.
-                Les nouvelles règles se durcissent chaque année.
-                Pourtant, <strong className="text-black">7 entreprises sur 10</strong> n&apos;ont toujours aucun processus fiable pour collecter ces données.
+                Depuis la directive Omnibus (en vigueur depuis mars 2026), seules les entreprises de plus de <strong className="text-black">1 000 salariés</strong> réalisant plus de <strong className="text-black">450 M€</strong> de chiffre d&apos;affaires restent soumises à la CSRD — environ 10 000 entreprises dans l&apos;UE, avec de premiers rapports attendus en 2028 sur l&apos;exercice 2027. Pour toutes les autres, la pression ne disparaît pas : elle change de canal. Banques, assureurs et donneurs d&apos;ordre exigent des données ESG structurées, et le standard volontaire <strong className="text-black">VSME</strong> — dont l&apos;adoption par acte délégué est attendue à l&apos;été 2026 — devient le langage commun de la chaîne de valeur. En France, le bilan d&apos;émissions de GES (<strong className="text-black">BEGES</strong>) reste par ailleurs obligatoire pour les entreprises de plus de 500 salariés.
               </p>
             </Reveal>
             <div className="grid md:grid-cols-2 gap-8 mt-16">
@@ -767,7 +763,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                     ["Données centralisées via import Excel structuré", "Modèle téléchargeable, named ranges contrôlés, validation stricte"],
                     ["Collecte assistée par copilote NEURAL", "Réduction du temps de reporting estimée — résultats variables selon taille"],
                     ["Audit trail append-only signé SHA-256", "Chaque donnée tracée avec sa source, méthode et hash de chaîne"],
-                    ["ESRS Set 2 — 10 standards référencés (E1-E5, S1-S4, G1) + iXBRL ESEF en beta", "Moteur 127 datapoints (taxonomie EFRAG 2024). Couverture commerciale par paliers — voir /couverture pour le statut Live / Beta / Planifié par standard. Validator 30+ règles."],
+                    ["ESRS — 10 standards référencés (E1-E5, S1-S4, G1) + export iXBRL ESEF planifié", "127 datapoints prioritaires couverts (sous-ensemble outillé du référentiel ESRS, aligné sur la réduction d'environ 60 % des datapoints actée par l'Omnibus). Couverture par paliers — voir /couverture. Validator 30+ règles."],
                     ["Rapports PDF + Evidence Pack ZIP signé", "Vérifiable publiquement via /verify/{hash} — sans aucun outil tiers"],
                     ["Scope 3 fournisseurs via questionnaire public", "Liens partagés sans compte requis — réponses intégrées au bilan"],
                     ["Facteurs d'émission ADEME Base Empreinte® 2025", "502 facteurs versionnés, traçabilité par fact_id"],
@@ -853,9 +849,9 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   color: "green", icon: (
                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
                   ),
-                  title: "ESRS Set 2 — moteur complet",
-                  desc: "10 standards référencés (E1-E5, S1-S4, G1), moteur 127 datapoints (taxonomie EFRAG 2024). Couverture commerciale Live / Beta / Planifié par standard — voir /couverture. Validator 30+ règles, export iXBRL ESEF en beta.",
-                  highlights: ["127 datapoints (moteur)", "Validator 30+ règles", "iXBRL ESEF (beta)"],
+                  title: "Référentiel ESRS — datapoints prioritaires",
+                  desc: "10 standards référencés (E1-E5, S1-S4, G1), 127 datapoints prioritaires couverts (sous-ensemble outillé aligné sur la réduction d'environ 60 % des datapoints actée par l'Omnibus). Couverture Live / Beta / Planifié par standard — voir /couverture. Validator 30+ règles ; export iXBRL ESEF planifié.",
+                  highlights: ["127 datapoints prioritaires", "Validator 30+ règles", "iXBRL ESEF (planifié)"],
                 },
               ].map((card, i) => {
                 const bgMap: Record<string,string> = { blue: "bg-blue-50", purple: "bg-purple-50", orange: "bg-orange-50", green: "bg-green-50" };
@@ -930,7 +926,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   icon: "🏭",
                   context: "ETI industrielle (~800 salariés, 3 sites de production). Fournisseur de donneurs d'ordre soumis à la CSRD.",
                   challenge: "Collecter les émissions Scope 3 amont (achats matières premières, transport) et répondre aux questionnaires ESG de ses clients grands comptes.",
-                  fit: ["Import Excel des factures énergie", "Calcul Scope 3 fournisseurs", "Export iXBRL ESEF Set 2 en beta pour pré-tagging auditeur"],
+                  fit: ["Import Excel des factures énergie", "Calcul Scope 3 fournisseurs", "Export iXBRL ESEF planifié pour pré-tagging auditeur"],
                   tag: "Scénario illustratif",
                 },
                 {
@@ -938,7 +934,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   icon: "🏢",
                   context: "PME de services (~120 salariés, siège unique). Reporting CSRD volontaire pour répondre aux appels d'offres publics.",
                   challenge: "Structurer un premier bilan carbone fiable sans expertise interne, avec un budget limité.",
-                  fit: ["Bilan carbone Scope 1 & 2 guidé", "Copilote IA sourcé sur le corpus ESRS Set 2", "Export PDF audit-grade + iXBRL en beta"],
+                  fit: ["Bilan carbone Scope 1 & 2 guidé", "Copilote IA sourcé sur le corpus ESRS", "Export PDF audit-grade + iXBRL ESEF planifié"],
                   tag: "Scénario illustratif",
                 },
                 {
@@ -1044,7 +1040,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-black mb-1">490 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
                 <p className="text-neutral-500 text-sm mb-8">Pour PME en standard <strong>VSME</strong> volontaire ou préparation CSRD post-Omnibus</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1 & 2", "ESRS Set 2 — 10 standards référencés · couverture commerciale par paliers", "1 utilisateur", "Export PDF audit-grade · iXBRL ESEF en beta", "Support email (lun–ven, 9h–18h)"].map((f) => (
+                  {["Scope 1 & 2", "ESRS — 10 standards référencés · couverture par paliers", "1 utilisateur", "Export PDF audit-grade · iXBRL ESEF (planifié)", "Support email (lun–ven, 9h–18h)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1065,7 +1061,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-black mb-1">1 290 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
                 <p className="text-neutral-500 text-sm mb-8">Pour ETI fournisseurs de grands comptes soumis à la CSRD</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1, 2 & 3", "ESRS Set 2 — validator 30+ règles · couverture par paliers (voir /couverture)", "5 utilisateurs", "Copilote IA avec citations ESRS sourcées", "Export PDF audit-grade · iXBRL ESEF en beta · audit trail SHA-256", "API REST + import Excel structuré · connecteurs Sage / Cegid / SAP", "Support email prioritaire (lun–ven)"].map((f) => (
+                  {["Scope 1, 2 & 3", "ESRS — validator 30+ règles · couverture par paliers (voir /couverture)", "5 utilisateurs", "Copilote IA avec citations ESRS sourcées", "Export PDF audit-grade · iXBRL ESEF (planifié) · audit trail SHA-256", "API REST (beta) + import Excel structuré · connecteurs ERP en roadmap", "Support email prioritaire (lun–ven)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1083,7 +1079,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-white mb-1">À partir de 35&nbsp;k€<span className="text-base font-medium text-neutral-400">/an</span></div>
                 <p className="text-neutral-400 text-sm mb-8">Pour grands groupes multi-sites — fourchette indicative 35–120 k€/an selon périmètre, nombre de filiales et SLA.</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1, 2, 3 + CBAM", "ESRS Set 2 — couverture étendue par paliers · iXBRL ESEF en beta", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "Validator 30+ règles + review datapoint par datapoint", "Multi-sites & filiales", "SSO & RBAC", "Onboarding accompagné"].map((f) => (
+                  {["Scope 1, 2, 3 + CBAM", "ESRS — couverture étendue par paliers · iXBRL ESEF (planifié)", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "Validator 30+ règles + review datapoint par datapoint", "Multi-sites & filiales (planifié)", "SSO & RBAC (planifié)", "Onboarding accompagné"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-300">
                       <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1099,9 +1095,23 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               </Reveal>
             </div>
 
-            <Reveal delay={0.3} className="text-center mt-10">
+            {/* Encart CBAM — annexe A.3 */}
+            <Reveal delay={0.25} className="mt-10 max-w-3xl mx-auto">
+              <div className="rounded-2xl border border-neutral-200 bg-[#f9f9fb] p-6 text-sm text-neutral-600 leading-relaxed">
+                <p className="font-bold text-neutral-800 mb-2">CBAM — plan Enterprise</p>
+                <p>
+                  Régime définitif depuis le 1ᵉʳ janvier 2026. Les importateurs sous 50 tonnes/an de
+                  marchandises couvertes sont exemptés ; au-delà, statut de déclarant agréé requis, achat
+                  de certificats à partir de février 2027 et première déclaration annuelle au 30 septembre
+                  2027. CarbonCo aide à estimer l&apos;exposition et à préparer les données d&apos;émissions
+                  intégrées.
+                </p>
+              </div>
+            </Reveal>
+
+            <Reveal delay={0.3} className="text-center mt-8">
               <p className="text-sm text-neutral-400">
-                Tous les plans incluent l&apos;essai gratuit 14 jours · Engagement mensuel ou annuel (−20%) · Résiliation à tout moment
+                Tarifs indicatifs — produit en développement, aucune souscription ouverte à ce jour.
               </p>
             </Reveal>
 
@@ -1226,7 +1236,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Ressources &amp; légal</h4>
               <ul className="space-y-3">
                 <li><a href="/blog" className="text-sm text-neutral-500 hover:text-black transition-colors">Blog CSRD &amp; ESG</a></li>
-                <li><a href="/guide-csrd-2027" className="text-sm text-neutral-500 hover:text-black transition-colors">Guide CSRD 2027</a></li>
+                <li><a href="/guide-csrd-vsme-2026" className="text-sm text-neutral-500 hover:text-black transition-colors">Guide CSRD &amp; VSME (2026)</a></li>
                 <li><a href="/aide" className="text-sm text-neutral-500 hover:text-black transition-colors">Centre d&apos;aide</a></li>
                 <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure (imprimable)</a></li>
                 <li><a href="/mentions-legales" className="text-sm text-neutral-500 hover:text-black transition-colors">Mentions légales</a></li>

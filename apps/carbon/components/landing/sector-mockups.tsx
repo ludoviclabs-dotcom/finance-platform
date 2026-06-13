@@ -370,7 +370,7 @@ const TABS: { id: TabId; label: string }[] = [
 const STATUS_LABEL: Record<TabId, { sev: "ok" | "warn"; text: string; extra: string[] }> = {
   dashboard: { sev: "ok", text: "Statut OTI · prêt", extra: ["100 % des datapoints tracés", "0 alerte critique", "export PDF disponible"] },
   scopes: { sev: "ok", text: "Scopes 1·2·3 figés", extra: ["méthodes ADEME", "audit trail SHA-256"] },
-  esrs: { sev: "ok", text: "ESRS Set 2 conforme", extra: ["datapoints couverts à jour"] },
+  esrs: { sev: "ok", text: "ESRS — couverture suivie", extra: ["datapoints couverts à jour"] },
   materialite: { sev: "ok", text: "Double matérialité validée", extra: ["CSO · 12 déc 2025"] },
   datapoints: { sev: "warn", text: "Datapoints — 22 en attente", extra: ["relance fournisseurs"] },
   audit: { sev: "ok", text: "Audit trail signé", extra: ["Merkle root vérifié"] },
@@ -534,7 +534,7 @@ function ScopesPane({ s }: { s: SectorData }) {
 function EsrsPane({ s }: { s: SectorData }) {
   return (
     <>
-      <PaneHead title="ESRS Set 2 — couverture datapoints" sub="Conforme exigences CSRD 2025" />
+      <PaneHead title="ESRS — couverture datapoints" sub="Couverture par paliers — voir /couverture" />
       <div className="grid grid-cols-[1fr_auto] gap-4 items-center pb-3.5 border-b border-neutral-100">
         <div className="flex flex-col gap-1">
           <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-500">Couverture globale</span>
@@ -628,7 +628,7 @@ function DatapointsPane({ s }: { s: SectorData }) {
   const total = s.datapoints.stats.validated + s.datapoints.stats.pending + s.datapoints.stats.missing;
   return (
     <>
-      <PaneHead title="Datapoints — extraction & validation" sub={`${total} datapoints · LLM-RAG ESRS Set 2`} />
+      <PaneHead title="Datapoints — extraction & validation" sub={`${total} datapoints · LLM-RAG ESRS`} />
       <div className="grid grid-cols-3 gap-3">
         <div className="flex flex-col gap-1">
           <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-500">Validés</span>

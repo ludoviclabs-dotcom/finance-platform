@@ -89,10 +89,10 @@ export function ArticleLayout({
             Une analyse, un cas concret, zéro spam. Désabonnement en un clic.
           </p>
           <Link
-            href="/guide-csrd-2027"
+            href="/guide-csrd-vsme-2026"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors"
           >
-            Télécharger le guide CSRD 2027
+            Télécharger le guide CSRD &amp; VSME
           </Link>
         </div>
 

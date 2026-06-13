@@ -511,6 +511,19 @@ export function triggerIngest(signal?: AbortSignal): Promise<IngestResponse> {
   return apiSend<IngestResponse>("POST", "/ingest", signal) as Promise<IngestResponse>;
 }
 
+// --- Chaîne d'intégrité (T2.5) ---
+export type ChainStatus = {
+  scheduled: boolean;
+  ok: boolean;
+  broken_at: number | null;
+  checked: number;
+  verified_at: string | null;
+};
+
+export function fetchChainStatus(signal?: AbortSignal): Promise<ChainStatus> {
+  return apiGet<ChainStatus>("/chain/status", signal);
+}
+
 export function invalidateCache(
   domain?: "carbon" | "vsme" | "esg" | "finance",
   signal?: AbortSignal

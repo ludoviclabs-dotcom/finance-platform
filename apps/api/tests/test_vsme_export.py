@@ -87,9 +87,11 @@ class TestPackage:
         assert len(res["manifest_hash"]) == 64
 
     def test_manifest_hash_deterministic(self) -> None:
+        from datetime import datetime, timezone
+        fixed = datetime(2026, 1, 1, tzinfo=timezone.utc)
         m = _mapping()
-        a = vsme_export.build_vsme_report(company_id=1, company_name="Exemplia", mapping=m)
-        b = vsme_export.build_vsme_report(company_id=1, company_name="Exemplia", mapping=m)
+        a = vsme_export.build_vsme_report(company_id=1, company_name="Exemplia", mapping=m, generated_at=fixed)
+        b = vsme_export.build_vsme_report(company_id=1, company_name="Exemplia", mapping=m, generated_at=fixed)
         assert a["manifest_hash"] == b["manifest_hash"]
 
     def test_checksums_match(self) -> None:

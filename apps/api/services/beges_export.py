@@ -21,7 +21,7 @@ from typing import Any
 
 from db.database import db_available, get_db
 from services import scope3_service
-from services.vsme_export import _FIXED_META_DATE, _p, _sha
+from services.vsme_export import _FIXED_META_DATE, _normalize_xlsx, _p, _sha
 from utils.excel_sanitize import sanitize_cell
 
 logger = logging.getLogger(__name__)
@@ -163,16 +163,17 @@ def build_beges_xlsx(*, company_name: str, breakdown: dict[str, Any]) -> bytes:
             ws.append([cat["code"], sanitize_cell(p["code"]), sanitize_cell(p["label"]), p["value"], row_hash])
     buf = io.BytesIO()
     wb.save(buf)
-    return buf.getvalue()
+    return _normalize_xlsx(buf.getvalue())
 
 
 def build_beges_report(*, company_id: int, company_name: str, fte: int | None = None,
-                       country: str = "FR", scope_totals: dict[str, Any] | None = None) -> dict[str, Any]:
+                       country: str = "FR", scope_totals: dict[str, Any] | None = None,
+                       generated_at: datetime | None = None) -> dict[str, Any]:
     if scope_totals is None:
         scope_totals = read_scope_totals(company_id)
     breakdown = ventilate(scope_totals)
     elig = eligibility(fte, country)
-    now = datetime.now(tz=timezone.utc)
+    now = generated_at or datetime.now(tz=timezone.utc)
     pdf_bytes = build_beges_pdf(company_name=company_name, breakdown=breakdown, elig=elig,
                                generated_at=now.strftime("%d/%m/%Y"))
     xlsx_bytes = build_beges_xlsx(company_name=company_name, breakdown=breakdown)

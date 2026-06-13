@@ -67,7 +67,10 @@ class TestRenderers:
 
 class TestPackage:
     def test_zip_and_determinism(self) -> None:
-        a = beges.build_beges_report(company_id=1, company_name="Exemplia", fte=600, scope_totals=SCOPE_TOTALS)
+        from datetime import datetime, timezone
+        fixed = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        a = beges.build_beges_report(company_id=1, company_name="Exemplia", fte=600,
+                                     scope_totals=SCOPE_TOTALS, generated_at=fixed)
         with zipfile.ZipFile(io.BytesIO(a["zip_bytes"])) as zf:
             names = set(zf.namelist())
             checksums = zf.read("CHECKSUMS.sha256").decode("utf-8")
@@ -75,7 +78,8 @@ class TestPackage:
                 sha, name = line.split("  ", 1)
                 assert hashlib.sha256(zf.read(name)).hexdigest() == sha
         assert {"manifest.json", "beges.pdf", "beges.xlsx", "CHECKSUMS.sha256", "README.txt"} <= names
-        b = beges.build_beges_report(company_id=1, company_name="Exemplia", fte=600, scope_totals=SCOPE_TOTALS)
+        b = beges.build_beges_report(company_id=1, company_name="Exemplia", fte=600,
+                                     scope_totals=SCOPE_TOTALS, generated_at=fixed)
         assert a["manifest_hash"] == b["manifest_hash"]
 
 

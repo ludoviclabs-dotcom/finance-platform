@@ -56,5 +56,13 @@ jobs:
 
       - run: npm ci
 
-      - name: npm audit (high+critical bloquant)
-        run: npm audit --audit-level=high
+      # Audit bloquant : dépendances de PRODUCTION uniquement (ce qui est réellement
+      # déployé). Même intention que l'audit API sur requirements.txt.
+      - name: npm audit — production deps (high+critical bloquant)
+        run: npm audit --audit-level=high --omit=dev
+
+      # Visibilité non bloquante des avis sur l'outillage de dev (vitest UI,
+      # esbuild dev-server, drizzle-kit/@esbuild-kit) — jamais embarqué dans le
+      # bundle servi. Affiché dans les logs sans bloquer le merge (ne masque rien).
+      - name: npm audit — full incl. dev tooling (informationnel)
+        run: npm audit --audit-level=high || true

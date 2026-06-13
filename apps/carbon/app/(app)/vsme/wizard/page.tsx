@@ -152,7 +152,12 @@ export default function VsmeWizardPage() {
                   <input
                     type={f.kind === "number" ? "number" : "text"}
                     value={String(state[f.code] ?? "")}
-                    onChange={(e) => setField(f.code, f.kind === "number" ? Number(e.target.value) : e.target.value)}
+                    onChange={(e) =>
+                      setField(
+                        f.code,
+                        f.kind === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value,
+                      )
+                    }
                     className="px-2 py-1 rounded border border-neutral-200 w-40"
                     data-testid={`field-${f.code}`}
                   />
@@ -180,11 +185,24 @@ export default function VsmeWizardPage() {
               puis terminez pour enregistrer vos valeurs.
             </p>
             <button
-              onClick={() => downloadVsmeReport().catch(() => {})}
-              className="px-4 py-2 rounded-full border border-neutral-300 text-sm font-semibold"
+              onClick={async () => {
+                // Persiste l'état du wizard dans vsme_field_values AVANT de bâtir le
+                // rapport (qui lit ces valeurs), sinon le ZIP omettrait les saisies.
+                setBusy(true);
+                try {
+                  await completeWizard();
+                  await downloadVsmeReport();
+                } catch {
+                  /* ignore */
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              disabled={busy}
+              className="px-4 py-2 rounded-full border border-neutral-300 text-sm font-semibold disabled:opacity-40"
               data-testid="wizard-download"
             >
-              Télécharger le rapport VSME
+              {busy ? "Préparation…" : "Télécharger le rapport VSME"}
             </button>
           </div>
         )}

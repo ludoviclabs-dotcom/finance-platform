@@ -39,6 +39,10 @@ function GuidedEntry({ row, onSaved }: { row: VsmeDatapointRow; onSaved: () => v
   const [err, setErr] = useState<string | null>(null);
 
   const submit = async () => {
+    if (!na && value.trim() === "") {
+      setErr("Saisissez une valeur, ou cochez « non applicable ».");
+      return;
+    }
     setBusy(true);
     setErr(null);
     try {

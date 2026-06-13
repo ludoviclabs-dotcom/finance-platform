@@ -16,8 +16,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from jobs import app
 import jobs.ingest_job  # noqa: F401  (enregistre ingest_task auprès de l'app)
+from jobs import app
 
 
 def main() -> None:

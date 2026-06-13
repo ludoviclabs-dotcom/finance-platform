@@ -63,6 +63,24 @@ jobs:
           print('OK: all services loaded')
           "
 
+  # Job séparé : pytest + Block A indépendants du lint (T1.8).
+  tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Tests (pytest — mode /tmp, sans Neon)
+        run: pytest -q
+      - name: Block A — validation des classeurs masters
+        run: python ../../scripts/carbonco/validate_block_a_workbooks.py --root data
+
   security-audit:
     runs-on: ubuntu-latest
     defaults:

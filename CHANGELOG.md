@@ -35,4 +35,12 @@ Feuille de route et critères d'acceptation : [`docs/carbonco/PLAN_ACTION_CARBON
 - **T2.5** — `verify_chain` planifié : table `chain_verifications` (migration 013) horodatée, job quotidien (`chain-verify.yml`), badge dashboard « chaîne vérifiée le … — N events » (rouge si rompue, audit_event d'erreur).
 - **T2.6** — Indicateurs preuve & qualité : `quality` 1-5 déduit du `source_path`, widgets (couverture pièces, distribution, fraîcheur facteurs) et **score audit 0-100** à formule publiée ([`docs/carbonco/AUDIT_SCORE.md`](docs/carbonco/AUDIT_SCORE.md)).
 
+### P3 — Module VSME (livrable vendable 2026)
+
+- **T3.1** — Référentiel VSME : catalogue global EFRAG (B1-B11 + C1-C9) dans `data/vsme_datapoints.json` (+ `docs/carbonco/VSME_DATAPOINT_MAPPING.md`), table `vsme_datapoints` (migration 014, sans RLS), seed CLI, `GET /vsme/datapoints`. Réutilise les fact codes `CC.GES.*`.
+- **T3.2** — Mapping → VSME + complétude : `vsme_field_values` (migration 015, RLS), mapping auto E1/matérialité/S1/G1 → modules (statut/source), complétude honnête (dénominateur = obligatoires), saisie guidée (fact chaîné `manual:user@`, justification ≥10 car. si non applicable). Page `/vsme/completude`.
+- **T3.3** — Export Rapport VSME : PDF (structure EFRAG, page de garde + sections par module) + annexe Excel (onglet/module, hash par ligne, cellules sanitizées), ZIP auditable (manifest + `CHECKSUMS.sha256`, enregistré `export_packages` domaine `vsme` pour `/verify`), `manifest_hash` déterministe. `POST /vsme/report`.
+- **T3.4** — Wizard « VSME en 10 étapes » : `vsme_wizard_sessions` (migration 016, RLS), progression persistée + reprise, facts émis en bulk au `complete`. Page `/vsme/wizard` + e2e Playwright.
+- **T3.5** — Repositionnement VSME-first : hero « Votre rapport VSME, auditable », pricing « Starter » → « VSME », encart VSME sur `/couverture` (registre), article `/blog`. Statut registre `module-vsme` = beta.
+
 > Critères d'acceptation nécessitant des ressources externes (Neon, CSV ADEME, secrets, Sentry DSN, UI 2FA) : voir [`docs/ops/ACTIONS_LUDO.md`](docs/ops/ACTIONS_LUDO.md).

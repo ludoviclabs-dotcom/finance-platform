@@ -2051,3 +2051,109 @@ export interface RagSearchResponse {
 export function ragSearch(query: string, top_k = 5): Promise<RagSearchResponse> {
   return apiSend<RagSearchResponse>("POST", "/copilot/rag-search", undefined, { query, top_k }) as Promise<RagSearchResponse>;
 }
+
+// ---------------------------------------------------------------------------
+// Actions de réduction — MACC (T5.1) + plan de transition (T5.2)
+// ---------------------------------------------------------------------------
+
+export type Action = {
+  id: number;
+  title: string;
+  description: string | null;
+  status: "proposed" | "committed" | "done";
+  owner: string | null;
+  milestone: string | null;
+  capex: number | null;
+  reduction_tco2e: number | null;
+  lifespan_years: number | null;
+  target_code: string | null;
+};
+
+export type MaccBar = {
+  id: number;
+  title: string;
+  status: string;
+  marginal_cost: number;
+  potential_tco2e: number;
+  capex: number | null;
+  cumulative_start: number;
+  cumulative_end: number;
+};
+
+export type Macc = {
+  bars: MaccBar[];
+  unpriced: { id: number; title: string }[];
+  total_potential_tco2e: number;
+  total_capex: number;
+};
+
+export type Trajectory = {
+  baseline_tco2e: number;
+  years: number;
+  reference: number[];
+  projected_done: number[];
+  projected_committed: number[];
+  potential: number[];
+  reductions: { done: number; committed: number; proposed: number; total: number };
+};
+
+export function fetchActions(signal?: AbortSignal): Promise<{ actions: Action[] }> {
+  return apiGet<{ actions: Action[] }>("/actions", signal);
+}
+
+export function createAction(body: Partial<Action>, signal?: AbortSignal): Promise<Action | null> {
+  return apiSend<Action>("POST", "/actions", signal, body);
+}
+
+export function patchAction(id: number, body: Partial<Action>, signal?: AbortSignal): Promise<Response> {
+  return _fetchWithRetry(`${API_BASE_URL}/actions/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+    signal,
+  });
+}
+
+export function setActionStatus(id: number, status: Action["status"], signal?: AbortSignal): Promise<Action | null> {
+  return apiSend<Action>("POST", `/actions/${id}/status`, signal, { status });
+}
+
+export function deleteAction(id: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/actions/${id}`, signal) as Promise<null>;
+}
+
+export function fetchMacc(signal?: AbortSignal): Promise<Macc> {
+  return apiGet<Macc>("/actions/macc", signal);
+}
+
+export function fetchTrajectory(years = 5, signal?: AbortSignal): Promise<Trajectory> {
+  return apiGet<Trajectory>(`/actions/trajectory?years=${years}`, signal);
+}
+
+async function _downloadPdf(path: string, fallback: string, signal?: AbortSignal): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on ${path}`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : fallback;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export function downloadMaccPdf(signal?: AbortSignal): Promise<void> {
+  return _downloadPdf("/actions/macc.pdf", "macc.pdf", signal);
+}
+
+export function downloadTransitionPdf(signal?: AbortSignal): Promise<void> {
+  return _downloadPdf("/actions/transition.pdf", "plan-transition.pdf", signal);
+}

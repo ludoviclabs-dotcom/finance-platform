@@ -168,8 +168,16 @@ def save_field_value(
     is_applicable: bool = True,
     na_justification: str | None = None,
     user_email: str | None = None,
+    source_path: str | None = None,
 ) -> dict[str, Any]:
-    """Enregistre une saisie guidée / un 'non applicable' et émet un fact chaîné."""
+    """Enregistre une saisie guidée / un 'non applicable' et émet un fact chaîné.
+
+    Dédup : un fact n'est ré-émis que si la valeur CHANGE (sinon le fact existant
+    est conservé) — évite les doublons entre saisie manuelle et wizard. Un
+    datapoint non applicable ou vidé voit son fact_event_id remis à NULL (pas de
+    fact fantôme). Une valeur non numérique pour un datapoint quantitatif est
+    rejetée explicitement (pas de stockage silencieux).
+    """
     dp = vsme_catalog.get_datapoint(code)
     if dp is None:
         raise VsmeMappingError(f"Datapoint VSME inconnu : {code}")
@@ -178,26 +186,45 @@ def save_field_value(
             raise VsmeMappingError(
                 f"Une justification d'au moins {NA_JUSTIFICATION_MIN} caractères est requise pour « non applicable »."
             )
+    numeric_value: float | None = None
+    if is_applicable and value not in (None, "") and dp["type"] == "quantitatif":
+        try:
+            numeric_value = float(value)
+        except (TypeError, ValueError) as exc:
+            raise VsmeMappingError(
+                f"Valeur non numérique pour le datapoint quantitatif {code} : {value!r}."
+            ) from exc
     if not db_available():
         raise VsmeMappingError("Base de données indisponible.")
 
-    source_path = f"manual:{user_email}" if user_email else "manual:unknown"
-    fact_event_id: int | None = None
+    sp = source_path or (f"manual:{user_email}" if user_email else "manual:unknown")
+    stored_value = None if value is None else str(value)
 
-    # Émet un fact chaîné pour un datapoint quantitatif renseigné et applicable.
-    if is_applicable and value not in (None, "") and dp.get("fact_code") and dp["type"] == "quantitatif":
-        try:
+    # État existant → dédup du fact (ne pas réémettre une valeur inchangée).
+    with get_db(company_id=company_id) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT value, fact_event_id FROM vsme_field_values "
+                "WHERE company_id = %s AND datapoint_code = %s",
+                (company_id, code),
+            )
+            existing = cur.fetchone()
+
+    fact_event_id: int | None = None
+    fact_emitted = False
+    if is_applicable and numeric_value is not None and dp.get("fact_code"):
+        if existing and existing["value"] == stored_value and existing["fact_event_id"] is not None:
+            fact_event_id = existing["fact_event_id"]  # inchangé → on garde le fact existant
+        else:
             ev = facts_service.emit_fact(
-                company_id=company_id, code=dp["fact_code"], value=float(value),
-                unit=dp.get("unit") or "", ef_id=None, source_path=source_path,
+                company_id=company_id, code=dp["fact_code"], value=numeric_value,
+                unit=dp.get("unit") or "", ef_id=None, source_path=sp,
                 meta={"vsme_code": code},
             )
             if ev is not None:
                 fact_event_id = ev.id
-        except (TypeError, ValueError):
-            pass  # valeur non numérique → stockée telle quelle, pas de fact
+                fact_emitted = True
 
-    stored_value = None if value is None else str(value)
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -209,13 +236,13 @@ def save_field_value(
                 ON CONFLICT (company_id, datapoint_code) DO UPDATE SET
                     value = EXCLUDED.value, is_applicable = EXCLUDED.is_applicable,
                     na_justification = EXCLUDED.na_justification,
-                    fact_event_id = COALESCE(EXCLUDED.fact_event_id, vsme_field_values.fact_event_id),
+                    fact_event_id = EXCLUDED.fact_event_id,
                     source_path = EXCLUDED.source_path, updated_by = EXCLUDED.updated_by,
                     updated_at = now()
                 RETURNING id
                 """,
                 (company_id, code, stored_value, is_applicable, na_justification,
-                 fact_event_id, source_path, user_email),
+                 fact_event_id, sp, user_email),
             )
             row = cur.fetchone()
-    return {"id": row["id"], "code": code, "fact_event_id": fact_event_id, "saved": True}
+    return {"id": row["id"], "code": code, "fact_event_id": fact_event_id, "fact_emitted": fact_emitted, "saved": True}

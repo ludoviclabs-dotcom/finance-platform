@@ -56,6 +56,26 @@ class TestRenderers:
         assert ws.cell(row=1, column=8).value.startswith("Hash")
         assert len(ws.cell(row=2, column=8).value) == 64
 
+    def test_xlsx_reflects_mixed_statuses(self) -> None:
+        # Mélange auto (E1) + manuel (override) + na (justifié) dans le même export.
+        rows = svc.map_datapoints(SNAPSHOT, {
+            "B4-1": {"is_applicable": False, "na_justification": "Non matériel pour le secteur"},
+            "B10-2": {"value": 12, "is_applicable": True},
+        })
+        mapping = {"version": "v2024.12", "completeness": svc.completeness(rows), "datapoints": rows}
+        b = vsme_export.build_vsme_xlsx(company_name="Exemplia", mapping=mapping)
+        from openpyxl import load_workbook
+        wb = load_workbook(io.BytesIO(b))
+        cells: dict[str, tuple] = {}
+        for sheet in wb.sheetnames:
+            if sheet == "Synthèse":
+                continue
+            for row in wb[sheet].iter_rows(min_row=2, values_only=True):
+                cells[row[0]] = (row[5], row[4])  # code -> (statut, valeur)
+        assert cells["B4-1"] == ("na", "Non applicable")
+        assert cells["B10-2"][0] == "manuel"
+        assert cells["B3-1"][0] == "auto"  # Scope 1 auto depuis E1
+
 
 class TestPackage:
     def test_zip_contents(self) -> None:

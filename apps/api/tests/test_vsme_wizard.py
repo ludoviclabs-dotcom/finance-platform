@@ -34,9 +34,9 @@ class TestPureLogic:
         assert wiz.merge_state({"a": 1}, {"a": 9}) == {"a": 9}
         assert wiz.merge_state({}, None) == {}
 
-    def test_emit_state_facts_noop_without_db(self) -> None:
-        # Sans DB, emit_fact renvoie None → 0 fact émis.
-        assert wiz._emit_state_facts(1, {"B6-1": 1500, "B1-1": "Exemplia"}) == 0
+    def test_persist_state_noop_without_db(self) -> None:
+        # Sans DB, save_field_value lève → capturé → 0 fact émis.
+        assert wiz._persist_state(1, {"B6-1": 1500, "B1-1": "Exemplia"}) == 0
 
 
 class TestEndpoints:
@@ -54,7 +54,9 @@ class TestGetSessionNoDb:
 
 @pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="nécessite une vraie DB")
 class TestRoundtrip:
-    def test_start_save_complete(self) -> None:
+    def test_start_save_complete_persists_to_completeness(self) -> None:
+        from services import vsme_mapping_service
+
         cid = 99341
         s = wiz.start_session(cid, {"anneeReporting": 2025})
         assert s["step"] == 1 and s["progress_pct"] == 10
@@ -62,4 +64,23 @@ class TestRoundtrip:
         assert s2["step"] == 5 and s2["state"]["B6-1"] == 1500
         res = wiz.complete(cid)
         assert res["completed"] is True
+        assert res["emitted_facts"] >= 1  # B6-1 a un fact_code → fact émis
         assert wiz.get_session(cid)["completed"] is True
+        # Les valeurs du wizard apparaissent dans la complétude (statut manuel).
+        rows = vsme_mapping_service.compute_mapping(cid)["datapoints"]
+        b61 = next(r for r in rows if r["code"] == "B6-1")
+        assert b61["status"] == "manuel" and str(b61["value"]) == "1500"
+
+    def test_no_double_emission_mapping_then_wizard(self) -> None:
+        from services import vsme_mapping_service
+
+        cid = 99342
+        # 1. saisie manuelle B6-1=1500 → 1 fact
+        r1 = vsme_mapping_service.save_field_value(company_id=cid, code="B6-1", value=1500, user_email="u@e.fr")
+        assert r1["fact_emitted"] is True
+        # 2. wizard avec la MÊME valeur → dédup, aucun nouveau fact
+        wiz.start_session(cid, {})
+        wiz.save_step(cid, 5, {"B6-1": 1500})
+        res = wiz.complete(cid)
+        b61_emitted = res["emitted_facts"]
+        assert b61_emitted == 0  # valeur inchangée → pas de doublon

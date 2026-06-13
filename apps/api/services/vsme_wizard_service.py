@@ -47,24 +47,27 @@ def merge_state(existing: dict[str, Any], patch: dict[str, Any]) -> dict[str, An
     return {**(existing or {}), **(patch or {})}
 
 
-def _emit_state_facts(company_id: int, state: dict[str, Any]) -> int:
-    """Émet un fact par valeur quantitative de l'état mappée à un datapoint VSME."""
+def _persist_state(company_id: int, state: dict[str, Any]) -> int:
+    """Persiste les valeurs de l'état (clés = codes datapoints) par la voie
+    CANONIQUE save_field_value : elles apparaissent dans la complétude ET un fact
+    chaîné est émis (dédupliqué — pas de doublon avec une saisie manuelle
+    antérieure). Retourne le nombre de facts NOUVELLEMENT émis ; une valeur
+    invalide (ex. non numérique) est ignorée."""
+    from services import vsme_mapping_service
+
     emitted = 0
     for code, value in (state or {}).items():
-        dp = vsme_catalog.get_datapoint(code)
-        if not dp or not dp.get("fact_code") or dp["type"] != "quantitatif":
+        if value in (None, "") or vsme_catalog.get_datapoint(code) is None:
             continue
         try:
-            fv = float(value)
-        except (TypeError, ValueError):
+            res = vsme_mapping_service.save_field_value(
+                company_id=company_id, code=code, value=value,
+                is_applicable=True, source_path="wizard",
+            )
+            if res.get("fact_emitted"):
+                emitted += 1
+        except vsme_mapping_service.VsmeMappingError:
             continue
-        ev = facts_service.emit_fact(
-            company_id=company_id, code=dp["fact_code"], value=fv,
-            unit=dp.get("unit") or "", ef_id=None, source_path="wizard",
-            meta={"vsme_code": code},
-        )
-        if ev is not None:
-            emitted += 1
     return emitted
 
 
@@ -146,7 +149,7 @@ def complete(company_id: int) -> dict[str, Any]:
     session = get_session(company_id)
     if session is None:
         raise WizardError("Aucune session wizard à finaliser.")
-    emitted = _emit_state_facts(company_id, session["state"])
+    emitted = _persist_state(company_id, session["state"])
     if emitted > 0:
         try:
             facts_service.refresh_facts_current()

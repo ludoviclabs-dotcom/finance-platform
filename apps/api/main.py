@@ -12,8 +12,10 @@ from routers import (
     admin,
     alerts,
     audit,
+    auditor,
     auth,
     carbon,
+    chain,
     clients,
     copilot,
     creditrisk,
@@ -33,6 +35,7 @@ from routers import (
     ingest,
     materialite,
     pilier2,
+    quality,
     report,
     reviews,
     strategic_mapping,
@@ -158,6 +161,7 @@ app.include_router(esg.router, prefix="/esg", tags=["esg"])
 app.include_router(finance.router, prefix="/finance", tags=["finance"])
 app.include_router(ingest.router, tags=["ingest"])
 app.include_router(audit.router, prefix="/audit", tags=["audit"])
+app.include_router(auditor.router, prefix="/auditor", tags=["auditor (T2.2)"])
 app.include_router(history.router, prefix="/history", tags=["history"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(dpp.router, prefix="/dpp", tags=["dpp"])
@@ -165,6 +169,8 @@ app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(factors.router, prefix="/factors", tags=["factors"])
 app.include_router(facts.router, prefix="/facts", tags=["facts"])
+app.include_router(chain.router, prefix="/chain", tags=["chain (T2.5)"])
+app.include_router(quality.router, prefix="/quality", tags=["quality (T2.6)"])
 app.include_router(files.router, tags=["files"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
 app.include_router(export.router, prefix="/export", tags=["export"])

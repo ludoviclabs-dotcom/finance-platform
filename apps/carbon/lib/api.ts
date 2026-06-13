@@ -511,6 +511,36 @@ export function triggerIngest(signal?: AbortSignal): Promise<IngestResponse> {
   return apiSend<IngestResponse>("POST", "/ingest", signal) as Promise<IngestResponse>;
 }
 
+// --- Chaîne d'intégrité (T2.5) ---
+export type ChainStatus = {
+  scheduled: boolean;
+  ok: boolean;
+  broken_at: number | null;
+  checked: number;
+  verified_at: string | null;
+};
+
+export function fetchChainStatus(signal?: AbortSignal): Promise<ChainStatus> {
+  return apiGet<ChainStatus>("/chain/status", signal);
+}
+
+// --- Indicateurs de preuve & qualité (T2.6) ---
+export type QualityIndicators = {
+  total_datapoints: number;
+  with_evidence: number;
+  evidence_coverage: number;
+  quality_distribution: Record<string, number>;
+  avg_quality: number | null;
+  fe_versions: string[];
+  chain_ok: boolean;
+  open_anomalies: number;
+  audit_score: number;
+};
+
+export function fetchQualityIndicators(signal?: AbortSignal): Promise<QualityIndicators> {
+  return apiGet<QualityIndicators>("/quality/indicators", signal);
+}
+
 export function invalidateCache(
   domain?: "carbon" | "vsme" | "esg" | "finance",
   signal?: AbortSignal

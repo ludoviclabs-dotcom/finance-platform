@@ -12,16 +12,21 @@ RLS garantit que chaque requête ne retourne que les facts de la company de l'ut
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 
 from db.database import db_available, get_db
-from routers.auth import get_current_user, require_admin
-from services import facts_service
+from routers.auth import get_current_user, require_admin, require_analyst
+from services import evidence_service, facts_service
 from services.auth_service import AuthUser
+from services.storage.base import StorageError
+from utils.evidence_guard import check_evidence_bytes
+
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -203,3 +208,68 @@ async def fact_latest(
         computed_at=row["computed_at"],
         hash_self=row["hash_self"],
     )
+
+
+# ── Pièces justificatives par datapoint (T2.1) ───────────────────────────────
+
+
+@router.post("/{code}/evidence")
+async def attach_evidence_endpoint(
+    code: str,
+    file: UploadFile = File(...),
+    user: AuthUser = Depends(require_analyst),
+) -> dict[str, Any]:
+    """Attache une pièce (PDF/PNG/JPG, 5 Mo max) à un datapoint via un event chaîné."""
+    if not db_available():
+        raise HTTPException(503, detail="Base de données indisponible")
+
+    data = await file.read()
+    ext, content_type = check_evidence_bytes(data, file.filename)
+    try:
+        return evidence_service.attach_evidence(
+            company_id=user.company_id,
+            code=code,
+            data=data,
+            filename=file.filename or f"piece.{ext}",
+            ext=ext,
+            content_type=content_type,
+            uploaded_by=user.email,
+        )
+    except evidence_service.EvidenceError as exc:
+        raise HTTPException(409, detail=str(exc)) from exc
+    except StorageError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+
+
+@router.get("/{code}/evidence")
+async def list_evidence_endpoint(
+    code: str,
+    user: AuthUser = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Liste les pièces actives d'un datapoint (URL signée expirante 15 min)."""
+    if not db_available():
+        raise HTTPException(503, detail="Base de données indisponible")
+    return {
+        "code": code,
+        "company_id": user.company_id,
+        "evidence": evidence_service.list_evidence(company_id=user.company_id, code=code),
+    }
+
+
+@router.delete("/{code}/evidence/{sha256}")
+async def revoke_evidence_endpoint(
+    code: str,
+    sha256: str,
+    user: AuthUser = Depends(require_analyst),
+) -> dict[str, Any]:
+    """Révoque une pièce (event chaîné). Le fichier reste adressé par son hash."""
+    if not db_available():
+        raise HTTPException(503, detail="Base de données indisponible")
+    if not _SHA256_RE.match(sha256):
+        raise HTTPException(400, detail="SHA-256 invalide (64 caractères hexadécimaux attendus).")
+    try:
+        return evidence_service.revoke_evidence(
+            company_id=user.company_id, code=code, sha256=sha256, revoked_by=user.email,
+        )
+    except evidence_service.EvidenceError as exc:
+        raise HTTPException(404, detail=str(exc)) from exc

@@ -34,6 +34,8 @@ AuditEventType = Literal[
     "2fa_success",
     "2fa_fail",
     "2fa_recovery",
+    "auditor_invite",
+    "auditor_access",
 ]
 
 

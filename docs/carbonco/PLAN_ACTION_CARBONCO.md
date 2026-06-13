@@ -150,27 +150,27 @@
 
 > C'est le différenciateur. Tout ce qui est promis sur la home ("audit trail signé", "/verify/{hash}", "Evidence Pack") doit devenir démontrable bout-en-bout.
 
-### [ ] T2.1 — Pièce justificative par datapoint
+### [x] T2.1 — Pièce justificative par datapoint
 **Étapes :** upload d'une pièce (PDF/PNG/JPG, 5 Mo max) rattachée à un `fact_id` ; SHA-256 de la pièce stocké dans `facts_events.meta.evidence = [{sha256, filename, size, uploaded_by, uploaded_at}]` via un NOUVEL event chaîné (pas de mutation de l'event d'origine — append-only) ; visualisation inline ; suppression = event de révocation chaîné, le fichier reste adressé par hash.
 **CA :** ajouter une pièce crée un event ; `verify_chain` reste vert ; le hash affiché en UI = `sha256sum` du fichier téléchargé.
 
-### [ ] T2.2 — Rôle "Auditeur invité" (lecture seule, par lien)
+### [x] T2.2 — Rôle "Auditeur invité" (lecture seule, par lien)
 **Étapes :** invitation par email → token scoped (`company_id`, expiration 30 j, révocable) ; vue dédiée : KPIs, trail par datapoint, pièces, statut `verify_chain`, export du pack ; chaque consultation journalisée dans `audit_events` ; aucun droit d'écriture (test RLS + test d'API exhaustif sur les méthodes POST/PUT/DELETE).
 **CA :** un auditeur invité peut remonter d'un KPI à la cellule Excel source et à la pièce jointe en ≤ 3 clics ; toute tentative d'écriture → 403 journalisé.
 
-### [ ] T2.3 — `/verify/{hash}` public, branché de bout en bout
+### [x] T2.3 — `/verify/{hash}` public, branché de bout en bout
 **Étapes :** génération d'un **manifeste JSON** par export (liste des fichiers du pack + sha256 individuels + hash global + `fact_id` couverts + horodatage) ; page publique sans auth : saisie ou URL d'un hash → statut "authentique / inconnu / altéré" en recomputant côté serveur ; rate-limit dédié ; aucune donnée métier exposée, uniquement le statut et les métadonnées du manifeste.
 **CA :** générer un pack, modifier 1 octet du ZIP, re-vérifier → "altéré" ; le hash imprimé en pied de PDF (T2.4) résout sur la page publique.
 
-### [ ] T2.4 — Evidence Pack ZIP signé
+### [x] T2.4 — Evidence Pack ZIP signé
 **Étapes :** job asynchrone (T1.3) assemblant : rapport PDF, export Excel à hash par ligne, pièces jointes, `manifest.json`, `README_VERIFICATION.txt` (procédure de vérification sans outil propriétaire : `sha256sum` + URL `/verify`) ; hash global imprimé en pied de page du PDF.
 **CA :** pack téléchargeable depuis l'UI et depuis la vue auditeur ; vérification manuelle `sha256sum -c` documentée et fonctionnelle.
 
-### [ ] T2.5 — `verify_chain` planifié + badge de confiance
+### [x] T2.5 — `verify_chain` planifié + badge de confiance
 **Étapes :** job quotidien par organisation ; résultat horodaté en base ; badge dashboard "Chaîne d'intégrité vérifiée le JJ/MM à HH:MM — N events" ; alerte (in-app) si `broken_at`.
 **CA :** corruption volontaire d'un `hash_self` en staging → badge rouge + alerte sous 24 h (ou au déclenchement manuel).
 
-### [ ] T2.6 — Indicateurs de preuve et de qualité de donnée
+### [x] T2.6 — Indicateurs de preuve et de qualité de donnée
 **Étapes :** champ `quality` (1-5 : 1=mesure primaire, 2=facture, 3=donnée d'activité estimée, 4=ratio monétaire, 5=extrapolation) sur chaque fact, défaut déduit de `source_path` ; widgets dashboard : % datapoints avec pièce, répartition primaire/estimé, score qualité moyen pondéré, version des FE appliqués (fraîcheur), nombre d'anomalies ouvertes ; ces indicateurs alimentent le "score audit 0-100" existant avec une formule documentée dans `docs/carbonco/AUDIT_SCORE.md`.
 **CA :** la formule du score est publiée et reproductible ; les widgets reflètent un changement de qualité en temps réel après ré-ingestion.
 

@@ -206,6 +206,38 @@
       "description": "Migration vers une infrastructure française ou européenne certifiée SecNumCloud si un client public ou grand compte l'impose contractuellement. L'infrastructure actuelle (Vercel/Neon EU) satisfait la majorité des besoins RGPD.",
       "statut": "planifie",
       "normes": []
+    },
+    {
+      "id": "evidence-datapoint",
+      "label": "Pièce justificative par datapoint",
+      "description": "Rattachement d'une pièce (PDF/PNG/JPG) à un indicateur via un event chaîné append-only ; le SHA-256 de la pièce est protégé par la chaîne d'intégrité, révocation tracée. Disponible côté API ; activation complète avec la base Neon.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/services/evidence_service.py"
+    },
+    {
+      "id": "auditeur-invite",
+      "label": "Accès auditeur invité (lecture seule)",
+      "description": "Lien d'accès lecture seule, scopé à l'organisation, expirant et révocable : KPIs, trail par datapoint, pièces, statut d'intégrité et téléchargement du pack de preuve. Aucune écriture possible, chaque consultation journalisée.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/routers/auditor.py"
+    },
+    {
+      "id": "verify-public",
+      "label": "Vérification publique d'un pack (/verify)",
+      "description": "Page publique sans compte : un hash ou le dépôt d'un ZIP renvoie un statut authentique / inconnu / altéré recalculé côté serveur. Evidence Pack auto-suffisant avec CHECKSUMS au format sha256sum -c.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/routers/verify.py"
+    },
+    {
+      "id": "score-audit",
+      "label": "Score audit & badge d'intégrité",
+      "description": "Indicateurs de preuve et de qualité (couverture des pièces, distribution 1-5, fraîcheur des facteurs) agrégés en un score audit 0-100 à formule publiée, et un badge « chaîne d'intégrité vérifiée » contrôlé quotidiennement.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "docs/carbonco/AUDIT_SCORE.md"
     }
   ],
   "esrs": [

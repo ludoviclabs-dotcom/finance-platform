@@ -5,6 +5,8 @@ routers/files.py — Service des pièces stockées en local via URL signée HMAC
 
 from __future__ import annotations
 
+import os
+
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
@@ -12,6 +14,14 @@ from services.storage.base import StorageError
 from services.storage.local import LocalStorage
 
 router = APIRouter()
+
+# Type MIME inféré depuis l'extension pour un rendu inline (pièces T2.1).
+_MEDIA_TYPES = {
+    ".pdf": "application/pdf",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+}
 
 
 @router.get("/files/{key:path}")
@@ -27,4 +37,5 @@ async def serve_file(
         data = storage.get(key)
     except StorageError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    return Response(content=data, media_type="application/octet-stream")
+    media_type = _MEDIA_TYPES.get(os.path.splitext(key)[1].lower(), "application/octet-stream")
+    return Response(content=data, media_type=media_type)

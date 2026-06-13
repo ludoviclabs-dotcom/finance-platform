@@ -31,6 +31,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from db.database import db_available, get_db
+from services.storage import get_storage
 
 logger = logging.getLogger(__name__)
 
@@ -170,6 +171,43 @@ def _fetch_snapshot(company_id: int, domain: str = "consolidated") -> dict[str, 
                 }
 
 
+def _fetch_evidence(company_id: int) -> list[dict[str, Any]]:
+    """Pièces justificatives ACTIVES de la company (T2.1), reconstruites depuis le trail."""
+    if not db_available():
+        return []
+    active: dict[str, dict[str, Any]] = {}
+    try:
+        with get_db(company_id=company_id) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, computed_at, meta
+                    FROM facts_events
+                    WHERE company_id = %s
+                      AND (source_path LIKE 'evidence:%%' OR source_path LIKE 'evidence-revoke:%%')
+                    ORDER BY computed_at ASC, id ASC
+                    """,
+                    (company_id,),
+                )
+                for row in cur.fetchall():
+                    meta = row["meta"] or {}
+                    if meta.get("kind") == "evidence_attach":
+                        piece = meta.get("evidence")
+                        if isinstance(piece, dict) and piece.get("sha256"):
+                            active[piece["sha256"]] = piece
+                    elif meta.get("kind") == "evidence_revoke":
+                        active.pop(meta.get("target_sha256"), None)
+    except Exception as exc:  # pragma: no cover - best effort
+        logger.warning("_fetch_evidence échoué: %s", exc)
+    return list(active.values())
+
+
+def _checksums_file(files: dict[str, bytes]) -> bytes:
+    """Génère un CHECKSUMS.sha256 au format `sha256sum -c` (deux espaces)."""
+    lines = [f"{_sha256_hex(data)}  {name}" for name, data in sorted(files.items())]
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
 def _readme_content(
     *,
     company_name: str,
@@ -201,13 +239,26 @@ Un auditeur externe peut verifier son authenticite sans acces a CarbonCo :
   3. Visitez https://carbon-snowy-nine.vercel.app/verify/{manifest_hash}
      pour valider l'enregistrement officiel (manifest_hash).
 
+Verification de TOUS les fichiers (sans outil proprietaire)
+-----------------------------------------------------------
+
+Le fichier "CHECKSUMS.sha256" liste l'empreinte de chaque fichier du pack.
+Apres extraction du ZIP, depuis le dossier racine :
+
+  sha256sum -c CHECKSUMS.sha256        (Linux/macOS)
+
+Chaque ligne doit afficher « OK ». Toute ligne « FAILED » signale un fichier
+altere. Sur Windows, comparez manuellement Get-FileHash a CHECKSUMS.sha256.
+
 Contenu du package
 ------------------
 
 - manifest.json     : metadonnees + hashs des fichiers embarques (signe)
 - audit_trail.json  : events facts + reviews (chaine Merkle verifiable)
 - snapshot.json     : KPIs consolides ESG / Carbon / Finance
+- evidence/         : pieces justificatives (PDF/PNG/JPG), nommees par leur sha256
 - report.pdf        : synthese PDF avec watermark hash (si inclus)
+- CHECKSUMS.sha256  : empreintes de tous les fichiers (sha256sum -c)
 - README.txt        : ce fichier (informatif, non signe)
 
 Integrite de la chaine audit_trail.json
@@ -257,6 +308,26 @@ def build_package(
     frozen_count = sum(1 for r in audit.get("datapoint_reviews", []) if r.get("status") == "frozen")
     event_count = len(audit.get("facts_events", []))
 
+    # Pièces justificatives actives (T2.1) — embarquées pour un pack auto-suffisant.
+    evidence_blobs: dict[str, bytes] = {}
+    evidence_files: dict[str, dict[str, Any]] = {}
+    for piece in _fetch_evidence(company_id):
+        sha = piece.get("sha256")
+        key = piece.get("storage_key")
+        if not sha or not key:
+            continue
+        try:
+            data = get_storage().get(key)
+        except Exception as exc:
+            logger.warning("Pièce justificative %s illisible (ignorée): %s", sha, exc)
+            continue
+        ext = key.rsplit(".", 1)[-1] if "." in key else "bin"
+        zip_name = f"evidence/{sha}.{ext}"
+        evidence_blobs[zip_name] = data
+        evidence_files[zip_name] = {
+            "sha256": _sha256_hex(data), "size": len(data), "filename": piece.get("filename"),
+        }
+
     # Manifest : signature canonique. Ne contient PAS de timestamp (reproductibilité).
     # Le README (informatif, avec date) n'est PAS inclus dans le manifest.
     manifest: dict[str, Any] = {
@@ -265,48 +336,49 @@ def build_package(
         "company_name": company_name,
         "domain": domain,
         "files": {
-            "audit_trail.json": {
-                "sha256": _sha256_hex(audit_bytes),
-                "size": len(audit_bytes),
-            },
-            "snapshot.json": {
-                "sha256": _sha256_hex(snapshot_bytes),
-                "size": len(snapshot_bytes),
-            },
+            "audit_trail.json": {"sha256": _sha256_hex(audit_bytes), "size": len(audit_bytes)},
+            "snapshot.json": {"sha256": _sha256_hex(snapshot_bytes), "size": len(snapshot_bytes)},
         },
         "stats": {
             "event_count": event_count,
             "frozen_count": frozen_count,
             "reviews_count": len(audit.get("datapoint_reviews", [])),
+            "evidence_count": len(evidence_files),
         },
     }
     if report_pdf_bytes is not None:
         manifest["files"]["report.pdf"] = {
-            "sha256": _sha256_hex(report_pdf_bytes),
-            "size": len(report_pdf_bytes),
+            "sha256": _sha256_hex(report_pdf_bytes), "size": len(report_pdf_bytes),
         }
+    manifest["files"].update(evidence_files)
 
     manifest_bytes = json.dumps(manifest, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8")
     manifest_hash = _sha256_hex(manifest_bytes)
 
-    # README : informatif (contient hash + date), PAS dans le manifest.
-    # Le README est regénéré après manifest_hash pour contenir le hash réel.
     readme_final = _readme_content(
         company_name=company_name,
-        package_hash="(calculé après signature manifest)",  # le README est écrit avant le hash final du ZIP
+        package_hash="(calculé après signature manifest)",
         manifest_hash=manifest_hash,
         generated_at=now.isoformat(),
     ).encode("utf-8")
 
-    # Construction ZIP final (une seule passe, manifest deterministe)
+    # Fichiers embarqués (hors CHECKSUMS) → table de contrôle compatible `sha256sum -c`.
+    embedded: dict[str, bytes] = {
+        "manifest.json": manifest_bytes,
+        "audit_trail.json": audit_bytes,
+        "snapshot.json": snapshot_bytes,
+        "README.txt": readme_final,
+    }
+    if report_pdf_bytes is not None:
+        embedded["report.pdf"] = report_pdf_bytes
+    embedded.update(evidence_blobs)
+    checksums_bytes = _checksums_file(embedded)
+
     buf2 = io.BytesIO()
     with zipfile.ZipFile(buf2, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr("manifest.json", manifest_bytes)
-        zf.writestr("audit_trail.json", audit_bytes)
-        zf.writestr("snapshot.json", snapshot_bytes)
-        if report_pdf_bytes is not None:
-            zf.writestr("report.pdf", report_pdf_bytes)
-        zf.writestr("README.txt", readme_final)
+        for name, data in embedded.items():
+            zf.writestr(name, data)
+        zf.writestr("CHECKSUMS.sha256", checksums_bytes)
 
     final_zip = buf2.getvalue()
     final_hash = _sha256_hex(final_zip)
@@ -361,8 +433,12 @@ def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
     """
     if not db_available():
         return None
+    h = package_hash.lower()
     with get_db() as conn:
         with conn.cursor() as cur:
+            # On résout par package_hash (hash du ZIP) OU manifest_hash (ancre stable
+            # imprimée en pied de PDF / README). Sans le second, le lien
+            # /verify/{manifest_hash} documenté dans le pack ne résoudrait jamais.
             cur.execute(
                 """
                 SELECT ep.package_hash, ep.manifest_hash, ep.domain, ep.filename,
@@ -370,10 +446,10 @@ def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
                        ep.generated_at, ep.meta, c.name AS company_name
                 FROM export_packages ep
                 LEFT JOIN companies c ON c.id = ep.company_id
-                WHERE ep.package_hash = %s
+                WHERE ep.package_hash = %s OR ep.manifest_hash = %s
                 LIMIT 1
                 """,
-                (package_hash,),
+                (h, h),
             )
             row = cur.fetchone()
     if not row:
@@ -381,6 +457,7 @@ def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
     return {
         "package_hash": row["package_hash"],
         "manifest_hash": row["manifest_hash"],
+        "matched_on": "package" if row["package_hash"] == h else "manifest",
         "domain": row["domain"],
         "filename": row["filename"],
         "size_bytes": row["size_bytes"],
@@ -388,4 +465,79 @@ def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
         "frozen_count": row["frozen_count"],
         "generated_at": row["generated_at"].isoformat() if row["generated_at"] else None,
         "company_name": row["company_name"] or "—",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Vérification d'un ZIP reçu — recompute côté serveur (T2.3)
+# ---------------------------------------------------------------------------
+
+def inspect_zip(zip_bytes: bytes) -> dict[str, Any]:
+    """Recompute package_hash, manifest_hash et l'intégrité interne d'un pack.
+
+    Fonction PURE (aucun accès DB) — testable directement. Vérifie que chaque
+    fichier listé dans le manifest a bien le sha256 annoncé (cohérence interne).
+    """
+    package_hash = _sha256_hex(zip_bytes)
+    try:
+        zf = zipfile.ZipFile(io.BytesIO(zip_bytes))
+    except zipfile.BadZipFile:
+        return {"valid": False, "reason": "Archive illisible (pas un ZIP)."}
+    names = set(zf.namelist())
+    if "manifest.json" not in names:
+        return {"valid": False, "reason": "manifest.json absent — pas un pack CarbonCo."}
+
+    manifest_bytes = zf.read("manifest.json")
+    manifest_hash = _sha256_hex(manifest_bytes)
+    try:
+        manifest = json.loads(manifest_bytes)
+    except json.JSONDecodeError:
+        return {"valid": False, "reason": "manifest.json illisible (JSON invalide)."}
+
+    file_integrity: list[dict[str, Any]] = []
+    self_consistent = True
+    for fname, entry in (manifest.get("files") or {}).items():
+        expected = entry.get("sha256")
+        if fname in names:
+            actual = _sha256_hex(zf.read(fname))
+            ok = actual == expected
+        else:
+            actual, ok = None, False
+        if not ok:
+            self_consistent = False
+        file_integrity.append({"file": fname, "expected": expected, "actual": actual, "ok": ok})
+
+    return {
+        "valid": True,
+        "package_hash": package_hash,
+        "manifest_hash": manifest_hash,
+        "self_consistent": self_consistent,
+        "file_integrity": file_integrity,
+    }
+
+
+def verify_zip(zip_bytes: bytes) -> dict[str, Any]:
+    """Statut d'authenticité d'un ZIP reçu : authentic | altered | unknown | invalid.
+
+    - authentic : manifest enregistré ET ZIP byte-identique ET cohérence interne OK
+    - altered   : manifest (ou package) enregistré MAIS bytes modifiés
+    - unknown   : aucun enregistrement officiel ne correspond
+    - invalid   : ce n'est pas un pack CarbonCo lisible
+    """
+    insp = inspect_zip(zip_bytes)
+    if not insp.get("valid"):
+        return {"status": "invalid", "reason": insp.get("reason")}
+
+    reg = lookup_by_hash(insp["manifest_hash"]) or lookup_by_hash(insp["package_hash"])
+    if reg is None:
+        return {"status": "unknown", **{k: insp[k] for k in ("package_hash", "manifest_hash", "self_consistent", "file_integrity")}}
+
+    authentic = insp["self_consistent"] and reg.get("package_hash") == insp["package_hash"]
+    return {
+        "status": "authentic" if authentic else "altered",
+        "package_hash": insp["package_hash"],
+        "manifest_hash": insp["manifest_hash"],
+        "self_consistent": insp["self_consistent"],
+        "file_integrity": insp["file_integrity"],
+        "metadata": reg,
     }

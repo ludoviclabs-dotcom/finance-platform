@@ -1,0 +1,5 @@
+# Dépendances du WORKER d'ingestion asynchrone (T1.3) — process séparé.
+# Non requis par l'API (mode inline par défaut). Installer uniquement sur l'hôte
+# qui exécute worker.py : pip install -r requirements-worker.txt
+-r requirements.txt
+procrastinate>=2.9,<4

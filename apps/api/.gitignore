@@ -1,0 +1,6 @@
+# Export CSV brut ADEME Base Empreinte — NE PAS committer (licence : redistribution
+# du fichier brut non autorisée). Voir scripts/README_ADEME.md.
+data/ademe/
+
+# Stockage objet local (T1.6)
+.data/

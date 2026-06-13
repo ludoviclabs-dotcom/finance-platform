@@ -189,9 +189,15 @@ def run_migrations() -> None:
         #   005     : Phase 1.B — colonnes hash audit_events
         #   006     : Phase 3.A — datapoint_reviews
         #   004     : RLS policies — activation MANUELLE après audit callers.
+        import os
         from pathlib import Path
         migrations_dir = Path(__file__).parent / "migrations"
-        MANUAL_ONLY_PREFIXES = {"004"}  # activation manuelle
+        MANUAL_ONLY_PREFIXES = {"004"}  # activation manuelle (ENABLE RLS — superseded par 009)
+        # 009 (RLS FORCE + bypass) : opt-in via RLS_FORCE=1. FORCE doit être validé
+        # contre une vraie base Neon (REFRESH MV, inserts audit) avant activation —
+        # défaut OFF pour ne pas casser une connexion Neon au démarrage.
+        if os.environ.get("RLS_FORCE", "0") != "1":
+            MANUAL_ONLY_PREFIXES.add("009")
         if migrations_dir.exists():
             sql_files = sorted(migrations_dir.glob("*.sql"))
             for sql_file in sql_files:

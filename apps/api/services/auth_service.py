@@ -255,6 +255,45 @@ def decode_token(token: str) -> Optional[AuthUser]:
 
 
 # ---------------------------------------------------------------------------
+# Pre-auth token (2FA TOTP — étape intermédiaire, T1.4)
+# ---------------------------------------------------------------------------
+
+def create_pre_auth_token(user: AuthUser) -> str:
+    """JWT court (5 min, scope `totp_pending`) émis après mot de passe valide,
+    en attente de la vérification TOTP. Ne donne accès à aucune ressource."""
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+    payload = {
+        "sub": user.email, "role": user.role, "cid": user.company_id,
+        "scope": "totp_pending", "exp": expires_at,
+    }
+    if user.user_id is not None:
+        payload["uid"] = user.user_id
+    return jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALGORITHM)
+
+
+def decode_pre_auth_token(token: str) -> Optional[AuthUser]:
+    """Décode un token pré-auth. None si invalide/expiré ou mauvais scope."""
+    try:
+        payload = jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM])
+    except JWTError:
+        return None
+    if payload.get("scope") != "totp_pending":
+        return None
+    email = payload.get("sub")
+    if not isinstance(email, str):
+        return None
+    uid_raw = payload.get("uid")
+    try:
+        user_id = int(uid_raw) if uid_raw is not None else None
+    except (TypeError, ValueError):
+        user_id = None
+    return AuthUser(
+        email=email, role=payload.get("role", "analyst"),
+        company_id=int(payload.get("cid", 1)), user_id=user_id,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Refresh token
 # ---------------------------------------------------------------------------
 

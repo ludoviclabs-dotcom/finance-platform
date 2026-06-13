@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from db.database import db_available, get_db
-from routers.auth import get_current_user
+from routers.auth import get_current_user, require_admin
 from services import facts_service
 from services.auth_service import AuthUser
 
@@ -84,6 +84,15 @@ async def verify_chain_endpoint(
         checked=result.checked,
         company_id=user.company_id,
     )
+
+
+@router.post("/replay")
+async def replay_facts(user: AuthUser = Depends(require_admin)) -> dict[str, Any]:
+    """Recalcule la vue matérialisée facts_current (refresh). Réservé admin — spec §5."""
+    if not db_available():
+        raise HTTPException(503, detail="Base de données indisponible")
+    facts_service.refresh_facts_current()
+    return {"ok": True, "company_id": user.company_id}
 
 
 @router.get("/{code}/trail", response_model=FactTrailResponse)

@@ -24,8 +24,9 @@ from routers import (
     esg,
     excel,
     export,
-    facts,
     factors,
+    facts,
+    files,
     finance,
     health,
     history,
@@ -42,15 +43,32 @@ from routers import (
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Sentry (T1.7) — no-op si SENTRY_DSN absent ou sentry_sdk non installé.
+# release = SHA de commit pour relier les erreurs au déploiement.
+# ---------------------------------------------------------------------------
+_SENTRY_DSN = os.environ.get("SENTRY_DSN")
+if _SENTRY_DSN:
+    try:
+        import sentry_sdk
+        sentry_sdk.init(
+            dsn=_SENTRY_DSN,
+            release=os.environ.get("VERCEL_GIT_COMMIT_SHA") or os.environ.get("GITHUB_SHA"),
+            traces_sample_rate=0.0,
+        )
+        logger.info("Sentry initialisé")
+    except Exception as exc:  # pragma: no cover - dépend de l'environnement
+        logger.warning("Sentry non initialisé : %s", exc)
+
 try:
     from routers import ma
 except ImportError:
     ma = None
 
 # ---------------------------------------------------------------------------
-# Request body size limit (10 MB)
+# Request body size limit (16 MB — enveloppe multipart pour upload max 15 Mo, T1.5)
 # ---------------------------------------------------------------------------
-MAX_BODY_SIZE = 10 * 1024 * 1024  # 10 MB
+MAX_BODY_SIZE = 16 * 1024 * 1024  # 16 MB
 
 app = FastAPI(
     title="Finance Platform API",
@@ -147,6 +165,7 @@ app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(factors.router, prefix="/factors", tags=["factors"])
 app.include_router(facts.router, prefix="/facts", tags=["facts"])
+app.include_router(files.router, tags=["files"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
 app.include_router(export.router, prefix="/export", tags=["export"])
 app.include_router(verify.router, prefix="/verify", tags=["verify (public)"])

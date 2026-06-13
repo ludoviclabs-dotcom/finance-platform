@@ -48,9 +48,9 @@ except ImportError:
     ma = None
 
 # ---------------------------------------------------------------------------
-# Request body size limit (10 MB)
+# Request body size limit (16 MB — enveloppe multipart pour upload max 15 Mo, T1.5)
 # ---------------------------------------------------------------------------
-MAX_BODY_SIZE = 10 * 1024 * 1024  # 10 MB
+MAX_BODY_SIZE = 16 * 1024 * 1024  # 16 MB
 
 app = FastAPI(
     title="Finance Platform API",

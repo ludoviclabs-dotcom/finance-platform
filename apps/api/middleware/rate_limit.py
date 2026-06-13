@@ -46,8 +46,12 @@ class RateRule:
 
 
 RULES: dict[str, RateRule] = {
+    "": RateRule(limit=100, window_seconds=60, scope="ip"),             # catch-all global (T1.5)
+    "/auth": RateRule(limit=20, window_seconds=60, scope="ip"),         # /auth/* global (T1.5)
     "/auth/totp": RateRule(limit=5, window_seconds=900, scope="ip"),   # 5 échecs -> 15 min (2FA)
     "/auth/login": RateRule(limit=5, window_seconds=60, scope="ip"),
+    "/excel/upload": RateRule(limit=10, window_seconds=3600, scope="user"),          # 10 uploads/h (T1.5)
+    "/excel/ingest-uploaded": RateRule(limit=10, window_seconds=3600, scope="user"), # 10 uploads/h (T1.5)
     "/excel": RateRule(limit=20, window_seconds=60, scope="user"),
     "/ingest": RateRule(limit=10, window_seconds=60, scope="user"),
     "/report": RateRule(limit=10, window_seconds=60, scope="user"),

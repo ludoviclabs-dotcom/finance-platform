@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "note": "Table de passage PCG (comptes de charges, classe 6) → catégorie Scope 3 GHG Protocol. Correspondance par préfixe le plus long. Éditable et versionnée. Les comptes non couverts sont signalés comme non mappés.",
+  "rules": [
+    {"prefix": "601", "scope3": 1, "label": "Achats de matières premières"},
+    {"prefix": "602", "scope3": 1, "label": "Achats stockés — autres approvisionnements"},
+    {"prefix": "604", "scope3": 1, "label": "Achats d'études et prestations de services"},
+    {"prefix": "605", "scope3": 1, "label": "Achats de matériel, équipements et travaux"},
+    {"prefix": "606", "scope3": 1, "label": "Achats non stockés de matières et fournitures"},
+    {"prefix": "607", "scope3": 1, "label": "Achats de marchandises"},
+    {"prefix": "624", "scope3": 4, "label": "Transports de biens et transports collectifs"},
+    {"prefix": "625", "scope3": 6, "label": "Déplacements, missions et réceptions"},
+    {"prefix": "61", "scope3": 1, "label": "Services extérieurs"},
+    {"prefix": "62", "scope3": 1, "label": "Autres services extérieurs"}
+  ]
+}

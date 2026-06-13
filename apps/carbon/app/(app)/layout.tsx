@@ -19,6 +19,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/vsme/completude": { title: "Complétude VSME", subtitle: "Mapping & datapoints EFRAG" },
   "/vsme/wizard": { title: "VSME — Wizard",     subtitle: "Parcours en 10 étapes" },
   "/beges":       { title: "BEGES",             subtitle: "Bilan GES réglementaire France (v5)" },
+  "/fec":         { title: "Import FEC",         subtitle: "Screening Scope 3 monétaire" },
   "/esrs":        { title: "ESRS / CSRD",      subtitle: "Conformité réglementaire" },
   "/materialite": { title: "Double matérialité", subtitle: "Impacts × Risques × Opportunités" },
   "/datapoints":  { title: "Datapoints CSRD",   subtitle: "Extraction LLM-RAG · ESRS" },

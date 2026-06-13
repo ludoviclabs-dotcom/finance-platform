@@ -673,6 +673,42 @@ export async function downloadBegesReport(signal?: AbortSignal): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+// --- Import FEC → screening Scope 3 (T4.3) ---
+export type FecScreening = {
+  total_spend: number;
+  mapped_spend: number;
+  mappable_pct: number;
+  total_tco2e: number;
+  ratio_kgco2e_per_eur: number;
+  by_category: { category: number; label: string; spend: number; tco2e: number }[];
+  top_accounts: { compte: string; lib: string; category: number | null; spend: number; tco2e: number }[];
+  unmapped_accounts: string[];
+};
+export type FecUploadResult = {
+  persisted: boolean;
+  id?: number;
+  filename: string;
+  parsed: { balanced: boolean; exercise_year: string | null; row_count: number; issues: string[] };
+  screening: FecScreening;
+};
+
+export async function uploadFec(file: File, signal?: AbortSignal): Promise<FecUploadResult> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await _fetchWithRetry(`${API_BASE_URL}/fec/upload`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    body: fd,
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /fec/upload`);
+  return (await res.json()) as FecUploadResult;
+}
+
+export function emitFec(id: number, signal?: AbortSignal): Promise<{ emitted_facts: number; status: string } | null> {
+  return apiSend("POST", `/fec/${id}/emit`, signal);
+}
+
 export function invalidateCache(
   domain?: "carbon" | "vsme" | "esg" | "finance",
   signal?: AbortSignal

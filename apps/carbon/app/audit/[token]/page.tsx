@@ -136,6 +136,13 @@ export default function AuditorView() {
               </span>
             )}
           </div>
+          <a
+            href={`${API}/auditor/public/${token}/pack`}
+            className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-white text-black text-sm font-semibold hover:scale-105 transition-transform"
+          >
+            Télécharger le pack de preuve (ZIP)
+            <span aria-hidden="true">↓</span>
+          </a>
         </div>
       </div>
 

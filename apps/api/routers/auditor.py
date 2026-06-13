@@ -17,14 +17,16 @@ il n'ouvre que des GET. Toute consultation est journalisée (audit_events).
 
 from __future__ import annotations
 
+import io
 import logging
 import os
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from routers.auth import require_admin
-from services import auditor_service, evidence_service, facts_service
+from services import auditor_service, evidence_service, export_package, facts_service
 from services.auth_service import AuthUser
 
 logger = logging.getLogger(__name__)
@@ -123,3 +125,20 @@ def public_evidence(token: str, code: str) -> dict:
         "code": code,
         "evidence": evidence_service.list_evidence(company_id=invite["company_id"], code=code),
     }
+
+
+@router.get("/public/{token}/pack")
+def public_pack(token: str) -> StreamingResponse:
+    """Télécharge l'Evidence Pack ZIP de la company (lecture seule, T2.4)."""
+    invite = _resolve_or_error(token)
+    auditor_service.record_access(token=token, company_id=invite["company_id"], source="pack")
+    pkg = export_package.build_package(
+        company_id=invite["company_id"],
+        company_name=invite.get("company_name") or "Organisation",
+        domain="consolidated",
+    )
+    return StreamingResponse(
+        io.BytesIO(pkg.zip_bytes),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{pkg.filename}"'},
+    )

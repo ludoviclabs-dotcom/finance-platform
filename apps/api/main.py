@@ -24,8 +24,9 @@ from routers import (
     esg,
     excel,
     export,
-    facts,
     factors,
+    facts,
+    files,
     finance,
     health,
     history,
@@ -147,6 +148,7 @@ app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(factors.router, prefix="/factors", tags=["factors"])
 app.include_router(facts.router, prefix="/facts", tags=["facts"])
+app.include_router(files.router, tags=["files"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
 app.include_router(export.router, prefix="/export", tags=["export"])
 app.include_router(verify.router, prefix="/verify", tags=["verify (public)"])

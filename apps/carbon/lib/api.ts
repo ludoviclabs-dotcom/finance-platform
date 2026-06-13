@@ -640,6 +640,39 @@ export function fetchScope3Breakdown(signal?: AbortSignal): Promise<Scope3Breakd
   return apiGet<Scope3Breakdown>("/scope3/breakdown", signal);
 }
 
+// --- BEGES v5 (T4.2) ---
+export type BegesPoste = { code: string; label: string; value: number };
+export type BegesCategory = { code: number; label: string; total: number; postes: BegesPoste[] };
+export type BegesStatus = {
+  breakdown: { standard: string; total: number; categories: BegesCategory[] };
+  eligibility: { status: string; label: string };
+  scope_totals: { S1: number; S2: number; S3: Record<string, number> };
+};
+
+export function fetchBegesStatus(signal?: AbortSignal): Promise<BegesStatus> {
+  return apiGet<BegesStatus>("/beges/status", signal);
+}
+
+export async function downloadBegesReport(signal?: AbortSignal): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/beges/export`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /beges/export`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "beges.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export function invalidateCache(
   domain?: "carbon" | "vsme" | "esg" | "finance",
   signal?: AbortSignal

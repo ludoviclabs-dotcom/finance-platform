@@ -492,6 +492,90 @@ export function fetchVsmeSnapshot(signal?: AbortSignal): Promise<VsmeSnapshot> {
   return apiGet<VsmeSnapshot>("/vsme/snapshot", signal);
 }
 
+// --- VSME mapping & complétude (T3.2) ---
+export type VsmeDatapointRow = {
+  code: string;
+  module: string;
+  label: string;
+  type: string;
+  unit: string | null;
+  collect: string;
+  status: "auto" | "manuel" | "na" | "missing";
+  value: unknown;
+  source: string | null;
+  na_justification: string | null;
+};
+export type VsmeModuleCompletude = { module: string; total: number; filled: number; pct: number };
+export type VsmeMappingStatus = {
+  version: string;
+  completeness: {
+    overall_pct: number;
+    mandatory_total: number;
+    mandatory_filled: number;
+    modules: VsmeModuleCompletude[];
+  };
+  datapoints: VsmeDatapointRow[];
+};
+
+export function fetchVsmeMappingStatus(signal?: AbortSignal): Promise<VsmeMappingStatus> {
+  return apiGet<VsmeMappingStatus>("/vsme/mapping/status", signal);
+}
+
+export function saveVsmeDatapoint(
+  body: { code: string; value?: unknown; is_applicable?: boolean; na_justification?: string | null },
+  signal?: AbortSignal,
+): Promise<{ id: number; code: string; saved: boolean } | null> {
+  return apiSend("POST", "/vsme/mapping/datapoint", signal, body);
+}
+
+// --- Wizard VSME (T3.4) ---
+export type VsmeWizardSession = {
+  step: number;
+  state: Record<string, unknown>;
+  progress_pct: number;
+  completed: boolean;
+  total_steps: number;
+  steps: { key: string; label: string }[];
+};
+
+export function fetchWizardProgress(signal?: AbortSignal): Promise<VsmeWizardSession> {
+  return apiGet<VsmeWizardSession>("/vsme/wizard/progress", signal);
+}
+export function startWizard(state: Record<string, unknown>, signal?: AbortSignal): Promise<VsmeWizardSession | null> {
+  return apiSend<VsmeWizardSession>("POST", "/vsme/wizard/start", signal, { state });
+}
+export function saveWizardStep(
+  step: number,
+  state: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<VsmeWizardSession | null> {
+  return apiSend<VsmeWizardSession>("POST", "/vsme/wizard/save", signal, { step, state });
+}
+export function completeWizard(signal?: AbortSignal): Promise<{ completed: boolean; emitted_facts: number; redirect: string } | null> {
+  return apiSend("POST", "/vsme/wizard/complete", signal);
+}
+
+// Rapport VSME (T3.3) : POST /vsme/report → télécharge le ZIP (PDF + Excel).
+export async function downloadVsmeReport(signal?: AbortSignal): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/vsme/report`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /vsme/report`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "rapport-vsme.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 // --- ESG ---
 export function fetchEsgSnapshot(signal?: AbortSignal): Promise<EsgSnapshot> {
   return apiGet<EsgSnapshot>("/esg/snapshot", signal);

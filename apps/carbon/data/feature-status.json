@@ -238,6 +238,15 @@
       "statut": "beta",
       "normes": [],
       "preuve": "docs/carbonco/AUDIT_SCORE.md"
+    },
+    {
+      "id": "module-vsme",
+      "label": "Module VSME — rapport volontaire PME (EFRAG)",
+      "description": "Référentiel VSME (modules Basic B1-B11 + Comprehensive C1-C9), mapping automatique depuis E1/matérialité/S1/G1 avec jauge de complétude, export Rapport VSME (PDF + annexe Excel auditable) et parcours guidé en 10 étapes. Standard EFRAG public et gratuit. Beta tant que l'ensemble du module n'est pas validé sur Neon ; le référentiel et les exports sont opérationnels.",
+      "statut": "beta",
+      "normes": ["VSME"],
+      "tag": "VSME",
+      "preuve": "apps/api/services/vsme_export.py"
     }
   ],
   "esrs": [

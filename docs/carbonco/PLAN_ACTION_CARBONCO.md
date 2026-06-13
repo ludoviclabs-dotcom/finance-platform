@@ -180,23 +180,23 @@
 
 > Le VSME (EFRAG) est le standard volontaire que banques et donneurs d'ordre attendent des PME/ETI hors CSRD ; l'acte délégué est attendu au plus tard le 19 juillet 2026. Le référentiel est public et gratuit. C'est LE produit vendable de CarbonCo en 2026 — avant tout module ESRS supplémentaire (geler E2-E5).
 
-### [ ] T3.1 — Modèle de données VSME
+### [x] T3.1 — Modèle de données VSME
 **Étapes :** table/seed `vsme_datapoints` reprenant le standard EFRAG (déc. 2024) : **Module Basic B1-B11** et **Module Comprehensive C1-C9** (intitulés en annexe B.1) ; pour chaque datapoint : id (`B3-1`…), libellé FR, type (quantitatif/narratif/booléen), unité, mapping éventuel vers une clé `CC_*` ou un `fact code`, statut de collecte.
 **CA :** seed complet versionné ; toute évolution du standard = migration tracée.
 
-### [ ] T3.2 — Moteur de mapping existant → VSME + jauge de complétude
+### [x] T3.2 — Moteur de mapping existant → VSME + jauge de complétude
 **Étapes :** mapper automatiquement ce que CarbonCo possède déjà : E1 → B3 (énergie & GES : scopes 1/2/3, intensités), matérialité ESRS 2 → B1/B2 et C1/C2, S1 (beta) → B8-B10, G1 → B11 et C6/C7 partiels ; écran "Complétude VSME" par module (collecté / manquant / non applicable avec justification) ; saisie guidée des datapoints manquants (formulaires courts, chaque saisie = fact chaîné avec `source_path = manual:user@…`).
 **CA :** une organisation ayant complété E1 + matérialité voit B1-B3 ≥ 80 % sans ressaisie ; chaque champ "non applicable" exige une justification stockée.
 
-### [ ] T3.3 — Export "Rapport VSME" (PDF + annexe Excel)
+### [x] T3.3 — Export "Rapport VSME" (PDF + annexe Excel)
 **Étapes :** générateur PDF suivant la structure du template EFRAG (sommaire par modules, tableaux quantitatifs, narratifs, périmètre et base de préparation B1) ; annexe Excel : un onglet par module, hash par ligne (réutiliser T2) ; intégration à l'Evidence Pack ; mention de version du standard et des FE utilisés en page de garde.
 **CA :** rapport généré sur le jeu démo, relu sans erreur de structure ; chaque chiffre du PDF est cliquable/traçable dans l'app vers son fact.
 
-### [ ] T3.4 — Parcours "VSME en 10 étapes"
+### [x] T3.4 — Parcours "VSME en 10 étapes"
 **Étapes :** wizard onboarding : périmètre (T4.4 si dispo, sinon mono-entité) → import Excel/saisie énergie → questionnaire matérialité allégé → S1 minimal → G1 → revue des anomalies → génération du rapport ; barre de progression persistée ; reprise possible.
 **CA :** test Playwright du parcours complet en < 30 min chrono sur le jeu démo, sans cul-de-sac.
 
-### [ ] T3.5 — Repositionnement éditorial VSME-first
+### [x] T3.5 — Repositionnement éditorial VSME-first
 **Étapes :** home : le bloc principal devient "Votre rapport VSME, auditable" ; pricing : Starter renommé "VSME" (annexe A.6 — sans changer les prix sans décision de Ludo, mais en clarifiant le livrable) ; `/couverture` : ajouter une ligne VSME avec statut réel issu du registre ; article court `/blog` "VSME : le standard de la chaîne de valeur après l'Omnibus" (réutiliser annexe A.1).
 **CA :** le mot "VSME" apparaît au-dessus de la ligne de flottaison ; statut VSME = `beta` tant que T3.1-T3.4 ne sont pas toutes mergées, `live` ensuite (via le registre).
 

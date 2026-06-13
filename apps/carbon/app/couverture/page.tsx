@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import {
   esrsRows,
   esrsCounts,
+  getFeature,
   lastUpdateLabel,
   type FeatureStatus,
 } from "@/lib/feature-registry";
@@ -49,6 +50,7 @@ function StatusBadge({ status }: { status: FeatureStatus }) {
 export default function CouverturePage() {
   const rows = esrsRows();
   const counts = esrsCounts();
+  const vsme = getFeature("module-vsme");
 
   return (
     <div className="min-h-screen bg-white">
@@ -82,6 +84,17 @@ export default function CouverturePage() {
 
       {/* Tableau */}
       <div className="max-w-5xl mx-auto px-8 md:px-16 py-16">
+        {/* Module VSME — statut réel issu du registre (T3.5) */}
+        <div className="mb-12 rounded-2xl border border-neutral-200 p-6">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <span className="font-bold text-black">VSME — Standard volontaire PME (EFRAG)</span>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${STATUS_CONFIG[vsme.statut].bg} ${STATUS_CONFIG[vsme.statut].color}`}>
+              {STATUS_CONFIG[vsme.statut].label}
+            </span>
+          </div>
+          <p className="text-sm text-neutral-600 leading-relaxed">{vsme.description}</p>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

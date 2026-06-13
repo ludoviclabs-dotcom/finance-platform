@@ -636,7 +636,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             <Reveal className="z-10">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-200 mb-8">
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-bold text-green-700 tracking-wide uppercase">Plateforme ESG & CSRD augmentée par l&apos;IA</span>
+                <span className="text-xs font-bold text-green-700 tracking-wide uppercase">Votre rapport VSME, auditable · ESG & CSRD par l&apos;IA</span>
               </div>
 
               <h1 className="font-extrabold text-[3.8rem] md:text-[5rem] leading-[0.92] tracking-tighter mb-6">
@@ -1039,13 +1039,13 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             </Reveal>
 
             <div className="grid md:grid-cols-3 gap-8 items-start max-w-5xl mx-auto">
-              {/* Starter */}
+              {/* VSME */}
               <Reveal delay={0.1} className="bg-white rounded-2xl p-8 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Starter</div>
+                <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">VSME</div>
                 <div className="text-4xl font-extrabold text-black mb-1">490 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
                 <p className="text-neutral-500 text-sm mb-8">Pour PME en standard <strong>VSME</strong> volontaire ou préparation CSRD post-Omnibus</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1 & 2", "ESRS — 10 standards référencés · couverture par paliers", "1 utilisateur", "Export PDF audit-grade · iXBRL ESEF (planifié)", "Support email (lun–ven, 9h–18h)"].map((f) => (
+                  {["Rapport VSME (modules Basic)", "Bilan GES Scopes 1 & 2", "Audit trail + Evidence Pack vérifiable", "1 utilisateur", "Support email (lun–ven, 9h–18h)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}

@@ -153,7 +153,7 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         {/* Feature cards under dashboard */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-12 md:mt-16 max-w-5xl mx-auto">
           {[
-            { icon: "🔗", title: "Collecte structurée", desc: "Import Excel guidé, factures énergie, API REST. Connecteurs Sage, Cegid et SAP S/4HANA disponibles." },
+            { icon: "🔗", title: "Collecte structurée", desc: "Import Excel guidé, factures énergie, API REST (beta). Connecteurs ERP (Sage, Cegid, SAP) en roadmap." },
             { icon: "📐", title: "Calcul GHG Protocol", desc: "Methodologie certifiee Scopes 1, 2, 3" },
             { icon: "🤖", title: "IA Recommandations", desc: "Plans d'action personnalises et priorises" },
             { icon: "📄", title: "Rapports conformes", desc: "CSRD, CDP, bilan GES en 1 clic" },
@@ -877,7 +877,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             {/* Feature highlight secondaire */}
             <div className="grid md:grid-cols-3 gap-6 mt-8">
               {[
-                { emoji: "🔌", title: "Import & API", desc: "Import Excel structuré · API REST · Connecteurs Sage, Cegid, SAP S/4HANA disponibles" },
+                { emoji: "🔌", title: "Import & API", desc: "Import Excel structuré · API REST (beta) · Connecteurs ERP en roadmap" },
                 { emoji: "🛡️", title: "Audit trail complet", desc: "Validator 30+ règles, review datapoint par datapoint, score audit 0-100" },
                 { emoji: "📊", title: "Benchmark sectoriel", desc: "Comparez-vous aux leaders de votre industrie" },
                 { emoji: "🌐", title: "Multi-sites & filiales", desc: "Consolidation automatique des données groupe" },

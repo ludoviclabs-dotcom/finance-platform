@@ -29,6 +29,11 @@ from utils.excel_sanitize import sanitize_cell
 logger = logging.getLogger(__name__)
 
 
+# Date interne FIXE pour les métadonnées PDF/Excel → artefacts reproductibles
+# (fpdf2/openpyxl embarquent sinon l'horodatage courant, qui casserait le hash).
+_FIXED_META_DATE = datetime(2026, 1, 1, tzinfo=timezone.utc)
+
+
 class VsmeExportError(Exception):
     """Erreur de génération du rapport VSME."""
 
@@ -73,6 +78,7 @@ def build_vsme_pdf(*, company_name: str, mapping: dict[str, Any], generated_at: 
         by_module.setdefault(r["module"], []).append(r)
 
     pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.creation_date = _FIXED_META_DATE  # reproductibilité (pas de now() dans le PDF)
     pdf.set_auto_page_break(True, margin=15)
     pdf.add_page()
 
@@ -134,6 +140,10 @@ def build_vsme_xlsx(*, company_name: str, mapping: dict[str, Any]) -> bytes:
         by_module.setdefault(r["module"], []).append(r)
 
     wb = Workbook()
+    # Propriétés figées → classeur reproductible (sinon openpyxl met now()).
+    naive = _FIXED_META_DATE.replace(tzinfo=None)
+    wb.properties.created = naive
+    wb.properties.modified = naive
     synth = wb.active
     synth.title = "Synthèse"
     synth.append([sanitize_cell(v) for v in ["Entreprise", company_name]])

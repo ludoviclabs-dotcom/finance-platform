@@ -528,6 +528,33 @@ export function saveVsmeDatapoint(
   return apiSend("POST", "/vsme/mapping/datapoint", signal, body);
 }
 
+// --- Wizard VSME (T3.4) ---
+export type VsmeWizardSession = {
+  step: number;
+  state: Record<string, unknown>;
+  progress_pct: number;
+  completed: boolean;
+  total_steps: number;
+  steps: { key: string; label: string }[];
+};
+
+export function fetchWizardProgress(signal?: AbortSignal): Promise<VsmeWizardSession> {
+  return apiGet<VsmeWizardSession>("/vsme/wizard/progress", signal);
+}
+export function startWizard(state: Record<string, unknown>, signal?: AbortSignal): Promise<VsmeWizardSession | null> {
+  return apiSend<VsmeWizardSession>("POST", "/vsme/wizard/start", signal, { state });
+}
+export function saveWizardStep(
+  step: number,
+  state: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<VsmeWizardSession | null> {
+  return apiSend<VsmeWizardSession>("POST", "/vsme/wizard/save", signal, { step, state });
+}
+export function completeWizard(signal?: AbortSignal): Promise<{ completed: boolean; emitted_facts: number; redirect: string } | null> {
+  return apiSend("POST", "/vsme/wizard/complete", signal);
+}
+
 // Rapport VSME (T3.3) : POST /vsme/report → télécharge le ZIP (PDF + Excel).
 export async function downloadVsmeReport(signal?: AbortSignal): Promise<void> {
   const res = await _fetchWithRetry(`${API_BASE_URL}/vsme/report`, {

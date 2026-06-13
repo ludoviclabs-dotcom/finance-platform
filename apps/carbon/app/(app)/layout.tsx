@@ -16,6 +16,8 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/dashboard":   { title: "Tableau de bord",  subtitle: "Vue d'ensemble ESG" },
   "/scopes":      { title: "Scopes 1-2-3",     subtitle: "Analyse GHG Protocol" },
   "/vsme":        { title: "VSME",             subtitle: "Standard volontaire PME — EFRAG" },
+  "/vsme/completude": { title: "Complétude VSME", subtitle: "Mapping & datapoints EFRAG" },
+  "/vsme/wizard": { title: "VSME — Wizard",     subtitle: "Parcours en 10 étapes" },
   "/esrs":        { title: "ESRS / CSRD",      subtitle: "Conformité réglementaire" },
   "/materialite": { title: "Double matérialité", subtitle: "Impacts × Risques × Opportunités" },
   "/datapoints":  { title: "Datapoints CSRD",   subtitle: "Extraction LLM-RAG · ESRS" },

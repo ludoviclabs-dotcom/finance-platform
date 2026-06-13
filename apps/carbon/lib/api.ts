@@ -625,6 +625,21 @@ export function fetchQualityIndicators(signal?: AbortSignal): Promise<QualityInd
   return apiGet<QualityIndicators>("/quality/indicators", signal);
 }
 
+// --- Scope 3 — 15 catégories (T4.1) ---
+export type Scope3Category = { code: number; label: string; value: number; evaluated: boolean };
+export type Scope3Breakdown = {
+  categories: Scope3Category[];
+  coverage: number[];
+  coverage_count: number;
+  categorized_total: number;
+  uncategorized_total: number;
+  total_scope3: number;
+};
+
+export function fetchScope3Breakdown(signal?: AbortSignal): Promise<Scope3Breakdown> {
+  return apiGet<Scope3Breakdown>("/scope3/breakdown", signal);
+}
+
 export function invalidateCache(
   domain?: "carbon" | "vsme" | "esg" | "finance",
   signal?: AbortSignal

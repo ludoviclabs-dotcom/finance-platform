@@ -93,7 +93,7 @@ def _log_pg(
     now: datetime,
 ) -> dict[str, Any]:
     try:
-        with get_db() as conn:
+        with get_db(company_id=company_id) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
@@ -177,7 +177,7 @@ def _get_events_pg(
     company_id: int,
 ) -> list[dict[str, Any]]:
     try:
-        with get_db() as conn:
+        with get_db(company_id=company_id) as conn:
             with conn.cursor() as cur:
                 if event_type:
                     cur.execute(
@@ -238,7 +238,7 @@ def clear_events(company_id: int = DEFAULT_COMPANY_ID) -> int:
     """Wipe the audit log and return the number of deleted events."""
     if db_available():
         try:
-            with get_db() as conn:
+            with get_db(company_id=company_id) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         "SELECT COUNT(*) FROM audit_events WHERE company_id = %s",

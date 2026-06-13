@@ -6,12 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from db.tenant import get_company_id
-from routers.auth import require_admin, require_analyst
+from routers.auth import require_admin
 from services.audit_service import log_event
 from services.auth_service import AuthUser
 from services.carbon_service import CarbonServiceError, build_carbon_snapshot
-from services.esg_service import build_esg_snapshot, build_vsme_snapshot
-from services.finance_service import build_finance_snapshot
+from services.esg_service import build_esg_snapshot, build_vsme_snapshot, emit_esg_facts
+from services.finance_service import build_finance_snapshot, emit_finance_facts
 from services.snapshot_cache import (
     cache_status,
     invalidate,
@@ -83,6 +83,7 @@ async def ingest(company_id: int = Depends(get_company_id)) -> IngestResponse:
         esg = build_esg_snapshot()
         esg_dict = esg.model_dump()
         write_snapshot("esg", esg_dict, company_id=company_id)
+        emit_esg_facts(esg_dict, company_id)  # Phase 1.B — provenance KPIs ESG
         results.append(IngestDomainResult(
             domain="esg", status="ok",
             cachedAt=esg.generatedAt,
@@ -95,6 +96,7 @@ async def ingest(company_id: int = Depends(get_company_id)) -> IngestResponse:
         fin = build_finance_snapshot()
         fin_dict = fin.model_dump()
         write_snapshot("finance", fin_dict, company_id=company_id)
+        emit_finance_facts(fin_dict, company_id)  # Phase 1.B — provenance KPIs Finance
         results.append(IngestDomainResult(
             domain="finance", status="ok",
             cachedAt=fin.generatedAt,

@@ -99,7 +99,7 @@ function CreateCompanyForm({ onCreated }: { onCreated: () => void }) {
                 required value={name}
                 onChange={(e) => { setName(e.target.value); if (!slug) setSlug(autoSlug(e.target.value)); }}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] focus:outline-none focus:border-carbon-emerald"
-                placeholder="Acme Corp"
+                placeholder="Exemplia Industrie"
               />
             </div>
             <div>

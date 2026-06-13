@@ -17,6 +17,7 @@ import { PilotProgram } from "../landing/pilot-program";
 import { WhyProofFirst } from "../landing/why-proof-first";
 import { RoiCalculator } from "../landing/roi-calculator";
 import { NewsletterForm } from "../landing/newsletter-form";
+import { DemoDisclaimer } from "../landing/demo-disclaimer";
 import { useAnalytics } from "@/lib/hooks/use-analytics";
 
 interface LandingPageProps {
@@ -126,13 +127,14 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         </Reveal>
         <Reveal delay={0.1} className="text-center mb-16">
           <p className="text-lg text-neutral-500 max-w-2xl mx-auto">
-            Survolez les zones cles pour decouvrir chaque dimension de votre empreinte carbone.
+            Survolez les zones clés pour découvrir chaque dimension de votre empreinte carbone.
           </p>
         </Reveal>
 
         {/* Premium dashboard mockup (desktop ≥ 1100px : hotspots visibles) */}
         <Reveal delay={0.15}>
           <PremiumDashboardMockup />
+          <DemoDisclaimer />
         </Reveal>
 
         {/* Mobile fallback — liste des 5 zones */}
@@ -154,8 +156,8 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-12 md:mt-16 max-w-5xl mx-auto">
           {[
             { icon: "🔗", title: "Collecte structurée", desc: "Import Excel guidé, factures énergie, API REST (beta). Connecteurs ERP (Sage, Cegid, SAP) en roadmap." },
-            { icon: "📐", title: "Calcul GHG Protocol", desc: "Methodologie certifiee Scopes 1, 2, 3" },
-            { icon: "🤖", title: "IA Recommandations", desc: "Plans d'action personnalises et priorises" },
+            { icon: "📐", title: "Calcul GHG Protocol", desc: "Méthodologie GHG Protocol — Scopes 1, 2, 3" },
+            { icon: "🤖", title: "IA Recommandations", desc: "Plans d'action personnalisés et priorisés" },
             { icon: "📄", title: "Rapports conformes", desc: "CSRD, CDP, bilan GES en 1 clic" },
           ].map((f, i) => (
             <Reveal key={f.title} delay={0.08 * i}>
@@ -520,6 +522,7 @@ function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
               </div>
             </div>
           </Reveal>
+          <DemoDisclaimer />
         </div>
       </div>
     </section>
@@ -978,6 +981,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <h3 className="font-extrabold text-2xl md:text-3xl tracking-tight text-black mt-2">Le dashboard se reconfigure selon votre secteur</h3>
               </div>
               <SectorShowcase />
+              <DemoDisclaimer note="Aperçus sectoriels — entreprises fictives distinctes, à but de démonstration." />
             </Reveal>
           </div>
         </section>

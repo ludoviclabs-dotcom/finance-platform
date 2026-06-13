@@ -109,7 +109,7 @@ const SECTORS: SectorData[] = [
     accent: "#1F8C52",
     meta: "Métallurgie · chimie · automobile",
     sub: "Métallurgie · chimie · automobile · Période 2025 · Unité kWh / unité",
-    total: "12 480",
+    total: "12 847",
     poste: { label: "Combustion gaz process", pct: 31 },
     donut: [
       { lbl: "S1", pct: 38, color: "#62A8FF" },
@@ -124,9 +124,9 @@ const SECTORS: SectorData[] = [
     ],
     scopes: {
       kpis: [
-        { lbl: "Scope 1 direct", val: "4 742", pct: 38, delta: "−6,2 %" },
-        { lbl: "Scope 2 énergie", val: "2 995", pct: 24, delta: "−12,4 %" },
-        { lbl: "Scope 3 chaîne", val: "4 743", pct: 38, delta: "−4,8 %" },
+        { lbl: "Scope 1 direct", val: "4 882", pct: 38, delta: "−6,2 %" },
+        { lbl: "Scope 2 énergie", val: "3 083", pct: 24, delta: "−12,4 %" },
+        { lbl: "Scope 3 chaîne", val: "4 882", pct: 38, delta: "−4,8 %" },
       ],
       detail: [
         { cat: "Combustion fixe (gaz process)", scope: "S1", val: "2 156", pct: 17.3 },

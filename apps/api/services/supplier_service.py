@@ -18,7 +18,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 

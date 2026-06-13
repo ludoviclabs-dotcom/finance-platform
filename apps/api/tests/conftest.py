@@ -36,8 +36,8 @@ def _reset_state_between_tests():
     except Exception:
         pass
     try:
-        from pathlib import Path
         import shutil
+        from pathlib import Path
         cache_dir = Path(os.environ.get("CARBONCO_CACHE_DIR", "/tmp/carbonco_snapshots"))
         if cache_dir.exists():
             shutil.rmtree(cache_dir, ignore_errors=True)

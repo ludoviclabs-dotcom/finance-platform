@@ -14,12 +14,10 @@ from __future__ import annotations
 
 import hashlib
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 from services.facts_service import ChainVerification, compute_hash, verify_chain
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -282,7 +282,9 @@ class TestExcelService:
     def test_contains_all_sheets(self) -> None:
         """Les 6 onglets attendus doivent être présents."""
         from io import BytesIO
+
         from openpyxl import load_workbook
+
         from services.strategic_mapping_excel import build_strategic_mapping_xlsx
         data = self._build_data()
         wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
@@ -299,7 +301,9 @@ class TestExcelService:
     def test_synthese_contains_hero_title(self) -> None:
         """L'onglet Synthèse doit contenir le titre du hero."""
         from io import BytesIO
+
         from openpyxl import load_workbook
+
         from services.strategic_mapping_excel import build_strategic_mapping_xlsx
         data = self._build_data()
         wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
@@ -310,7 +314,9 @@ class TestExcelService:
     def test_filters_respected_pme_excludes_wacc(self) -> None:
         """PME : la feuille Gains ne doit pas contenir l'ID 'wacc'."""
         from io import BytesIO
+
         from openpyxl import load_workbook
+
         from services.strategic_mapping_excel import build_strategic_mapping_xlsx
         data = self._build_data(segment="pme")
         wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
@@ -321,7 +327,9 @@ class TestExcelService:
     def test_filters_respected_grand_groupe_includes_wacc(self) -> None:
         """Grand groupe : la feuille Gains doit contenir l'ID 'wacc'."""
         from io import BytesIO
+
         from openpyxl import load_workbook
+
         from services.strategic_mapping_excel import build_strategic_mapping_xlsx
         data = self._build_data(segment="grand_groupe")
         wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
@@ -332,7 +340,9 @@ class TestExcelService:
     def test_sources_preserved_in_gains_sheet(self) -> None:
         """Les publishers des sources doivent apparaître dans l'onglet Gains."""
         from io import BytesIO
+
         from openpyxl import load_workbook
+
         from services.strategic_mapping_excel import build_strategic_mapping_xlsx
         data = self._build_data()
         wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
@@ -344,7 +354,9 @@ class TestExcelService:
     def test_avant_apres_sheet_has_correct_columns(self) -> None:
         """L'onglet Avant-Après doit avoir 4 colonnes."""
         from io import BytesIO
+
         from openpyxl import load_workbook
+
         from services.strategic_mapping_excel import build_strategic_mapping_xlsx
         data = self._build_data()
         wb = load_workbook(BytesIO(build_strategic_mapping_xlsx(data)))
@@ -391,6 +403,7 @@ class TestExcelEndpoint:
     def test_filters_applied_in_export(self, client: TestClient, analyst_token: str) -> None:
         """Le filtre segment=pme doit exclure wacc du classeur."""
         from io import BytesIO
+
         from openpyxl import load_workbook
         resp = client.get(
             "/strategic-mapping/adhesion-volontaire/export.xlsx?segment=pme",
@@ -434,8 +447,6 @@ class TestPdfService:
         from services.strategic_mapping_pdf import build_strategic_mapping_pdf
         data = self._build_data()
         result = build_strategic_mapping_pdf(data)
-        # Compter les objets de page dans le PDF (chaque page = un objet /Page)
-        page_count = result.count(b"/Page\n") + result.count(b"/Page\r")
         # On ne peut pas compter précisément sans parser, mais le fichier doit être non-trivial
         assert len(result) > 10_000, "PDF trop petit pour contenir 6 pages"
 

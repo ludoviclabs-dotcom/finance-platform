@@ -17,6 +17,8 @@ from __future__ import annotations
 import io
 import logging
 
+from models.strategic_mapping import StrategicMappingResponse
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -32,8 +34,6 @@ try:
     _OPENPYXL_AVAILABLE = True
 except ImportError:
     _OPENPYXL_AVAILABLE = False
-
-from models.strategic_mapping import StrategicMappingResponse
 
 # ---------------------------------------------------------------------------
 # Palette couleurs Carbon & Co

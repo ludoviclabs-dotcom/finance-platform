@@ -5,7 +5,6 @@ models/factors.py — Modèles Pydantic pour le catalogue emission_factors.
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Any
 
 from pydantic import BaseModel, Field
 

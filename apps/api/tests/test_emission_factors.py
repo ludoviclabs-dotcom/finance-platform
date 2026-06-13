@@ -12,7 +12,6 @@ Ces tests ne nécessitent PAS de base de données (données embarquées testées
 from __future__ import annotations
 
 import importlib
-import sys
 from pathlib import Path
 
 import pytest

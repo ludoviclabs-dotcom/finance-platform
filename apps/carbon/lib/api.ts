@@ -492,6 +492,42 @@ export function fetchVsmeSnapshot(signal?: AbortSignal): Promise<VsmeSnapshot> {
   return apiGet<VsmeSnapshot>("/vsme/snapshot", signal);
 }
 
+// --- VSME mapping & complétude (T3.2) ---
+export type VsmeDatapointRow = {
+  code: string;
+  module: string;
+  label: string;
+  type: string;
+  unit: string | null;
+  collect: string;
+  status: "auto" | "manuel" | "na" | "missing";
+  value: unknown;
+  source: string | null;
+  na_justification: string | null;
+};
+export type VsmeModuleCompletude = { module: string; total: number; filled: number; pct: number };
+export type VsmeMappingStatus = {
+  version: string;
+  completeness: {
+    overall_pct: number;
+    mandatory_total: number;
+    mandatory_filled: number;
+    modules: VsmeModuleCompletude[];
+  };
+  datapoints: VsmeDatapointRow[];
+};
+
+export function fetchVsmeMappingStatus(signal?: AbortSignal): Promise<VsmeMappingStatus> {
+  return apiGet<VsmeMappingStatus>("/vsme/mapping/status", signal);
+}
+
+export function saveVsmeDatapoint(
+  body: { code: string; value?: unknown; is_applicable?: boolean; na_justification?: string | null },
+  signal?: AbortSignal,
+): Promise<{ id: number; code: string; saved: boolean } | null> {
+  return apiSend("POST", "/vsme/mapping/datapoint", signal, body);
+}
+
 // --- ESG ---
 export function fetchEsgSnapshot(signal?: AbortSignal): Promise<EsgSnapshot> {
   return apiGet<EsgSnapshot>("/esg/snapshot", signal);

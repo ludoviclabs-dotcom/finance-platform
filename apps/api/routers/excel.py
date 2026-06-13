@@ -14,7 +14,6 @@ from pydantic import BaseModel
 from routers.auth import require_analyst
 from services.auth_service import AuthUser
 from services.carbon_service import (
-    CANONICAL_CC_RANGES,
     REQUIRED_SHEETS,
     CarbonServiceError,
     build_carbon_snapshot_from_bytes,
@@ -27,6 +26,7 @@ from utils.excel_reader import (
     InvalidRangeError,
     SheetNotFoundError,
 )
+from utils.upload_guard import check_upload_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -127,13 +127,11 @@ async def preview_excel(
     domain hint (carbon|esg|finance) is optional — used to highlight expected sheets.
     """
     _check_mime(file)
+    contents = await file.read()
     try:
         # Need read_only=False to access named_ranges + dimensions
-        import io
-
         from openpyxl import load_workbook as _load
 
-        contents = await file.read()
         wb = _load(io.BytesIO(contents), read_only=False, data_only=True)
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Fichier illisible : {exc}") from exc
@@ -236,25 +234,22 @@ async def validate_excel(
     _check_mime(file)
     issues: list[ValidationIssue] = []
 
+    contents = await file.read()
+    if len(contents) < 512:
+        issues.append(ValidationIssue(level="error", message="Fichier trop petit — probablement vide ou corrompu."))
+        return ValidateResponse(
+            filename=file.filename or "",
+            domain=domain,
+            status="error",
+            issues=issues,
+            named_ranges_found=[], named_ranges_missing=[],
+            sheets_found=[], sheets_missing=[],
+        )
+    if len(contents) < 5000:
+        issues.append(ValidationIssue(level="warning", message="Fichier inhabituellement petit — vérifiez qu'il contient bien des données."))
+
     try:
-        import io
-
         from openpyxl import load_workbook as _load
-
-        contents = await file.read()
-        if len(contents) < 512:
-            issues.append(ValidationIssue(level="error", message="Fichier trop petit — probablement vide ou corrompu."))
-            return ValidateResponse(
-                filename=file.filename or "",
-                domain=domain,
-                status="error",
-                issues=issues,
-                named_ranges_found=[], named_ranges_missing=[],
-                sheets_found=[], sheets_missing=[],
-            )
-
-        if len(contents) < 5000:
-            issues.append(ValidationIssue(level="warning", message="Fichier inhabituellement petit — vérifiez qu'il contient bien des données."))
 
         wb = _load(io.BytesIO(contents), read_only=False, data_only=True)
     except Exception as exc:
@@ -446,6 +441,7 @@ async def ingest_uploaded(
     _check_mime(file)
 
     contents = await file.read()
+    check_upload_bytes(contents, file.filename)  # T1.5 — taille / magic bytes / zip-bomb
     if len(contents) < 512:
         raise HTTPException(
             status_code=422,

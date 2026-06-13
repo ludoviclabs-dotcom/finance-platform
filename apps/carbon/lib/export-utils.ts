@@ -11,9 +11,22 @@
 
 export type ExportRow = Record<string, string | number | boolean | null | undefined>;
 
+/**
+ * Neutralisation de l'injection de formule (T1.5) : une cellule texte commençant
+ * par `=`, `+`, `-`, `@`, TAB ou CR peut être exécutée comme formule à
+ * l'ouverture de l'export. On préfixe `'` pour forcer le mode texte.
+ */
+export function sanitizeCell<T>(value: T): T | string {
+  if (typeof value === "string" && value.length > 0 && "=+-@\t\r".includes(value[0])) {
+    return `'${value}`;
+  }
+  return value;
+}
+
 function escapeCsv(value: unknown): string {
   if (value === null || value === undefined) return "";
-  const s = typeof value === "string" ? value : String(value);
+  const raw = typeof value === "string" ? value : String(value);
+  const s = sanitizeCell(raw);
   if (s.includes('"') || s.includes(";") || s.includes("\n")) {
     return `"${s.replace(/"/g, '""')}"`;
   }
@@ -53,7 +66,13 @@ export async function exportXlsx(
   const XLSX = await import("@e965/xlsx");
   const workbook = XLSX.utils.book_new();
   for (const [name, rows] of Object.entries(sheets)) {
-    const sheet = XLSX.utils.json_to_sheet(rows as ExportRow[]);
+    // T1.5 — neutralisation injection de formule sur chaque cellule.
+    const safeRows = rows.map((row) => {
+      const out: ExportRow = {};
+      for (const [k, v] of Object.entries(row)) out[k] = sanitizeCell(v);
+      return out;
+    });
+    const sheet = XLSX.utils.json_to_sheet(safeRows);
     XLSX.utils.book_append_sheet(workbook, sheet, name.slice(0, 31));
   }
   const buffer: ArrayBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });

@@ -30,6 +30,10 @@ AuditEventType = Literal[
     "export",
     "validation",
     "error",
+    "2fa_enroll",
+    "2fa_success",
+    "2fa_fail",
+    "2fa_recovery",
 ]
 
 

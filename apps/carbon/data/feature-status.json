@@ -131,9 +131,10 @@
     {
       "id": "2fa-totp",
       "label": "Double authentification (TOTP)",
-      "description": "Second facteur d'authentification par code temporel (TOTP) avec codes de récupération. Planifié — non disponible à ce jour. Passera Live à la livraison de la tâche T1.4 du plan d'action.",
-      "statut": "planifie",
-      "normes": []
+      "description": "Second facteur d'authentification par code temporel (TOTP), secret chiffré au repos (Fernet) et 8 codes de récupération. API disponible (enrôlement, login en deux temps, vérification) ; intégration UI (login + réglages) en cours.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/services/totp_service.py"
     },
     {
       "id": "ixbrl-eseef",

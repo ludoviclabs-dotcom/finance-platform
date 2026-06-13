@@ -43,6 +43,13 @@ DO $$ BEGIN
     CREATE POLICY tenant_isolation_baselines_ins ON baselines
       FOR INSERT WITH CHECK (company_id = NULLIF(current_setting('app.current_company_id', true), '')::int);
   END IF;
+  -- freeze_baseline fait un INSERT ... ON CONFLICT DO UPDATE : policy UPDATE
+  -- explicite (la policy USING ci-dessus la couvre déjà en FOR ALL, mais on
+  -- l'expose pour cohérence avec 017 et lisibilité de l'intention).
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='baselines' AND policyname='tenant_isolation_baselines_upd') THEN
+    CREATE POLICY tenant_isolation_baselines_upd ON baselines
+      FOR UPDATE USING (company_id = NULLIF(current_setting('app.current_company_id', true), '')::int);
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='recalc_events' AND policyname='tenant_isolation_recalc') THEN
     CREATE POLICY tenant_isolation_recalc ON recalc_events
       USING (company_id = NULLIF(current_setting('app.current_company_id', true), '')::int);

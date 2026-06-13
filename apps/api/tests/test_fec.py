@@ -43,6 +43,17 @@ class TestParser:
         with pytest.raises(fec_parser.FecError):
             fec_parser.parse_fec(b"")
 
+    def test_cp1252_decoded_before_latin1(self) -> None:
+        # 0x92 = apostrophe typographique en CP1252 (’), caractère de contrôle en
+        # ISO-8859-1. L'ordre de fallback doit tenter CP1252 AVANT ISO-8859-1.
+        raw = (
+            "JournalCode|CompteNum|EcritureDate|EcritureLib|Debit|Credit\n"
+            "AC|601000|20250115|Achat d’énergie|1000,00|0,00\n"
+        ).encode("cp1252")
+        p = fec_parser.parse_fec(raw)
+        assert p["encoding"] == "cp1252"
+        assert "’" in p["rows"][0]["EcritureLib"]
+
 
 class TestMapping:
     def test_pcg_mapping(self) -> None:

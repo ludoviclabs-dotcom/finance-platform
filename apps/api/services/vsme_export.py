@@ -68,6 +68,22 @@ def _normalize_xlsx(data: bytes) -> bytes:
     return out.getvalue()
 
 
+def write_zip(entries: dict[str, bytes]) -> bytes:
+    """Assemble un ZIP REPRODUCTIBLE (package_hash stable à contenu identique).
+
+    Sans ZipInfo figée, zipfile.writestr inscrit l'heure courante dans chaque
+    entrée → le package_hash varierait à chaque génération malgré un contenu
+    figé. On trie les noms et fige la date d'entrée (même technique que
+    _normalize_xlsx). Réutilisé par l'export BEGES.
+    """
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name in sorted(entries):
+            info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+            zf.writestr(info, entries[name])
+    return out.getvalue()
+
+
 # fpdf2/Helvetica = latin-1 : translitère les caractères hors latin-1.
 _PDF_MAP = str.maketrans({
     "—": "-", "–": "-", "’": "'", "‘": "'",
@@ -244,12 +260,7 @@ def build_vsme_report(*, company_id: int, company_name: str, mapping: dict[str, 
     }
     checksums = ("\n".join(f"{_sha(d)}  {n}" for n, d in sorted(embedded.items())) + "\n").encode("utf-8")
 
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for name, data in embedded.items():
-            zf.writestr(name, data)
-        zf.writestr("CHECKSUMS.sha256", checksums)
-    zip_bytes = buf.getvalue()
+    zip_bytes = write_zip({**embedded, "CHECKSUMS.sha256": checksums})
     package_hash = _sha(zip_bytes)
     filename = f"rapport-vsme-{company_id}-{now.strftime('%Y%m%d-%H%M%S')}-{package_hash[:12]}.zip"
 

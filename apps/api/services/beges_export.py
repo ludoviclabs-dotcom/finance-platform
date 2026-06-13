@@ -14,14 +14,13 @@ import io
 import json
 import logging
 import os
-import zipfile
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
 from db.database import db_available, get_db
 from services import scope3_service
-from services.vsme_export import _FIXED_META_DATE, _normalize_xlsx, _p, _sha
+from services.vsme_export import _FIXED_META_DATE, _normalize_xlsx, _p, _sha, write_zip
 from utils.excel_sanitize import sanitize_cell
 
 logger = logging.getLogger(__name__)
@@ -79,33 +78,50 @@ def ventilate(scope_totals: dict[str, Any]) -> dict[str, Any]:
     return {"standard": data["standard"], "categories": categories, "total": round(grand_total, 6)}
 
 
+def _reduce_scope_rows(rows: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Réduit des (code, value) de facts_current en totaux GHG. Fonction PURE.
+
+    Scope 2 : on PRÉFÈRE le location-based (LB) ; le market-based (MB) n'est
+    retenu que si LB est ABSENT — sur la PRÉSENCE, pas la valeur (LB = 0 est
+    légitime en électricité 100 % renouvelable). Indépendant de l'ordre des
+    lignes (facts_current n'a pas d'ORDER BY garanti).
+    """
+    totals: dict[str, Any] = {"S1": 0.0, "S2": 0.0, "S3": {}}
+    s2_lb: float | None = None
+    s2_mb: float | None = None
+    for code, value in rows:
+        val = float(value) if value is not None else 0.0
+        if code == "CC.GES.SCOPE1":
+            totals["S1"] = val
+        elif code == "CC.GES.SCOPE2_LB":
+            s2_lb = val
+        elif code == "CC.GES.SCOPE2_MB":
+            s2_mb = val
+        elif code == "CC.GES.SCOPE3":
+            totals["S3"]["uncategorized"] = val
+        else:
+            n = scope3_service.category_of(code)
+            if n is not None:
+                totals["S3"][n] = val
+    if s2_lb is not None:
+        totals["S2"] = s2_lb
+    elif s2_mb is not None:
+        totals["S2"] = s2_mb
+    return totals
+
+
 def read_scope_totals(company_id: int) -> dict[str, Any]:
     """Lit les totaux GHG de la company depuis facts_current."""
-    totals: dict[str, Any] = {"S1": 0.0, "S2": 0.0, "S3": {}}
     if not db_available():
-        return totals
+        return {"S1": 0.0, "S2": 0.0, "S3": {}}
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT code, value FROM facts_current WHERE company_id = %s AND code LIKE 'CC.GES.%%'",
                 (company_id,),
             )
-            for r in cur.fetchall():
-                code = r["code"]
-                val = float(r["value"]) if r["value"] is not None else 0.0
-                if code == "CC.GES.SCOPE1":
-                    totals["S1"] = val
-                elif code == "CC.GES.SCOPE2_LB":
-                    totals["S2"] = val
-                elif code == "CC.GES.SCOPE2_MB" and not totals["S2"]:
-                    totals["S2"] = val
-                elif code == "CC.GES.SCOPE3":
-                    totals["S3"]["uncategorized"] = val
-                else:
-                    n = scope3_service.category_of(code)
-                    if n is not None:
-                        totals["S3"][n] = val
-    return totals
+            rows = [(r["code"], r["value"]) for r in cur.fetchall()]
+    return _reduce_scope_rows(rows)
 
 
 def build_beges_pdf(*, company_name: str, breakdown: dict[str, Any], elig: dict[str, Any], generated_at: str) -> bytes:
@@ -199,12 +215,7 @@ def build_beges_report(*, company_id: int, company_name: str, fte: int | None = 
 
     embedded = {"manifest.json": manifest_bytes, "beges.pdf": pdf_bytes, "beges.xlsx": xlsx_bytes, "README.txt": readme}
     checksums = ("\n".join(f"{_sha(d)}  {n}" for n, d in sorted(embedded.items())) + "\n").encode("utf-8")
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for name, d in embedded.items():
-            zf.writestr(name, d)
-        zf.writestr("CHECKSUMS.sha256", checksums)
-    zip_bytes = buf.getvalue()
+    zip_bytes = write_zip({**embedded, "CHECKSUMS.sha256": checksums})
     package_hash = _sha(zip_bytes)
     filename = f"beges-{company_id}-{now.strftime('%Y%m%d-%H%M%S')}-{package_hash[:12]}.zip"
 

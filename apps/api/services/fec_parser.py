@@ -2,7 +2,7 @@
 fec_parser.py — T4.3 : parseur FEC (Fichier des Écritures Comptables).
 
 Format art. A.47 A-1 du LPF : 18 champs, séparateur `|` ou tabulation, encodage
-détecté (UTF-8 → ISO-8859-1 → CP1252, sans dépendance externe). Valide
+détecté (UTF-8 → CP1252 → ISO-8859-1, sans dépendance externe). Valide
 l'équilibre débit/crédit, extrait l'exercice, détecte les doublons. Fonction
 PURE (prend des bytes) → testable sans DB.
 """
@@ -26,12 +26,15 @@ class FecError(Exception):
 
 
 def _decode(data: bytes) -> tuple[str, str]:
-    for enc in ("utf-8-sig", "utf-8", "iso-8859-1", "cp1252"):
+    # CP1252 AVANT ISO-8859-1 : iso-8859-1 mappe tout octet 0x00-0xFF et ne lève
+    # JAMAIS d'erreur ; placé avant cp1252, il rendrait ce dernier inatteignable
+    # et décoderait à tort les caractères Windows (apostrophe 0x92, etc.).
+    for enc in ("utf-8-sig", "utf-8", "cp1252", "iso-8859-1"):
         try:
             return data.decode(enc), enc
         except UnicodeDecodeError:
             continue
-    raise FecError("Encodage non reconnu (UTF-8, ISO-8859-1, CP1252 essayés).")
+    raise FecError("Encodage non reconnu (UTF-8, CP1252, ISO-8859-1 essayés).")
 
 
 def _to_decimal(value: str) -> float:

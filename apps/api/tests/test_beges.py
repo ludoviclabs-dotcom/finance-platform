@@ -81,6 +81,32 @@ class TestPackage:
         b = beges.build_beges_report(company_id=1, company_name="Exemplia", fte=600,
                                      scope_totals=SCOPE_TOTALS, generated_at=fixed)
         assert a["manifest_hash"] == b["manifest_hash"]
+        # Le ZIP entier doit être reproductible byte-à-byte (ZipInfo figée).
+        assert a["package_hash"] == b["package_hash"]
+        assert a["zip_bytes"] == b["zip_bytes"]
+
+
+class TestScopeReduce:
+    def test_s2_prefers_lb_even_when_zero(self) -> None:
+        # LB = 0 (100 % renouvelable) doit primer sur MB, quel que soit l'ordre.
+        for rows in (
+            [("CC.GES.SCOPE2_LB", 0.0), ("CC.GES.SCOPE2_MB", 50.0)],
+            [("CC.GES.SCOPE2_MB", 50.0), ("CC.GES.SCOPE2_LB", 0.0)],
+        ):
+            assert beges._reduce_scope_rows(rows)["S2"] == 0.0
+
+    def test_s2_falls_back_to_mb_when_no_lb(self) -> None:
+        assert beges._reduce_scope_rows([("CC.GES.SCOPE2_MB", 50.0)])["S2"] == 50.0
+
+    def test_scope3_categories_and_uncategorized(self) -> None:
+        t = beges._reduce_scope_rows([
+            ("CC.GES.SCOPE1", 100.0),
+            ("CC.GES.SCOPE3.4", 30.0),
+            ("CC.GES.SCOPE3", 10.0),
+        ])
+        assert t["S1"] == 100.0
+        assert t["S3"][4] == 30.0
+        assert t["S3"]["uncategorized"] == 10.0
 
 
 class TestEndpoints:

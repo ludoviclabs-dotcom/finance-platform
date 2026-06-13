@@ -43,6 +43,23 @@ from routers import (
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Sentry (T1.7) — no-op si SENTRY_DSN absent ou sentry_sdk non installé.
+# release = SHA de commit pour relier les erreurs au déploiement.
+# ---------------------------------------------------------------------------
+_SENTRY_DSN = os.environ.get("SENTRY_DSN")
+if _SENTRY_DSN:
+    try:
+        import sentry_sdk
+        sentry_sdk.init(
+            dsn=_SENTRY_DSN,
+            release=os.environ.get("VERCEL_GIT_COMMIT_SHA") or os.environ.get("GITHUB_SHA"),
+            traces_sample_rate=0.0,
+        )
+        logger.info("Sentry initialisé")
+    except Exception as exc:  # pragma: no cover - dépend de l'environnement
+        logger.warning("Sentry non initialisé : %s", exc)
+
 try:
     from routers import ma
 except ImportError:

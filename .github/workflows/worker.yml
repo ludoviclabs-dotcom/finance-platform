@@ -1,0 +1,33 @@
+name: Ingest worker (drain)
+
+# Worker d'ingestion asynchrone (T1.3) — option gratuite sans hôte permanent.
+# Déclenché à la demande ; le cron est commenté (à activer si besoin).
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "*/15 * * * *"   # toutes les 15 min — décommenter si nécessaire
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    # Ne tourne que si le secret est présent (sinon skip silencieux).
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install worker deps
+        working-directory: apps/api
+        run: pip install -r requirements-worker.txt
+      - name: Drain ingest queue
+        working-directory: apps/api
+        env:
+          DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL_DIRECT }}
+        run: |
+          if [ -z "$DATABASE_URL_DIRECT" ]; then
+            echo "DATABASE_URL_DIRECT absent — rien à drainer (skip)."
+            exit 0
+          fi
+          python worker.py --until-empty

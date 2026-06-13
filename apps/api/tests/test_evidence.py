@@ -147,3 +147,31 @@ class TestEvidenceRoundtrip:
         active2 = evidence_service.list_evidence(company_id=company_id, code=code, sign=False)
         assert not any(p["sha256"] == sha for p in active2)
         assert facts_service.verify_chain(company_id).ok
+
+
+class TestStorageKeyPersistence:
+    """Revue Codex : storage_key = valeur RENVOYÉE par put() (URL Blob en prod),
+    pas la clé relative pré-upload — sinon get()/signed_url() échouent en vercel-blob."""
+
+    def test_stores_put_return_value(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from services import facts_service
+
+        target = SimpleNamespace(id=5, value=1.0, unit="t", ef_id=None)
+        blob_url = "https://store.public.blob.vercel-storage.com/org/1/evidence/5/x.pdf"
+        storage = MagicMock()
+        storage.put.return_value = blob_url
+        event = SimpleNamespace(id=10, hash_self="h")
+
+        with patch.object(evidence_service, "_latest_fact", return_value=target), \
+             patch.object(evidence_service, "get_storage", return_value=storage), \
+             patch.object(facts_service, "emit_fact", return_value=event):
+            res = evidence_service.attach_evidence(
+                company_id=1, code="carbon.scope1Tco2e", data=PDF,
+                filename="f.pdf", ext="pdf", content_type="application/pdf",
+                uploaded_by="u@e.fr",
+            )
+        assert res["storage_key"] == blob_url
+        # put() reçoit la clé relative validée (pas l'URL)
+        assert storage.put.call_args.args[0].startswith("org/1/evidence/5/")

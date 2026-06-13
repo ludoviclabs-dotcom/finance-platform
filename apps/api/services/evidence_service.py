@@ -54,14 +54,16 @@ def attach_evidence(
         )
 
     key = evidence_key(company_id, target.id, sha256, ext)
-    get_storage().put(key, data, content_type)  # lève StorageError si > 5 Mo
+    # put() peut renvoyer une référence canonique ≠ de la clé (URL Blob publique
+    # en backend vercel-blob) — c'est CETTE valeur que get()/signed_url() attendent.
+    stored_ref = get_storage().put(key, data, content_type)  # lève StorageError si > 5 Mo
 
     piece = {
         "sha256": sha256,
         "filename": filename,
         "size": len(data),
         "content_type": content_type,
-        "storage_key": key,
+        "storage_key": stored_ref,
         "uploaded_by": uploaded_by,
         "uploaded_at": datetime.now(tz=timezone.utc).isoformat(),
     }

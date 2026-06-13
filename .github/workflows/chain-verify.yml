@@ -11,10 +11,10 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/api
     steps:
+      # Le guard tourne AVANT checkout : il doit s'exécuter depuis la racine du
+      # workspace (pas de working-directory job-level, sinon apps/api n'existe
+      # pas encore et l'étape échouerait avant de tester le secret).
       - name: Guard (secret présent ?)
         id: guard
         run: |
@@ -30,9 +30,11 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         if: steps.guard.outputs.skip != 'true'
+        working-directory: apps/api
         run: pip install -r requirements.txt
       - name: Run chain verifications
         if: steps.guard.outputs.skip != 'true'
+        working-directory: apps/api
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         run: python scripts/run_chain_verifications.py

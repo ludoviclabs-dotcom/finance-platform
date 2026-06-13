@@ -709,6 +709,35 @@ export function emitFec(id: number, signal?: AbortSignal): Promise<{ emitted_fac
   return apiSend("POST", `/fec/${id}/emit`, signal);
 }
 
+// --- Périmètre & consolidation (T4.4) ---
+export type ConsolidationEntity = { company_id: number; name: string | null; ownership_pct: number; is_parent: boolean };
+export type ConsolidationPerimeter = {
+  approaches: Record<string, { label: string; definition: string }>;
+  approach: string;
+  approach_label: string | null;
+  entities: ConsolidationEntity[];
+};
+export type ConsolidationGroup = {
+  approach: string;
+  approach_label: string;
+  entity_count: number;
+  kpis: Record<string, number>;
+  entities?: ConsolidationEntity[];
+};
+
+export function fetchConsolidationPerimeter(signal?: AbortSignal): Promise<ConsolidationPerimeter> {
+  return apiGet<ConsolidationPerimeter>("/consolidation/perimeter", signal);
+}
+export function fetchConsolidationGroup(signal?: AbortSignal): Promise<ConsolidationGroup> {
+  return apiGet<ConsolidationGroup>("/consolidation/group", signal);
+}
+export function setConsolidationApproach(
+  approach: string,
+  signal?: AbortSignal,
+): Promise<{ approach: string; previous: string | null } | null> {
+  return apiSend("POST", "/consolidation/approach", signal, { approach });
+}
+
 export function invalidateCache(
   domain?: "carbon" | "vsme" | "esg" | "finance",
   signal?: AbortSignal

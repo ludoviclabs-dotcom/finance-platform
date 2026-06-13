@@ -9,6 +9,7 @@ from db.migrations import run_migrations
 from middleware.rate_limit import RateLimitMiddleware
 from middleware.request_logger import RequestLoggerMiddleware
 from routers import (
+    actions,
     admin,
     alerts,
     audit,
@@ -189,6 +190,7 @@ app.include_router(beges.router, prefix="/beges", tags=["beges (T4.2)"])
 app.include_router(fec.router, prefix="/fec", tags=["fec (T4.3)"])
 app.include_router(consolidation.router, prefix="/consolidation", tags=["consolidation (T4.4)"])
 app.include_router(baselines.router, prefix="/baselines", tags=["baselines (T4.5)"])
+app.include_router(actions.router, prefix="/actions", tags=["actions (T5.1/T5.2)"])
 app.include_router(files.router, tags=["files"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
 app.include_router(export.router, prefix="/export", tags=["export"])

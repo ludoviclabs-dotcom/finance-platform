@@ -17,4 +17,13 @@ Feuille de route et critères d'acceptation : [`docs/carbonco/PLAN_ACTION_CARBON
 
 ### P1 — Socle technique fiable
 
-_(à venir)_
+- **T1.1** — Phase 1.B finalisée : RLS FORCE opt-in (migration 009, bypass maintenance), émission de facts ESG/Finance, endpoint `/facts/replay`, tests transaction/p95/backfill.
+- **T1.2** — Seed `emission_factors` depuis le CSV officiel ADEME Base Empreinte (ratios monétaires inclus) + procédure/licence ; `seed_factors.py` reste la fixture dev.
+- **T1.3** — Ingestion asynchrone : table `ingest_jobs`, `POST /ingest` -> `ingestId`, `GET /ingests/{id}`, worker procrastinate (mode inline par défaut sur Vercel) + workflow drain.
+- **T1.4** — 2FA TOTP (secret chiffré Fernet, 8 codes de récupération, login en deux temps, rate-limit 5/15 min) — API disponible, UI carbon en cours.
+- **T1.5** — Durcissement uploads (15 Mo, magic bytes, anti zip-bomb) + rate-limit étendu (global/auth/uploads) + neutralisation injection de formule (exports API & front).
+- **T1.6** — `StorageAdapter` abstrait : backends local (URL signées HMAC) et vercel-blob (REST sans SDK) ; pièces 5 Mo max.
+- **T1.7** — Observabilité : Sentry API (opt-in `SENTRY_DSN`), `/health` enrichi (db/storage/worker/version), page publique `/status`.
+- **T1.8** — Sauvegardes Neon chiffrées (cron + restore-check en CI), CI `carbon.yml` (lint/tsc/vitest/build) + job pytest API + validateur Block A `--root`, `.env.example` API, `docs/ops/ACTIONS_LUDO.md`.
+
+> Critères d'acceptation nécessitant des ressources externes (Neon, CSV ADEME, secrets, Sentry DSN, UI 2FA) : voir [`docs/ops/ACTIONS_LUDO.md`](docs/ops/ACTIONS_LUDO.md).

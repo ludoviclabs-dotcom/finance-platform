@@ -289,6 +289,29 @@ def build_finance_snapshot() -> FinanceSnapshotResponse:
     )
 
 
+# --- Phase 1.B : émission de facts Finance (spec §7 — KPIs numériques) ---
+FINANCE_SNAPSHOT_FIELD_TO_FACT_CODE: dict[str, tuple[str, str]] = {
+    "financeClimat.prixEts": ("CC.FIN.PRIX_ETS", "€/tCO2e"),
+    "financeClimat.expositionTotaleEur": ("CC.FIN.EXPOSITION", "€"),
+    "financeClimat.capexDecarbS12Eur": ("CC.FIN.CAPEX_DECARB_S12", "€"),
+    "financeClimat.capexDecarbS3Eur": ("CC.FIN.CAPEX_DECARB_S3", "€"),
+    "financeClimat.greenCapexPct": ("CC.FIN.GREEN_CAPEX", "%"),
+    "sfdrPai.pai1_totalGes": ("CC.FIN.PAI1_TOTAL_GES", "tCO2e"),
+    "sfdrPai.pai3_intensiteGes": ("CC.FIN.PAI3_INTENSITE_GES", "tCO2e/M€"),
+}
+
+
+def emit_finance_facts(snapshot: dict[str, Any], company_id: int) -> int:
+    """Émet les facts des KPIs numériques Finance. `snapshot` = model_dump(). No-op sans DB."""
+    from services import facts_service
+    return facts_service.emit_snapshot_facts(
+        snapshot=snapshot,
+        company_id=company_id,
+        mapping=FINANCE_SNAPSHOT_FIELD_TO_FACT_CODE,
+        source_label="finance",
+    )
+
+
 def _evaluate_finance_qc(ctrl_id: str, r: Any, wb: Any) -> str:
     try:
         if ctrl_id == "F-01":

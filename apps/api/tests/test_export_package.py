@@ -23,7 +23,6 @@ import pytest
 
 from services import export_package
 
-
 # ── Tests sans DB ────────────────────────────────────────────────────────────
 
 class TestBuildPackage:

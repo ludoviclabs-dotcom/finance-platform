@@ -75,7 +75,7 @@ def main() -> None:
         if not os.environ.get("ADMIN_PASSWORD"):
             print(f"   Password : {password}  ← NOTE: ce mot de passe ne sera plus affiché")
         else:
-            print(f"   Password : (défini via ADMIN_PASSWORD)")
+            print("   Password : (défini via ADMIN_PASSWORD)")
     finally:
         conn.close()
 

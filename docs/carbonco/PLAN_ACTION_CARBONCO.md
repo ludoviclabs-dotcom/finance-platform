@@ -97,13 +97,13 @@
 
 ## P1 — SOCLE TECHNIQUE FIABLE (Sprints 2-3 · ~7-9 jours · coût : 0 €)
 
-### [ ] T1.1 — Terminer la Phase 1.B backend (couche preuve en base)
+### [x] T1.1 — Terminer la Phase 1.B backend (couche preuve en base)
 **Référence :** `docs/carbonco/PHASE1_INGESTION_PLAN.md` (spec déjà écrite — l'implémenter telle quelle).
 **Étapes :** tables `emission_factors`, `facts_events`, `facts_current` (vue matérialisée) ; fonction `compute_hash` (format `.6f`, séparateur `|`, `GENESIS`) ; `emit_fact` avec `FOR UPDATE` ; `verify_chain` ; RLS (`SET LOCAL app.current_company_id`, `ENABLE` + `FORCE`) sur `facts_events`, `snapshots`, `audit_events`, `alert_rules` ; migration hash de `audit_events` (script idempotent) ; endpoints `/factors`, `/facts`, `/facts/{code}/trail`, `/facts/verify`, `/facts/replay` avec rôles viewer/analyst/admin ; émission de facts depuis `carbon_service`, `esg_service`, `finance_service` via `SNAPSHOT_FIELD_TO_FACT_CODE`.
 **Point d'attention Neon :** `FOR UPDATE` + `SET LOCAL` exigent que verrou, SET et INSERT vivent dans la MÊME transaction sur une connexion directe (pas via pooler en mode transaction si le code ouvre plusieurs transactions). Ajouter un test d'intégration qui le vérifie.
 **CA :** les critères DoD de la spec — `test_facts_hash` vert sur fixture 100 events ; test d'isolation RLS (user A ne voit pas les facts de B) ; `verify_chain` retourne `{ok: true}` ; trail < 500 ms p95 ; E2E Phase 0/1.A non régressés.
 
-### [ ] T1.2 — Seed ADEME Base Empreinte® (gratuit, compte ADEME requis)
+### [x] T1.2 — Seed ADEME Base Empreinte® (gratuit, compte ADEME requis)
 **Étapes :**
 1. Script `apps/api/scripts/seed_emission_factors.py` : ingestion du CSV d'export Base Empreinte (placé manuellement dans `apps/api/data/` — le téléchargement nécessite un compte ADEME gratuit ; documenter la procédure dans le README du script, ne pas committer le fichier brut si la licence l'interdit).
 2. Normalisation vers `emission_factors` : `ef_code` stable (`ADEME.<version>.<slug>`), scope, catégorie, unité, `valid_from/until`, `raw` JSONB complet, version (`v2025`/`v2026`).
@@ -111,18 +111,18 @@
 4. Endpoint `/factors` paginé + filtres (scope, catégorie, version, recherche plein texte sur label).
 **CA :** `SELECT COUNT(*) FROM emission_factors WHERE version='v2025'` ≥ 500 ; recherche "électricité france" retourne le bon facteur ; chaque facteur affiché en UI montre source + version.
 
-### [ ] T1.3 — Ingestion asynchrone (file de jobs sur Postgres, sans Redis)
+### [x] T1.3 — Ingestion asynchrone (file de jobs sur Postgres, sans Redis)
 **Étapes :**
 1. Intégrer `procrastinate` (file de tâches Python adossée à Postgres — zéro infra supplémentaire). Worker dédié ; connexion DIRECTE à Neon pour LISTEN/NOTIFY (le pooler ne le supporte pas) — documenter la double URL (`DATABASE_URL` poolée pour l'API, `DATABASE_URL_DIRECT` pour le worker).
 2. Migrer l'ingestion de classeurs en job : statut `pending → processing → done|failed`, endpoint de suivi `/ingests/{id}`, polling côté UI (toast de progression).
 3. Refresh `CONCURRENTLY` de `facts_current` en fin de job (jamais dans la requête HTTP).
 **CA :** upload d'un classeur 40 feuilles → réponse HTTP < 1 s avec `ingest_id` ; le job aboutit en arrière-plan ; un échec produit un statut `failed` avec message exploitable, pas un 500.
 
-### [ ] T1.4 — 2FA TOTP (`pyotp` + QR code)
+### [x] T1.4 — 2FA TOTP (`pyotp` + QR code)
 **Étapes :** secret TOTP chiffré en base ; enrôlement (QR via lib `qrcode`, affiché une fois) ; vérification au login ; 8 codes de récupération hashés ; obligation 2FA paramétrable par organisation (défaut : optionnel, obligatoire pour rôle Admin) ; événements `audit_events` (activation, échec, récupération).
 **CA :** flux complet testé Playwright (enrôlement → logout → login + code) ; un code invalide 5× ratelimit le compte 15 min ; `/etat-du-produit` mis à jour (retirer "TOTP pas encore implémenté").
 
-### [ ] T1.5 — Durcissement uploads + rate limiting
+### [x] T1.5 — Durcissement uploads + rate limiting
 **Étapes :**
 1. `slowapi` sur l'API : 100 req/min/IP global, 10 uploads/h/utilisateur, 20 req/min sur `/auth/*`.
 2. Uploads : taille max 15 Mo ; vérification magic bytes (xlsx = zip) ; garde anti zip-bomb (ratio décompression max 100×, nombre de feuilles max 60, cellules max 2 M) ; `openpyxl read_only=True data_only=True`.
@@ -130,15 +130,15 @@
 4. En-têtes sécurité front (CSP de base, `X-Content-Type-Options`, `Referrer-Policy`) via `next.config`.
 **CA :** test unitaire zip-bomb rejeté ; test export contenant `=HYPERLINK(...)` neutralisé ; 11e upload de l'heure → 429.
 
-### [ ] T1.6 — Stockage objet abstrait (Evidence Packs, pièces jointes)
+### [x] T1.6 — Stockage objet abstrait (Evidence Packs, pièces jointes)
 **Étapes :** interface `StorageAdapter` (`put/get/delete/signed_url`) avec trois backends : `local` (dev), `vercel-blob` (défaut prod, inclus Hobby — surveiller la limite, lever une erreur claire si quota), `r2` (optionnel, D4). Taille max pièce : 5 Mo. Clés : `org/{company_id}/evidence/{fact_id}/{sha256}.{ext}`.
 **CA :** tests des trois backends (local réel, autres mockés) ; aucune écriture disque hors adapter ; URL signées expirables (15 min).
 
-### [ ] T1.7 — Observabilité et statut (free tiers)
+### [x] T1.7 — Observabilité et statut (free tiers)
 **Étapes :** Sentry (free tier) front + API avec `release` = SHA de commit ; endpoint `/health` (DB, worker, storage) ; page publique `/status` statique consommant `/health` côté client ; logs structurés JSON côté API.
 **CA :** une exception volontaire en staging apparaît dans Sentry avec le bon release ; `/status` reflète une DB coupée en < 60 s.
 
-### [ ] T1.8 — Sauvegardes et CI
+### [x] T1.8 — Sauvegardes et CI
 **Étapes :**
 1. GitHub Action cron quotidienne : `pg_dump` de Neon → artefact chiffré (clé en secret GitHub) conservé 30 jours ; doc de restauration testée une fois (runbook `docs/ops/RESTORE.md`).
 2. CI sur PR : lint + typecheck + pytest + vitest + **validator de classeurs** (le script Block A devient un gate : toute PR modifiant un master ou le contrat `CC_*` doit passer le validator).

@@ -100,7 +100,6 @@ async def generate_package(
     report_pdf_bytes: bytes | None = None
     if include_pdf:
         try:
-            from services import carbon_service
             from services.pdf_service import generate_esg_synthesis_pdf
             from services.snapshot_cache import read_snapshot
 

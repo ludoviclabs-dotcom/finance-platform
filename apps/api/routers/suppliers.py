@@ -28,6 +28,7 @@ from db.tenant import get_company_id
 from routers.auth import require_admin, require_analyst
 from services.auth_service import AuthUser
 from services.supplier_service import (
+    PublicQuestionnaireContext,
     SupplierAnswerCreate,
     SupplierAnswerOut,
     SupplierCreate,
@@ -35,7 +36,6 @@ from services.supplier_service import (
     SupplierUpdate,
     TokenCreate,
     TokenOut,
-    PublicQuestionnaireContext,
     create_supplier,
     create_token,
     delete_supplier,

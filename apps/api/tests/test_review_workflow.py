@@ -12,9 +12,9 @@ import os
 import pytest
 
 from services.review_service import (
+    _VALID_TRANSITIONS,
     REVIEW_TIMEOUT_HOURS,
     ReviewError,
-    _VALID_TRANSITIONS,
 )
 
 

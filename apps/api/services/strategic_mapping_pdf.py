@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import io
 import logging
-from datetime import datetime
+
+from models.strategic_mapping import StrategicMappingResponse
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +27,6 @@ try:
 except ImportError:
     _FPDF_AVAILABLE = False
     FPDF = None  # type: ignore[assignment,misc]
-
-from models.strategic_mapping import StrategicMappingResponse
 
 
 # ---------------------------------------------------------------------------

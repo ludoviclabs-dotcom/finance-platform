@@ -1233,6 +1233,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <li><Link href="/trust" className="text-sm text-neutral-500 hover:text-black transition-colors">Trust Center</Link></li>
                 <li><Link href="/trust/sub-processors" className="text-sm text-neutral-500 hover:text-black transition-colors">Sous-traitants</Link></li>
                 <li><Link href="/trust/exit-strategy" className="text-sm text-neutral-500 hover:text-black transition-colors">Stratégie de sortie</Link></li>
+                <li><Link href="/status" className="text-sm text-neutral-500 hover:text-black transition-colors">Statut du service</Link></li>
                 <li><Link href="/ai-act" className="text-sm text-neutral-500 hover:text-black transition-colors">Conformité AI Act</Link></li>
                 <li><a href={`mailto:${CONTACT_EMAIL}`} className="text-sm text-neutral-500 hover:text-black transition-colors">{CONTACT_EMAIL}</a></li>
               </ul>

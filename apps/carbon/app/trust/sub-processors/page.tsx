@@ -75,6 +75,15 @@ const SUB_PROCESSORS: SubProcessor[] = [
     notes:
       "Inngest porte uniquement des références d'événements (job IDs, status). Les charges utiles métier restent dans Neon et Vercel Blob.",
   },
+  {
+    name: "Sentry",
+    role: "Observabilité — collecte des erreurs applicatives (API + front) pour le diagnostic",
+    region: "Région UE disponible (Sentry EU)",
+    transferOutsideEU: "Conditionnel",
+    legalBasis: "RGPD article 28 (DPA Sentry)",
+    notes:
+      "Activé uniquement si SENTRY_DSN est défini. Aucune donnée métier ESG envoyée : seules les traces d'erreur (stack, route, version de déploiement).",
+  },
 ];
 
 const TRANSFER_BADGE: Record<SubProcessor["transferOutsideEU"], string> = {

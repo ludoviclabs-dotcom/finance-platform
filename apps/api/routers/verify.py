@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from services import export_package
@@ -27,12 +27,15 @@ from services import export_package
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+MAX_VERIFY_ZIP = 25 * 1024 * 1024  # 25 Mo — un pack inclut PDF + pièces
+
 
 class VerifyPublicResponse(BaseModel):
     """Réponse du verify public — metadata non-sensibles uniquement."""
     verified: bool
     package_hash: str
     manifest_hash: str | None = None
+    matched_on: str | None = None  # "package" | "manifest"
     domain: str | None = None
     filename: str | None = None
     size_bytes: int | None = None
@@ -40,6 +43,17 @@ class VerifyPublicResponse(BaseModel):
     frozen_count: int | None = None
     generated_at: datetime | None = None
     company_name: str | None = None
+    message: str
+
+
+class RecomputeResponse(BaseModel):
+    """Résultat du recompute serveur d'un ZIP : authentic | altered | unknown | invalid."""
+    status: str
+    package_hash: str | None = None
+    manifest_hash: str | None = None
+    self_consistent: bool | None = None
+    company_name: str | None = None
+    generated_at: datetime | None = None
     message: str
 
 
@@ -82,6 +96,7 @@ async def verify_package(package_hash: str) -> VerifyPublicResponse:
         verified=True,
         package_hash=metadata["package_hash"],
         manifest_hash=metadata.get("manifest_hash"),
+        matched_on=metadata.get("matched_on"),
         domain=metadata.get("domain"),
         filename=metadata.get("filename"),
         size_bytes=metadata.get("size_bytes"),
@@ -94,4 +109,52 @@ async def verify_package(package_hash: str) -> VerifyPublicResponse:
             f"{generated_at.strftime('%d/%m/%Y %H:%M') if generated_at else '—'} "
             f"pour {metadata.get('company_name') or 'une entreprise'}."
         ),
+    )
+
+
+_RECOMPUTE_MESSAGES = {
+    "authentic": "Pack authentique — identique à l'export officiel enregistré.",
+    "altered": "Pack ALTÉRÉ — un export officiel correspond, mais les octets diffèrent (fichier modifié).",
+    "unknown": "Aucun export officiel ne correspond à ce fichier.",
+}
+
+
+@router.post("/recompute", response_model=RecomputeResponse)
+async def verify_recompute(file: UploadFile = File(...)) -> RecomputeResponse:
+    """Endpoint PUBLIC — recompute serveur d'un ZIP reçu → authentic|altered|unknown.
+
+    L'auditeur dépose le pack ; le serveur recalcule package_hash + manifest_hash,
+    vérifie la cohérence interne et compare à l'enregistrement officiel. Détecte une
+    modification d'1 octet du ZIP (→ altered). Aucune donnée métier n'est exposée.
+    """
+    data = await file.read()
+    if not data:
+        raise HTTPException(400, detail="Fichier vide.")
+    if len(data) > MAX_VERIFY_ZIP:
+        raise HTTPException(413, detail=f"Archive trop volumineuse (max {MAX_VERIFY_ZIP // 1024 // 1024} Mo).")
+
+    result = export_package.verify_zip(data)
+    status_value = result["status"]
+    meta = result.get("metadata") or {}
+
+    generated_at = meta.get("generated_at")
+    if isinstance(generated_at, str):
+        try:
+            generated_at = datetime.fromisoformat(generated_at)
+        except ValueError:
+            generated_at = None
+
+    message = (
+        result.get("reason") or "Fichier non reconnu comme pack CarbonCo."
+        if status_value == "invalid"
+        else _RECOMPUTE_MESSAGES.get(status_value, "")
+    )
+    return RecomputeResponse(
+        status=status_value,
+        package_hash=result.get("package_hash"),
+        manifest_hash=result.get("manifest_hash"),
+        self_consistent=result.get("self_consistent"),
+        company_name=meta.get("company_name"),
+        generated_at=generated_at,
+        message=message,
     )

@@ -361,8 +361,12 @@ def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
     """
     if not db_available():
         return None
+    h = package_hash.lower()
     with get_db() as conn:
         with conn.cursor() as cur:
+            # On résout par package_hash (hash du ZIP) OU manifest_hash (ancre stable
+            # imprimée en pied de PDF / README). Sans le second, le lien
+            # /verify/{manifest_hash} documenté dans le pack ne résoudrait jamais.
             cur.execute(
                 """
                 SELECT ep.package_hash, ep.manifest_hash, ep.domain, ep.filename,
@@ -370,10 +374,10 @@ def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
                        ep.generated_at, ep.meta, c.name AS company_name
                 FROM export_packages ep
                 LEFT JOIN companies c ON c.id = ep.company_id
-                WHERE ep.package_hash = %s
+                WHERE ep.package_hash = %s OR ep.manifest_hash = %s
                 LIMIT 1
                 """,
-                (package_hash,),
+                (h, h),
             )
             row = cur.fetchone()
     if not row:
@@ -381,6 +385,7 @@ def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
     return {
         "package_hash": row["package_hash"],
         "manifest_hash": row["manifest_hash"],
+        "matched_on": "package" if row["package_hash"] == h else "manifest",
         "domain": row["domain"],
         "filename": row["filename"],
         "size_bytes": row["size_bytes"],
@@ -388,4 +393,79 @@ def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
         "frozen_count": row["frozen_count"],
         "generated_at": row["generated_at"].isoformat() if row["generated_at"] else None,
         "company_name": row["company_name"] or "—",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Vérification d'un ZIP reçu — recompute côté serveur (T2.3)
+# ---------------------------------------------------------------------------
+
+def inspect_zip(zip_bytes: bytes) -> dict[str, Any]:
+    """Recompute package_hash, manifest_hash et l'intégrité interne d'un pack.
+
+    Fonction PURE (aucun accès DB) — testable directement. Vérifie que chaque
+    fichier listé dans le manifest a bien le sha256 annoncé (cohérence interne).
+    """
+    package_hash = _sha256_hex(zip_bytes)
+    try:
+        zf = zipfile.ZipFile(io.BytesIO(zip_bytes))
+    except zipfile.BadZipFile:
+        return {"valid": False, "reason": "Archive illisible (pas un ZIP)."}
+    names = set(zf.namelist())
+    if "manifest.json" not in names:
+        return {"valid": False, "reason": "manifest.json absent — pas un pack CarbonCo."}
+
+    manifest_bytes = zf.read("manifest.json")
+    manifest_hash = _sha256_hex(manifest_bytes)
+    try:
+        manifest = json.loads(manifest_bytes)
+    except json.JSONDecodeError:
+        return {"valid": False, "reason": "manifest.json illisible (JSON invalide)."}
+
+    file_integrity: list[dict[str, Any]] = []
+    self_consistent = True
+    for fname, entry in (manifest.get("files") or {}).items():
+        expected = entry.get("sha256")
+        if fname in names:
+            actual = _sha256_hex(zf.read(fname))
+            ok = actual == expected
+        else:
+            actual, ok = None, False
+        if not ok:
+            self_consistent = False
+        file_integrity.append({"file": fname, "expected": expected, "actual": actual, "ok": ok})
+
+    return {
+        "valid": True,
+        "package_hash": package_hash,
+        "manifest_hash": manifest_hash,
+        "self_consistent": self_consistent,
+        "file_integrity": file_integrity,
+    }
+
+
+def verify_zip(zip_bytes: bytes) -> dict[str, Any]:
+    """Statut d'authenticité d'un ZIP reçu : authentic | altered | unknown | invalid.
+
+    - authentic : manifest enregistré ET ZIP byte-identique ET cohérence interne OK
+    - altered   : manifest (ou package) enregistré MAIS bytes modifiés
+    - unknown   : aucun enregistrement officiel ne correspond
+    - invalid   : ce n'est pas un pack CarbonCo lisible
+    """
+    insp = inspect_zip(zip_bytes)
+    if not insp.get("valid"):
+        return {"status": "invalid", "reason": insp.get("reason")}
+
+    reg = lookup_by_hash(insp["manifest_hash"]) or lookup_by_hash(insp["package_hash"])
+    if reg is None:
+        return {"status": "unknown", **{k: insp[k] for k in ("package_hash", "manifest_hash", "self_consistent", "file_integrity")}}
+
+    authentic = insp["self_consistent"] and reg.get("package_hash") == insp["package_hash"]
+    return {
+        "status": "authentic" if authentic else "altered",
+        "package_hash": insp["package_hash"],
+        "manifest_hash": insp["manifest_hash"],
+        "self_consistent": insp["self_consistent"],
+        "file_integrity": insp["file_integrity"],
+        "metadata": reg,
     }

@@ -132,6 +132,17 @@ def validate_liaison_cells(path: Path, expected: dict[str, str]) -> list[str]:
 
 
 def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Valide les classeurs masters Block A")
+    parser.add_argument(
+        "--root",
+        default=str(WORKBOOK_ROOT),
+        help="Répertoire contenant les classeurs masters (défaut : chemin local de dev).",
+    )
+    args = parser.parse_args()
+    root = Path(args.root)
+
     report: dict[str, object] = {
         "status": "ok",
         "checks": [],
@@ -139,9 +150,9 @@ def main() -> None:
     }
 
     paths = {
-        "carbon": CARBON_FILE,
-        "esg": ESG_FILE,
-        "finance": FINANCE_FILE,
+        "carbon": root / "CarbonCo_Calcul_Carbone_v2.xlsx",
+        "esg": root / "CarbonCo_ESG_Social.xlsx",
+        "finance": root / "CarbonCo_Finance_DPP_v1_3.xlsx",
     }
 
     for key, path in paths.items():

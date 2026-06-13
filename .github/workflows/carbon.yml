@@ -1,0 +1,42 @@
+name: Carbon CI
+
+on:
+  push:
+    paths:
+      - "apps/carbon/**"
+      - ".github/workflows/carbon.yml"
+  pull_request:
+    paths:
+      - "apps/carbon/**"
+      - ".github/workflows/carbon.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/carbon
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/carbon/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Tests (vitest)
+        run: npx vitest run
+
+      - name: Build
+        run: npm run build
+
+# Playwright e2e reste sur master via e2e.yml (exige API + secrets) — décision T1.8.

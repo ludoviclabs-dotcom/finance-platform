@@ -39,7 +39,7 @@
 
 > Objectif : qu'aucun relecteur (DAF, expert-comptable, auditeur, recruteur Big 4) ne puisse prendre le site en défaut factuel. Rien d'autre n'a de valeur tant que P0 n'est pas mergée.
 
-### [ ] T0.1 — Purge des claims invérifiables (home + pages)
+### [x] T0.1 — Purge des claims invérifiables (home + pages)
 **Étapes :**
 1. Supprimer la section témoignages / "Programme Early Adopter" (citations "M.C.", "T.P.", "E.L." et logos ATELIER·5, Cabinet Lyra, TERRA·ROOTS, N·FINANCE, orbit, AXIS & Co). Remplacer par le bloc "Programme pilote" (annexe A.4).
 2. Supprimer le tableau comparatif CarbonCo vs Workiva/Enablon/Greenly. Remplacer par le bloc "Pourquoi la preuve d'abord" (annexe A.5).
@@ -51,7 +51,7 @@
 - `grep -ri "SAS\|Early Adopter\|2% du CA\|Workiva\|Enablon" apps/carbon/app apps/carbon/components` ne retourne aucun claim résiduel (hors annexes internes).
 - Aucune citation attribuée à une personne ou entreprise non réelle sur tout le site.
 
-### [ ] T0.2 — Registre unique des statuts de features (`feature-status.json`)
+### [x] T0.2 — Registre unique des statuts de features (`feature-status.json`)
 **Objectif :** rendre structurellement impossible l'incohérence home ↔ `/couverture` ↔ `/etat-du-produit` (ex. actuel : iXBRL "beta" sur la home mais "planifié" sur l'état du produit ; "Multi-sites" promis sur la home, absent de l'état du produit).
 **Étapes :**
 1. Créer `apps/carbon/data/feature-status.json` : `[{ id, label, description, statut: "live"|"beta"|"planifie", normes: ["ESRS E1", ...], page_detail?, derniere_maj }]`. Initialiser avec le contenu actuel de `/etat-du-produit` (qui est la source la plus honnête), PAS celui de la home.
@@ -60,7 +60,7 @@
 4. Test : un test vitest itère sur le JSON et vérifie que tout label affiché sur la home avec un statut existe dans le registre avec le même statut.
 **CA :** modifier un statut dans le JSON met à jour les trois pages sans toucher aux composants ; le test d'intégrité passe.
 
-### [ ] T0.3 — Correction de la terminologie ESRS et du discours réglementaire
+### [x] T0.3 — Correction de la terminologie ESRS et du discours réglementaire
 **Étapes :**
 1. Remplacer partout "ESRS Set 2" par "ESRS (Set 1)" ou simplement "ESRS" — le Set 2 désignait les normes sectorielles, abandonnées par l'Omnibus. Vérifier home, `/couverture`, pricing, meta descriptions, OG tags.
 2. Remplacer "moteur complet" / "ESRS Set 2 complet" par "127 datapoints prioritaires couverts (sous-ensemble outillé du référentiel ESRS, aligné sur la réduction d'environ 60 % des datapoints actée par l'Omnibus)".
@@ -69,7 +69,7 @@
 5. Renommer le lien footer "Guide CSRD 2027" si son contenu est périmé ; sinon créer une page courte "CSRD & VSME après l'Omnibus (2026)" reprenant l'annexe A.1.
 **CA :** plus aucune occurrence de "Set 2" hors contexte historique ; les dates et seuils affichés correspondent à l'annexe A ; relecture complète de la home sans claim réglementaire faux.
 
-### [ ] T0.4 — Page `/integrations` : vérité sur les connecteurs
+### [x] T0.4 — Page `/integrations` : vérité sur les connecteurs
 **Étapes :**
 1. Restructurer la page en trois sections issues du registre T0.2 : **"Disponible"** (uniquement : import Excel structuré ; API REST si elle est réellement documentée sur `/dev` — sinon la passer en beta), **"Imports fichiers (sans OAuth)"** (nouvelle catégorie, voir T5.4 : CSV AWS Customer Carbon Footprint, export GCP Carbon Footprint, relevés Qonto CSV, FEC), **"Roadmap"** (Sage, Cegid, SAP, Dynamics, Pennylane, Qonto OAuth, TotalEnergies, Lucca).
 2. Corriger l'erreur technique : remplacer le connecteur "EDF Entreprises — consommations 30 min par PDL" par "Enedis Data Connect (roadmap — API du gestionnaire de réseau, homologation requise)". Supprimer "Engie Pro" tel que décrit (pas d'API publique correspondante).
@@ -77,7 +77,7 @@
 4. Aligner `/etat-du-produit` (qui affirme actuellement "Sage, Cegid, SAP déjà disponibles") sur ce nouveau découpage.
 **CA :** chaque connecteur affiché "Disponible" correspond à du code existant dans le repo (chemin cité dans la PR) ; zéro connecteur OAuth tiers affiché comme livré.
 
-### [ ] T0.5 — Jeu de données démo unique et cohérent
+### [x] T0.5 — Jeu de données démo unique et cohérent
 **Étapes :**
 1. Créer `apps/carbon/data/demo-dataset.json` : une seule entreprise fictive clairement étiquetée (totaux par scope, postes, YoY, secteur). Faire converger les chiffres actuellement contradictoires de la home (12 847 t vs 12 480 t, répartitions différentes selon les sections).
 2. Brancher toutes les sections de démo (dashboard interactif, cas sectoriels, démo 90 s) sur ce JSON. Les cas sectoriels deviennent 3 variantes du même schéma de données.
@@ -86,7 +86,7 @@
 5. Test de cohérence : somme des postes = total ; somme des parts de scopes = 100 %.
 **CA :** un seul fichier de vérité pour tous les chiffres démo ; test de cohérence vert ; zéro caractère non accentué dans les libellés FR.
 
-### [ ] T0.6 — SEO, canonical et pages légales honnêtes
+### [x] T0.6 — SEO, canonical et pages légales honnêtes
 **Étapes :**
 1. Variable `NEXT_PUBLIC_SITE_URL` ; canonical, OG `og:url` et sitemap générés depuis cette variable (actuellement le canonical pointe vers `carbonco.fr` alors que la prod vit sur `*.vercel.app` → SEO canonicalisé vers le vide si D3 non actée).
 2. Mentions légales conformes LCEN version "projet" : éditeur réel (personne physique), hébergeurs (Vercel, Neon) avec adresses, contact. Aligner CGU/confidentialité (retirer toute référence à une société inexistante, à des "clients" ou à des engagements de SLA non tenus).

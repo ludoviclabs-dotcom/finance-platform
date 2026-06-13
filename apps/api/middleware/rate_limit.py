@@ -46,6 +46,7 @@ class RateRule:
 
 
 RULES: dict[str, RateRule] = {
+    "/auth/totp": RateRule(limit=5, window_seconds=900, scope="ip"),   # 5 échecs -> 15 min (2FA)
     "/auth/login": RateRule(limit=5, window_seconds=60, scope="ip"),
     "/excel": RateRule(limit=20, window_seconds=60, scope="user"),
     "/ingest": RateRule(limit=10, window_seconds=60, scope="user"),

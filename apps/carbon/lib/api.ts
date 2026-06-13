@@ -937,8 +937,9 @@ export function fetchSnapshotVersion(
 // ---------------------------------------------------------------------------
 
 export type AlertOperator = "gt" | "lt" | "gte" | "lte" | "eq";
-export type AlertChannel = "webhook" | "email";
+export type AlertChannel = "inapp" | "webhook" | "email";
 export type AlertDomain = "carbon" | "vsme" | "esg" | "finance";
+export type AlertMode = "absolute" | "delta_pct" | "missing";
 
 export interface AlertRuleOut {
   id: number;
@@ -947,9 +948,10 @@ export interface AlertRuleOut {
   domain: AlertDomain;
   field_path: string;
   operator: AlertOperator;
-  threshold: number;
+  threshold: number | null;
+  mode?: AlertMode;
   channel: AlertChannel;
-  destination: string;
+  destination: string | null;
   is_active: boolean;
   last_fired_at: string | null;
   created_at: string;
@@ -960,9 +962,10 @@ export interface AlertRuleCreate {
   domain: AlertDomain;
   field_path: string;
   operator: AlertOperator;
-  threshold: number;
+  threshold: number | null;
+  mode?: AlertMode;
   channel: AlertChannel;
-  destination: string;
+  destination: string | null;
   is_active?: boolean;
 }
 
@@ -970,9 +973,10 @@ export interface AlertRulePatch {
   name?: string;
   field_path?: string;
   operator?: AlertOperator;
-  threshold?: number;
+  threshold?: number | null;
+  mode?: AlertMode;
   channel?: AlertChannel;
-  destination?: string;
+  destination?: string | null;
   is_active?: boolean;
 }
 
@@ -981,10 +985,28 @@ export interface AlertFired {
   rule_name: string;
   domain: AlertDomain;
   field_path: string;
-  current_value: number;
-  threshold: number;
+  mode?: AlertMode;
+  current_value: number | null;
+  previous_value?: number | null;
+  threshold: number | null;
   operator: AlertOperator;
   fired_at: string;
+}
+
+export interface AlertNotification {
+  id: number;
+  rule_id: number | null;
+  rule_name: string | null;
+  title: string;
+  body: string | null;
+  fired_at: string;
+  read_at: string | null;
+  archived_at: string | null;
+}
+
+export interface NotificationsResponse {
+  unread: number;
+  notifications: AlertNotification[];
 }
 
 export interface AlertEvaluateResponse {
@@ -1029,6 +1051,22 @@ export function evaluateAlerts(signal?: AbortSignal): Promise<AlertEvaluateRespo
 
 export function fetchAlertHistory(limit = 20, signal?: AbortSignal): Promise<AlertHistoryResponse> {
   return apiGet<AlertHistoryResponse>(`/alerts/history?limit=${limit}`, signal);
+}
+
+export function fetchNotifications(includeArchived = false, signal?: AbortSignal): Promise<NotificationsResponse> {
+  return apiGet<NotificationsResponse>(`/alerts/notifications?include_archived=${includeArchived}`, signal);
+}
+
+export function markNotificationRead(id: number, signal?: AbortSignal): Promise<Response> {
+  return _fetchWithRetry(`${API_BASE_URL}/alerts/notifications/${id}`, {
+    method: "PATCH",
+    headers: { Accept: "application/json", ...authHeaders() },
+    signal,
+  });
+}
+
+export function archiveNotification(id: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/alerts/notifications/${id}`, signal) as Promise<null>;
 }
 
 // ---------------------------------------------------------------------------

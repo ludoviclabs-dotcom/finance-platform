@@ -12,7 +12,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from main import app
-from services import actions_export, actions_service as act
+from services import actions_export
+from services import actions_service as act
 
 client = TestClient(app)
 

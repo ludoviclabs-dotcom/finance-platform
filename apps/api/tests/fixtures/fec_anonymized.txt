@@ -1,0 +1,11 @@
+JournalCode|JournalLib|EcritureNum|EcritureDate|CompteNum|CompteLib|CompAuxNum|CompAuxLib|PieceRef|PieceDate|EcritureLib|Debit|Credit|EcritureLet|DateLet|ValidDate|Montantdevise|Idevise
+AC|Achats|1|20250115|601000|Matieres premieres|||F001|20250115|Achat matieres|10000,00|0,00|||20250131|0,00|
+AC|Achats|1|20250115|401000|Fournisseurs|F0001|Fournisseur A|F001|20250115|Achat matieres|0,00|10000,00|||20250131|0,00|
+AC|Achats|2|20250210|606000|Fournitures non stockees|||F002|20250210|Fournitures bureau|5000,00|0,00|||20250228|0,00|
+AC|Achats|2|20250210|401000|Fournisseurs|F0002|Fournisseur B|F002|20250210|Fournitures bureau|0,00|5000,00|||20250228|0,00|
+AC|Achats|3|20250312|624000|Transports|||F003|20250312|Transport marchandises|3000,00|0,00|||20250331|0,00|
+AC|Achats|3|20250312|401000|Fournisseurs|F0003|Transporteur C|F003|20250312|Transport marchandises|0,00|3000,00|||20250331|0,00|
+AC|Achats|4|20250418|625000|Deplacements missions|||F004|20250418|Mission client|2000,00|0,00|||20250430|0,00|
+AC|Achats|4|20250418|401000|Fournisseurs|F0004|Agence voyage|F004|20250418|Mission client|0,00|2000,00|||20250430|0,00|
+OD|Operations diverses|5|20250520|635000|Taxes diverses|||T001|20250520|Taxe locale|1000,00|0,00|||20250531|0,00|
+OD|Operations diverses|5|20250520|447000|Etat taxes|||T001|20250520|Taxe locale|0,00|1000,00|||20250531|0,00|

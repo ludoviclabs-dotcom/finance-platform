@@ -18,6 +18,7 @@ import hashlib
 import io
 import json
 import logging
+import re
 import zipfile
 from datetime import datetime, timezone
 from typing import Any
@@ -40,6 +41,47 @@ class VsmeExportError(Exception):
 
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+_CORE_DATE_RE = re.compile(
+    rb"(<dcterms:(?:created|modified)[^>]*>)[^<]*(</dcterms:(?:created|modified)>)"
+)
+
+
+def _normalize_xlsx(data: bytes) -> bytes:
+    """Re-emballe un xlsx en octets REPRODUCTIBLES.
+
+    openpyxl écrit l'heure courante (1) dans chaque entrée du zip interne et
+    (2) dans docProps/core.xml (<dcterms:modified>, réécrit à la sauvegarde même
+    si wb.properties est figé). On reconstruit le zip avec des entrées triées,
+    une date d'entrée figée, et on neutralise les horodatages de core.xml.
+    """
+    src = zipfile.ZipFile(io.BytesIO(data))
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name in sorted(src.namelist()):
+            content = src.read(name)
+            if name == "docProps/core.xml":
+                content = _CORE_DATE_RE.sub(rb"\g<1>2026-01-01T00:00:00Z\g<2>", content)
+            info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+            zf.writestr(info, content)
+    return out.getvalue()
+
+
+def write_zip(entries: dict[str, bytes]) -> bytes:
+    """Assemble un ZIP REPRODUCTIBLE (package_hash stable à contenu identique).
+
+    Sans ZipInfo figée, zipfile.writestr inscrit l'heure courante dans chaque
+    entrée → le package_hash varierait à chaque génération malgré un contenu
+    figé. On trie les noms et fige la date d'entrée (même technique que
+    _normalize_xlsx). Réutilisé par l'export BEGES.
+    """
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name in sorted(entries):
+            info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+            zf.writestr(info, entries[name])
+    return out.getvalue()
 
 
 # fpdf2/Helvetica = latin-1 : translitère les caractères hors latin-1.
@@ -169,16 +211,21 @@ def build_vsme_xlsx(*, company_name: str, mapping: dict[str, Any]) -> bytes:
 
     buf = io.BytesIO()
     wb.save(buf)
-    return buf.getvalue()
+    return _normalize_xlsx(buf.getvalue())
 
 
-def build_vsme_report(*, company_id: int, company_name: str, mapping: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Assemble le ZIP du rapport VSME (PDF + Excel + manifest + CHECKSUMS + README)."""
+def build_vsme_report(*, company_id: int, company_name: str, mapping: dict[str, Any] | None = None,
+                      generated_at: datetime | None = None) -> dict[str, Any]:
+    """Assemble le ZIP du rapport VSME (PDF + Excel + manifest + CHECKSUMS + README).
+
+    `generated_at` permet de figer l'horodatage (reproductibilité du package_hash
+    indépendamment de l'horloge ; le manifest_hash, lui, n'inclut jamais la date).
+    """
     if mapping is None:
         from services import vsme_mapping_service
         mapping = vsme_mapping_service.compute_mapping(company_id)
 
-    now = datetime.now(tz=timezone.utc)
+    now = generated_at or datetime.now(tz=timezone.utc)
     pdf_bytes = build_vsme_pdf(company_name=company_name, mapping=mapping, generated_at=now.strftime("%d/%m/%Y"))
     xlsx_bytes = build_vsme_xlsx(company_name=company_name, mapping=mapping)
 
@@ -213,12 +260,7 @@ def build_vsme_report(*, company_id: int, company_name: str, mapping: dict[str, 
     }
     checksums = ("\n".join(f"{_sha(d)}  {n}" for n, d in sorted(embedded.items())) + "\n").encode("utf-8")
 
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for name, data in embedded.items():
-            zf.writestr(name, data)
-        zf.writestr("CHECKSUMS.sha256", checksums)
-    zip_bytes = buf.getvalue()
+    zip_bytes = write_zip({**embedded, "CHECKSUMS.sha256": checksums})
     package_hash = _sha(zip_bytes)
     filename = f"rapport-vsme-{company_id}-{now.strftime('%Y%m%d-%H%M%S')}-{package_hash[:12]}.zip"
 

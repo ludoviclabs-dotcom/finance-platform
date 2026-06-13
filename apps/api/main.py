@@ -14,9 +14,12 @@ from routers import (
     audit,
     auditor,
     auth,
+    baselines,
+    beges,
     carbon,
     chain,
     clients,
+    consolidation,
     copilot,
     creditrisk,
     cyber,
@@ -28,6 +31,7 @@ from routers import (
     export,
     factors,
     facts,
+    fec,
     files,
     finance,
     health,
@@ -38,6 +42,7 @@ from routers import (
     quality,
     report,
     reviews,
+    scope3,
     strategic_mapping,
     suppliers,
     verify,
@@ -179,6 +184,11 @@ app.include_router(factors.router, prefix="/factors", tags=["factors"])
 app.include_router(facts.router, prefix="/facts", tags=["facts"])
 app.include_router(chain.router, prefix="/chain", tags=["chain (T2.5)"])
 app.include_router(quality.router, prefix="/quality", tags=["quality (T2.6)"])
+app.include_router(scope3.router, prefix="/scope3", tags=["scope3 (T4.1)"])
+app.include_router(beges.router, prefix="/beges", tags=["beges (T4.2)"])
+app.include_router(fec.router, prefix="/fec", tags=["fec (T4.3)"])
+app.include_router(consolidation.router, prefix="/consolidation", tags=["consolidation (T4.4)"])
+app.include_router(baselines.router, prefix="/baselines", tags=["baselines (T4.5)"])
 app.include_router(files.router, tags=["files"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
 app.include_router(export.router, prefix="/export", tags=["export"])

@@ -1,0 +1,48 @@
+{
+  "standard": "BEGES réglementaire v5 (arrêté du 25/01/2022)",
+  "note": "6 catégories / 22 postes. ghg_mapping : table de passage GHG Protocol → poste BEGES (partition exhaustive → total BEGES = total GHG). Dépôt manuel sur bilans-ges.ademe.fr.",
+  "categories": [
+    {"code": 1, "label": "Émissions directes", "postes": [
+      {"code": "1.1", "label": "Sources fixes de combustion"},
+      {"code": "1.2", "label": "Sources mobiles à moteur thermique"},
+      {"code": "1.3", "label": "Procédés hors énergie"},
+      {"code": "1.4", "label": "Émissions directes fugitives"},
+      {"code": "1.5", "label": "Biomasse (sols et forêts)"}
+    ]},
+    {"code": 2, "label": "Émissions indirectes liées à l'énergie", "postes": [
+      {"code": "2.1", "label": "Consommation d'électricité"},
+      {"code": "2.2", "label": "Réseaux de chaleur, de froid et de vapeur"}
+    ]},
+    {"code": 3, "label": "Émissions indirectes liées au transport", "postes": [
+      {"code": "3.1", "label": "Transport de marchandises amont"},
+      {"code": "3.2", "label": "Transport de marchandises aval"},
+      {"code": "3.3", "label": "Déplacements domicile-travail"},
+      {"code": "3.4", "label": "Déplacements de visiteurs et clients"},
+      {"code": "3.5", "label": "Déplacements professionnels"}
+    ]},
+    {"code": 4, "label": "Émissions indirectes liées aux produits achetés", "postes": [
+      {"code": "4.1", "label": "Achats de biens"},
+      {"code": "4.2", "label": "Immobilisations de biens"},
+      {"code": "4.3", "label": "Gestion des déchets"},
+      {"code": "4.4", "label": "Actifs amont (énergie amont)"},
+      {"code": "4.5", "label": "Achats de services"}
+    ]},
+    {"code": 5, "label": "Émissions indirectes liées aux produits vendus", "postes": [
+      {"code": "5.1", "label": "Utilisation des produits vendus"},
+      {"code": "5.2", "label": "Fin de vie des produits vendus"},
+      {"code": "5.3", "label": "Investissements"},
+      {"code": "5.4", "label": "Transport et distribution aval (prestations)"}
+    ]},
+    {"code": 6, "label": "Autres émissions indirectes", "postes": [
+      {"code": "6.1", "label": "Autres émissions indirectes"}
+    ]}
+  ],
+  "ghg_mapping": {
+    "S1": "1.1",
+    "S2": "2.1",
+    "S3.1": "4.1", "S3.2": "4.2", "S3.3": "4.4", "S3.4": "3.1", "S3.5": "4.3",
+    "S3.6": "3.5", "S3.7": "3.3", "S3.8": "6.1", "S3.9": "3.2", "S3.10": "6.1",
+    "S3.11": "5.1", "S3.12": "5.2", "S3.13": "6.1", "S3.14": "6.1", "S3.15": "5.3",
+    "S3.uncategorized": "6.1"
+  }
+}

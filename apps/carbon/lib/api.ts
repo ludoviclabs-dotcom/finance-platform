@@ -625,6 +625,140 @@ export function fetchQualityIndicators(signal?: AbortSignal): Promise<QualityInd
   return apiGet<QualityIndicators>("/quality/indicators", signal);
 }
 
+// --- Scope 3 — 15 catégories (T4.1) ---
+export type Scope3Category = { code: number; label: string; value: number; evaluated: boolean };
+export type Scope3Breakdown = {
+  categories: Scope3Category[];
+  coverage: number[];
+  coverage_count: number;
+  categorized_total: number;
+  uncategorized_total: number;
+  total_scope3: number;
+};
+
+export function fetchScope3Breakdown(signal?: AbortSignal): Promise<Scope3Breakdown> {
+  return apiGet<Scope3Breakdown>("/scope3/breakdown", signal);
+}
+
+// --- BEGES v5 (T4.2) ---
+export type BegesPoste = { code: string; label: string; value: number };
+export type BegesCategory = { code: number; label: string; total: number; postes: BegesPoste[] };
+export type BegesStatus = {
+  breakdown: { standard: string; total: number; categories: BegesCategory[] };
+  eligibility: { status: string; label: string };
+  scope_totals: { S1: number; S2: number; S3: Record<string, number> };
+};
+
+export function fetchBegesStatus(signal?: AbortSignal): Promise<BegesStatus> {
+  return apiGet<BegesStatus>("/beges/status", signal);
+}
+
+export async function downloadBegesReport(signal?: AbortSignal): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/beges/export`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /beges/export`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "beges.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// --- Import FEC → screening Scope 3 (T4.3) ---
+export type FecScreening = {
+  total_spend: number;
+  mapped_spend: number;
+  mappable_pct: number;
+  total_tco2e: number;
+  ratio_kgco2e_per_eur: number;
+  by_category: { category: number; label: string; spend: number; tco2e: number }[];
+  top_accounts: { compte: string; lib: string; category: number | null; spend: number; tco2e: number }[];
+  unmapped_accounts: string[];
+};
+export type FecUploadResult = {
+  persisted: boolean;
+  id?: number;
+  filename: string;
+  parsed: { balanced: boolean; exercise_year: string | null; row_count: number; issues: string[] };
+  screening: FecScreening;
+};
+
+export async function uploadFec(file: File, signal?: AbortSignal): Promise<FecUploadResult> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await _fetchWithRetry(`${API_BASE_URL}/fec/upload`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    body: fd,
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /fec/upload`);
+  return (await res.json()) as FecUploadResult;
+}
+
+export function emitFec(id: number, signal?: AbortSignal): Promise<{ emitted_facts: number; status: string } | null> {
+  return apiSend("POST", `/fec/${id}/emit`, signal);
+}
+
+// --- Périmètre & consolidation (T4.4) ---
+export type ConsolidationEntity = { company_id: number; name: string | null; ownership_pct: number; is_parent: boolean };
+export type ConsolidationPerimeter = {
+  approaches: Record<string, { label: string; definition: string }>;
+  approach: string;
+  approach_label: string | null;
+  entities: ConsolidationEntity[];
+};
+export type ConsolidationGroup = {
+  approach: string;
+  approach_label: string;
+  entity_count: number;
+  kpis: Record<string, number>;
+  entities?: ConsolidationEntity[];
+};
+
+export function fetchConsolidationPerimeter(signal?: AbortSignal): Promise<ConsolidationPerimeter> {
+  return apiGet<ConsolidationPerimeter>("/consolidation/perimeter", signal);
+}
+export function fetchConsolidationGroup(signal?: AbortSignal): Promise<ConsolidationGroup> {
+  return apiGet<ConsolidationGroup>("/consolidation/group", signal);
+}
+export function setConsolidationApproach(
+  approach: string,
+  signal?: AbortSignal,
+): Promise<{ approach: string; previous: string | null } | null> {
+  return apiSend("POST", "/consolidation/approach", signal, { approach });
+}
+
+// --- Année de référence & recalcul (T4.5) ---
+export type Baseline = { id: number; baseline_year: number; snapshot_hash: string | null; ef_version: string | null; frozen_at: string };
+export type BaselinesResponse = { reasons: Record<string, string>; baselines: Baseline[] };
+export type BaselineVsCurrent = {
+  baseline_year: number;
+  deltas: Record<string, { baseline: number | null; current: number | null; change_pct: number | null }>;
+};
+
+export function fetchBaselines(signal?: AbortSignal): Promise<BaselinesResponse> {
+  return apiGet<BaselinesResponse>("/baselines", signal);
+}
+export function freezeBaseline(baseline_year: number, ef_version?: string, signal?: AbortSignal) {
+  return apiSend<{ id: number }>("POST", "/baselines/freeze", signal, { baseline_year, ef_version });
+}
+export function fetchBaselineVsCurrent(id: number, signal?: AbortSignal): Promise<BaselineVsCurrent> {
+  return apiGet<BaselineVsCurrent>(`/baselines/${id}/vs-current`, signal);
+}
+export function triggerRecalc(id: number, reason: string, detail?: string, signal?: AbortSignal) {
+  return apiSend<{ recalc_event_id: number; facts_touched: number }>("POST", `/baselines/${id}/recalc`, signal, { reason, detail });
+}
+
 export function invalidateCache(
   domain?: "carbon" | "vsme" | "esg" | "finance",
   signal?: AbortSignal

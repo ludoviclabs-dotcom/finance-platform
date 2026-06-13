@@ -204,15 +204,15 @@
 
 ## P4 — ANCRAGE FRANÇAIS : BEGES, SCOPE 3, FEC, PÉRIMÈTRE (Sprints 7-9 · ~9-12 jours · coût : 0 €)
 
-### [ ] T4.1 — Quinze catégories Scope 3 GHG Protocol explicites
+### [x] T4.1 — Quinze catégories Scope 3 GHG Protocol explicites
 **Étapes :** modèle `scope3_category` (1-15, libellés annexe B.2) sur chaque fact/poste concerné ; re-mapping des postes existants ("achats" → 3.1, "transport amont" → 3.4, "déplacements pro" → 3.6, "numérique/cloud" → 3.1/3.8 selon nature…) ; vue dashboard "Scope 3 par catégorie" avec catégories non couvertes affichées en creux (honnêteté sur la couverture partielle).
 **CA :** chaque tCO2e Scope 3 porte une catégorie 1-15 ; le total par catégories = total Scope 3 ; les catégories vides sont visibles comme "non évaluées", pas masquées.
 
-### [ ] T4.2 — Export BEGES réglementaire (France)
+### [x] T4.2 — Export BEGES réglementaire (France)
 **Étapes :** table de passage GHG Protocol → nomenclature BEGES v5 (6 catégories / 22 postes, arrêté du 25/01/2022 — annexe B.3) ; export tableur + PDF au format attendu pour le dépôt sur la plateforme ADEME (bilans-ges.ademe.fr — dépôt manuel par l'utilisateur, lien et checklist fournis) ; note méthodologique générée (périmètre, FE, incertitudes qualitatives) ; encart d'éligibilité ("obligatoire tous les 4 ans pour les entreprises > 500 salariés en métropole, > 250 en outre-mer").
 **CA :** export généré sur le jeu démo conforme à la nomenclature 6×22 ; total BEGES = total GHG après passage (test de réconciliation automatique).
 
-### [ ] T4.3 — Import FEC → screening Scope 3 monétaire ⭐
+### [x] T4.3 — Import FEC → screening Scope 3 monétaire ⭐
 **Étapes :**
 1. Parser FEC (format art. A.47 A-1 LPF : 18 champs, séparateur `|` ou tabulation, encodage à détecter) avec validations (équilibre débit/crédit, exercice, doublons).
 2. Moteur de mapping comptes de charges (classe 6) → catégories Scope 3 (table de correspondance PCG → cat. 3.x livrée en seed, éditable par l'utilisateur, versionnée).
@@ -221,11 +221,11 @@
 5. Restitution : top comptes émissifs, % du spend couvert, suggestion des postes à passer en donnée d'activité réelle.
 **CA :** un FEC de test (fixture anonymisée) produit un screening complet en < 2 min ; aucun fact émis sans validation ; le % de spend mappé est affiché et > 90 % sur la fixture.
 
-### [ ] T4.4 — Périmètre organisationnel et multi-entités (base)
+### [x] T4.4 — Périmètre organisationnel et multi-entités (base)
 **Étapes :** réglage par organisation : approche de consolidation (contrôle opérationnel / contrôle financier / parts de capital) avec définition affichée ; hiérarchie d'entités (`companies.parent_id`, % de détention) ; consolidation simple des facts enfants → vue groupe (lecture seule, calculée, jamais ré-émise comme facts) ; le rapport (VSME B1, BEGES) imprime l'approche retenue et la liste des entités.
 **CA :** 1 groupe + 2 filiales en démo : la vue groupe = somme pondérée selon l'approche ; changer d'approche recalcule et journalise un event de périmètre.
 
-### [ ] T4.5 — Année de référence et politique de recalcul
+### [x] T4.5 — Année de référence et politique de recalcul
 **Étapes :** baseline gelée par organisation (année + snapshot référencé) ; règles de recalcul déclenchables (changement de périmètre > seuil %, changement de version FE, erreur matérielle) — chaque recalcul = events chaînés avec motif ; affichage systématique "vs année de référence" à côté du YoY ; section dédiée dans le rapport.
 **CA :** modifier la version FE et recalculer crée un trail complet motif inclus ; l'ancienne valeur reste consultable dans le trail.
 

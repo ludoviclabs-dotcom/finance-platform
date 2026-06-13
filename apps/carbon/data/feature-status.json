@@ -1,5 +1,5 @@
 {
-  "derniere_maj": "2026-06-13",
+  "derniere_maj": "2026-06-14",
   "note": "Source de vérité UNIQUE des statuts produit (T0.2 du PLAN_ACTION_CARBONCO). Consommée par /etat-du-produit, /couverture et /integrations. Aucun statut ne doit être codé en dur dans un composant. statut ∈ live | beta | planifie (+ roadmap pour les intégrations). Un statut 'live' exige une 'preuve' (chemin repo).",
   "features": [
     {
@@ -146,9 +146,10 @@
     {
       "id": "multi-sites",
       "label": "Multi-sites & filiales (consolidation groupe)",
-      "description": "Consolidation des données de plusieurs entités selon une approche de périmètre (contrôle opérationnel/financier, parts de capital). Sur la roadmap — non disponible à ce jour.",
-      "statut": "planifie",
-      "normes": []
+      "description": "Consolidation des données de plusieurs entités selon une approche de périmètre (contrôle opérationnel/financier, parts de capital). Base disponible : hiérarchie d'entités, vue groupe pondérée en lecture seule (jamais ré-émise comme facts), changement d'approche journalisé. Beta tant que l'ensemble n'est pas validé sur Neon.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/services/consolidation_service.py"
     },
     {
       "id": "sso-rbac",
@@ -247,6 +248,41 @@
       "normes": ["VSME"],
       "tag": "VSME",
       "preuve": "apps/api/services/vsme_export.py"
+    },
+    {
+      "id": "scope3-categories",
+      "label": "Scope 3 — 15 catégories GHG Protocol",
+      "description": "Ventilation du Scope 3 sur les 15 catégories GHG Protocol (codes CC.GES.SCOPE3.1 à 15, chaîne d'intégrité inchangée). La couverture partielle est affichée honnêtement : les catégories non évaluées restent visibles en creux. Beta en attendant la validation complète sur Neon.",
+      "statut": "beta",
+      "normes": ["ESRS E1"],
+      "tag": "ESRS E1 Scope 3",
+      "preuve": "apps/api/services/scope3_service.py"
+    },
+    {
+      "id": "export-beges",
+      "label": "Export BEGES réglementaire (France, v5)",
+      "description": "Table de passage GHG Protocol → nomenclature BEGES v5 (6 catégories / 22 postes), export tableur + PDF déterministes pour dépôt manuel sur bilans-ges.ademe.fr, note méthodologique et encart d'éligibilité. Réconciliation automatique total BEGES = total GHG. Beta.",
+      "statut": "beta",
+      "normes": ["ESRS E1"],
+      "tag": "BEGES v5",
+      "preuve": "apps/api/services/beges_export.py"
+    },
+    {
+      "id": "fec-screening",
+      "label": "Import FEC → screening Scope 3 monétaire",
+      "description": "Parseur FEC (art. A.47 A-1 LPF), mapping comptes de charges PCG classe 6 → catégories Scope 3, estimation kgCO2e via ratios monétaires ADEME (qualité = 4). Écran de revue obligatoire : aucun fact n'entre dans la chaîne sans validation humaine. Beta.",
+      "statut": "beta",
+      "normes": ["ESRS E1"],
+      "tag": "ESRS E1 Scope 3",
+      "preuve": "apps/api/services/fec_screening_service.py"
+    },
+    {
+      "id": "baseline-recalcul",
+      "label": "Année de référence & politique de recalcul",
+      "description": "Baseline gelée par organisation (KPIs + hash de chaîne au gel), affichage « vs année de référence », recalcul motivé (changement de périmètre, version de facteur, erreur matérielle). Le motif est tracé dans le trail ; l'ancienne valeur reste consultable. Beta.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/services/baseline_service.py"
     }
   ],
   "esrs": [
@@ -389,8 +425,9 @@
       "name": "FEC — Fichier des Écritures Comptables",
       "category": "Comptabilité",
       "section": "imports-fichiers",
-      "statut": "planifie",
-      "description": "Import FEC (format art. A.47 A-1 LPF) → screening Scope 3 monétaire via ratios ADEME. Sans OAuth. Tâche T4.3."
+      "statut": "beta",
+      "description": "Import FEC (format art. A.47 A-1 LPF) → screening Scope 3 monétaire via ratios ADEME, avec écran de revue obligatoire avant émission. Sans OAuth. Livré (T4.3).",
+      "preuve": "apps/api/services/fec_screening_service.py"
     },
     {
       "id": "sage",

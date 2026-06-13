@@ -1,0 +1,16 @@
+# Configuration gitleaks : règles par défaut + allowlist de faux positifs vérifiés.
+#
+# La règle generic-api-key matche le motif « <variable> = "<valeur 16 car.>" »
+# dans ventilate() de apps/api/services/beges_export.py : la valeur est un
+# identifiant de poste de la nomenclature BEGES (clé de mapping), PAS un secret.
+# On allowliste par contenu de ligne → indépendant du commit et du numéro de
+# ligne (les fingerprints commit:fichier:règle:ligne dérivent à chaque édition).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Faux positifs verifies (identifiants de poste BEGES, pas des secrets)."
+regexTarget = "line"
+regexes = [
+  '''S3\.uncategorized''',
+]

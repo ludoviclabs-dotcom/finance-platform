@@ -1,0 +1,21 @@
+{
+  "standard": "GHG Protocol — Corporate Value Chain (Scope 3) Standard",
+  "note": "Les 15 catégories Scope 3. Convention de code de fact : CC.GES.SCOPE3.<n> (n = 1..15). Le breakdown agrège facts_current par ces codes ; les catégories sans fact sont affichées « non évaluées » (honnêteté sur la couverture partielle).",
+  "categories": [
+    {"code": 1, "label": "Biens et services achetés", "description": "Émissions amont des produits et services achetés (hors immobilisations)."},
+    {"code": 2, "label": "Biens d'équipement", "description": "Émissions amont des immobilisations (machines, bâtiments, véhicules)."},
+    {"code": 3, "label": "Énergie et carburants (amont, hors S1/S2)", "description": "Extraction, production et transport des combustibles et de l'électricité, pertes de réseau."},
+    {"code": 4, "label": "Transport et distribution amont", "description": "Transport et distribution des achats entre fournisseurs et l'organisation."},
+    {"code": 5, "label": "Déchets générés", "description": "Traitement et élimination des déchets générés par les opérations."},
+    {"code": 6, "label": "Déplacements professionnels", "description": "Déplacements des salariés pour le compte de l'organisation (avion, train, voiture)."},
+    {"code": 7, "label": "Déplacements domicile-travail", "description": "Trajets domicile-travail des salariés et télétravail."},
+    {"code": 8, "label": "Actifs loués (amont)", "description": "Exploitation des actifs loués par l'organisation, non inclus en S1/S2."},
+    {"code": 9, "label": "Transport et distribution aval", "description": "Transport et distribution des produits vendus après la vente."},
+    {"code": 10, "label": "Transformation des produits vendus", "description": "Transformation des produits intermédiaires vendus par un tiers."},
+    {"code": 11, "label": "Utilisation des produits vendus", "description": "Émissions lors de l'utilisation des produits vendus sur leur durée de vie."},
+    {"code": 12, "label": "Fin de vie des produits vendus", "description": "Traitement en fin de vie des produits vendus."},
+    {"code": 13, "label": "Actifs loués (aval)", "description": "Exploitation des actifs détenus et loués à des tiers."},
+    {"code": 14, "label": "Franchises", "description": "Exploitation des franchises non incluses en S1/S2."},
+    {"code": 15, "label": "Investissements", "description": "Émissions associées aux investissements (participations, projets financés)."}
+  ]
+}

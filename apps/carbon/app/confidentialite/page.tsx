@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
 
@@ -8,17 +9,26 @@ export const metadata: Metadata = {
 
 export default function ConfidentialitePage() {
   return (
-    <LegalLayout title="Politique de confidentialité" lastUpdated="14 avril 2026">
+    <LegalLayout title="Politique de confidentialité" lastUpdated="13 juin 2026">
+      <Section title="Statut du document">
+        <p>
+          <strong>Produit en développement, non commercialisé.</strong> Ce document encadre
+          l'utilisation du démonstrateur et de son programme pilote ; il sera complété si une
+          offre commerciale est ouverte.
+        </p>
+      </Section>
+
       <Section title="Responsable du traitement">
         <p>
           CarbonCo agit en tant que responsable du traitement des données personnelles
-          collectées via la plateforme dans le cadre de ses propres services
-          (compte utilisateur, support, facturation).
+          collectées via la plateforme dans le cadre de ses propres besoins
+          (compte utilisateur, support).
         </p>
         <p>
-          Pour les données ESG des entreprises clientes traitées via la plateforme, CarbonCo
-          agit en tant que sous-traitant au sens du RGPD, sous la responsabilité de l'entreprise
-          cliente. Un contrat de sous-traitance (DPA) est conclu avec chaque client.
+          Pour les données ESG des organisations utilisatrices (test ou pilote) traitées via la
+          plateforme, CarbonCo agit en tant que sous-traitant au sens du RGPD, sous la
+          responsabilité de l'organisation. Un contrat de sous-traitance (DPA) est proposé aux
+          organisations pilotes.
         </p>
       </Section>
 
@@ -35,7 +45,7 @@ export default function ConfidentialitePage() {
           </li>
           <li>
             <strong>Données métier</strong> : indicateurs ESG, fichiers Excel uploadés par
-            l'entreprise cliente. Ces données restent la propriété exclusive du client.
+            l'organisation utilisatrice. Ces données restent sa propriété exclusive.
           </li>
         </ul>
       </Section>
@@ -52,9 +62,10 @@ export default function ConfidentialitePage() {
 
       <Section title="Base légale">
         <p>
-          Le traitement repose sur l'exécution du contrat conclu avec l'entreprise cliente
-          (article 6.1.b RGPD), ainsi que sur l'intérêt légitime du responsable de traitement
-          pour la sécurité et l'amélioration du service (article 6.1.f).
+          Le traitement repose sur le consentement de l'utilisateur du démonstrateur
+          (article 6.1.a RGPD) et sur l'intérêt légitime du responsable de traitement pour la
+          sécurité et l'amélioration du service (article 6.1.f). Pour une organisation pilote,
+          le cadre est précisé dans le DPA proposé.
         </p>
       </Section>
 
@@ -72,11 +83,11 @@ export default function ConfidentialitePage() {
 
       <Section title="Durée de conservation">
         <ul className="ml-5 list-disc space-y-1">
-          <li>Données de compte : pendant toute la durée du contrat + 3 ans</li>
+          <li>Données de compte : pendant toute la durée d'utilisation, puis suppression sur demande</li>
           <li>Journal d'audit : 12 mois glissants</li>
           <li>
-            Données ESG métier : tant que le client le souhaite ; suppression sur demande sous
-            30 jours après la fin du contrat
+            Données ESG métier : tant que l'organisation le souhaite ; suppression sur demande
+            sous 30 jours après la fin de l'utilisation
           </li>
         </ul>
       </Section>
@@ -85,7 +96,7 @@ export default function ConfidentialitePage() {
         <p>
           Conformément au RGPD, vous disposez des droits d'accès, de rectification, d'effacement,
           de limitation, de portabilité et d'opposition sur vos données personnelles. Vous pouvez
-          exercer ces droits en écrivant à <strong>privacy@carbonco.fr</strong>.
+          exercer ces droits en écrivant à <strong>{CONTACT_EMAIL}</strong>.
         </p>
         <p>
           Vous pouvez également introduire une réclamation auprès de la CNIL :{" "}

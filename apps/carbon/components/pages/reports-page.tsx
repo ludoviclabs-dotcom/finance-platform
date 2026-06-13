@@ -35,13 +35,13 @@ const reports = [
   },
   {
     id: 2,
-    title: "Bilan Carbone T4 2025",
+    title: "Bilan GES T4 2025",
     type: "GHG",
     status: "ready" as const,
     date: "10 jan 2026",
     pages: 48,
     icon: BarChart3,
-    description: "Scope 1, 2, 3 — Méthode Bilan Carbone® ADEME",
+    description: "Scope 1, 2, 3 — Méthodologie GHG Protocol · facteurs ADEME Base Empreinte®",
   },
   {
     id: 3,
@@ -248,7 +248,7 @@ export function ReportsPage() {
             </div>
             <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed">
               Document XHTML conforme <strong>EFRAG taxonomie 2024-12-04</strong> couvrant E1-E5,
-              S1-S4, G1 (107 datapoints obligatoires Set 2). Prêt pour soumission auditeur (ISAE
+              S1-S4, G1 (107 datapoints obligatoires du référentiel ESRS). Prêt pour soumission auditeur (ISAE
               3000) ou dépôt ESEF.
             </p>
           </div>

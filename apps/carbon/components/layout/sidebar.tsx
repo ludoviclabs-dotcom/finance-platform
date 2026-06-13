@@ -182,7 +182,7 @@ export function Sidebar({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[var(--color-foreground)] truncate">Marie Leclerc</p>
-                <p className="text-xs text-[var(--color-foreground-muted)] truncate">Resp. RSE · Acme Corp</p>
+                <p className="text-xs text-[var(--color-foreground-muted)] truncate">Resp. RSE · Exemplia Industrie</p>
               </div>
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-carbon-emerald/15 text-carbon-emerald-light whitespace-nowrap">
                 Business

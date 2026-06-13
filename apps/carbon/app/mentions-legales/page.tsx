@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
 
@@ -8,28 +9,26 @@ export const metadata: Metadata = {
 
 export default function MentionsLegalesPage() {
   return (
-    <LegalLayout title="Mentions légales" lastUpdated="14 avril 2026">
+    <LegalLayout title="Mentions légales" lastUpdated="13 juin 2026">
       <Section title="Éditeur du site">
         <p>
-          Le présent site est édité par <strong>CarbonCo</strong>, plateforme de pilotage
-          ESG &amp; CSRD. Le projet est porté par une société en cours d'immatriculation au
-          Registre du Commerce et des Sociétés français.
+          Le présent site est édité par <strong>CarbonCo — projet en développement, non
+          commercialisé</strong>. Il est mis en ligne à titre de démonstration technique :
+          aucune offre commerciale n'est ouverte à la souscription à ce jour, et aucune société
+          n'est immatriculée sous ce nom.
         </p>
         <p>
-          Les informations légales détaillées (raison sociale définitive, forme juridique,
-          capital social, numéro RCS, siège social, numéro de TVA intracommunautaire) seront
-          publiées sur cette page dès l'enregistrement effectif de la société, prévu en 2026.
-          Dans l'intervalle, toute demande d'information juridique précontractuelle peut être
-          adressée à <strong>contact@carbonco.fr</strong> et obtient une réponse sous 5 jours
-          ouvrés.
+          Les informations légales détaillées (raison sociale, forme juridique, RCS, siège,
+          TVA intracommunautaire) seront publiées sur cette page si et quand une entité juridique
+          est créée. Toute demande peut être adressée à{" "}
+          <strong>{CONTACT_EMAIL}</strong>.
         </p>
       </Section>
 
-      <Section title="Directeur de la publication">
+      <Section title="Direction de la publication">
         <p>
-          Le directeur de la publication est le fondateur du projet CarbonCo. Identité
-          complète publiée à l'enregistrement de la société. Contact :{" "}
-          <a href="mailto:contact@carbonco.fr">contact@carbonco.fr</a>.
+          La direction de la publication est assurée par l'éditeur du projet. Contact :{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
         </p>
       </Section>
 
@@ -43,8 +42,13 @@ export default function MentionsLegalesPage() {
           .
         </p>
         <p>
-          La base de données est hébergée en région Union européenne via Neon Postgres
-          (Vercel Marketplace).
+          La base de données est fournie par <strong>Neon Inc.</strong> (San Francisco,
+          Californie, États-Unis), avec déploiement des données en région Union européenne
+          (eu-central-1). Site web :{" "}
+          <a href="https://neon.tech" target="_blank" rel="noopener noreferrer">
+            neon.tech
+          </a>
+          .
         </p>
       </Section>
 
@@ -60,7 +64,7 @@ export default function MentionsLegalesPage() {
       <Section title="Contact">
         <p>
           Pour toute question relative au site ou à la plateforme, contactez-nous à
-          l'adresse : <strong>contact@carbonco.fr</strong>
+          l'adresse : <strong>{CONTACT_EMAIL}</strong>
         </p>
       </Section>
 

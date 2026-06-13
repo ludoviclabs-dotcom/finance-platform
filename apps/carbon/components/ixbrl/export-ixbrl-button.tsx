@@ -240,7 +240,7 @@ export function ExportIxbrlButton({
                   type="text"
                   value={entityName}
                   onChange={(e) => setEntityName(e.target.value)}
-                  placeholder="Ex. : Acme Corp SAS"
+                  placeholder="Ex. : Exemplia Industrie"
                   className="w-full px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-surface-muted)] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-carbon-emerald/40"
                   disabled={submitting}
                 />

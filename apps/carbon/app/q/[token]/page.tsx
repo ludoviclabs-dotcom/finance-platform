@@ -230,7 +230,7 @@ export default function QuestionnairePage({ params }: Props) {
               >
                 <option value="">Choisir</option>
                 <option value="GHG Protocol">GHG Protocol</option>
-                <option value="Bilan Carbone ADEME">Bilan Carbone® ADEME</option>
+                <option value="BEGES">BEGES (réglementaire France)</option>
                 <option value="ISO 14064">ISO 14064</option>
                 <option value="Autres">Autres</option>
               </select>
@@ -350,12 +350,12 @@ function PublicShell({ children, title }: { children: React.ReactNode; title: st
         <p className="mt-6 text-center text-xs text-[var(--color-foreground-muted)]">
           Propulsé par{" "}
           <a
-            href={process.env.NEXT_PUBLIC_SITE_URL ?? "https://carbonco.fr"}
+            href={process.env.NEXT_PUBLIC_SITE_URL ?? "https://carbon-snowy-nine.vercel.app"}
             className="text-carbon-emerald hover:underline"
           >
             CarbonCo
           </a>{" "}
-          — Plateforme de reporting ESG & Bilan Carbone
+          — Plateforme de reporting ESG & bilan GES
         </p>
       </div>
     </div>

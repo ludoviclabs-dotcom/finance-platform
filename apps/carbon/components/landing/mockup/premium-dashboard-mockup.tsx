@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import styles from "./premium-dashboard-mockup.module.css";
+import { DEMO, demoTotal, fmtFr, demoScopes, demoPostes } from "@/lib/demo-data";
 
 interface Hotspot {
   id: string;
@@ -27,7 +28,7 @@ const HOTSPOTS: Hotspot[] = [
     targetId: "card-scopes",
     label: "Scopes 1, 2, 3",
     description:
-      "Visualisation en temps reel de vos emissions par scope selon le GHG Protocol. Ventilation automatique par poste et site.",
+      "Visualisation en temps réel de vos émissions par scope selon le GHG Protocol. Ventilation automatique par poste et site.",
     number: "01",
     side: "left",
     color: "#16a34a",
@@ -38,7 +39,7 @@ const HOTSPOTS: Hotspot[] = [
     targetId: "card-kpis",
     label: "KPIs Carbone",
     description:
-      "Indicateurs cles : total tCO2e, evolution Year-over-Year, trajectoire SBTi, benchmark sectoriel.",
+      "Indicateurs clés : total tCO₂e, évolution Year-over-Year, trajectoire SBTi, benchmark sectoriel.",
     number: "02",
     side: "top",
     color: "#0891b2",
@@ -47,9 +48,9 @@ const HOTSPOTS: Hotspot[] = [
   {
     id: "postes",
     targetId: "card-postes",
-    label: "Postes d'emission",
+    label: "Postes d'émission",
     description:
-      "Detail par poste (energie, transport, achats, numerique...) avec ventilation automatique et facteurs ADEME/IEA.",
+      "Détail par poste (énergie, transport, achats, numérique…) avec ventilation automatique et facteurs ADEME/IEA.",
     number: "03",
     side: "right",
     color: "#7c3aed",
@@ -60,7 +61,7 @@ const HOTSPOTS: Hotspot[] = [
     targetId: "card-actions",
     label: "Plan d'action IA",
     description:
-      "Recommandations generees par le copilote NEURAL pour reduire vos emissions prioritaires, chiffrees et priorisees.",
+      "Recommandations générées par le copilote NEURAL pour réduire vos émissions prioritaires, chiffrées et priorisées.",
     number: "04",
     side: "right",
     color: "#ea580c",
@@ -71,7 +72,7 @@ const HOTSPOTS: Hotspot[] = [
     targetId: "card-rapports",
     label: "Rapports CSRD",
     description:
-      "Generation automatique de rapports conformes CSRD, CDP, Bilan Carbone. Format auditeur pret pour signature.",
+      "Génération automatique de rapports conformes CSRD, CDP, bilan GES. Format auditeur prêt pour signature.",
     number: "05",
     side: "left",
     color: "#16a34a",
@@ -161,7 +162,7 @@ function ScopesDetail() {
       <div className={styles.detailNote}>
         <div className={styles.noteTitle}>Trajectoire SBTi 1.5°C</div>
         <div className={styles.noteRow}>
-          <span>Reduction requise 2030</span>
+          <span>Réduction requise 2030</span>
           <span className={styles.noteValueDim}>−42%</span>
         </div>
         <div className={styles.noteRow}>
@@ -178,11 +179,12 @@ function ScopesDetail() {
 }
 
 function KpisDetail() {
+  const [s1, s2, s3] = demoScopes();
   const items = [
-    { label: "Total tCO2e", value: "12 847", target: "Target SBTi : 11 200", delta: "−12% YoY", color: "#22c55e" },
-    { label: "Scope 1", value: "3 210", target: "Benchmark secteur : 3 540", delta: "−8% YoY", color: "#22d3ee" },
-    { label: "Scope 2", value: "2 415", target: "Mix energie 78% renouvelable", delta: "−18% YoY", color: "#a78bfa" },
-    { label: "Scope 3", value: "7 222", target: "Couverture chaine : 84%", delta: "−9% YoY", color: "#fb923c" },
+    { label: "Total tCO₂e", value: demoTotal(), target: "Target SBTi : 11 200", delta: `−${Math.abs(DEMO.yoy_pct)}% YoY`, color: "#22c55e" },
+    { label: "Scope 1", value: fmtFr(s1.tco2e), target: "Benchmark secteur : 3 540", delta: `−${Math.abs(s1.yoy_pct)}% YoY`, color: "#22d3ee" },
+    { label: "Scope 2", value: fmtFr(s2.tco2e), target: "Mix énergie 78% renouvelable", delta: `−${Math.abs(s2.yoy_pct)}% YoY`, color: "#a78bfa" },
+    { label: "Scope 3", value: fmtFr(s3.tco2e), target: "Couverture chaîne : 84%", delta: `−${Math.abs(s3.yoy_pct)}% YoY`, color: "#fb923c" },
   ];
   return (
     <div className={styles.kpiDetailGrid}>
@@ -201,48 +203,37 @@ function KpisDetail() {
 }
 
 function PostesDetail() {
-  const groups = [
-    {
-      name: "Energie",
-      total: "28%",
-      color: "#16a34a",
-      sub: [
-        { name: "Electricite reseau", pct: 65 },
-        { name: "Gaz naturel", pct: 25 },
-        { name: "Fioul / autres", pct: 10 },
-      ],
-    },
-    {
-      name: "Transport",
-      total: "34%",
-      color: "#0891b2",
-      sub: [
-        { name: "Routier flotte", pct: 70 },
-        { name: "Avion (deplacements)", pct: 20 },
-        { name: "Ferroviaire / autre", pct: 10 },
-      ],
-    },
-    {
-      name: "Achats",
-      total: "22%",
-      color: "#7c3aed",
-      sub: [
-        { name: "Matieres premieres", pct: 58 },
-        { name: "Sous-traitance", pct: 30 },
-        { name: "Services divers", pct: 12 },
-      ],
-    },
-    {
-      name: "Numerique",
-      total: "16%",
-      color: "#ea580c",
-      sub: [
-        { name: "Cloud / hosting", pct: 55 },
-        { name: "Devices / EOL", pct: 30 },
-        { name: "Reseau / SaaS", pct: 15 },
-      ],
-    },
-  ];
+  // Postes pilotés par le jeu démo unique (data/demo-dataset.json) ; les
+  // sous-ventilations restent illustratives.
+  const COLORS = ["#16a34a", "#0891b2", "#7c3aed", "#ea580c"];
+  const SUBS: Record<string, { name: string; pct: number }[]> = {
+    energie: [
+      { name: "Électricité réseau", pct: 65 },
+      { name: "Gaz naturel", pct: 25 },
+      { name: "Fioul / autres", pct: 10 },
+    ],
+    transport: [
+      { name: "Routier flotte", pct: 70 },
+      { name: "Avion (déplacements)", pct: 20 },
+      { name: "Ferroviaire / autre", pct: 10 },
+    ],
+    achats: [
+      { name: "Matières premières", pct: 58 },
+      { name: "Sous-traitance", pct: 30 },
+      { name: "Services divers", pct: 12 },
+    ],
+    numerique: [
+      { name: "Cloud / hosting", pct: 55 },
+      { name: "Devices / EOL", pct: 30 },
+      { name: "Réseau / SaaS", pct: 15 },
+    ],
+  };
+  const groups = demoPostes().map((p, i) => ({
+    name: p.label,
+    total: `${p.part_pct}%`,
+    color: COLORS[i % COLORS.length],
+    sub: SUBS[p.id] ?? [],
+  }));
   return (
     <div className={styles.postesDetailGrid}>
       {groups.map((g) => (
@@ -268,12 +259,12 @@ function PostesDetail() {
 
 function ActionsDetail() {
   const actions = [
-    { name: "Migrer vers electricite verte (PPA solaire)", impact: "−840 tCO2e", invest: "210 k€", roi: "14 mois", priority: "Haute", color: "#22c55e" },
-    { name: "Optimiser flotte vehicules (electrification)", impact: "−520 tCO2e", invest: "380 k€", roi: "26 mois", priority: "Moyenne", color: "#22d3ee" },
-    { name: "Reduire deplacements pro (visio + train)", impact: "−310 tCO2e", invest: "20 k€", roi: "3 mois", priority: "Haute", color: "#a78bfa" },
-    { name: "Optimisation cloud (rightsizing + region)", impact: "−180 tCO2e", invest: "45 k€", roi: "9 mois", priority: "Moyenne", color: "#fb923c" },
-    { name: "Sourcing matieres bas-carbone", impact: "−420 tCO2e", invest: "150 k€", roi: "18 mois", priority: "Haute", color: "#22c55e" },
-    { name: "Programme reduction dechets bureau", impact: "−85 tCO2e", invest: "12 k€", roi: "6 mois", priority: "Faible", color: "#22d3ee" },
+    { name: "Migrer vers électricité verte (PPA solaire)", impact: "−840 tCO₂e", invest: "210 k€", roi: "14 mois", priority: "Haute", color: "#22c55e" },
+    { name: "Optimiser flotte véhicules (électrification)", impact: "−520 tCO₂e", invest: "380 k€", roi: "26 mois", priority: "Moyenne", color: "#22d3ee" },
+    { name: "Réduire déplacements pro (visio + train)", impact: "−310 tCO₂e", invest: "20 k€", roi: "3 mois", priority: "Haute", color: "#a78bfa" },
+    { name: "Optimisation cloud (rightsizing + région)", impact: "−180 tCO₂e", invest: "45 k€", roi: "9 mois", priority: "Moyenne", color: "#fb923c" },
+    { name: "Sourcing matières bas-carbone", impact: "−420 tCO₂e", invest: "150 k€", roi: "18 mois", priority: "Haute", color: "#22c55e" },
+    { name: "Programme réduction déchets bureau", impact: "−85 tCO₂e", invest: "12 k€", roi: "6 mois", priority: "Faible", color: "#22d3ee" },
   ];
   return (
     <div className={styles.actionsDetailList}>
@@ -282,7 +273,7 @@ function ActionsDetail() {
         <span className={styles.tRight}>Impact</span>
         <span className={styles.tRight}>Investissement</span>
         <span className={styles.tRight}>ROI</span>
-        <span className={styles.tRight}>Priorite</span>
+        <span className={styles.tRight}>Priorité</span>
       </div>
       {actions.map((a) => (
         <div key={a.name} className={styles.actionsDetailRow}>
@@ -312,9 +303,9 @@ function ActionsDetail() {
 
 function RapportsDetail() {
   const reports = [
-    { code: "ESRS E1", title: "Climat — emissions GES, energie, transition", date: "12 mars 2026", status: "Pret a signer", color: "#16a34a" },
-    { code: "ESRS S1", title: "Effectifs propres — main d'oeuvre, sante, securite", date: "08 mars 2026", status: "Pret a signer", color: "#0891b2" },
-    { code: "ESRS G1", title: "Gouvernance — conduite des affaires, lutte corruption", date: "05 mars 2026", status: "Pret a signer", color: "#7c3aed" },
+    { code: "ESRS E1", title: "Climat — émissions GES, énergie, transition", date: "12 mars 2026", status: "Prêt à signer", color: "#16a34a" },
+    { code: "ESRS S1", title: "Effectifs propres — main-d'œuvre, santé, sécurité", date: "08 mars 2026", status: "Prêt à signer", color: "#0891b2" },
+    { code: "ESRS G1", title: "Gouvernance — conduite des affaires, lutte anticorruption", date: "05 mars 2026", status: "Prêt à signer", color: "#7c3aed" },
   ];
   return (
     <div className={styles.rapportsDetailList}>
@@ -327,7 +318,7 @@ function RapportsDetail() {
             <div className={styles.rapportsDetailBody}>
               <div className={styles.rapportsDetailTitle}>{r.title}</div>
               <div className={styles.rapportsDetailMeta}>
-                Genere le {r.date} · Format auditeur · Signataire : DAF
+                Généré le {r.date} · Format auditeur · Signataire : DAF
               </div>
             </div>
           </div>
@@ -571,7 +562,7 @@ export function PremiumDashboardMockup() {
                 <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
-              app.carbonco.fr/dashboard{activeHotspot ? `/${activeId}` : ""}
+              app.carbon-snowy-nine.vercel.app/dashboard{activeHotspot ? `/${activeId}` : ""}
             </div>
           </div>
           <div className={styles.titlebarRight}>
@@ -622,10 +613,10 @@ export function PremiumDashboardMockup() {
             <div className={styles.dashHead}>
               <div>
                 <div className={styles.hTitle}>
-                  Bilan Carbone — {activeHotspot ? activeHotspot.label : "Vue globale"}
+                  Bilan GES — {activeHotspot ? activeHotspot.label : "Vue globale"}
                 </div>
                 <div className={styles.hSub}>
-                  Annee 2025 · GHG Protocol · Mise a jour il y a 4 min
+                  Année 2025 · GHG Protocol · Mise à jour il y a 4 min
                 </div>
               </div>
               {activeHotspot ? (
@@ -639,7 +630,7 @@ export function PremiumDashboardMockup() {
                 <div className={styles.seg}>
                   <span>Mois</span>
                   <span>Trim.</span>
-                  <span className={styles.segOn}>Annee</span>
+                  <span className={styles.segOn}>Année</span>
                 </div>
               )}
             </div>
@@ -657,7 +648,7 @@ export function PremiumDashboardMockup() {
                 )}
                 aria-pressed={isActive("kpis")}
               >
-                <div className={styles.kpiLabel}>Total tCO2e</div>
+                <div className={styles.kpiLabel}>Total tCO₂e</div>
                 <div className={styles.kpiValue}>12 847</div>
                 <div className={styles.kpiFoot}>
                   <span className={`${styles.delta} ${styles.deltaGreen}`}>▼ 12% YoY</span>
@@ -712,7 +703,7 @@ export function PremiumDashboardMockup() {
                 aria-pressed={isActive("scopes")}
               >
                 <div className={styles.panelTitle}>
-                  Repartition Scopes <span className={styles.chip}>2025</span>
+                  Répartition Scopes <span className={styles.chip}>2025</span>
                 </div>
                 <div className={styles.bars}>
                   <div className={`${styles.bar} ${styles.barB1}`}>
@@ -744,11 +735,11 @@ export function PremiumDashboardMockup() {
                 )}
                 aria-pressed={isActive("postes")}
               >
-                <div className={styles.panelTitle}>Postes d&apos;emission</div>
+                <div className={styles.panelTitle}>Postes d&apos;émission</div>
                 <div className={styles.postes}>
                   <div className={styles.poste}>
                     <div className={styles.posteRow}>
-                      <span className={styles.posteName}>Energie</span>
+                      <span className={styles.posteName}>Énergie</span>
                       <span className={styles.postePct}>28%</span>
                     </div>
                     <div className={styles.track}>
@@ -775,7 +766,7 @@ export function PremiumDashboardMockup() {
                   </div>
                   <div className={styles.poste}>
                     <div className={styles.posteRow}>
-                      <span className={styles.posteName}>Numerique</span>
+                      <span className={styles.posteName}>Numérique</span>
                       <span className={styles.postePct}>16%</span>
                     </div>
                     <div className={styles.track}>
@@ -802,21 +793,21 @@ export function PremiumDashboardMockup() {
                 </div>
                 <div className={styles.actions}>
                   <div className={styles.action}>
-                    <div className={styles.aText}>Migrer vers electricite verte</div>
+                    <div className={styles.aText}>Migrer vers électricité verte</div>
                     <div className={styles.aMeta}>
                       <span className={styles.pill}>−840 tCO2e</span>
                       <span className={`${styles.pill} ${styles.pillDim}`}>Haute</span>
                     </div>
                   </div>
                   <div className={styles.action}>
-                    <div className={styles.aText}>Optimiser flotte vehicules</div>
+                    <div className={styles.aText}>Optimiser flotte véhicules</div>
                     <div className={styles.aMeta}>
                       <span className={`${styles.pill} ${styles.pillTeal}`}>−520 tCO2e</span>
                       <span className={`${styles.pill} ${styles.pillDim}`}>Moyenne</span>
                     </div>
                   </div>
                   <div className={styles.action}>
-                    <div className={styles.aText}>Reduire deplacements pro</div>
+                    <div className={styles.aText}>Réduire déplacements pro</div>
                     <div className={styles.aMeta}>
                       <span className={`${styles.pill} ${styles.pillViolet}`}>−310 tCO2e</span>
                       <span className={`${styles.pill} ${styles.pillDim}`}>Haute</span>
@@ -840,10 +831,10 @@ export function PremiumDashboardMockup() {
             >
               <div className={styles.ftxt}>
                 <div className={styles.fL1}>Rapports CSRD</div>
-                <div className={styles.fL2}>3 rapports prets · E1, S1, G1</div>
+                <div className={styles.fL2}>3 rapports prêts · E1, S1, G1</div>
               </div>
               <div className={styles.actionsFoot}>
-                <span className={`${styles.btn} ${styles.btnPrimary}`}>Telecharger PDF</span>
+                <span className={`${styles.btn} ${styles.btnPrimary}`}>Télécharger PDF</span>
                 <span className={`${styles.btn} ${styles.btnGhost}`}>Excel</span>
               </div>
             </button>
@@ -852,13 +843,13 @@ export function PremiumDashboardMockup() {
               <div
                 className={styles.detailDrawer}
                 role="region"
-                aria-label={`Detail ${activeHotspot.label}`}
+                aria-label={`Détail ${activeHotspot.label}`}
               >
                 <div className={styles.detailHeadBar}>
                   <div className={styles.detailHeadLeft}>
                     <span className={styles.detailDot} style={{ background: activeHotspot.color }} />
                     <span className={styles.detailLabel}>
-                      {activeHotspot.label} · Detail
+                      {activeHotspot.label} · Détail
                     </span>
                   </div>
                   <button type="button" onClick={handleReset} className={styles.detailClose} aria-label="Fermer">
@@ -901,7 +892,7 @@ export function PremiumDashboardMockup() {
       ))}
 
       <div className={styles.hint} aria-hidden="true">
-        ← → naviguer · Esc revenir · 1-5 acces direct
+        ← → naviguer · Esc revenir · 1-5 accès direct
       </div>
     </div>
   );

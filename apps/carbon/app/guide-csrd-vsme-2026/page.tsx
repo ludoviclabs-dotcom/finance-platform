@@ -1,8 +1,8 @@
 /**
- * Lead magnet : "Préparer son audit CSRD 2027 — guide pratique en 12 points"
+ * Lead magnet : "CSRD & VSME après l'Omnibus (2026) — guide pratique"
  *
  * Le guide est délibérément servi en HTML imprimable plutôt qu'en PDF binaire :
- *   - Indexable Google (SEO long-tail "préparer audit CSRD")
+ *   - Indexable Google (SEO long-tail "CSRD VSME Omnibus")
  *   - Imprimable via Cmd/Ctrl+P → PDF instantané
  *   - Aucune dépendance backend, aucun stockage de fichier binaire
  *
@@ -16,11 +16,12 @@ import { NewsletterForm } from "@/components/landing/newsletter-form";
 import { PrintButton } from "./print-button";
 
 export const metadata: Metadata = {
-  title: "Guide pratique CSRD 2027 — checklist en 12 points | CarbonCo",
+  title: "CSRD & VSME après l'Omnibus (2026) — guide pratique | CarbonCo",
   description:
-    "Le guide pratique CarbonCo pour préparer son audit CSRD 2027 : périmètre, gouvernance, " +
-    "double matérialité, datapoints, OTI, calendrier. 12 points à verrouiller dès maintenant.",
-  alternates: { canonical: "https://carbonco.fr/guide-csrd-2027" },
+    "Le guide pratique CarbonCo après la directive Omnibus : qui reste soumis à la CSRD, " +
+    "pourquoi le standard volontaire VSME devient le langage de la chaîne de valeur, et 12 points " +
+    "opérationnels pour produire un reporting auditable.",
+  alternates: { canonical: "/guide-csrd-vsme-2026" },
 };
 
 const PRINT_STYLE = `
@@ -55,7 +56,7 @@ const POINTS: { num: string; title: string; body: string }[] = [
     num: "04",
     title: "Cartographier les datapoints obligatoires",
     body:
-      "Pour une ETI typique, 250 à 400 datapoints opérationnels (sur les 1 100 ESRS au total). Pour chaque datapoint : équipe propriétaire, système source, fréquence de mise à jour, méthode de calcul.",
+      "Entité soumise à la CSRD : prioriser les datapoints matériels parmi le référentiel ESRS (réduit d'environ 60 % par l'Omnibus). Reporting VSME volontaire : le socle est bien plus léger (modules Basic B1-B11). Pour chaque datapoint : équipe propriétaire, système source, fréquence, méthode de calcul.",
   },
   {
     num: "05",
@@ -71,15 +72,15 @@ const POINTS: { num: string; title: string; body: string }[] = [
   },
   {
     num: "07",
-    title: "Définir la chaîne de responsabilité OTI",
+    title: "Définir la chaîne de responsabilité auditeur",
     body:
-      "Chaque datapoint a un propriétaire métier, avec validation formelle par un valideur distinct (séparation des rôles). Workflow d'approbation tracé. L'auditeur vérifiera la séparation saisie/validation.",
+      "Chaque datapoint a un propriétaire métier, avec validation formelle par un valideur distinct (séparation des rôles). Workflow d'approbation tracé. L'auditeur (OTI pour la CSRD, ou banque/donneur d'ordre pour le VSME) vérifiera la séparation saisie/validation.",
   },
   {
     num: "08",
     title: "Choisir un outil avec audit trail cryptographique",
     body:
-      "Hash SHA-256 chaîné, lignée préservée, hébergement UE, export PDF signé incluant la justification méthodologique. Un Excel partagé ne passe plus l'assurance limitée 2027.",
+      "Hash SHA-256 chaîné, lignée préservée, hébergement UE, export PDF signé incluant la justification méthodologique. Un Excel partagé ne passe ni l'assurance limitée CSRD ni une revue VSME exigeante.",
   },
   {
     num: "09",
@@ -95,15 +96,15 @@ const POINTS: { num: string; title: string; body: string }[] = [
   },
   {
     num: "11",
-    title: "Cadrer le plan d'assurance avec l'OTI à T-6 mois",
+    title: "Cadrer le plan d'assurance avec l'auditeur en amont",
     body:
-      "Réunion de cadrage formelle : périmètre d'assurance, méthode d'échantillonnage, accès systèmes, format de restitution. Un OTI bien cadré est un OTI moins coûteux.",
+      "Réunion de cadrage formelle : périmètre d'assurance, méthode d'échantillonnage, accès systèmes, format de restitution. Un auditeur bien cadré est un auditeur moins coûteux.",
   },
   {
     num: "12",
     title: "Anticiper la communication externe",
     body:
-      "Le rapport CSRD est public. Aligner DAF, RSE, communication et relations investisseurs en amont. Un rapport solide qui passe l'assurance limitée vaut mieux qu'un rapport ambitieux qui se fait recadrer en réserve.",
+      "Un rapport de durabilité solide qui passe la revue vaut mieux qu'un rapport ambitieux qui se fait recadrer. Aligner DAF, RSE, communication et relations investisseurs en amont.",
   },
 ];
 
@@ -133,14 +134,15 @@ export default function GuidePage() {
             Guide pratique CarbonCo · Édition 2026
           </p>
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-neutral-900 leading-tight mb-4">
-            Préparer son audit CSRD 2027.
+            CSRD &amp; VSME après l&apos;Omnibus.
           </h1>
           <p className="text-lg text-neutral-600 leading-relaxed">
-            12 points à verrouiller dès maintenant pour que la première vague d&apos;assurance
-            limitée se passe sans réserve. Conçu pour les DAF et responsables ESG d&apos;ETI.
+            Qui reste soumis à la CSRD, pourquoi le standard volontaire VSME devient le langage de
+            la chaîne de valeur, et 12 points opérationnels pour produire un reporting auditable.
+            Conçu pour les DAF et responsables ESG de PME et d&apos;ETI.
           </p>
           <div className="mt-6 flex items-center gap-4 text-xs text-neutral-500">
-            <span>Avril 2026</span>
+            <span>Juin 2026</span>
             <span>·</span>
             <span>20 minutes de lecture</span>
             <span>·</span>
@@ -148,19 +150,26 @@ export default function GuidePage() {
           </div>
         </header>
 
-        {/* Intro */}
+        {/* Intro — contexte réglementaire (annexe A.1) */}
         <section className="mb-10">
           <p className="text-base text-neutral-800 leading-relaxed">
-            La directive CSRD impose à plus de 50 000 entreprises européennes de publier un
-            rapport de durabilité aussi rigoureux que leurs comptes financiers, soumis à
-            assurance limitée par un OTI (Organisme Tiers Indépendant). Pour les ETI françaises
-            (vague 2), le premier exercice à reporter est <strong>2026</strong>, avec
-            publication et audit en 2027.
+            Depuis la directive Omnibus (en vigueur depuis mars 2026), seules les entreprises de plus
+            de <strong>1 000 salariés</strong> réalisant plus de <strong>450 M€</strong> de chiffre
+            d&apos;affaires restent soumises à la CSRD — environ 10 000 entreprises dans l&apos;UE,
+            avec de premiers rapports attendus en 2028 sur l&apos;exercice 2027.
           </p>
           <p className="mt-3 text-base text-neutral-800 leading-relaxed">
-            Ce guide n&apos;est ni théorique ni exhaustif : il liste les 12 chantiers
-            opérationnels les plus structurants à verrouiller dès maintenant pour ne pas
-            découvrir les manques en cours d&apos;audit.
+            Pour toutes les autres, la pression ne disparaît pas : elle change de canal. Banques,
+            assureurs et donneurs d&apos;ordre exigent des données ESG structurées, et le standard
+            volontaire <strong>VSME</strong> — dont l&apos;adoption par acte délégué est attendue à
+            l&apos;été 2026 — devient le langage commun de la chaîne de valeur. En France, le bilan
+            d&apos;émissions de GES (<strong>BEGES</strong>) reste par ailleurs obligatoire pour les
+            entreprises de plus de 500 salariés.
+          </p>
+          <p className="mt-3 text-base text-neutral-800 leading-relaxed">
+            Que vous restiez soumis à la CSRD ou que vous prépariez un rapport VSME volontaire, les
+            12 chantiers ci-dessous sont les plus structurants à verrouiller pour produire des
+            chiffres opposables à un auditeur.
           </p>
         </section>
 
@@ -190,24 +199,24 @@ export default function GuidePage() {
             À retenir
           </p>
           <p className="text-base text-neutral-800 leading-relaxed">
-            Sur ces 12 points, les trois leviers à plus haut ROI sur 2026 sont :{" "}
+            Sur ces 12 points, les trois leviers à plus haut ROI sont :{" "}
             <strong>double matérialité (3)</strong>, <strong>cartographie datapoints (4)</strong>,
-            et <strong>chaîne OTI (7-8)</strong>. Le reste s&apos;exécute mieux une fois ces
-            trois sujets verrouillés.
+            et <strong>chaîne d&apos;assurance (7-8)</strong>. Le reste s&apos;exécute mieux une fois
+            ces trois sujets verrouillés.
           </p>
         </section>
 
         {/* Newsletter */}
         <section className="mt-12 guide-newsletter">
-          <NewsletterForm source="guide-csrd-2027" />
+          <NewsletterForm source="guide-csrd-vsme-2026" />
         </section>
 
         {/* Footer */}
         <footer className="mt-12 pt-6 border-t border-neutral-200 text-xs text-neutral-500">
           <p>
             © CarbonCo 2026 · Édition gratuite, libre redistribution sans modification ·{" "}
-            <a href="https://carbonco.fr" className="text-green-700 hover:underline">
-              carbonco.fr
+            <a href="https://carbon-snowy-nine.vercel.app" className="text-green-700 hover:underline">
+              carbon-snowy-nine.vercel.app
             </a>
           </p>
         </footer>

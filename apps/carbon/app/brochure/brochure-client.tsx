@@ -13,6 +13,7 @@
  * qualité visuelle correspond exactement au design web.
  */
 
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import { useCallback } from "react";
 import Link from "next/link";
 import {
@@ -32,7 +33,7 @@ import {
   CsrdCalendarInfographic,
   ExcelToReportInfographic,
 } from "@/components/landing/infographies";
-import { CompetitorComparison } from "@/components/landing/competitor-comparison";
+import { WhyProofFirst } from "@/components/landing/why-proof-first";
 
 const PRINT_STYLE = `
   @page { size: A4; margin: 0; }
@@ -77,7 +78,7 @@ function Page({
       )}
       <div className="text-neutral-700 leading-relaxed">{children}</div>
       <footer className="mt-12 pt-4 border-t border-neutral-200 flex justify-between text-[10px] text-neutral-400">
-        <span>carbonco.fr · contact@carbonco.fr</span>
+        <span>carbon-snowy-nine.vercel.app · {CONTACT_EMAIL}</span>
         <span>Édition 2026</span>
       </footer>
     </section>
@@ -300,19 +301,19 @@ export function BrochureClient() {
         </p>
       </Page>
 
-      {/* Page 8 — comparatif & contact */}
-      <Page index="08" title="Comparatif et contact">
-        <CompetitorComparison />
+      {/* Page 8 — preuve d'abord & contact */}
+      <Page index="08" title="La preuve d'abord et contact">
+        <WhyProofFirst />
         <div className="mt-8 rounded-2xl bg-neutral-900 text-white p-6 flex items-center justify-between">
           <div>
             <p className="text-xs uppercase tracking-widest text-green-400 font-bold mb-1">
               Pour aller plus loin
             </p>
-            <p className="font-bold text-lg">contact@carbonco.fr</p>
+            <p className="font-bold text-lg">{CONTACT_EMAIL}</p>
             <p className="text-sm text-neutral-300">Réponse sous 24 h ouvrées · démo 30 min sur invitation.</p>
           </div>
           <a
-            href="mailto:contact@carbonco.fr?subject=Demande%20de%20d%C3%A9mo%20CarbonCo"
+            href={`mailto:${CONTACT_EMAIL}?subject=Demande%20de%20d%C3%A9mo%20CarbonCo`}
             className="px-5 py-3 rounded-lg bg-white text-neutral-900 text-sm font-semibold hover:bg-neutral-100 transition-colors"
           >
             Demander une démo

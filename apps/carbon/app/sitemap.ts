@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { BLOG_ARTICLES } from "@/lib/blog-articles";
 import { PRODUCT_MODULES } from "@/lib/product-modules";
+import { siteUrl } from "@/lib/site-url";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://carbonco.fr";
+  const baseUrl = siteUrl();
   const now = new Date();
 
   // —— Pages publiques principales ——
@@ -15,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/blog`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/aide`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/brochure`, changeFrequency: "monthly", priority: 0.75 },
-    { url: `${baseUrl}/guide-csrd-2027`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${baseUrl}/guide-csrd-vsme-2026`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${baseUrl}/dev`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/couverture`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/etat-du-produit`, changeFrequency: "weekly", priority: 0.65 },

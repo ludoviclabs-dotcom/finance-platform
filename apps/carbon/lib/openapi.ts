@@ -43,7 +43,7 @@ const TAG_DESCRIPTIONS: Record<string, string> = {
   "Copilote IA": "Endpoints d'interaction avec le copilote NEURAL (LLM Anthropic via Vercel AI Gateway).",
   Ingestion: "Upload de fichiers métier (Excel CSRD, factures énergie, documents RAG).",
   RAG: "Indexation et recherche vectorielle sur le corpus ESRS.",
-  Datapoints: "Extraction et lecture des datapoints ESRS Set 2.",
+  Datapoints: "Extraction et lecture des datapoints ESRS.",
   ESG: "Outils de cartographie et de variantes ESG.",
   Utilisateurs: "Gestion d'invitations et de comptes.",
   Billing: "Souscription, portail client et webhooks Stripe.",
@@ -106,17 +106,17 @@ export function buildOpenApiSpec() {
         "Les endpoints marqués `x-status: beta` peuvent évoluer sans préavis.",
       contact: {
         name: "CarbonCo Support",
-        email: "contact@carbonco.fr",
-        url: "https://carbonco.fr/aide",
+        email: "ludoviclabs@gmail.com",
+        url: "https://carbon-snowy-nine.vercel.app/aide",
       },
       license: {
         name: "Propriétaire — usage soumis aux CGU",
-        url: "https://carbonco.fr/cgu",
+        url: "https://carbon-snowy-nine.vercel.app/cgu",
       },
     },
     servers: [
       {
-        url: "https://carbonco.fr",
+        url: "https://carbon-snowy-nine.vercel.app",
         description: "Production",
       },
     ],

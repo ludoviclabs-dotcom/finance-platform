@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
@@ -6,7 +7,7 @@ export const metadata: Metadata = {
   title: "Trust Center — CarbonCo",
   description:
     "Sécurité, données et conformité de la plateforme CarbonCo : matrice data residency, mesures techniques, limites connues, contacts sécurité et privacy.",
-  alternates: { canonical: "https://carbonco.fr/trust" },
+  alternates: { canonical: "/trust" },
 };
 
 type ResidencyRow = {
@@ -74,7 +75,7 @@ export default function TrustCenterPage() {
         </p>
         <p>
           Pour des questions spécifiques (audit de sécurité, signature d'un DPA, demande de
-          questionnaire éditeur), écrire à <strong>security@carbonco.fr</strong>.
+          questionnaire éditeur), écrire à <strong>{CONTACT_EMAIL}</strong>.
         </p>
       </Section>
 
@@ -189,7 +190,7 @@ export default function TrustCenterPage() {
           <li>
             Pas de programme <strong>bug bounty</strong> public. Les rapports de sécurité
             responsables (responsible disclosure) sont accueillis à{" "}
-            <strong>security@carbonco.fr</strong>.
+            <strong>{CONTACT_EMAIL}</strong>.
           </li>
         </ul>
         <p>
@@ -245,16 +246,16 @@ export default function TrustCenterPage() {
       <Section title="Contacts">
         <ul className="ml-5 list-disc space-y-1">
           <li>
-            <strong>Sécurité &amp; vulnérabilités</strong> — security@carbonco.fr
+            <strong>Sécurité &amp; vulnérabilités</strong> — {CONTACT_EMAIL}
           </li>
           <li>
-            <strong>Privacy &amp; RGPD</strong> — privacy@carbonco.fr
+            <strong>Privacy &amp; RGPD</strong> — {CONTACT_EMAIL}
           </li>
           <li>
-            <strong>AI Act &amp; copilote</strong> — ai-act@carbonco.fr
+            <strong>AI Act &amp; copilote</strong> — {CONTACT_EMAIL}
           </li>
           <li>
-            <strong>Contact général</strong> — contact@carbonco.fr
+            <strong>Contact général</strong> — {CONTACT_EMAIL}
           </li>
         </ul>
       </Section>

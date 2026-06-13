@@ -1,0 +1,426 @@
+{
+  "derniere_maj": "2026-06-13",
+  "note": "Source de vérité UNIQUE des statuts produit (T0.2 du PLAN_ACTION_CARBONCO). Consommée par /etat-du-produit, /couverture et /integrations. Aucun statut ne doit être codé en dur dans un composant. statut ∈ live | beta | planifie (+ roadmap pour les intégrations). Un statut 'live' exige une 'preuve' (chemin repo).",
+  "features": [
+    {
+      "id": "import-excel",
+      "label": "Import workbook Excel + validation automatique",
+      "description": "Chargez votre fichier de collecte de données (modèle CarbonCo fourni). Le système valide la structure, détecte les cellules manquantes et remonte les erreurs avant calcul.",
+      "statut": "live",
+      "normes": ["ESRS E1"],
+      "tag": "ESRS E1",
+      "preuve": "apps/api/routers/excel.py"
+    },
+    {
+      "id": "calcul-ges",
+      "label": "Calcul Scope 1, 2 & 3 — GHG Protocol",
+      "description": "Calcul des émissions selon la méthodologie GHG Protocol avec facteurs ADEME Base Empreinte® intégrés. Couverture Scope 1 (combustion, flotte, réfrigérants), Scope 2 (électricité, chaleur), Scope 3 partiel (achats, transport, déplacements).",
+      "statut": "live",
+      "normes": ["ESRS E1"],
+      "tag": "ESRS E1",
+      "preuve": "apps/api/services/carbon_service.py"
+    },
+    {
+      "id": "dashboard-provenance",
+      "label": "Dashboard interactif avec provenance des données",
+      "description": "Visualisation des émissions par scope, par poste et par période. Chaque chiffre affiché est traçable jusqu'à la source (ligne du fichier Excel, facteur d'émission utilisé, date d'import). Graphiques filtrables et comparaison N/N-1.",
+      "statut": "live",
+      "normes": ["ESRS E1"],
+      "preuve": "apps/api/services/facts_service.py"
+    },
+    {
+      "id": "export-pdf",
+      "label": "Export PDF rapport CSRD",
+      "description": "Génération d'un rapport PDF structuré selon les exigences de présentation ESRS. Inclut les données quantitatives, les narratifs de contexte et les tableaux de conformité.",
+      "statut": "live",
+      "normes": ["ESRS E1", "ESRS 2"],
+      "tag": "ESRS E1 · ESRS 2",
+      "preuve": "apps/api/services/export_package.py"
+    },
+    {
+      "id": "export-excel-audit",
+      "label": "Export Excel structuré + audit trail",
+      "description": "Export des données de calcul au format Excel avec horodatage, identifiant utilisateur et hash d'intégrité pour chaque ligne. Permet la vérification par un OTI (Organisme Tiers Indépendant).",
+      "statut": "live",
+      "normes": ["ESRS E1"],
+      "preuve": "apps/api/services/export_package.py"
+    },
+    {
+      "id": "double-materialite",
+      "label": "Questionnaire double matérialité — ESRS 2",
+      "description": "Formulaire guidé pour identifier et prioriser les impacts, risques et opportunités matériels selon la double matérialité ESRS. Génère une matrice de matérialité exportable et traçable.",
+      "statut": "live",
+      "normes": ["ESRS 2"],
+      "tag": "ESRS 2",
+      "preuve": "apps/api/routers/materialite.py"
+    },
+    {
+      "id": "copilote-neural",
+      "label": "Copilote IA NEURAL — assistant CSRD",
+      "description": "Assistant IA spécialisé en ESRS et CSRD. Répond aux questions sur les obligations de reporting, cite les articles ESRS sources, aide à interpréter les résultats. Ne calcule pas automatiquement — assiste et explique.",
+      "statut": "live",
+      "normes": [],
+      "preuve": "apps/api/routers/copilot.py"
+    },
+    {
+      "id": "multi-utilisateurs-roles",
+      "label": "Gestion multi-utilisateurs avec rôles",
+      "description": "Création de comptes utilisateurs avec rôles (Admin, Analyste, Lecteur). Chaque action est tracée dans le journal d'audit avec l'identité de l'auteur. Isolation des données par organisation.",
+      "statut": "live",
+      "normes": [],
+      "preuve": "apps/api/services/auth_service.py"
+    },
+    {
+      "id": "auth-jwt",
+      "label": "Authentification sécurisée par JWT signé",
+      "description": "Authentification par email/mot de passe avec tokens JWT signés HS256. Rotation des refresh tokens via cookie httpOnly. Journal de connexion consultable par les administrateurs.",
+      "statut": "live",
+      "normes": [],
+      "preuve": "apps/api/routers/auth.py"
+    },
+    {
+      "id": "questionnaire-fournisseurs-s3",
+      "label": "Questionnaire fournisseurs Scope 3 amont",
+      "description": "Envoi de questionnaires standardisés aux fournisseurs pour collecter leurs données d'émissions (catégories 1 et 4 Scope 3). Interface de suivi des réponses et agrégation automatique. Actuellement en test avec les premiers utilisateurs.",
+      "statut": "beta",
+      "normes": ["ESRS E1"],
+      "tag": "ESRS E1 Scope 3",
+      "preuve": "apps/api/routers/suppliers.py"
+    },
+    {
+      "id": "comparaison-multi-exercices",
+      "label": "Comparaison multi-exercices (snapshots)",
+      "description": "Sauvegarde d'un instantané de vos données à date et comparaison avec les exercices précédents. Fonctionnalité disponible mais l'interface de gestion des versions est en cours d'amélioration.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/routers/history.py"
+    },
+    {
+      "id": "workflow-validation",
+      "label": "Workflow de validation des données",
+      "description": "Processus formalisé de validation en deux étapes (saisie → proposition → validation responsable). Les données verrouillées ne peuvent plus être modifiées sans justification. Modèle de permissions en cours de finalisation.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/db/migrations/006_datapoint_reviews.sql"
+    },
+    {
+      "id": "collecte-s1",
+      "label": "Collecte données sociales — ESRS S1",
+      "description": "Formulaire de collecte des indicateurs sociaux (effectifs, conditions de travail, égalité, santé-sécurité). Les données sont collectées et exportées en PDF, mais le scoring de conformité ESRS S1 est encore en développement.",
+      "statut": "beta",
+      "normes": ["ESRS S1"],
+      "tag": "ESRS S1",
+      "preuve": "apps/api/services/esg_service.py"
+    },
+    {
+      "id": "alertes-anomalies",
+      "label": "Alertes et détection d'anomalies",
+      "description": "Système d'alertes configurables sur seuils d'émissions et écarts vs. exercice précédent. Détection basique d'anomalies par règles. L'algorithme de détection avancée est en cours d'amélioration.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/routers/alerts.py"
+    },
+    {
+      "id": "api-rest-lecture",
+      "label": "API REST de lecture",
+      "description": "Accès programmatique en lecture aux snapshots et au trail de preuve (authentification JWT). La documentation /dev décrit des rôles qui restent à aligner sur l'API réelle — statut beta jusqu'à harmonisation.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/routers/facts.py"
+    },
+    {
+      "id": "2fa-totp",
+      "label": "Double authentification (TOTP)",
+      "description": "Second facteur d'authentification par code temporel (TOTP) avec codes de récupération. Planifié — non disponible à ce jour. Passera Live à la livraison de la tâche T1.4 du plan d'action.",
+      "statut": "planifie",
+      "normes": []
+    },
+    {
+      "id": "ixbrl-eseef",
+      "label": "Export iXBRL ESEF",
+      "description": "Format de rapport électronique structuré requis pour la soumission officielle aux autorités (OAM). Un constructeur interne existe, mais un dépôt ESEF de niveau production nécessite un partenaire certifié (CoreFiling, ParsePort, IRIS — coût estimé 3–8 k€/an). Reste planifié tant que ce partenariat n'est pas engagé.",
+      "statut": "planifie",
+      "normes": []
+    },
+    {
+      "id": "multi-sites",
+      "label": "Multi-sites & filiales (consolidation groupe)",
+      "description": "Consolidation des données de plusieurs entités selon une approche de périmètre (contrôle opérationnel/financier, parts de capital). Sur la roadmap — non disponible à ce jour.",
+      "statut": "planifie",
+      "normes": []
+    },
+    {
+      "id": "sso-rbac",
+      "label": "SSO & RBAC avancé",
+      "description": "Authentification unique d'entreprise (SAML/OIDC) et gestion fine des rôles et permissions. Sur la roadmap — non disponible à ce jour.",
+      "statut": "planifie",
+      "normes": []
+    },
+    {
+      "id": "imports-fichiers",
+      "label": "Imports fichiers sans OAuth (AWS, GCP, Qonto CSV, FEC)",
+      "description": "Parseurs de fichiers exportés manuellement par l'utilisateur (AWS Customer Carbon Footprint, Google Cloud Carbon Footprint, relevés Qonto CSV, FEC). Planifié — voir la tâche T5.4 du plan d'action.",
+      "statut": "planifie",
+      "normes": []
+    },
+    {
+      "id": "connecteurs-erp",
+      "label": "Connecteurs ERP natifs",
+      "description": "Aucun connecteur OAuth tiers (Sage, Cegid, SAP, Dynamics, Pennylane…) n'est livré à ce jour. Aujourd'hui : import Excel structuré (voir /integrations). Roadmap priorisée selon la demande client.",
+      "statut": "planifie",
+      "normes": []
+    },
+    {
+      "id": "ocr-factures",
+      "label": "OCR factures énergie automatisé",
+      "description": "Extraction automatique des données de consommation énergétique depuis les PDF de factures. Éliminerait l'essentiel de la saisie manuelle pour le Scope 2. Sur la roadmap.",
+      "statut": "planifie",
+      "normes": []
+    },
+    {
+      "id": "esrs-e2-e5",
+      "label": "Modules ESRS E2–E5 approfondis",
+      "description": "Développement approfondi des standards Pollution (E2), Eau (E3), Biodiversité (E4) et Économie circulaire (E5). Priorité déterminée selon les demandes clients ; E2 est le prochain dans la file.",
+      "statut": "planifie",
+      "normes": ["ESRS E2", "ESRS E3", "ESRS E4", "ESRS E5"],
+      "tag": "E2 · E3 · E4 · E5"
+    },
+    {
+      "id": "signature-eidas",
+      "label": "Signature électronique qualifiée eIDAS",
+      "description": "Signature numérique qualifiée sur les rapports CSRD pour valeur probante maximale. Partenaire envisagé : Yousign ou Universign. Déclenchable à la demande client.",
+      "statut": "planifie",
+      "normes": []
+    },
+    {
+      "id": "certifs-soc2-iso",
+      "label": "Certifications sécurité SOC 2 / ISO 27001",
+      "description": "Audits de sécurité indépendants et certifications formelles. Déclenchables à partir d'un premier client grand compte qui l'exige contractuellement.",
+      "statut": "planifie",
+      "normes": []
+    },
+    {
+      "id": "infra-souveraine",
+      "label": "Infrastructure souveraine (OVH/Scaleway)",
+      "description": "Migration vers une infrastructure française ou européenne certifiée SecNumCloud si un client public ou grand compte l'impose contractuellement. L'infrastructure actuelle (Vercel/Neon EU) satisfait la majorité des besoins RGPD.",
+      "statut": "planifie",
+      "normes": []
+    }
+  ],
+  "esrs": [
+    {
+      "id": "ESRS 1",
+      "name": "Exigences générales",
+      "description": "Principes de reporting, périmètre, double matérialité, chaîne de valeur",
+      "statut": "live",
+      "exports": ["PDF", "Excel"],
+      "note": "Couvre les exigences de présentation et de périmètre"
+    },
+    {
+      "id": "ESRS 2",
+      "name": "Informations générales",
+      "description": "Stratégie, gouvernance, matérialité, gestion des impacts risques et opportunités",
+      "statut": "live",
+      "exports": ["PDF", "Excel"],
+      "note": "Questionnaire double matérialité intégré"
+    },
+    {
+      "id": "ESRS E1",
+      "name": "Changement climatique",
+      "description": "Atténuation, adaptation, énergie — Scope 1, 2 & 3, GHG Protocol, ADEME Base Empreinte®",
+      "statut": "live",
+      "exports": ["PDF", "Excel", "Audit trail"],
+      "note": "Module principal — couverture la plus approfondie"
+    },
+    {
+      "id": "ESRS E2",
+      "name": "Pollution",
+      "description": "Pollution de l'air, de l'eau et des sols, substances préoccupantes",
+      "statut": "beta",
+      "exports": ["PDF"],
+      "note": "Collecte de données disponible, calculs en cours de validation"
+    },
+    {
+      "id": "ESRS E3",
+      "name": "Eau & ressources marines",
+      "description": "Consommation d'eau, rejets, impact sur les écosystèmes aquatiques et marins",
+      "statut": "planifie",
+      "exports": []
+    },
+    {
+      "id": "ESRS E4",
+      "name": "Biodiversité & écosystèmes",
+      "description": "Impacts, dépendances, zones sensibles, contribution à la perte de biodiversité",
+      "statut": "planifie",
+      "exports": []
+    },
+    {
+      "id": "ESRS E5",
+      "name": "Utilisation des ressources",
+      "description": "Économie circulaire, flux de ressources, déchets, réparation et réutilisation",
+      "statut": "planifie",
+      "exports": []
+    },
+    {
+      "id": "ESRS S1",
+      "name": "Effectifs propres",
+      "description": "Conditions de travail, santé-sécurité, égalité, rémunérations",
+      "statut": "beta",
+      "exports": ["PDF"],
+      "note": "Formulaire de collecte disponible, scoring en développement"
+    },
+    {
+      "id": "ESRS S2",
+      "name": "Travailleurs chaîne de valeur",
+      "description": "Conditions de travail, droits fondamentaux, travail forcé dans la chaîne d'approvisionnement",
+      "statut": "planifie",
+      "exports": []
+    },
+    {
+      "id": "ESRS S3",
+      "name": "Communautés affectées",
+      "description": "Droits des communautés riveraines, impact territorial, engagement parties prenantes",
+      "statut": "planifie",
+      "exports": []
+    },
+    {
+      "id": "ESRS S4",
+      "name": "Consommateurs & utilisateurs",
+      "description": "Sécurité des produits, vie privée, inclusion, accessibilité",
+      "statut": "planifie",
+      "exports": []
+    },
+    {
+      "id": "ESRS G1",
+      "name": "Conduite des affaires",
+      "description": "Éthique des affaires, corruption, lobbying, paiements aux pouvoirs publics",
+      "statut": "live",
+      "exports": ["PDF"],
+      "note": "Questionnaire structuré + export rapport narratif"
+    }
+  ],
+  "integrations": [
+    {
+      "id": "import-excel-structure",
+      "name": "Import Excel structuré",
+      "category": "Fichiers",
+      "section": "disponible",
+      "statut": "live",
+      "description": "Modèle de classeur CarbonCo téléchargeable, named ranges contrôlés, validation stricte de structure avant calcul.",
+      "preuve": "apps/api/routers/excel.py"
+    },
+    {
+      "id": "api-rest",
+      "name": "API REST (lecture)",
+      "category": "API",
+      "section": "disponible",
+      "statut": "beta",
+      "description": "Accès programmatique en lecture (snapshots, trail de preuve) avec authentification JWT. Documentation /dev en cours d'alignement sur les rôles réels de l'API.",
+      "preuve": "apps/api/routers/facts.py"
+    },
+    {
+      "id": "aws-ccft",
+      "name": "AWS Customer Carbon Footprint (CSV)",
+      "category": "Cloud",
+      "section": "imports-fichiers",
+      "statut": "planifie",
+      "description": "Import du CSV d'export AWS CCFT → Scope 3 cat. 3.1/3.8 (cloud). Sans OAuth — fichier exporté manuellement par l'utilisateur. Tâche T5.4."
+    },
+    {
+      "id": "gcp-carbon",
+      "name": "Google Cloud Carbon Footprint (CSV)",
+      "category": "Cloud",
+      "section": "imports-fichiers",
+      "statut": "planifie",
+      "description": "Import de l'export GCP Carbon Footprint (CSV/BigQuery). Sans OAuth. Tâche T5.4."
+    },
+    {
+      "id": "qonto-csv",
+      "name": "Qonto — relevés CSV",
+      "category": "Comptabilité",
+      "section": "imports-fichiers",
+      "statut": "planifie",
+      "description": "Import du CSV des transactions Qonto → pré-screening monétaire Scope 3. Sans OAuth. Tâche T5.4."
+    },
+    {
+      "id": "fec",
+      "name": "FEC — Fichier des Écritures Comptables",
+      "category": "Comptabilité",
+      "section": "imports-fichiers",
+      "statut": "planifie",
+      "description": "Import FEC (format art. A.47 A-1 LPF) → screening Scope 3 monétaire via ratios ADEME. Sans OAuth. Tâche T4.3."
+    },
+    {
+      "id": "sage",
+      "name": "Sage 100 / X3",
+      "category": "ERP",
+      "section": "roadmap",
+      "statut": "roadmap",
+      "description": "Connecteur ERP natif — roadmap, priorisé selon la demande client."
+    },
+    {
+      "id": "cegid",
+      "name": "Cegid",
+      "category": "ERP",
+      "section": "roadmap",
+      "statut": "roadmap",
+      "description": "Connecteur ERP natif — roadmap."
+    },
+    {
+      "id": "sap",
+      "name": "SAP S/4HANA",
+      "category": "ERP",
+      "section": "roadmap",
+      "statut": "roadmap",
+      "description": "Connecteur ERP natif — roadmap."
+    },
+    {
+      "id": "dynamics",
+      "name": "Microsoft Dynamics 365",
+      "category": "ERP",
+      "section": "roadmap",
+      "statut": "roadmap",
+      "description": "Connecteur ERP natif — roadmap."
+    },
+    {
+      "id": "pennylane",
+      "name": "Pennylane",
+      "category": "Comptabilité",
+      "section": "roadmap",
+      "statut": "roadmap",
+      "description": "Connecteur comptable — roadmap."
+    },
+    {
+      "id": "qonto-oauth",
+      "name": "Qonto (OAuth)",
+      "category": "Comptabilité",
+      "section": "roadmap",
+      "statut": "roadmap",
+      "description": "Connexion bancaire OAuth — roadmap (l'import CSV est l'alternative sans OAuth)."
+    },
+    {
+      "id": "totalenergies",
+      "name": "TotalEnergies",
+      "category": "Énergie",
+      "section": "roadmap",
+      "statut": "roadmap",
+      "description": "Connecteur fournisseur d'énergie — roadmap."
+    },
+    {
+      "id": "lucca",
+      "name": "Lucca",
+      "category": "RH",
+      "section": "roadmap",
+      "statut": "roadmap",
+      "description": "Suite RH SaaS française — roadmap (données effectifs ESRS S1)."
+    },
+    {
+      "id": "enedis-data-connect",
+      "name": "Enedis Data Connect",
+      "category": "Énergie",
+      "section": "roadmap",
+      "statut": "roadmap",
+      "description": "API du gestionnaire de réseau (courbes de charge par PDL) — roadmap, homologation requise."
+    }
+  ]
+}

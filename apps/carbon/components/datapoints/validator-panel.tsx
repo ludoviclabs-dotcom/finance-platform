@@ -244,7 +244,7 @@ export function ValidatorPanel({ compact = false, standardFilter }: ValidatorPan
             </span>
           </div>
           <p className="text-xs text-[var(--color-foreground-muted)] mt-0.5">
-            Cohérence inter-datapoints, bornes valeurs, complétude obligatoire ESRS Set 2.
+            Cohérence inter-datapoints, bornes valeurs, complétude obligatoire ESRS.
           </p>
 
           <div className="grid grid-cols-3 gap-3 mt-3">

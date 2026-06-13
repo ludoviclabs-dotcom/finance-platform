@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
@@ -6,7 +7,7 @@ export const metadata: Metadata = {
   title: "Sous-traitants — CarbonCo",
   description:
     "Liste des sous-traitants ultérieurs utilisés par CarbonCo pour fournir la plateforme : rôle, région de stockage, transferts hors UE, fondement RGPD.",
-  alternates: { canonical: "https://carbonco.fr/trust/sub-processors" },
+  alternates: { canonical: "/trust/sub-processors" },
 };
 
 type SubProcessor = {
@@ -68,20 +69,11 @@ const SUB_PROCESSORS: SubProcessor[] = [
   {
     name: "Inngest",
     role: "Orchestration de jobs asynchrones (extraction batch de datapoints, ingestion documents RAG)",
-    region: "À confirmer avec le client lors du contrat — région UE disponible",
+    region: "Région UE disponible",
     transferOutsideEU: "Conditionnel",
     legalBasis: "RGPD article 28 (DPA Inngest)",
     notes:
       "Inngest porte uniquement des références d'événements (job IDs, status). Les charges utiles métier restent dans Neon et Vercel Blob.",
-  },
-  {
-    name: "Stripe, Inc.",
-    role: "Facturation et abonnements (Checkout, portail client, webhooks). Activé uniquement pour les clients qui souscrivent en self-service.",
-    region: "Stripe Payments Europe (Dublin) pour les paiements UE · siège US",
-    transferOutsideEU: "Oui — CCT",
-    legalBasis: "Clauses Contractuelles Types Stripe + DPA",
-    notes:
-      "Aucune donnée métier ESG n'est transmise à Stripe. Seuls les identifiants de facturation (email, raison sociale, mode de paiement) circulent. Pour les clients Enterprise contractualisés hors Stripe, ce sous-traitant n'est pas activé.",
   },
 ];
 
@@ -93,17 +85,17 @@ const TRANSFER_BADGE: Record<SubProcessor["transferOutsideEU"], string> = {
 
 export default function SubProcessorsPage() {
   return (
-    <LegalLayout title="Sous-traitants ultérieurs" lastUpdated="28 mai 2026">
+    <LegalLayout title="Sous-traitants ultérieurs" lastUpdated="13 juin 2026">
       <Section title="Périmètre">
         <p>
           Cette page liste l'ensemble des sous-traitants ultérieurs au sens de l'article 28
-          du RGPD utilisés par CarbonCo pour fournir la plateforme. Elle est mise à jour à
-          chaque ajout, retrait ou changement de région d'un sous-traitant. Toute modification
-          est notifiée aux clients sous 30 jours avant prise d'effet.
+          du RGPD utilisés par CarbonCo pour fournir la plateforme. La liste est recoupée avec
+          les dépendances réelles du dépôt (package.json) à chaque mise à jour ; elle est révisée
+          à chaque ajout, retrait ou changement de région d'un sous-traitant.
         </p>
         <p>
           Pour le détail des clauses contractuelles ou un DPA signé bilatéralement, écrire à{" "}
-          <strong>privacy@carbonco.fr</strong>.
+          <strong>{CONTACT_EMAIL}</strong>.
         </p>
       </Section>
 

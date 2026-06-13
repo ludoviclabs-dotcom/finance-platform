@@ -280,7 +280,7 @@ export function DashboardPage() {
     id: a.id, type: a.type, title: a.title, desc: a.description, time: a.time,
   }));
 
-  const companyName = liveCompanyName ?? "Acme Corp.";
+  const companyName = liveCompanyName ?? "Exemplia Industrie";
 
   return (
     <motion.div {...pageVariants} className="cc-app space-y-0">

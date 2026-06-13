@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
 
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <LegalLayout title="Cookies et traceurs" lastUpdated="14 avril 2026">
+    <LegalLayout title="Cookies et traceurs" lastUpdated="13 juin 2026">
       <Section title="Notre approche">
         <p>
           CarbonCo n'utilise <strong>aucun cookie publicitaire</strong> ni traceur de mesure
@@ -64,7 +65,7 @@ export default function CookiesPage() {
           réauthentifier à chaque visite.
         </p>
         <p>
-          Pour toute question, écrivez à <strong>privacy@carbonco.fr</strong>.
+          Pour toute question, écrivez à <strong>{CONTACT_EMAIL}</strong>.
         </p>
       </Section>
     </LegalLayout>

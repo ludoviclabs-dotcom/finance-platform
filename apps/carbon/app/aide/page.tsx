@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Centre d'aide — CarbonCo",
   description:
     "Réponses aux questions courantes sur CarbonCo : démarrage, CSRD, sécurité, données, facturation, intégrations.",
-  alternates: { canonical: "https://carbonco.fr/aide" },
+  alternates: { canonical: "/aide" },
 };
 
 // FAQPage schema — Rich Results Google.

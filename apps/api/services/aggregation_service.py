@@ -447,7 +447,7 @@ def _load_alert_summary(company_id: int) -> AlertSummary:
         from routers.alerts import _MEM_RULES  # in-memory fallback
 
         if db_available():
-            with get_db() as conn:
+            with get_db(company_id=company_id) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         "SELECT domain FROM alert_rules WHERE company_id = %s AND is_active = TRUE",

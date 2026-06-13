@@ -738,6 +738,27 @@ export function setConsolidationApproach(
   return apiSend("POST", "/consolidation/approach", signal, { approach });
 }
 
+// --- Année de référence & recalcul (T4.5) ---
+export type Baseline = { id: number; baseline_year: number; snapshot_hash: string | null; ef_version: string | null; frozen_at: string };
+export type BaselinesResponse = { reasons: Record<string, string>; baselines: Baseline[] };
+export type BaselineVsCurrent = {
+  baseline_year: number;
+  deltas: Record<string, { baseline: number | null; current: number | null; change_pct: number | null }>;
+};
+
+export function fetchBaselines(signal?: AbortSignal): Promise<BaselinesResponse> {
+  return apiGet<BaselinesResponse>("/baselines", signal);
+}
+export function freezeBaseline(baseline_year: number, ef_version?: string, signal?: AbortSignal) {
+  return apiSend<{ id: number }>("POST", "/baselines/freeze", signal, { baseline_year, ef_version });
+}
+export function fetchBaselineVsCurrent(id: number, signal?: AbortSignal): Promise<BaselineVsCurrent> {
+  return apiGet<BaselineVsCurrent>(`/baselines/${id}/vs-current`, signal);
+}
+export function triggerRecalc(id: number, reason: string, detail?: string, signal?: AbortSignal) {
+  return apiSend<{ recalc_event_id: number; facts_touched: number }>("POST", `/baselines/${id}/recalc`, signal, { reason, detail });
+}
+
 export function invalidateCache(
   domain?: "carbon" | "vsme" | "esg" | "finance",
   signal?: AbortSignal

@@ -14,6 +14,7 @@ from routers import (
     audit,
     auditor,
     auth,
+    baselines,
     beges,
     carbon,
     chain,
@@ -187,6 +188,7 @@ app.include_router(scope3.router, prefix="/scope3", tags=["scope3 (T4.1)"])
 app.include_router(beges.router, prefix="/beges", tags=["beges (T4.2)"])
 app.include_router(fec.router, prefix="/fec", tags=["fec (T4.3)"])
 app.include_router(consolidation.router, prefix="/consolidation", tags=["consolidation (T4.4)"])
+app.include_router(baselines.router, prefix="/baselines", tags=["baselines (T4.5)"])
 app.include_router(files.router, tags=["files"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
 app.include_router(export.router, prefix="/export", tags=["export"])

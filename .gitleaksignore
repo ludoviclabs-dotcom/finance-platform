@@ -1,0 +1,8 @@
+# Empreintes gitleaks à ignorer (faux positifs vérifiés).
+# Format : commit:fichier:règle:ligne
+#
+# `key = "S3.uncategorized"` dans ventilate() de beges_export.py (T4.2) : clé de
+# mapping vers un poste BEGES, PAS un secret. La règle generic-api-key matche le
+# motif `key = "<16 car.>"`. Variable renommée `s3_key` depuis, mais le commit
+# d'origine reste dans la plage scannée (base^..HEAD).
+fcf1af6079aa99b6846e92578a725c1727953b07:apps/api/services/beges_export.py:generic-api-key:68

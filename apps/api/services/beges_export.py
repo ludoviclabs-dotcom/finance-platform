@@ -64,8 +64,8 @@ def ventilate(scope_totals: dict[str, Any]) -> dict[str, Any]:
     for cat, val in (scope_totals.get("S3") or {}).items():
         if not val:
             continue
-        key = "S3.uncategorized" if cat in ("uncategorized", "unc") else f"S3.{cat}"
-        poste_values[mapping.get(key, "6.1")] += float(val)
+        s3_key = "S3.uncategorized" if cat in ("uncategorized", "unc") else f"S3.{cat}"
+        poste_values[mapping.get(s3_key, "6.1")] += float(val)
 
     categories = []
     grand_total = 0.0

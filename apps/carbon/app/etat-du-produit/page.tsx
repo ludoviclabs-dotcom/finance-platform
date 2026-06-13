@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 
 import {
@@ -106,7 +107,7 @@ export default function EtatDuProduitPage() {
           <p className="text-sm text-neutral-400 leading-relaxed">
             Cette page est mise à jour à chaque sprint (toutes les 2 semaines).
             Si une fonctionnalité que vous attendez n&apos;est pas dans la liste planifiée,{" "}
-            <a href="mailto:ludoviclabs@gmail.com" className="text-emerald-600 hover:underline">
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-emerald-600 hover:underline">
               contactez-nous
             </a>{" "}
             — les demandes clients remontent directement dans la priorisation de la roadmap.

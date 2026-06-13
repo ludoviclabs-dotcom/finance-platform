@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { ENDPOINTS } from "@/lib/openapi";
 
@@ -102,7 +103,7 @@ export default function DevDocPage() {
             <code>/api/openapi</code>
           </a>
           {" "}— consommable directement par Postman, Insomnia, Swagger Editor ou Stoplight.
-          Pour toute question : <a href="mailto:ludoviclabs@gmail.com" className="underline">ludoviclabs@gmail.com</a>.
+          Pour toute question : <a href={`mailto:${CONTACT_EMAIL}`} className="underline">{CONTACT_EMAIL}</a>.
         </p>
       </div>
     </main>

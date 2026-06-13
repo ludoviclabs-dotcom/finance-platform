@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
@@ -140,7 +141,7 @@ export default function AiActPage() {
       <Section title="Limites et incidents">
         <p>
           Toute hallucination, erreur de citation ou sortie inappropriée détectée par un
-          utilisateur peut être signalée à <strong>ludoviclabs@gmail.com</strong>. Les signalements
+          utilisateur peut être signalée à <strong>{CONTACT_EMAIL}</strong>. Les signalements
           sont traités sous 72 heures et peuvent déclencher une mise à jour du système de
           prompts, du corpus RAG ou de la documentation utilisateur.
         </p>

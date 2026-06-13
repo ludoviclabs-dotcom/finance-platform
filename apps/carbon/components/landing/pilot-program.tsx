@@ -4,6 +4,7 @@
  * Copy = annexe A.4 du plan, verbatim.
  */
 
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import Link from "next/link";
 
 export function PilotProgram() {
@@ -25,7 +26,7 @@ export function PilotProgram() {
         </p>
         <div className="mt-7">
           <a
-            href="mailto:ludoviclabs@gmail.com?subject=Programme%20pilote%20CarbonCo%20%E2%80%94%20exercice%202026"
+            href={`mailto:${CONTACT_EMAIL}?subject=Programme%20pilote%20CarbonCo%20%E2%80%94%20exercice%202026`}
             className="inline-flex items-center gap-2 bg-black text-white px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
           >
             Candidater au programme pilote

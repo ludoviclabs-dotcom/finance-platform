@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
@@ -94,7 +95,7 @@ export default function SubProcessorsPage() {
         </p>
         <p>
           Pour le détail des clauses contractuelles ou un DPA signé bilatéralement, écrire à{" "}
-          <strong>ludoviclabs@gmail.com</strong>.
+          <strong>{CONTACT_EMAIL}</strong>.
         </p>
       </Section>
 

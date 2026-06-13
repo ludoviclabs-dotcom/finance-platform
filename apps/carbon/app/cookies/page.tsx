@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
 
@@ -64,7 +65,7 @@ export default function CookiesPage() {
           réauthentifier à chaque visite.
         </p>
         <p>
-          Pour toute question, écrivez à <strong>ludoviclabs@gmail.com</strong>.
+          Pour toute question, écrivez à <strong>{CONTACT_EMAIL}</strong>.
         </p>
       </Section>
     </LegalLayout>

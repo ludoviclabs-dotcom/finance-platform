@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
 
@@ -20,14 +21,14 @@ export default function MentionsLegalesPage() {
           Les informations légales détaillées (raison sociale, forme juridique, RCS, siège,
           TVA intracommunautaire) seront publiées sur cette page si et quand une entité juridique
           est créée. Toute demande peut être adressée à{" "}
-          <strong>ludoviclabs@gmail.com</strong>.
+          <strong>{CONTACT_EMAIL}</strong>.
         </p>
       </Section>
 
       <Section title="Direction de la publication">
         <p>
           La direction de la publication est assurée par l'éditeur du projet. Contact :{" "}
-          <a href="mailto:ludoviclabs@gmail.com">ludoviclabs@gmail.com</a>.
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
         </p>
       </Section>
 
@@ -63,7 +64,7 @@ export default function MentionsLegalesPage() {
       <Section title="Contact">
         <p>
           Pour toute question relative au site ou à la plateforme, contactez-nous à
-          l'adresse : <strong>ludoviclabs@gmail.com</strong>
+          l'adresse : <strong>{CONTACT_EMAIL}</strong>
         </p>
       </Section>
 

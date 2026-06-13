@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
 
@@ -95,7 +96,7 @@ export default function ConfidentialitePage() {
         <p>
           Conformément au RGPD, vous disposez des droits d'accès, de rectification, d'effacement,
           de limitation, de portabilité et d'opposition sur vos données personnelles. Vous pouvez
-          exercer ces droits en écrivant à <strong>ludoviclabs@gmail.com</strong>.
+          exercer ces droits en écrivant à <strong>{CONTACT_EMAIL}</strong>.
         </p>
         <p>
           Vous pouvez également introduire une réclamation auprès de la CNIL :{" "}

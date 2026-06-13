@@ -13,8 +13,8 @@ import { SecurityArchitecture } from "../landing/security-architecture";
 import { SectorShowcase } from "../landing/sector-mockups";
 import { SectorImpactDrawer } from "../landing/sector-impact-drawer";
 import { HowItWorksSection } from "../landing/how-it-works";
-import { Testimonials } from "../landing/testimonials";
-import { CompetitorComparison } from "../landing/competitor-comparison";
+import { PilotProgram } from "../landing/pilot-program";
+import { WhyProofFirst } from "../landing/why-proof-first";
 import { RoiCalculator } from "../landing/roi-calculator";
 import { NewsletterForm } from "../landing/newsletter-form";
 import { useAnalytics } from "@/lib/hooks/use-analytics";
@@ -118,7 +118,7 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         </Reveal>
         <Reveal className="text-center mb-4" delay={0.05}>
           <h2 className="font-extrabold text-4xl md:text-5xl tracking-tighter text-black">
-            Votre Bilan Carbone,{" "}
+            Votre bilan GES,{" "}
             <span style={{ background: "linear-gradient(135deg, #16a34a 0%, #059669 40%, #0891b2 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               en un coup d&apos;oeil.
             </span>
@@ -156,7 +156,7 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
             { icon: "🔗", title: "Collecte structurée", desc: "Import Excel guidé, factures énergie, API REST. Connecteurs Sage, Cegid et SAP S/4HANA disponibles." },
             { icon: "📐", title: "Calcul GHG Protocol", desc: "Methodologie certifiee Scopes 1, 2, 3" },
             { icon: "🤖", title: "IA Recommandations", desc: "Plans d'action personnalises et priorises" },
-            { icon: "📄", title: "Rapports conformes", desc: "CSRD, CDP, Bilan Carbone en 1 clic" },
+            { icon: "📄", title: "Rapports conformes", desc: "CSRD, CDP, bilan GES en 1 clic" },
           ].map((f, i) => (
             <Reveal key={f.title} delay={0.08 * i}>
               <div className="flex flex-col items-center text-center p-4 md:p-6 rounded-2xl bg-white border border-neutral-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default">
@@ -686,14 +686,14 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
         {/* ══ 2. TRUST BAR — CONTEXTE RÉGLEMENTAIRE ══ */}
         <section className="py-14 bg-white border-y border-neutral-100">
           <div className="max-w-[1440px] mx-auto px-8 md:px-12">
-            <p className="text-xs uppercase tracking-widest text-neutral-400 font-semibold text-center mb-8">Conçu avec des experts CSRD &amp; ESG</p>
+            <p className="text-xs uppercase tracking-widest text-neutral-400 font-semibold text-center mb-8">Construit sur les référentiels publics EFRAG, GHG Protocol et ADEME</p>
 
             {/* Indicateurs réglementaires */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-neutral-100 pt-10">
               {[
                 { value: "127", label: "Datapoints ESRS Set 2", note: "E1-E5, S1-S4, G1" },
                 { value: "iXBRL", label: "Export ESEF conforme", note: "Taxonomie EFRAG 2024" },
-                { value: "GHG", label: "Protocol Scope 1, 2 & 3", note: "Méthodologie bilan carbone" },
+                { value: "GHG", label: "Protocol Scope 1, 2 & 3", note: "Méthodologie GHG Protocol" },
                 { value: "ADEME", label: "Base Empreinte® intégrée", note: "Facteurs d'émission FR" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
@@ -723,23 +723,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 Pourtant, <strong className="text-black">7 entreprises sur 10</strong> n&apos;ont toujours aucun processus fiable pour collecter ces données.
               </p>
             </Reveal>
-            <Reveal className="text-center mb-16" delay={0.1}>
-              <div className="inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-neutral-500">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-red-500" />
-                  Pénalités jusqu&apos;à <strong className="text-neutral-800">2% du CA mondial</strong>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  Deadline rapport ESRS : <strong className="text-neutral-800">exercice 2025</strong>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-green-500" />
-                  Marché ESG projeté : <strong className="text-neutral-800">53 Mds € en 2027</strong>
-                </span>
-              </div>
-            </Reveal>
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-8 mt-16">
               <Reveal delay={0.15} className="bg-red-50 rounded-2xl p-8 border border-red-100">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -751,7 +735,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   {[
                     ["Fichiers Excel dispersés entre équipes", "4 mois de collecte pour un rapport"],
                     ["Risque d'erreurs et d'incohérences", "Pas de traçabilité pour l'auditeur"],
-                    ["Conformité ESRS incertaine", "Pénalités de non-conformité jusqu'à 2% du CA"],
+                    ["Conformité ESRS incertaine", "Anomalies détectées tardivement, sans piste d'audit"],
                     ["Ressources mobilisées à plein temps", "Stress des équipes RSE avant deadline"],
                     ["Difficile de communiquer la performance", "Perte d'attractivité investisseurs ESG"],
                     ["Émissions IT & datacenters ignorées", "Scope 3 cat. 8 : serveurs, cloud, SaaS — un angle mort fréquent"],
@@ -1002,38 +986,38 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
         </section>
 
-        {/* ══ 7bis. TÉMOIGNAGES & EARLY ADOPTERS ══ */}
-        <section id="temoignages" className="py-28 px-8 md:px-12 bg-white">
+        {/* ══ 7bis. PROGRAMME PILOTE ══ */}
+        <section id="programme-pilote" className="py-28 px-8 md:px-12 bg-white">
           <div className="max-w-[1440px] mx-auto">
             <Reveal className="text-center mb-4">
-              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Ils nous font confiance</span>
+              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Programme pilote</span>
             </Reveal>
             <Reveal className="text-center mb-12" delay={0.05}>
-              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">Le programme Early Adopter</h2>
+              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">Construisons la preuve ensemble</h2>
               <p className="text-neutral-500 mt-3 text-base max-w-2xl mx-auto">
-                Plusieurs ETI européennes utilisent CarbonCo pour structurer leur premier reporting CSRD. Voici ce qu&apos;elles en disent.
+                Plutôt que des témoignages, un engagement concret : trois organisations équipées gratuitement pour l&apos;exercice 2026.
               </p>
             </Reveal>
             <Reveal delay={0.1}>
-              <Testimonials />
+              <PilotProgram />
             </Reveal>
           </div>
         </section>
 
-        {/* ══ 7ter. COMPARATIF CONCURRENTS ══ */}
-        <section id="comparatif" className="py-28 px-8 md:px-12 bg-[#f9f9fb]">
+        {/* ══ 7ter. POURQUOI LA PREUVE D'ABORD ══ */}
+        <section id="preuve-dabord" className="py-28 px-8 md:px-12 bg-[#f9f9fb]">
           <div className="max-w-[1440px] mx-auto">
             <Reveal className="text-center mb-4">
               <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Pourquoi choisir CarbonCo</span>
             </Reveal>
             <Reveal className="text-center mb-12" delay={0.05}>
-              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">Comparatif des plateformes ESG</h2>
+              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">La preuve, pas la promesse</h2>
               <p className="text-neutral-500 mt-3 text-base max-w-2xl mx-auto">
-                Une lecture honnête face aux acteurs établis et aux nouveaux entrants. Chaque outil a ses forces — voici les critères les plus différenciants pour les ETI européennes.
+                Une lecture honnête de ce que nous apportons — et de ce qui n&apos;est pas encore prêt.
               </p>
             </Reveal>
             <Reveal delay={0.1}>
-              <CompetitorComparison />
+              <WhyProofFirst />
             </Reveal>
           </div>
         </section>
@@ -1253,7 +1237,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             </div>
           </div>
           <div className="border-t border-neutral-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-neutral-400">© 2026 CarbonCo SAS. Tous droits réservés. RGPD · Données métier en zone UE · <a href="/etat-du-produit" className="hover:text-black underline">État réel du produit</a></p>
+            <p className="text-xs text-neutral-400">© 2026 CarbonCo — projet en développement, non commercialisé · contact : <a href="mailto:contact@carbonco.fr" className="hover:text-black underline">contact@carbonco.fr</a> · RGPD · Données métier en zone UE · <a href="/etat-du-produit" className="hover:text-black underline">État réel du produit</a></p>
             <p className="text-xs text-neutral-400">Conçu à Paris · Base de données Neon Postgres en zone UE · Made with 💚</p>
           </div>
         </div>

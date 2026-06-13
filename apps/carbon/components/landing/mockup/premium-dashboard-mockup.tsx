@@ -71,7 +71,7 @@ const HOTSPOTS: Hotspot[] = [
     targetId: "card-rapports",
     label: "Rapports CSRD",
     description:
-      "Generation automatique de rapports conformes CSRD, CDP, Bilan Carbone. Format auditeur pret pour signature.",
+      "Generation automatique de rapports conformes CSRD, CDP, bilan GES. Format auditeur pret pour signature.",
     number: "05",
     side: "left",
     color: "#16a34a",
@@ -622,7 +622,7 @@ export function PremiumDashboardMockup() {
             <div className={styles.dashHead}>
               <div>
                 <div className={styles.hTitle}>
-                  Bilan Carbone — {activeHotspot ? activeHotspot.label : "Vue globale"}
+                  Bilan GES — {activeHotspot ? activeHotspot.label : "Vue globale"}
                 </div>
                 <div className={styles.hSub}>
                   Annee 2025 · GHG Protocol · Mise a jour il y a 4 min

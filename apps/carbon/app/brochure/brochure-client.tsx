@@ -32,7 +32,7 @@ import {
   CsrdCalendarInfographic,
   ExcelToReportInfographic,
 } from "@/components/landing/infographies";
-import { CompetitorComparison } from "@/components/landing/competitor-comparison";
+import { WhyProofFirst } from "@/components/landing/why-proof-first";
 
 const PRINT_STYLE = `
   @page { size: A4; margin: 0; }
@@ -300,9 +300,9 @@ export function BrochureClient() {
         </p>
       </Page>
 
-      {/* Page 8 — comparatif & contact */}
-      <Page index="08" title="Comparatif et contact">
-        <CompetitorComparison />
+      {/* Page 8 — preuve d'abord & contact */}
+      <Page index="08" title="La preuve d'abord et contact">
+        <WhyProofFirst />
         <div className="mt-8 rounded-2xl bg-neutral-900 text-white p-6 flex items-center justify-between">
           <div>
             <p className="text-xs uppercase tracking-widest text-green-400 font-bold mb-1">

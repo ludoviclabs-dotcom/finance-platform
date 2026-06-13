@@ -230,7 +230,7 @@ export default function QuestionnairePage({ params }: Props) {
               >
                 <option value="">Choisir</option>
                 <option value="GHG Protocol">GHG Protocol</option>
-                <option value="Bilan Carbone ADEME">Bilan Carbone® ADEME</option>
+                <option value="BEGES">BEGES (réglementaire France)</option>
                 <option value="ISO 14064">ISO 14064</option>
                 <option value="Autres">Autres</option>
               </select>
@@ -355,7 +355,7 @@ function PublicShell({ children, title }: { children: React.ReactNode; title: st
           >
             CarbonCo
           </a>{" "}
-          — Plateforme de reporting ESG & Bilan Carbone
+          — Plateforme de reporting ESG & bilan GES
         </p>
       </div>
     </div>

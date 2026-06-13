@@ -35,13 +35,13 @@ const reports = [
   },
   {
     id: 2,
-    title: "Bilan Carbone T4 2025",
+    title: "Bilan GES T4 2025",
     type: "GHG",
     status: "ready" as const,
     date: "10 jan 2026",
     pages: 48,
     icon: BarChart3,
-    description: "Scope 1, 2, 3 — Méthode Bilan Carbone® ADEME",
+    description: "Scope 1, 2, 3 — Méthodologie GHG Protocol · facteurs ADEME Base Empreinte®",
   },
   {
     id: 3,

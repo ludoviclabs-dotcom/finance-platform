@@ -24,6 +24,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/baselines":   { title: "Année de référence",  subtitle: "Baseline & recalcul" },
   "/actions":     { title: "Leviers de réduction", subtitle: "MACC & plan de transition" },
   "/imports":     { title: "Imports fichiers",    subtitle: "AWS · GCP · Qonto" },
+  "/diff":        { title: "Multi-exercices",     subtitle: "Diff & réponses questionnaires" },
   "/esrs":        { title: "ESRS / CSRD",      subtitle: "Conformité réglementaire" },
   "/materialite": { title: "Double matérialité", subtitle: "Impacts × Risques × Opportunités" },
   "/datapoints":  { title: "Datapoints CSRD",   subtitle: "Extraction LLM-RAG · ESRS" },

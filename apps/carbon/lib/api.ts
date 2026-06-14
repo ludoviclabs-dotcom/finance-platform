@@ -2256,3 +2256,55 @@ export function fetchImport(id: number, signal?: AbortSignal): Promise<ImportScr
 export function emitImport(id: number, signal?: AbortSignal): Promise<{ emitted_facts: number; status: string } | null> {
   return apiSend("POST", `/imports/${id}/emit`, signal);
 }
+
+// ---------------------------------------------------------------------------
+// Diff multi-exercices + export questionnaires (T5.5)
+// ---------------------------------------------------------------------------
+
+export type SnapshotDiff = {
+  domain: string;
+  available: boolean;
+  diff: {
+    changed: { path: string; before: number; after: number; delta: number; change_pct: number | null }[];
+    added: { path: string; value: number }[];
+    removed: { path: string; value: number }[];
+    meta_changed: { path: string; before: string | null; after: string | null }[];
+    changed_count: number;
+    added_count: number;
+    removed_count: number;
+  };
+};
+
+export type QuestionnaireCatalog = {
+  version: string;
+  questionnaires: { key: string; label: string; question_count: number }[];
+};
+
+export function fetchDiff(domain: string, signal?: AbortSignal): Promise<SnapshotDiff> {
+  return apiGet<SnapshotDiff>(`/diff/${domain}`, signal);
+}
+
+export function fetchQuestionnaireCatalogs(signal?: AbortSignal): Promise<QuestionnaireCatalog> {
+  return apiGet<QuestionnaireCatalog>("/questionnaire/catalogs", signal);
+}
+
+export async function downloadQuestionnaire(questionnaire?: string, signal?: AbortSignal): Promise<void> {
+  const q = questionnaire ? `?questionnaire=${questionnaire}` : "";
+  const res = await _fetchWithRetry(`${API_BASE_URL}/questionnaire/export${q}`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /questionnaire/export`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "reponses.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

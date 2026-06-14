@@ -1,0 +1,29 @@
+{
+  "version": "v1",
+  "note": "Correspondance mot-clé → catégorie Scope 3 (GHG Protocol 1-15) pour les adaptateurs d'import fichiers (T5.4). Le matching est insensible à la casse, premier mot-clé contenu dans le libellé. `default` s'applique si aucun mot-clé ne correspond. Versionné — toute évolution incrémente `version`.",
+  "aws": {
+    "default": 1,
+    "keywords": {
+      "s3": 8, "storage": 8, "ebs": 8, "glacier": 8, "cloudfront": 8,
+      "data transfer": 8, "backup": 8,
+      "ec2": 1, "compute": 1, "lambda": 1, "fargate": 1, "rds": 1, "eks": 1
+    }
+  },
+  "gcp": {
+    "default": 1,
+    "keywords": {
+      "storage": 8, "cloud storage": 8, "network": 8, "cdn": 8,
+      "compute": 1, "bigquery": 1, "kubernetes": 1, "functions": 1, "run": 1
+    }
+  },
+  "qonto": {
+    "default": 1,
+    "keywords": {
+      "saas": 1, "software": 1, "subscription": 1, "abonnement": 1, "logiciel": 1,
+      "travel": 6, "transport": 6, "train": 6, "sncf": 6, "flight": 6, "vol": 6,
+      "hotel": 6, "hôtel": 6, "restaurant": 6, "taxi": 6, "uber": 6,
+      "fuel": 6, "carburant": 6, "essence": 6,
+      "energy": 3, "energie": 3, "énergie": 3, "electricity": 3, "edf": 3, "engie": 3
+    }
+  }
+}

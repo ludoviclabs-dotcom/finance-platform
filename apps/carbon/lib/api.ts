@@ -2195,3 +2195,64 @@ export function downloadMaccPdf(signal?: AbortSignal): Promise<void> {
 export function downloadTransitionPdf(signal?: AbortSignal): Promise<void> {
   return _downloadPdf("/actions/transition.pdf", "plan-transition.pdf", signal);
 }
+
+// ---------------------------------------------------------------------------
+// Adaptateurs d'import fichiers — AWS / GCP / Qonto (T5.4)
+// ---------------------------------------------------------------------------
+
+export type ImportType = "aws" | "gcp" | "qonto";
+
+export type ImportScreeningResult = {
+  by_category: { category: number; label: string | null; tco2e: number; spend?: number }[];
+  total_tco2e: number;
+  total_spend?: number;
+  mappable_pct: number;
+  quality: number;
+  ratio_kgco2e_per_eur?: number;
+};
+
+export type ImportScreening = {
+  id: number;
+  import_type: ImportType;
+  filename: string;
+  status: "pending" | "emitted" | "rejected";
+  total_tco2e: number | null;
+  mappable_pct: number | null;
+  created_at?: string;
+  result?: ImportScreeningResult;
+};
+
+export type ImportUploadResult = {
+  persisted: boolean;
+  id?: number;
+  status?: string;
+  import_type: ImportType;
+  filename: string;
+  parsed: Record<string, unknown>;
+  screening: ImportScreeningResult;
+};
+
+export async function uploadImport(type: ImportType, file: File, signal?: AbortSignal): Promise<ImportUploadResult> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await _fetchWithRetry(`${API_BASE_URL}/imports/upload/${type}`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    body: fd,
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /imports/upload/${type}`);
+  return (await res.json()) as ImportUploadResult;
+}
+
+export function fetchImports(type?: ImportType, signal?: AbortSignal): Promise<{ imports: ImportScreening[] }> {
+  return apiGet<{ imports: ImportScreening[] }>(`/imports${type ? `?type=${type}` : ""}`, signal);
+}
+
+export function fetchImport(id: number, signal?: AbortSignal): Promise<ImportScreening> {
+  return apiGet<ImportScreening>(`/imports/${id}`, signal);
+}
+
+export function emitImport(id: number, signal?: AbortSignal): Promise<{ emitted_facts: number; status: string } | null> {
+  return apiSend("POST", `/imports/${id}/emit`, signal);
+}

@@ -233,13 +233,81 @@ h1, h2, h3 {
   animation: how-fill 2.4s cubic-bezier(.16,1,.3,1) .4s forwards;
 }
 
+/* ─── Démo cinématique /demo — couche "waow" v2/v3 ───────────────────────────
+   Toutes ces utilitaires sont consommées via className par les composants de
+   components/demo/. Les keyframes sont neutralisés sous prefers-reduced-motion
+   (voir le bloc média plus bas). Couleur de référence : emerald-400 #34D399. */
+
+@keyframes carbonCheckDraw {
+  from { stroke-dashoffset: 24; }
+  to   { stroke-dashoffset: 0; }
+}
+.carbon-check-draw {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: carbonCheckDraw 600ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes carbonBadgeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.carbon-badge-in { animation: carbonBadgeIn 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes carbonBadgeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+.carbon-badge-out { animation: carbonBadgeOut 200ms ease-in forwards; }
+
+@keyframes carbonNeuralPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45); }
+  50%      { box-shadow: 0 0 0 12px rgba(52, 211, 153, 0); }
+}
+.carbon-neural-pulse { animation: carbonNeuralPulse 2.4s ease-out infinite; }
+
+@keyframes carbonHaloPulse {
+  0%, 100% { box-shadow: 0 0 30px rgba(52, 211, 153, 0.30); }
+  50%      { box-shadow: 0 0 52px rgba(52, 211, 153, 0.55); }
+}
+.carbon-halo-pulse { animation: carbonHaloPulse 2.0s ease-in-out 2; }
+
+@keyframes carbonGesGlow {
+  0%, 100% { text-shadow: 0 0 12px rgba(52, 211, 153, 0.30); }
+  50%      { text-shadow: 0 0 26px rgba(52, 211, 153, 0.65); }
+}
+.carbon-ges-glow { animation: carbonGesGlow 2.4s ease-in-out infinite; }
+
+@keyframes carbonProofGlow {
+  0%   { box-shadow: 0 0 0 rgba(52, 211, 153, 0); }
+  50%  { box-shadow: 0 0 36px rgba(52, 211, 153, 0.40); }
+  100% { box-shadow: 0 0 8px rgba(52, 211, 153, 0.12); }
+}
+.carbon-proof-glow { animation: carbonProofGlow 1000ms ease-out forwards; }
+
+@keyframes carbonCursorBlink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.carbon-cursor-blink { animation: carbonCursorBlink 1.05s steps(2) infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .how-rail-pulse,
   .how-live-dot,
   .how-typing-dot,
-  .how-progress-fill {
+  .how-progress-fill,
+  .carbon-check-draw,
+  .carbon-badge-in,
+  .carbon-badge-out,
+  .carbon-neural-pulse,
+  .carbon-halo-pulse,
+  .carbon-ges-glow,
+  .carbon-proof-glow,
+  .carbon-cursor-blink {
     animation: none;
   }
+  /* États finaux figés pour le tracé SVG et la frappe */
+  .carbon-check-draw { stroke-dashoffset: 0; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

@@ -23,6 +23,19 @@ CREATE TABLE IF NOT EXISTS alert_rules (
     CONSTRAINT alert_rule_mode_check CHECK (mode IN ('absolute', 'delta_pct', 'missing'))
 );
 
+-- alert_rules existe déjà via le DDL inline historique (db/migrations.py), exécuté
+-- AVANT les fichiers .sql → le CREATE ci-dessus est un no-op sur toute base. On met
+-- donc à niveau explicitement le schéma legacy : colonne `mode`, nullabilité de
+-- `threshold` (mode 'missing') et `destination` (canal in-app), + contrainte CHECK.
+ALTER TABLE alert_rules ADD COLUMN IF NOT EXISTS mode TEXT NOT NULL DEFAULT 'absolute';
+ALTER TABLE alert_rules ALTER COLUMN threshold DROP NOT NULL;
+ALTER TABLE alert_rules ALTER COLUMN destination DROP NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'alert_rule_mode_check') THEN
+    ALTER TABLE alert_rules ADD CONSTRAINT alert_rule_mode_check CHECK (mode IN ('absolute', 'delta_pct', 'missing'));
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS alert_notifications (
     id          BIGSERIAL PRIMARY KEY,
     company_id  INTEGER NOT NULL,

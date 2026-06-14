@@ -937,8 +937,9 @@ export function fetchSnapshotVersion(
 // ---------------------------------------------------------------------------
 
 export type AlertOperator = "gt" | "lt" | "gte" | "lte" | "eq";
-export type AlertChannel = "webhook" | "email";
+export type AlertChannel = "inapp" | "webhook" | "email";
 export type AlertDomain = "carbon" | "vsme" | "esg" | "finance";
+export type AlertMode = "absolute" | "delta_pct" | "missing";
 
 export interface AlertRuleOut {
   id: number;
@@ -947,9 +948,10 @@ export interface AlertRuleOut {
   domain: AlertDomain;
   field_path: string;
   operator: AlertOperator;
-  threshold: number;
+  threshold: number | null;
+  mode?: AlertMode;
   channel: AlertChannel;
-  destination: string;
+  destination: string | null;
   is_active: boolean;
   last_fired_at: string | null;
   created_at: string;
@@ -960,9 +962,10 @@ export interface AlertRuleCreate {
   domain: AlertDomain;
   field_path: string;
   operator: AlertOperator;
-  threshold: number;
+  threshold: number | null;
+  mode?: AlertMode;
   channel: AlertChannel;
-  destination: string;
+  destination: string | null;
   is_active?: boolean;
 }
 
@@ -970,9 +973,10 @@ export interface AlertRulePatch {
   name?: string;
   field_path?: string;
   operator?: AlertOperator;
-  threshold?: number;
+  threshold?: number | null;
+  mode?: AlertMode;
   channel?: AlertChannel;
-  destination?: string;
+  destination?: string | null;
   is_active?: boolean;
 }
 
@@ -981,10 +985,28 @@ export interface AlertFired {
   rule_name: string;
   domain: AlertDomain;
   field_path: string;
-  current_value: number;
-  threshold: number;
+  mode?: AlertMode;
+  current_value: number | null;
+  previous_value?: number | null;
+  threshold: number | null;
   operator: AlertOperator;
   fired_at: string;
+}
+
+export interface AlertNotification {
+  id: number;
+  rule_id: number | null;
+  rule_name: string | null;
+  title: string;
+  body: string | null;
+  fired_at: string;
+  read_at: string | null;
+  archived_at: string | null;
+}
+
+export interface NotificationsResponse {
+  unread: number;
+  notifications: AlertNotification[];
 }
 
 export interface AlertEvaluateResponse {
@@ -1029,6 +1051,22 @@ export function evaluateAlerts(signal?: AbortSignal): Promise<AlertEvaluateRespo
 
 export function fetchAlertHistory(limit = 20, signal?: AbortSignal): Promise<AlertHistoryResponse> {
   return apiGet<AlertHistoryResponse>(`/alerts/history?limit=${limit}`, signal);
+}
+
+export function fetchNotifications(includeArchived = false, signal?: AbortSignal): Promise<NotificationsResponse> {
+  return apiGet<NotificationsResponse>(`/alerts/notifications?include_archived=${includeArchived}`, signal);
+}
+
+export function markNotificationRead(id: number, signal?: AbortSignal): Promise<Response> {
+  return _fetchWithRetry(`${API_BASE_URL}/alerts/notifications/${id}`, {
+    method: "PATCH",
+    headers: { Accept: "application/json", ...authHeaders() },
+    signal,
+  });
+}
+
+export function archiveNotification(id: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/alerts/notifications/${id}`, signal) as Promise<null>;
 }
 
 // ---------------------------------------------------------------------------
@@ -2050,4 +2088,223 @@ export interface RagSearchResponse {
 
 export function ragSearch(query: string, top_k = 5): Promise<RagSearchResponse> {
   return apiSend<RagSearchResponse>("POST", "/copilot/rag-search", undefined, { query, top_k }) as Promise<RagSearchResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Actions de réduction — MACC (T5.1) + plan de transition (T5.2)
+// ---------------------------------------------------------------------------
+
+export type Action = {
+  id: number;
+  title: string;
+  description: string | null;
+  status: "proposed" | "committed" | "done";
+  owner: string | null;
+  milestone: string | null;
+  capex: number | null;
+  reduction_tco2e: number | null;
+  lifespan_years: number | null;
+  target_code: string | null;
+};
+
+export type MaccBar = {
+  id: number;
+  title: string;
+  status: string;
+  marginal_cost: number;
+  potential_tco2e: number;
+  capex: number | null;
+  cumulative_start: number;
+  cumulative_end: number;
+};
+
+export type Macc = {
+  bars: MaccBar[];
+  unpriced: { id: number; title: string }[];
+  total_potential_tco2e: number;
+  total_capex: number;
+};
+
+export type Trajectory = {
+  baseline_tco2e: number;
+  years: number;
+  reference: number[];
+  projected_done: number[];
+  projected_committed: number[];
+  potential: number[];
+  reductions: { done: number; committed: number; proposed: number; total: number };
+};
+
+export function fetchActions(signal?: AbortSignal): Promise<{ actions: Action[] }> {
+  return apiGet<{ actions: Action[] }>("/actions", signal);
+}
+
+export function createAction(body: Partial<Action>, signal?: AbortSignal): Promise<Action | null> {
+  return apiSend<Action>("POST", "/actions", signal, body);
+}
+
+export function patchAction(id: number, body: Partial<Action>, signal?: AbortSignal): Promise<Response> {
+  return _fetchWithRetry(`${API_BASE_URL}/actions/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+    signal,
+  });
+}
+
+export function setActionStatus(id: number, status: Action["status"], signal?: AbortSignal): Promise<Action | null> {
+  return apiSend<Action>("POST", `/actions/${id}/status`, signal, { status });
+}
+
+export function deleteAction(id: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/actions/${id}`, signal) as Promise<null>;
+}
+
+export function fetchMacc(signal?: AbortSignal): Promise<Macc> {
+  return apiGet<Macc>("/actions/macc", signal);
+}
+
+export function fetchTrajectory(years = 5, signal?: AbortSignal): Promise<Trajectory> {
+  return apiGet<Trajectory>(`/actions/trajectory?years=${years}`, signal);
+}
+
+async function _downloadPdf(path: string, fallback: string, signal?: AbortSignal): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on ${path}`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : fallback;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export function downloadMaccPdf(signal?: AbortSignal): Promise<void> {
+  return _downloadPdf("/actions/macc.pdf", "macc.pdf", signal);
+}
+
+export function downloadTransitionPdf(signal?: AbortSignal): Promise<void> {
+  return _downloadPdf("/actions/transition.pdf", "plan-transition.pdf", signal);
+}
+
+// ---------------------------------------------------------------------------
+// Adaptateurs d'import fichiers — AWS / GCP / Qonto (T5.4)
+// ---------------------------------------------------------------------------
+
+export type ImportType = "aws" | "gcp" | "qonto";
+
+export type ImportScreeningResult = {
+  by_category: { category: number; label: string | null; tco2e: number; spend?: number }[];
+  total_tco2e: number;
+  total_spend?: number;
+  mappable_pct: number;
+  quality: number;
+  ratio_kgco2e_per_eur?: number;
+};
+
+export type ImportScreening = {
+  id: number;
+  import_type: ImportType;
+  filename: string;
+  status: "pending" | "emitted" | "rejected";
+  total_tco2e: number | null;
+  mappable_pct: number | null;
+  created_at?: string;
+  result?: ImportScreeningResult;
+};
+
+export type ImportUploadResult = {
+  persisted: boolean;
+  id?: number;
+  status?: string;
+  import_type: ImportType;
+  filename: string;
+  parsed: Record<string, unknown>;
+  screening: ImportScreeningResult;
+};
+
+export async function uploadImport(type: ImportType, file: File, signal?: AbortSignal): Promise<ImportUploadResult> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await _fetchWithRetry(`${API_BASE_URL}/imports/upload/${type}`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    body: fd,
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /imports/upload/${type}`);
+  return (await res.json()) as ImportUploadResult;
+}
+
+export function fetchImports(type?: ImportType, signal?: AbortSignal): Promise<{ imports: ImportScreening[] }> {
+  return apiGet<{ imports: ImportScreening[] }>(`/imports${type ? `?type=${type}` : ""}`, signal);
+}
+
+export function fetchImport(id: number, signal?: AbortSignal): Promise<ImportScreening> {
+  return apiGet<ImportScreening>(`/imports/${id}`, signal);
+}
+
+export function emitImport(id: number, signal?: AbortSignal): Promise<{ emitted_facts: number; status: string } | null> {
+  return apiSend("POST", `/imports/${id}/emit`, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Diff multi-exercices + export questionnaires (T5.5)
+// ---------------------------------------------------------------------------
+
+export type SnapshotDiff = {
+  domain: string;
+  available: boolean;
+  diff: {
+    changed: { path: string; before: number; after: number; delta: number; change_pct: number | null }[];
+    added: { path: string; value: number }[];
+    removed: { path: string; value: number }[];
+    meta_changed: { path: string; before: string | null; after: string | null }[];
+    changed_count: number;
+    added_count: number;
+    removed_count: number;
+  };
+};
+
+export type QuestionnaireCatalog = {
+  version: string;
+  questionnaires: { key: string; label: string; question_count: number }[];
+};
+
+export function fetchDiff(domain: string, signal?: AbortSignal): Promise<SnapshotDiff> {
+  return apiGet<SnapshotDiff>(`/diff/${domain}`, signal);
+}
+
+export function fetchQuestionnaireCatalogs(signal?: AbortSignal): Promise<QuestionnaireCatalog> {
+  return apiGet<QuestionnaireCatalog>("/questionnaire/catalogs", signal);
+}
+
+export async function downloadQuestionnaire(questionnaire?: string, signal?: AbortSignal): Promise<void> {
+  const q = questionnaire ? `?questionnaire=${questionnaire}` : "";
+  const res = await _fetchWithRetry(`${API_BASE_URL}/questionnaire/export${q}`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /questionnaire/export`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "reponses.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

@@ -1,0 +1,5 @@
+month,project,service,carbon_footprint_kgCO2e
+2025-01,proj-a,Compute Engine,2400
+2025-01,proj-a,Cloud Storage,800
+2025-01,proj-a,BigQuery,1200
+2025-01,proj-b,Cloud CDN,300

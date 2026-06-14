@@ -265,15 +265,21 @@ def list_events(company_id: int, action_id: int) -> list[dict[str, Any]]:
 
 
 def baseline_total(company_id: int) -> float:
-    """Total GHG courant (tCO2e) depuis facts_current — base de la trajectoire."""
+    """Total GHG courant (tCO2e) depuis facts_current — base de la trajectoire.
+
+    Inclut le Scope 3 catégorisé (CC.GES.SCOPE3.{n}, Modèle B) en plus de
+    l'agrégat non catégorisé (CC.GES.SCOPE3) : les deux sont disjoints (pas de
+    double comptage), sinon la trajectoire sous-estimerait le Scope 3.
+    """
     if not db_available():
         return 0.0
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT COALESCE(SUM(value), 0) AS t FROM facts_current "
-                "WHERE company_id = %s AND code IN "
-                "('CC.GES.SCOPE1','CC.GES.SCOPE2_LB','CC.GES.SCOPE3')",
+                "WHERE company_id = %s AND ("
+                "code IN ('CC.GES.SCOPE1', 'CC.GES.SCOPE2_LB', 'CC.GES.SCOPE3') "
+                "OR code LIKE 'CC.GES.SCOPE3.%%')",
                 (company_id,),
             )
             r = cur.fetchone()

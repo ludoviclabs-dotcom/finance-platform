@@ -32,8 +32,9 @@ from pydantic import BaseModel
 
 from db.database import db_available, get_db
 from db.tenant import get_company_id
-from routers.auth import require_analyst
+from routers.auth import get_current_user, require_analyst
 from services import alerts_service
+from services.auth_service import AuthUser
 
 logger = logging.getLogger(__name__)
 
@@ -318,8 +319,9 @@ def _notif_row(r: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.get("/notifications")
-def list_notifications(company_id: int = Depends(get_company_id),
+def list_notifications(user: AuthUser = Depends(get_current_user),
                        include_archived: bool = False) -> dict:
+    company_id = user.company_id
     if not db_available():
         rows = [n for n in _MEM_NOTIFS if n["company_id"] == company_id
                 and (include_archived or n["archived_at"] is None)]
@@ -338,7 +340,8 @@ def list_notifications(company_id: int = Depends(get_company_id),
 
 
 @router.patch("/notifications/{notif_id}")
-def mark_read(notif_id: int, company_id: int = Depends(get_company_id)) -> dict:
+def mark_read(notif_id: int, user: AuthUser = Depends(get_current_user)) -> dict:
+    company_id = user.company_id
     if not db_available():
         for n in _MEM_NOTIFS:
             if n["id"] == notif_id and n["company_id"] == company_id:
@@ -360,7 +363,8 @@ def mark_read(notif_id: int, company_id: int = Depends(get_company_id)) -> dict:
 
 
 @router.delete("/notifications/{notif_id}", status_code=204)
-def archive_notification(notif_id: int, company_id: int = Depends(get_company_id)) -> None:
+def archive_notification(notif_id: int, user: AuthUser = Depends(get_current_user)) -> None:
+    company_id = user.company_id
     if not db_available():
         for n in _MEM_NOTIFS:
             if n["id"] == notif_id and n["company_id"] == company_id:

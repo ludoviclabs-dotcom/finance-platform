@@ -267,20 +267,28 @@ def list_events(company_id: int, action_id: int) -> list[dict[str, Any]]:
 def baseline_total(company_id: int) -> float:
     """Total GHG courant (tCO2e) depuis facts_current — base de la trajectoire.
 
-    Inclut le Scope 3 catégorisé (CC.GES.SCOPE3.{n}, Modèle B) en plus de
-    l'agrégat non catégorisé (CC.GES.SCOPE3) : les deux sont disjoints (pas de
-    double comptage), sinon la trajectoire sous-estimerait le Scope 3.
+    S1 + S2 + S3. Scope 2 : préférence location-based (LB), repli sur market-based
+    (MB) si LB ABSENT — sur la présence, pas la valeur (LB = 0 est légitime). Scope
+    3 : agrégat non catégorisé (CC.GES.SCOPE3) + catégories (CC.GES.SCOPE3.{n},
+    Modèle B), disjoints donc sans double comptage. Sans ce repli/cette inclusion,
+    la trajectoire sous-estimerait les émissions.
     """
     if not db_available():
         return 0.0
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT COALESCE(SUM(value), 0) AS t FROM facts_current "
-                "WHERE company_id = %s AND ("
-                "code IN ('CC.GES.SCOPE1', 'CC.GES.SCOPE2_LB', 'CC.GES.SCOPE3') "
-                "OR code LIKE 'CC.GES.SCOPE3.%%')",
+                "SELECT code, value FROM facts_current "
+                "WHERE company_id = %s AND code LIKE 'CC.GES.%%'",
                 (company_id,),
             )
-            r = cur.fetchone()
-            return float(r["t"]) if r and r["t"] is not None else 0.0
+            vals = {r["code"]: float(r["value"]) for r in cur.fetchall() if r["value"] is not None}
+
+    total = vals.get("CC.GES.SCOPE1", 0.0)
+    if "CC.GES.SCOPE2_LB" in vals:
+        total += vals["CC.GES.SCOPE2_LB"]
+    elif "CC.GES.SCOPE2_MB" in vals:
+        total += vals["CC.GES.SCOPE2_MB"]
+    total += sum(v for code, v in vals.items()
+                 if code == "CC.GES.SCOPE3" or code.startswith("CC.GES.SCOPE3."))
+    return round(total, 6)

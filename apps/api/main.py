@@ -25,6 +25,7 @@ from routers import (
     creditrisk,
     cyber,
     dashboard,
+    diff,
     dpp,
     entreprise,
     esg,
@@ -42,6 +43,7 @@ from routers import (
     materialite,
     pilier2,
     quality,
+    questionnaire,
     report,
     reviews,
     scope3,
@@ -193,6 +195,8 @@ app.include_router(consolidation.router, prefix="/consolidation", tags=["consoli
 app.include_router(baselines.router, prefix="/baselines", tags=["baselines (T4.5)"])
 app.include_router(actions.router, prefix="/actions", tags=["actions (T5.1/T5.2)"])
 app.include_router(imports.router, prefix="/imports", tags=["imports (T5.4)"])
+app.include_router(diff.router, prefix="/diff", tags=["diff (T5.5)"])
+app.include_router(questionnaire.router, prefix="/questionnaire", tags=["questionnaire (T5.5)"])
 app.include_router(files.router, tags=["files"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
 app.include_router(export.router, prefix="/export", tags=["export"])

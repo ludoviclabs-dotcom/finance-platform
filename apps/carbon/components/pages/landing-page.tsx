@@ -33,7 +33,7 @@ const NAV_LINKS = [
   { href: "/proof", label: "Preuve" },
   { href: "#how", label: "Comment ça marche" },
   { href: "#pricing", label: "Tarifs" },
-  { href: "#video-section", label: "Démo" },
+  { href: "/demo", label: "Démo" },
 ] as const;
 
 /* ── Scroll-reveal hook ── */
@@ -656,12 +656,12 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <button onClick={trackedEnter("hero_primary")} className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
                   Démarrer gratuitement — 14 jours
                 </button>
-                <a href="#video-section" className="flex items-center gap-2.5 bg-neutral-100 text-black px-7 py-4 rounded-full font-bold text-base transition-all duration-200 hover:bg-neutral-200 hover:scale-105">
+                <Link href="/demo" className="flex items-center gap-2.5 bg-neutral-100 text-black px-7 py-4 rounded-full font-bold text-base transition-all duration-200 hover:bg-neutral-200 hover:scale-105">
                   <span className="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0">
                     <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
                   </span>
                   Voir la démo en 2 min
-                </a>
+                </Link>
               </div>
 
               <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-400">

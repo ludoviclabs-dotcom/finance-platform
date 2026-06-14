@@ -114,11 +114,11 @@
     },
     {
       "id": "alertes-anomalies",
-      "label": "Alertes et détection d'anomalies",
-      "description": "Système d'alertes configurables sur seuils d'émissions et écarts vs. exercice précédent. Détection basique d'anomalies par règles. L'algorithme de détection avancée est en cours d'amélioration.",
-      "statut": "beta",
+      "label": "Alertes et notifications",
+      "description": "Règles configurables sur les KPIs (seuil absolu, variation % vs N-1, donnée manquante) avec centre de notifications in-app persisté. Évaluation déterministe par règles. L'e-mail est optionnel (SMTP, derrière un flag) ; la fonctionnalité ne dépend d'aucun service externe.",
+      "statut": "live",
       "normes": [],
-      "preuve": "apps/api/routers/alerts.py"
+      "preuve": "apps/api/services/alerts_service.py"
     },
     {
       "id": "api-rest-lecture",
@@ -161,9 +161,10 @@
     {
       "id": "imports-fichiers",
       "label": "Imports fichiers sans OAuth (AWS, GCP, Qonto CSV, FEC)",
-      "description": "Parseurs de fichiers exportés manuellement par l'utilisateur (AWS Customer Carbon Footprint, Google Cloud Carbon Footprint, relevés Qonto CSV, FEC). Planifié — voir la tâche T5.4 du plan d'action.",
-      "statut": "planifie",
-      "normes": []
+      "description": "Parseurs de fichiers exportés manuellement par l'utilisateur (AWS Customer Carbon Footprint, Google Cloud Carbon Footprint, relevés Qonto CSV, FEC) → screening Scope 3 avec écran de revue obligatoire avant émission. Sans OAuth ni SDK. Beta — un export de chaque source est validé en test.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/services/import_screening_service.py"
     },
     {
       "id": "connecteurs-erp",
@@ -283,6 +284,22 @@
       "statut": "beta",
       "normes": [],
       "preuve": "apps/api/services/baseline_service.py"
+    },
+    {
+      "id": "macc-transition",
+      "label": "MACC & plan de transition",
+      "description": "Leviers de réduction (CapEx, réduction tCO2e/an, durée de vie) → courbe de coût d'abattement (MACC) triée par coût marginal croissant, et plan de transition (statut proposée → engagée → réalisée journalisé, trajectoire projetée vs référence, exports PDF). Beta.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/services/actions_service.py"
+    },
+    {
+      "id": "multi-exercices",
+      "label": "Diff multi-exercices & réponses questionnaires",
+      "description": "Comparaison de deux exercices (variations par poste, nouveaux postes, facteurs changés) et export CSV de « réponses prêtes » mappant les facts vers les questions types CDP / EcoVadis (catalogue versionné, référence du fact source). Pas d'intégration API. Beta.",
+      "statut": "beta",
+      "normes": [],
+      "preuve": "apps/api/services/questionnaire_service.py"
     }
   ],
   "esrs": [
@@ -401,24 +418,27 @@
       "name": "AWS Customer Carbon Footprint (CSV)",
       "category": "Cloud",
       "section": "imports-fichiers",
-      "statut": "planifie",
-      "description": "Import du CSV d'export AWS CCFT → Scope 3 cat. 3.1/3.8 (cloud). Sans OAuth — fichier exporté manuellement par l'utilisateur. Tâche T5.4."
+      "statut": "beta",
+      "description": "Import du CSV d'export AWS CCFT → Scope 3 (calcul/stockage cloud), avec écran de revue avant émission. Sans OAuth. Livré (T5.4).",
+      "preuve": "apps/api/services/csv_import_parsers.py"
     },
     {
       "id": "gcp-carbon",
       "name": "Google Cloud Carbon Footprint (CSV)",
       "category": "Cloud",
       "section": "imports-fichiers",
-      "statut": "planifie",
-      "description": "Import de l'export GCP Carbon Footprint (CSV/BigQuery). Sans OAuth. Tâche T5.4."
+      "statut": "beta",
+      "description": "Import de l'export GCP Carbon Footprint (CSV/BigQuery) → Scope 3, avec écran de revue. Sans OAuth. Livré (T5.4).",
+      "preuve": "apps/api/services/csv_import_parsers.py"
     },
     {
       "id": "qonto-csv",
       "name": "Qonto — relevés CSV",
       "category": "Comptabilité",
       "section": "imports-fichiers",
-      "statut": "planifie",
-      "description": "Import du CSV des transactions Qonto → pré-screening monétaire Scope 3. Sans OAuth. Tâche T5.4."
+      "statut": "beta",
+      "description": "Import du CSV des transactions Qonto → pré-screening monétaire Scope 3 (ratio ADEME), avec écran de revue. Sans OAuth. Livré (T5.4).",
+      "preuve": "apps/api/services/import_screening_service.py"
     },
     {
       "id": "fec",

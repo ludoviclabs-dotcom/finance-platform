@@ -1,0 +1,39 @@
+{
+  "version": "v1",
+  "note": "Table de correspondance versionnée fact → question type de questionnaire client (CDP climat allégé, EcoVadis section environnement). Export CSV 'réponses prêtes' — AUCUNE intégration API. Chaque question référence un fact source (fact_code).",
+  "questionnaires": {
+    "cdp": {
+      "label": "CDP Climate (allégé)",
+      "questions": [
+        { "id": "C6.1", "question": "Émissions brutes Scope 1 (tCO2e)", "fact_code": "CC.GES.SCOPE1", "unit": "tCO2e" },
+        { "id": "C6.3-LB", "question": "Émissions Scope 2 location-based (tCO2e)", "fact_code": "CC.GES.SCOPE2_LB", "unit": "tCO2e" },
+        { "id": "C6.3-MB", "question": "Émissions Scope 2 market-based (tCO2e)", "fact_code": "CC.GES.SCOPE2_MB", "unit": "tCO2e" },
+        { "id": "C6.5-1", "question": "Scope 3 cat. 1 — Biens et services achetés (tCO2e)", "fact_code": "CC.GES.SCOPE3.1", "unit": "tCO2e" },
+        { "id": "C6.5-2", "question": "Scope 3 cat. 2 — Biens d'équipement (tCO2e)", "fact_code": "CC.GES.SCOPE3.2", "unit": "tCO2e" },
+        { "id": "C6.5-3", "question": "Scope 3 cat. 3 — Énergie amont (tCO2e)", "fact_code": "CC.GES.SCOPE3.3", "unit": "tCO2e" },
+        { "id": "C6.5-4", "question": "Scope 3 cat. 4 — Transport amont (tCO2e)", "fact_code": "CC.GES.SCOPE3.4", "unit": "tCO2e" },
+        { "id": "C6.5-5", "question": "Scope 3 cat. 5 — Déchets (tCO2e)", "fact_code": "CC.GES.SCOPE3.5", "unit": "tCO2e" },
+        { "id": "C6.5-6", "question": "Scope 3 cat. 6 — Déplacements professionnels (tCO2e)", "fact_code": "CC.GES.SCOPE3.6", "unit": "tCO2e" },
+        { "id": "C6.5-7", "question": "Scope 3 cat. 7 — Domicile-travail (tCO2e)", "fact_code": "CC.GES.SCOPE3.7", "unit": "tCO2e" },
+        { "id": "C6.5-8", "question": "Scope 3 cat. 8 — Actifs loués amont (tCO2e)", "fact_code": "CC.GES.SCOPE3.8", "unit": "tCO2e" },
+        { "id": "C6.5-9", "question": "Scope 3 cat. 9 — Transport aval (tCO2e)", "fact_code": "CC.GES.SCOPE3.9", "unit": "tCO2e" },
+        { "id": "C6.5-10", "question": "Scope 3 cat. 10 — Transformation produits vendus (tCO2e)", "fact_code": "CC.GES.SCOPE3.10", "unit": "tCO2e" },
+        { "id": "C6.5-11", "question": "Scope 3 cat. 11 — Utilisation produits vendus (tCO2e)", "fact_code": "CC.GES.SCOPE3.11", "unit": "tCO2e" },
+        { "id": "C6.5-12", "question": "Scope 3 cat. 12 — Fin de vie produits vendus (tCO2e)", "fact_code": "CC.GES.SCOPE3.12", "unit": "tCO2e" },
+        { "id": "C6.5-13", "question": "Scope 3 cat. 13 — Actifs loués aval (tCO2e)", "fact_code": "CC.GES.SCOPE3.13", "unit": "tCO2e" },
+        { "id": "C6.5-14", "question": "Scope 3 cat. 14 — Franchises (tCO2e)", "fact_code": "CC.GES.SCOPE3.14", "unit": "tCO2e" },
+        { "id": "C6.5-15", "question": "Scope 3 cat. 15 — Investissements (tCO2e)", "fact_code": "CC.GES.SCOPE3.15", "unit": "tCO2e" }
+      ]
+    },
+    "ecovadis": {
+      "label": "EcoVadis — Environnement",
+      "questions": [
+        { "id": "ENV-GHG-1", "question": "Émissions GES Scope 1 (tCO2e)", "fact_code": "CC.GES.SCOPE1", "unit": "tCO2e" },
+        { "id": "ENV-GHG-2", "question": "Émissions GES Scope 2 (tCO2e)", "fact_code": "CC.GES.SCOPE2_LB", "unit": "tCO2e" },
+        { "id": "ENV-GHG-3", "question": "Émissions GES Scope 3 (non catégorisé, tCO2e)", "fact_code": "CC.GES.SCOPE3", "unit": "tCO2e" },
+        { "id": "ENV-GHG-4", "question": "Émissions Scope 3 — Biens et services achetés (tCO2e)", "fact_code": "CC.GES.SCOPE3.1", "unit": "tCO2e" },
+        { "id": "ENV-GHG-5", "question": "Émissions Scope 3 — Déplacements professionnels (tCO2e)", "fact_code": "CC.GES.SCOPE3.6", "unit": "tCO2e" }
+      ]
+    }
+  }
+}

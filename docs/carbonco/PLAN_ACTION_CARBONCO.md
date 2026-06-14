@@ -233,23 +233,23 @@
 
 ## P5 — PILOTAGE & RESTITUTION (Sprints 9-10 · ~5-7 jours · coût : 0 €)
 
-### [ ] T5.1 — Courbe de coût d'abattement (MACC)
+### [x] T5.1 — Courbe de coût d'abattement (MACC)
 **Étapes :** modèle `actions` enrichi (investissement €, réduction tCO2e/an, durée de vie) → calcul €/tCO2e ; graphique MACC (barres triées par coût croissant, largeur = potentiel) ; export image/PDF ; données démo issues de l'équivalent `Plan_Transition` du classeur master.
 **CA :** la MACC du jeu démo trie correctement ; le coût marginal affiché = invest / (réduction × durée) documenté.
 
-### [ ] T5.2 — Plan de transition opérationnel
+### [x] T5.2 — Plan de transition opérationnel
 **Étapes :** actions avec statut (proposée/engagée/réalisée), responsable, jalon, CapEx, lien vers les postes d'émission visés ; vue Kanban + vue trajectoire (émissions projetées si actions réalisées vs trajectoire de référence) ; chaque changement de statut journalisé.
 **CA :** cocher une action "réalisée" met à jour la trajectoire projetée ; export PDF "Plan de transition" intégrable au rapport.
 
-### [ ] T5.3 — Alertes stabilisées (in-app d'abord)
+### [x] T5.3 — Alertes stabilisées (in-app d'abord)
 **Étapes :** moteur de règles simple sur `facts_current` (seuil absolu, variation % vs N-1, donnée manquante à J-X de la clôture) ; centre de notifications in-app ; e-mail OPTIONNEL derrière un flag `EMAIL_ENABLED` (Resend free tier 100/j — ne l'activer que si Ludo crée le compte ; sinon in-app uniquement, zéro dépendance).
 **CA :** la règle "gaz +50 % vs N-1" se déclenche sur la fixture ; aucune dépendance e-mail requise pour que la feature soit `live`.
 
-### [ ] T5.4 — Adaptateurs d'import fichiers (les "connecteurs" honnêtes et gratuits)
+### [x] T5.4 — Adaptateurs d'import fichiers (les "connecteurs" honnêtes et gratuits)
 **Étapes :** parseurs de fichiers exportés manuellement par l'utilisateur : **AWS Customer Carbon Footprint (CSV)** → Scope 3 cat. 3.1/3.8 cloud ; **GCP Carbon Footprint (export CSV/BigQuery)** ; **Qonto (export CSV des transactions)** → pré-screening monétaire (réutilise T4.3) ; chaque import = source tracée + écran de revue. Mettre à jour `/integrations` (section "Imports fichiers — disponibles") via le registre.
 **CA :** un export AWS CCFT réel (fixture) s'importe et ventile correctement ; la page intégrations reflète le statut sans intervention manuelle.
 
-### [ ] T5.5 — Diff multi-exercices et mapping questionnaires
+### [x] T5.5 — Diff multi-exercices et mapping questionnaires
 **Étapes :** écran de comparaison de deux snapshots (variations par poste, nouveaux postes, FE changés) ; export "réponses prêtes" mappant les facts vers les questions types des questionnaires clients (CDP allégé / EcoVadis section environnement) en CSV — simple table de correspondance versionnée, pas d'intégration API.
 **CA :** le diff de deux exercices démo identifie 100 % des variations injectées ; l'export questionnaire couvre ≥ 20 questions types avec la référence du fact source.
 

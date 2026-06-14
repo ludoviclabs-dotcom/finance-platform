@@ -97,3 +97,31 @@ class TestAlertHistory:
         data = resp.json()
         assert "alerts" in data
         assert "total" in data
+
+
+class TestAlertModes:
+    def test_missing_mode_no_threshold(self, client: TestClient, analyst_token: str) -> None:
+        payload = {"name": "Donnée manquante", "domain": "vsme",
+                   "field_path": "vsme.energieMwh", "operator": "eq", "mode": "missing"}
+        resp = client.post("/alerts/rules", json=payload, headers=auth(analyst_token))
+        assert resp.status_code == 201
+        client.delete(f"/alerts/rules/{resp.json()['id']}", headers=auth(analyst_token))
+
+    def test_invalid_mode(self, client: TestClient, analyst_token: str) -> None:
+        payload = {**RULE_PAYLOAD, "mode": "wat"}
+        resp = client.post("/alerts/rules", json=payload, headers=auth(analyst_token))
+        assert resp.status_code == 400
+
+
+class TestNotifications:
+    def test_list_structure(self, client: TestClient) -> None:
+        resp = client.get("/alerts/notifications")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "unread" in data and "notifications" in data
+
+    def test_mark_read_nonexistent(self, client: TestClient) -> None:
+        assert client.patch("/alerts/notifications/999999").status_code == 404
+
+    def test_archive_nonexistent(self, client: TestClient) -> None:
+        assert client.delete("/alerts/notifications/999999").status_code == 404

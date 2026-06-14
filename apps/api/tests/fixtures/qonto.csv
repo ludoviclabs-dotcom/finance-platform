@@ -1,0 +1,6 @@
+settlement_date,counterparty_name,label,category,side,amount
+2025-01-05,OVH SAS,Abonnement SaaS hébergement,software,debit,1200.00
+2025-01-08,SNCF Connect,Billet train Paris-Lyon,travel,debit,150.00
+2025-01-10,EDF Entreprises,Facture électricité,energy,debit,800.00
+2025-01-12,Client ACME,Virement reçu facture,income,credit,5000.00
+2025-01-15,Restaurant Le Procope,Déjeuner équipe,restaurant,debit,90.00

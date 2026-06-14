@@ -37,6 +37,7 @@ from routers import (
     finance,
     health,
     history,
+    imports,
     ingest,
     materialite,
     pilier2,
@@ -191,6 +192,7 @@ app.include_router(fec.router, prefix="/fec", tags=["fec (T4.3)"])
 app.include_router(consolidation.router, prefix="/consolidation", tags=["consolidation (T4.4)"])
 app.include_router(baselines.router, prefix="/baselines", tags=["baselines (T4.5)"])
 app.include_router(actions.router, prefix="/actions", tags=["actions (T5.1/T5.2)"])
+app.include_router(imports.router, prefix="/imports", tags=["imports (T5.4)"])
 app.include_router(files.router, tags=["files"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
 app.include_router(export.router, prefix="/export", tags=["export"])

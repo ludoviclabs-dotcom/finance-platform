@@ -23,6 +23,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/consolidation": { title: "Périmètre & groupe", subtitle: "Consolidation multi-entités" },
   "/baselines":   { title: "Année de référence",  subtitle: "Baseline & recalcul" },
   "/actions":     { title: "Leviers de réduction", subtitle: "MACC & plan de transition" },
+  "/imports":     { title: "Imports fichiers",    subtitle: "AWS · GCP · Qonto" },
   "/esrs":        { title: "ESRS / CSRD",      subtitle: "Conformité réglementaire" },
   "/materialite": { title: "Double matérialité", subtitle: "Impacts × Risques × Opportunités" },
   "/datapoints":  { title: "Datapoints CSRD",   subtitle: "Extraction LLM-RAG · ESRS" },

@@ -71,12 +71,32 @@ export function DemoHeader(): React.JSX.Element {
     isComplete,
     currentPhase,
     index,
+    isReducedMotion,
     togglePause,
     skip,
     seekToPhase,
+    goToPhase,
   } = useDemoTimeline();
 
   const isPlaying = status === "playing";
+
+  // Clic sur un chapitre :
+  //   • lecture nominale → « seek » qui relance l'horloge à la phase (DemoStage) ;
+  //   • mouvement réduit → DemoExperience rend le DemoStaticSnapshot (pile
+  //     scrollable). On reproduit alors son comportement : on défile vers la
+  //     section #demo-phase-N et on synchronise la phase courante (goToPhase).
+  const handleChapter = (phase: DemoPhase) => {
+    if (isReducedMotion) {
+      if (typeof document !== "undefined") {
+        document
+          .getElementById(`demo-phase-${phase}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      goToPhase(phase);
+      return;
+    }
+    seekToPhase(phase);
+  };
 
   return (
     <header
@@ -109,7 +129,7 @@ export function DemoHeader(): React.JSX.Element {
             <button
               key={phase}
               type="button"
-              onClick={() => seekToPhase(phase)}
+              onClick={() => handleChapter(phase)}
               aria-label={`Aller au chapitre ${phase} — ${PHASE_META[phase].label}`}
               aria-current={isCurrent ? "step" : undefined}
               className="group flex min-w-0 flex-1 flex-col gap-1.5"

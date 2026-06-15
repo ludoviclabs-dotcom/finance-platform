@@ -60,6 +60,12 @@ export interface DemoTimelineApi {
   replay: () => void;
   /** Navigation manuelle par phase (mode reduced-motion). */
   goToPhase: (phase: DemoPhase) => void;
+  /**
+   * Saut interactif vers une phase EN LECTURE (scrubber de chapitres du header).
+   * Repositionne l'horloge au premier moment de la phase et relance la lecture
+   * (hors mouvement réduit). C'est l'équivalent « seek » d'un lecteur vidéo.
+   */
+  seekToPhase: (phase: DemoPhase) => void;
 }
 
 const LAST_INDEX = MOMENT_SEQUENCE.length - 1;
@@ -234,6 +240,20 @@ export function useDemoTimelineController(): DemoTimelineApi {
     [clearTimer],
   );
 
+  const seekToPhase = useCallback(
+    (phase: DemoPhase) => {
+      clearTimer();
+      remainingRef.current = null;
+      setIndex(firstIndexOfPhase(phase));
+      // En lecture nominale, on relance immédiatement l'horloge depuis la phase
+      // ciblée (effet « seek »). Sous mouvement réduit on ne touche pas au statut.
+      if (!isReducedMotion) {
+        setStatus("playing");
+      }
+    },
+    [clearTimer, isReducedMotion],
+  );
+
   /* ── Nettoyage au démontage ───────────────────────────────────────────────── */
   useEffect(() => clearTimer, [clearTimer]);
 
@@ -255,6 +275,7 @@ export function useDemoTimelineController(): DemoTimelineApi {
     skip,
     replay,
     goToPhase,
+    seekToPhase,
   };
 }
 

@@ -1,143 +1,157 @@
 "use client";
 
-// PHASE 1 — Intro.
+// PHASE 1 — Intro (séquence d'ouverture bespoke).
 //
-// Scène d'ouverture de la démo cinématique /demo : la marque Carbon&Co se révèle
-// au centre de l'écran, le moteur NEURAL « s'allume », puis un champ d'import
-// stylisé annonce la suite (collecte du tableur).
+// On délaisse l'« atome IA générique » pour une ouverture qui DIT le produit :
+// le wordmark Carbon&Co avec un trait dégradé qui se trace, la promesse de
+// traçabilité, puis un APERÇU DU PIPELINE (cellule source → preuve) en 5 maillons
+// reliés qui se révèlent en cascade. Un discret bandeau « moteur NEURAL · facteurs
+// ADEME versionnés » ancre la crédibilité sans surjouer l'IA.
 //
-// Composant PRÉSENTATIONNEL : il lit `currentMoment` via useDemoTimeline() et
-// affiche/anime les éléments selon le moment courant — il ne pilote JAMAIS la
-// progression (l'horloge auto-avance toute seule).
+//   • intro-neural-appear : wordmark + trait tracé + promesse.
+//   • intro-prompt-import : pipeline (5 maillons) + bandeau moteur.
 //
-//   • intro-neural-appear : la marque + l'icône NEURAL + la pastille d'état
-//     apparaissent (fade/scale).
-//   • intro-prompt-import : un champ « Importer un fichier… » + le nom du fichier
-//     démo se révèle en dessous, curseur clignotant.
-//
-// prefers-reduced-motion : on rend directement l'ÉTAT FINAL (tout visible, sans
-// animation d'entrée). Aucun timer n'est posé ici (la scène est statique).
+// Composant PRÉSENTATIONNEL : il lit `currentMoment` et anime selon le moment.
+// prefers-reduced-motion : état final immédiat, sans animation.
 
 import { motion, useReducedMotion } from "framer-motion";
+import {
+  Calculator,
+  FileSpreadsheet,
+  FileText,
+  Link2,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 
 import { PhaseShell } from "@/components/demo/phases/phase-shell";
 import { useDemoTimeline } from "@/lib/hooks/use-demo-timeline";
 import {
-  DEMO_FILE,
-  isMoment,
+  PIPELINE_STEPS,
+  type PipelineIcon,
   isMomentAtOrAfter,
 } from "@/components/demo/demo-types";
-import { DEMO_CSS, EASE } from "@/components/demo/demo-tokens";
+import { EASE } from "@/components/demo/demo-tokens";
 
-/**
- * Icône NEURAL réutilisable (étoile à 8 branches + cœur), tracée en emerald-400.
- * `aria-hidden` car purement décorative.
- */
-function NeuralMark({ size = 72 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#34D399"
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
+/** Clé d'icône de maillon → composant lucide. */
+const PIPELINE_ICONS: Record<PipelineIcon, LucideIcon> = {
+  sheet: FileSpreadsheet,
+  calculator: Calculator,
+  shield: ShieldCheck,
+  link: Link2,
+  file: FileText,
+};
 
 export function DemoPhase1Intro() {
   const reduce = useReducedMotion();
   const { currentMoment } = useDemoTimeline();
 
-  // Sous mouvement réduit, on force l'état final : tout est visible d'emblée.
-  const neuralVisible =
+  const titleVisible =
     reduce || isMomentAtOrAfter(currentMoment, "intro-neural-appear");
-  const promptVisible =
+  const pipelineVisible =
     reduce || isMomentAtOrAfter(currentMoment, "intro-prompt-import");
-  // Le champ d'import est « actif » pile au moment où on invite à importer :
-  // bordure renforcée (border-white/15) tant qu'on reste sur ce moment précis.
-  const promptActive = !reduce && isMoment(currentMoment, "intro-prompt-import");
 
-  // Transition d'entrée commune (fade + léger scale/translate), neutralisée
-  // sous mouvement réduit.
-  const fadeScale = (delay = 0) =>
+  const fadeUp = (delay = 0) =>
     reduce
       ? { initial: false as const }
       : {
-          initial: { opacity: 0, scale: 0.94, y: 8 },
-          animate: { opacity: 1, scale: 1, y: 0 },
-          transition: { duration: 0.55, ease: EASE.out, delay },
+          initial: { opacity: 0, y: 12 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.5, ease: EASE.out, delay },
         };
 
   return (
     <PhaseShell testId="demo-phase-1">
-      {/* Scène centrée verticalement (le conteneur parent fournit la hauteur). */}
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-        {/* Icône NEURAL dans un halo emerald — apparaît au moment NEURAL. */}
-        {neuralVisible ? (
-          <motion.div
-            key="neural-mark"
-            data-testid="demo-intro-neural"
-            className={`flex h-[136px] w-[136px] items-center justify-center rounded-full bg-emerald-400/10 ${
-              reduce ? "" : DEMO_CSS.haloPulse
-            }`}
-            {...fadeScale(0)}
-          >
-            <NeuralMark size={72} />
-          </motion.div>
-        ) : null}
-
-        {/* Titre de marque : Carbon + & emerald + Co. */}
-        <h1 className="mt-8 text-5xl font-extrabold tracking-tight text-white">
-          Carbon<span className="text-emerald-400">&amp;</span>Co
-        </h1>
-
-        {/* Accroche. */}
-        <p className="mt-3 max-w-xl text-white/55">
-          Du tableur au rapport auditable — en 100 secondes.
-        </p>
-
-        {/* Pastille d'état NEURAL — apparaît avec l'icône (moment NEURAL). */}
-        {neuralVisible ? (
+      <div className="flex min-h-[58vh] flex-col items-center justify-center text-center">
+        {/* Kicker discret. */}
+        {titleVisible ? (
           <motion.p
-            key="neural-pill"
-            className="mt-5 font-mono text-xs text-emerald-300"
-            {...fadeScale(0.15)}
+            className="text-[0.68rem] font-bold uppercase tracking-[0.3em] text-emerald-300/70"
+            {...fadeUp(0)}
           >
-            NEURAL Actif · v2.4 · ESRS native
+            Démonstration · 100 secondes
           </motion.p>
         ) : null}
 
-        {/* Champ d'import stylisé — apparaît au moment « prompt import ». */}
-        {promptVisible ? (
+        {/* Wordmark + trait dégradé qui se trace sous le nom. */}
+        <div className="relative mt-5">
+          <h1 className="text-6xl font-extrabold tracking-tight text-white md:text-7xl">
+            Carbon<span className="text-emerald-400">&amp;</span>Co
+          </h1>
+          <motion.span
+            aria-hidden="true"
+            className="absolute -bottom-2 left-0 h-[3px] w-full rounded-full"
+            style={{
+              transformOrigin: "left",
+              background:
+                "linear-gradient(90deg, #34D399 0%, #22D3EE 60%, transparent 100%)",
+            }}
+            initial={reduce ? false : { scaleX: 0 }}
+            animate={reduce ? undefined : { scaleX: 1 }}
+            transition={{ duration: 0.9, ease: EASE.out, delay: 0.25 }}
+          />
+        </div>
+
+        {/* Promesse : la traçabilité, pas la « magie IA ». */}
+        <motion.p className="mt-7 max-w-xl text-lg text-white/60" {...fadeUp(0.15)}>
+          De la cellule source au rapport auditable.
+        </motion.p>
+
+        {/* Aperçu du pipeline : 5 maillons reliés qui se révèlent en cascade. */}
+        {pipelineVisible ? (
           <motion.div
-            key="import-prompt"
-            data-testid="demo-intro-prompt"
-            className={`mt-10 inline-flex items-center gap-2 rounded-xl border bg-white/[0.04] px-4 py-3 transition-colors ${
-              promptActive ? "border-white/15" : "border-white/10"
-            }`}
-            {...fadeScale(reduce ? 0 : 0.1)}
+            data-testid="demo-intro-pipeline"
+            className="mt-10 flex flex-wrap items-center justify-center gap-x-1 gap-y-3"
+            initial={reduce ? false : "hidden"}
+            animate={reduce ? undefined : "visible"}
+            variants={
+              reduce
+                ? undefined
+                : { hidden: {}, visible: { transition: { staggerChildren: 0.12 } } }
+            }
           >
-            <span className="text-sm text-white/55">Importer un fichier…</span>
-            <span className="font-mono text-sm text-emerald-300">
-              {DEMO_FILE}
-            </span>
-            {/* Curseur clignotant (neutralisé sous mouvement réduit via la classe). */}
-            <span
-              aria-hidden="true"
-              className={`inline-block h-4 w-[2px] translate-y-[1px] bg-emerald-300 ${
-                reduce ? "opacity-100" : DEMO_CSS.cursorBlink
-              }`}
-            />
+            {PIPELINE_STEPS.map((step, i) => {
+              const Icon = PIPELINE_ICONS[step.icon];
+              const isLast = i === PIPELINE_STEPS.length - 1;
+              return (
+                <motion.div
+                  key={step.id}
+                  className="flex items-center gap-1"
+                  variants={
+                    reduce
+                      ? undefined
+                      : {
+                          hidden: { opacity: 0, y: 10, scale: 0.92 },
+                          visible: { opacity: 1, y: 0, scale: 1 },
+                        }
+                  }
+                  transition={{ duration: 0.32, ease: EASE.out }}
+                >
+                  <span className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2">
+                    <Icon className="h-4 w-4 text-emerald-400" aria-hidden="true" />
+                    <span className="text-sm font-semibold text-white/85">
+                      {step.label}
+                    </span>
+                  </span>
+                  {!isLast ? (
+                    <span aria-hidden="true" className="px-1 text-emerald-400/50">
+                      →
+                    </span>
+                  ) : null}
+                </motion.div>
+              );
+            })}
           </motion.div>
+        ) : null}
+
+        {/* Bandeau moteur — crédibilité sobre (pas de surenchère « IA »). */}
+        {pipelineVisible ? (
+          <motion.p
+            className="mt-8 font-mono text-xs text-white/40"
+            {...fadeUp(0.1)}
+          >
+            moteur NEURAL · facteurs ADEME versionnés · ESRS natif
+          </motion.p>
         ) : null}
       </div>
     </PhaseShell>

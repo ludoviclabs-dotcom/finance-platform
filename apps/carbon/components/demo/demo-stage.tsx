@@ -24,7 +24,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 
 import { useDemoTimeline } from "@/lib/hooks/use-demo-timeline";
-import { DEMO_COLORS, DEMO_GRID_BACKGROUND, EASE } from "@/components/demo/demo-tokens";
+import { DEMO_COLORS, EASE } from "@/components/demo/demo-tokens";
+import { DemoBackdrop } from "@/components/demo/demo-backdrop";
 import { DemoPhase1Intro } from "@/components/demo/phases/demo-phase-1-intro";
 import { DemoPhase2Import } from "@/components/demo/phases/demo-phase-2-import";
 import { DemoPhase3Mapping } from "@/components/demo/phases/demo-phase-3-mapping";
@@ -65,29 +66,32 @@ export function DemoStage() {
       className="relative w-full min-h-screen"
       style={{ backgroundColor: DEMO_COLORS.bg }}
     >
-      {/* Overlay de grille décoratif (non interactif), géré uniquement ici. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none opacity-50"
-        style={DEMO_GRID_BACKGROUND}
-      />
+      {/* Fond cinématique multi-couches (aurora + grille + spotlight narratif). */}
+      <DemoBackdrop />
 
       {/* Zone de contenu centrée. Le padding haut/bas réserve la place du header
           fixe (en haut) et du footer indicateur de phases (en bas). */}
-      <div className="relative flex items-center justify-center min-h-screen px-4 pt-24 pb-28">
+      <div className="relative flex items-center justify-center min-h-screen overflow-x-clip px-4 pt-28 pb-28">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             // Clé combinant la phase ET le runId : une relecture (replay) change
             // runId et force le remontage complet de la scène.
             key={"p" + currentPhase + "-" + runId}
             className="w-full"
-            initial={isReducedMotion ? false : { opacity: 0, y: 12 }}
-            animate={isReducedMotion ? undefined : { opacity: 1, y: 0 }}
-            exit={isReducedMotion ? undefined : { opacity: 0, y: -12 }}
+            // Transition plus cinématique : léger zoom + flou à l'entrée/sortie.
+            initial={
+              isReducedMotion ? false : { opacity: 0, y: 16, scale: 0.985, filter: "blur(6px)" }
+            }
+            animate={
+              isReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
+            }
+            exit={
+              isReducedMotion ? undefined : { opacity: 0, y: -16, scale: 0.985, filter: "blur(6px)" }
+            }
             transition={
               isReducedMotion
                 ? { duration: 0 }
-                : { duration: 0.4, ease: EASE.out }
+                : { duration: 0.5, ease: EASE.out }
             }
           >
             {renderPhase(currentPhase)}

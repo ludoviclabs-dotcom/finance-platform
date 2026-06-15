@@ -33,8 +33,10 @@ import {
   VERIFY_CHECKS,
   DEMO_HASH_FULL,
   DEMO_TONE_CLASSES,
+  SCOPE_BREAKDOWN,
   type DemoPhase,
 } from "@/components/demo/demo-types";
+import { DEMO_COLORS } from "@/components/demo/demo-tokens";
 import { useDemoTimeline } from "@/lib/hooks/use-demo-timeline";
 
 /* ── Constantes de présentation ─────────────────────────────────────────────── */
@@ -266,6 +268,42 @@ export function DemoStaticSnapshot() {
               >
                 <span aria-hidden="true">✓</span> Validé par l'auditeur
               </span>
+            </div>
+
+            {/* Répartition par scope (GHG Protocol) — barre statique + légende. */}
+            <div className="space-y-3">
+              <p className={KICKER}>Répartition par scope</p>
+              <div className={`${CARD} p-4`}>
+                <div className="flex h-3 w-full overflow-hidden rounded-full border border-white/10 bg-white/[0.05]">
+                  {SCOPE_BREAKDOWN.map((slice) => (
+                    <span
+                      key={slice.id}
+                      className="h-full"
+                      style={{
+                        width: `${(slice.value / DEMO_GES_TARGET) * 100}%`,
+                        backgroundColor: DEMO_COLORS[slice.colorKey],
+                      }}
+                    />
+                  ))}
+                </div>
+                <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {SCOPE_BREAKDOWN.map((slice) => (
+                    <li key={slice.id} className="flex items-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: DEMO_COLORS[slice.colorKey] }}
+                      />
+                      <span className="text-xs font-bold text-white">
+                        {slice.label}
+                      </span>
+                      <span className="ml-auto font-mono text-xs text-white/70">
+                        {slice.value.toLocaleString("fr-FR")} {DEMO_GES_UNIT}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
             {/* Lignes source mappées (libellé + badge de tonalité). */}

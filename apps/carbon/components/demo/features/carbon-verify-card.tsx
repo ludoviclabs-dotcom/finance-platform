@@ -23,6 +23,7 @@
 
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Lock } from "lucide-react";
 
 import { useDemoTimeline } from "@/lib/hooks/use-demo-timeline";
 import { SPRING, DEMO_CSS } from "@/components/demo/demo-tokens";
@@ -90,24 +91,47 @@ export function CarbonVerifyCard({
           exit={reduce ? undefined : { opacity: 0 }}
           transition={reduce ? undefined : { duration: 0.3 }}
         >
-          {/* (1) Encart URL : la vérification publique se « tape » en direct. */}
+          {/* (1) Fenêtre de navigateur : l'URL publique se « tape » en direct
+              dans une barre d'adresse — n'importe qui peut revérifier. */}
           <div
             className={[
-              "w-full overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3",
+              "w-full overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/70 shadow-[0_18px_50px_rgba(0,0,0,0.45)]",
               isMobile ? "" : "max-w-lg",
             ]
               .filter(Boolean)
               .join(" ")}
           >
-            <p className="text-[0.68rem] font-bold uppercase tracking-widest text-emerald-300/80">
-              Vérification publique
-            </p>
-            <div className="mt-1.5 whitespace-nowrap font-mono text-xs">
-              <HashTypewriter
-                shortHash={shortHash}
-                fullHash={hash}
-                basePath="/demo/verify/sha256-"
-              />
+            {/* Chrome : pastilles + barre d'adresse (cadenas + URL) + pastille. */}
+            <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-3 py-2">
+              <span className="flex gap-1.5" aria-hidden="true">
+                <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+              </span>
+              <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-white/[0.05] px-2.5 py-1">
+                <Lock className="h-3 w-3 shrink-0 text-emerald-400" aria-hidden="true" />
+                <div className="min-w-0 overflow-x-auto whitespace-nowrap text-[0.7rem]">
+                  <HashTypewriter
+                    shortHash={shortHash}
+                    fullHash={hash}
+                    basePath="/demo/verify/sha256-"
+                  />
+                </div>
+              </div>
+              <span className="hidden shrink-0 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-widest text-emerald-200 sm:inline">
+                vérifié
+              </span>
+            </div>
+
+            {/* Corps : la promesse d'ouverture. */}
+            <div className="px-4 py-3">
+              <p className="text-[0.68rem] font-bold uppercase tracking-widest text-emerald-300/80">
+                Vérification publique · ouverte
+              </p>
+              <p className="mt-1 text-xs text-white/55">
+                N'importe qui peut revérifier ce rapport — sans compte, sans
+                outil propriétaire.
+              </p>
             </div>
           </div>
 

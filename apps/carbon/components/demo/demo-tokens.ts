@@ -62,6 +62,10 @@ export const DEMO_COLORS = {
   line: "rgba(255,255,255,0.10)", // border-white/10
   lineStrong: "rgba(255,255,255,0.20)",
   haloRgb: "52, 211, 153", // = emerald-400, pour rgba(...) dynamiques
+  /* Palette des scopes GHG Protocol (répartition du compteur — Phase 3). */
+  scope1: "#34D399", // emerald-400 — combustion directe
+  scope2: "#22D3EE", // cyan-400 — électricité achetée
+  scope3: "#818CF8", // indigo-400 — amont/aval (chaîne de valeur)
 } as const;
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -121,6 +125,23 @@ export const DEMO_CSS = {
   gesGlow: "carbon-ges-glow",
   proofGlow: "carbon-proof-glow",
   cursorBlink: "carbon-cursor-blink",
+  /* ── Couche "refonte ambitieuse" v3 ─────────────────────────────────────── */
+  /** Rotation lente horaire (anneau orbital du compteur — la "anim qui tourne"). */
+  orbitSpin: "carbon-orbit-spin",
+  /** Rotation lente antihoraire (anneau intérieur, contre-sens). */
+  orbitSpinRev: "carbon-orbit-spin-rev",
+  /** Faisceau de scan vertical (tableur Phase 2). */
+  scanBeam: "carbon-scan-beam",
+  /** Dérive douce des nappes aurora du fond de scène. */
+  aurora: "carbon-aurora",
+  /** Translation lente de la grille de fond (parallaxe discrète). */
+  gridDrift: "carbon-grid-drift",
+  /** Reflet balayant une carte (sheen). */
+  sheen: "carbon-sheen",
+  /** Onde de clic (drill-down sur le compteur). */
+  ripplePing: "carbon-ripple-ping",
+  /** Battement d'un nœud en orbite. */
+  orbitNode: "carbon-orbit-node",
 } as const;
 
 /** Motif de grille du fond de scène (repris de ProductDemoSection). */

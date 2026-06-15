@@ -291,6 +291,57 @@ h1, h2, h3 {
 }
 .carbon-cursor-blink { animation: carbonCursorBlink 1.05s steps(2) infinite; }
 
+/* ─── Couche "refonte ambitieuse" v3 ─────────────────────────────────────────
+   Anneau orbital, faisceau de scan, fond aurora, reflets, onde de clic.
+   Toutes neutralisées sous prefers-reduced-motion (bloc média ci-dessous). */
+
+@keyframes carbonOrbitSpin { to { transform: rotate(360deg); } }
+/* Rotation horaire lente (anneau extérieur) — la "animation qui tourne". */
+.carbon-orbit-spin     { transform-origin: center; animation: carbonOrbitSpin 22s linear infinite; }
+/* Rotation antihoraire (anneau intérieur, contre-sens) pour un effet de profondeur. */
+.carbon-orbit-spin-rev { transform-origin: center; animation: carbonOrbitSpin 30s linear infinite reverse; }
+
+@keyframes carbonOrbitNode {
+  0%, 100% { opacity: 0.45; transform: scale(0.85); }
+  50%      { opacity: 1;    transform: scale(1.15); }
+}
+.carbon-orbit-node { animation: carbonOrbitNode 2.6s ease-in-out infinite; }
+
+@keyframes carbonScanBeam {
+  0%   { transform: translateY(-120%); opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translateY(120%); opacity: 0; }
+}
+.carbon-scan-beam { animation: carbonScanBeam 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+
+@keyframes carbonAurora {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(4%, -3%, 0) scale(1.08); }
+  66%  { transform: translate3d(-3%, 4%, 0) scale(1.04); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+.carbon-aurora { animation: carbonAurora 24s ease-in-out infinite; }
+
+@keyframes carbonGridDrift {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to   { background-position: 72px 72px, 72px 72px, 0 0; }
+}
+.carbon-grid-drift { animation: carbonGridDrift 40s linear infinite; }
+
+@keyframes carbonSheen {
+  0%   { transform: translateX(-130%) skewX(-12deg); }
+  100% { transform: translateX(230%) skewX(-12deg); }
+}
+.carbon-sheen { animation: carbonSheen 4.5s ease-in-out infinite; }
+
+@keyframes carbonRipplePing {
+  0%   { transform: scale(0.4); opacity: 0.55; }
+  80%  { opacity: 0; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.carbon-ripple-ping { animation: carbonRipplePing 1.4s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .how-rail-pulse,
   .how-live-dot,
@@ -303,11 +354,21 @@ h1, h2, h3 {
   .carbon-halo-pulse,
   .carbon-ges-glow,
   .carbon-proof-glow,
-  .carbon-cursor-blink {
+  .carbon-cursor-blink,
+  .carbon-orbit-spin,
+  .carbon-orbit-spin-rev,
+  .carbon-orbit-node,
+  .carbon-scan-beam,
+  .carbon-aurora,
+  .carbon-grid-drift,
+  .carbon-sheen,
+  .carbon-ripple-ping {
     animation: none;
   }
   /* États finaux figés pour le tracé SVG et la frappe */
   .carbon-check-draw { stroke-dashoffset: 0; }
+  /* Le faisceau de scan reste invisible (pas de balayage) en mouvement réduit. */
+  .carbon-scan-beam { opacity: 0; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

@@ -198,6 +198,75 @@ export const MAPPING_ROWS: DemoRow[] = [
   { label: "Transport amont", value: "à valider", tone: "amber" },
 ];
 
+/* ── Phase 1 — aperçu du pipeline (chips reliés de l'intro) ──────────────────── */
+
+export type PipelineIcon = "sheet" | "calculator" | "shield" | "link" | "file";
+
+export interface PipelineStep {
+  id: string;
+  label: string;
+  icon: PipelineIcon;
+}
+
+/** Les 5 maillons « cellule source → preuve » annoncés dès l'ouverture. */
+export const PIPELINE_STEPS: PipelineStep[] = [
+  { id: "sheet", label: "Tableur", icon: "sheet" },
+  { id: "calc", label: "Calcul", icon: "calculator" },
+  { id: "control", label: "Contrôle", icon: "shield" },
+  { id: "proof", label: "Preuve", icon: "link" },
+  { id: "export", label: "Export", icon: "file" },
+];
+
+/* ── Phase 2 — tableur source (grille réaliste qui se remplit) ───────────────── */
+
+export interface SheetRow {
+  date: string;
+  poste: string;
+  quantite: string;
+  unite: string;
+  source: string;
+}
+
+/** En-têtes de colonnes du tableur source affiché en Phase 2. */
+export const SHEET_COLUMNS = [
+  "Date",
+  "Poste",
+  "Quantité",
+  "Unité",
+  "Source",
+] as const;
+
+/** Lignes du tableur source (factures énergie/transport/achats — fictives). */
+export const SHEET_ROWS: SheetRow[] = [
+  { date: "31/01/25", poste: "Électricité — site Lyon", quantite: "142 800", unite: "kWh", source: "EDF" },
+  { date: "28/02/25", poste: "Gaz naturel réseau", quantite: "38 400", unite: "kWh", source: "Engie" },
+  { date: "15/03/25", poste: "Transport amont", quantite: "12 540", unite: "km", source: "DHL" },
+  { date: "31/03/25", poste: "Électricité — site Paris", quantite: "98 200", unite: "kWh", source: "EDF" },
+  { date: "30/04/25", poste: "Achats — acier", quantite: "24", unite: "t", source: "Fourn. A" },
+];
+
+/** Onglets de feuilles du classeur (le dernier agrège le reste). */
+export const SHEET_TABS = ["Énergie", "Transport", "Achats", "Déchets", "+10"] as const;
+
+/* ── Phase 3 — répartition par scope GHG Protocol (somme = DEMO_GES_TARGET) ──── */
+
+export type ScopeColorKey = "scope1" | "scope2" | "scope3";
+
+export interface ScopeSlice {
+  id: string;
+  label: string;
+  sublabel: string;
+  /** Valeur en tCO₂e — la somme des trois vaut DEMO_GES_TARGET (1 847). */
+  value: number;
+  colorKey: ScopeColorKey;
+}
+
+export const SCOPE_BREAKDOWN: ScopeSlice[] = [
+  { id: "s1", label: "Scope 1", sublabel: "Combustion directe", value: 612, colorKey: "scope1" },
+  { id: "s2", label: "Scope 2", sublabel: "Électricité achetée", value: 285, colorKey: "scope2" },
+  { id: "s3", label: "Scope 3", sublabel: "Chaîne de valeur", value: 950, colorKey: "scope3" },
+];
+
 /* ── Feature A — blocs de traçabilité (remontée auditeur) ────────────────────── */
 
 export type AuditTraceIcon =

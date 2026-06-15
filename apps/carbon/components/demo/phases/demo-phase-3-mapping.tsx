@@ -1,35 +1,34 @@
 "use client";
 
-// PHASE 3 — Calcul des émissions (LA SCÈNE LA PLUS RICHE).
+// PHASE 3 — Calcul des émissions (LA SCÈNE PHARE — celle qu'on garde et enrichit).
 //
-// Scène présentationnelle de la séquence /demo : on matérialise le mapping des
-// lignes source vers leurs facteurs d'émission, le calcul du total GES, puis la
-// double preuve (validation NEURAL + remontée de traçabilité auditeur). Cinq
-// moments rythment l'apparition du contenu (cf. MOMENT_SEQUENCE) :
-//   1. « mapping-rows-fade »        → lignes source (MAPPING_ROWS) + badges.
-//   2. « mapping-factors-attach »   → encart « Justification facteur » (aside).
-//   3. « mapping-counter »          → compteur GES qui s'anime de 0 → cible.
-//   4. « mapping-neural-validation »→ verrou de gouvernance NEURAL (amber→vert).
-//   5. « mapping-audit-trace »      → cascade de traçabilité + halo du compteur.
+// Cœur de la démo : le compteur GES qui s'anime de 0 → 1 847 tCO₂e, désormais
+// SERTI DANS UN ANNEAU ORBITAL qui tourne (la « animation qui tourne »). Autour,
+// on ajoute du concret métier : la formule de calcul, la RÉPARTITION par scope
+// (GHG Protocol) qui se remplit en cadence, le mapping ADEME, la justification du
+// facteur, le verrou de gouvernance NEURAL et la remontée de traçabilité auditeur
+// (drill-down : du chiffre publié à la cellule source).
 //
-// Composant PRÉSENTATIONNEL : il LIT currentMoment via useDemoTimeline() mais ne
-// pilote JAMAIS la progression — l'horloge auto-avance toute seule. Chaque bloc
-// se révèle dès que le moment correspondant est atteint (isMomentAtOrAfter), de
-// sorte que l'état reste cohérent même après un saut de phase. Les composants
-// enfants (compteur, validation, traçabilité) gèrent eux-mêmes leurs timers.
+//   1. « mapping-rows-fade »         → lignes source + badges.
+//   2. « mapping-factors-attach »    → justification du facteur (aside).
+//   3. « mapping-neural-validation » → verrou de gouvernance NEURAL (amber→vert).
+//   4. « mapping-counter »           → compteur + anneau + formule + scopes.
+//   5. « mapping-audit-trace »       → onde de drill-down + cascade de traçabilité.
 //
-// prefers-reduced-motion : on rend directement l'ÉTAT FINAL (tout visible, sans
-// animation d'entrée) ; les enfants affichent eux aussi leur état final. Aucun
-// timer/raf n'est posé dans CE fichier — rien à nettoyer ici.
+// Composant PRÉSENTATIONNEL. prefers-reduced-motion : état final, sans animation.
 
 import { motion, useReducedMotion } from "framer-motion";
+import { MousePointerClick } from "lucide-react";
 
 import { PhaseShell } from "@/components/demo/phases/phase-shell";
 import { AnimatedGesCounter } from "@/components/demo/primitives/animated-ges-counter";
+import { OrbitalRing } from "@/components/demo/primitives/orbital-ring";
+import { ScopeBreakdown } from "@/components/demo/primitives/scope-breakdown";
 import { CarbonNeuralValidation } from "@/components/demo/features/carbon-neural-validation";
 import { CarbonAuditTrace } from "@/components/demo/features/carbon-audit-trace";
 import {
   MAPPING_ROWS,
+  SCOPE_BREAKDOWN,
   DEMO_FACTOR,
   DEMO_GES_TARGET,
   DEMO_GES_UNIT,
@@ -38,7 +37,7 @@ import {
   isMoment,
   isMomentAtOrAfter,
 } from "@/components/demo/demo-types";
-import { EASE } from "@/components/demo/demo-tokens";
+import { DEMO_CSS, EASE } from "@/components/demo/demo-tokens";
 import { useDemoTimeline } from "@/lib/hooks/use-demo-timeline";
 
 /** Classes de base d'un badge d'état (complétées par la tonalité de la ligne). */
@@ -48,9 +47,6 @@ export function DemoPhase3Mapping() {
   const reduce = useReducedMotion();
   const { currentMoment, isMobile } = useDemoTimeline();
 
-  // Visibilité dérivée du moment courant : chaque seuil reste vrai pour tous les
-  // moments ultérieurs (cumulatif), ce qui garantit un état final stable. Sous
-  // mouvement réduit, on force l'état final : tout est visible d'emblée.
   const showRows =
     reduce || isMomentAtOrAfter(currentMoment, "mapping-rows-fade");
   const showFactors =
@@ -58,18 +54,14 @@ export function DemoPhase3Mapping() {
   const showCounter =
     reduce || isMomentAtOrAfter(currentMoment, "mapping-counter");
 
-  // Le compteur s'active pile au moment du calcul (et le reste ensuite) ; il se
-  // pare du halo lumineux exactement sur le moment de la remontée auditeur.
+  // Le compteur + l'anneau + les scopes s'activent au moment du calcul ; l'onde
+  // de drill-down s'allume pile sur la remontée de traçabilité.
   const counterActive = isMomentAtOrAfter(currentMoment, "mapping-counter");
-  const counterGlow = isMoment(currentMoment, "mapping-audit-trace");
+  const drillingDown = isMoment(currentMoment, "mapping-audit-trace");
 
-  // Les deux features de preuve sont pilotées par leur prop `visible` (le moment
-  // précis) — elles gèrent elles-mêmes apparition / disparition / timers.
   const neuralVisible = isMoment(currentMoment, "mapping-neural-validation");
   const auditVisible = isMoment(currentMoment, "mapping-audit-trace");
 
-  // Transition d'entrée commune (fade + léger translate), neutralisée sous
-  // mouvement réduit (on rend alors l'état final, sans animation).
   const fadeUp = (delay = 0) =>
     reduce
       ? { initial: false as const }
@@ -85,35 +77,62 @@ export function DemoPhase3Mapping() {
       title="Calcul des émissions"
       testId="demo-phase-3-mapping"
     >
-      {/* Compteur GES central : bien visible, centré au-dessus des colonnes. */}
+      {/* Compteur central serti dans l'anneau orbital + formule de calcul. */}
       {showCounter ? (
         <motion.div
           data-testid="demo-mapping-counter"
-          className="flex flex-col items-center justify-center py-2 text-center"
+          className="relative flex flex-col items-center justify-center py-2 text-center"
           {...fadeUp(0)}
         >
-          <p className="mb-3 text-[0.68rem] font-bold uppercase tracking-widest text-emerald-300/80">
+          <p className="mb-4 text-[0.68rem] font-bold uppercase tracking-widest text-emerald-300/80">
             Total des émissions calculé
           </p>
-          <AnimatedGesCounter
-            target={DEMO_GES_TARGET}
-            unit={DEMO_GES_UNIT}
-            active={counterActive}
-            glow={counterGlow}
-          />
+
+          <div className="relative">
+            <OrbitalRing active={counterActive} size={isMobile ? 280 : 360}>
+              <AnimatedGesCounter
+                target={DEMO_GES_TARGET}
+                unit={DEMO_GES_UNIT}
+                active={counterActive}
+                glow={drillingDown}
+              />
+            </OrbitalRing>
+
+            {/* Onde de drill-down : « on clique sur le chiffre publié ». */}
+            {drillingDown && !reduce ? (
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-emerald-400/40 ${DEMO_CSS.ripplePing}`}
+              />
+            ) : null}
+          </div>
+
+          {/* Formule : la lecture humaine du calcul (versionnée, donc auditable). */}
+          <motion.p
+            className="mt-6 font-mono text-xs text-white/45"
+            {...fadeUp(0.12)}
+          >
+            847 lignes × facteur ADEME versionné{" "}
+            <span className="text-emerald-300">= 1 847 tCO₂e</span>
+          </motion.p>
         </motion.div>
       ) : null}
 
-      {/* Corps : desktop = 2 colonnes (lignes source / justification facteur),
-          mobile = pile. Les seuils de visibilité restent indépendants. */}
+      {/* Répartition par scope (GHG Protocol) qui se remplit en cadence. */}
+      {showCounter ? (
+        <motion.div className="mx-auto mt-8 max-w-2xl" {...fadeUp(0.18)}>
+          <ScopeBreakdown slices={SCOPE_BREAKDOWN} active={counterActive} />
+        </motion.div>
+      ) : null}
+
+      {/* Corps : lignes source mappées / justification facteur. */}
       <div
         className={
           isMobile
-            ? "mt-8 flex flex-col gap-6"
-            : "mt-8 grid grid-cols-2 items-start gap-6"
+            ? "mt-10 flex flex-col gap-6"
+            : "mt-10 grid grid-cols-2 items-start gap-6"
         }
       >
-        {/* Colonne gauche : lignes source mappées (libellé + badge de tonalité). */}
         <div>
           <p className="mb-3 text-[0.68rem] font-bold uppercase tracking-widest text-emerald-300/80">
             Lignes source mappées
@@ -141,8 +160,6 @@ export function DemoPhase3Mapping() {
           ) : null}
         </div>
 
-        {/* Colonne droite : encart « Justification facteur » (aside discret).
-            S'attache lorsque le moment « mapping-factors-attach » est atteint. */}
         <div>
           <p className="mb-3 text-[0.68rem] font-bold uppercase tracking-widest text-emerald-300/80">
             Justification facteur
@@ -159,7 +176,6 @@ export function DemoPhase3Mapping() {
               </p>
 
               <dl className="mt-4 flex flex-col gap-3">
-                {/* Identifiant du facteur conservé dans le journal de preuve. */}
                 <div>
                   <dt className="text-[0.68rem] font-bold uppercase tracking-widest text-white/40">
                     Identifiant facteur conservé
@@ -169,7 +185,6 @@ export function DemoPhase3Mapping() {
                   </dd>
                 </div>
 
-                {/* Version de la base officielle de facteurs d'émission. */}
                 <div>
                   <dt className="text-[0.68rem] font-bold uppercase tracking-widest text-white/40">
                     Version Base Empreinte®
@@ -179,7 +194,6 @@ export function DemoPhase3Mapping() {
                   </dd>
                 </div>
 
-                {/* Méthode de conversion appliquée pour obtenir les tCO₂e. */}
                 <div>
                   <dt className="text-[0.68rem] font-bold uppercase tracking-widest text-white/40">
                     Méthode de conversion
@@ -194,8 +208,7 @@ export function DemoPhase3Mapping() {
         </div>
       </div>
 
-      {/* Verrou de gouvernance NEURAL : il gère lui-même son apparition /
-          disparition selon `visible`. En bas (colonne droite sur desktop). */}
+      {/* Verrou de gouvernance NEURAL. */}
       <div className={isMobile ? "mt-6" : "mt-6 flex justify-end"}>
         <CarbonNeuralValidation
           visible={neuralVisible}
@@ -205,9 +218,14 @@ export function DemoPhase3Mapping() {
         />
       </div>
 
-      {/* Section dédiée : remontée de traçabilité auditeur (cascade verticale),
-          montée sous le compteur. Le composant maîtrise sa durée d'affichage. */}
+      {/* Remontée de traçabilité auditeur (drill-down du chiffre à la cellule). */}
       <section className="mt-6" data-testid="demo-mapping-audit">
+        {auditVisible ? (
+          <p className="mb-3 flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-widest text-emerald-300/80">
+            <MousePointerClick className="h-3.5 w-3.5" aria-hidden="true" />
+            Remontée de preuve — du chiffre publié à la cellule source
+          </p>
+        ) : null}
         <CarbonAuditTrace visible={auditVisible} />
       </section>
     </PhaseShell>

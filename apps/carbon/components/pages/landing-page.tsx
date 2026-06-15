@@ -1221,7 +1221,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <ul className="space-y-3">
                 <li><Link href="/produit" className="text-sm text-neutral-500 hover:text-black transition-colors">Modules produit</Link></li>
                 <li><a href="#features" className="text-sm text-neutral-500 hover:text-black transition-colors">Copilote IA</a></li>
-                <li><a href="#pricing" className="text-sm text-neutral-500 hover:text-black transition-colors">Tarifs</a></li>
+                <li><a href="/tarifs" className="text-sm text-neutral-500 hover:text-black transition-colors">Tarifs</a></li>
                 <li><a href="/couverture" className="text-sm text-neutral-500 hover:text-black transition-colors">Couverture ESRS</a></li>
                 <li><a href="/integrations" className="text-sm text-neutral-500 hover:text-black transition-colors">Sources &amp; intégrations</a></li>
                 <li><a href="/etat-du-produit" className="text-sm text-neutral-500 hover:text-black transition-colors">État du produit</a></li>

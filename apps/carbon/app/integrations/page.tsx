@@ -12,8 +12,8 @@ import { FeatureStatusBadge } from "@/components/ui/feature-status-badge";
 export const metadata: Metadata = {
   title: "Intégrations & imports — CarbonCo",
   description:
-    "Ce que CarbonCo permet d'importer aujourd'hui (import Excel structuré, API REST) et ce qui " +
-    "est planifié (imports fichiers AWS, GCP, Qonto, FEC) ou en roadmap (connecteurs ERP). " +
+    "Ce que CarbonCo permet d'importer aujourd'hui (import Excel structuré, API REST), ce qui " +
+    "est en beta (imports fichiers AWS, GCP, Qonto, FEC) et ce qui est en roadmap (connecteurs ERP). " +
     "Statut honnête, sans promesse de connecteur non livré.",
   alternates: { canonical: "/integrations" },
 };
@@ -27,9 +27,9 @@ const SECTIONS: { key: IntegrationSection; title: string; subtitle: string }[] =
   },
   {
     key: "imports-fichiers",
-    title: "Imports fichiers (sans OAuth) — planifié",
+    title: "Imports fichiers (sans OAuth) — beta",
     subtitle:
-      "Des fichiers exportés manuellement par vous, parsés par CarbonCo. Pas d'OAuth, pas d'homologation : c'est la voie la plus rapide vers un Scope 3 monétaire. Planifié (tâches T4.3 / T5.4).",
+      "Des fichiers exportés manuellement par vous, parsés par CarbonCo. Pas d'OAuth, pas d'homologation : c'est la voie la plus rapide vers un Scope 3 monétaire. Beta — un export de chaque source est validé en test, avec écran de revue obligatoire avant émission (tâches T4.3 / T5.4).",
   },
   {
     key: "roadmap",
@@ -65,8 +65,8 @@ export default function IntegrationsPage() {
         </h1>
         <p className="text-lg text-neutral-600 max-w-2xl mb-6 leading-relaxed">
           Nous préférons une page honnête à un mur de logos. Aujourd&apos;hui, CarbonCo s&apos;alimente
-          par import Excel structuré et par API REST. Les imports fichiers et les connecteurs natifs
-          sont planifiés — avec leur statut réel ci-dessous.
+          par import Excel structuré et par API REST. Les imports fichiers sont en beta et les
+          connecteurs natifs en roadmap — avec leur statut réel ci-dessous.
         </p>
         <p className="text-sm text-neutral-500 max-w-2xl mb-12">
           Le statut de chaque ligne provient du registre{" "}

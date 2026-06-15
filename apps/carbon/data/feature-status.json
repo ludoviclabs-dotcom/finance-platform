@@ -57,7 +57,7 @@
     {
       "id": "copilote-neural",
       "label": "Copilote IA NEURAL — assistant CSRD",
-      "description": "Assistant IA spécialisé en ESRS et CSRD. Répond aux questions sur les obligations de reporting, cite les articles ESRS sources, aide à interpréter les résultats. Ne calcule pas automatiquement — assiste et explique.",
+      "description": "Assistant IA spécialisé en ESRS et CSRD. Mode par défaut : démonstration (réponses préenregistrées, étiquetées, sans coût ni dépendance payante). Mode live (réponses libres avec citations ESRS sourcées par le modèle Claude) activable via NEURAL_MODE=live. Ne calcule pas automatiquement — assiste et explique.",
       "statut": "live",
       "normes": [],
       "preuve": "apps/api/routers/copilot.py"

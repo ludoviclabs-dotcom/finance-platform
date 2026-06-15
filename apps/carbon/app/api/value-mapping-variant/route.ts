@@ -1,8 +1,26 @@
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 
 import type { AiContextResponse } from "@/lib/api";
+import { isLiveAi, demoStreamResponse } from "@/lib/ai/provider";
 
 export const maxDuration = 60;
+
+/** Variante scriptée (mode démonstration, sans appel modèle). */
+function buildDemoVariant(ctx: AiContextResponse): string {
+  const facts =
+    ctx.allowedFacts.length > 0
+      ? ctx.allowedFacts.map((f) => `- **${f.label}** : ${f.magnitude}`).join("\n")
+      : "_Aucun indicateur quantifié disponible pour ce filtre._";
+  return (
+    "> 🟡 **Démonstration — réponse préenregistrée.** La reformulation IA en direct " +
+    "s'active avec `NEURAL_MODE=live`.\n\n" +
+    `**${ctx.baseHeadline}**\n\n` +
+    `_Adapté au profil : ${ctx.personaLabel}._\n\n` +
+    ctx.baseSupporting.map((s) => `- ${s}`).join("\n") +
+    "\n\n**Chiffres citables (faits autorisés) :**\n" +
+    facts
+  );
+}
 
 function buildVariantSystemPrompt(ctx: AiContextResponse): string {
   const factsBlock =
@@ -50,6 +68,11 @@ export async function POST(req: Request) {
   };
 
   const { messages, aiContext } = body;
+
+  // Mode démonstration par défaut : aucune API payante appelée.
+  if (!isLiveAi()) {
+    return demoStreamResponse(buildDemoVariant(aiContext));
+  }
 
   const result = streamText({
     model: "anthropic/claude-sonnet-4.6",

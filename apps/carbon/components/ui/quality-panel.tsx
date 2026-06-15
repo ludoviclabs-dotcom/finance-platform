@@ -3,6 +3,10 @@
 /**
  * QualityPanel — widgets de preuve & qualité (T2.6). Lit /quality/indicators :
  * score audit, couverture de pièces, distribution qualité, fraîcheur des facteurs.
+ *
+ * Repli démonstration : si le backend est injoignable (déploiement vitrine sans
+ * base Neon), le panneau affiche un jeu FICTIF clairement étiqueté plutôt que de
+ * disparaître.
  */
 
 import { useEffect, useState } from "react";
@@ -15,6 +19,19 @@ const QUALITY_LABELS: Record<string, string> = {
   "3": "Donnée estimée",
   "4": "Ratio monétaire",
   "5": "Extrapolation",
+};
+
+/** Jeu fictif cohérent (Σ distribution = total = 127). */
+const DEMO_QUALITY: QualityIndicators = {
+  total_datapoints: 127,
+  with_evidence: 57,
+  evidence_coverage: 0.45,
+  quality_distribution: { "1": 12, "2": 45, "3": 38, "4": 24, "5": 8 },
+  avg_quality: 2.6,
+  fe_versions: ["v2025"],
+  chain_ok: true,
+  open_anomalies: 0,
+  audit_score: 72,
 };
 
 function scoreTone(score: number): string {
@@ -35,19 +52,28 @@ export function QualityPanel() {
     return () => ctrl.abort();
   }, []);
 
-  if (failed || !ind) return null;
+  const display = ind ?? (failed ? DEMO_QUALITY : null);
+  if (!display) return null;
+  const isDemo = !ind && failed;
 
-  const coveragePct = Math.round(ind.evidence_coverage * 100);
+  const coveragePct = Math.round(display.evidence_coverage * 100);
 
   return (
     <div className="rounded-2xl border border-neutral-200 p-5" data-testid="quality-panel">
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-500">
-          Preuve &amp; qualité
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-neutral-500">
+            Preuve &amp; qualité
+          </h3>
+          {isDemo && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+              Démo — données fictives
+            </span>
+          )}
+        </div>
         <div className="text-right">
-          <span className={`text-3xl font-extrabold tabular-nums ${scoreTone(ind.audit_score)}`}>
-            {ind.audit_score}
+          <span className={`text-3xl font-extrabold tabular-nums ${scoreTone(display.audit_score)}`}>
+            {display.audit_score}
           </span>
           <span className="text-sm text-neutral-400">/100</span>
           <p className="text-[10px] text-neutral-400 uppercase tracking-wide">Score audit</p>
@@ -61,19 +87,19 @@ export function QualityPanel() {
         </div>
         <div className="rounded-xl bg-neutral-50 py-3">
           <p className="text-xl font-bold tabular-nums">
-            {ind.avg_quality === null ? "—" : ind.avg_quality.toFixed(1)}
+            {display.avg_quality === null ? "—" : display.avg_quality.toFixed(1)}
           </p>
           <p className="text-[10px] text-neutral-500">qualité moyenne (1-5)</p>
         </div>
         <div className="rounded-xl bg-neutral-50 py-3">
-          <p className="text-xl font-bold tabular-nums">{ind.total_datapoints}</p>
+          <p className="text-xl font-bold tabular-nums">{display.total_datapoints}</p>
           <p className="text-[10px] text-neutral-500">datapoints</p>
         </div>
       </div>
 
       <div className="space-y-1.5">
-        {Object.entries(ind.quality_distribution).map(([level, count]) => {
-          const pct = ind.total_datapoints ? (count / ind.total_datapoints) * 100 : 0;
+        {Object.entries(display.quality_distribution).map(([level, count]) => {
+          const pct = display.total_datapoints ? (count / display.total_datapoints) * 100 : 0;
           return (
             <div key={level} className="flex items-center gap-2 text-xs">
               <span className="w-32 shrink-0 text-neutral-500">{QUALITY_LABELS[level]}</span>
@@ -87,8 +113,8 @@ export function QualityPanel() {
       </div>
 
       <p className="mt-4 text-[10px] text-neutral-400">
-        Facteurs : {ind.fe_versions.length ? ind.fe_versions.join(", ") : "—"} ·
-        Chaîne : {ind.chain_ok ? "intègre" : "rompue"} ·{" "}
+        Facteurs : {display.fe_versions.length ? display.fe_versions.join(", ") : "—"} ·
+        Chaîne : {display.chain_ok ? "intègre" : "rompue"} ·{" "}
         <a href="/methodologie" className="underline hover:text-neutral-600">
           formule du score
         </a>

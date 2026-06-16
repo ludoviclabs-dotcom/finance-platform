@@ -34,6 +34,24 @@ function eventId(): string {
   }
 }
 
+/**
+ * URL courante expurgée de tout secret avant envoi à Sentry. Les routes
+ * publiques `/audit/[token]`, `/q/[token]` et `/verify/[hash]` portent des
+ * jetons d'accès dans le chemin : on rédige tout segment « tokenesque » (long
+ * ou hexadécimal) et on supprime la query string.
+ */
+function scrubbedUrl(): string | undefined {
+  if (typeof location === "undefined") return undefined;
+  try {
+    const segments = location.pathname
+      .split("/")
+      .map((seg) => (seg.length >= 16 || /[0-9a-f]{16,}/i.test(seg) ? "[redacted]" : seg));
+    return location.origin + segments.join("/"); // ni query ni hash
+  } catch {
+    return undefined;
+  }
+}
+
 function send(parsed: ParsedDsn, message: string, stack?: string): void {
   const id = eventId();
   const now = new Date();
@@ -45,7 +63,7 @@ function send(parsed: ParsedDsn, message: string, stack?: string): void {
     platform: "javascript",
     level: "error",
     release: RELEASE,
-    request: { url: typeof location !== "undefined" ? location.href : undefined },
+    request: { url: scrubbedUrl() },
     exception: { values: [{ type: "Error", value: message, stacktrace: stack ? { frames: [] } : undefined }] },
     extra: stack ? { stack: stack.slice(0, 4000) } : undefined,
   });

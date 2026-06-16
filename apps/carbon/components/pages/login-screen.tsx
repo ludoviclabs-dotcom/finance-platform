@@ -220,18 +220,19 @@ export function LoginScreen({ onLogin, onVerifyTotp, onDemo }: LoginScreenProps)
                 </div>
                 <div>
                   <label htmlFor="totp-code" className="block text-sm text-white/80 mb-1.5 font-medium">
-                    Code à 6 chiffres
+                    Code de vérification
                   </label>
                   <input
                     id="totp-code"
                     name="otp"
-                    inputMode="numeric"
+                    inputMode="text"
+                    autoCapitalize="characters"
                     autoComplete="one-time-code"
                     autoFocus
                     maxLength={14}
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    placeholder="123456"
+                    placeholder="123456 ou code de récupération"
                     aria-invalid={Boolean(error)}
                     aria-describedby={error ? "login-error" : undefined}
                     className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white placeholder:text-white/40 text-center text-lg tracking-[0.4em] focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/40 transition-colors"

@@ -2,6 +2,8 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 
 import { checkCopilotRateLimit } from "@/lib/rate-limit";
 import { verifyBearerToken } from "@/lib/verify-jwt";
+import { isLiveAi, demoStreamResponse } from "@/lib/ai/provider";
+import { buildDemoCopilotAnswer } from "@/lib/ai/demo-copilot";
 
 export const maxDuration = 60;
 
@@ -270,6 +272,12 @@ export async function POST(req: Request) {
   };
 
   const { messages, tools, snapshots, ragHits } = body;
+
+  // Mode démonstration par défaut (NEURAL_MODE != "live") : réponse scriptée,
+  // aucun appel à une API payante. Le mode live s'active explicitement.
+  if (!isLiveAi()) {
+    return demoStreamResponse(buildDemoCopilotAnswer(messages, tools ?? null));
+  }
 
   const system = buildSystemPrompt(tools ?? null, snapshots ?? null, ragHits ?? null);
 

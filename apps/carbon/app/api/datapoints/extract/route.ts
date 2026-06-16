@@ -5,6 +5,7 @@ import { findDatapoint, type EsrsDatapointDef, type SourceCitation, type Extract
 import { embedQuery } from "@/lib/rag/embeddings";
 import { querySimilar, tenantNamespace, type RagSearchResult } from "@/lib/rag/vector-store";
 import { upsertExtraction } from "@/lib/datapoints/store";
+import { isLiveAi } from "@/lib/ai/provider";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -231,6 +232,20 @@ export async function POST(req: NextRequest) {
   }
   if (ids.length > 60) {
     return NextResponse.json({ error: "Trop de datapoints (max 60 par batch)" }, { status: 400 });
+  }
+
+  // Mode démonstration par défaut (NEURAL_MODE != "live") : pas d'appel LLM
+  // payant. On renvoie un statut « skipped » exploitable par l'UI.
+  if (!isLiveAi()) {
+    return NextResponse.json({
+      results: ids.map((id) => ({
+        datapointId: id,
+        status: "skipped" as const,
+        detail:
+          "Mode démonstration (NEURAL_MODE=demo) — extraction IA désactivée. " +
+          "Définir NEURAL_MODE=live pour activer l'extraction automatique des datapoints.",
+      })),
+    });
   }
 
   let client: Anthropic;

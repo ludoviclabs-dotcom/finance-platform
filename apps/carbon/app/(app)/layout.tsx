@@ -36,6 +36,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/copilot":     { title: "Copilote IA",      subtitle: "Assistant ESG intelligent" },
   "/reports":     { title: "Rapports",         subtitle: "Exports & documents" },
   "/pricing":     { title: "Offres",           subtitle: "Plans & tarification" },
+  "/securite":    { title: "Sécurité",         subtitle: "Double authentification (2FA)" },
 };
 
 function PageSkeleton() {

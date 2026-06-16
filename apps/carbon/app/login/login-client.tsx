@@ -16,7 +16,7 @@ import { LoginScreen } from "@/components/pages/login-screen";
 import { useAuth } from "@/lib/hooks/use-auth";
 
 export function LoginClient() {
-  const { auth, ready, login } = useAuth();
+  const { auth, ready, login, verifyTotp } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,6 +29,11 @@ export function LoginClient() {
     <LoginScreen
       onLogin={async (email, password) => {
         const result = await login(email, password);
+        if (result.ok) router.replace("/dashboard");
+        return result;
+      }}
+      onVerifyTotp={async (preAuthToken, code) => {
+        const result = await verifyTotp(preAuthToken, code);
         if (result.ok) router.replace("/dashboard");
         return result;
       }}

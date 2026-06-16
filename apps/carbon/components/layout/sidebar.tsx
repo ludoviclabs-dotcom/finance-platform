@@ -10,6 +10,7 @@ import {
   ChevronLeft, ChevronRight, X, Scale,
   Sparkles, ShieldCheck, Database, Upload, ClipboardList, History, Settings, Bell,
   Inbox, Factory, ListChecks, ClipboardCheck,
+  FileText, Receipt, TrendingDown, CalendarClock, GitCompare, Building2, FolderInput,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -72,9 +73,21 @@ const navGroups: NavGroup[] = [
         id: "fournisseurs", href: "/fournisseurs", label: "Fournisseurs", icon: <Factory className="w-5 h-5" />,
         badge: { text: "Scope 3", color: "bg-blue-500/15 text-blue-400" },
       },
-      { id: "upload", href: "/upload", label: "Import Excel",    icon: <Upload className="w-5 h-5" /> },
-      { id: "ingest", href: "/ingest", label: "Synchronisation", icon: <Database className="w-5 h-5" /> },
-      { id: "qc",     href: "/qc",     label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
+      { id: "upload",  href: "/upload",  label: "Import Excel",     icon: <Upload className="w-5 h-5" /> },
+      { id: "fec",     href: "/fec",     label: "Import FEC",       icon: <Receipt className="w-5 h-5" /> },
+      { id: "imports", href: "/imports", label: "Imports fichiers", icon: <FolderInput className="w-5 h-5" /> },
+      { id: "ingest",  href: "/ingest",  label: "Synchronisation",  icon: <Database className="w-5 h-5" /> },
+      { id: "qc",      href: "/qc",      label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
+    ],
+  },
+  {
+    group: "Restitution & périmètre",
+    items: [
+      { id: "beges",         href: "/beges",         label: "BEGES (France)",     icon: <FileText className="w-5 h-5" /> },
+      { id: "actions",       href: "/actions",       label: "Plan d'action",      icon: <TrendingDown className="w-5 h-5" /> },
+      { id: "baselines",     href: "/baselines",     label: "Année de référence", icon: <CalendarClock className="w-5 h-5" /> },
+      { id: "diff",          href: "/diff",          label: "Multi-exercices",    icon: <GitCompare className="w-5 h-5" /> },
+      { id: "consolidation", href: "/consolidation", label: "Consolidation",      icon: <Building2 className="w-5 h-5" /> },
     ],
   },
   {
@@ -88,10 +101,11 @@ const navGroups: NavGroup[] = [
         id: "revue", href: "/revue", label: "Validation Merkle", icon: <Inbox className="w-5 h-5" />,
         badge: { text: "Phase 3", color: "bg-violet-500/15 text-violet-400" },
       },
-      { id: "audit",   href: "/audit",   label: "Journal d'audit", icon: <ClipboardList className="w-5 h-5" /> },
-      { id: "history", href: "/history", label: "Historique",      icon: <History className="w-5 h-5" /> },
-      { id: "alerts",  href: "/alerts",  label: "Alertes",          icon: <Bell className="w-5 h-5" /> },
-      { id: "admin",   href: "/admin",   label: "Administration",   icon: <Settings className="w-5 h-5" /> },
+      { id: "audit",    href: "/audit",    label: "Journal d'audit", icon: <ClipboardList className="w-5 h-5" /> },
+      { id: "history",  href: "/history",  label: "Historique",      icon: <History className="w-5 h-5" /> },
+      { id: "alerts",   href: "/alerts",   label: "Alertes",         icon: <Bell className="w-5 h-5" /> },
+      { id: "securite", href: "/securite", label: "Sécurité 2FA",    icon: <ShieldCheck className="w-5 h-5" /> },
+      { id: "admin",    href: "/admin",    label: "Administration",  icon: <Settings className="w-5 h-5" /> },
       { id: "pricing", href: "/pricing", label: "Offres",           icon: <CreditCard className="w-5 h-5" /> },
     ],
   },

@@ -10,6 +10,7 @@ import {
   refreshTokenRequest,
   setAuthToken,
   setOnTokenExpired,
+  verifyTotpRequest,
 } from "@/lib/api";
 
 // Access token TTL côté front (14 min — légèrement inférieur aux 15 min serveur
@@ -22,7 +23,9 @@ export type AuthState =
 
 export type LoginResult =
   | { ok: true }
-  | { ok: false; error: string };
+  | { ok: false; error: string }
+  // 2FA : le mot de passe est correct mais un code TOTP est requis (étape 2).
+  | { ok: false; totpRequired: true; preAuthToken: string };
 
 interface InMemorySession {
   token: string;
@@ -177,27 +180,55 @@ export function useAuth() {
   // ---------------------------------------------------------------------------
   // Login
   // ---------------------------------------------------------------------------
+  // Établit la session à partir d'une réponse de login/totp complète.
+  const establishSession = useCallback(
+    (res: Awaited<ReturnType<typeof loginRequest>>) => {
+      const session = sessionFromResponse(res);
+      setAuthToken(session.token);
+      setOnTokenExpired(silentRefresh);
+      setAuth({
+        status: "authenticated",
+        email: session.email,
+        role: session.role,
+        companyId: session.companyId,
+      });
+      scheduleRefresh(session.expiresAt);
+    },
+    [silentRefresh, scheduleRefresh],
+  );
+
   const login = useCallback(
     async (email: string, password: string): Promise<LoginResult> => {
       try {
         const res = await loginRequest(email, password);
-        const session = sessionFromResponse(res);
-        setAuthToken(session.token);
-        setOnTokenExpired(silentRefresh);
-        setAuth({
-          status: "authenticated",
-          email: session.email,
-          role: session.role,
-          companyId: session.companyId,
-        });
-        scheduleRefresh(session.expiresAt);
+        // 2FA activée : on s'arrête à l'étape mot de passe et on remonte le
+        // token pré-auth ; la session n'est pas encore établie.
+        if (res.requiresTotp && res.preAuthToken) {
+          return { ok: false, totpRequired: true, preAuthToken: res.preAuthToken };
+        }
+        establishSession(res);
         return { ok: true };
       } catch (err) {
         const message = err instanceof Error ? err.message : "Erreur de connexion.";
         return { ok: false, error: message };
       }
     },
-    [silentRefresh, scheduleRefresh],
+    [establishSession],
+  );
+
+  // Étape 2 du login : valide le code TOTP (ou un code de récupération).
+  const verifyTotp = useCallback(
+    async (preAuthToken: string, code: string): Promise<LoginResult> => {
+      try {
+        const res = await verifyTotpRequest(preAuthToken, code);
+        establishSession(res);
+        return { ok: true };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Code invalide.";
+        return { ok: false, error: message };
+      }
+    },
+    [establishSession],
   );
 
   // ---------------------------------------------------------------------------
@@ -211,5 +242,5 @@ export function useAuth() {
     setAuth({ status: "unauthenticated" });
   }, []);
 
-  return { auth, ready, login, logout };
+  return { auth, ready, login, verifyTotp, logout };
 }

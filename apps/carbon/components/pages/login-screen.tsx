@@ -8,16 +8,25 @@ interface LoginScreenProps {
   onLogin: (
     email: string,
     password: string
+  ) => Promise<{ ok: boolean; error?: string; totpRequired?: boolean; preAuthToken?: string }>;
+  onVerifyTotp: (
+    preAuthToken: string,
+    code: string
   ) => Promise<{ ok: boolean; error?: string }>;
   onDemo: () => void;
 }
 
-export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onVerifyTotp, onDemo }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Étape 2FA (apparaît seulement si l'utilisateur a activé le TOTP).
+  const [step, setStep] = useState<"password" | "totp">("password");
+  const [preAuthToken, setPreAuthToken] = useState("");
+  const [code, setCode] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +34,25 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
     setLoading(true);
     try {
       const result = await onLogin(email, password);
-      if (!result.ok) {
+      if (result.totpRequired && result.preAuthToken) {
+        setPreAuthToken(result.preAuthToken);
+        setStep("totp");
+      } else if (!result.ok) {
         setError(result.error ?? "Erreur de connexion.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await onVerifyTotp(preAuthToken, code.trim());
+      if (!result.ok) {
+        setError(result.error ?? "Code invalide.");
       }
     } finally {
       setLoading(false);
@@ -174,12 +200,81 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
 
           {/* Titre formulaire */}
           <div className="mb-8">
-            <h2 className="font-display text-2xl font-bold text-white mb-1">Bon retour 👋</h2>
-            <p className="text-white/50 text-sm">Connectez-vous à votre espace CarbonCo</p>
+            <h2 className="font-display text-2xl font-bold text-white mb-1">
+              {step === "password" ? "Bon retour 👋" : "Vérification en deux étapes"}
+            </h2>
+            <p className="text-white/50 text-sm">
+              {step === "password"
+                ? "Connectez-vous à votre espace CarbonCo"
+                : "Saisissez le code de votre application d'authentification."}
+            </p>
           </div>
 
           {/* Card formulaire */}
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8">
+            {step === "totp" ? (
+              <form onSubmit={handleVerify} className="space-y-5" noValidate>
+                <div className="flex items-center gap-2 text-sm text-white/70">
+                  <Shield className="w-4 h-4 text-green-400" aria-hidden="true" />
+                  Authentification à deux facteurs
+                </div>
+                <div>
+                  <label htmlFor="totp-code" className="block text-sm text-white/80 mb-1.5 font-medium">
+                    Code à 6 chiffres
+                  </label>
+                  <input
+                    id="totp-code"
+                    name="otp"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    autoFocus
+                    maxLength={14}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="123456"
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? "login-error" : undefined}
+                    className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white placeholder:text-white/40 text-center text-lg tracking-[0.4em] focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/40 transition-colors"
+                  />
+                  <p className="mt-1.5 text-xs text-white/40">
+                    Ou l&apos;un de vos codes de récupération si vous n&apos;avez plus accès à
+                    l&apos;application.
+                  </p>
+                </div>
+
+                {error && (
+                  <div
+                    id="login-error"
+                    role="alert"
+                    aria-live="polite"
+                    className="flex items-center gap-2 p-3 rounded-xl bg-red-500/15 border border-red-500/30"
+                  >
+                    <AlertCircle className="w-4 h-4 text-red-300 flex-shrink-0" />
+                    <span className="text-xs text-red-200">{error}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || code.trim().length === 0}
+                  className="w-full py-3.5 rounded-xl bg-gradient-esg text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all hover:scale-[1.01] cursor-pointer shadow-lg shadow-green-900/30 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-400"
+                >
+                  {loading ? "Vérification…" : "Vérifier"}
+                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("password");
+                    setError(null);
+                    setCode("");
+                  }}
+                  className="w-full text-xs text-white/50 hover:text-white/80 transition-colors"
+                >
+                  ← Revenir à la connexion
+                </button>
+              </form>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               {/* Email */}
               <div>
@@ -256,9 +351,11 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>
             </form>
+            )}
           </div>
 
-          {/* CTA démo secondaire */}
+          {/* CTA démo secondaire — masqué pendant l'étape 2FA */}
+          {step === "password" && (
           <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-5 text-center">
             <p className="text-xs text-white/40 mb-3">Pas encore client ?</p>
             <button
@@ -270,6 +367,7 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
+          )}
 
           {/* Trust signals */}
           <div className="mt-6 flex items-center justify-center gap-6 flex-wrap">

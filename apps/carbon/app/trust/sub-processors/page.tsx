@@ -82,7 +82,7 @@ const SUB_PROCESSORS: SubProcessor[] = [
     transferOutsideEU: "Conditionnel",
     legalBasis: "RGPD article 28 (DPA Sentry)",
     notes:
-      "Activé uniquement si SENTRY_DSN est défini. Aucune donnée métier ESG envoyée : seules les traces d'erreur (stack, route, version de déploiement).",
+      "Activé uniquement si la variable est définie (SENTRY_DSN côté API, NEXT_PUBLIC_SENTRY_DSN côté front). Aucune donnée métier ESG envoyée : seules les traces d'erreur (message, stack, route, version de déploiement).",
   },
 ];
 

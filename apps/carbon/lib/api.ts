@@ -330,6 +330,18 @@ export interface LoginResponse {
   tokenType: string;
   expiresAt: string;
   user: AuthUser;
+  // 2FA : présents quand l'utilisateur a activé le TOTP (étape 2 requise).
+  requiresTotp?: boolean;
+  preAuthToken?: string | null;
+}
+
+export interface TotpEnrollResponse {
+  secret: string;
+  otpauthUri: string;
+}
+
+export interface TotpStatusResponse {
+  enabled: boolean;
 }
 
 export interface MeResponse {
@@ -451,6 +463,63 @@ export async function loginRequest(
     throw new Error(`API ${res.status} on /auth/login`);
   }
   return (await res.json()) as LoginResponse;
+}
+
+// --- 2FA TOTP (T1.4) ---
+
+/** Étape 2 du login : valide le code TOTP (ou un code de récupération). */
+export async function verifyTotpRequest(
+  preAuthToken: string,
+  code: string,
+  signal?: AbortSignal,
+): Promise<LoginResponse> {
+  const res = await fetch(`${API_BASE_URL}/auth/totp/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ preAuthToken, code }),
+    credentials: "include",
+    signal,
+  });
+  if (res.status === 401) throw new Error("Code invalide ou expiré.");
+  if (!res.ok) throw new Error(`API ${res.status} on /auth/totp/verify`);
+  return (await res.json()) as LoginResponse;
+}
+
+/** Statut 2FA de l'utilisateur courant. */
+export function totpStatusRequest(signal?: AbortSignal): Promise<TotpStatusResponse> {
+  return apiGet<TotpStatusResponse>("/auth/totp/status", signal);
+}
+
+/** Démarre l'enrôlement : renvoie le secret + l'URI otpauth (à scanner). */
+export async function totpEnrollRequest(): Promise<TotpEnrollResponse> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/auth/totp/enroll`, {
+    method: "POST",
+    headers: { Accept: "application/json", ...authHeaders() },
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /auth/totp/enroll`);
+  return (await res.json()) as TotpEnrollResponse;
+}
+
+/** Confirme le code et active le TOTP ; renvoie les 8 codes de récupération. */
+export async function totpActivateRequest(code: string): Promise<string[]> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/auth/totp/activate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    body: JSON.stringify({ code }),
+  });
+  if (res.status === 400 || res.status === 401) throw new Error("Code invalide.");
+  if (!res.ok) throw new Error(`API ${res.status} on /auth/totp/activate`);
+  const data = (await res.json()) as { recoveryCodes: string[] };
+  return data.recoveryCodes;
+}
+
+/** Désactive le TOTP de l'utilisateur courant. */
+export async function totpDisableRequest(): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/auth/totp/disable`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok && res.status !== 204) throw new Error(`API ${res.status} on /auth/totp/disable`);
 }
 
 export async function refreshTokenRequest(signal?: AbortSignal): Promise<LoginResponse> {
@@ -623,6 +692,45 @@ export type QualityIndicators = {
 
 export function fetchQualityIndicators(signal?: AbortSignal): Promise<QualityIndicators> {
   return apiGet<QualityIndicators>("/quality/indicators", signal);
+}
+
+// --- Pièces justificatives par datapoint (T2.1) ---
+export type EvidenceItem = {
+  sha256: string;
+  filename: string;
+  size: number;
+  content_type?: string | null;
+  uploaded_by?: string | null;
+  uploaded_at?: string | null;
+};
+
+/** Liste les pièces actives attachées à un fact code. */
+export async function fetchEvidence(code: string, signal?: AbortSignal): Promise<EvidenceItem[]> {
+  const res = await apiGet<{ evidence?: EvidenceItem[] }>(
+    `/facts/${encodeURIComponent(code)}/evidence`,
+    signal,
+  );
+  return res.evidence ?? [];
+}
+
+/** Attache une pièce (PDF/PNG/JPG, 5 Mo max) via multipart (event chaîné). */
+export async function uploadEvidence(code: string, file: File): Promise<void> {
+  const form = new FormData();
+  form.append("file", file);
+  // Pas de Content-Type manuel : le navigateur pose la frontière multipart.
+  const res = await _fetchWithRetry(
+    `${API_BASE_URL}/facts/${encodeURIComponent(code)}/evidence`,
+    { method: "POST", headers: { ...authHeaders() }, body: form },
+  );
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.detail ?? `API ${res.status} on evidence upload`);
+  }
+}
+
+/** Révoque une pièce (event chaîné). Le fichier reste adressé par son hash. */
+export async function deleteEvidence(code: string, sha256: string): Promise<void> {
+  await apiSend("DELETE", `/facts/${encodeURIComponent(code)}/evidence/${sha256}`);
 }
 
 // --- Scope 3 — 15 catégories (T4.1) ---

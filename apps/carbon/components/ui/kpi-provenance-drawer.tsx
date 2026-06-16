@@ -15,11 +15,17 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Copy, FileSpreadsheet, History, Loader2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { CheckCircle2, Copy, FileSpreadsheet, History, Loader2, Paperclip, Trash2, Upload, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useKpiProvenance } from "@/lib/hooks/use-kpi-provenance";
-import type { FactEvent } from "@/lib/api";
+import {
+  deleteEvidence,
+  fetchEvidence,
+  uploadEvidence,
+  type EvidenceItem,
+  type FactEvent,
+} from "@/lib/api";
 
 interface KpiProvenanceDrawerProps {
   open: boolean;
@@ -110,6 +116,9 @@ export function KpiProvenanceDrawer({
               {!loading && !error && trail && trail.events.length > 0 && (
                 <EventTimeline events={trail.events} unit={unit} />
               )}
+
+              {/* Pièces justificatives (T2.1) — attacher / lister / révoquer. */}
+              <EvidenceSection code={code} />
             </div>
 
             {trail && trail.events.length > 0 && (
@@ -283,4 +292,153 @@ function formatDate(iso: string): string {
   } catch {
     return iso;
   }
+}
+
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} o`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} Ko`;
+  return `${(n / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+const EVIDENCE_ACCEPT = ".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf";
+const MAX_EVIDENCE_BYTES = 5 * 1024 * 1024;
+
+/**
+ * EvidenceSection — pièces justificatives d'un datapoint (T2.1). Permet à
+ * l'utilisateur d'ATTACHER une pièce (PDF/PNG/JPG, 5 Mo max), de lister les
+ * pièces actives et de les révoquer. Chaque action = un event chaîné côté API
+ * (le SHA-256 de la pièce est scellé dans la chaîne de preuve).
+ */
+function EvidenceSection({ code }: { code: string }) {
+  const [items, setItems] = useState<EvidenceItem[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const reload = useCallback(() => {
+    setError(null);
+    fetchEvidence(code)
+      .then((list) => {
+        setItems(list);
+        setUnavailable(false);
+      })
+      .catch(() => {
+        setItems([]);
+        setUnavailable(true);
+      });
+  }, [code]);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > MAX_EVIDENCE_BYTES) {
+      setError("Fichier trop volumineux (5 Mo max).");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await uploadEvidence(code, file);
+      reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Échec de l'envoi.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onDelete = async (sha256: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await deleteEvidence(code, sha256);
+      reload();
+    } catch {
+      setError("Échec de la révocation.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="mt-6 border-t border-[var(--color-border)] pt-5">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-[var(--color-foreground-subtle)]">
+          <Paperclip className="w-3.5 h-3.5" aria-hidden />
+          Pièces justificatives
+        </div>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy || unavailable}
+          data-testid="evidence-attach"
+          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-2.5 py-1 text-xs font-medium text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-muted)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {busy ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden />
+          ) : (
+            <Upload className="w-3.5 h-3.5" aria-hidden />
+          )}
+          Joindre
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={EVIDENCE_ACCEPT}
+          className="hidden"
+          onChange={onPick}
+        />
+      </div>
+
+      {error && (
+        <p className="mb-2 text-xs text-[var(--color-danger)]">{error}</p>
+      )}
+
+      {unavailable ? (
+        <p className="text-xs text-[var(--color-foreground-subtle)]">
+          Pièces indisponibles (connexion au backend requise).
+        </p>
+      ) : items && items.length === 0 ? (
+        <p className="text-xs text-[var(--color-foreground-subtle)]">
+          Aucune pièce. Joignez une facture ou un justificatif (PDF, PNG, JPG — 5 Mo max) :
+          chaque pièce est scellée par son hash dans la chaîne de preuve.
+        </p>
+      ) : (
+        <ul className="space-y-2" data-testid="evidence-list">
+          {(items ?? []).map((it) => (
+            <li
+              key={it.sha256}
+              className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-2"
+            >
+              <FileSpreadsheet className="w-4 h-4 shrink-0 text-[var(--color-foreground-muted)]" aria-hidden />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-medium text-[var(--color-foreground)]">
+                  {it.filename}
+                </p>
+                <p className="font-mono text-[10px] text-[var(--color-foreground-subtle)]">
+                  {formatBytes(it.size)} · {it.sha256.slice(0, 10)}…
+                  {it.uploaded_at ? ` · ${formatDate(it.uploaded_at)}` : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onDelete(it.sha256)}
+                disabled={busy}
+                aria-label={`Révoquer la pièce ${it.filename}`}
+                className="p-1.5 rounded-md text-[var(--color-foreground-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-surface)] disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
 }

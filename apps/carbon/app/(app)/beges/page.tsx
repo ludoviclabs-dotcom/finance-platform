@@ -1,17 +1,30 @@
 "use client";
 
 /**
- * /beges — Bilan GES réglementaire France (BEGES v5, T4.2). Éligibilité,
+ * /beges — Bilan GES réglementaire France (BEGES v5, T4.2 + T7.2). Éligibilité,
  * ventilation 6 catégories / 22 postes (total BEGES = total GHG), export ZIP
- * (PDF + Excel auditable), checklist de dépôt ADEME.
+ * (PDF + Excel auditable), checklist de dépôt ADEME, suivi des dépôts déclarés
+ * et échéance de renouvellement (+4 ans, rappels in-app J-180 / J-30 / échéance).
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { downloadBegesReport, fetchBegesStatus, type BegesStatus } from "@/lib/api";
+import {
+  deleteBegesFiling,
+  downloadBegesReport,
+  fetchBegesFilings,
+  fetchBegesStatus,
+  recordBegesFiling,
+  type BegesFilingsResponse,
+  type BegesStatus,
+} from "@/lib/api";
 
 function fmt(v: number): string {
   return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(v);
+}
+
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("fr-FR");
 }
 
 const ELIG_TONE: Record<string, string> = {
@@ -19,6 +32,167 @@ const ELIG_TONE: Record<string, string> = {
   obligatoire_om: "bg-amber-50 border-amber-200 text-amber-800",
   volontaire: "bg-emerald-50 border-emerald-200 text-emerald-700",
 };
+
+const SCHEDULE_TONE: Record<string, string> = {
+  aucun_bilan: "bg-neutral-50 border-neutral-200 text-neutral-600",
+  a_jour: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  echeance_proche: "bg-amber-50 border-amber-200 text-amber-800",
+  en_retard: "bg-red-50 border-red-200 text-red-700",
+};
+
+function FilingsSection() {
+  const [data, setData] = useState<BegesFilingsResponse | null>(null);
+  const [year, setYear] = useState(String(new Date().getFullYear() - 1));
+  const [filedAt, setFiledAt] = useState("");
+  const [ademeRef, setAdemeRef] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const reload = useCallback(() => {
+    fetchBegesFilings()
+      .then(setData)
+      .catch(() => setData(null));
+  }, []);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  const submit = async () => {
+    const y = Number(year);
+    if (!filedAt || !Number.isInteger(y) || y < 2000 || y > 2100) {
+      setFormError("Renseignez une année de référence valide et la date de dépôt.");
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    try {
+      await recordBegesFiling({
+        exercise_year: y,
+        filed_at: filedAt,
+        ademe_ref: ademeRef.trim() || null,
+      });
+      setAdemeRef("");
+      setFiledAt("");
+      reload();
+    } catch {
+      setFormError("Enregistrement impossible — réessayez.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!data) return null;
+
+  return (
+    <div className="rounded-2xl border border-neutral-200 p-5 mb-8">
+      <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500 mb-3">
+        Suivi des dépôts &amp; échéance de renouvellement
+      </h2>
+
+      <div className={`rounded-xl border p-4 mb-4 text-sm ${SCHEDULE_TONE[data.status] ?? SCHEDULE_TONE.aucun_bilan}`}>
+        <strong>
+          {data.status === "en_retard"
+            ? "Échéance dépassée : "
+            : data.status === "echeance_proche"
+              ? "Échéance proche : "
+              : data.status === "a_jour"
+                ? "À jour : "
+                : ""}
+        </strong>
+        {data.label}
+        {data.status !== "aucun_bilan" && (
+          <span className="block mt-1 text-xs opacity-80">
+            Rappels automatiques dans le centre de notifications à J-180, J-30 et à l&apos;échéance.
+          </span>
+        )}
+      </div>
+
+      {data.filings.length > 0 && (
+        <div className="space-y-1.5 mb-4">
+          {data.filings.map((f) => (
+            <div
+              key={f.id}
+              className="flex items-center justify-between text-sm border-b border-neutral-100 pb-1.5"
+            >
+              <span>
+                <span className="font-semibold text-neutral-800">Exercice {f.exercise_year}</span>
+                <span className="text-neutral-500">
+                  {" "}— déposé le {fmtDate(f.filed_at)}
+                  {f.ademe_ref ? ` · réf. ADEME ${f.ademe_ref}` : ""}
+                </span>
+              </span>
+              <span className="flex items-center gap-3">
+                <span className="text-xs text-neutral-400 tabular-nums">
+                  prochain : {fmtDate(f.next_due_at)}
+                </span>
+                <button
+                  onClick={async () => {
+                    try {
+                      await deleteBegesFiling(f.id);
+                      reload();
+                    } catch {
+                      /* suppression réservée aux admins — silencieux */
+                    }
+                  }}
+                  className="text-xs text-neutral-300 hover:text-red-500"
+                  title="Supprimer (admin)"
+                >
+                  ✕
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="text-xs text-neutral-500">
+          Année de référence
+          <input
+            type="number"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            min={2000}
+            max={2100}
+            className="block mt-1 w-28 rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-800"
+          />
+        </label>
+        <label className="text-xs text-neutral-500">
+          Date de dépôt ADEME
+          <input
+            type="date"
+            value={filedAt}
+            onChange={(e) => setFiledAt(e.target.value)}
+            className="block mt-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-800"
+          />
+        </label>
+        <label className="text-xs text-neutral-500">
+          Référence de dépôt (optionnel)
+          <input
+            type="text"
+            value={ademeRef}
+            onChange={(e) => setAdemeRef(e.target.value)}
+            placeholder="ex. n° de dossier"
+            className="block mt-1 w-44 rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-800"
+          />
+        </label>
+        <button
+          onClick={submit}
+          disabled={saving}
+          className="px-4 py-2 rounded-full bg-black text-white text-sm font-semibold hover:scale-105 transition-transform disabled:opacity-40"
+        >
+          {saving ? "Enregistrement…" : "Déclarer ce dépôt"}
+        </button>
+      </div>
+      {formError && <p className="mt-2 text-xs text-red-600">{formError}</p>}
+      <p className="mt-3 text-xs text-neutral-400">
+        Le dépôt s&apos;effectue manuellement sur bilans-ges.ademe.fr (pas d&apos;API publique de
+        dépôt) — déclarez-le ici pour activer le calcul d&apos;échéance (+4 ans) et les rappels.
+      </p>
+    </div>
+  );
+}
 
 export default function BegesPage() {
   const [data, setData] = useState<BegesStatus | null>(null);
@@ -66,6 +240,8 @@ export default function BegesPage() {
       <div className={`rounded-2xl border p-4 mb-8 text-sm ${ELIG_TONE[data.eligibility.status] ?? ELIG_TONE.volontaire}`}>
         <strong>Éligibilité :</strong> {data.eligibility.label}
       </div>
+
+      <FilingsSection />
 
       <div className="space-y-4 mb-8">
         {data.breakdown.categories.map((cat) => (

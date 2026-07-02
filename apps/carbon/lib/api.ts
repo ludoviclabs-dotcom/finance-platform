@@ -781,6 +781,50 @@ export async function downloadBegesReport(signal?: AbortSignal): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+// --- BEGES — suivi des dépôts et échéance +4 ans (T7.2) ---
+export type BegesFiling = {
+  id: number;
+  company_id: number;
+  exercise_year: number;
+  filed_at: string;
+  next_due_at: string;
+  ademe_ref: string | null;
+  package_hash: string | null;
+  total_tco2e: number | null;
+  notes: string | null;
+  reminder_stage: string;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type BegesFilingsResponse = {
+  status: "aucun_bilan" | "a_jour" | "echeance_proche" | "en_retard";
+  label: string;
+  next_due_at: string | null;
+  days_until_due: number | null;
+  last_exercise_year: number | null;
+  last_filed_at: string | null;
+  filings: BegesFiling[];
+};
+
+export function fetchBegesFilings(signal?: AbortSignal): Promise<BegesFilingsResponse> {
+  return apiGet<BegesFilingsResponse>("/beges/filings", signal);
+}
+
+export function recordBegesFiling(payload: {
+  exercise_year: number;
+  filed_at: string;
+  ademe_ref?: string | null;
+  total_tco2e?: number | null;
+  notes?: string | null;
+}): Promise<BegesFiling | null> {
+  return apiSend<BegesFiling>("POST", "/beges/filings", undefined, payload);
+}
+
+export async function deleteBegesFiling(filingId: number): Promise<void> {
+  await apiSend("DELETE", `/beges/filings/${filingId}`);
+}
+
 // --- Import FEC → screening Scope 3 (T4.3) ---
 export type FecScreening = {
   total_spend: number;

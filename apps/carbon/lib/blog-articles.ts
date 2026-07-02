@@ -24,6 +24,16 @@ export interface BlogArticleMeta {
 
 export const BLOG_ARTICLES: BlogArticleMeta[] = [
   {
+    slug: "vsme-devient-vs-2026",
+    title: "VSME devient VS : ce que change le projet d'acte délégué de mai 2026",
+    description:
+      "Renommage en « Voluntary Standard », datapoints allégés, exemptions micro-entreprises et value chain cap opposable : le point sur le projet d'acte délégué du 6 mai 2026 et le calendrier jusqu'à l'application 2027.",
+    date: "2026-07-02",
+    readingTime: "6 min",
+    category: "Réglementation",
+    tags: ["VSME", "VS", "EFRAG", "Acte délégué", "Value chain cap"],
+  },
+  {
     slug: "vsme-standard-chaine-valeur",
     title: "VSME : le standard de la chaîne de valeur après l'Omnibus",
     description:

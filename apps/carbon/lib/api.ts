@@ -2276,6 +2276,7 @@ export interface IssuePosition {
   code: string;
   x: number;
   y: number;
+  justification?: string | null;
 }
 
 export interface ScoredIssue {
@@ -2285,16 +2286,66 @@ export interface ScoredIssue {
   y: number;
   score: number;
   materiel: boolean;
+  materiel_impact?: boolean;
+  materiel_financier?: boolean;
   pillar: "E" | "S" | "G";
+  esrs?: string | null;
+  justification?: string | null;
 }
 
 export interface MaterialiteScoreResponse {
   sector: string | null;
   issues: ScoredIssue[];
   total_materiel: number;
+  total_materiel_impact?: number;
+  total_materiel_financier?: number;
   total_issues: number;
   score_moyen: number;
+  threshold?: number;
+  esrs_to_activate?: string[];
   narrative: string;
+}
+
+export interface MaterialiteAssessment {
+  id: number;
+  company_id: number;
+  label: string;
+  sector: string | null;
+  threshold: number;
+  total_issues: number;
+  total_materiel: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export function fetchMaterialiteAssessments(signal?: AbortSignal): Promise<MaterialiteAssessment[]> {
+  return apiGet<MaterialiteAssessment[]>("/materialite/assessments", signal);
+}
+
+export function createMaterialiteAssessment(payload: {
+  label?: string | null;
+  sector?: string | null;
+}): Promise<MaterialiteAssessment | null> {
+  return apiSend<MaterialiteAssessment>("POST", "/materialite/assessments", undefined, payload);
+}
+
+export async function downloadMaterialiteAssessment(assessmentId: number): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/materialite/assessments/${assessmentId}/export`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /materialite/assessments/${assessmentId}/export`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "materialite.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export interface SectorPresetsResponse {

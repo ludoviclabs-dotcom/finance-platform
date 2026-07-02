@@ -25,6 +25,7 @@ import {
   EditModeButton, SaveButton, SectorBar, MatKpiRow, MatrixSection, NarrativePanel, parseNarrative,
   type MatIssue, type PillarMap,
 } from "@/components/cockpit/materialite-sections";
+import { MaterialiteVersions } from "@/components/cockpit/materialite-versions";
 
 /* ─── Palette piliers (cohérente avec le design cockpit) ──────────────────── */
 const PILLARS: PillarMap = {
@@ -303,8 +304,11 @@ export default function MaterialitePage() {
           <NarrativePanel blocks={narrativeBlocks} sector={sectorLabel} />
         ) : null}
 
+        {/* Versions archivées (T7.4) — figer/exporter l'évaluation de l'exercice */}
+        <MaterialiteVersions sector={sector} />
+
         <div className="text-center text-[11px] text-[var(--cc-subtle)] font-mono py-2">
-          Double matérialité ESRS · données pilotées par /materialite/score
+          Double matérialité ESRS · règle ESRS 1 (impact OU financier ≥ {THRESHOLD}) · données pilotées par /materialite/score
         </div>
       </div>
     </div>

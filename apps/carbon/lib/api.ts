@@ -781,6 +781,112 @@ export async function downloadBegesReport(signal?: AbortSignal): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+// --- Campagnes de collecte fournisseurs (T7.3) ---
+export type SupplierCampaignStats = {
+  invited: number;
+  viewed: number;
+  completed: number;
+  pending: number;
+  response_rate: number;
+};
+
+export type SupplierCampaign = {
+  id: number;
+  company_id: number;
+  name: string;
+  exercise_year: number | null;
+  deadline: string | null;
+  status: "active" | "closed";
+  reminder_stage: string;
+  created_by: string | null;
+  created_at: string;
+  closed_at: string | null;
+  stats: SupplierCampaignStats;
+};
+
+export type SupplierCampaignInvite = {
+  token_id: number;
+  supplier_id: number;
+  supplier_name: string;
+  contact_email: string | null;
+  status: "pending" | "viewed" | "completed";
+  url: string;
+  expires_at: string | null;
+  viewed_at: string | null;
+  used_at: string | null;
+};
+
+export type SupplierPendingAnswer = {
+  id: number;
+  supplier_id: number;
+  supplier_name: string;
+  ghg_total_tco2e: number | null;
+  ghg_scope1: number | null;
+  ghg_scope2: number | null;
+  ghg_scope3: number | null;
+  methodology: string | null;
+  reporting_year: number | null;
+  narrative: string | null;
+  submitted_at: string;
+  review_status: string;
+  anomalies: string[];
+};
+
+export function fetchSupplierCampaigns(signal?: AbortSignal): Promise<SupplierCampaign[]> {
+  return apiGet<SupplierCampaign[]>("/suppliers/campaigns", signal);
+}
+
+export function createSupplierCampaign(payload: {
+  name: string;
+  exercise_year?: number | null;
+  deadline?: string | null;
+}): Promise<SupplierCampaign | null> {
+  return apiSend<SupplierCampaign>("POST", "/suppliers/campaigns", undefined, payload);
+}
+
+export function fetchCampaignDetail(
+  campaignId: number,
+  signal?: AbortSignal
+): Promise<{ campaign: SupplierCampaign; invites: SupplierCampaignInvite[] }> {
+  return apiGet(`/suppliers/campaigns/${campaignId}`, signal);
+}
+
+export function inviteCampaignSuppliers(
+  campaignId: number,
+  payload: { supplier_ids?: number[]; all_active?: boolean }
+): Promise<SupplierCampaignInvite[] | null> {
+  return apiSend<SupplierCampaignInvite[]>(
+    "POST",
+    `/suppliers/campaigns/${campaignId}/invites`,
+    undefined,
+    payload
+  );
+}
+
+export async function closeSupplierCampaign(campaignId: number): Promise<void> {
+  await apiSend("POST", `/suppliers/campaigns/${campaignId}/close`);
+}
+
+export function importSuppliersCsv(csvText: string): Promise<{
+  created: number;
+  skipped: number;
+  parsed: number;
+  issues: string[];
+} | null> {
+  return apiSend("POST", "/suppliers/import-csv", undefined, { csv_text: csvText });
+}
+
+export function fetchPendingSupplierAnswers(signal?: AbortSignal): Promise<SupplierPendingAnswer[]> {
+  return apiGet<SupplierPendingAnswer[]>("/suppliers/answers/pending", signal);
+}
+
+export function reviewSupplierAnswer(
+  answerId: number,
+  payload: { action: "accept" | "flag"; note?: string | null; apply_to_supplier?: boolean }
+): Promise<{ id: number; review_status: string } | null> {
+  return apiSend("POST", `/suppliers/answers/${answerId}/review`, undefined, payload);
+}
+
 // --- BEGES — suivi des dépôts et échéance +4 ans (T7.2) ---
 export type BegesFiling = {
   id: number;

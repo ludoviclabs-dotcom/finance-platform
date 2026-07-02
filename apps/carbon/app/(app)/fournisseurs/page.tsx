@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Factory,
   Globe,
@@ -415,6 +416,12 @@ export default function FournisseursPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href="/fournisseurs/campagnes"
+            className="px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
+          >
+            Campagnes de collecte →
+          </Link>
           <button
             type="button"
             onClick={load}

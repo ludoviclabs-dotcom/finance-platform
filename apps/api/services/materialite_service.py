@@ -1,16 +1,29 @@
 """
-materialite_service.py — Scoring + sauvegarde positions matrice double matérialité Phase 4.
+materialite_service.py — Scoring + sauvegarde positions matrice double matérialité
+(Phase 4, durcie en T7.4).
 
 Fonctionnalités :
   - 5 secteurs préremplis (tech, industrie, retail, services, finance)
-  - Calcul du score de matérialité (formule pondérée impact × probabilité)
+  - Double matérialité conforme ESRS 1 : un enjeu est matériel si sa dimension
+    IMPACT (y) OU sa dimension FINANCIÈRE (x) atteint le seuil — règle « OU »,
+    pas le produit des deux. Le score combiné sqrt(x×y) est conservé pour
+    l'affichage/tri mais ne détermine plus la matérialité.
+  - Justification par enjeu (exigée par les auditeurs pour documenter la démarche)
+  - Versions archivées (materialite_assessments) : une évaluation figée par
+    exercice, immuable, exportable en ZIP auditable (voir materialite_export)
   - Sauvegarde des positions personnalisées (drag & drop)
-  - Génération de narratif LLM (stub déterministe en mode sans-clé, API Anthropic si dispo)
+  - Génération de narratif déterministe
+
+Mapping enjeu → standard ESRS à couvrir : utilisé pour recommander l'activation
+des standards en aval (VSME C1/C2, couverture ESRS).
 """
 
 from __future__ import annotations
 
+import json
 import logging
+from datetime import datetime, timezone
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -110,10 +123,28 @@ ISSUE_LABELS: dict[str, str] = {
     "SC-1": "Droits humains chaîne de valeur",
 }
 
-MATERIALITY_THRESHOLD = 2.5  # score ≥ seuil → matériel
+MATERIALITY_THRESHOLD = 2.5  # dimension (impact OU financière) ≥ seuil → matériel
 
-# In-memory store (remplacé par DB quand disponible)
-_POSITIONS_STORE: dict[tuple[int, str], dict[str, float]] = {}
+# Enjeu → standard ESRS à couvrir si l'enjeu est matériel (recommandation aval)
+ISSUE_ESRS: dict[str, str] = {
+    "CC-1": "ESRS E1",
+    "CC-2": "ESRS E1",
+    "CC-3": "ESRS E1",
+    "ER-1": "ESRS E1",
+    "WR-1": "ESRS E3",
+    "BD-1": "ESRS E4",
+    "CE-1": "ESRS E5",
+    "WO-1": "ESRS S1",
+    "WO-2": "ESRS S1",
+    "SC-1": "ESRS S2",
+    "DP-1": "ESRS S4",
+    "BC-1": "ESRS G1",
+}
+
+# In-memory stores (remplacés par DB quand disponible)
+_POSITIONS_STORE: dict[tuple[int, str], dict[str, Any]] = {}
+_MEM_ASSESSMENTS: list[dict[str, Any]] = []
+_MEM_ASSESSMENT_ID = {"assessment": 1}
 
 
 # ---------------------------------------------------------------------------
@@ -122,8 +153,12 @@ _POSITIONS_STORE: dict[tuple[int, str], dict[str, float]] = {}
 
 class IssuePosition(BaseModel):
     code: str
-    x: float = Field(..., ge=0.0, le=5.0, description="Probabilité (0-5)")
-    y: float = Field(..., ge=0.0, le=5.0, description="Impact (0-5)")
+    x: float = Field(..., ge=0.0, le=5.0, description="Matérialité financière — probabilité × ampleur (0-5)")
+    y: float = Field(..., ge=0.0, le=5.0, description="Matérialité d'impact — sévérité × échelle (0-5)")
+    justification: str | None = Field(
+        default=None, max_length=2000,
+        description="Justification du positionnement (attendue par l'auditeur pour les enjeux matériels)",
+    )
 
 
 class SavePositionsRequest(BaseModel):
@@ -137,16 +172,24 @@ class ScoredIssue(BaseModel):
     x: float
     y: float
     score: float
-    materiel: bool
+    materiel: bool            # règle ESRS 1 : impact OU financier ≥ seuil
+    materiel_impact: bool     # dimension impact (y) ≥ seuil
+    materiel_financier: bool  # dimension financière (x) ≥ seuil
     pillar: str  # E | S | G
+    esrs: str | None = None   # standard ESRS à couvrir si matériel
+    justification: str | None = None
 
 
 class MaterialiteScoreResponse(BaseModel):
     sector: str | None
     issues: list[ScoredIssue]
     total_materiel: int
+    total_materiel_impact: int
+    total_materiel_financier: int
     total_issues: int
     score_moyen: float
+    threshold: float
+    esrs_to_activate: list[str]
     narrative: str
 
 
@@ -154,6 +197,27 @@ class SectorPresetsResponse(BaseModel):
     sectors: list[str]
     default: str
     issues: dict[str, str]  # code → label
+
+
+class AssessmentCreate(BaseModel):
+    label: str | None = Field(default=None, max_length=200)
+    sector: str | None = None
+
+
+class AssessmentSummary(BaseModel):
+    id: int
+    company_id: int
+    label: str
+    sector: str | None
+    threshold: float
+    total_issues: int
+    total_materiel: int
+    created_by: str | None
+    created_at: datetime
+
+
+class AssessmentOut(AssessmentSummary):
+    result: MaterialiteScoreResponse
 
 
 # ---------------------------------------------------------------------------
@@ -189,11 +253,15 @@ def _generate_narrative(issues: list[ScoredIssue], sector: str | None) -> str:
     top = sorted(materiels, key=lambda i: -i.score)[:3]
     top_labels = ", ".join(f"**{i.label}** ({i.score:.1f}/5)" for i in top)
 
+    n_impact = sum(1 for i in issues if i.materiel_impact)
+    n_fin = sum(1 for i in issues if i.materiel_financier)
     narrative_parts = [
         f"## Analyse double matérialité — {sector_label.title()}",
         "",
-        f"Sur {len(issues)} enjeux ESRS évalués, **{len(materiels)} sont matériels** "
-        f"(score ≥ {MATERIALITY_THRESHOLD}) selon la double matérialité.",
+        f"Sur {len(issues)} enjeux ESRS évalués, **{len(materiels)} sont matériels** : "
+        f"{n_impact} au titre de la matérialité d'impact et {n_fin} au titre de la "
+        f"matérialité financière (règle ESRS 1 : un enjeu est matériel dès que l'une "
+        f"des deux dimensions atteint le seuil de {MATERIALITY_THRESHOLD}).",
         "",
     ]
 
@@ -259,24 +327,30 @@ def load_positions(company_id: int) -> list[IssuePosition]:
             with get_db(company_id) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-                        "SELECT issue_code, x_proba, y_impact FROM materialite_positions "
-                        "WHERE company_id = %s",
+                        "SELECT issue_code, x_proba, y_impact, justification "
+                        "FROM materialite_positions WHERE company_id = %s",
                         (company_id,),
                     )
                     rows = cur.fetchall()
-                    return [IssuePosition(code=r["issue_code"], x=float(r["x_proba"]), y=float(r["y_impact"])) for r in rows]
+                    return [
+                        IssuePosition(
+                            code=r["issue_code"], x=float(r["x_proba"]), y=float(r["y_impact"]),
+                            justification=r.get("justification"),
+                        )
+                        for r in rows
+                    ]
         except Exception as exc:
             logger.warning("load_positions DB error: %s", exc)
 
     return [
-        IssuePosition(code=k[1], x=v["x"], y=v["y"])
+        IssuePosition(code=k[1], x=v["x"], y=v["y"], justification=v.get("justification"))
         for k, v in _POSITIONS_STORE.items()
         if k[0] == company_id
     ]
 
 
 def save_positions(positions: list[IssuePosition], company_id: int) -> None:
-    """Persist drag & drop positions."""
+    """Persist drag & drop positions (+ justification par enjeu)."""
     if _db_available():
         try:
             from db.database import get_db
@@ -285,20 +359,25 @@ def save_positions(positions: list[IssuePosition], company_id: int) -> None:
                     for pos in positions:
                         cur.execute(
                             """
-                            INSERT INTO materialite_positions (company_id, issue_code, x_proba, y_impact)
-                            VALUES (%s, %s, %s, %s)
+                            INSERT INTO materialite_positions (company_id, issue_code, x_proba, y_impact, justification)
+                            VALUES (%s, %s, %s, %s, %s)
                             ON CONFLICT (company_id, issue_code)
                             DO UPDATE SET x_proba = EXCLUDED.x_proba, y_impact = EXCLUDED.y_impact,
+                                          justification = COALESCE(EXCLUDED.justification, materialite_positions.justification),
                                           updated_at = now()
                             """,
-                            (company_id, pos.code, pos.x, pos.y),
+                            (company_id, pos.code, pos.x, pos.y, pos.justification),
                         )
             return
         except Exception as exc:
             logger.warning("save_positions DB error: %s", exc)
 
     for pos in positions:
-        _POSITIONS_STORE[(company_id, pos.code)] = {"x": pos.x, "y": pos.y}
+        prev = _POSITIONS_STORE.get((company_id, pos.code), {})
+        _POSITIONS_STORE[(company_id, pos.code)] = {
+            "x": pos.x, "y": pos.y,
+            "justification": pos.justification if pos.justification is not None else prev.get("justification"),
+        }
 
 
 def compute_score(
@@ -319,25 +398,39 @@ def compute_score(
     scored: list[ScoredIssue] = []
     for pos in positions:
         s = _score(pos.x, pos.y)
+        materiel_financier = pos.x >= MATERIALITY_THRESHOLD
+        materiel_impact = pos.y >= MATERIALITY_THRESHOLD
         scored.append(ScoredIssue(
             code=pos.code,
             label=ISSUE_LABELS.get(pos.code, pos.code),
             x=pos.x,
             y=pos.y,
             score=s,
-            materiel=s >= MATERIALITY_THRESHOLD,
+            # Règle ESRS 1 §3 : matériel si l'UNE OU l'autre dimension atteint
+            # le seuil — jamais le produit (un impact extrême à faible enjeu
+            # financier reste matériel, et réciproquement).
+            materiel=materiel_impact or materiel_financier,
+            materiel_impact=materiel_impact,
+            materiel_financier=materiel_financier,
             pillar=_pillar(pos.code),
+            esrs=ISSUE_ESRS.get(pos.code),
+            justification=pos.justification,
         ))
 
     materiels = [i for i in scored if i.materiel]
     score_moyen = round(sum(i.score for i in scored) / len(scored), 2) if scored else 0.0
+    esrs_to_activate = sorted({i.esrs for i in materiels if i.esrs})
 
     return MaterialiteScoreResponse(
         sector=sector,
         issues=sorted(scored, key=lambda i: -i.score),
         total_materiel=len(materiels),
+        total_materiel_impact=sum(1 for i in scored if i.materiel_impact),
+        total_materiel_financier=sum(1 for i in scored if i.materiel_financier),
         total_issues=len(scored),
         score_moyen=score_moyen,
+        threshold=MATERIALITY_THRESHOLD,
+        esrs_to_activate=esrs_to_activate,
         narrative=_generate_narrative(scored, sector),
     )
 
@@ -345,3 +438,141 @@ def compute_score(
 def _db_available() -> bool:
     from db.database import db_available
     return db_available()
+
+
+# ---------------------------------------------------------------------------
+# Évaluations archivées (versioning annuel, T7.4)
+# ---------------------------------------------------------------------------
+
+def create_assessment(payload: AssessmentCreate, company_id: int, created_by: str | None) -> AssessmentOut:
+    """Fige l'évaluation courante en version IMMUABLE (une par exercice/révision).
+
+    Snapshot des positions du moment (ou du preset sectoriel si aucune saisie),
+    scoring recalculé et stocké : l'archive reste lisible telle quelle même si
+    la formule ou les presets évoluent ensuite.
+    """
+    positions = load_positions(company_id)
+    result = compute_score(positions, sector=payload.sector)
+    label = payload.label or f"Évaluation du {datetime.now(tz=timezone.utc).strftime('%d/%m/%Y')}"
+
+    if _db_available():
+        try:
+            from db.database import get_db
+            with get_db(company_id) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO materialite_assessments
+                            (company_id, label, sector, threshold, positions, result, created_by)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s)
+                        RETURNING id, created_at
+                        """,
+                        (company_id, label, payload.sector, MATERIALITY_THRESHOLD,
+                         json.dumps([p.model_dump() for p in positions]),
+                         result.model_dump_json(), created_by),
+                    )
+                    row = cur.fetchone()
+                    return AssessmentOut(
+                        id=row["id"], company_id=company_id, label=label, sector=payload.sector,
+                        threshold=MATERIALITY_THRESHOLD, total_issues=result.total_issues,
+                        total_materiel=result.total_materiel, created_by=created_by,
+                        created_at=row["created_at"], result=result,
+                    )
+        except Exception as exc:
+            logger.warning("create_assessment DB error: %s", exc)
+
+    rec = {
+        "id": _MEM_ASSESSMENT_ID["assessment"],
+        "company_id": company_id,
+        "label": label,
+        "sector": payload.sector,
+        "threshold": MATERIALITY_THRESHOLD,
+        "result": result.model_dump(),
+        "created_by": created_by,
+        "created_at": datetime.now(tz=timezone.utc),
+    }
+    _MEM_ASSESSMENT_ID["assessment"] += 1
+    _MEM_ASSESSMENTS.append(rec)
+    return AssessmentOut(
+        **{k: rec[k] for k in ("id", "company_id", "label", "sector", "threshold", "created_by", "created_at")},
+        total_issues=result.total_issues, total_materiel=result.total_materiel, result=result,
+    )
+
+
+def list_assessments(company_id: int) -> list[AssessmentSummary]:
+    if _db_available():
+        try:
+            from db.database import get_db
+            with get_db(company_id) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT id, company_id, label, sector, threshold, result, created_by, created_at "
+                        "FROM materialite_assessments WHERE company_id = %s ORDER BY created_at DESC",
+                        (company_id,),
+                    )
+                    out = []
+                    for r in cur.fetchall():
+                        result = r["result"] if isinstance(r["result"], dict) else json.loads(r["result"])
+                        out.append(AssessmentSummary(
+                            id=r["id"], company_id=r["company_id"], label=r["label"],
+                            sector=r["sector"], threshold=float(r["threshold"]),
+                            total_issues=result.get("total_issues", 0),
+                            total_materiel=result.get("total_materiel", 0),
+                            created_by=r["created_by"], created_at=r["created_at"],
+                        ))
+                    return out
+        except Exception as exc:
+            logger.warning("list_assessments DB error: %s", exc)
+
+    return [
+        AssessmentSummary(
+            **{k: a[k] for k in ("id", "company_id", "label", "sector", "threshold", "created_by", "created_at")},
+            total_issues=a["result"].get("total_issues", 0),
+            total_materiel=a["result"].get("total_materiel", 0),
+        )
+        for a in sorted(
+            (a for a in _MEM_ASSESSMENTS if a["company_id"] == company_id),
+            key=lambda a: a["id"], reverse=True,
+        )
+    ]
+
+
+def get_assessment(assessment_id: int, company_id: int) -> AssessmentOut | None:
+    if _db_available():
+        try:
+            from db.database import get_db
+            with get_db(company_id) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT id, company_id, label, sector, threshold, result, created_by, created_at "
+                        "FROM materialite_assessments WHERE id = %s AND company_id = %s",
+                        (assessment_id, company_id),
+                    )
+                    r = cur.fetchone()
+                    if not r:
+                        return None
+                    result = r["result"] if isinstance(r["result"], dict) else json.loads(r["result"])
+                    return AssessmentOut(
+                        id=r["id"], company_id=r["company_id"], label=r["label"], sector=r["sector"],
+                        threshold=float(r["threshold"]),
+                        total_issues=result.get("total_issues", 0),
+                        total_materiel=result.get("total_materiel", 0),
+                        created_by=r["created_by"], created_at=r["created_at"],
+                        result=MaterialiteScoreResponse(**result),
+                    )
+        except Exception as exc:
+            logger.warning("get_assessment DB error: %s", exc)
+            return None
+
+    rec = next(
+        (a for a in _MEM_ASSESSMENTS if a["id"] == assessment_id and a["company_id"] == company_id),
+        None,
+    )
+    if not rec:
+        return None
+    return AssessmentOut(
+        **{k: rec[k] for k in ("id", "company_id", "label", "sector", "threshold", "created_by", "created_at")},
+        total_issues=rec["result"].get("total_issues", 0),
+        total_materiel=rec["result"].get("total_materiel", 0),
+        result=MaterialiteScoreResponse(**rec["result"]),
+    )

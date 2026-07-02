@@ -171,6 +171,21 @@ export default function GuidePage() {
             12 chantiers ci-dessous sont les plus structurants à verrouiller pour produire des
             chiffres opposables à un auditeur.
           </p>
+          <aside className="mt-5 rounded-xl border border-green-200 bg-green-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-green-700 mb-1">
+              Mise à jour · juillet 2026
+            </p>
+            <p className="text-sm text-neutral-800 leading-relaxed">
+              Le projet d&apos;acte délégué publié le 6 mai 2026 rebaptise le VSME en
+              « <strong>VS</strong> » (Voluntary Standard), allège ses datapoints et rend opposable
+              le « value chain cap » (aucun donneur d&apos;ordre ne peut exiger plus que ce standard
+              d&apos;un fournisseur de moins de 1 000 salariés). Texte final attendu mi-juillet 2026,
+              application aux exercices 2027 avec anticipation possible dès 2026.{" "}
+              <Link href="/blog/vsme-devient-vs-2026" className="text-green-700 font-semibold hover:underline">
+                Notre analyse détaillée →
+              </Link>
+            </p>
+          </aside>
         </section>
 
         {/* 12 points */}

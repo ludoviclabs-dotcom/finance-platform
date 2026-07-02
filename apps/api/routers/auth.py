@@ -148,6 +148,32 @@ def require_admin(user: AuthUser = Depends(get_current_user)) -> AuthUser:
     return user
 
 
+def require_cron_or_analyst(request: Request) -> None:
+    """Autorise soit le token de service cron, soit un JWT analyst/admin.
+
+    Les endpoints périodiques (rappels BEGES, relances fournisseurs) sont
+    appelés par le cron Vercel sans contexte utilisateur : le route handler
+    front transmet `Authorization: Bearer <CRON_SERVICE_TOKEN>`. Le même
+    secret doit être défini côté API (env CRON_SERVICE_TOKEN). À défaut,
+    un JWT analyst permet le déclenchement manuel depuis l'app.
+    """
+    import os
+    import secrets as _secrets
+
+    auth = request.headers.get("authorization") or ""
+    token = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
+    expected = os.environ.get("CRON_SERVICE_TOKEN") or ""
+    if expected and token and _secrets.compare_digest(token, expected):
+        return
+    user = decode_token(token) if token else None
+    if user is None or not has_role(user, "analyst"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token de service cron ou JWT analyst requis.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
 # ---------------------------------------------------------------------------
 # Helper: set / clear refresh cookie
 # ---------------------------------------------------------------------------

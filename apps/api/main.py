@@ -41,6 +41,7 @@ from routers import (
     imports,
     ingest,
     materialite,
+    partners,
     pilier2,
     quality,
     questionnaire,
@@ -205,3 +206,4 @@ app.include_router(copilot.router, prefix="/copilot", tags=["copilot"])
 app.include_router(strategic_mapping.router, prefix="/strategic-mapping", tags=["strategic-mapping"])
 app.include_router(suppliers.router, prefix="/suppliers", tags=["suppliers"])
 app.include_router(materialite.router, prefix="/materialite", tags=["materialite"])
+app.include_router(partners.router, prefix="/partners", tags=["partners (T7.5)"])

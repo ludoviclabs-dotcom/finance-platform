@@ -781,6 +781,156 @@ export async function downloadBegesReport(signal?: AbortSignal): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+// --- Campagnes de collecte fournisseurs (T7.3) ---
+export type SupplierCampaignStats = {
+  invited: number;
+  viewed: number;
+  completed: number;
+  pending: number;
+  response_rate: number;
+};
+
+export type SupplierCampaign = {
+  id: number;
+  company_id: number;
+  name: string;
+  exercise_year: number | null;
+  deadline: string | null;
+  status: "active" | "closed";
+  reminder_stage: string;
+  created_by: string | null;
+  created_at: string;
+  closed_at: string | null;
+  stats: SupplierCampaignStats;
+};
+
+export type SupplierCampaignInvite = {
+  token_id: number;
+  supplier_id: number;
+  supplier_name: string;
+  contact_email: string | null;
+  status: "pending" | "viewed" | "completed";
+  url: string;
+  expires_at: string | null;
+  viewed_at: string | null;
+  used_at: string | null;
+};
+
+export type SupplierPendingAnswer = {
+  id: number;
+  supplier_id: number;
+  supplier_name: string;
+  ghg_total_tco2e: number | null;
+  ghg_scope1: number | null;
+  ghg_scope2: number | null;
+  ghg_scope3: number | null;
+  methodology: string | null;
+  reporting_year: number | null;
+  narrative: string | null;
+  submitted_at: string;
+  review_status: string;
+  anomalies: string[];
+};
+
+export function fetchSupplierCampaigns(signal?: AbortSignal): Promise<SupplierCampaign[]> {
+  return apiGet<SupplierCampaign[]>("/suppliers/campaigns", signal);
+}
+
+export function createSupplierCampaign(payload: {
+  name: string;
+  exercise_year?: number | null;
+  deadline?: string | null;
+}): Promise<SupplierCampaign | null> {
+  return apiSend<SupplierCampaign>("POST", "/suppliers/campaigns", undefined, payload);
+}
+
+export function fetchCampaignDetail(
+  campaignId: number,
+  signal?: AbortSignal
+): Promise<{ campaign: SupplierCampaign; invites: SupplierCampaignInvite[] }> {
+  return apiGet(`/suppliers/campaigns/${campaignId}`, signal);
+}
+
+export function inviteCampaignSuppliers(
+  campaignId: number,
+  payload: { supplier_ids?: number[]; all_active?: boolean }
+): Promise<SupplierCampaignInvite[] | null> {
+  return apiSend<SupplierCampaignInvite[]>(
+    "POST",
+    `/suppliers/campaigns/${campaignId}/invites`,
+    undefined,
+    payload
+  );
+}
+
+export async function closeSupplierCampaign(campaignId: number): Promise<void> {
+  await apiSend("POST", `/suppliers/campaigns/${campaignId}/close`);
+}
+
+export function importSuppliersCsv(csvText: string): Promise<{
+  created: number;
+  skipped: number;
+  parsed: number;
+  issues: string[];
+} | null> {
+  return apiSend("POST", "/suppliers/import-csv", undefined, { csv_text: csvText });
+}
+
+export function fetchPendingSupplierAnswers(signal?: AbortSignal): Promise<SupplierPendingAnswer[]> {
+  return apiGet<SupplierPendingAnswer[]>("/suppliers/answers/pending", signal);
+}
+
+export function reviewSupplierAnswer(
+  answerId: number,
+  payload: { action: "accept" | "flag"; note?: string | null; apply_to_supplier?: boolean }
+): Promise<{ id: number; review_status: string } | null> {
+  return apiSend("POST", `/suppliers/answers/${answerId}/review`, undefined, payload);
+}
+
+// --- BEGES — suivi des dépôts et échéance +4 ans (T7.2) ---
+export type BegesFiling = {
+  id: number;
+  company_id: number;
+  exercise_year: number;
+  filed_at: string;
+  next_due_at: string;
+  ademe_ref: string | null;
+  package_hash: string | null;
+  total_tco2e: number | null;
+  notes: string | null;
+  reminder_stage: string;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type BegesFilingsResponse = {
+  status: "aucun_bilan" | "a_jour" | "echeance_proche" | "en_retard";
+  label: string;
+  next_due_at: string | null;
+  days_until_due: number | null;
+  last_exercise_year: number | null;
+  last_filed_at: string | null;
+  filings: BegesFiling[];
+};
+
+export function fetchBegesFilings(signal?: AbortSignal): Promise<BegesFilingsResponse> {
+  return apiGet<BegesFilingsResponse>("/beges/filings", signal);
+}
+
+export function recordBegesFiling(payload: {
+  exercise_year: number;
+  filed_at: string;
+  ademe_ref?: string | null;
+  total_tco2e?: number | null;
+  notes?: string | null;
+}): Promise<BegesFiling | null> {
+  return apiSend<BegesFiling>("POST", "/beges/filings", undefined, payload);
+}
+
+export async function deleteBegesFiling(filingId: number): Promise<void> {
+  await apiSend("DELETE", `/beges/filings/${filingId}`);
+}
+
 // --- Import FEC → screening Scope 3 (T4.3) ---
 export type FecScreening = {
   total_spend: number;
@@ -2126,6 +2276,7 @@ export interface IssuePosition {
   code: string;
   x: number;
   y: number;
+  justification?: string | null;
 }
 
 export interface ScoredIssue {
@@ -2135,16 +2286,66 @@ export interface ScoredIssue {
   y: number;
   score: number;
   materiel: boolean;
+  materiel_impact?: boolean;
+  materiel_financier?: boolean;
   pillar: "E" | "S" | "G";
+  esrs?: string | null;
+  justification?: string | null;
 }
 
 export interface MaterialiteScoreResponse {
   sector: string | null;
   issues: ScoredIssue[];
   total_materiel: number;
+  total_materiel_impact?: number;
+  total_materiel_financier?: number;
   total_issues: number;
   score_moyen: number;
+  threshold?: number;
+  esrs_to_activate?: string[];
   narrative: string;
+}
+
+export interface MaterialiteAssessment {
+  id: number;
+  company_id: number;
+  label: string;
+  sector: string | null;
+  threshold: number;
+  total_issues: number;
+  total_materiel: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export function fetchMaterialiteAssessments(signal?: AbortSignal): Promise<MaterialiteAssessment[]> {
+  return apiGet<MaterialiteAssessment[]>("/materialite/assessments", signal);
+}
+
+export function createMaterialiteAssessment(payload: {
+  label?: string | null;
+  sector?: string | null;
+}): Promise<MaterialiteAssessment | null> {
+  return apiSend<MaterialiteAssessment>("POST", "/materialite/assessments", undefined, payload);
+}
+
+export async function downloadMaterialiteAssessment(assessmentId: number): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/materialite/assessments/${assessmentId}/export`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /materialite/assessments/${assessmentId}/export`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "materialite.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export interface SectorPresetsResponse {

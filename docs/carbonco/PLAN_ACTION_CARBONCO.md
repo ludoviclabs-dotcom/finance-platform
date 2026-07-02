@@ -273,6 +273,54 @@
 
 ---
 
+## P7 — SUITE DE L'AUDIT EXTERNE (juillet 2026 · coût : 0 €)
+
+> Origine : audit externe (veille Perplexity) du 02/07/2026, confronté au code réel et aux
+> faits réglementaires re-vérifiés. Écarté car déjà livré : module BEGES (T4.2), matrice de
+> matérialité (Phase 4), questionnaire fournisseur tokenisé (Phase 4), pages
+> /double-materialite (blog) et guide VSME. Écarté car contraire aux garde-fous : comparateur
+> concurrents (supprimé en T0.1, non réintroduit), grille tarifaire partenaire inventée,
+> export « JSON/XML ADEME » (la plateforme bilans-ges.ademe.fr n'a pas d'API publique de dépôt).
+> Corrections apportées au plan source : le scope 3 significatif est OBLIGATOIRE dans le BEGES
+> depuis le décret 2022-982 (pas « recommandé ») ; sanctions 50 k€/100 k€ (loi Industrie verte) ;
+> le VSME devient « VS » (projet d'acte délégué du 06/05/2026, texte final attendu mi-juillet 2026).
+
+### [x] T7.1 — Pages SEO réglementaires (BEGES, CBAM, Scope 3 fournisseurs, VSME→VS)
+`/bilan-carbone-beges`, `/cbam`, `/scope3-fournisseurs` (FAQ + JSON-LD FAQPage, faits sourcés,
+capacités produit alignées sur le registre), article blog `vsme-devient-vs-2026`, encart de mise
+à jour dans le guide, sitemap.
+**CA :** aucune capacité citée au-delà du registre ; faits réglementaires datés et sourcés en pied de page.
+
+### [x] T7.2 — Suivi des dépôts BEGES et rappels de renouvellement
+Table `beges_filings` (023, RLS), échéance +4 ans calculée, rappels par paliers J-180/J-30/échéance
+(notifications in-app, anti-spam par palier, e-mail optionnel), endpoint cron
+`/beges/reminders/run` (CRON_SERVICE_TOKEN), section « Suivi des dépôts » sur `/beges`.
+**CA :** 16 tests (29 février, paliers, anti-spam, cron token) verts ; le cron Vercel unique orchestre tout.
+
+### [x] T7.3 — Campagnes de collecte fournisseurs
+Table `supplier_campaigns` (024) + tokens rattachés (`campaign_id`, `viewed_at`), import CSV
+dédupliqué, invitations en masse, suivi pending/viewed/completed, relances J-14/J-7/deadline
+(e-mails fournisseurs derrière EMAIL_ENABLED), revue OBLIGATOIRE des réponses (anomalies pures,
+accept → estimation GES fournisseur). Page `/fournisseurs/campagnes`.
+**CA :** flux complet testé bout-en-bout en mode /tmp (20 tests) ; rien n'entre sans validation humaine.
+
+### [x] T7.4 — Double matérialité conforme ESRS 1
+Règle « OU » (impact OU financier ≥ seuil) remplaçant le produit sqrt(x×y) ; détail par dimension ;
+justification par enjeu ; standards ESRS à couvrir déduits ; évaluations archivées immuables (025) ;
+export ZIP auditable (domaine `materialite` → `/verify`). Panneau « Versions archivées ».
+**CA :** un impact 5/financier 0,5 est matériel (12 tests) ; l'archive reste identique après modification des positions.
+
+### [x] T7.5 — Programme partenaire experts-comptables (fondation)
+Page publique `/partenaires` (honnête : existant vs « en construction », pas de tarif inventé),
+candidatures en base (026) + pipeline admin, honeypot. Espace multi-dossiers → registre `planifie`.
+**CA :** validation e-mail/SIRET, honeypot silencieux, listing admin protégé (13 tests).
+
+### [ ] T7.6 — Espace cabinet multi-dossiers (memberships multi-organisations) — NON DÉMARRÉ
+Chantier de sécurité dédié : table d'appartenances user↔organisations, switch de tenant (ré-émission
+JWT), revue RLS complète, UI de bascule. À cadrer avant tout code — ne pas livrer approximativement.
+
+---
+
 ## ANNEXE A — COPY DE REMPLACEMENT (prête à coller, FR)
 
 ### A.1 — Bloc "Le contexte réglementaire" (remplace la section "Le problème")

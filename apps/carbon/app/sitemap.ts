@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/bilan-carbone-beges`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${baseUrl}/cbam`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/scope3-fournisseurs`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/partenaires`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/dev`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/couverture`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/etat-du-produit`, changeFrequency: "weekly", priority: 0.65 },

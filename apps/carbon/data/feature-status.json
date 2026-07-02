@@ -1,5 +1,5 @@
 {
-  "derniere_maj": "2026-06-14",
+  "derniere_maj": "2026-07-02",
   "note": "Source de vérité UNIQUE des statuts produit (T0.2 du PLAN_ACTION_CARBONCO). Consommée par /etat-du-produit, /couverture et /integrations. Aucun statut ne doit être codé en dur dans un composant. statut ∈ live | beta | planifie (+ roadmap pour les intégrations). Un statut 'live' exige une 'preuve' (chemin repo).",
   "features": [
     {
@@ -47,11 +47,11 @@
     },
     {
       "id": "double-materialite",
-      "label": "Questionnaire double matérialité — ESRS 2",
-      "description": "Formulaire guidé pour identifier et prioriser les impacts, risques et opportunités matériels selon la double matérialité ESRS. Génère une matrice de matérialité exportable et traçable.",
+      "label": "Double matérialité — ESRS 1/2 (matrice, versions, export auditable)",
+      "description": "Matrice interactive à deux dimensions avec la règle ESRS 1 : un enjeu est matériel si sa matérialité d'impact OU sa matérialité financière atteint le seuil. Justification par enjeu, standards ESRS à couvrir déduits automatiquement, évaluations archivées par exercice (immuables) et export PDF auditable vérifiable sur /verify.",
       "statut": "live",
-      "normes": ["ESRS 2"],
-      "tag": "ESRS 2",
+      "normes": ["ESRS 1", "ESRS 2"],
+      "tag": "ESRS 1 · ESRS 2",
       "preuve": "apps/api/routers/materialite.py"
     },
     {
@@ -80,12 +80,12 @@
     },
     {
       "id": "questionnaire-fournisseurs-s3",
-      "label": "Questionnaire fournisseurs Scope 3 amont",
-      "description": "Envoi de questionnaires standardisés aux fournisseurs pour collecter leurs données d'émissions (catégories 1 et 4 Scope 3). Interface de suivi des réponses et agrégation automatique. Actuellement en test avec les premiers utilisateurs.",
+      "label": "Campagnes fournisseurs Scope 3 (questionnaires, suivi, relances)",
+      "description": "Campagnes de collecte centralisées : import CSV de fournisseurs, questionnaire par lien sécurisé sans compte, suivi des réponses (en attente / consulté / répondu), relances automatiques J-14/J-7/deadline (in-app, e-mail optionnel) et revue obligatoire des réponses avant intégration au Scope 3.",
       "statut": "beta",
       "normes": ["ESRS E1"],
       "tag": "ESRS E1 Scope 3",
-      "preuve": "apps/api/routers/suppliers.py"
+      "preuve": "apps/api/services/supplier_campaigns_service.py"
     },
     {
       "id": "comparaison-multi-exercices",
@@ -150,6 +150,13 @@
       "statut": "beta",
       "normes": [],
       "preuve": "apps/api/services/consolidation_service.py"
+    },
+    {
+      "id": "espace-cabinet",
+      "label": "Espace cabinet multi-dossiers (experts-comptables)",
+      "description": "Espace unifié pour les cabinets d'expertise comptable : bascule entre dossiers clients derrière une seule connexion, export groupé multi-clients, co-branding des PDF. Nécessite l'extension du modèle d'accès (appartenances multi-organisations) — sur la roadmap, priorisé avec les cabinets pilotes. Les candidatures au programme partenaire sont ouvertes sur /partenaires.",
+      "statut": "planifie",
+      "normes": []
     },
     {
       "id": "sso-rbac",
@@ -261,8 +268,8 @@
     },
     {
       "id": "export-beges",
-      "label": "Export BEGES réglementaire (France, v5)",
-      "description": "Table de passage GHG Protocol → nomenclature BEGES v5 (6 catégories / 22 postes), export tableur + PDF déterministes pour dépôt manuel sur bilans-ges.ademe.fr, note méthodologique et encart d'éligibilité. Réconciliation automatique total BEGES = total GHG. Beta.",
+      "label": "BEGES réglementaire (France, v5) : export + suivi des dépôts",
+      "description": "Table de passage GHG Protocol → nomenclature BEGES v5 (6 catégories / 22 postes), export tableur + PDF déterministes pour dépôt manuel sur bilans-ges.ademe.fr, note méthodologique, encart d'éligibilité, historique des dépôts déclarés et échéance de renouvellement (+4 ans) avec rappels in-app J-180/J-30/échéance. Réconciliation automatique total BEGES = total GHG. Beta.",
       "statut": "beta",
       "normes": ["ESRS E1"],
       "tag": "BEGES v5",

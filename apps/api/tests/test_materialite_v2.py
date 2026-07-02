@@ -21,7 +21,6 @@ import pytest
 from services import materialite_service as svc
 from services.materialite_service import IssuePosition, compute_score
 
-
 # ---------------------------------------------------------------------------
 # Cœur pur — règle ESRS 1
 # ---------------------------------------------------------------------------

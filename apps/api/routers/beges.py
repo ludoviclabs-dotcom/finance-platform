@@ -20,10 +20,19 @@ from fastapi.responses import StreamingResponse
 
 from db.database import db_available, get_db
 from db.tenant import get_company_id
-from routers.auth import get_current_user, require_admin, require_analyst, require_cron_or_analyst
+from routers.auth import (
+    get_current_user,
+    require_admin,
+    require_analyst,
+    require_cron_or_analyst,
+)
 from services import beges_export, beges_filings_service
 from services.auth_service import AuthUser
-from services.beges_filings_service import BegesFilingCreate, BegesFilingOut, BegesSchedule
+from services.beges_filings_service import (
+    BegesFilingCreate,
+    BegesFilingOut,
+    BegesSchedule,
+)
 
 router = APIRouter()
 

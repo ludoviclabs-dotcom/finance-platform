@@ -18,7 +18,6 @@ import pytest
 from services import supplier_campaigns_service as svc
 from services import supplier_service
 
-
 # ---------------------------------------------------------------------------
 # Cœur pur — CSV
 # ---------------------------------------------------------------------------

@@ -549,7 +549,11 @@ def invite_suppliers(
         except Exception as exc:
             logger.warning("invite_suppliers DB error: %s", exc)
     else:
-        from services.supplier_service import _DEMO_ID_COUNTER, _DEMO_TOKENS, get_supplier
+        from services.supplier_service import (
+            _DEMO_ID_COUNTER,
+            _DEMO_TOKENS,
+            get_supplier,
+        )
         for sid in to_invite:
             if not get_supplier(sid, company_id):
                 continue
@@ -597,7 +601,11 @@ def mark_token_viewed(token: str) -> None:
 
 def import_suppliers_csv(csv_text: str, company_id: int) -> dict[str, Any]:
     """Crée les fournisseurs du CSV (dédup par nom, insensible à la casse)."""
-    from services.supplier_service import SupplierCreate, create_supplier, list_suppliers
+    from services.supplier_service import (
+        SupplierCreate,
+        create_supplier,
+        list_suppliers,
+    )
 
     rows, issues = parse_suppliers_csv(csv_text)
     existing, _ = list_suppliers(company_id, limit=200)

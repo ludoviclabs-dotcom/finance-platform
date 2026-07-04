@@ -65,6 +65,7 @@
   },
   "overrides": {
     "esbuild": "^0.28.1",
-    "undici": "^6.27.0"
+    "undici": "^6.27.0",
+    "postcss": "^8.5.10"
   }
 }

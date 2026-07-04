@@ -1,7 +1,9 @@
 "use client";
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Material } from "@/lib/crm/dataLoader";
+import Sparkline from "./Sparkline";
 
 interface Props { materials: Material[] }
 
@@ -83,14 +85,19 @@ export default function MaterialsGrid({ materials }: Props) {
                 </div>
               </div>
               {m.price_snapshot && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-zinc-500">{m.price_snapshot.unit}</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-white text-sm">{m.price_snapshot.value}</span>
-                    <span className={`text-xs font-bold ${ m.price_snapshot.trend_3m_pct > 0 ? "text-red-400" : "text-emerald-400" }`}>
-                      {m.price_snapshot.trend_3m_pct > 0 ? "+" : ""}{m.price_snapshot.trend_3m_pct}%
-                    </span>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-500">{m.price_snapshot.unit}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-white text-sm">{m.price_snapshot.value}</span>
+                      <span className={`text-xs font-bold ${ m.price_snapshot.trend_3m_pct > 0 ? "text-red-400" : "text-emerald-400" }`}>
+                        {m.price_snapshot.trend_3m_pct > 0 ? "+" : ""}{m.price_snapshot.trend_3m_pct}%
+                      </span>
+                    </div>
                   </div>
+                  {m.price_history.length >= 2 && (
+                    <Sparkline points={m.price_history} width={200} height={28} className="w-full" />
+                  )}
                 </div>
               )}
               {isOpen && (
@@ -106,6 +113,10 @@ export default function MaterialsGrid({ materials }: Props) {
                       <span className="font-mono text-zinc-400">{p.share_pct}%</span>
                     </div>
                   ))}
+                  <Link href={`/materials/${m.id}`} onClick={e => e.stopPropagation()}
+                    className="inline-block pt-2 text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors">
+                    Fiche complète →
+                  </Link>
                 </div>
               )}
             </motion.div>

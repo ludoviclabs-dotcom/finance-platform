@@ -1,0 +1,40 @@
+name: Materials Price History
+
+# Accumule chaque lundi le point de prix courant du snapshot CRM dans
+# apps/carbon/data/crm_price_history.json (dédup par date de snapshot —
+# aucun point n'est ajouté tant que le snapshot n'a pas été rafraîchi).
+# C'est ce fichier qui alimente les sparklines de /materials dès qu'une
+# matière possède ≥ 2 points réels.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # lundi 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  append:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Ajouter le point de prix du snapshot courant
+        run: node apps/carbon/scripts/append-price-history.mjs
+
+      - name: Commit & push si nouveau point
+        run: |
+          if git diff --quiet apps/carbon/data/crm_price_history.json; then
+            echo "Aucun nouveau point — snapshot inchangé depuis le dernier run."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add apps/carbon/data/crm_price_history.json
+            git commit -m "chore(carbon): point d'historique prix matières ($(date -u +%F))"
+            git push
+          fi

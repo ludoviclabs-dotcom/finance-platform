@@ -57,7 +57,23 @@ Puis relancer `npm run dev`.
 - `components/materials/GlobalMapSection.tsx` : token présent →
   `InteractiveGlobalMap` (chargé dynamiquement, `ssr:false`, le chunk mapbox-gl
   ~1,5 Mo n'est téléchargé que dans ce cas) ; sinon → `GlobalMap` (SVG statique).
+- `proxy.ts` : le token posé ouvre automatiquement le CSP vers
+  `api.mapbox.com` / `*.tiles.mapbox.com` / `events.mapbox.com` + workers
+  `blob:` (mapbox-gl en a besoin). Sans token, le CSP reste inchangé —
+  aucun domaine Mapbox autorisé. Contrat verrouillé par `tests/csp.test.ts`.
 - Token invalide/expiré : warning console, la page ne casse pas.
+
+## Dépannage : carte noire mais badge « Mapbox live »
+
+Le badge prouve que le token est arrivé dans le build. Si la carte reste vide,
+ouvrir la console navigateur (F12) :
+
+- **Violations CSP** (`Refused to connect… api.mapbox.com`) : le déploiement
+  date d'avant l'ouverture CSP de `proxy.ts` — redéployer.
+- **401 Unauthorized** : token invalide (mal collé, révoqué).
+- **403 Forbidden** : restriction d'URL du token ne couvre pas le domaine
+  visité — vérifier la liste sur account.mapbox.com (previews Vercel
+  `*.vercel.app` non listées, domaine custom manquant…).
 
 ## Données affichées
 

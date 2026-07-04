@@ -4,8 +4,10 @@ import os
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 
-from db.migrations import run_migrations
+from db import migrations as _migrations
+from db.migrations import ensure_schema, run_migrations
 from middleware.rate_limit import RateLimitMiddleware
 from middleware.request_logger import RequestLoggerMiddleware
 from routers import (
@@ -93,10 +95,24 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Exécuter les migrations DDL au démarrage (idempotent, no-op si /tmp mode)
+# Migrations DDL : deux déclencheurs complémentaires.
+#  1. startup event — fonctionne en local/uvicorn, MAIS jamais sur @vercel/python
+#     (le runtime serverless n'exécute pas les events lifespan ASGI).
+#  2. ensure_schema() à la 1re requête (middleware ci-dessous) — le seul chemin
+#     fiable en prod Vercel. Idempotent, court-circuité par sentinelle.
 @app.on_event("startup")
 async def startup_event() -> None:
     run_migrations()
+
+
+# Garantit le schéma à la 1re requête de chaque cold start (fix Vercel serverless).
+# Après la 1re requête, _schema_ensured=True => court-circuit immédiat, zéro coût.
+@app.middleware("http")
+async def ensure_schema_mw(request: Request, call_next):
+    if not _migrations._schema_ensured:
+        # psycopg2 est bloquant : hors event-loop pour ne pas figer le serveur.
+        await run_in_threadpool(ensure_schema)
+    return await call_next(request)
 
 # ---------------------------------------------------------------------------
 # Body size limiter — reject uploads > 10 MB before they hit route handlers

@@ -83,8 +83,8 @@ def test_emit_fact_single_transaction(monkeypatch):
         unit="tCO2e", source_path="test:tx",
     )
 
-    # Ordre attendu : contexte tenant -> verrou -> insert -> un seul commit.
-    assert log == ["SET", "SELECT", "INSERT", "COMMIT"]
+    # Ordre attendu : contexte tenant -> verrou advisory -> verrou ligne -> insert -> un seul commit.
+    assert log == ["SET", "SELECT", "SELECT", "INSERT", "COMMIT"]
     assert conn.commits == 1
     assert conn.rollbacks == 0
 

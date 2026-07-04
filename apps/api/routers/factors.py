@@ -72,10 +72,13 @@ async def list_factors(
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                f"SELECT COUNT(*) FROM emission_factors {where}",
+                f"SELECT COUNT(*) AS count FROM emission_factors {where}",
                 params,
             )
-            total = cur.fetchone()[0]
+            # get_db() ouvre en RealDictCursor : le résultat est indexé par nom
+            # de colonne, jamais par position — cur.fetchone()[0] lèverait
+            # KeyError. Alias explicite + accès par clé (cf. supplier_service.py).
+            total = cur.fetchone()["count"]
 
             cur.execute(
                 f"""

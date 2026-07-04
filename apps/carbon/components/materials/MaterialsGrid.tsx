@@ -1,0 +1,106 @@
+"use client";
+import { useState, useMemo } from "react";
+import type { Material } from "@/lib/crm/dataLoader";
+
+interface Props { materials: Material[] }
+
+function getChinaShare(m: Material): number {
+  return m.top_producers.find(p => p.country === "Chine")?.share_pct ?? 0;
+}
+
+const FILTERS = ["Toutes", "Stratégique", "Critique", "Chine dominante"];
+
+export default function MaterialsGrid({ materials }: Props) {
+  const [search, setSearch]     = useState("");
+  const [filter, setFilter]     = useState("Toutes");
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  const filtered = useMemo(() => materials.filter(m => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || m.name_fr.toLowerCase().includes(q) || m.main_uses.some(u => u.toLowerCase().includes(q));
+    const matchFilter = filter === "Toutes" ? true : filter === "Chine dominante" ? m.china_dominant : m.criticality_eu === filter;
+    return matchSearch && matchFilter;
+  }), [materials, search, filter]);
+
+  return (
+    <section id="materiaux" className="space-y-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h2 className="text-2xl font-bold text-white">
+          Toutes les matières critiques
+          <span className="ml-2 text-zinc-500 font-normal text-base">({filtered.length}/{materials.length})</span>
+        </h2>
+      </div>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <input value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Rechercher une matière ou un usage…"
+          className="flex-1 rounded-xl bg-zinc-900 border border-zinc-800 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600" />
+        <div className="flex gap-2 flex-wrap">
+          {FILTERS.map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-3 py-2.5 rounded-xl text-sm font-medium transition border ${
+                filter === f ? "bg-white text-zinc-900 border-white" : "border-zinc-800 text-zinc-400 hover:border-zinc-600"
+              }`}>{f}</button>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map(m => {
+          const china = getChinaShare(m);
+          const isOpen = expanded === m.id;
+          return (
+            <div key={m.id} onClick={() => setExpanded(isOpen ? null : m.id)}
+              className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 cursor-pointer hover:border-zinc-700 transition-all space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-sm leading-tight">{m.name_fr}</h3>
+                  <p className="text-xs text-zinc-500 mt-0.5">{m.category}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                    m.criticality_eu === "Stratégique" ? "bg-red-500/20 text-red-400" : "bg-blue-500/20 text-blue-400"
+                  }`}>{m.criticality_eu.slice(0,4)}.</span>
+                  <span className="font-mono text-amber-400 text-sm font-bold">{m.criticality_score}</span>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                  <span>Part Chine</span><span className="font-mono text-zinc-300">{china}%</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-zinc-800">
+                  <div className={`h-full rounded-full ${ china >= 50 ? "bg-red-500" : china >= 20 ? "bg-amber-400" : "bg-emerald-500" }`}
+                    style={{ width: `${china}%` }} />
+                </div>
+              </div>
+              {m.price_snapshot && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-500">{m.price_snapshot.unit}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-white text-sm">{m.price_snapshot.value}</span>
+                    <span className={`text-xs font-bold ${ m.price_snapshot.trend_3m_pct > 0 ? "text-red-400" : "text-emerald-400" }`}>
+                      {m.price_snapshot.trend_3m_pct > 0 ? "+" : ""}{m.price_snapshot.trend_3m_pct}%
+                    </span>
+                  </div>
+                </div>
+              )}
+              {isOpen && (
+                <div className="pt-3 border-t border-zinc-800 space-y-2">
+                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Usages clés</p>
+                  {m.main_uses.map(u => (
+                    <p key={u} className="text-xs text-zinc-300 flex gap-1.5"><span className="text-zinc-600">›</span>{u}</p>
+                  ))}
+                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider pt-2">Top producteurs</p>
+                  {m.top_producers.slice(0,3).map(p => (
+                    <div key={p.country} className="flex justify-between text-xs">
+                      <span className="text-zinc-300">{p.country}</span>
+                      <span className="font-mono text-zinc-400">{p.share_pct}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}

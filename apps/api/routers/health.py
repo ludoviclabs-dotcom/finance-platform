@@ -34,10 +34,28 @@ def _db_status() -> str:
 
 
 def _storage_status() -> str:
+    """local | not_configured | ok | down.
+
+    En mode vercel-blob, sonde RÉELLE : PUT + GET + DELETE d'une clé fixe
+    (health/probe — écrasée à chaque appel, aucune accumulation). Un token
+    présent mais invalide/expiré rend donc "down", plus jamais un faux "ok".
+    """
     backend = os.environ.get("STORAGE_BACKEND", "local").lower()
-    if backend == "vercel-blob":
-        return "ok" if os.environ.get("BLOB_READ_WRITE_TOKEN") else "not_configured"
-    return "ok"  # local : toujours disponible
+    if backend != "vercel-blob":
+        return "local"  # dev : filesystem local, pas de sonde
+    if not os.environ.get("BLOB_READ_WRITE_TOKEN"):
+        return "not_configured"
+    try:
+        from services.storage.vercel_blob import VercelBlobStorage
+
+        storage = VercelBlobStorage(timeout=5.0)
+        payload = b"carbonco-health-probe"
+        url = storage.put("health/probe", payload, content_type="text/plain")
+        data = storage.get(url)
+        storage.delete(url)
+        return "ok" if data == payload else "down"
+    except Exception:
+        return "down"
 
 
 def _worker_status() -> str:
@@ -48,7 +66,11 @@ def _worker_status() -> str:
 
 @router.get("/health", tags=["health"])
 async def health_check():
-    """Liveness + état des dépendances (DB, stockage, worker). < 1 s."""
+    """Liveness + état des dépendances (DB, stockage, worker).
+
+    Budget : < 1 s en nominal ; la sonde stockage est bornée à 5 s par appel
+    HTTP (3 appels max) si l'API Blob est dégradée.
+    """
     return {
         "status": "ok",
         "service": "finance-platform-api",

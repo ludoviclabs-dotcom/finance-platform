@@ -22,6 +22,8 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 function tone(value: string): string {
   if (["ok", "inline", "worker"].includes(value)) return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  // "local" = backend filesystem (dev) — fonctionnel mais non durable sur serverless
+  if (value === "local") return "bg-amber-50 text-amber-700 border-amber-200";
   if (value === "not_configured") return "bg-neutral-50 text-neutral-500 border-neutral-200";
   return "bg-red-50 text-red-700 border-red-200"; // down / inconnu
 }

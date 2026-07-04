@@ -18,10 +18,13 @@ _BASE = "https://blob.vercel-storage.com"
 
 
 class VercelBlobStorage:
-    def __init__(self, token: str | None = None):
+    def __init__(self, token: str | None = None, timeout: float = 30.0):
         self.token = token or os.environ.get("BLOB_READ_WRITE_TOKEN")
         if not self.token:
             raise StorageError("BLOB_READ_WRITE_TOKEN manquant pour le backend vercel-blob.")
+        # 30 s par défaut (uploads) ; la sonde /health passe 5 s pour ne pas
+        # bloquer le monitoring si l'API Blob est dégradée.
+        self.timeout = timeout
 
     def _headers(self) -> dict[str, str]:
         return {"authorization": f"Bearer {self.token}"}
@@ -34,7 +37,7 @@ class VercelBlobStorage:
             headers["content-type"] = content_type
         resp = httpx.put(
             f"{_BASE}/{key}", content=data, headers=headers,
-            params={"addRandomSuffix": "0"}, timeout=30,
+            params={"addRandomSuffix": "0"}, timeout=self.timeout,
         )
         if resp.status_code == 401:
             raise StorageError("Vercel Blob : token invalide (401).")
@@ -47,7 +50,7 @@ class VercelBlobStorage:
     def get(self, key: str) -> bytes:
         # key est ici l'URL publique renvoyée par put(), ou une clé relative.
         url = key if key.startswith("http") else f"{_BASE}/{key}"
-        resp = httpx.get(url, headers=self._headers(), timeout=30)
+        resp = httpx.get(url, headers=self._headers(), timeout=self.timeout)
         if resp.status_code >= 400:
             raise StorageError(f"Vercel Blob get {resp.status_code} pour {key}.")
         return resp.content
@@ -55,7 +58,7 @@ class VercelBlobStorage:
     def delete(self, key: str) -> None:
         resp = httpx.post(
             f"{_BASE}/delete", headers=self._headers(),
-            json={"urls": [key]}, timeout=30,
+            json={"urls": [key]}, timeout=self.timeout,
         )
         if resp.status_code >= 400:
             raise StorageError(f"Vercel Blob delete {resp.status_code} pour {key}.")

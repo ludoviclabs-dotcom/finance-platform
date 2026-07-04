@@ -23,9 +23,13 @@ import {
   deleteAlertRule,
   evaluateAlerts,
   fetchAlertHistory,
+  fetchNotifications,
+  markNotificationRead,
+  archiveNotification,
   type AlertRuleOut,
   type AlertRuleCreate,
   type AlertFired,
+  type AlertNotification,
   type AlertOperator,
   type AlertChannel,
   type AlertDomain,
@@ -135,9 +139,9 @@ function ruleToForm(r: AlertRuleOut): FormState {
     domain: r.domain,
     field_path: r.field_path,
     operator: r.operator,
-    threshold: String(r.threshold),
+    threshold: String(r.threshold ?? ""),
     channel: r.channel,
-    destination: r.destination,
+    destination: r.destination ?? "",
     is_active: r.is_active,
   };
 }
@@ -416,6 +420,74 @@ function FiredRow({ alert }: { alert: AlertFired }) {
 }
 
 // ---------------------------------------------------------------------------
+// Notification center (T5.3) — notifications in-app persistées
+// ---------------------------------------------------------------------------
+
+function NotificationCenter() {
+  const [notifs, setNotifs] = useState<AlertNotification[]>([]);
+  const [unread, setUnread] = useState(0);
+
+  const load = useCallback(() => {
+    fetchNotifications(false)
+      .then((r) => { setNotifs(r.notifications); setUnread(r.unread); })
+      .catch(() => { setNotifs([]); setUnread(0); });
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const read = async (n: AlertNotification) => {
+    if (n.read_at) return;
+    await markNotificationRead(n.id).catch(() => null);
+    load();
+  };
+  const archive = async (n: AlertNotification) => {
+    await archiveNotification(n.id).catch(() => null);
+    load();
+  };
+
+  if (notifs.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+      <div className="px-5 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-[var(--color-foreground)] flex items-center gap-2">
+          <Bell className="w-4 h-4 text-carbon-emerald" /> Notifications
+          {unread > 0 && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">{unread}</span>
+          )}
+        </h3>
+      </div>
+      <div className="divide-y divide-[var(--color-border)]">
+        {notifs.slice(0, 20).map((n) => (
+          <div key={n.id} className={`px-5 py-3 flex items-start gap-3 ${n.read_at ? "opacity-60" : ""}`}>
+            <Zap className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-[var(--color-foreground)]">{n.title}</p>
+              {n.body && <p className="text-xs text-[var(--color-foreground-muted)] mt-0.5">{n.body}</p>}
+              <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-0.5">
+                {new Date(n.fired_at).toLocaleString("fr-FR")}
+              </p>
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {!n.read_at && (
+                <button type="button" onClick={() => read(n)} title="Marquer lue"
+                  className="p-1.5 rounded-lg text-[var(--color-foreground-muted)] hover:text-carbon-emerald cursor-pointer">
+                  <CheckCircle2 className="w-4 h-4" />
+                </button>
+              )}
+              <button type="button" onClick={() => archive(n)} title="Archiver"
+                className="p-1.5 rounded-lg text-[var(--color-foreground-muted)] hover:text-[var(--color-danger)] cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -558,6 +630,9 @@ export default function AlertsPage() {
           </div>
         ))}
       </div>
+
+      {/* Notification center (T5.3) */}
+      <NotificationCenter />
 
       {/* Auto-evaluation schedule (Vercel Cron) */}
       <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex items-start gap-4">

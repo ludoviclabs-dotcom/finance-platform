@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS emission_factors (
     factor_kgco2e NUMERIC(14,4) NOT NULL,
     unit          TEXT         NOT NULL,           -- kWh|kg|km|t|m3|€|MJ
     source        TEXT         NOT NULL DEFAULT 'ADEME Base Empreinte',
-    version       TEXT         NOT NULL,           -- v2025.0
+    version       TEXT         NOT NULL,           -- v2025
     valid_from    DATE,
     valid_until   DATE,
     raw           JSONB,

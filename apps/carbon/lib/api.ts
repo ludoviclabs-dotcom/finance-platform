@@ -330,6 +330,18 @@ export interface LoginResponse {
   tokenType: string;
   expiresAt: string;
   user: AuthUser;
+  // 2FA : présents quand l'utilisateur a activé le TOTP (étape 2 requise).
+  requiresTotp?: boolean;
+  preAuthToken?: string | null;
+}
+
+export interface TotpEnrollResponse {
+  secret: string;
+  otpauthUri: string;
+}
+
+export interface TotpStatusResponse {
+  enabled: boolean;
 }
 
 export interface MeResponse {
@@ -453,6 +465,63 @@ export async function loginRequest(
   return (await res.json()) as LoginResponse;
 }
 
+// --- 2FA TOTP (T1.4) ---
+
+/** Étape 2 du login : valide le code TOTP (ou un code de récupération). */
+export async function verifyTotpRequest(
+  preAuthToken: string,
+  code: string,
+  signal?: AbortSignal,
+): Promise<LoginResponse> {
+  const res = await fetch(`${API_BASE_URL}/auth/totp/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ preAuthToken, code }),
+    credentials: "include",
+    signal,
+  });
+  if (res.status === 401) throw new Error("Code invalide ou expiré.");
+  if (!res.ok) throw new Error(`API ${res.status} on /auth/totp/verify`);
+  return (await res.json()) as LoginResponse;
+}
+
+/** Statut 2FA de l'utilisateur courant. */
+export function totpStatusRequest(signal?: AbortSignal): Promise<TotpStatusResponse> {
+  return apiGet<TotpStatusResponse>("/auth/totp/status", signal);
+}
+
+/** Démarre l'enrôlement : renvoie le secret + l'URI otpauth (à scanner). */
+export async function totpEnrollRequest(): Promise<TotpEnrollResponse> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/auth/totp/enroll`, {
+    method: "POST",
+    headers: { Accept: "application/json", ...authHeaders() },
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /auth/totp/enroll`);
+  return (await res.json()) as TotpEnrollResponse;
+}
+
+/** Confirme le code et active le TOTP ; renvoie les 8 codes de récupération. */
+export async function totpActivateRequest(code: string): Promise<string[]> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/auth/totp/activate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    body: JSON.stringify({ code }),
+  });
+  if (res.status === 400 || res.status === 401) throw new Error("Code invalide.");
+  if (!res.ok) throw new Error(`API ${res.status} on /auth/totp/activate`);
+  const data = (await res.json()) as { recoveryCodes: string[] };
+  return data.recoveryCodes;
+}
+
+/** Désactive le TOTP de l'utilisateur courant. */
+export async function totpDisableRequest(): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/auth/totp/disable`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok && res.status !== 204) throw new Error(`API ${res.status} on /auth/totp/disable`);
+}
+
 export async function refreshTokenRequest(signal?: AbortSignal): Promise<LoginResponse> {
   const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
     method: "POST",
@@ -492,6 +561,90 @@ export function fetchVsmeSnapshot(signal?: AbortSignal): Promise<VsmeSnapshot> {
   return apiGet<VsmeSnapshot>("/vsme/snapshot", signal);
 }
 
+// --- VSME mapping & complétude (T3.2) ---
+export type VsmeDatapointRow = {
+  code: string;
+  module: string;
+  label: string;
+  type: string;
+  unit: string | null;
+  collect: string;
+  status: "auto" | "manuel" | "na" | "missing";
+  value: unknown;
+  source: string | null;
+  na_justification: string | null;
+};
+export type VsmeModuleCompletude = { module: string; total: number; filled: number; pct: number };
+export type VsmeMappingStatus = {
+  version: string;
+  completeness: {
+    overall_pct: number;
+    mandatory_total: number;
+    mandatory_filled: number;
+    modules: VsmeModuleCompletude[];
+  };
+  datapoints: VsmeDatapointRow[];
+};
+
+export function fetchVsmeMappingStatus(signal?: AbortSignal): Promise<VsmeMappingStatus> {
+  return apiGet<VsmeMappingStatus>("/vsme/mapping/status", signal);
+}
+
+export function saveVsmeDatapoint(
+  body: { code: string; value?: unknown; is_applicable?: boolean; na_justification?: string | null },
+  signal?: AbortSignal,
+): Promise<{ id: number; code: string; saved: boolean } | null> {
+  return apiSend("POST", "/vsme/mapping/datapoint", signal, body);
+}
+
+// --- Wizard VSME (T3.4) ---
+export type VsmeWizardSession = {
+  step: number;
+  state: Record<string, unknown>;
+  progress_pct: number;
+  completed: boolean;
+  total_steps: number;
+  steps: { key: string; label: string }[];
+};
+
+export function fetchWizardProgress(signal?: AbortSignal): Promise<VsmeWizardSession> {
+  return apiGet<VsmeWizardSession>("/vsme/wizard/progress", signal);
+}
+export function startWizard(state: Record<string, unknown>, signal?: AbortSignal): Promise<VsmeWizardSession | null> {
+  return apiSend<VsmeWizardSession>("POST", "/vsme/wizard/start", signal, { state });
+}
+export function saveWizardStep(
+  step: number,
+  state: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<VsmeWizardSession | null> {
+  return apiSend<VsmeWizardSession>("POST", "/vsme/wizard/save", signal, { step, state });
+}
+export function completeWizard(signal?: AbortSignal): Promise<{ completed: boolean; emitted_facts: number; redirect: string } | null> {
+  return apiSend("POST", "/vsme/wizard/complete", signal);
+}
+
+// Rapport VSME (T3.3) : POST /vsme/report → télécharge le ZIP (PDF + Excel).
+export async function downloadVsmeReport(signal?: AbortSignal): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/vsme/report`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /vsme/report`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "rapport-vsme.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 // --- ESG ---
 export function fetchEsgSnapshot(signal?: AbortSignal): Promise<EsgSnapshot> {
   return apiGet<EsgSnapshot>("/esg/snapshot", signal);
@@ -509,6 +662,359 @@ export function fetchCacheStatus(signal?: AbortSignal): Promise<CacheStatusRespo
 
 export function triggerIngest(signal?: AbortSignal): Promise<IngestResponse> {
   return apiSend<IngestResponse>("POST", "/ingest", signal) as Promise<IngestResponse>;
+}
+
+// --- Chaîne d'intégrité (T2.5) ---
+export type ChainStatus = {
+  scheduled: boolean;
+  ok: boolean;
+  broken_at: number | null;
+  checked: number;
+  verified_at: string | null;
+};
+
+export function fetchChainStatus(signal?: AbortSignal): Promise<ChainStatus> {
+  return apiGet<ChainStatus>("/chain/status", signal);
+}
+
+// --- Indicateurs de preuve & qualité (T2.6) ---
+export type QualityIndicators = {
+  total_datapoints: number;
+  with_evidence: number;
+  evidence_coverage: number;
+  quality_distribution: Record<string, number>;
+  avg_quality: number | null;
+  fe_versions: string[];
+  chain_ok: boolean;
+  open_anomalies: number;
+  audit_score: number;
+};
+
+export function fetchQualityIndicators(signal?: AbortSignal): Promise<QualityIndicators> {
+  return apiGet<QualityIndicators>("/quality/indicators", signal);
+}
+
+// --- Pièces justificatives par datapoint (T2.1) ---
+export type EvidenceItem = {
+  sha256: string;
+  filename: string;
+  size: number;
+  content_type?: string | null;
+  uploaded_by?: string | null;
+  uploaded_at?: string | null;
+};
+
+/** Liste les pièces actives attachées à un fact code. */
+export async function fetchEvidence(code: string, signal?: AbortSignal): Promise<EvidenceItem[]> {
+  const res = await apiGet<{ evidence?: EvidenceItem[] }>(
+    `/facts/${encodeURIComponent(code)}/evidence`,
+    signal,
+  );
+  return res.evidence ?? [];
+}
+
+/** Attache une pièce (PDF/PNG/JPG, 5 Mo max) via multipart (event chaîné). */
+export async function uploadEvidence(code: string, file: File): Promise<void> {
+  const form = new FormData();
+  form.append("file", file);
+  // Pas de Content-Type manuel : le navigateur pose la frontière multipart.
+  const res = await _fetchWithRetry(
+    `${API_BASE_URL}/facts/${encodeURIComponent(code)}/evidence`,
+    { method: "POST", headers: { ...authHeaders() }, body: form },
+  );
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.detail ?? `API ${res.status} on evidence upload`);
+  }
+}
+
+/** Révoque une pièce (event chaîné). Le fichier reste adressé par son hash. */
+export async function deleteEvidence(code: string, sha256: string): Promise<void> {
+  await apiSend("DELETE", `/facts/${encodeURIComponent(code)}/evidence/${sha256}`);
+}
+
+// --- Scope 3 — 15 catégories (T4.1) ---
+export type Scope3Category = { code: number; label: string; value: number; evaluated: boolean };
+export type Scope3Breakdown = {
+  categories: Scope3Category[];
+  coverage: number[];
+  coverage_count: number;
+  categorized_total: number;
+  uncategorized_total: number;
+  total_scope3: number;
+};
+
+export function fetchScope3Breakdown(signal?: AbortSignal): Promise<Scope3Breakdown> {
+  return apiGet<Scope3Breakdown>("/scope3/breakdown", signal);
+}
+
+// --- BEGES v5 (T4.2) ---
+export type BegesPoste = { code: string; label: string; value: number };
+export type BegesCategory = { code: number; label: string; total: number; postes: BegesPoste[] };
+export type BegesStatus = {
+  breakdown: { standard: string; total: number; categories: BegesCategory[] };
+  eligibility: { status: string; label: string };
+  scope_totals: { S1: number; S2: number; S3: Record<string, number> };
+};
+
+export function fetchBegesStatus(signal?: AbortSignal): Promise<BegesStatus> {
+  return apiGet<BegesStatus>("/beges/status", signal);
+}
+
+export async function downloadBegesReport(signal?: AbortSignal): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/beges/export`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /beges/export`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "beges.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// --- Campagnes de collecte fournisseurs (T7.3) ---
+export type SupplierCampaignStats = {
+  invited: number;
+  viewed: number;
+  completed: number;
+  pending: number;
+  response_rate: number;
+};
+
+export type SupplierCampaign = {
+  id: number;
+  company_id: number;
+  name: string;
+  exercise_year: number | null;
+  deadline: string | null;
+  status: "active" | "closed";
+  reminder_stage: string;
+  created_by: string | null;
+  created_at: string;
+  closed_at: string | null;
+  stats: SupplierCampaignStats;
+};
+
+export type SupplierCampaignInvite = {
+  token_id: number;
+  supplier_id: number;
+  supplier_name: string;
+  contact_email: string | null;
+  status: "pending" | "viewed" | "completed";
+  url: string;
+  expires_at: string | null;
+  viewed_at: string | null;
+  used_at: string | null;
+};
+
+export type SupplierPendingAnswer = {
+  id: number;
+  supplier_id: number;
+  supplier_name: string;
+  ghg_total_tco2e: number | null;
+  ghg_scope1: number | null;
+  ghg_scope2: number | null;
+  ghg_scope3: number | null;
+  methodology: string | null;
+  reporting_year: number | null;
+  narrative: string | null;
+  submitted_at: string;
+  review_status: string;
+  anomalies: string[];
+};
+
+export function fetchSupplierCampaigns(signal?: AbortSignal): Promise<SupplierCampaign[]> {
+  return apiGet<SupplierCampaign[]>("/suppliers/campaigns", signal);
+}
+
+export function createSupplierCampaign(payload: {
+  name: string;
+  exercise_year?: number | null;
+  deadline?: string | null;
+}): Promise<SupplierCampaign | null> {
+  return apiSend<SupplierCampaign>("POST", "/suppliers/campaigns", undefined, payload);
+}
+
+export function fetchCampaignDetail(
+  campaignId: number,
+  signal?: AbortSignal
+): Promise<{ campaign: SupplierCampaign; invites: SupplierCampaignInvite[] }> {
+  return apiGet(`/suppliers/campaigns/${campaignId}`, signal);
+}
+
+export function inviteCampaignSuppliers(
+  campaignId: number,
+  payload: { supplier_ids?: number[]; all_active?: boolean }
+): Promise<SupplierCampaignInvite[] | null> {
+  return apiSend<SupplierCampaignInvite[]>(
+    "POST",
+    `/suppliers/campaigns/${campaignId}/invites`,
+    undefined,
+    payload
+  );
+}
+
+export async function closeSupplierCampaign(campaignId: number): Promise<void> {
+  await apiSend("POST", `/suppliers/campaigns/${campaignId}/close`);
+}
+
+export function importSuppliersCsv(csvText: string): Promise<{
+  created: number;
+  skipped: number;
+  parsed: number;
+  issues: string[];
+} | null> {
+  return apiSend("POST", "/suppliers/import-csv", undefined, { csv_text: csvText });
+}
+
+export function fetchPendingSupplierAnswers(signal?: AbortSignal): Promise<SupplierPendingAnswer[]> {
+  return apiGet<SupplierPendingAnswer[]>("/suppliers/answers/pending", signal);
+}
+
+export function reviewSupplierAnswer(
+  answerId: number,
+  payload: { action: "accept" | "flag"; note?: string | null; apply_to_supplier?: boolean }
+): Promise<{ id: number; review_status: string } | null> {
+  return apiSend("POST", `/suppliers/answers/${answerId}/review`, undefined, payload);
+}
+
+// --- BEGES — suivi des dépôts et échéance +4 ans (T7.2) ---
+export type BegesFiling = {
+  id: number;
+  company_id: number;
+  exercise_year: number;
+  filed_at: string;
+  next_due_at: string;
+  ademe_ref: string | null;
+  package_hash: string | null;
+  total_tco2e: number | null;
+  notes: string | null;
+  reminder_stage: string;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type BegesFilingsResponse = {
+  status: "aucun_bilan" | "a_jour" | "echeance_proche" | "en_retard";
+  label: string;
+  next_due_at: string | null;
+  days_until_due: number | null;
+  last_exercise_year: number | null;
+  last_filed_at: string | null;
+  filings: BegesFiling[];
+};
+
+export function fetchBegesFilings(signal?: AbortSignal): Promise<BegesFilingsResponse> {
+  return apiGet<BegesFilingsResponse>("/beges/filings", signal);
+}
+
+export function recordBegesFiling(payload: {
+  exercise_year: number;
+  filed_at: string;
+  ademe_ref?: string | null;
+  total_tco2e?: number | null;
+  notes?: string | null;
+}): Promise<BegesFiling | null> {
+  return apiSend<BegesFiling>("POST", "/beges/filings", undefined, payload);
+}
+
+export async function deleteBegesFiling(filingId: number): Promise<void> {
+  await apiSend("DELETE", `/beges/filings/${filingId}`);
+}
+
+// --- Import FEC → screening Scope 3 (T4.3) ---
+export type FecScreening = {
+  total_spend: number;
+  mapped_spend: number;
+  mappable_pct: number;
+  total_tco2e: number;
+  ratio_kgco2e_per_eur: number;
+  by_category: { category: number; label: string; spend: number; tco2e: number }[];
+  top_accounts: { compte: string; lib: string; category: number | null; spend: number; tco2e: number }[];
+  unmapped_accounts: string[];
+};
+export type FecUploadResult = {
+  persisted: boolean;
+  id?: number;
+  filename: string;
+  parsed: { balanced: boolean; exercise_year: string | null; row_count: number; issues: string[] };
+  screening: FecScreening;
+};
+
+export async function uploadFec(file: File, signal?: AbortSignal): Promise<FecUploadResult> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await _fetchWithRetry(`${API_BASE_URL}/fec/upload`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    body: fd,
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /fec/upload`);
+  return (await res.json()) as FecUploadResult;
+}
+
+export function emitFec(id: number, signal?: AbortSignal): Promise<{ emitted_facts: number; status: string } | null> {
+  return apiSend("POST", `/fec/${id}/emit`, signal);
+}
+
+// --- Périmètre & consolidation (T4.4) ---
+export type ConsolidationEntity = { company_id: number; name: string | null; ownership_pct: number; is_parent: boolean };
+export type ConsolidationPerimeter = {
+  approaches: Record<string, { label: string; definition: string }>;
+  approach: string;
+  approach_label: string | null;
+  entities: ConsolidationEntity[];
+};
+export type ConsolidationGroup = {
+  approach: string;
+  approach_label: string;
+  entity_count: number;
+  kpis: Record<string, number>;
+  entities?: ConsolidationEntity[];
+};
+
+export function fetchConsolidationPerimeter(signal?: AbortSignal): Promise<ConsolidationPerimeter> {
+  return apiGet<ConsolidationPerimeter>("/consolidation/perimeter", signal);
+}
+export function fetchConsolidationGroup(signal?: AbortSignal): Promise<ConsolidationGroup> {
+  return apiGet<ConsolidationGroup>("/consolidation/group", signal);
+}
+export function setConsolidationApproach(
+  approach: string,
+  signal?: AbortSignal,
+): Promise<{ approach: string; previous: string | null } | null> {
+  return apiSend("POST", "/consolidation/approach", signal, { approach });
+}
+
+// --- Année de référence & recalcul (T4.5) ---
+export type Baseline = { id: number; baseline_year: number; snapshot_hash: string | null; ef_version: string | null; frozen_at: string };
+export type BaselinesResponse = { reasons: Record<string, string>; baselines: Baseline[] };
+export type BaselineVsCurrent = {
+  baseline_year: number;
+  deltas: Record<string, { baseline: number | null; current: number | null; change_pct: number | null }>;
+};
+
+export function fetchBaselines(signal?: AbortSignal): Promise<BaselinesResponse> {
+  return apiGet<BaselinesResponse>("/baselines", signal);
+}
+export function freezeBaseline(baseline_year: number, ef_version?: string, signal?: AbortSignal) {
+  return apiSend<{ id: number }>("POST", "/baselines/freeze", signal, { baseline_year, ef_version });
+}
+export function fetchBaselineVsCurrent(id: number, signal?: AbortSignal): Promise<BaselineVsCurrent> {
+  return apiGet<BaselineVsCurrent>(`/baselines/${id}/vs-current`, signal);
+}
+export function triggerRecalc(id: number, reason: string, detail?: string, signal?: AbortSignal) {
+  return apiSend<{ recalc_event_id: number; facts_touched: number }>("POST", `/baselines/${id}/recalc`, signal, { reason, detail });
 }
 
 export function invalidateCache(
@@ -689,8 +1195,9 @@ export function fetchSnapshotVersion(
 // ---------------------------------------------------------------------------
 
 export type AlertOperator = "gt" | "lt" | "gte" | "lte" | "eq";
-export type AlertChannel = "webhook" | "email";
+export type AlertChannel = "inapp" | "webhook" | "email";
 export type AlertDomain = "carbon" | "vsme" | "esg" | "finance";
+export type AlertMode = "absolute" | "delta_pct" | "missing";
 
 export interface AlertRuleOut {
   id: number;
@@ -699,9 +1206,10 @@ export interface AlertRuleOut {
   domain: AlertDomain;
   field_path: string;
   operator: AlertOperator;
-  threshold: number;
+  threshold: number | null;
+  mode?: AlertMode;
   channel: AlertChannel;
-  destination: string;
+  destination: string | null;
   is_active: boolean;
   last_fired_at: string | null;
   created_at: string;
@@ -712,9 +1220,10 @@ export interface AlertRuleCreate {
   domain: AlertDomain;
   field_path: string;
   operator: AlertOperator;
-  threshold: number;
+  threshold: number | null;
+  mode?: AlertMode;
   channel: AlertChannel;
-  destination: string;
+  destination: string | null;
   is_active?: boolean;
 }
 
@@ -722,9 +1231,10 @@ export interface AlertRulePatch {
   name?: string;
   field_path?: string;
   operator?: AlertOperator;
-  threshold?: number;
+  threshold?: number | null;
+  mode?: AlertMode;
   channel?: AlertChannel;
-  destination?: string;
+  destination?: string | null;
   is_active?: boolean;
 }
 
@@ -733,10 +1243,28 @@ export interface AlertFired {
   rule_name: string;
   domain: AlertDomain;
   field_path: string;
-  current_value: number;
-  threshold: number;
+  mode?: AlertMode;
+  current_value: number | null;
+  previous_value?: number | null;
+  threshold: number | null;
   operator: AlertOperator;
   fired_at: string;
+}
+
+export interface AlertNotification {
+  id: number;
+  rule_id: number | null;
+  rule_name: string | null;
+  title: string;
+  body: string | null;
+  fired_at: string;
+  read_at: string | null;
+  archived_at: string | null;
+}
+
+export interface NotificationsResponse {
+  unread: number;
+  notifications: AlertNotification[];
 }
 
 export interface AlertEvaluateResponse {
@@ -781,6 +1309,22 @@ export function evaluateAlerts(signal?: AbortSignal): Promise<AlertEvaluateRespo
 
 export function fetchAlertHistory(limit = 20, signal?: AbortSignal): Promise<AlertHistoryResponse> {
   return apiGet<AlertHistoryResponse>(`/alerts/history?limit=${limit}`, signal);
+}
+
+export function fetchNotifications(includeArchived = false, signal?: AbortSignal): Promise<NotificationsResponse> {
+  return apiGet<NotificationsResponse>(`/alerts/notifications?include_archived=${includeArchived}`, signal);
+}
+
+export function markNotificationRead(id: number, signal?: AbortSignal): Promise<Response> {
+  return _fetchWithRetry(`${API_BASE_URL}/alerts/notifications/${id}`, {
+    method: "PATCH",
+    headers: { Accept: "application/json", ...authHeaders() },
+    signal,
+  });
+}
+
+export function archiveNotification(id: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/alerts/notifications/${id}`, signal) as Promise<null>;
 }
 
 // ---------------------------------------------------------------------------
@@ -1732,6 +2276,7 @@ export interface IssuePosition {
   code: string;
   x: number;
   y: number;
+  justification?: string | null;
 }
 
 export interface ScoredIssue {
@@ -1741,16 +2286,66 @@ export interface ScoredIssue {
   y: number;
   score: number;
   materiel: boolean;
+  materiel_impact?: boolean;
+  materiel_financier?: boolean;
   pillar: "E" | "S" | "G";
+  esrs?: string | null;
+  justification?: string | null;
 }
 
 export interface MaterialiteScoreResponse {
   sector: string | null;
   issues: ScoredIssue[];
   total_materiel: number;
+  total_materiel_impact?: number;
+  total_materiel_financier?: number;
   total_issues: number;
   score_moyen: number;
+  threshold?: number;
+  esrs_to_activate?: string[];
   narrative: string;
+}
+
+export interface MaterialiteAssessment {
+  id: number;
+  company_id: number;
+  label: string;
+  sector: string | null;
+  threshold: number;
+  total_issues: number;
+  total_materiel: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export function fetchMaterialiteAssessments(signal?: AbortSignal): Promise<MaterialiteAssessment[]> {
+  return apiGet<MaterialiteAssessment[]>("/materialite/assessments", signal);
+}
+
+export function createMaterialiteAssessment(payload: {
+  label?: string | null;
+  sector?: string | null;
+}): Promise<MaterialiteAssessment | null> {
+  return apiSend<MaterialiteAssessment>("POST", "/materialite/assessments", undefined, payload);
+}
+
+export async function downloadMaterialiteAssessment(assessmentId: number): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}/materialite/assessments/${assessmentId}/export`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /materialite/assessments/${assessmentId}/export`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "materialite.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export interface SectorPresetsResponse {
@@ -1802,4 +2397,223 @@ export interface RagSearchResponse {
 
 export function ragSearch(query: string, top_k = 5): Promise<RagSearchResponse> {
   return apiSend<RagSearchResponse>("POST", "/copilot/rag-search", undefined, { query, top_k }) as Promise<RagSearchResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Actions de réduction — MACC (T5.1) + plan de transition (T5.2)
+// ---------------------------------------------------------------------------
+
+export type Action = {
+  id: number;
+  title: string;
+  description: string | null;
+  status: "proposed" | "committed" | "done";
+  owner: string | null;
+  milestone: string | null;
+  capex: number | null;
+  reduction_tco2e: number | null;
+  lifespan_years: number | null;
+  target_code: string | null;
+};
+
+export type MaccBar = {
+  id: number;
+  title: string;
+  status: string;
+  marginal_cost: number;
+  potential_tco2e: number;
+  capex: number | null;
+  cumulative_start: number;
+  cumulative_end: number;
+};
+
+export type Macc = {
+  bars: MaccBar[];
+  unpriced: { id: number; title: string }[];
+  total_potential_tco2e: number;
+  total_capex: number;
+};
+
+export type Trajectory = {
+  baseline_tco2e: number;
+  years: number;
+  reference: number[];
+  projected_done: number[];
+  projected_committed: number[];
+  potential: number[];
+  reductions: { done: number; committed: number; proposed: number; total: number };
+};
+
+export function fetchActions(signal?: AbortSignal): Promise<{ actions: Action[] }> {
+  return apiGet<{ actions: Action[] }>("/actions", signal);
+}
+
+export function createAction(body: Partial<Action>, signal?: AbortSignal): Promise<Action | null> {
+  return apiSend<Action>("POST", "/actions", signal, body);
+}
+
+export function patchAction(id: number, body: Partial<Action>, signal?: AbortSignal): Promise<Response> {
+  return _fetchWithRetry(`${API_BASE_URL}/actions/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+    signal,
+  });
+}
+
+export function setActionStatus(id: number, status: Action["status"], signal?: AbortSignal): Promise<Action | null> {
+  return apiSend<Action>("POST", `/actions/${id}/status`, signal, { status });
+}
+
+export function deleteAction(id: number, signal?: AbortSignal): Promise<null> {
+  return apiSend<null>("DELETE", `/actions/${id}`, signal) as Promise<null>;
+}
+
+export function fetchMacc(signal?: AbortSignal): Promise<Macc> {
+  return apiGet<Macc>("/actions/macc", signal);
+}
+
+export function fetchTrajectory(years = 5, signal?: AbortSignal): Promise<Trajectory> {
+  return apiGet<Trajectory>(`/actions/trajectory?years=${years}`, signal);
+}
+
+async function _downloadPdf(path: string, fallback: string, signal?: AbortSignal): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on ${path}`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : fallback;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export function downloadMaccPdf(signal?: AbortSignal): Promise<void> {
+  return _downloadPdf("/actions/macc.pdf", "macc.pdf", signal);
+}
+
+export function downloadTransitionPdf(signal?: AbortSignal): Promise<void> {
+  return _downloadPdf("/actions/transition.pdf", "plan-transition.pdf", signal);
+}
+
+// ---------------------------------------------------------------------------
+// Adaptateurs d'import fichiers — AWS / GCP / Qonto (T5.4)
+// ---------------------------------------------------------------------------
+
+export type ImportType = "aws" | "gcp" | "qonto";
+
+export type ImportScreeningResult = {
+  by_category: { category: number; label: string | null; tco2e: number; spend?: number }[];
+  total_tco2e: number;
+  total_spend?: number;
+  mappable_pct: number;
+  quality: number;
+  ratio_kgco2e_per_eur?: number;
+};
+
+export type ImportScreening = {
+  id: number;
+  import_type: ImportType;
+  filename: string;
+  status: "pending" | "emitted" | "rejected";
+  total_tco2e: number | null;
+  mappable_pct: number | null;
+  created_at?: string;
+  result?: ImportScreeningResult;
+};
+
+export type ImportUploadResult = {
+  persisted: boolean;
+  id?: number;
+  status?: string;
+  import_type: ImportType;
+  filename: string;
+  parsed: Record<string, unknown>;
+  screening: ImportScreeningResult;
+};
+
+export async function uploadImport(type: ImportType, file: File, signal?: AbortSignal): Promise<ImportUploadResult> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await _fetchWithRetry(`${API_BASE_URL}/imports/upload/${type}`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    body: fd,
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /imports/upload/${type}`);
+  return (await res.json()) as ImportUploadResult;
+}
+
+export function fetchImports(type?: ImportType, signal?: AbortSignal): Promise<{ imports: ImportScreening[] }> {
+  return apiGet<{ imports: ImportScreening[] }>(`/imports${type ? `?type=${type}` : ""}`, signal);
+}
+
+export function fetchImport(id: number, signal?: AbortSignal): Promise<ImportScreening> {
+  return apiGet<ImportScreening>(`/imports/${id}`, signal);
+}
+
+export function emitImport(id: number, signal?: AbortSignal): Promise<{ emitted_facts: number; status: string } | null> {
+  return apiSend("POST", `/imports/${id}/emit`, signal);
+}
+
+// ---------------------------------------------------------------------------
+// Diff multi-exercices + export questionnaires (T5.5)
+// ---------------------------------------------------------------------------
+
+export type SnapshotDiff = {
+  domain: string;
+  available: boolean;
+  diff: {
+    changed: { path: string; before: number; after: number; delta: number; change_pct: number | null }[];
+    added: { path: string; value: number }[];
+    removed: { path: string; value: number }[];
+    meta_changed: { path: string; before: string | null; after: string | null }[];
+    changed_count: number;
+    added_count: number;
+    removed_count: number;
+  };
+};
+
+export type QuestionnaireCatalog = {
+  version: string;
+  questionnaires: { key: string; label: string; question_count: number }[];
+};
+
+export function fetchDiff(domain: string, signal?: AbortSignal): Promise<SnapshotDiff> {
+  return apiGet<SnapshotDiff>(`/diff/${domain}`, signal);
+}
+
+export function fetchQuestionnaireCatalogs(signal?: AbortSignal): Promise<QuestionnaireCatalog> {
+  return apiGet<QuestionnaireCatalog>("/questionnaire/catalogs", signal);
+}
+
+export async function downloadQuestionnaire(questionnaire?: string, signal?: AbortSignal): Promise<void> {
+  const q = questionnaire ? `?questionnaire=${questionnaire}` : "";
+  const res = await _fetchWithRetry(`${API_BASE_URL}/questionnaire/export${q}`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /questionnaire/export`);
+  const blob = await res.blob();
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match ? match[1] : "reponses.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

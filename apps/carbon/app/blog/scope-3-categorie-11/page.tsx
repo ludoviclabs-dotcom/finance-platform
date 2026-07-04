@@ -15,7 +15,7 @@ const article = getArticle("scope-3-categorie-11")!;
 export const metadata: Metadata = {
   title: `${article.title} | CarbonCo`,
   description: article.description,
-  alternates: { canonical: `https://carbonco.fr/blog/${article.slug}` },
+  alternates: { canonical: `/blog/${article.slug}` },
 };
 
 export default function Page() {

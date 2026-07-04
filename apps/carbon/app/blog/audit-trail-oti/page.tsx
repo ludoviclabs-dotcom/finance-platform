@@ -15,7 +15,7 @@ const article = getArticle("audit-trail-oti")!;
 export const metadata: Metadata = {
   title: `${article.title} | CarbonCo`,
   description: article.description,
-  alternates: { canonical: `https://carbonco.fr/blog/${article.slug}` },
+  alternates: { canonical: `/blog/${article.slug}` },
 };
 
 export default function Page() {

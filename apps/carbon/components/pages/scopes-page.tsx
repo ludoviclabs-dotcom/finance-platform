@@ -1,213 +1,194 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-import { Factory, Zap, Truck, TrendingDown, TrendingUp, ChevronRight } from "lucide-react";
-import { SectionTitle } from "@/components/ui/section-title";
-import { ChartCard } from "@/components/ui/chart-card";
-import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { scopeDetails } from "@/lib/data";
-import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
+/* ════════════════════════════════════════════════════════════════════════════
+   Scopes 1-2-3 — Cockpit CarbonCo (refonte)
+   Hero empreinte + composition · sélecteur scope (4 tuiles, pilote toutes les vues) ·
+   Treemap par catégorie + détail · Tendance mensuelle empilée + trajectoire SBTi ·
+   Priorités de réduction (top 5 postes cross-scope). Live via useCarbonSnapshot.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+import { useMemo, useState } from "react";
+import { AlertTriangle, Info } from "lucide-react";
+
+import { monthlyEmissions, scopeDetails } from "@/lib/data";
 import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
 
-const scopeIcons = [
-  <Factory key="s1" className="w-6 h-6" />,
-  <Zap key="s2" className="w-6 h-6" />,
-  <Truck key="s3" className="w-6 h-6" />,
-];
+import {
+  ScopesHero, ScopeTiles, AnalysisSection, TrendSection, ReductionPriorities,
+  type ScopeData, type ScopeMetaMap, type ScopeSelected, type MonthlyPoint, type ScopeId,
+} from "@/components/cockpit/scopes-sections";
 
-const scopeColors = ["#059669", "#0891B2", "#7C3AED"];
+/* ─── Métadonnées scope ───────────────────────────────────────────────────── */
+const SCOPE_META: ScopeMetaMap = {
+  1: { target: 1230, shades: ["#059669", "#10B981", "#34D399", "#6EE7B7"] },
+  2: { target: 915,  shades: ["#0891B2", "#06B6D4", "#22D3EE", "#67E8F9"] },
+  3: { target: 3540, shades: ["#6D28D9", "#7C3AED", "#8B5CF6", "#A78BFA", "#C4B5FD", "#DDD6FE"] },
+};
+
+const SCOPE_DISPLAY: Record<ScopeId, {
+  label: string;
+  color: string;
+  icon: "factory" | "zap" | "truck";
+  share: number;
+  sbti: ScopeData["sbti"];
+  spark: number[];
+}> = {
+  1: {
+    label: "Émissions directes",
+    color: "#34D399",
+    icon: "factory",
+    share: 22,
+    sbti: { status: "ok", text: "−8 % vs SBTi" },
+    spark: [148, 142, 150, 132, 126, 120, 116, 118, 128, 132, 138, 145],
+  },
+  2: {
+    label: "Énergie achetée",
+    color: "#22D3EE",
+    icon: "zap",
+    share: 16,
+    sbti: { status: "warn", text: "−2 % vs SBTi" },
+    spark: [92, 88, 96, 82, 78, 74, 72, 70, 78, 82, 86, 90],
+  },
+  3: {
+    label: "Chaîne de valeur",
+    color: "#A78BFA",
+    icon: "truck",
+    share: 62,
+    sbti: { status: "alert", text: "+4 % vs SBTi" },
+    spark: [358, 348, 372, 332, 318, 300, 290, 285, 312, 322, 338, 358],
+  },
+};
+
+const REVENUE_MEUR = 142; // CA en M€ pour l'intensité carbone (cf. design)
+
+/* ─── Composant principal ───────────────────────────────────────────────── */
 
 export function ScopesPage() {
-  const [selectedScope, setSelectedScope] = useState(0);
+  const [selected, setSelected] = useState<ScopeSelected>("all");
+  const [hovered, setHovered] = useState<string | null>(null);
   const snapshot = useCarbonSnapshot();
 
   const pick = (live: number | null | undefined, fallback: number) =>
     typeof live === "number" && live > 0 ? live : fallback;
 
   const liveCarbon = snapshot.status === "ready" ? snapshot.data.carbon : null;
-  const scope1Total = pick(liveCarbon?.scope1Tco2e, scopeDetails[0].total);
-  const scope2Total = pick(liveCarbon?.scope2LbTco2e, scopeDetails[1].total);
-  const scope3Total = pick(liveCarbon?.scope3Tco2e, scopeDetails[2].total);
-  const liveTotals = [scope1Total, scope2Total, scope3Total];
+  const isLive =
+    snapshot.status === "ready" &&
+    liveCarbon !== null &&
+    (liveCarbon.totalS123Tco2e ?? 0) > 0;
 
-  const scope = scopeDetails[selectedScope];
-  const isLive = snapshot.status === "ready" && liveCarbon !== null && (liveCarbon.totalS123Tco2e ?? 0) > 0;
+  // ── Scopes data (live override sur le total ; categories démo) ─────────
+  const scopes: ScopeData[] = useMemo(() => {
+    return ([1, 2, 3] as const).map<ScopeData>((id) => {
+      const fallback = scopeDetails[id - 1];
+      const display = SCOPE_DISPLAY[id];
+      const liveTotal =
+        id === 1 ? liveCarbon?.scope1Tco2e
+        : id === 2 ? liveCarbon?.scope2LbTco2e
+        : liveCarbon?.scope3Tco2e;
+      const total = pick(liveTotal, fallback.total);
+      return {
+        id,
+        name: `Scope ${id}`,
+        label: display.label,
+        total,
+        trend: fallback.trend,
+        share: display.share,
+        color: display.color,
+        icon: display.icon,
+        sbti: display.sbti,
+        spark: display.spark,
+        categories: fallback.categories.map((c) => ({ name: c.name, value: c.value })),
+      };
+    });
+  }, [liveCarbon]);
+
+  const total = useMemo(() => scopes.reduce((a, s) => a + s.total, 0), [scopes]);
+  const postesCount = useMemo(
+    () => scopes.reduce((a, s) => a + s.categories.length, 0),
+    [scopes],
+  );
+
+  const monthly: MonthlyPoint[] = useMemo(
+    () => monthlyEmissions.map((m) => ({ m: m.month, s1: m.scope1, s2: m.scope2, s3: m.scope3 })),
+    [],
+  );
 
   return (
-    <motion.div {...pageVariants} className="p-6 space-y-6">
-      <SectionTitle
-        title="Analyse Scopes 1-2-3"
-        subtitle="Détail de vos émissions par périmètre GHG Protocol"
-      />
-
-      {/* Bandeau données de démonstration */}
-      {!isLive && snapshot.status !== "loading" && (
-        <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50">
-          <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-xs text-blue-700 flex-1">
-            <strong>Données de démonstration</strong> — les chiffres affichés sont fictifs.
-            Importez votre classeur Excel via{" "}
-            <a href="/upload" className="underline font-semibold hover:text-blue-900">Import de données</a>{" "}
-            pour voir vos émissions réelles.
-          </p>
+    <div className="cc-app">
+      <div className="px-6 pt-4 pb-6 space-y-4">
+        {/* Top bar */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="min-w-0">
+            <h1 className="font-display font-bold text-2xl leading-tight">Scopes 1-2-3</h1>
+            <div className="flex items-center gap-2 text-xs text-[var(--cc-subtle)] mt-1">
+              <span className="cc-live-dot" />
+              <span>
+                Analyse GHG Protocol · {postesCount} postes · {scopes.length} périmètres
+              </span>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Scope selector cards */}
-      <motion.div
-        variants={staggerContainer}
-        initial="initial"
-        animate="animate"
-        className="grid grid-cols-1 md:grid-cols-3 gap-4"
-      >
-        {scopeDetails.map((s, i) => (
-          <motion.button
-            key={s.id}
-            variants={staggerItem}
-            onClick={() => setSelectedScope(i)}
-            className={`p-5 rounded-xl border text-left transition-all cursor-pointer ${
-              selectedScope === i
-                ? "border-carbon-emerald bg-carbon-emerald/5"
-                : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)]"
-            }`}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: `${scopeColors[i]}20`, color: scopeColors[i] }}
-              >
-                {scopeIcons[i]}
-              </div>
-              <div>
-                <h3 className="font-display font-semibold text-[var(--color-foreground)]">
-                  {s.name}
-                </h3>
-                <p className="text-xs text-[var(--color-foreground-muted)]">{s.description}</p>
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-display font-bold text-[var(--color-foreground)]">
-                <AnimatedCounter value={liveTotals[i]} />
-              </span>
-              <span className="text-sm text-[var(--color-foreground-muted)]">{s.unit}</span>
-            </div>
-            <div className="mt-1 flex items-center gap-1 text-sm">
-              {s.trend < 0 ? (
-                <TrendingDown className="w-4 h-4 text-[var(--color-success)]" />
-              ) : (
-                <TrendingUp className="w-4 h-4 text-[var(--color-danger)]" />
-              )}
-              <span className={s.trend < 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}>
-                {s.trend > 0 ? "+" : ""}
-                {s.trend}%
-              </span>
-            </div>
-          </motion.button>
-        ))}
-      </motion.div>
+        {/* Bandeaux */}
+        {snapshot.status === "error" && (
+          <div className="flex items-center gap-2 p-3 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/5">
+            <AlertTriangle className="w-4 h-4 text-[var(--color-warning)] flex-shrink-0" />
+            <p className="text-xs text-[var(--color-foreground-muted)]">
+              Impossible de charger le snapshot Carbon en direct — affichage de données d&apos;exemple.{" "}
+              <span className="opacity-60">({snapshot.error})</span>
+            </p>
+          </div>
+        )}
+        {!isLive && snapshot.status !== "loading" && snapshot.status !== "error" && (
+          <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700">
+            <Info className="w-4 h-4 flex-shrink-0" />
+            <p className="text-xs flex-1">
+              <strong>Données de démonstration</strong> — les chiffres affichés sont fictifs.
+              Importez votre classeur Excel via{" "}
+              <a href="/upload" className="underline font-semibold hover:text-blue-900">
+                Import de données
+              </a>{" "}
+              pour voir vos émissions réelles.
+            </p>
+          </div>
+        )}
 
-      {/* Detail section */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={selectedScope}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-4"
-        >
-          {/* Bar chart breakdown */}
-          <ChartCard
-            title={`Répartition ${scope.name}`}
-            subtitle="Émissions par catégorie"
-          >
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={scope.categories} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis type="number" stroke="var(--color-foreground-muted)" fontSize={12} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    stroke="var(--color-foreground-muted)"
-                    fontSize={12}
-                    width={130}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "var(--color-surface)",
-                      border: "1px solid var(--color-border)",
-                      borderRadius: "8px",
-                      color: "var(--color-foreground)",
-                    }}
-                    formatter={(val: number) => [`${val} tCO₂e`, ""]}
-                  />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {scope.categories.map((cat, i) => (
-                      <Cell key={i} fill={cat.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </ChartCard>
+        {/* Hero empreinte */}
+        <ScopesHero
+          scopes={scopes}
+          total={total}
+          revenue={REVENUE_MEUR}
+          postesCount={postesCount}
+        />
 
-          {/* Categories list */}
-          <ChartCard title="Détail par catégorie" subtitle="Part et volume de chaque source">
-            <div className="space-y-3">
-              {scope.categories.map((cat) => {
-                const pct = ((cat.value / liveTotals[selectedScope]) * 100).toFixed(1);
-                return (
-                  <div
-                    key={cat.name}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-background)] border border-[var(--color-border)]"
-                  >
-                    <div
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: cat.color }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-[var(--color-foreground)]">
-                          {cat.name}
-                        </span>
-                        <span className="text-sm text-[var(--color-foreground-muted)]">
-                          {cat.value.toLocaleString("fr-FR")} tCO₂e
-                        </span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
-                          className="h-full rounded-full"
-                          style={{ backgroundColor: cat.color }}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-[var(--color-foreground-subtle)]">
-                      <span>{pct}%</span>
-                      <ChevronRight className="w-3 h-3" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ChartCard>
-        </motion.div>
-      </AnimatePresence>
-    </motion.div>
+        {/* Sélecteur de scope (4 tuiles) */}
+        <ScopeTiles scopes={scopes} selected={selected} setSelected={setSelected} />
+
+        {/* Treemap + détail par catégorie */}
+        <AnalysisSection
+          scopes={scopes}
+          meta={SCOPE_META}
+          selected={selected}
+          hovered={hovered}
+          setHovered={setHovered}
+        />
+
+        {/* Tendance mensuelle + trajectoire SBTi */}
+        <TrendSection
+          scopes={scopes}
+          monthly={monthly}
+          selected={selected}
+          meta={SCOPE_META}
+        />
+
+        {/* Priorités de réduction cross-scope */}
+        <ReductionPriorities scopes={scopes} meta={SCOPE_META} total={total} />
+
+        <div className="text-center text-[11px] text-[var(--cc-subtle)] font-mono py-2">
+          GHG Protocol Scope 1-2-3 · Facteurs ADEME 2024 · CA {REVENUE_MEUR} M€
+        </div>
+      </div>
+    </div>
   );
 }

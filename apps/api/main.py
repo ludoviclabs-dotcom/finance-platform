@@ -9,38 +9,73 @@ from db.migrations import run_migrations
 from middleware.rate_limit import RateLimitMiddleware
 from middleware.request_logger import RequestLoggerMiddleware
 from routers import (
+    actions,
     admin,
     alerts,
     audit,
+    auditor,
     auth,
+    baselines,
+    beges,
     carbon,
+    chain,
     clients,
+    consolidation,
     copilot,
     creditrisk,
     cyber,
     dashboard,
+    diff,
     dpp,
     entreprise,
     esg,
     excel,
     export,
-    facts,
     factors,
+    facts,
+    fec,
+    files,
     finance,
     health,
     history,
+    imports,
     ingest,
     materialite,
+    partners,
     pilier2,
+    quality,
+    questionnaire,
     report,
     reviews,
+    scope3,
     strategic_mapping,
     suppliers,
     verify,
     vsme,
+    vsme_datapoints,
+    vsme_export,
+    vsme_mapping,
+    vsme_wizard,
 )
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Sentry (T1.7) — no-op si SENTRY_DSN absent ou sentry_sdk non installé.
+# release = SHA de commit pour relier les erreurs au déploiement.
+# ---------------------------------------------------------------------------
+_SENTRY_DSN = os.environ.get("SENTRY_DSN")
+if _SENTRY_DSN:
+    try:
+        import sentry_sdk
+        sentry_sdk.init(
+            dsn=_SENTRY_DSN,
+            release=os.environ.get("VERCEL_GIT_COMMIT_SHA") or os.environ.get("GITHUB_SHA"),
+            traces_sample_rate=0.0,
+        )
+        logger.info("Sentry initialisé")
+    except Exception as exc:  # pragma: no cover - dépend de l'environnement
+        logger.warning("Sentry non initialisé : %s", exc)
 
 try:
     from routers import ma
@@ -48,9 +83,9 @@ except ImportError:
     ma = None
 
 # ---------------------------------------------------------------------------
-# Request body size limit (10 MB)
+# Request body size limit (16 MB — enveloppe multipart pour upload max 15 Mo, T1.5)
 # ---------------------------------------------------------------------------
-MAX_BODY_SIZE = 10 * 1024 * 1024  # 10 MB
+MAX_BODY_SIZE = 16 * 1024 * 1024  # 16 MB
 
 app = FastAPI(
     title="Finance Platform API",
@@ -136,10 +171,15 @@ app.include_router(pilier2.router, prefix="/pilier2", tags=["pilier2"])
 app.include_router(creditrisk.router, prefix="/creditrisk", tags=["creditrisk"])
 app.include_router(carbon.router, prefix="/carbon", tags=["carbon"])
 app.include_router(vsme.router, prefix="/vsme", tags=["vsme"])
+app.include_router(vsme_datapoints.router, prefix="/vsme/datapoints", tags=["vsme (T3.1)"])
+app.include_router(vsme_mapping.router, prefix="/vsme/mapping", tags=["vsme (T3.2)"])
+app.include_router(vsme_export.router, prefix="/vsme/report", tags=["vsme (T3.3)"])
+app.include_router(vsme_wizard.router, prefix="/vsme/wizard", tags=["vsme (T3.4)"])
 app.include_router(esg.router, prefix="/esg", tags=["esg"])
 app.include_router(finance.router, prefix="/finance", tags=["finance"])
 app.include_router(ingest.router, tags=["ingest"])
 app.include_router(audit.router, prefix="/audit", tags=["audit"])
+app.include_router(auditor.router, prefix="/auditor", tags=["auditor (T2.2)"])
 app.include_router(history.router, prefix="/history", tags=["history"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(dpp.router, prefix="/dpp", tags=["dpp"])
@@ -147,6 +187,18 @@ app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(factors.router, prefix="/factors", tags=["factors"])
 app.include_router(facts.router, prefix="/facts", tags=["facts"])
+app.include_router(chain.router, prefix="/chain", tags=["chain (T2.5)"])
+app.include_router(quality.router, prefix="/quality", tags=["quality (T2.6)"])
+app.include_router(scope3.router, prefix="/scope3", tags=["scope3 (T4.1)"])
+app.include_router(beges.router, prefix="/beges", tags=["beges (T4.2)"])
+app.include_router(fec.router, prefix="/fec", tags=["fec (T4.3)"])
+app.include_router(consolidation.router, prefix="/consolidation", tags=["consolidation (T4.4)"])
+app.include_router(baselines.router, prefix="/baselines", tags=["baselines (T4.5)"])
+app.include_router(actions.router, prefix="/actions", tags=["actions (T5.1/T5.2)"])
+app.include_router(imports.router, prefix="/imports", tags=["imports (T5.4)"])
+app.include_router(diff.router, prefix="/diff", tags=["diff (T5.5)"])
+app.include_router(questionnaire.router, prefix="/questionnaire", tags=["questionnaire (T5.5)"])
+app.include_router(files.router, tags=["files"])
 app.include_router(reviews.router, prefix="/reviews", tags=["reviews"])
 app.include_router(export.router, prefix="/export", tags=["export"])
 app.include_router(verify.router, prefix="/verify", tags=["verify (public)"])
@@ -154,3 +206,4 @@ app.include_router(copilot.router, prefix="/copilot", tags=["copilot"])
 app.include_router(strategic_mapping.router, prefix="/strategic-mapping", tags=["strategic-mapping"])
 app.include_router(suppliers.router, prefix="/suppliers", tags=["suppliers"])
 app.include_router(materialite.router, prefix="/materialite", tags=["materialite"])
+app.include_router(partners.router, prefix="/partners", tags=["partners (T7.5)"])

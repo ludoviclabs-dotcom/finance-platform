@@ -24,6 +24,26 @@ export interface BlogArticleMeta {
 
 export const BLOG_ARTICLES: BlogArticleMeta[] = [
   {
+    slug: "vsme-devient-vs-2026",
+    title: "VSME devient VS : ce que change le projet d'acte délégué de mai 2026",
+    description:
+      "Renommage en « Voluntary Standard », datapoints allégés, exemptions micro-entreprises et value chain cap opposable : le point sur le projet d'acte délégué du 6 mai 2026 et le calendrier jusqu'à l'application 2027.",
+    date: "2026-07-02",
+    readingTime: "6 min",
+    category: "Réglementation",
+    tags: ["VSME", "VS", "EFRAG", "Acte délégué", "Value chain cap"],
+  },
+  {
+    slug: "vsme-standard-chaine-valeur",
+    title: "VSME : le standard de la chaîne de valeur après l'Omnibus",
+    description:
+      "Après l'Omnibus, la pression ESG ne disparaît pas pour les PME : elle change de canal. Le standard volontaire VSME (EFRAG) devient le langage commun des banques et donneurs d'ordre.",
+    date: "2026-06-13",
+    readingTime: "7 min",
+    category: "Réglementation",
+    tags: ["VSME", "EFRAG", "PME", "Omnibus"],
+  },
+  {
     slug: "csrd-2027-checklist",
     title: "Préparer son audit CSRD 2027 — checklist en 12 points",
     description:

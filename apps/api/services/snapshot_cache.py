@@ -242,6 +242,34 @@ def read_snapshot_history(
         return []
 
 
+def read_snapshot_versions(
+    domain: str,
+    company_id: int = DEFAULT_COMPANY_ID,
+    limit: int = 2,
+) -> list[dict[str, Any]]:
+    """Retourne les N derniers snapshots COMPLETS (data brute) du plus récent au
+    plus ancien — utilisé par les alertes pour comparer N vs N-1 (T5.3)."""
+    if not db_available():
+        return []
+    try:
+        with get_db(company_id=company_id) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT data FROM snapshots WHERE company_id = %s AND domain = %s "
+                    "ORDER BY generated_at DESC LIMIT %s",
+                    (company_id, domain, limit),
+                )
+                rows = cur.fetchall()
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            d = row["data"]
+            out.append(d if isinstance(d, dict) else json.loads(d))
+        return out
+    except Exception as exc:
+        logger.warning("Erreur lecture versions snapshot : %s", exc)
+        return []
+
+
 def _snapshot_summary(domain: str, data: dict[str, Any]) -> dict[str, Any]:
     """Extract a few key KPIs from a snapshot for display in history."""
     if domain == "carbon":

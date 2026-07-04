@@ -8,16 +8,25 @@ interface LoginScreenProps {
   onLogin: (
     email: string,
     password: string
+  ) => Promise<{ ok: boolean; error?: string; totpRequired?: boolean; preAuthToken?: string }>;
+  onVerifyTotp: (
+    preAuthToken: string,
+    code: string
   ) => Promise<{ ok: boolean; error?: string }>;
   onDemo: () => void;
 }
 
-export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onVerifyTotp, onDemo }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Étape 2FA (apparaît seulement si l'utilisateur a activé le TOTP).
+  const [step, setStep] = useState<"password" | "totp">("password");
+  const [preAuthToken, setPreAuthToken] = useState("");
+  const [code, setCode] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +34,25 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
     setLoading(true);
     try {
       const result = await onLogin(email, password);
-      if (!result.ok) {
+      if (result.totpRequired && result.preAuthToken) {
+        setPreAuthToken(result.preAuthToken);
+        setStep("totp");
+      } else if (!result.ok) {
         setError(result.error ?? "Erreur de connexion.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await onVerifyTotp(preAuthToken, code.trim());
+      if (!result.ok) {
+        setError(result.error ?? "Code invalide.");
       }
     } finally {
       setLoading(false);
@@ -52,19 +78,21 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
           {/* Orbs */}
           <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] rounded-full bg-green-600/10 blur-[120px] animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-cyan-500/8 blur-[100px] animate-pulse [animation-delay:3s]" />
-          {/* Points décoratifs */}
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 rounded-full bg-green-400/30"
-              style={{
-                left: `${10 + (i * 37) % 80}%`,
-                top: `${5 + (i * 53) % 90}%`,
-              }}
-              animate={{ opacity: [0.2, 0.8, 0.2] }}
-              transition={{ duration: 3 + (i % 3), repeat: Infinity, delay: i * 0.3 }}
-            />
-          ))}
+          {/* Points décoratifs — purement visuels, masqués aux technologies d'assistance */}
+          <div aria-hidden="true">
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 rounded-full bg-green-400/30"
+                style={{
+                  left: `${10 + (i * 37) % 80}%`,
+                  top: `${5 + (i * 53) % 90}%`,
+                }}
+                animate={{ opacity: [0.2, 0.8, 0.2] }}
+                transition={{ duration: 3 + (i % 3), repeat: Infinity, delay: i * 0.3 }}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Logo */}
@@ -113,7 +141,7 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
               {[
                 { icon: CheckCircle, text: "Couverture prioritaire ESRS E1 + ESRS 1&2", color: "text-green-400" },
                 { icon: Shield, text: "Audit trail append-only · hash SHA-256 chaîné", color: "text-cyan-400" },
-                { icon: Lock, text: "Infrastructure EU (Vercel) · chiffrement TLS 1.3", color: "text-green-400" },
+                { icon: Lock, text: "Données métier zone UE (Neon Postgres) · TLS 1.3", color: "text-green-400" },
               ].map(({ icon: Icon, text, color }) => (
                 <div key={text} className="flex items-center gap-3">
                   <Icon className={`w-5 h-5 ${color} flex-shrink-0`} />
@@ -172,12 +200,82 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
 
           {/* Titre formulaire */}
           <div className="mb-8">
-            <h2 className="font-display text-2xl font-bold text-white mb-1">Bon retour 👋</h2>
-            <p className="text-white/50 text-sm">Connectez-vous à votre espace CarbonCo</p>
+            <h2 className="font-display text-2xl font-bold text-white mb-1">
+              {step === "password" ? "Bon retour 👋" : "Vérification en deux étapes"}
+            </h2>
+            <p className="text-white/50 text-sm">
+              {step === "password"
+                ? "Connectez-vous à votre espace CarbonCo"
+                : "Saisissez le code de votre application d'authentification."}
+            </p>
           </div>
 
           {/* Card formulaire */}
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8">
+            {step === "totp" ? (
+              <form onSubmit={handleVerify} className="space-y-5" noValidate>
+                <div className="flex items-center gap-2 text-sm text-white/70">
+                  <Shield className="w-4 h-4 text-green-400" aria-hidden="true" />
+                  Authentification à deux facteurs
+                </div>
+                <div>
+                  <label htmlFor="totp-code" className="block text-sm text-white/80 mb-1.5 font-medium">
+                    Code de vérification
+                  </label>
+                  <input
+                    id="totp-code"
+                    name="otp"
+                    inputMode="text"
+                    autoCapitalize="characters"
+                    autoComplete="one-time-code"
+                    autoFocus
+                    maxLength={14}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="123456 ou code de récupération"
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? "login-error" : undefined}
+                    className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white placeholder:text-white/40 text-center text-lg tracking-[0.4em] focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/40 transition-colors"
+                  />
+                  <p className="mt-1.5 text-xs text-white/40">
+                    Ou l&apos;un de vos codes de récupération si vous n&apos;avez plus accès à
+                    l&apos;application.
+                  </p>
+                </div>
+
+                {error && (
+                  <div
+                    id="login-error"
+                    role="alert"
+                    aria-live="polite"
+                    className="flex items-center gap-2 p-3 rounded-xl bg-red-500/15 border border-red-500/30"
+                  >
+                    <AlertCircle className="w-4 h-4 text-red-300 flex-shrink-0" />
+                    <span className="text-xs text-red-200">{error}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || code.trim().length === 0}
+                  className="w-full py-3.5 rounded-xl bg-gradient-esg text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all hover:scale-[1.01] cursor-pointer shadow-lg shadow-green-900/30 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-400"
+                >
+                  {loading ? "Vérification…" : "Vérifier"}
+                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("password");
+                    setError(null);
+                    setCode("");
+                  }}
+                  className="w-full text-xs text-white/50 hover:text-white/80 transition-colors"
+                >
+                  ← Revenir à la connexion
+                </button>
+              </form>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               {/* Email */}
               <div>
@@ -254,9 +352,11 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>
             </form>
+            )}
           </div>
 
-          {/* CTA démo secondaire */}
+          {/* CTA démo secondaire — masqué pendant l'étape 2FA */}
+          {step === "password" && (
           <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-5 text-center">
             <p className="text-xs text-white/40 mb-3">Pas encore client ?</p>
             <button
@@ -265,22 +365,23 @@ export function LoginScreen({ onLogin, onDemo }: LoginScreenProps) {
               className="w-full py-3 rounded-xl border border-white/20 text-white font-semibold text-sm hover:bg-white/10 transition-all hover:scale-[1.01] cursor-pointer flex items-center justify-center gap-2"
             >
               Accès démo (sans compte)
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
+          )}
 
           {/* Trust signals */}
           <div className="mt-6 flex items-center justify-center gap-6 flex-wrap">
             <div className="flex items-center gap-1.5 text-white/30">
-              <span className="text-base">🇫🇷</span>
-              <span className="text-xs">Hébergé en France</span>
+              <span className="text-base" aria-hidden="true">🇪🇺</span>
+              <span className="text-xs">Données zone UE (Neon)</span>
             </div>
             <div className="flex items-center gap-1.5 text-white/30">
-              <Lock className="w-3.5 h-3.5" />
+              <Lock className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="text-xs">AES-256</span>
             </div>
             <div className="flex items-center gap-1.5 text-white/30">
-              <CheckCircle className="w-3.5 h-3.5" />
+              <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="text-xs">RGPD natif</span>
             </div>
           </div>

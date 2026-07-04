@@ -156,27 +156,32 @@ export const SECTOR_ENTRIES: PublicEntry[] = [
     ],
   }),
   buildSectorEntry("aeronautique", {
-    status: "demo",
-    proofLevel: "ui_demo",
-    tagline: "Premier wedge public : Marketing aéro (B2B + defense + sustainability)",
+    status: "live",
+    proofLevel: "runtime_data",
+    tagline: "Marketing aéro runtime : 5 workbooks live, ExportRuleChecker scénario-id only",
     description:
-      "L'aéronautique dispose maintenant d'un premier wedge visible : Marketing B2B technique, conformité ITAR/EAR/sanctions, packs salons 2026 (Farnborough, ILA, Eurosatory, MEBAA) et anti-greenwashing SAF/H2/eVTOL. La page expose 4 agents, 2 services réservés, 44 règles et les 5 workbooks Excel générés.",
-    readyNow: "Page Aéronautique / Marketing, hub /secteurs/aeronautique, 5 workbooks Excel locaux et référentiel 2026 documenté (AI Act art. 50, OFAC SDN, Green Claims Directive, ReFuelEU).",
+      "L'aéronautique est désormais en preuve runtime : 5 workbooks Excel synchronisés vers content JSON committés, démo /api/demo/aero-export-check scénario-id only (zéro LLM, zéro texte libre), verdicts déterministes adossés à 12 sources réglementaires (ITAR, EAR, EU dual-use, OFAC, AI Act art. 50, Green Claims Directive, ReFuelEU, CSRD, ASD Charter). Branche Communications & Affaires publiques publiée en démo UI (4 agents corporate, 10 sources, 22 règles).",
+    readyNow:
+      "Marketing live (ExportRuleChecker + 5 workbooks + 12 sources). Veille OFAC SDN active via /secteurs/aeronautique/regwatch (hash SHA-256 déterministe, historique persistant). Branche Communications corporate en démo UI sur /secteurs/aeronautique/communications (AeroDefenseCommsGuard, ProgramCommsAero, GovRelationsAero, GreenAeroComms).",
     nextStep:
-      "Brancher les workbooks au runtime public et ajouter la branche Communications & Affaires publiques (corporate, gov relations).",
-    dataUsed: "AeroTechContent + DefenseCommsGuard + AeroEventAI + AeroSustainabilityComms + Aero_Marketing_OVERVIEW (5 workbooks NEURAL).",
-    deliverable: "Page /secteurs/aeronautique/marketing avec sourcebook réglementaire 12 sources et catalogue TS.",
+      "Faire passer la branche Communications corporate en runtime (workbooks + JSON + API démo, modèle Marketing) et élargir AeroRegWatch à BIS Entity List, EU OFSI, EUR-Lex AI Act et EASA Décisions.",
+    dataUsed:
+      "5 workbooks Marketing NEURAL → JSON content/aero-marketing/* (Live). AeroRegWatch persiste les snapshots OFAC dans Upstash Redis. Branche Communications utilise lib/data/aero-comms-catalog.ts (TS uniquement, pas de runtime data à ce stade).",
+    deliverable:
+      "Marketing live (page + ExportRuleChecker + API + 5 .xlsx) + RegWatch (cron + page) + Communications corporate (4 agents en démo UI sur /secteurs/aeronautique/communications).",
     ctaHref: "/secteurs/aeronautique/marketing",
-    ctaLabel: "Ouvrir Aéronautique / Marketing",
+    ctaLabel: "Tester l'ExportRuleChecker aéro",
     scopeNow: [
-      "Expose un cas d'usage aéro concret sans données classifiées.",
-      "Montre les guardrails réglementaires : ITAR/EAR, sanctions, AI Act art. 50, anti-greenwashing.",
-      "Reste honnête : démo UI et workbooks portfolio, pas production live.",
+      "Expose 4 agents marketing aéro avec workbooks runtime parsés et JSON committés.",
+      "Démo scénario-id only — zéro texte libre, zéro appel LLM côté serveur.",
+      "Trace verdict, règles déclenchées et sources réglementaires pour chaque scénario.",
+      "Veille OFAC SDN quotidienne avec hash SHA-256 et historique persistant.",
+      "Branche Communications corporate publiée en démo UI (4 agents, 10 sources, 22 règles).",
     ],
     notYet: [
-      "Pas encore de parsing runtime des fichiers Excel aéro.",
-      "Pas encore de pages agents dédiées avec API de démo.",
-      "Pas encore de branche Communications & Affaires publiques publiée (corporate aéro-comms en attente).",
+      "AeroRegWatch ne couvre qu'OFAC SDN — BIS Entity List, UK OFSI, EUR-Lex AI Act et EASA Décisions à venir.",
+      "Branche Communications corporate reste en démo UI — pipeline runtime (xlsx → JSON → API) prévu Q3 2026.",
+      "Pas d'EvidenceGuard signé SHA-256 exposé publiquement.",
     ],
   }),
   buildSectorEntry("saas", {

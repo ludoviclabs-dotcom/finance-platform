@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { BLOG_ARTICLES } from "@/lib/blog-articles";
 import { PRODUCT_MODULES } from "@/lib/product-modules";
+import { siteUrl } from "@/lib/site-url";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://carbonco.fr";
+  const baseUrl = siteUrl();
   const now = new Date();
 
   // —— Pages publiques principales ——
@@ -15,7 +16,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/blog`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/aide`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/brochure`, changeFrequency: "monthly", priority: 0.75 },
-    { url: `${baseUrl}/guide-csrd-2027`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${baseUrl}/guide-csrd-vsme-2026`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${baseUrl}/bilan-carbone-beges`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${baseUrl}/cbam`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/scope3-fournisseurs`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/partenaires`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/dev`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/couverture`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/etat-du-produit`, changeFrequency: "weekly", priority: 0.65 },
@@ -46,7 +51,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/mentions-legales`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  return [...corePages, ...blogPages, ...productPages, ...legalPages].map((entry) => ({
+  // —— Pages Trust & AI Act ——
+  const trustPages: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/trust`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/trust/sub-processors`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/trust/exit-strategy`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/ai-act`, changeFrequency: "monthly", priority: 0.6 },
+  ];
+
+  return [...corePages, ...blogPages, ...productPages, ...legalPages, ...trustPages].map((entry) => ({
     lastModified: now,
     ...entry,
   }));

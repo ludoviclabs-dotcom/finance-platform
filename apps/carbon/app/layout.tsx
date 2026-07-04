@@ -1,9 +1,34 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk, Manrope } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieBanner } from "@/components/cookie-banner";
 import { THEME_INIT_SCRIPT } from "@/components/ui/theme-toggle";
+import { JsonLd } from "@/components/seo/json-ld";
+import { siteUrl, CONTACT_EMAIL } from "@/lib/site-url";
 import "./globals.css";
+
+// Organization schema — servi sur toutes les pages via le root layout.
+// Référence : https://developers.google.com/search/docs/appearance/structured-data/organization
+const ORGANIZATION_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "CarbonCo",
+  alternateName: "Carbon&Co",
+  url: siteUrl(),
+  logo: `${siteUrl()}/logo.png`,
+  description:
+    "Plateforme de pilotage ESG & CSRD augmentée par l'IA. Données métier hébergées en zone UE.",
+  contactPoint: [
+    {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: CONTACT_EMAIL,
+      availableLanguage: ["French", "English"],
+    },
+  ],
+} as const;
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,14 +52,14 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://carbonco.fr"),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
     template: "%s | CarbonCo",
   },
   description:
     "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
-    "et générez vos rapports ESG en quelques clics. Hébergé sur infrastructure EU.",
+    "et générez vos rapports ESG en quelques clics. Données métier en zone UE (Neon Postgres).",
   keywords: [
     "ESG",
     "CSRD",
@@ -55,12 +80,12 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://carbonco.fr",
+    url: "/",
     siteName: "CarbonCo",
     title: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
     description:
       "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
-      "et générez vos rapports ESG en quelques clics. Hébergé sur infrastructure EU.",
+      "et générez vos rapports ESG en quelques clics. Données métier en zone UE (Neon Postgres).",
     // OG image: served dynamically by app/opengraph-image.tsx (Next.js convention)
   },
   twitter: {
@@ -81,7 +106,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://carbonco.fr",
+    canonical: "/",
   },
 };
 
@@ -95,10 +120,18 @@ export default function RootLayout({
       lang="fr"
       data-theme="dark"
       className={`${inter.variable} ${spaceGrotesk.variable} ${manrope.variable}`}
+      // `data-theme` est réécrit par THEME_INIT_SCRIPT avant la première peinture
+      // (cf. <script> dans <head> ci-dessous) pour respecter la préférence stockée
+      // dans localStorage ou `prefers-color-scheme`. Sans `suppressHydrationWarning`,
+      // React détecte la différence SSR vs DOM et émet un avertissement d'hydratation.
+      // Pattern standard recommandé par Next.js et utilisé par next-themes.
+      suppressHydrationWarning
     >
       <head>
         {/* Applique le thème stocké avant la première peinture pour éviter le flash. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* Organization schema — Rich Results Google */}
+        <JsonLd data={ORGANIZATION_SCHEMA} />
       </head>
       <body className="min-h-screen font-sans antialiased">
         <a
@@ -111,6 +144,9 @@ export default function RootLayout({
           {children}
           <CookieBanner />
         </ToastProvider>
+        {/* Vercel Analytics & Speed Insights — Core Web Vitals + events */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

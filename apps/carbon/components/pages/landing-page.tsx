@@ -1,8 +1,9 @@
 "use client";
 
+import { CONTACT_EMAIL } from "@/lib/site-url";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   PremiumDashboardMockup,
   PREMIUM_DASHBOARD_HOTSPOTS,
@@ -11,11 +12,14 @@ import { HeroStage } from "../landing/hero/hero-stage";
 import { TrustBadges } from "../landing/trust-badges";
 import { SecurityArchitecture } from "../landing/security-architecture";
 import { SectorShowcase } from "../landing/sector-mockups";
+import { SectorImpactDrawer } from "../landing/sector-impact-drawer";
 import { HowItWorksSection } from "../landing/how-it-works";
-import { Testimonials } from "../landing/testimonials";
-import { CompetitorComparison } from "../landing/competitor-comparison";
+import { PilotProgram } from "../landing/pilot-program";
+import { WhyProofFirst } from "../landing/why-proof-first";
 import { RoiCalculator } from "../landing/roi-calculator";
 import { NewsletterForm } from "../landing/newsletter-form";
+import { DemoDisclaimer } from "../landing/demo-disclaimer";
+import { useAnalytics } from "@/lib/hooks/use-analytics";
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -29,7 +33,7 @@ const NAV_LINKS = [
   { href: "/proof", label: "Preuve" },
   { href: "#how", label: "Comment ça marche" },
   { href: "#pricing", label: "Tarifs" },
-  { href: "#video-section", label: "Démo" },
+  { href: "/demo", label: "Démo" },
 ] as const;
 
 /* ── Scroll-reveal hook ── */
@@ -55,14 +59,20 @@ function useReveal(threshold = 0.15) {
 
 function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const { ref, visible } = useReveal();
+  const prefersReducedMotion = useReducedMotion();
+  // Quand l'utilisateur a activé prefers-reduced-motion (réglage OS), on saute
+  // l'animation : le contenu est visible immédiatement, sans transition.
+  const shown = prefersReducedMotion || visible;
   return (
     <div
       ref={ref}
       className={className}
       style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(32px)",
-        transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
+        opacity: shown ? 1 : 0,
+        transform: shown ? "translateY(0)" : "translateY(32px)",
+        transition: prefersReducedMotion
+          ? "none"
+          : `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
       }}
     >
       {children}
@@ -101,6 +111,7 @@ function CountUp({ target, suffix = "", decimals = 0, duration = 1800 }: { targe
 
 /* ── Dashboard Showcase (Premium mockup + hotspots) ── */
 function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
+  const { track } = useAnalytics();
   return (
     <section className="py-32 px-8 md:px-12 bg-[#f9f9fb] overflow-hidden">
       <div className="max-w-[1440px] mx-auto">
@@ -109,7 +120,7 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         </Reveal>
         <Reveal className="text-center mb-4" delay={0.05}>
           <h2 className="font-extrabold text-4xl md:text-5xl tracking-tighter text-black">
-            Votre Bilan Carbone,{" "}
+            Votre bilan GES,{" "}
             <span style={{ background: "linear-gradient(135deg, #16a34a 0%, #059669 40%, #0891b2 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               en un coup d&apos;oeil.
             </span>
@@ -117,13 +128,14 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         </Reveal>
         <Reveal delay={0.1} className="text-center mb-16">
           <p className="text-lg text-neutral-500 max-w-2xl mx-auto">
-            Survolez les zones cles pour decouvrir chaque dimension de votre empreinte carbone.
+            Survolez les zones clés pour découvrir chaque dimension de votre empreinte carbone.
           </p>
         </Reveal>
 
         {/* Premium dashboard mockup (desktop ≥ 1100px : hotspots visibles) */}
         <Reveal delay={0.15}>
           <PremiumDashboardMockup />
+          <DemoDisclaimer />
         </Reveal>
 
         {/* Mobile fallback — liste des 5 zones */}
@@ -144,10 +156,10 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
         {/* Feature cards under dashboard */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-12 md:mt-16 max-w-5xl mx-auto">
           {[
-            { icon: "🔗", title: "Collecte structurée", desc: "Import Excel guidé, factures énergie, API REST. Connecteurs ERP en roadmap." },
-            { icon: "📐", title: "Calcul GHG Protocol", desc: "Methodologie certifiee Scopes 1, 2, 3" },
-            { icon: "🤖", title: "IA Recommandations", desc: "Plans d'action personnalises et priorises" },
-            { icon: "📄", title: "Rapports conformes", desc: "CSRD, CDP, Bilan Carbone en 1 clic" },
+            { icon: "🔗", title: "Collecte structurée", desc: "Import Excel guidé, factures énergie, API REST (beta). Connecteurs ERP (Sage, Cegid, SAP) en roadmap." },
+            { icon: "📐", title: "Calcul GHG Protocol", desc: "Méthodologie GHG Protocol — Scopes 1, 2, 3" },
+            { icon: "🤖", title: "IA Recommandations", desc: "Plans d'action personnalisés et priorisés" },
+            { icon: "📄", title: "Rapports conformes", desc: "CSRD, CDP, bilan GES en 1 clic" },
           ].map((f, i) => (
             <Reveal key={f.title} delay={0.08 * i}>
               <div className="flex flex-col items-center text-center p-4 md:p-6 rounded-2xl bg-white border border-neutral-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default">
@@ -163,8 +175,14 @@ function DashboardShowcase({ onEnterApp }: { onEnterApp: () => void }) {
 
         {/* CTA */}
         <Reveal delay={0.3} className="text-center mt-12">
-          <button onClick={onEnterApp} className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
-            Explorer le dashboard →
+          <button
+            onClick={() => {
+              track("trial_started", { source: "dashboard_showcase_cta" });
+              onEnterApp();
+            }}
+            className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+          >
+            Explorer le dashboard <span aria-hidden="true">→</span>
           </button>
           <p className="text-xs text-neutral-400 mt-3">Essai gratuit 14 jours · Aucune carte requise</p>
         </Reveal>
@@ -297,6 +315,7 @@ const PRODUCT_DEMO_STEPS: DemoStep[] = [
 ];
 
 function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
+  const { track } = useAnalytics();
   const [activeDemoStep, setActiveDemoStep] = useState(0);
   const [autoplayPaused, setAutoplayPaused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -407,7 +426,10 @@ function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
             <div className="grid sm:grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={onEnterApp}
+                onClick={() => {
+                  track("trial_started", { source: "product_demo_primary" });
+                  onEnterApp();
+                }}
                 data-analytics="demo-primary-cta"
                 className="rounded-2xl bg-white text-black px-5 py-4 text-sm font-extrabold hover:bg-neutral-100 transition-colors cursor-pointer"
               >
@@ -501,6 +523,7 @@ function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
               </div>
             </div>
           </Reveal>
+          <DemoDisclaimer />
         </div>
       </div>
     </section>
@@ -509,7 +532,16 @@ function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
 
 /* ══════════════════════════════════════════════════════════ */
 export function LandingPage({ onEnterApp }: LandingPageProps) {
+  const { track } = useAnalytics();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [impactsOpen, setImpactsOpen] = useState(false);
+
+  // Helper : track + enter — wrap onEnterApp avec un événement analytics.
+  // Le source est passé explicitement pour distinguer hero / header / pricing / etc.
+  const trackedEnter = (source: string, event: "demo_requested" | "trial_started" = "trial_started") => () => {
+    track(event, { source });
+    onEnterApp();
+  };
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -552,10 +584,10 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
           </div>
 
           <div className="hidden xl:flex items-center gap-3">
-            <button onClick={onEnterApp} className="border border-neutral-300 text-black px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-50 transition-colors cursor-pointer">
+            <button onClick={trackedEnter("header_login")} className="border border-neutral-300 text-black px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-50 transition-colors cursor-pointer">
               Se connecter
             </button>
-            <button onClick={onEnterApp} className="bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-neutral-800 transition-colors cursor-pointer">
+            <button onClick={trackedEnter("header_trial")} className="bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-neutral-800 transition-colors cursor-pointer">
               Essai gratuit — 14j
             </button>
           </div>
@@ -583,8 +615,8 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               )
             ))}
             <div className="flex gap-3 mt-4">
-              <button onClick={onEnterApp} className="flex-1 border border-neutral-300 text-black py-3 rounded-xl font-semibold text-sm cursor-pointer">Se connecter</button>
-              <button onClick={onEnterApp} className="flex-1 bg-black text-white py-3 rounded-xl font-bold text-sm cursor-pointer">Essai gratuit</button>
+              <button onClick={trackedEnter("mobile_menu_login")} className="flex-1 border border-neutral-300 text-black py-3 rounded-xl font-semibold text-sm cursor-pointer">Se connecter</button>
+              <button onClick={trackedEnter("mobile_menu_trial")} className="flex-1 bg-black text-white py-3 rounded-xl font-bold text-sm cursor-pointer">Essai gratuit</button>
             </div>
           </div>
         </div>
@@ -604,7 +636,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             <Reveal className="z-10">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-200 mb-8">
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-bold text-green-700 tracking-wide uppercase">Plateforme ESG & CSRD augmentée par l&apos;IA</span>
+                <span className="text-xs font-bold text-green-700 tracking-wide uppercase">Votre rapport VSME, auditable · ESG & CSRD par l&apos;IA</span>
               </div>
 
               <h1 className="font-extrabold text-[3.8rem] md:text-[5rem] leading-[0.92] tracking-tighter mb-6">
@@ -617,26 +649,25 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               </h1>
 
               <p className="text-xl text-neutral-500 max-w-lg mb-10 leading-relaxed">
-                Collectez, analysez et générez vos rapports ESRS en quelques clics — pas en quelques mois.
-                Hébergé sur infrastructure EU (Vercel), IA assistant CSRD.
+                Votre reporting ESG volontaire (VSME) et votre bilan GES, traçables jusqu&apos;à la cellule source — et vérifiables par votre auditeur sans aucun outil propriétaire.
               </p>
 
               <div className="flex flex-wrap gap-4 mb-10">
-                <button onClick={onEnterApp} className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
+                <button onClick={trackedEnter("hero_primary")} className="bg-black text-white px-8 py-4 rounded-full font-bold text-base cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
                   Démarrer gratuitement — 14 jours
                 </button>
-                <a href="#video-section" className="flex items-center gap-2.5 bg-neutral-100 text-black px-7 py-4 rounded-full font-bold text-base transition-all duration-200 hover:bg-neutral-200 hover:scale-105">
+                <Link href="/demo" className="flex items-center gap-2.5 bg-neutral-100 text-black px-7 py-4 rounded-full font-bold text-base transition-all duration-200 hover:bg-neutral-200 hover:scale-105">
                   <span className="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0">
                     <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
                   </span>
                   Voir la démo en 2 min
-                </a>
+                </Link>
               </div>
 
               <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-400">
                 <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Aucune carte bancaire</span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>ESRS Set 2 complet + iXBRL ESEF</span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Infrastructure EU (Vercel/Neon)</span>
+                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Standards ESRS — voir <Link href="/couverture" className="underline hover:text-neutral-600">couverture</Link></span>
+                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Données métier en zone UE (Neon Postgres)</span>
               </div>
             </Reveal>
 
@@ -658,14 +689,14 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
         {/* ══ 2. TRUST BAR — CONTEXTE RÉGLEMENTAIRE ══ */}
         <section className="py-14 bg-white border-y border-neutral-100">
           <div className="max-w-[1440px] mx-auto px-8 md:px-12">
-            <p className="text-xs uppercase tracking-widest text-neutral-400 font-semibold text-center mb-8">Conçu avec des experts CSRD &amp; ESG</p>
+            <p className="text-xs uppercase tracking-widest text-neutral-400 font-semibold text-center mb-8">Construit sur les référentiels publics EFRAG, GHG Protocol et ADEME</p>
 
             {/* Indicateurs réglementaires */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-neutral-100 pt-10">
               {[
-                { value: "127", label: "Datapoints ESRS Set 2", note: "E1-E5, S1-S4, G1" },
+                { value: "127", label: "Datapoints ESRS prioritaires", note: "Sous-ensemble outillé · post-Omnibus" },
                 { value: "iXBRL", label: "Export ESEF conforme", note: "Taxonomie EFRAG 2024" },
-                { value: "GHG", label: "Protocol Scope 1, 2 & 3", note: "Méthodologie bilan carbone" },
+                { value: "GHG", label: "Protocol Scope 1, 2 & 3", note: "Méthodologie GHG Protocol" },
                 { value: "ADEME", label: "Base Empreinte® intégrée", note: "Facteurs d'émission FR" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
@@ -682,36 +713,17 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
         <section id="about" className="py-32 px-8 md:px-12 bg-[#f9f9fb]">
           <div className="max-w-[1440px] mx-auto">
             <Reveal className="text-center mb-4">
-              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Le problème</span>
+              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Le contexte réglementaire</span>
             </Reveal>
             <Reveal className="text-center mb-6" delay={0.05}>
               <h2 className="font-extrabold text-4xl md:text-5xl tracking-tighter text-black mb-5">
-                Votre reporting ESG ressemble à ça ?
+                La pression ne disparaît pas. Elle change de canal.
               </h2>
               <p className="text-lg text-neutral-600 max-w-3xl mx-auto leading-relaxed">
-                Depuis 2025, toutes les <strong className="text-black">grandes entreprises et ETI européennes</strong> doivent publier un rapport ESG détaillé
-                — y compris sur les émissions indirectes de leurs fournisseurs, leurs serveurs ou leurs locaux.
-                Les nouvelles règles se durcissent chaque année.
-                Pourtant, <strong className="text-black">7 entreprises sur 10</strong> n&apos;ont toujours aucun processus fiable pour collecter ces données.
+                Depuis la directive Omnibus (en vigueur depuis mars 2026), seules les entreprises de plus de <strong className="text-black">1 000 salariés</strong> réalisant plus de <strong className="text-black">450 M€</strong> de chiffre d&apos;affaires restent soumises à la CSRD — environ 10 000 entreprises dans l&apos;UE, avec de premiers rapports attendus en 2028 sur l&apos;exercice 2027. Pour toutes les autres, la pression ne disparaît pas : elle change de canal. Banques, assureurs et donneurs d&apos;ordre exigent des données ESG structurées, et le standard volontaire <strong className="text-black">VSME</strong> — dont l&apos;adoption par acte délégué est attendue à l&apos;été 2026 — devient le langage commun de la chaîne de valeur. En France, le bilan d&apos;émissions de GES (<strong className="text-black">BEGES</strong>) reste par ailleurs obligatoire pour les entreprises de plus de 500 salariés.
               </p>
             </Reveal>
-            <Reveal className="text-center mb-16" delay={0.1}>
-              <div className="inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-neutral-500">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-red-500" />
-                  Pénalités jusqu&apos;à <strong className="text-neutral-800">2% du CA mondial</strong>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  Deadline rapport ESRS : <strong className="text-neutral-800">exercice 2025</strong>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-green-500" />
-                  Marché ESG projeté : <strong className="text-neutral-800">53 Mds € en 2027</strong>
-                </span>
-              </div>
-            </Reveal>
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-8 mt-16">
               <Reveal delay={0.15} className="bg-red-50 rounded-2xl p-8 border border-red-100">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -723,7 +735,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   {[
                     ["Fichiers Excel dispersés entre équipes", "4 mois de collecte pour un rapport"],
                     ["Risque d'erreurs et d'incohérences", "Pas de traçabilité pour l'auditeur"],
-                    ["Conformité ESRS incertaine", "Pénalités de non-conformité jusqu'à 2% du CA"],
+                    ["Conformité ESRS incertaine", "Anomalies détectées tardivement, sans piste d'audit"],
                     ["Ressources mobilisées à plein temps", "Stress des équipes RSE avant deadline"],
                     ["Difficile de communiquer la performance", "Perte d'attractivité investisseurs ESG"],
                     ["Émissions IT & datacenters ignorées", "Scope 3 cat. 8 : serveurs, cloud, SaaS — un angle mort fréquent"],
@@ -755,7 +767,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                     ["Données centralisées via import Excel structuré", "Modèle téléchargeable, named ranges contrôlés, validation stricte"],
                     ["Collecte assistée par copilote NEURAL", "Réduction du temps de reporting estimée — résultats variables selon taille"],
                     ["Audit trail append-only signé SHA-256", "Chaque donnée tracée avec sa source, méthode et hash de chaîne"],
-                    ["ESRS Set 2 complet (E1-E5, S1-S4, G1) + export iXBRL ESEF", "127 datapoints couverts, validator audit-grade 30+ règles, export conforme EFRAG 2024"],
+                    ["ESRS — 10 standards référencés (E1-E5, S1-S4, G1) + export iXBRL ESEF planifié", "127 datapoints prioritaires couverts (sous-ensemble outillé du référentiel ESRS, aligné sur la réduction d'environ 60 % des datapoints actée par l'Omnibus). Couverture par paliers — voir /couverture. Validator 30+ règles."],
                     ["Rapports PDF + Evidence Pack ZIP signé", "Vérifiable publiquement via /verify/{hash} — sans aucun outil tiers"],
                     ["Scope 3 fournisseurs via questionnaire public", "Liens partagés sans compte requis — réponses intégrées au bilan"],
                     ["Facteurs d'émission ADEME Base Empreinte® 2025", "502 facteurs versionnés, traçabilité par fact_id"],
@@ -773,6 +785,24 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 </ul>
               </Reveal>
             </div>
+
+            {/* CTA discret → drawer « Impacts sectoriels » */}
+            <Reveal delay={0.32} className="text-center mt-12">
+              <button
+                type="button"
+                onClick={() => {
+                  track("impacts_sectoriels_cta", { source: "problem_section" });
+                  setImpactsOpen(true);
+                }}
+                className="group inline-flex items-center gap-2 text-sm font-semibold text-neutral-700 border border-neutral-300 bg-white/60 px-6 py-3 rounded-full hover:border-green-500 hover:text-green-700 hover:bg-white transition-all duration-200 cursor-pointer"
+              >
+                Explorer les impacts sectoriels
+                <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+              </button>
+              <p className="text-xs text-neutral-400 mt-3 max-w-md mx-auto">
+                Les impacts environnementaux réels que le reporting ESG doit rendre mesurables — chiffres publics sourcés.
+              </p>
+            </Reveal>
           </div>
         </section>
 
@@ -823,9 +853,9 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   color: "green", icon: (
                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
                   ),
-                  title: "ESRS Set 2 complet",
-                  desc: "10 standards ESRS (E1-E5, S1-S4, G1) avec 127 datapoints, validator audit-grade 30+ règles et export iXBRL ESEF conforme EFRAG.",
-                  highlights: ["127 datapoints Set 2", "Validator audit-grade", "Export iXBRL ESEF"],
+                  title: "Référentiel ESRS — datapoints prioritaires",
+                  desc: "10 standards référencés (E1-E5, S1-S4, G1), 127 datapoints prioritaires couverts (sous-ensemble outillé aligné sur la réduction d'environ 60 % des datapoints actée par l'Omnibus). Couverture Live / Beta / Planifié par standard — voir /couverture. Validator 30+ règles ; export iXBRL ESEF planifié.",
+                  highlights: ["127 datapoints prioritaires", "Validator 30+ règles", "iXBRL ESEF (planifié)"],
                 },
               ].map((card, i) => {
                 const bgMap: Record<string,string> = { blue: "bg-blue-50", purple: "bg-purple-50", orange: "bg-orange-50", green: "bg-green-50" };
@@ -851,7 +881,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             {/* Feature highlight secondaire */}
             <div className="grid md:grid-cols-3 gap-6 mt-8">
               {[
-                { emoji: "🔌", title: "Import & API", desc: "Import Excel structuré · API REST · Connecteurs ERP en roadmap" },
+                { emoji: "🔌", title: "Import & API", desc: "Import Excel structuré · API REST (beta) · Connecteurs ERP en roadmap" },
                 { emoji: "🛡️", title: "Audit trail complet", desc: "Validator 30+ règles, review datapoint par datapoint, score audit 0-100" },
                 { emoji: "📊", title: "Benchmark sectoriel", desc: "Comparez-vous aux leaders de votre industrie" },
                 { emoji: "🌐", title: "Multi-sites & filiales", desc: "Consolidation automatique des données groupe" },
@@ -900,7 +930,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   icon: "🏭",
                   context: "ETI industrielle (~800 salariés, 3 sites de production). Fournisseur de donneurs d'ordre soumis à la CSRD.",
                   challenge: "Collecter les émissions Scope 3 amont (achats matières premières, transport) et répondre aux questionnaires ESG de ses clients grands comptes.",
-                  fit: ["Import Excel des factures énergie", "Calcul Scope 3 fournisseurs", "Export iXBRL ESEF Set 2 complet pour auditeur"],
+                  fit: ["Import Excel des factures énergie", "Calcul Scope 3 fournisseurs", "Export iXBRL ESEF planifié pour pré-tagging auditeur"],
                   tag: "Scénario illustratif",
                 },
                 {
@@ -908,7 +938,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   icon: "🏢",
                   context: "PME de services (~120 salariés, siège unique). Reporting CSRD volontaire pour répondre aux appels d'offres publics.",
                   challenge: "Structurer un premier bilan carbone fiable sans expertise interne, avec un budget limité.",
-                  fit: ["Bilan carbone Scope 1 & 2 guidé", "Copilote IA pour les 10 standards ESRS", "Export PDF + iXBRL avec score audit"],
+                  fit: ["Bilan carbone Scope 1 & 2 guidé", "Copilote IA sourcé sur le corpus ESRS", "Export PDF audit-grade + iXBRL ESEF planifié"],
                   tag: "Scénario illustratif",
                 },
                 {
@@ -952,42 +982,43 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <h3 className="font-extrabold text-2xl md:text-3xl tracking-tight text-black mt-2">Le dashboard se reconfigure selon votre secteur</h3>
               </div>
               <SectorShowcase />
+              <DemoDisclaimer note="Aperçus sectoriels — entreprises fictives distinctes, à but de démonstration." />
             </Reveal>
           </div>
         </section>
 
-        {/* ══ 7bis. TÉMOIGNAGES & EARLY ADOPTERS ══ */}
-        <section id="temoignages" className="py-28 px-8 md:px-12 bg-white">
+        {/* ══ 7bis. PROGRAMME PILOTE ══ */}
+        <section id="programme-pilote" className="py-28 px-8 md:px-12 bg-white">
           <div className="max-w-[1440px] mx-auto">
             <Reveal className="text-center mb-4">
-              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Ils nous font confiance</span>
+              <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Programme pilote</span>
             </Reveal>
             <Reveal className="text-center mb-12" delay={0.05}>
-              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">Le programme Early Adopter</h2>
+              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">Construisons la preuve ensemble</h2>
               <p className="text-neutral-500 mt-3 text-base max-w-2xl mx-auto">
-                Plusieurs ETI européennes utilisent CarbonCo pour structurer leur premier reporting CSRD. Voici ce qu&apos;elles en disent.
+                Plutôt que des témoignages, un engagement concret : trois organisations équipées gratuitement pour l&apos;exercice 2026.
               </p>
             </Reveal>
             <Reveal delay={0.1}>
-              <Testimonials />
+              <PilotProgram />
             </Reveal>
           </div>
         </section>
 
-        {/* ══ 7ter. COMPARATIF CONCURRENTS ══ */}
-        <section id="comparatif" className="py-28 px-8 md:px-12 bg-[#f9f9fb]">
+        {/* ══ 7ter. POURQUOI LA PREUVE D'ABORD ══ */}
+        <section id="preuve-dabord" className="py-28 px-8 md:px-12 bg-[#f9f9fb]">
           <div className="max-w-[1440px] mx-auto">
             <Reveal className="text-center mb-4">
               <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Pourquoi choisir CarbonCo</span>
             </Reveal>
             <Reveal className="text-center mb-12" delay={0.05}>
-              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">Comparatif des plateformes ESG</h2>
+              <h2 className="font-extrabold text-3xl md:text-4xl tracking-tighter text-black">La preuve, pas la promesse</h2>
               <p className="text-neutral-500 mt-3 text-base max-w-2xl mx-auto">
-                Une lecture honnête face aux acteurs établis et aux nouveaux entrants. Chaque outil a ses forces — voici les critères les plus différenciants pour les ETI européennes.
+                Une lecture honnête de ce que nous apportons — et de ce qui n&apos;est pas encore prêt.
               </p>
             </Reveal>
             <Reveal delay={0.1}>
-              <CompetitorComparison />
+              <WhyProofFirst />
             </Reveal>
           </div>
         </section>
@@ -1008,20 +1039,20 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             </Reveal>
 
             <div className="grid md:grid-cols-3 gap-8 items-start max-w-5xl mx-auto">
-              {/* Starter */}
+              {/* VSME */}
               <Reveal delay={0.1} className="bg-white rounded-2xl p-8 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Starter</div>
+                <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">VSME</div>
                 <div className="text-4xl font-extrabold text-black mb-1">490 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
                 <p className="text-neutral-500 text-sm mb-8">Pour PME en standard <strong>VSME</strong> volontaire ou préparation CSRD post-Omnibus</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1 & 2", "ESRS Set 2 complet (10 standards)", "1 utilisateur", "Export PDF + iXBRL ESEF", "Support email (lun–ven, 9h–18h)"].map((f) => (
+                  {["Rapport VSME (modules Basic)", "Bilan GES Scopes 1 & 2", "Audit trail + Evidence Pack vérifiable", "1 utilisateur", "Support email (lun–ven, 9h–18h)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
                     </li>
                   ))}
                 </ul>
-                <button onClick={onEnterApp} className="w-full bg-neutral-100 text-black py-3 rounded-xl font-bold text-sm hover:bg-neutral-200 transition-colors cursor-pointer">
+                <button onClick={trackedEnter("pricing_starter")} className="w-full bg-neutral-100 text-black py-3 rounded-xl font-bold text-sm hover:bg-neutral-200 transition-colors cursor-pointer">
                   Commencer l&apos;essai
                 </button>
               </Reveal>
@@ -1035,14 +1066,14 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-black mb-1">1 290 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
                 <p className="text-neutral-500 text-sm mb-8">Pour ETI fournisseurs de grands comptes soumis à la CSRD</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1, 2 & 3", "ESRS Set 2 complet + validator audit-grade", "5 utilisateurs", "Copilote IA avec citations ESRS sourcées", "Export iXBRL ESEF + audit trail", "API REST + import Excel structuré", "Support email prioritaire (lun–ven)"].map((f) => (
+                  {["Scope 1, 2 & 3", "ESRS — validator 30+ règles · couverture par paliers (voir /couverture)", "5 utilisateurs", "Copilote IA avec citations ESRS sourcées", "Export PDF audit-grade · iXBRL ESEF (planifié) · audit trail SHA-256", "API REST (beta) + import Excel structuré · connecteurs ERP en roadmap", "Support email prioritaire (lun–ven)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
                     </li>
                   ))}
                 </ul>
-                <button onClick={onEnterApp} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 transition-colors cursor-pointer">
+                <button onClick={trackedEnter("pricing_business")} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 transition-colors cursor-pointer">
                   Démarrer l&apos;essai gratuit
                 </button>
               </Reveal>
@@ -1053,7 +1084,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-white mb-1">À partir de 35&nbsp;k€<span className="text-base font-medium text-neutral-400">/an</span></div>
                 <p className="text-neutral-400 text-sm mb-8">Pour grands groupes multi-sites — fourchette indicative 35–120 k€/an selon périmètre, nombre de filiales et SLA.</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1, 2, 3 + CBAM", "ESRS Set 2 complet + iXBRL ESEF audit-grade", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "Validator 30+ règles + review datapoints", "Multi-sites & filiales", "SSO & RBAC", "Onboarding accompagné"].map((f) => (
+                  {["Scope 1, 2, 3 + CBAM", "ESRS — couverture étendue par paliers · iXBRL ESEF (planifié)", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "Validator 30+ règles + review datapoint par datapoint", "Multi-sites & filiales (planifié)", "SSO & RBAC (planifié)", "Onboarding accompagné"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-300">
                       <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1061,7 +1092,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   ))}
                 </ul>
                 <a
-                  href="mailto:contact@carbonco.fr?subject=Demande%20de%20devis%20Enterprise%20%E2%80%94%20CarbonCo&body=Bonjour%2C%0A%0AJe%20souhaite%20%C3%A9changer%20sur%20une%20offre%20Enterprise%20CarbonCo%20pour%20mon%20organisation.%0A%0ASoci%C3%A9t%C3%A9%20%3A%20%0AEffectifs%20%3A%20%0ANombre%20de%20sites%20%2F%20filiales%20%3A%20%0AObligations%20CSRD%20%3A%20%0A%0AMerci%20de%20me%20rappeler%20au%20%3A%20%0A%0ACordialement%2C"
+                  href={`mailto:${CONTACT_EMAIL}?subject=Demande%20de%20devis%20Enterprise%20%E2%80%94%20CarbonCo&body=Bonjour%2C%0A%0AJe%20souhaite%20%C3%A9changer%20sur%20une%20offre%20Enterprise%20CarbonCo%20pour%20mon%20organisation.%0A%0ASoci%C3%A9t%C3%A9%20%3A%20%0AEffectifs%20%3A%20%0ANombre%20de%20sites%20%2F%20filiales%20%3A%20%0AObligations%20CSRD%20%3A%20%0A%0AMerci%20de%20me%20rappeler%20au%20%3A%20%0A%0ACordialement%2C`}
                   className="w-full inline-flex items-center justify-center bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-neutral-100 transition-colors cursor-pointer"
                 >
                   Parler à un expert
@@ -1069,9 +1100,23 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               </Reveal>
             </div>
 
-            <Reveal delay={0.3} className="text-center mt-10">
+            {/* Encart CBAM — annexe A.3 */}
+            <Reveal delay={0.25} className="mt-10 max-w-3xl mx-auto">
+              <div className="rounded-2xl border border-neutral-200 bg-[#f9f9fb] p-6 text-sm text-neutral-600 leading-relaxed">
+                <p className="font-bold text-neutral-800 mb-2">CBAM — plan Enterprise</p>
+                <p>
+                  Régime définitif depuis le 1ᵉʳ janvier 2026. Les importateurs sous 50 tonnes/an de
+                  marchandises couvertes sont exemptés ; au-delà, statut de déclarant agréé requis, achat
+                  de certificats à partir de février 2027 et première déclaration annuelle au 30 septembre
+                  2027. CarbonCo aide à estimer l&apos;exposition et à préparer les données d&apos;émissions
+                  intégrées.
+                </p>
+              </div>
+            </Reveal>
+
+            <Reveal delay={0.3} className="text-center mt-8">
               <p className="text-sm text-neutral-400">
-                Tous les plans incluent l&apos;essai gratuit 14 jours · Engagement mensuel ou annuel (−20%) · Résiliation à tout moment
+                Tarifs indicatifs — produit en développement, aucune souscription ouverte à ce jour.
               </p>
             </Reveal>
 
@@ -1099,7 +1144,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                   Le <strong className="text-neutral-800">règlement DORA et les exigences CSRD</strong> imposent une traçabilité totale des données extra-financières déclarées. Chaque chiffre publié dans votre rapport doit pouvoir être justifié devant un commissaire aux comptes ou un OTI (Organisme Tiers Indépendant).
                 </p>
                 <p>
-                  CarbonCo est conçu pour ce contexte : <strong className="text-neutral-800">infrastructure hébergée en Europe</strong> (Vercel EU, base de données Neon), chiffrement TLS 1.3 en transit, AES-256 au repos, audit trail immuable et traitement prioritaire en UE via Vercel AI Gateway.
+                  CarbonCo est conçu pour ce contexte : <strong className="text-neutral-800">données métier hébergées en zone UE</strong> (Neon Postgres eu-central-1), application Vercel (CDN mondial, fonctions par défaut US — voir <Link href="/trust" className="underline">Trust Center</Link>), chiffrement TLS 1.3 en transit, AES-256 au repos, audit trail immuable et traitement IA prioritaire en UE via Vercel AI Gateway.
                 </p>
               </div>
             </Reveal>
@@ -1140,10 +1185,10 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               Rejoignez les pionniers qui structurent leur conformité CSRD dès maintenant — avant que vos concurrents ne le fassent.
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
-              <button onClick={onEnterApp} className="bg-white text-black px-12 py-5 rounded-full font-extrabold text-lg hover:bg-neutral-200 transition-colors cursor-pointer hover:scale-105 transition-transform">
-                Demander une démo →
+              <button onClick={trackedEnter("cta_final_demo", "demo_requested")} className="bg-white text-black px-12 py-5 rounded-full font-extrabold text-lg hover:bg-neutral-200 transition-colors cursor-pointer hover:scale-105 transition-transform">
+                Demander une démo <span aria-hidden="true">→</span>
               </button>
-              <button onClick={onEnterApp} className="border-2 border-white/40 text-white px-12 py-5 rounded-full font-bold text-lg hover:border-white hover:bg-white/10 transition-colors cursor-pointer">
+              <button onClick={trackedEnter("cta_final_signup")} className="border-2 border-white/40 text-white px-12 py-5 rounded-full font-bold text-lg hover:border-white hover:bg-white/10 transition-colors cursor-pointer">
                 Créer un compte gratuit
               </button>
             </div>
@@ -1168,7 +1213,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <p className="text-sm text-neutral-500 mb-4 leading-relaxed">La conformité ESG & CSRD, simplifiée par l&apos;intelligence artificielle.</p>
               <div className="flex items-center gap-2 text-xs text-neutral-400">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
-                <span>Infrastructure EU (Vercel/Neon) · TLS 1.3 · <Link href="/trust" className="underline hover:text-black">Trust Center</Link></span>
+                <span>Données métier zone UE (Neon Postgres) · TLS 1.3 · <Link href="/trust" className="underline hover:text-black">Trust Center</Link></span>
               </div>
             </div>
             <div>
@@ -1176,7 +1221,7 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
               <ul className="space-y-3">
                 <li><Link href="/produit" className="text-sm text-neutral-500 hover:text-black transition-colors">Modules produit</Link></li>
                 <li><a href="#features" className="text-sm text-neutral-500 hover:text-black transition-colors">Copilote IA</a></li>
-                <li><a href="#pricing" className="text-sm text-neutral-500 hover:text-black transition-colors">Tarifs</a></li>
+                <li><a href="/tarifs" className="text-sm text-neutral-500 hover:text-black transition-colors">Tarifs</a></li>
                 <li><a href="/couverture" className="text-sm text-neutral-500 hover:text-black transition-colors">Couverture ESRS</a></li>
                 <li><a href="/integrations" className="text-sm text-neutral-500 hover:text-black transition-colors">Sources &amp; intégrations</a></li>
                 <li><a href="/etat-du-produit" className="text-sm text-neutral-500 hover:text-black transition-colors">État du produit</a></li>
@@ -1188,30 +1233,38 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
                 <li><Link href="/trust" className="text-sm text-neutral-500 hover:text-black transition-colors">Trust Center</Link></li>
                 <li><Link href="/trust/sub-processors" className="text-sm text-neutral-500 hover:text-black transition-colors">Sous-traitants</Link></li>
                 <li><Link href="/trust/exit-strategy" className="text-sm text-neutral-500 hover:text-black transition-colors">Stratégie de sortie</Link></li>
+                <li><Link href="/status" className="text-sm text-neutral-500 hover:text-black transition-colors">Statut du service</Link></li>
                 <li><Link href="/ai-act" className="text-sm text-neutral-500 hover:text-black transition-colors">Conformité AI Act</Link></li>
-                <li><a href="mailto:security@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">security@carbonco.fr</a></li>
+                <li><a href={`mailto:${CONTACT_EMAIL}`} className="text-sm text-neutral-500 hover:text-black transition-colors">{CONTACT_EMAIL}</a></li>
               </ul>
             </div>
             <div>
               <h4 className="text-xs uppercase tracking-widest font-bold text-black mb-4">Ressources &amp; légal</h4>
               <ul className="space-y-3">
                 <li><a href="/blog" className="text-sm text-neutral-500 hover:text-black transition-colors">Blog CSRD &amp; ESG</a></li>
-                <li><a href="/guide-csrd-2027" className="text-sm text-neutral-500 hover:text-black transition-colors">Guide CSRD 2027</a></li>
+                <li><a href="/guide-csrd-vsme-2026" className="text-sm text-neutral-500 hover:text-black transition-colors">Guide CSRD &amp; VSME (2026)</a></li>
                 <li><a href="/aide" className="text-sm text-neutral-500 hover:text-black transition-colors">Centre d&apos;aide</a></li>
-                <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure (PDF)</a></li>
+                <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure (imprimable)</a></li>
                 <li><a href="/mentions-legales" className="text-sm text-neutral-500 hover:text-black transition-colors">Mentions légales</a></li>
                 <li><a href="/confidentialite" className="text-sm text-neutral-500 hover:text-black transition-colors">Confidentialité</a></li>
                 <li><a href="/cgu" className="text-sm text-neutral-500 hover:text-black transition-colors">CGU</a></li>
-                <li><a href="mailto:contact@carbonco.fr" className="text-sm text-neutral-500 hover:text-black transition-colors">Contact</a></li>
+                <li><a href={`mailto:${CONTACT_EMAIL}`} className="text-sm text-neutral-500 hover:text-black transition-colors">Contact</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-neutral-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-neutral-400">© 2026 CarbonCo SAS. Tous droits réservés. RGPD · Hébergement EU · <a href="/etat-du-produit" className="hover:text-black underline">État réel du produit</a></p>
-            <p className="text-xs text-neutral-400">Conçu à Paris · Hébergé en EU (Vercel/Neon) · Made with 💚</p>
+            <p className="text-xs text-neutral-400">© 2026 CarbonCo — projet en développement, non commercialisé · contact : <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-black underline">{CONTACT_EMAIL}</a> · RGPD · Données métier en zone UE · <a href="/etat-du-produit" className="hover:text-black underline">État réel du produit</a></p>
+            <p className="text-xs text-neutral-400">Conçu à Paris · Base de données Neon Postgres en zone UE · Made with 💚</p>
           </div>
         </div>
       </footer>
+
+      {/* Drawer « Impacts sectoriels » — monté une fois */}
+      <SectorImpactDrawer
+        open={impactsOpen}
+        onClose={() => setImpactsOpen(false)}
+        onEnterApp={onEnterApp}
+      />
     </div>
   );
 }

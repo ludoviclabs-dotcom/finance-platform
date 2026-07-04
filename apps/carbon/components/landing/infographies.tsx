@@ -78,13 +78,13 @@ export function ScopesInfographic({ className = "" }: InfoProps) {
   );
 }
 
-/* 2. Calendrier CSRD — qui, quand, quoi */
+/* 2. Calendrier CSRD — qui, quand, quoi (post stop-the-clock, Directive UE 2025/794) */
 export function CsrdCalendarInfographic({ className = "" }: InfoProps) {
   const milestones = [
-    { year: "2024", label: "Wave 1", who: "Grandes entités d'intérêt public > 500 salariés", color: EMERALD },
-    { year: "2025", label: "Wave 2", who: "Grandes entreprises (≥ 250 salariés ou critères taille)", color: CYAN },
-    { year: "2026", label: "Wave 3", who: "PME cotées (option report 2 ans)", color: VIOLET },
-    { year: "2028", label: "Wave 4", who: "Filiales et sociétés extra-UE (€150 M CA UE)", color: AMBER },
+    { year: "2025", label: "Wave 1", who: "Publication 2025 sur exercice 2024 — grandes EIP > 500 salariés", color: EMERALD },
+    { year: "2028", label: "Wave 2", who: "Publication 2028 sur exercice 2027 — grandes entreprises (report +2 ans)", color: CYAN },
+    { year: "2029", label: "Wave 3", who: "Publication 2029 sur exercice 2028 — PME cotées (report +2 ans)", color: VIOLET },
+    { year: "2029", label: "Wave 4", who: "Filiales et sociétés extra-UE (€150 M CA UE)", color: AMBER },
   ];
   return (
     <svg

@@ -290,6 +290,12 @@ def refresh_facts_current() -> None:
 
     CONCURRENTLY nécessite l'index unique idx_facts_current_pk.
     Ne bloque pas les lectures en cours.
+
+    Sous RLS FORCE (migration 009), la requête de rafraîchissement lit
+    facts_events en tant qu'owner, donc soumise aux policies : on pose le GUC de
+    service `app.rls_bypass = 'on'` (au niveau session, car REFRESH ...
+    CONCURRENTLY ne peut pas s'exécuter dans une transaction). La connexion est
+    jetée juste après, donc le bypass ne fuit pas.
     """
     if not db_available():
         return
@@ -297,6 +303,65 @@ def refresh_facts_current() -> None:
         with get_db() as conn:
             conn.autocommit = True
             with conn.cursor() as cur:
+                cur.execute("SET app.rls_bypass = 'on'")
                 cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY facts_current")
     except Exception as exc:
         logger.warning("refresh_facts_current échoué: %s", exc)
+
+
+# ---------------------------------------------------------------------------
+# emit_snapshot_facts — émission générique pilotée par un mapping
+# ---------------------------------------------------------------------------
+
+def emit_snapshot_facts(
+    *,
+    snapshot: dict[str, Any],
+    company_id: int,
+    mapping: dict[str, tuple[str, str]],
+    source_label: str,
+    refresh: bool = True,
+) -> int:
+    """Émet un fact par KPI numérique trouvé dans `snapshot` via un chemin pointé.
+
+    `mapping` : { "scores.scoreGlobal": ("CC.ESG.SCORE_GLOBAL", "score"), ... }
+    Best-effort : un échec sur un KPI n'interrompt pas les autres. Retourne le
+    nombre de facts émis. No-op si la DB est indisponible (mode /tmp).
+    """
+    if not db_available():
+        return 0
+
+    emitted = 0
+    for path, (code, unit) in mapping.items():
+        cursor: Any = snapshot
+        for part in path.split("."):
+            cursor = cursor.get(part) if isinstance(cursor, dict) else None
+            if cursor is None:
+                break
+        if cursor is None:
+            continue
+        try:
+            value = float(cursor)
+        except (TypeError, ValueError):
+            continue
+        try:
+            result = emit_fact(
+                company_id=company_id,
+                code=code,
+                value=value,
+                unit=unit,
+                ef_id=None,
+                source_path=f"{source_label}:{code}",
+                meta={"field_path": path},
+            )
+            if result is not None:
+                emitted += 1
+        except Exception as exc:
+            logger.warning("emit_fact %s échoué: %s", code, exc)
+
+    if refresh and emitted > 0:
+        try:
+            refresh_facts_current()
+        except Exception as exc:
+            logger.warning("refresh_facts_current échoué: %s", exc)
+
+    return emitted

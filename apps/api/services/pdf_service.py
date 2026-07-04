@@ -30,7 +30,6 @@ try:
     import matplotlib
     matplotlib.use("Agg")  # backend non-interactif pour serveur
     import matplotlib.pyplot as plt
-    import matplotlib.patches as mpatches
     _MPL_AVAILABLE = True
 except ImportError:
     _MPL_AVAILABLE = False

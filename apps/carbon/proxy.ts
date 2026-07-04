@@ -64,6 +64,13 @@ function buildCsp(): string {
     "https://*.vercel.sh",
     "https://ai-gateway.vercel.sh",
     "https://api.anthropic.com",
+    // Vercel Analytics & Speed Insights — pixel et data ingestion
+    "https://vitals.vercel-insights.com",
+    "https://va.vercel-scripts.com",
+    // Sentry (report d'erreurs front) — actif uniquement si NEXT_PUBLIC_SENTRY_DSN défini
+    "https://*.ingest.sentry.io",
+    "https://*.ingest.us.sentry.io",
+    "https://*.ingest.de.sentry.io",
     isDev ? "ws://localhost:*" : null,
     isDev ? "http://localhost:*" : null,
   ]

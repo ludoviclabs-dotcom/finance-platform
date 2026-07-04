@@ -10,6 +10,7 @@ import {
   ChevronLeft, ChevronRight, X, Scale,
   Sparkles, ShieldCheck, Database, Upload, ClipboardList, History, Settings, Bell,
   Inbox, Factory, ListChecks, ClipboardCheck,
+  FileText, Receipt, TrendingDown, CalendarClock, GitCompare, Building2, FolderInput,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -21,53 +22,93 @@ interface SidebarProps {
   onMobileClose?: () => void;
 }
 
-const navItems: {
+type NavItem = {
   id: Page;
   href: string;
   label: string;
   icon: React.ReactNode;
   badge?: { text: string; color: string };
-}[] = [
-  { id: "dashboard", href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { id: "scopes", href: "/scopes", label: "Scopes 1-2-3", icon: <Target className="w-5 h-5" /> },
-  { id: "vsme", href: "/vsme", label: "VSME", icon: <Sparkles className="w-5 h-5" />, badge: { text: "Nouveau", color: "bg-carbon-emerald/15 text-carbon-emerald-light" } },
+};
+
+type NavGroup = { group: string; items: NavItem[] };
+
+const navGroups: NavGroup[] = [
   {
-    id: "esrs", href: "/esrs", label: "ESRS / CSRD", icon: <BookOpen className="w-5 h-5" />,
-    badge: { text: "3 alertes", color: "bg-red-500/15 text-red-400" },
-  },
-  { id: "materialite", href: "/materialite", label: "Matérialité", icon: <Scale className="w-5 h-5" /> },
-  // ── Bloc CSRD audit-grade (Phase 2 exploitabilité client) ───────────────
-  {
-    id: "datapoints", href: "/datapoints", label: "Datapoints CSRD", icon: <ListChecks className="w-5 h-5" />,
-    badge: { text: "RAG", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
-  },
-  {
-    id: "review", href: "/review", label: "Validation CSRD", icon: <ClipboardCheck className="w-5 h-5" />,
-    badge: { text: "ESRS", color: "bg-amber-500/15 text-amber-600" },
+    group: "Pilotage",
+    items: [
+      { id: "dashboard",   href: "/dashboard",   label: "Cockpit",       icon: <LayoutDashboard className="w-5 h-5" /> },
+      { id: "scopes",      href: "/scopes",      label: "Scopes 1-2-3",  icon: <Target className="w-5 h-5" /> },
+      { id: "materialite", href: "/materialite", label: "Matérialité",   icon: <Scale className="w-5 h-5" /> },
+    ],
   },
   {
-    id: "reports", href: "/reports", label: "Rapports & iXBRL", icon: <FileBarChart className="w-5 h-5" />,
-    badge: { text: "ESEF", color: "bg-amber-500/15 text-amber-600" },
+    group: "Conformité CSRD",
+    items: [
+      {
+        id: "esrs", href: "/esrs", label: "ESRS / CSRD", icon: <BookOpen className="w-5 h-5" />,
+        badge: { text: "3 alertes", color: "bg-red-500/15 text-red-400" },
+      },
+      {
+        id: "vsme", href: "/vsme", label: "VSME", icon: <Sparkles className="w-5 h-5" />,
+        badge: { text: "Nouveau", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
+      },
+      {
+        id: "datapoints", href: "/datapoints", label: "Datapoints CSRD", icon: <ListChecks className="w-5 h-5" />,
+        badge: { text: "RAG", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
+      },
+      {
+        id: "review", href: "/review", label: "Validation CSRD", icon: <ClipboardCheck className="w-5 h-5" />,
+        badge: { text: "ESRS", color: "bg-amber-500/15 text-amber-600" },
+      },
+      {
+        id: "reports", href: "/reports", label: "Rapports & iXBRL", icon: <FileBarChart className="w-5 h-5" />,
+        badge: { text: "ESEF", color: "bg-amber-500/15 text-amber-600" },
+      },
+    ],
   },
-  // ── Autres modules ──────────────────────────────────────────────────────
-  { id: "fournisseurs", href: "/fournisseurs", label: "Fournisseurs", icon: <Factory className="w-5 h-5" />, badge: { text: "Scope 3", color: "bg-blue-500/15 text-blue-400" } },
-  { id: "qc", href: "/qc", label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
   {
-    id: "copilot", href: "/copilot", label: "Copilote IA", icon: <Bot className="w-5 h-5" />,
-    badge: { text: "IA", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
+    group: "Données",
+    items: [
+      {
+        id: "fournisseurs", href: "/fournisseurs", label: "Fournisseurs", icon: <Factory className="w-5 h-5" />,
+        badge: { text: "Scope 3", color: "bg-blue-500/15 text-blue-400" },
+      },
+      { id: "upload",  href: "/upload",  label: "Import Excel",     icon: <Upload className="w-5 h-5" /> },
+      { id: "fec",     href: "/fec",     label: "Import FEC",       icon: <Receipt className="w-5 h-5" /> },
+      { id: "imports", href: "/imports", label: "Imports fichiers", icon: <FolderInput className="w-5 h-5" /> },
+      { id: "ingest",  href: "/ingest",  label: "Synchronisation",  icon: <Database className="w-5 h-5" /> },
+      { id: "qc",      href: "/qc",      label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
+    ],
   },
-  { id: "upload", href: "/upload", label: "Import Excel", icon: <Upload className="w-5 h-5" /> },
-  { id: "ingest", href: "/ingest", label: "Synchronisation", icon: <Database className="w-5 h-5" /> },
-  // ── Bloc audit & administration ─────────────────────────────────────────
   {
-    id: "revue", href: "/revue", label: "Validation Merkle", icon: <Inbox className="w-5 h-5" />,
-    badge: { text: "Phase 3", color: "bg-violet-500/15 text-violet-400" },
+    group: "Restitution & périmètre",
+    items: [
+      { id: "beges",         href: "/beges",         label: "BEGES (France)",     icon: <FileText className="w-5 h-5" /> },
+      { id: "actions",       href: "/actions",       label: "Plan d'action",      icon: <TrendingDown className="w-5 h-5" /> },
+      { id: "baselines",     href: "/baselines",     label: "Année de référence", icon: <CalendarClock className="w-5 h-5" /> },
+      { id: "diff",          href: "/diff",          label: "Multi-exercices",    icon: <GitCompare className="w-5 h-5" /> },
+      { id: "consolidation", href: "/consolidation", label: "Consolidation",      icon: <Building2 className="w-5 h-5" /> },
+    ],
   },
-  { id: "audit", href: "/audit", label: "Journal d'audit", icon: <ClipboardList className="w-5 h-5" /> },
-  { id: "history", href: "/history", label: "Historique", icon: <History className="w-5 h-5" /> },
-  { id: "alerts", href: "/alerts", label: "Alertes", icon: <Bell className="w-5 h-5" /> },
-  { id: "admin", href: "/admin", label: "Administration", icon: <Settings className="w-5 h-5" /> },
-  { id: "pricing", href: "/pricing", label: "Offres", icon: <CreditCard className="w-5 h-5" /> },
+  {
+    group: "IA & Audit",
+    items: [
+      {
+        id: "copilot", href: "/copilot", label: "Copilote IA", icon: <Bot className="w-5 h-5" />,
+        badge: { text: "IA", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
+      },
+      {
+        id: "revue", href: "/revue", label: "Validation Merkle", icon: <Inbox className="w-5 h-5" />,
+        badge: { text: "Phase 3", color: "bg-violet-500/15 text-violet-400" },
+      },
+      { id: "audit",    href: "/audit",    label: "Journal d'audit", icon: <ClipboardList className="w-5 h-5" /> },
+      { id: "history",  href: "/history",  label: "Historique",      icon: <History className="w-5 h-5" /> },
+      { id: "alerts",   href: "/alerts",   label: "Alertes",         icon: <Bell className="w-5 h-5" /> },
+      { id: "securite", href: "/securite", label: "Sécurité 2FA",    icon: <ShieldCheck className="w-5 h-5" /> },
+      { id: "admin",    href: "/admin",    label: "Administration",  icon: <Settings className="w-5 h-5" /> },
+      { id: "pricing", href: "/pricing", label: "Offres",           icon: <CreditCard className="w-5 h-5" /> },
+    ],
+  },
 ];
 
 const ESG_SCORE = 62;
@@ -120,8 +161,9 @@ export function Sidebar({
           </div>
           {!collapsed && (
             <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="font-display font-bold text-lg text-[var(--color-foreground)] flex-1">
+              className="font-display font-bold text-lg text-[var(--color-foreground)] flex-1 flex items-center gap-2 min-w-0">
               CarbonCo
+              <span className="cc-logo-tag">cockpit</span>
             </motion.span>
           )}
           {onMobileClose && (
@@ -154,7 +196,7 @@ export function Sidebar({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[var(--color-foreground)] truncate">Marie Leclerc</p>
-                <p className="text-xs text-[var(--color-foreground-muted)] truncate">Resp. RSE · Acme Corp</p>
+                <p className="text-xs text-[var(--color-foreground-muted)] truncate">Resp. RSE · Exemplia Industrie</p>
               </div>
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-carbon-emerald/15 text-carbon-emerald-light whitespace-nowrap">
                 Business
@@ -189,42 +231,49 @@ export function Sidebar({
           </motion.div>
         )}
 
-        {/* Nav */}
-        <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
-            const active = pathname === item.href || pathname?.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                onClick={() => onMobileClose?.()}
-                title={collapsed ? item.label : undefined}
-                className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                  active
-                    ? "bg-carbon-emerald/15 text-carbon-emerald-light"
-                    : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-raised)]"
-                }`}
-              >
-                <span className="flex-shrink-0">{item.icon}</span>
-                {!collapsed && (
-                  <>
-                    <span className="flex-1 text-left truncate">{item.label}</span>
-                    {item.badge ? (
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${item.badge.color}`}>
-                        {item.badge.text}
-                      </span>
-                    ) : active ? (
-                      <motion.div layoutId="sidebar-active"
-                        className="w-1.5 h-1.5 rounded-full bg-carbon-emerald" />
-                    ) : null}
-                  </>
-                )}
-                {collapsed && item.badge && (
-                  <span className="absolute left-8 top-1 w-2 h-2 rounded-full bg-red-500" />
-                )}
-              </Link>
-            );
-          })}
+        {/* Nav — groupée par catégorie (Pilotage / Conformité / Données / IA & Audit) */}
+        <nav className="flex-1 py-3 px-2 overflow-y-auto">
+          {navGroups.map((grp) => (
+            <div key={grp.group} className="cc-nav-grp">
+              {!collapsed && <div className="cc-nav-grp-t">{grp.group}</div>}
+              <div className="space-y-0.5">
+                {grp.items.map((item) => {
+                  const active = pathname === item.href || pathname?.startsWith(item.href + "/");
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={() => onMobileClose?.()}
+                      title={collapsed ? item.label : undefined}
+                      className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                        active
+                          ? "bg-carbon-emerald/15 text-carbon-emerald-light"
+                          : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-raised)]"
+                      }`}
+                    >
+                      <span className="flex-shrink-0">{item.icon}</span>
+                      {!collapsed && (
+                        <>
+                          <span className="flex-1 text-left truncate">{item.label}</span>
+                          {item.badge ? (
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${item.badge.color}`}>
+                              {item.badge.text}
+                            </span>
+                          ) : active ? (
+                            <motion.div layoutId="sidebar-active"
+                              className="w-1.5 h-1.5 rounded-full bg-carbon-emerald" />
+                          ) : null}
+                        </>
+                      )}
+                      {collapsed && item.badge && (
+                        <span className="absolute left-8 top-1 w-2 h-2 rounded-full bg-red-500" />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Footer */}

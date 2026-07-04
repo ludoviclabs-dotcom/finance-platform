@@ -11,6 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
+    "build:aero-marketing-xlsx": "tsx scripts/build-aero-marketing-xlsx.ts",
+    "sync:aero-marketing": "tsx scripts/sync-aero-marketing.ts",
     "qa:copy": "tsx scripts/qa/neural-qa.ts copy",
     "qa:site": "tsx scripts/qa/neural-qa.ts site",
     "qa:visual": "tsx scripts/qa/neural-qa.ts visual",

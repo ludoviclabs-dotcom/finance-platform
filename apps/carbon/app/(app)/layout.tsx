@@ -16,9 +16,18 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/dashboard":   { title: "Tableau de bord",  subtitle: "Vue d'ensemble ESG" },
   "/scopes":      { title: "Scopes 1-2-3",     subtitle: "Analyse GHG Protocol" },
   "/vsme":        { title: "VSME",             subtitle: "Standard volontaire PME — EFRAG" },
+  "/vsme/completude": { title: "Complétude VSME", subtitle: "Mapping & datapoints EFRAG" },
+  "/vsme/wizard": { title: "VSME — Wizard",     subtitle: "Parcours en 10 étapes" },
+  "/beges":       { title: "BEGES",             subtitle: "Bilan GES réglementaire France (v5)" },
+  "/fec":         { title: "Import FEC",         subtitle: "Screening Scope 3 monétaire" },
+  "/consolidation": { title: "Périmètre & groupe", subtitle: "Consolidation multi-entités" },
+  "/baselines":   { title: "Année de référence",  subtitle: "Baseline & recalcul" },
+  "/actions":     { title: "Leviers de réduction", subtitle: "MACC & plan de transition" },
+  "/imports":     { title: "Imports fichiers",    subtitle: "AWS · GCP · Qonto" },
+  "/diff":        { title: "Multi-exercices",     subtitle: "Diff & réponses questionnaires" },
   "/esrs":        { title: "ESRS / CSRD",      subtitle: "Conformité réglementaire" },
   "/materialite": { title: "Double matérialité", subtitle: "Impacts × Risques × Opportunités" },
-  "/datapoints":  { title: "Datapoints CSRD",   subtitle: "Extraction LLM-RAG · ESRS Set 2" },
+  "/datapoints":  { title: "Datapoints CSRD",   subtitle: "Extraction LLM-RAG · ESRS" },
   "/revue":       { title: "Inbox de validation", subtitle: "Workflow proposé → validé → figé" },
   "/qc":          { title: "Contrôles qualité", subtitle: "Intégrité + drill-down" },
   "/social":      { title: "Social",           subtitle: "Effectifs, diversité, sécurité" },
@@ -27,6 +36,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/copilot":     { title: "Copilote IA",      subtitle: "Assistant ESG intelligent" },
   "/reports":     { title: "Rapports",         subtitle: "Exports & documents" },
   "/pricing":     { title: "Offres",           subtitle: "Plans & tarification" },
+  "/securite":    { title: "Sécurité",         subtitle: "Double authentification (2FA)" },
 };
 
 function PageSkeleton() {

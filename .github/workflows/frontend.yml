@@ -56,5 +56,10 @@ jobs:
 
       - run: npm ci
 
+      # Audit bloquant sur l'arbre complet (prod + dev tooling). L'outillage de
+      # dev est désormais propre à la source (overrides.esbuild=^0.28.1,
+      # vitest>=3.2.6), donc plus besoin de séparer « prod bloquant » et « full
+      # informationnel ». Garde-fou contre une régression future qui
+      # réintroduirait silencieusement un esbuild/vitest vulnérable.
       - name: npm audit (high+critical bloquant)
         run: npm audit --audit-level=high

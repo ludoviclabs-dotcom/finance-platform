@@ -20,7 +20,15 @@ export type Page =
   | "alerts"
   | "admin"
   | "pricing"
-  | "datapoints";
+  | "datapoints"
+  | "beges"
+  | "fec"
+  | "consolidation"
+  | "baselines"
+  | "actions"
+  | "imports"
+  | "diff"
+  | "securite";
 
 export interface ChatMessage {
   role: "user" | "assistant";

@@ -5,7 +5,6 @@ models/factors.py — Modèles Pydantic pour le catalogue emission_factors.
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -30,7 +29,7 @@ class EmissionFactor(BaseModel):
 class FactorQuery(BaseModel):
     scope: int | None = Field(None, ge=1, le=3, description="Scope 1, 2 ou 3")
     category: str | None = Field(None, description="Catégorie (energy, transport, ...)")
-    version: str | None = Field(None, description="Version des facteurs ex: v2025.0")
+    version: str | None = Field(None, description="Version des facteurs ex: v2025")
     q: str | None = Field(None, description="Recherche plein texte sur label/ef_code")
     limit: int = Field(50, ge=1, le=500)
     offset: int = Field(0, ge=0)

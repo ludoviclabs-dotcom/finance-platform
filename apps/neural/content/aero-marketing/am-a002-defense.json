@@ -1,0 +1,151 @@
+{
+  "_meta": {
+    "sourceFile": "DefenseCommsGuard_NEURAL.xlsx",
+    "generatedAt": "2026-05-26",
+    "sheets": [
+      "AGENT_META",
+      "SOURCES",
+      "RULES",
+      "SCENARIOS"
+    ]
+  },
+  "data": {
+    "AGENT_META": [
+      {
+        "key": "id",
+        "value": "AM-A002"
+      },
+      {
+        "key": "slug",
+        "value": "defense-comms-guard"
+      },
+      {
+        "key": "name",
+        "value": "DefenseCommsGuard"
+      },
+      {
+        "key": "owner",
+        "value": "Compliance Export-Control"
+      },
+      {
+        "key": "mission",
+        "value": "Auditer toute communication marketing contre 12 règles export-control + sanctions consolidées : ITAR (US 22 CFR 120-130), EAR (15 CFR 730-774), EU dual-use Reg. 2021/821, France L.2335-1 LMG, OFAC SDN, EU 16e paquet sanctions, UK OFSI, AUKUS OGL, FDPR drones, AI Act art. 50, ASD Charter."
+      },
+      {
+        "key": "primary_rule",
+        "value": "RULE-EXPORT-AWARE"
+      },
+      {
+        "key": "workbook",
+        "value": "DefenseCommsGuard_NEURAL.xlsx"
+      },
+      {
+        "key": "kpi_1",
+        "value": "Nb KO bloquants 0"
+      },
+      {
+        "key": "kpi_2",
+        "value": "Score conformité > 85%"
+      },
+      {
+        "key": "kpi_3",
+        "value": "Sanctions screening 1500/mois"
+      }
+    ],
+    "SOURCES": [
+      {
+        "source_id": "AM-S001",
+        "authority": "US",
+        "domain": "Export Control",
+        "title": "ITAR — International Traffic in Arms Regulations",
+        "date": "Révision 22 CFR janv 2026",
+        "impact": "Cat. VIII (aircraft military), Cat. XV (spacecraft) — licences DDTC obligatoires, AUKUS Pillar II OGL pour US/UK/AU."
+      },
+      {
+        "source_id": "AM-S002",
+        "authority": "US",
+        "domain": "Export Control",
+        "title": "EAR — Export Administration Regulations + Entity List + FDPR drones",
+        "date": "Update mars 2026",
+        "impact": "ECCN 9A610/9A619 aéronefs militaires, FDPR étendue drones 2025, Entity List ajouts mars 2026 (37 entités chinoises)."
+      },
+      {
+        "source_id": "AM-S003",
+        "authority": "UE",
+        "domain": "Dual-use",
+        "title": "Règlement UE 2021/821 — contrôles dual-use",
+        "date": "01/09/2021",
+        "impact": "Annexe I : radars, optronique, propulsion, cyber. Licence EU export obligatoire avant transfert hors UE."
+      },
+      {
+        "source_id": "AM-S004",
+        "authority": "France",
+        "domain": "Code défense",
+        "title": "Code de la défense L.2335-1 LMG + LPM 2024-2030",
+        "date": "Loi 2023-703",
+        "impact": "Matériels de guerre (LMG) : agréments AT/IDP/AGI obligatoires. LPM 413 Md EUR programmation. Décret 2024-1167 simplifie licences globales."
+      },
+      {
+        "source_id": "AM-S005",
+        "authority": "UE",
+        "domain": "Sanctions",
+        "title": "EU sanctions packages — Russie 16e paquet, Iran, Belarus, NK",
+        "date": "fév 2026",
+        "impact": "Reg. 833/2014 + 16e paquet Russie fév 2026 + Reg. 2023/1529 Iran. Annexe XXIII = produits aéronautiques restreints."
+      },
+      {
+        "source_id": "AM-S006",
+        "authority": "UE",
+        "domain": "Intelligence artificielle",
+        "title": "EU AI Act — UE 2024/1689 art. 50",
+        "date": "Applicable 02/08/2026",
+        "impact": "Disclosure obligatoire de tout contenu marketing IA-généré. Sanctions jusqu'à 15 M EUR / 3% CA mondial. Concerne les 4 agents Aéro/Marketing."
+      },
+      {
+        "source_id": "AM-S010",
+        "authority": "ASD Europe",
+        "domain": "Tonalité défense",
+        "title": "ASD Europe — Charter on Responsible Defence Communications",
+        "date": "mars 2025",
+        "impact": "Pas de glorification, pas de visuel choquant, contexte stratégique sourcé, pas de mention spécifique opérations en cours. Volontaire mais critique réputationnel post-Ukraine."
+      }
+    ],
+    "RULES": [
+      {
+        "rule_id": "AM-A002-R001",
+        "agent_slug": "defense-comms-guard",
+        "regle": "Regle primaire RULE-EXPORT-AWARE - controle bloquant avant diffusion.",
+        "niveau": "BLOCK",
+        "source_ref": "AM-S001",
+        "lang": "fr"
+      },
+      {
+        "rule_id": "AM-A002-R002",
+        "agent_slug": "defense-comms-guard",
+        "regle": "Disclosure AI Act art. 50 obligatoire sur tout contenu marketing IA-genere.",
+        "niveau": "BLOCK",
+        "source_ref": "AM-S006",
+        "lang": "fr"
+      },
+      {
+        "rule_id": "AM-A002-R003",
+        "agent_slug": "defense-comms-guard",
+        "regle": "Tonalite responsable conforme ASD Europe Charter (pas de glorification).",
+        "niveau": "REVIEW",
+        "source_ref": "AM-S010",
+        "lang": "fr"
+      }
+    ],
+    "SCENARIOS": [
+      {
+        "scenario_id": "SCN-AM-002",
+        "agent_slug": "defense-comms-guard",
+        "label": "Email B2B prospection drone tactique vers Iran",
+        "input_line": "« Cher prospect, suite à vos échanges au salon Dubai Airshow, nous proposons notre drone tactique mini (autonomie 6h, charge 2,5 kg). Notre commercial Téhéran peut planifier une démo. Tarif 85 K€, exempt de TVA pour export. »",
+        "verdict": "KO",
+        "summary": "Score conformité 46%. 4 KO bloquants : (1) Iran sous sanctions OFAC SDN + EU Reg. 2023/1529 — envoi interdit, (2) drone tactique = ECCN 9A619 sous EAR, (3) caméra EO/IR = annexe I Reg. 2021/821, (4) cohérent licences DGA absente. Décision : BLOQUÉ.",
+        "metrics_json": "[{\"label\":\"Conformité export\",\"before\":\"46%\",\"after\":\"—\"},{\"label\":\"KO bloquants\",\"before\":\"4\",\"after\":\"0\"},{\"label\":\"Décision\",\"before\":\"—\",\"after\":\"BLOQUÉ\"}]"
+      }
+    ]
+  }
+}

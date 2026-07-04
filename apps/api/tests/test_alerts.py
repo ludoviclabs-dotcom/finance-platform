@@ -97,3 +97,39 @@ class TestAlertHistory:
         data = resp.json()
         assert "alerts" in data
         assert "total" in data
+
+
+class TestAlertModes:
+    def test_missing_mode_no_threshold(self, client: TestClient, analyst_token: str) -> None:
+        payload = {"name": "Donnée manquante", "domain": "vsme",
+                   "field_path": "vsme.energieMwh", "operator": "eq", "mode": "missing"}
+        resp = client.post("/alerts/rules", json=payload, headers=auth(analyst_token))
+        assert resp.status_code == 201
+        client.delete(f"/alerts/rules/{resp.json()['id']}", headers=auth(analyst_token))
+
+    def test_invalid_mode(self, client: TestClient, analyst_token: str) -> None:
+        payload = {**RULE_PAYLOAD, "mode": "wat"}
+        resp = client.post("/alerts/rules", json=payload, headers=auth(analyst_token))
+        assert resp.status_code == 400
+
+
+class TestNotifications:
+    def test_list_requires_auth(self, client: TestClient) -> None:
+        # Les notifications sont des données tenant : pas d'accès anonyme.
+        assert client.get("/alerts/notifications").status_code in (401, 403)
+
+    def test_list_authed(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get("/alerts/notifications", headers=auth(analyst_token))
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "unread" in data and "notifications" in data
+
+    def test_mutations_require_auth(self, client: TestClient) -> None:
+        assert client.patch("/alerts/notifications/1").status_code in (401, 403)
+        assert client.delete("/alerts/notifications/1").status_code in (401, 403)
+
+    def test_mark_read_nonexistent(self, client: TestClient, analyst_token: str) -> None:
+        assert client.patch("/alerts/notifications/999999", headers=auth(analyst_token)).status_code == 404
+
+    def test_archive_nonexistent(self, client: TestClient, analyst_token: str) -> None:
+        assert client.delete("/alerts/notifications/999999", headers=auth(analyst_token)).status_code == 404

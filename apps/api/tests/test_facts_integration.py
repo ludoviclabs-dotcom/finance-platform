@@ -15,17 +15,18 @@ from __future__ import annotations
 
 import os
 import time
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-
 
 # ── Tests sans DB ────────────────────────────────────────────────────────────
 
 class TestFactMapping:
     def test_fact_code_mapping_keys_are_valid_field_paths(self):
-        from services.carbon_service import SNAPSHOT_FIELD_TO_FACT_CODE, SNAPSHOT_FIELD_TO_KEY
+        from services.carbon_service import (
+            SNAPSHOT_FIELD_TO_FACT_CODE,
+            SNAPSHOT_FIELD_TO_KEY,
+        )
 
         fact_keys = set(SNAPSHOT_FIELD_TO_FACT_CODE.keys())
         snapshot_keys = set(SNAPSHOT_FIELD_TO_KEY.keys())

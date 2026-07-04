@@ -1,9 +1,10 @@
 """
-suppliers.py — Endpoints fournisseurs Phase 4.
+suppliers.py — Endpoints fournisseurs Phase 4 + campagnes de collecte (T7.3).
 
 Endpoints protégés (require_analyst ou require_admin) :
   GET    /suppliers              — liste paginée
   POST   /suppliers              — créer un fournisseur
+  POST   /suppliers/import-csv   — import CSV de fournisseurs (dédupliqué)
   GET    /suppliers/{id}         — détail fournisseur
   PATCH  /suppliers/{id}         — mise à jour partielle
   DELETE /suppliers/{id}         — supprimer (admin)
@@ -12,8 +13,20 @@ Endpoints protégés (require_analyst ou require_admin) :
   GET    /suppliers/{id}/answers — réponses reçues
   GET    /suppliers/scope3       — agrégat GES scope 3
 
+Campagnes de collecte (T7.3) :
+  GET    /suppliers/campaigns                    — campagnes + stats de réponse
+  POST   /suppliers/campaigns                    — créer une campagne
+  POST   /suppliers/campaigns/reminders/run     — relances J-14/J-7/deadline (cron)
+  GET    /suppliers/campaigns/{id}              — suivi détaillé (invitations)
+  POST   /suppliers/campaigns/{id}/invites      — inviter des fournisseurs (tokens)
+  POST   /suppliers/campaigns/{id}/close        — clôturer
+
+Revue des réponses (gate avant intégration) :
+  GET    /suppliers/answers/pending             — réponses à valider + anomalies
+  POST   /suppliers/answers/{id}/review         — accepter / signaler
+
 Endpoints publics (no auth) :
-  GET  /suppliers/public/q/{token}  — contexte du questionnaire
+  GET  /suppliers/public/q/{token}  — contexte du questionnaire (stampe viewed_at)
   POST /suppliers/public/q/{token}  — soumettre une réponse
 """
 
@@ -25,9 +38,20 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from db.tenant import get_company_id
-from routers.auth import require_admin, require_analyst
+from routers.auth import require_admin, require_analyst, require_cron_or_analyst
+from services import supplier_campaigns_service as campaigns_svc
 from services.auth_service import AuthUser
+from services.supplier_campaigns_service import (
+    AnswerReviewRequest,
+    CampaignCreate,
+    CampaignInvite,
+    CampaignOut,
+    CsvImportRequest,
+    InviteRequest,
+    PendingAnswer,
+)
 from services.supplier_service import (
+    PublicQuestionnaireContext,
     SupplierAnswerCreate,
     SupplierAnswerOut,
     SupplierCreate,
@@ -35,7 +59,6 @@ from services.supplier_service import (
     SupplierUpdate,
     TokenCreate,
     TokenOut,
-    PublicQuestionnaireContext,
     create_supplier,
     create_token,
     delete_supplier,
@@ -61,6 +84,122 @@ router = APIRouter()
 def get_scope3_summary(company_id: int = Depends(get_company_id)) -> dict:
     """Agrégation GES scope 3 par fournisseur — top 20 + by category."""
     return scope3_summary(company_id)
+
+
+# ---------------------------------------------------------------------------
+# Campagnes de collecte (T7.3) — déclarées AVANT les routes /{supplier_id}
+# pour éviter que "campaigns" ne soit interprété comme un id fournisseur.
+# ---------------------------------------------------------------------------
+
+@router.get("/campaigns", response_model=list[CampaignOut])
+def get_campaigns(company_id: int = Depends(get_company_id)) -> list[CampaignOut]:
+    """Campagnes de collecte avec statistiques de réponse (invités/vus/complétés)."""
+    return campaigns_svc.list_campaigns(company_id)
+
+
+@router.post("/campaigns", response_model=CampaignOut, status_code=201)
+def post_campaign(
+    payload: CampaignCreate,
+    user: AuthUser = Depends(require_analyst),
+) -> CampaignOut:
+    return campaigns_svc.create_campaign(payload, user.company_id, user.email)
+
+
+@router.post("/campaigns/reminders/run", dependencies=[Depends(require_cron_or_analyst)])
+def run_campaign_reminders() -> dict:
+    """Relances des campagnes actives (paliers J-14 / J-7 / deadline).
+
+    Appelé par le cron quotidien (CRON_SERVICE_TOKEN) — notifications in-app
+    systématiques, e-mails fournisseurs uniquement si EMAIL_ENABLED. Idempotent
+    palier par palier (anti-spam).
+    """
+    return campaigns_svc.run_campaign_reminders()
+
+
+@router.get("/campaigns/{campaign_id}")
+def get_campaign_detail(
+    campaign_id: int,
+    company_id: int = Depends(get_company_id),
+) -> dict:
+    """Suivi détaillé d'une campagne : invitations, statuts, liens."""
+    campaign = next(
+        (c for c in campaigns_svc.list_campaigns(company_id) if c.id == campaign_id), None
+    )
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campagne introuvable")
+    invites = campaigns_svc.campaign_invites(company_id, campaign_id)
+    return {"campaign": campaign, "invites": invites}
+
+
+@router.post("/campaigns/{campaign_id}/invites", response_model=list[CampaignInvite])
+def post_campaign_invites(
+    campaign_id: int,
+    payload: InviteRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> list[CampaignInvite]:
+    """Génère les liens d'invitation (un token par fournisseur, dédupliqué)."""
+    if not payload.supplier_ids and not payload.all_active:
+        raise HTTPException(status_code=400, detail="supplier_ids ou all_active requis")
+    invites = campaigns_svc.invite_suppliers(
+        campaign_id, user.company_id, payload.supplier_ids, all_active=payload.all_active,
+    )
+    if not invites and not payload.all_active:
+        # Campagne inexistante/clôturée OU fournisseurs inconnus — distinguer
+        campaign = next(
+            (c for c in campaigns_svc.list_campaigns(user.company_id) if c.id == campaign_id), None
+        )
+        if not campaign or campaign.status != "active":
+            raise HTTPException(status_code=404, detail="Campagne introuvable ou clôturée")
+    return invites
+
+
+@router.post("/campaigns/{campaign_id}/close", status_code=204)
+def post_campaign_close(
+    campaign_id: int,
+    user: AuthUser = Depends(require_analyst),
+) -> None:
+    if not campaigns_svc.close_campaign(campaign_id, user.company_id):
+        raise HTTPException(status_code=404, detail="Campagne introuvable ou déjà clôturée")
+
+
+# ---------------------------------------------------------------------------
+# Import CSV (T7.3)
+# ---------------------------------------------------------------------------
+
+@router.post("/import-csv")
+def post_import_csv(
+    payload: CsvImportRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> dict:
+    """Import en masse de fournisseurs depuis un CSV (dédup par nom).
+
+    Colonnes reconnues : name/nom (obligatoire), email, contact, pays, secteur,
+    catégorie scope 3, dépenses (€), GES estimé (tCO2e). Séparateur , ou ;.
+    """
+    return campaigns_svc.import_suppliers_csv(payload.csv_text, user.company_id)
+
+
+# ---------------------------------------------------------------------------
+# Revue des réponses (T7.3) — gate avant intégration
+# ---------------------------------------------------------------------------
+
+@router.get("/answers/pending", response_model=list[PendingAnswer])
+def get_pending_answers(company_id: int = Depends(get_company_id)) -> list[PendingAnswer]:
+    """Réponses fournisseurs en attente de revue, avec anomalies détectées."""
+    return campaigns_svc.list_pending_answers(company_id)
+
+
+@router.post("/answers/{answer_id}/review")
+def post_answer_review(
+    answer_id: int,
+    payload: AnswerReviewRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> dict:
+    """Accepte (→ met à jour l'estimation GES du fournisseur) ou signale une réponse."""
+    result = campaigns_svc.review_answer(answer_id, user.company_id, payload, user.email)
+    if not result:
+        raise HTTPException(status_code=404, detail="Réponse introuvable ou déjà revue")
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -181,6 +320,10 @@ def get_questionnaire_context(token: str) -> PublicQuestionnaireContext:
         raise HTTPException(status_code=410, detail="Ce lien questionnaire a expiré")
 
     already_answered = ctx.get("used_at") is not None
+
+    # T7.3 : stampe la PREMIÈRE consultation (statut « viewed » du suivi de
+    # campagne). Best-effort — n'échoue jamais le rendu du questionnaire.
+    campaigns_svc.mark_token_viewed(token)
 
     return PublicQuestionnaireContext(
         supplier_name=ctx["supplier_name"],

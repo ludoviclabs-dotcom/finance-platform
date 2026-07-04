@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Brochure 8 pages présentant la plateforme CarbonCo : positionnement, fonctionnalités, sécurité, " +
     "tarifs, cas sectoriels, comparatif concurrents et roadmap.",
-  alternates: { canonical: "https://carbonco.fr/brochure" },
+  alternates: { canonical: "/brochure" },
 };
 
 export default function BrochurePage() {

@@ -1,0 +1,22 @@
+{
+  "etiquette": "Données fictives à but de démonstration",
+  "entreprise": {
+    "nom": "Exemplia Industrie",
+    "fictif": true,
+    "secteur": "Industrie",
+    "annee": 2025
+  },
+  "total_tco2e": 12847,
+  "yoy_pct": -12,
+  "scopes": [
+    { "id": "s1", "label": "Scope 1", "tco2e": 3210, "part_pct": 25, "yoy_pct": -8 },
+    { "id": "s2", "label": "Scope 2", "tco2e": 2415, "part_pct": 19, "yoy_pct": -18 },
+    { "id": "s3", "label": "Scope 3", "tco2e": 7222, "part_pct": 56, "yoy_pct": -9 }
+  ],
+  "postes": [
+    { "id": "energie", "label": "Énergie", "tco2e": 3597, "part_pct": 28 },
+    { "id": "transport", "label": "Transport", "tco2e": 4368, "part_pct": 34 },
+    { "id": "achats", "label": "Achats", "tco2e": 2826, "part_pct": 22 },
+    { "id": "numerique", "label": "Numérique", "tco2e": 2056, "part_pct": 16 }
+  ]
+}

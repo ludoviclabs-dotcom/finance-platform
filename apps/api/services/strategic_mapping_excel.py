@@ -17,6 +17,8 @@ from __future__ import annotations
 import io
 import logging
 
+from models.strategic_mapping import StrategicMappingResponse
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -32,9 +34,6 @@ try:
     _OPENPYXL_AVAILABLE = True
 except ImportError:
     _OPENPYXL_AVAILABLE = False
-
-from models.strategic_mapping import StrategicMappingResponse
-
 
 # ---------------------------------------------------------------------------
 # Palette couleurs Carbon & Co
@@ -386,6 +385,15 @@ def build_strategic_mapping_xlsx(data: StrategicMappingResponse) -> bytes:
     _sheet_avant_apres(wb, data)
     _sheet_gains(wb, data)
     _sheet_leviers(wb, data)
+
+    # T1.5 — neutralisation injection de formule : passe unique sur toutes les
+    # cellules texte avant sauvegarde.
+    from utils.excel_sanitize import sanitize_cell
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for cell in row:
+                if isinstance(cell.value, str):
+                    cell.value = sanitize_cell(cell.value)
 
     buf = io.BytesIO()
     wb.save(buf)

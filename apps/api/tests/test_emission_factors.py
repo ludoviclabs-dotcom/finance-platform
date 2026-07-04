@@ -12,7 +12,6 @@ Ces tests ne nécessitent PAS de base de données (données embarquées testées
 from __future__ import annotations
 
 import importlib
-import sys
 from pathlib import Path
 
 import pytest
@@ -157,13 +156,13 @@ class TestFactorsEndpoint:
         assert all(i["scope"] == 1 for i in items)
 
     def test_filter_by_version(self, client):
-        resp = client.get("/factors?version=v2025.0&limit=10")
+        resp = client.get("/factors?version=v2025&limit=10")
         assert resp.status_code == 200
         items = resp.json()["items"]
-        assert all(i["version"] == "v2025.0" for i in items)
+        assert all(i["version"] == "v2025" for i in items)
 
     def test_get_by_ef_code(self, client):
-        resp = client.get("/factors/ADEME.2025.ELEC.FR?version=v2025.0")
+        resp = client.get("/factors/ADEME.2025.ELEC.FR?version=v2025")
         assert resp.status_code == 200
         factor = resp.json()
         assert factor["ef_code"] == "ADEME.2025.ELEC.FR"

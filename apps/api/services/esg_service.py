@@ -387,6 +387,28 @@ def build_esg_snapshot() -> EsgSnapshotResponse:
     )
 
 
+# --- Phase 1.B : émission de facts ESG (spec §7 — KPIs numériques uniquement) ---
+ESG_SNAPSHOT_FIELD_TO_FACT_CODE: dict[str, tuple[str, str]] = {
+    "scores.scoreGlobal": ("CC.ESG.SCORE_GLOBAL", "score"),
+    "scores.scoreE": ("CC.ESG.SCORE_E", "score"),
+    "scores.scoreS": ("CC.ESG.SCORE_S", "score"),
+    "scores.scoreG": ("CC.ESG.SCORE_G", "score"),
+    "materialite.enjeuxEvalues": ("CC.MAT.ENJEUX_EVALUES", "count"),
+    "materialite.enjeuxMateriels": ("CC.MAT.ENJEUX_MATERIELS", "count"),
+}
+
+
+def emit_esg_facts(snapshot: dict[str, Any], company_id: int) -> int:
+    """Émet les facts des KPIs numériques ESG. `snapshot` = model_dump(). No-op sans DB."""
+    from services import facts_service
+    return facts_service.emit_snapshot_facts(
+        snapshot=snapshot,
+        company_id=company_id,
+        mapping=ESG_SNAPSHOT_FIELD_TO_FACT_CODE,
+        source_label="esg",
+    )
+
+
 def _evaluate_esg_qc(
     ctrl_id: str,
     scores: EsgScoreSnapshot,

@@ -1,20 +1,17 @@
 """
 seed_factors.py — Peuplement de la table emission_factors.
 
-Utilise les valeurs ADEME Base Empreinte v2025.0 (réf. publique).
+Utilise les valeurs ADEME Base Empreinte v2025 (réf. publique).
 Si le fichier Facteurs_Emission.xlsx est présent dans apps/api/data/factors/,
 il est parsé en priorité. Sinon, les données embarquées sont utilisées.
 
 Usage :
-    python apps/api/scripts/seed_factors.py [--dry-run] [--version v2025.0]
+    python apps/api/scripts/seed_factors.py [--dry-run] [--version v2025]
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
-import json
-import os
 import sys
 from pathlib import Path
 
@@ -23,11 +20,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from db.database import db_available, get_db
 
-VERSION = "v2025.0"
+VERSION = "v2025"
 SOURCE = "ADEME Base Empreinte"
 
 # ---------------------------------------------------------------------------
-# Données ADEME embarquées — valeurs de référence publiques v2025.0
+# Données ADEME embarquées — valeurs de référence publiques v2025
 # Format : (ef_code, label, scope, category, factor_kgco2e, unit)
 # ---------------------------------------------------------------------------
 

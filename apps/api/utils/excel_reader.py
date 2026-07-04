@@ -69,8 +69,12 @@ class ExcelReader:
         Raises:
             CorruptFileError: If the file cannot be read by openpyxl.
         """
+        contents = await file.read()
+        # Durcissement T1.5 (taille, magic bytes, zip-bomb) — lève HTTPException
+        # 413/400 AVANT openpyxl ; hors du try pour ne pas être masqué en 422.
+        from utils.upload_guard import check_upload_bytes
+        check_upload_bytes(contents, getattr(file, "filename", None))
         try:
-            contents = await file.read()
             wb = load_workbook(
                 filename=io.BytesIO(contents),
                 read_only=True,

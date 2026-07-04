@@ -27,12 +27,15 @@ from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr
 
 from middleware.request_logger import log_obs_event
+from services import totp_service
 from services.audit_service import log_event
 from services.auth_service import (
     AuthUser,
     authenticate,
     create_access_token,
+    create_pre_auth_token,
     create_refresh_token,
+    decode_pre_auth_token,
     decode_token,
     has_role,
     revoke_refresh_token,
@@ -57,10 +60,36 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    accessToken: str
+    accessToken: str | None = None
     tokenType: str = "bearer"
-    expiresAt: str
-    user: AuthUser
+    expiresAt: str | None = None
+    user: AuthUser | None = None
+    # 2FA : si l'utilisateur a le TOTP activé, le login renvoie requiresTotp + un
+    # token pré-auth à présenter avec le code sur /auth/totp/verify.
+    requiresTotp: bool = False
+    preAuthToken: str | None = None
+
+
+class TotpVerifyRequest(BaseModel):
+    preAuthToken: str
+    code: str
+
+
+class TotpCodeRequest(BaseModel):
+    code: str
+
+
+class TotpEnrollResponse(BaseModel):
+    secret: str
+    otpauthUri: str
+
+
+class TotpActivateResponse(BaseModel):
+    recoveryCodes: list[str]
+
+
+class TotpStatusResponse(BaseModel):
+    enabled: bool
 
 
 class RefreshResponse(BaseModel):
@@ -117,6 +146,32 @@ def require_admin(user: AuthUser = Depends(get_current_user)) -> AuthUser:
             detail="Accès refusé — rôle admin requis.",
         )
     return user
+
+
+def require_cron_or_analyst(request: Request) -> None:
+    """Autorise soit le token de service cron, soit un JWT analyst/admin.
+
+    Les endpoints périodiques (rappels BEGES, relances fournisseurs) sont
+    appelés par le cron Vercel sans contexte utilisateur : le route handler
+    front transmet `Authorization: Bearer <CRON_SERVICE_TOKEN>`. Le même
+    secret doit être défini côté API (env CRON_SERVICE_TOKEN). À défaut,
+    un JWT analyst permet le déclenchement manuel depuis l'app.
+    """
+    import os
+    import secrets as _secrets
+
+    auth = request.headers.get("authorization") or ""
+    token = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
+    expected = os.environ.get("CRON_SERVICE_TOKEN") or ""
+    if expected and token and _secrets.compare_digest(token, expected):
+        return
+    user = decode_token(token) if token else None
+    if user is None or not has_role(user, "analyst"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token de service cron ou JWT analyst requis.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -189,6 +244,16 @@ async def login(body: LoginRequest, request: Request, response: Response) -> Log
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # 2FA : si TOTP activé, on s'arrête à l'étape mot de passe et on renvoie un
+    # token pré-auth. Le client appelle ensuite /auth/totp/verify avec le code.
+    if totp_service.is_enabled(user.email):
+        return LoginResponse(requiresTotp=True, preAuthToken=create_pre_auth_token(user))
+
+    return _issue_session(user, request, response)
+
+
+def _issue_session(user: AuthUser, request: Request, response: Response) -> LoginResponse:
+    """Émet access + refresh (cookie) et journalise la connexion."""
     access_token, access_expires = create_access_token(user)
     user_agent = request.headers.get("user-agent")
     refresh_raw, refresh_expires = create_refresh_token(user, user_agent)
@@ -255,3 +320,56 @@ async def logout(request: Request, response: Response) -> None:
 @router.get("/me", response_model=MeResponse)
 async def me(user: AuthUser = Depends(get_current_user)) -> MeResponse:
     return MeResponse(user=user)
+
+
+# ---------------------------------------------------------------------------
+# 2FA TOTP (T1.4)
+# ---------------------------------------------------------------------------
+
+@router.post("/totp/verify", response_model=LoginResponse)
+async def totp_verify(body: TotpVerifyRequest, request: Request, response: Response) -> LoginResponse:
+    """Étape 2 du login : valide le code TOTP (ou un code de récupération) à
+    partir du token pré-auth, puis émet la session complète. Rate-limité 5/15 min."""
+    user = decode_pre_auth_token(body.preAuthToken)
+    if user is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Session pré-auth invalide ou expirée.")
+    if not totp_service.verify(user.email, body.code):
+        log_event(event_type="2fa_fail", title=f"2FA échec — {user.email}", status="warning",
+                  user=user.email, company_id=user.company_id)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Code de vérification invalide.")
+    log_event(event_type="2fa_success", title=f"2FA validé — {user.email}", status="ok",
+              user=user.email, company_id=user.company_id)
+    return _issue_session(user, request, response)
+
+
+@router.get("/totp/status", response_model=TotpStatusResponse)
+async def totp_status(user: AuthUser = Depends(get_current_user)) -> TotpStatusResponse:
+    return TotpStatusResponse(enabled=totp_service.is_enabled(user.email))
+
+
+@router.post("/totp/enroll", response_model=TotpEnrollResponse)
+async def totp_enroll(user: AuthUser = Depends(get_current_user)) -> TotpEnrollResponse:
+    """Génère un secret (pending) et renvoie l'URI otpauth (QR rendu côté front)."""
+    data = totp_service.enroll(user.email, user.company_id)
+    log_event(event_type="2fa_enroll", title=f"2FA enrôlement — {user.email}", status="ok",
+              user=user.email, company_id=user.company_id)
+    return TotpEnrollResponse(secret=data["secret"], otpauthUri=data["otpauthUri"])
+
+
+@router.post("/totp/activate", response_model=TotpActivateResponse)
+async def totp_activate(body: TotpCodeRequest, user: AuthUser = Depends(get_current_user)) -> TotpActivateResponse:
+    """Vérifie le code du secret pending, active le TOTP, renvoie 8 codes de récupération."""
+    try:
+        codes = totp_service.activate(user.email, body.code, user.company_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    log_event(event_type="2fa_recovery", title=f"2FA activé — {user.email}", status="ok",
+              user=user.email, company_id=user.company_id)
+    return TotpActivateResponse(recoveryCodes=codes)
+
+
+@router.post("/totp/disable", status_code=204)
+async def totp_disable(user: AuthUser = Depends(get_current_user)) -> None:
+    totp_service.disable(user.email, user.company_id)
+    log_event(event_type="2fa_fail", title=f"2FA désactivé — {user.email}", status="warning",
+              user=user.email, company_id=user.company_id)

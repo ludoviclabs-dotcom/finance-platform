@@ -54,7 +54,7 @@ async def list_factors(
     params: list = []
 
     if scope is not None:
-        conditions.append(f"scope = %s")
+        conditions.append("scope = %s")
         params.append(scope)
     if category:
         conditions.append("category = %s")

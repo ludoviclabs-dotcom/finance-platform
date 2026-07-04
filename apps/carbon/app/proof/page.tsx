@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Proof Twin public - CarbonCo",
   description:
     "Point d'accès public aux preuves CarbonCo : audit trail, hash SHA-256, Evidence Pack et Proof Console NEURAL.",
-  alternates: { canonical: "https://carbonco.fr/proof" },
+  alternates: { canonical: "/proof" },
 };
 
 const proofSignals = [

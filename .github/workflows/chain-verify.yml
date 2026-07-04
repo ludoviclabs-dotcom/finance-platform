@@ -1,0 +1,40 @@
+name: Chain integrity verify (T2.5)
+
+# Vérifie quotidiennement l'intégrité de la chaîne hash de chaque organisation
+# et horodate le résultat (badge de confiance). Skip gracieux si le secret est
+# absent. Déclenchable manuellement.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 2 * * *" # 02:30 UTC
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      # Le guard tourne AVANT checkout : il doit s'exécuter depuis la racine du
+      # workspace (pas de working-directory job-level, sinon apps/api n'existe
+      # pas encore et l'étape échouerait avant de tester le secret).
+      - name: Guard (secret présent ?)
+        id: guard
+        run: |
+          if [ -z "${{ secrets.NEON_DATABASE_URL }}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "NEON_DATABASE_URL absent — vérification ignorée."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.guard.outputs.skip != 'true'
+      - uses: actions/setup-python@v5
+        if: steps.guard.outputs.skip != 'true'
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        if: steps.guard.outputs.skip != 'true'
+        working-directory: apps/api
+        run: pip install -r requirements.txt
+      - name: Run chain verifications
+        if: steps.guard.outputs.skip != 'true'
+        working-directory: apps/api
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: python scripts/run_chain_verifications.py

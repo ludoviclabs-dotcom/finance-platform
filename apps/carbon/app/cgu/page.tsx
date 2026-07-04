@@ -8,13 +8,17 @@ export const metadata: Metadata = {
 
 export default function CguPage() {
   return (
-    <LegalLayout title="Conditions générales d'utilisation" lastUpdated="14 avril 2026">
+    <LegalLayout title="Conditions générales d'utilisation" lastUpdated="13 juin 2026">
       <Section title="Objet">
         <p>
+          <strong>Produit en développement, non commercialisé.</strong> CarbonCo est mis à
+          disposition à titre de démonstrateur technique et de programme pilote ; aucune offre
+          commerciale n'est ouverte à la souscription à ce jour.
+        </p>
+        <p>
           Les présentes conditions générales d'utilisation (CGU) régissent l'accès et
-          l'utilisation de la plateforme CarbonCo, dédiée au pilotage ESG, CSRD et VSME des
-          entreprises. Toute utilisation de la plateforme implique l'acceptation pleine et
-          entière des présentes CGU.
+          l'utilisation du démonstrateur, dédié au pilotage ESG, CSRD et VSME. Toute utilisation
+          implique l'acceptation pleine et entière des présentes CGU.
         </p>
       </Section>
 
@@ -33,17 +37,17 @@ export default function CguPage() {
 
       <Section title="Disponibilité">
         <p>
-          CarbonCo s'efforce de maintenir la plateforme accessible 24h/24 et 7j/7, mais ne
-          peut garantir une disponibilité ininterrompue. Des opérations de maintenance,
-          mises à jour ou incidents techniques peuvent entraîner des interruptions
-          temporaires.
+          Le démonstrateur est fourni « en l'état », en mode best-effort et sans aucune
+          garantie de disponibilité ni engagement de niveau de service (SLA). Des opérations de
+          maintenance, mises à jour ou incidents techniques peuvent entraîner des interruptions
+          à tout moment.
         </p>
       </Section>
 
       <Section title="Propriété des données">
         <p>
           Les données métier saisies, importées ou générées par l'utilisateur restent la
-          propriété exclusive de l'entreprise cliente. CarbonCo ne dispose d'aucun droit
+          propriété exclusive de l'organisation utilisatrice. CarbonCo ne dispose d'aucun droit
           d'usage, de revente ou de partage sur ces données, hormis pour l'exécution stricte
           du service.
         </p>

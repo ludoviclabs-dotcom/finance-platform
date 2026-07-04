@@ -1,13 +1,20 @@
 /**
- * Évaluation automatique quotidienne des règles d'alerte.
+ * Tick quotidien : évaluation des règles d'alerte + rappels d'échéance BEGES
+ * + relances des campagnes fournisseurs.
  *
- * Appelé par Vercel Cron à 06:00 UTC chaque jour (cf. vercel.json).
+ * Appelé par Vercel Cron à 06:00 UTC chaque jour (cf. vercel.json). Le plan
+ * Vercel Hobby limite le nombre de crons : ce route handler orchestre donc
+ * TOUTES les tâches quotidiennes en séquence, en best-effort (l'échec d'une
+ * étape n'empêche pas les suivantes).
  *
  * Sécurisation : Vercel Cron envoie automatiquement l'en-tête
  *   Authorization: Bearer <CRON_SECRET>
  * Si la variable d'environnement CRON_SECRET est définie, on vérifie qu'elle
  * correspond. Sinon (mode dev / non configuré) on refuse les appels publics
  * via une vérification d'en-tête `x-vercel-cron`.
+ *
+ * Les appels au backend portent CRON_SERVICE_TOKEN (même valeur à configurer
+ * côté API) — voir require_cron_or_analyst dans apps/api/routers/auth.py.
  *
  * Dans tous les cas, on renvoie un statut JSON pour le monitoring Vercel.
  */
@@ -18,11 +25,44 @@ export const runtime = "nodejs";
 // Force l'absence de cache pour que chaque cron tick recalcule.
 export const dynamic = "force-dynamic";
 
+interface StepResult {
+  status: "ok" | "skipped" | "error";
+  message?: string;
+  [key: string]: unknown;
+}
+
 interface CronResult {
   status: "ok" | "skipped" | "error";
   evaluated?: number;
   fired?: number;
   message?: string;
+  begesReminders?: StepResult;
+  supplierReminders?: StepResult;
+}
+
+/** POST best-effort vers le backend — n'interrompt jamais le tick. */
+async function callBackend(apiBase: string, path: string): Promise<StepResult> {
+  try {
+    const res = await fetch(`${apiBase}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(process.env.CRON_SERVICE_TOKEN
+          ? { Authorization: `Bearer ${process.env.CRON_SERVICE_TOKEN}` }
+          : {}),
+      },
+    });
+    if (!res.ok) {
+      return { status: "error", message: `Backend returned ${res.status} on ${path}` };
+    }
+    const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    return { status: "ok", ...data };
+  } catch (err) {
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
 }
 
 export async function GET(req: Request) {
@@ -63,47 +103,25 @@ export async function GET(req: Request) {
     );
   }
 
-  try {
-    const res = await fetch(`${apiBase}/alerts/evaluate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Service-to-service token (à configurer côté API si nécessaire).
-        ...(process.env.CRON_SERVICE_TOKEN
-          ? { Authorization: `Bearer ${process.env.CRON_SERVICE_TOKEN}` }
-          : {}),
-      },
-      // Pas de body : l'API évalue toutes les règles actives tous tenants confondus
-      // ou applique son propre filtrage selon le token.
-    });
+  // 1. Évaluation des règles d'alerte (comportement historique).
+  const alerts = await callBackend(apiBase, "/alerts/evaluate");
 
-    if (!res.ok) {
-      return NextResponse.json<CronResult>(
-        {
-          status: "error",
-          message: `Backend returned ${res.status}`,
-        },
-        { status: 502 }
-      );
-    }
+  // 2. Rappels d'échéance BEGES (J-180 / J-30 / échéance atteinte) — T7.2.
+  const begesReminders = await callBackend(apiBase, "/beges/reminders/run");
 
-    const data = (await res.json().catch(() => ({}))) as {
-      evaluated?: number;
-      fired?: number;
-    };
+  // 3. Relances des campagnes fournisseurs (J-14 / J-7 / deadline) — T7.3.
+  const supplierReminders = await callBackend(apiBase, "/suppliers/campaigns/reminders/run");
 
-    return NextResponse.json<CronResult>({
-      status: "ok",
-      evaluated: data.evaluated ?? 0,
-      fired: data.fired ?? 0,
-    });
-  } catch (err) {
-    return NextResponse.json<CronResult>(
-      {
-        status: "error",
-        message: err instanceof Error ? err.message : "Unknown error",
-      },
-      { status: 500 }
-    );
-  }
+  const overall: CronResult = {
+    status: alerts.status === "ok" ? "ok" : alerts.status,
+    evaluated: typeof alerts.evaluated === "number" ? alerts.evaluated : 0,
+    fired: typeof alerts.fired === "number" ? alerts.fired : 0,
+    message: alerts.message,
+    begesReminders,
+    supplierReminders,
+  };
+
+  // Le tick reste 200 même si une étape échoue : le détail par étape suffit au
+  // monitoring, et un 5xx ferait re-tenter Vercel inutilement.
+  return NextResponse.json<CronResult>(overall);
 }

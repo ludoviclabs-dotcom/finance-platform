@@ -18,10 +18,10 @@ import type { ExtractedDatapoint } from "@/lib/esrs/schema";
 
 const NOW = new Date().toISOString();
 
-const RAPPORT_ANNUEL = "Rapport-annuel-2024-Acme-Corp.pdf";
-const BILAN_CARBONE = "Bilan-Carbone-2024-Acme-Corp.xlsx";
-const BDES = "BDES-2024-Acme-Corp.xlsx";
-const DEONTOLOGIE = "Code-deontologie-Acme-2024.pdf";
+const RAPPORT_ANNUEL = "Rapport-annuel-2024-Exemplia.pdf";
+const BILAN_CARBONE = "Bilan-GES-2024-Exemplia.xlsx";
+const BDES = "BDES-2024-Exemplia.xlsx";
+const DEONTOLOGIE = "Code-deontologie-Exemplia-2024.pdf";
 
 function dp(
   datapointId: string,

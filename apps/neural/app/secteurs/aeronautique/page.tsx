@@ -12,6 +12,7 @@ import {
 
 import { CoverageGridFiltered } from "@/components/coverage/coverage-grid-filtered";
 import { LearnMoreBlock } from "@/components/site/learn-more-block";
+import { StatusBadge } from "@/components/site/status-badge";
 
 export const metadata: Metadata = {
   title: "Aéronautique — Marketing & Communications | NEURAL",
@@ -46,28 +47,28 @@ const BRANCHES = [
   },
   {
     slug: "communications",
-    href: "#",
+    href: "/secteurs/aeronautique/communications",
     label: "Communications & Affaires publiques",
-    tagline: "Corporate, presse CEO, gov relations",
+    tagline: "Corporate, presse CEO, gov relations, ESG corporate",
     description:
-      "Briefs presse CEO, communications programme, relations gouvernementales, communications ESG corporate. 4 agents en cours de finalisation : AeroDefenseCommsGuard, ProgramCommsAero, GovRelationsAero, GreenAeroComms.",
+      "Briefs presse CEO, communications programme, relations gouvernementales, communications ESG corporate. 4 agents : AeroDefenseCommsGuard (ITAR/EAR/AUKUS), ProgramCommsAero (cohérence IFRS), GovRelationsAero (Transparence UE + HATVP), GreenAeroComms (CSRD + SBTi).",
     agents: [
       { icon: Briefcase,    name: "AeroDefenseCommsGuard",  tag: "Corporate defense"    },
       { icon: Briefcase,    name: "ProgramCommsAero",       tag: "Communications programme" },
       { icon: Briefcase,    name: "GovRelationsAero",       tag: "Gov relations"        },
       { icon: Briefcase,    name: "GreenAeroComms",         tag: "ESG corporate"        },
     ],
-    kpis: ["6 workbooks générés", "Foundations + Master", "À venir Q2-Q3 2026"],
+    kpis: ["4 agents documentés", "10 sources réglementaires", "22 règles encodées"],
     accent: "#0891B2",
     bg: "#0a1f24",
     cls: "branche-comms",
-    status: "COMING" as const,
+    status: "ACTIVE" as const,
   },
 ] as const;
 
 const SECTOR_STATS = [
-  { value: "4",  label: "agents marketing actifs"  },
-  { value: "5",  label: "workbooks Excel livrés"   },
+  { value: "5",  label: "workbooks runtime"        },
+  { value: "4",  label: "scénarios live"           },
   { value: "12", label: "sources réglementaires"   },
   { value: "0",  label: "autopublication"          },
 ];
@@ -96,6 +97,10 @@ export default function AeronautiquePage() {
         <section style={{ padding: "72px 0 56px" }}>
           <div style={{ display: "inline-block", background: "rgba(124,58,237,.15)", border: "1px solid rgba(124,58,237,.4)", borderRadius: "20px", padding: "4px 14px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", color: "#a78bfa", textTransform: "uppercase", marginBottom: "20px" }}>
             Secteur Aéronautique
+          </div>
+
+          <div style={{ marginBottom: "20px" }}>
+            <StatusBadge status="live" proofLevel="runtime_data" />
           </div>
 
           <h1 style={{ fontSize: "clamp(2rem,5vw,3.2rem)", fontWeight: 800, lineHeight: 1.1, margin: "0 0 20px", color: "#fff" }}>
@@ -203,6 +208,26 @@ export default function AeronautiquePage() {
               );
             })}
           </div>
+        </section>
+
+        {/* ── REGWATCH TEASER ─────────────────────────── */}
+        <section style={{ paddingBottom: "40px" }}>
+          <Link
+            href="/secteurs/aeronautique/regwatch"
+            style={{ textDecoration: "none", display: "block" }}
+          >
+            <div style={{ background: "rgba(124,58,237,.06)", border: "1px solid rgba(124,58,237,.25)", borderRadius: "16px", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", color: "#a78bfa", textTransform: "uppercase", marginBottom: "4px" }}>
+                  AeroRegWatch · cron Vercel quotidien
+                </div>
+                <div style={{ fontSize: "15px", fontWeight: 600, color: "#f1f5f9" }}>
+                  Veille OFAC SDN active : hash SHA-256, historique persistant, alertes aux agents.
+                </div>
+              </div>
+              <span style={{ color: "#a78bfa", fontSize: "14px", fontWeight: 600 }}>Ouvrir →</span>
+            </div>
+          </Link>
         </section>
 
         {/* ── FOOTER NAV ──────────────────────────────── */}

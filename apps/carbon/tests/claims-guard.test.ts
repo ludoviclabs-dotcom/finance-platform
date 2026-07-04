@@ -7,8 +7,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "fs";
-import { resolve, join } from "path";
+import { readFileSync, readdirSync } from "fs";
+import { resolve, join, relative } from "path";
 
 const ROOT = resolve(__dirname, "..");
 
@@ -62,6 +62,39 @@ const FORBIDDEN_CLAIMS: { pattern: RegExp; reason: string; scope: "public" | "al
     reason: "Pas hébergé OVH — Vercel + Neon",
     scope: "all",
   },
+  // ─── T0.1 — Purge des claims invérifiables ───────────────────────────────
+  {
+    pattern: /Early Adopter/i,
+    reason: "Programme « Early Adopter » retiré — aucun client réel à exhiber",
+    scope: "all",
+  },
+  {
+    pattern: /Workiva|Enablon|Greenly/i,
+    reason: "Comparatif concurrents retiré — claims invérifiables",
+    scope: "all",
+  },
+  {
+    pattern: /2\s?%\s+du\s+CA/i,
+    reason: "« 2 % du CA » : sanction non opposable telle quelle post-Omnibus",
+    scope: "all",
+  },
+  {
+    pattern: /CarbonCo\s+SAS/i,
+    reason: "Aucune société immatriculée — pas de mention « CarbonCo SAS » (D2)",
+    scope: "all",
+  },
+  {
+    pattern: /Con[çc]u avec des experts/i,
+    reason: "« Conçu avec des experts » non sourcé — remplacé par les référentiels publics",
+    scope: "public",
+  },
+  {
+    // Case-sensitive : « Bilan Carbone® » est une marque déposée (ABC). La forme
+    // minuscule générique « bilan carbone » reste licite et n'est pas visée.
+    pattern: /Bilan Carbone/,
+    reason: "« Bilan Carbone® » est une marque déposée — utiliser « bilan GES »",
+    scope: "all",
+  },
 ];
 
 /**
@@ -70,12 +103,37 @@ const FORBIDDEN_CLAIMS: { pattern: RegExp; reason: string; scope: "public" | "al
  * - "transparency" : pages /etat-du-produit, /couverture — peuvent mentionner
  *   des items "non disponibles" sans déclencher le guard
  */
-const FILES_TO_SCAN: { path: string; scope: "public" | "transparency" }[] = [
+const STATIC_FILES_TO_SCAN: { path: string; scope: "public" | "transparency" }[] = [
   { path: "components/pages/landing-page.tsx", scope: "public" },
   { path: "components/pages/login-screen.tsx", scope: "public" },
   { path: "components/dashboard/methodology-modal.tsx", scope: "public" },
   { path: "app/etat-du-produit/page.tsx", scope: "transparency" },
   { path: "app/couverture/page.tsx", scope: "transparency" },
+];
+
+/**
+ * Tous les composants de components/landing sont du marketing public : on les
+ * scanne intégralement pour empêcher toute réintroduction d'un claim interdit
+ * (T0.1). Parcours récursif (inclut le sous-dossier mockup/).
+ */
+function landingFiles(): { path: string; scope: "public" }[] {
+  const out: { path: string; scope: "public" }[] = [];
+  const walk = (abs: string) => {
+    for (const entry of readdirSync(abs, { withFileTypes: true })) {
+      const child = join(abs, entry.name);
+      if (entry.isDirectory()) walk(child);
+      else if (entry.name.endsWith(".tsx")) {
+        out.push({ path: relative(ROOT, child), scope: "public" });
+      }
+    }
+  };
+  walk(join(ROOT, "components/landing"));
+  return out;
+}
+
+const FILES_TO_SCAN: { path: string; scope: "public" | "transparency" }[] = [
+  ...STATIC_FILES_TO_SCAN,
+  ...landingFiles(),
 ];
 
 describe("Claims Guard — aucun claim interdit dans l'UI publique", () => {

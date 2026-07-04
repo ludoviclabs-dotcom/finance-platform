@@ -100,8 +100,15 @@ def emit_fact(
     """Insère un fact_event avec hash chaîné.
 
     Retourne None si la DB est indisponible (mode dégradé sans blocage).
-    Le FOR UPDATE sur le dernier event empêche la race condition entre
-    deux inserts simultanés pour la même company.
+
+    Verrouillage anti-race : `SELECT ... FOR UPDATE` sur le dernier event
+    NE bloque rien tant qu'aucune ligne n'existe encore pour cette company
+    (rien à verrouiller) — les tout premiers emit_fact concurrents d'une
+    company neuve passaient donc tous en hash_prev=NULL (chaîne cassée dès
+    l'origine, confirmé par test_emit_fact_concurrent_chain sur Neon réel).
+    `pg_advisory_xact_lock(company_id)` sérialise sur le company_id lui-même
+    plutôt que sur une ligne — protège aussi le tout premier insert. Auto-
+    libéré au commit/rollback de la transaction portée par get_db().
     """
     if not db_available():
         logger.debug("emit_fact: DB indisponible, fact ignoré (code=%s)", code)
@@ -111,10 +118,20 @@ def emit_fact(
 
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            # Récupérer le dernier hash pour cette company (verrou exclusif)
+            cur.execute("SELECT pg_advisory_xact_lock(%s)", (company_id,))
+            # Récupérer le dernier hash pour cette company (verrou exclusif).
+            # Tri par id (assigné par la séquence Postgres à l'exécution de
+            # l'INSERT, donc dans l'ordre réel de sérialisation sous le verrou
+            # advisory) — PAS par computed_at, qui est un horodatage capturé
+            # côté client AVANT l'acquisition du verrou : sous contention, deux
+            # threads peuvent acquérir le verrou dans un ordre différent de
+            # celui de leurs `datetime.now()` respectifs, ce qui faisait parfois
+            # pointer hash_prev vers une ligne qui n'était pas la vraie
+            # précédente (chaîne qui se ramifie au lieu de rester linéaire,
+            # confirmé par test_emit_fact_concurrent_chain sur Neon réel).
             cur.execute(
                 "SELECT hash_self FROM facts_events "
-                "WHERE company_id=%s ORDER BY computed_at DESC, id DESC LIMIT 1 "
+                "WHERE company_id=%s ORDER BY id DESC LIMIT 1 "
                 "FOR UPDATE",
                 (company_id,),
             )
@@ -243,6 +260,10 @@ def verify_chain(company_id: int) -> ChainVerification:
 
     Utilise un curseur server-side pour éviter de charger tous les events en mémoire.
     Retourne (ok=True, broken_at=None) si la chaîne est intègre.
+
+    Tri par id (PAS computed_at) : doit reproduire exactement l'ordre de
+    construction de emit_fact (voir son commentaire) — sinon une chaîne
+    parfaitement valide construite en ordre `id` peut sembler cassée ici.
     """
     if not db_available():
         return ChainVerification(ok=True, broken_at=None, checked=0)
@@ -258,7 +279,7 @@ def verify_chain(company_id: int) -> ChainVerification:
                        source_path, computed_at, hash_prev, hash_self
                 FROM facts_events
                 WHERE company_id = %s
-                ORDER BY computed_at ASC, id ASC
+                ORDER BY id ASC
                 """,
                 (company_id,),
             )

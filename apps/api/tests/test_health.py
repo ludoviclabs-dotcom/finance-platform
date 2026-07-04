@@ -16,6 +16,7 @@ def test_health_shape(client: TestClient):
     assert body["status"] == "ok"
     # En CI (mode /tmp), la DB n'est pas configurée.
     assert body["db"] == "not_configured"
-    # Stockage local par défaut -> ok ; worker inline par défaut.
-    assert body["storage"] == "ok"
+    # Stockage local par défaut -> "local" (jamais un faux "ok" sur backend
+    # non durable) ; worker inline par défaut.
+    assert body["storage"] == "local"
     assert body["worker"] == "inline"

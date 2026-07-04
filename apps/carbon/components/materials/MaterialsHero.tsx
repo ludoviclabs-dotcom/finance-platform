@@ -1,3 +1,5 @@
+import AnimatedNumber from "./AnimatedNumber";
+
 interface Props { total: number; strategic: number }
 
 export default function MaterialsHero({ total, strategic }: Props) {
@@ -34,14 +36,16 @@ export default function MaterialsHero({ total, strategic }: Props) {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {([
-              { value: String(total), label: "Matières critiques UE", color: "text-white" },
-              { value: String(strategic), label: "Dont stratégiques", color: "text-amber-400" },
-              { value: "20/34", label: "Dominées par la Chine", color: "text-red-400" },
-              { value: "94%", label: "Aimants permanents chinois", color: "text-red-500" },
-            ] as const).map(stat => (
+            {[
+              { value: total, suffix: "", label: "Matières critiques UE", color: "text-white" },
+              { value: strategic, suffix: "", label: "Dont stratégiques", color: "text-amber-400" },
+              { value: 20, suffix: `/${total}`, label: "Dominées par la Chine", color: "text-red-400" },
+              { value: 94, suffix: "%", label: "Aimants permanents chinois", color: "text-red-500" },
+            ].map(stat => (
               <div key={stat.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 backdrop-blur p-5">
-                <p className={`text-4xl font-black ${stat.color}`}>{stat.value}</p>
+                <p className={`text-4xl font-black ${stat.color}`}>
+                  <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                </p>
                 <p className="text-zinc-400 text-sm mt-1 leading-snug">{stat.label}</p>
               </div>
             ))}

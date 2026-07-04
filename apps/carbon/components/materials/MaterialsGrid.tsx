@@ -1,5 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import type { Material } from "@/lib/crm/dataLoader";
 
 interface Props { materials: Material[] }
@@ -14,6 +15,7 @@ export default function MaterialsGrid({ materials }: Props) {
   const [search, setSearch]     = useState("");
   const [filter, setFilter]     = useState("Toutes");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const reduceMotion = useReducedMotion();
 
   const filtered = useMemo(() => materials.filter(m => {
     const q = search.toLowerCase();
@@ -44,12 +46,17 @@ export default function MaterialsGrid({ materials }: Props) {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filtered.map(m => {
+        {filtered.map((m, i) => {
           const china = getChinaShare(m);
           const isOpen = expanded === m.id;
           return (
-            <div key={m.id} onClick={() => setExpanded(isOpen ? null : m.id)}
-              className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 cursor-pointer hover:border-zinc-700 transition-all space-y-3">
+            <motion.div key={m.id} onClick={() => setExpanded(isOpen ? null : m.id)}
+              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+              whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.35, delay: (i % 4) * 0.06, ease: "easeOut" }}
+              whileHover={reduceMotion ? undefined : { scale: 1.02, transition: { duration: 0.15 } }}
+              className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 cursor-pointer hover:border-zinc-700 transition-colors space-y-3">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-bold text-white text-sm leading-tight">{m.name_fr}</h3>
@@ -67,8 +74,12 @@ export default function MaterialsGrid({ materials }: Props) {
                   <span>Part Chine</span><span className="font-mono text-zinc-300">{china}%</span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-zinc-800">
-                  <div className={`h-full rounded-full ${ china >= 50 ? "bg-red-500" : china >= 20 ? "bg-amber-400" : "bg-emerald-500" }`}
-                    style={{ width: `${china}%` }} />
+                  <motion.div className={`h-full rounded-full ${ china >= 50 ? "bg-red-500" : china >= 20 ? "bg-amber-400" : "bg-emerald-500" }`}
+                    initial={reduceMotion ? false : { width: 0 }}
+                    whileInView={{ width: `${china}%` }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+                    style={reduceMotion ? { width: `${china}%` } : undefined} />
                 </div>
               </div>
               {m.price_snapshot && (
@@ -97,7 +108,7 @@ export default function MaterialsGrid({ materials }: Props) {
                   ))}
                 </div>
               )}
-            </div>
+            </motion.div>
           );
         })}
       </div>

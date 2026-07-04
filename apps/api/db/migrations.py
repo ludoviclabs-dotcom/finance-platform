@@ -216,3 +216,50 @@ def run_migrations() -> None:
     except Exception as exc:
         logger.error("Erreur migrations PostgreSQL : %s", exc)
         # Ne pas faire planter le démarrage de l'API — fallback /tmp reste actif
+
+
+# ---------------------------------------------------------------------------
+# ensure_schema — déclencheur paresseux (fiable sur Vercel serverless)
+# ---------------------------------------------------------------------------
+# Le runtime @vercel/python N'EXÉCUTE PAS les events lifespan/startup ASGI :
+# `@app.on_event("startup")` ne se déclenche jamais en prod, donc les migrations
+# .sql (001-026) n'ont jamais tourné (schéma prod incomplet, découvert le
+# 04/07/2026). ensure_schema() est appelée à la 1re requête de chaque cold start
+# (via un middleware) : au plus une tentative par process, court-circuitée par
+# une sentinelle bon marché quand le schéma est déjà complet.
+
+_schema_ensured = False
+
+# Table de la DERNIÈRE migration (026). Sa présence = schéma complet → on évite
+# de rouvrir 26 connexions Neon à chaque cold start. À FAIRE ÉVOLUER si une
+# migration ultérieure doit s'auto-appliquer : pointer vers sa nouvelle table
+# (ou appeler run_migrations() explicitement via un déploiement/So maintenance).
+_SENTINEL_TABLE = "partner_applications"
+
+
+def ensure_schema() -> None:
+    """Applique les migrations si nécessaire — idempotent, une fois par process.
+
+    No-op si la DB n'est pas configurée (mode /tmp). Court-circuité par la
+    sentinelle quand le schéma est déjà à jour (coût = un seul SELECT).
+    """
+    global _schema_ensured
+    if _schema_ensured:
+        return
+    # Marqué AVANT toute I/O : au pire une seule tentative par process, même si
+    # plusieurs requêtes concurrentes arrivent sur un cold start frais.
+    _schema_ensured = True
+    if not db_available():
+        return
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT to_regclass(%s) AS t", (f"public.{_SENTINEL_TABLE}",))
+                if cur.fetchone()["t"] is not None:
+                    return  # schéma déjà complet
+        logger.info("ensure_schema: schéma incomplet détecté — application des migrations")
+        run_migrations()
+    except Exception as exc:
+        # Ne jamais casser la requête : on retentera au prochain cold start.
+        logger.warning("ensure_schema échoué (retry au prochain cold start) : %s", exc)
+        _schema_ensured = False

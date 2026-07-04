@@ -12,7 +12,60 @@
 | 3 | Sentry front (@sentry/nextjs) | ⏳ En attente | Confirmé absent de package.json. `SENTRY_DSN` absent aussi côté API (le hook backend est no-op sans). |
 | 4 | 2FA TOTP (UI carbon) | ⏳ En attente | Backend prêt (apps/api, statut registre `beta`). Aucun fichier UI. `TOTP_ENCRYPTION_KEY` absente de carbonco-api. |
 | 5 | Worker asynchrone (Procrastinate) | ⏳ En attente | `/health` = `"worker": "inline"`. `WORKER_MODE` absent ; le code attend `DATABASE_URL_DIRECT` — absent, mais Neon fournit `DATABASE_URL_UNPOOLED` (à dupliquer). Procrastinate = Python, PAS de worker Node. |
-| 6 | /factors erreur 500 | ⏳ En attente | `GET /factors?limit=1` → FUNCTION_INVOCATION_FAILED en prod alors que `/health` (même app) répond. ⚠️ Les facteurs sont **seedés depuis CSV ADEME** en base (pas d'appel API ADEME au runtime — interdit par les règles projet). |
+| 6 | /factors erreur 500 | 🔄 Cause trouvée | **Double cause** : (a) la table `emission_factors` **n'existe pas en prod** (cf. découverte critique ci-dessous) → `relation does not exist` ; (b) bug latent `routers/factors.py:78` `cur.fetchone()[0]` sur un `RealDictCursor` (résultat indexé par nom, pas position) → `KeyError` même une fois la table créée. **(b) corrigé** (`SELECT COUNT(*) AS count` + `["count"]`, pattern déjà utilisé par supplier_service.py). (a) dépend de la découverte critique. |
+
+## 🚨 DÉCOUVERTE CRITIQUE (04/07/2026) — schéma de prod incomplet
+
+En voulant poser `GRANT MAINTAIN ON facts_current` (rôle RLS), l'éditeur SQL
+Neon a renvoyé **`relation "facts_current" does not exist`**. Investigation :
+`SELECT table_name FROM information_schema.tables WHERE table_schema='public'`
+sur la base de PROD (`neon-purple-engine` / super-hill-23861127, branche `main`,
+confirmée = bonne base : `companies` contient « CarbonCo Demo » id 1) →
+**seulement 12 tables** :
+
+`alert_rules, audit_events, companies, materialite_positions, playing_with_neon
+(démo Neon), products, refresh_tokens, snapshots, supplier_answers,
+supplier_questionnaire_tokens, suppliers, users`
+
+**Absentes (~15 tables coeur) : `emission_factors`, `facts_events` (le registre
+carbone immuable à chaîne de hachage — le coeur du produit), `facts_current`,
+`datapoint_reviews`, `export_packages`, `ingest_jobs`, `totp_*`,
+`auditor_invites`, `chain_verifications`, `vsme_datapoints`,
+`vsme_field_values`, `vsme_wizard_sessions`, `fec_screenings`,
+`company_consolidation/perimeter`, `baselines`, `actions`,
+`alert_notifications`, `import_screenings`, `beges_filings`,
+`supplier_campaigns`, `materialite_assessments`, `partner_applications`.**
+
+### Cause racine
+Les tables présentes = exactement les **7 du DDL inline** de `db/migrations.py`
+(companies, users, refresh_tokens, snapshots, audit_events, products,
+alert_rules) **+ 4 tables Phase 4 créées À LA MAIN** via l'éditeur SQL Neon le
+17/04 (visibles dans les requêtes sauvegardées : « create suppliers and
+materiality positions tables », « RLS setup for suppliers… »). **Les 26
+migrations `.sql` de `db/migrations/` n'ont JAMAIS tourné contre la prod.**
+
+Elles ne s'exécutent que dans `@app.on_event("startup")` → `run_migrations()`.
+Or **le runtime `@vercel/python` ne déclenche pas de façon fiable les events
+lifespan/startup ASGI** en serverless. Le DDL inline (chaîne Python embarquée)
+a dû être créé dans un autre contexte (dev local pointé sur cette base, ou un
+ancien déploiement). Le commit `aa57802` (« inclure db/** dans le bundle »)
+a corrigé l'*import* des `.py` de `db/`, mais pas l'*exécution* des `.sql`.
+
+### Conséquences
+- **Tâche 6** : `/factors` 500 = `emission_factors` absente. Même cause racine.
+- **Tâche 2 (RLS)** : activation **impossible/vide** — les tables à protéger
+  (facts_events…) n'existent pas. La migration 009 ferait `ALTER TABLE
+  facts_events` → échoue (catchée en warning), RLS partielle. **Suspendue.**
+- **Prod tourne en état dégradé** : tout endpoint touchant ces tables plante
+  (FUNCTION_INVOCATION_FAILED) ou no-op silencieux — une large part du produit
+  (registre carbone, VSME, BEGES, facteurs, baselines, actions…).
+
+### État de la tâche 2 côté prod (déjà fait par Ludo dans l'éditeur SQL)
+Rôle applicatif restreint **`carbonco_app` créé en prod** (SQL brut, confirmé
+`rolbypassrls=false`) + GRANTs SELECT/INSERT/UPDATE/DELETE + ALTER DEFAULT
+PRIVILEGES. **Manque** : `GRANT MAINTAIN ON facts_current` (table absente) →
+à rejouer une fois le schéma complet. `DATABASE_URL` **pas encore** repointé
+sur ce rôle, `RLS_FORCE` **pas activé** — à faire APRÈS complétion du schéma.
 
 ## Tâche 2 — détail de la validation RLS_FORCE (branche Neon jetable)
 

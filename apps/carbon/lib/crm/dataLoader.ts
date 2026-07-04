@@ -4,6 +4,9 @@
 
 export type Producer = { country: string; share_pct: number };
 export type PriceSnapshot = { date: string; value: number; unit: string; trend_3m_pct: number } | null;
+// Un point réel d'historique = un price_snapshot daté, accumulé chaque lundi par
+// .github/workflows/materials-price-history.yml (dédup par date — jamais de point inventé).
+export type PricePoint = { date: string; value: number; unit: string };
 
 export interface Material {
   id: string;
@@ -16,6 +19,7 @@ export interface Material {
   top_producers: Producer[];
   price_snapshot: PriceSnapshot;
   data_quality: "verified" | "estimated" | "manual";
+  price_history: PricePoint[];
 }
 
 export interface CRMDataset {
@@ -28,12 +32,23 @@ export interface CRMDataset {
 export async function getMaterials(): Promise<CRMDataset> {
   // ── MODE STATIQUE (actif) ──
   const { default: snapshot } = await import("@/data/crm_full_34_snapshot_2026-06-30.json");
-  return snapshot as CRMDataset;
+  const { default: history } = await import("@/data/crm_price_history.json");
+  const hist = history as Record<string, PricePoint[]>;
+  const ds = snapshot as Omit<CRMDataset, "materials"> & { materials: Omit<Material, "price_history">[] };
+  return {
+    ...ds,
+    materials: ds.materials.map(m => ({ ...m, price_history: hist[m.id] ?? [] })),
+  };
 
   // ── MODE LIVE (décommenter quand API prête) ──
   // const res = await fetch(process.env.NEXT_PUBLIC_CRM_API_URL!, { next: { revalidate: 3600 } });
   // if (!res.ok) throw new Error(`CRM API error: ${res.status}`);
   // return res.json();
+}
+
+export async function getMaterialById(id: string): Promise<Material | null> {
+  const { materials } = await getMaterials();
+  return materials.find(m => m.id === id) ?? null;
 }
 
 export function getChinaShare(m: Material): number {

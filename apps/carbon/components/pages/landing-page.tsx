@@ -31,6 +31,7 @@ const NAV_LINKS = [
   { href: "#features", label: "Fonctionnalités" },
   { href: "/produit", label: "Produit" },
   { href: "/proof", label: "Preuve" },
+  { href: "/materials", label: "Métaux critiques" },
   { href: "#how", label: "Comment ça marche" },
   { href: "#pricing", label: "Tarifs" },
   { href: "/demo", label: "Démo" },

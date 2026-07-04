@@ -1,4 +1,7 @@
 "use client";
+import { motion, useReducedMotion } from "framer-motion";
+import AnimatedNumber from "./AnimatedNumber";
+
 interface Producer { country: string; share_pct: number }
 interface Material { id: string; name_fr: string; top_producers: Producer[]; criticality_eu: string }
 interface Props { materials: Material[] }
@@ -14,6 +17,7 @@ const TIERS = [
 ];
 
 export default function ChinaDependencyWidget({ materials }: Props) {
+  const reduceMotion = useReducedMotion();
   const tiers = TIERS.map(t => ({
     ...t,
     items: materials.filter(m => { const s = getChinaShare(m); return s >= t.min && s <= t.max; }),
@@ -30,18 +34,25 @@ export default function ChinaDependencyWidget({ materials }: Props) {
           <p className="text-xs text-zinc-500 mt-0.5">Sur les 34 matières critiques UE</p>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-black text-red-400">{pct}%</p>
+          <p className="text-3xl font-black text-red-400"><AnimatedNumber value={pct} suffix="%" /></p>
           <p className="text-xs text-zinc-500">sous dominance</p>
         </div>
       </div>
 
       {/* Barre globale */}
       <div className="w-full h-3 rounded-full bg-zinc-800 overflow-hidden flex">
-        {tiers.map(t => (
-          <div key={t.label}
-            className={`h-full ${t.color} transition-all`}
-            style={{ width: `${(t.items.length / materials.length) * 100}%` }} />
-        ))}
+        {tiers.map((t, i) => {
+          const width = `${(t.items.length / materials.length) * 100}%`;
+          return (
+            <motion.div key={t.label}
+              className={`h-full ${t.color}`}
+              initial={reduceMotion ? false : { width: 0 }}
+              whileInView={{ width }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.7, delay: i * 0.15, ease: "easeOut" }}
+              style={reduceMotion ? { width } : undefined} />
+          );
+        })}
       </div>
 
       {/* Tiers */}

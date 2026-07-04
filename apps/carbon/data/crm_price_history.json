@@ -1,0 +1,198 @@
+{
+  "antimony": [
+    {
+      "date": "2026-06-30",
+      "value": 39,
+      "unit": "USD/kg"
+    }
+  ],
+  "baryte": [
+    {
+      "date": "2026-06-30",
+      "value": 165,
+      "unit": "USD/tonne"
+    }
+  ],
+  "bauxite": [
+    {
+      "date": "2026-06-30",
+      "value": 58,
+      "unit": "USD/tonne"
+    }
+  ],
+  "bismuth": [
+    {
+      "date": "2026-06-30",
+      "value": 12.8,
+      "unit": "USD/kg"
+    }
+  ],
+  "boron": [
+    {
+      "date": "2026-06-30",
+      "value": 380,
+      "unit": "USD/tonne"
+    }
+  ],
+  "cobalt": [
+    {
+      "date": "2026-06-30",
+      "value": 27.8,
+      "unit": "USD/kg"
+    }
+  ],
+  "coking-coal": [
+    {
+      "date": "2026-06-30",
+      "value": 210,
+      "unit": "USD/tonne"
+    }
+  ],
+  "copper": [
+    {
+      "date": "2026-06-30",
+      "value": 9.6,
+      "unit": "USD/kg"
+    }
+  ],
+  "fluorspar": [
+    {
+      "date": "2026-06-30",
+      "value": 420,
+      "unit": "USD/tonne"
+    }
+  ],
+  "gallium": [
+    {
+      "date": "2026-06-30",
+      "value": 585,
+      "unit": "USD/kg"
+    }
+  ],
+  "germanium": [
+    {
+      "date": "2026-06-30",
+      "value": 1980,
+      "unit": "USD/kg"
+    }
+  ],
+  "natural-graphite": [
+    {
+      "date": "2026-06-30",
+      "value": 850,
+      "unit": "USD/tonne"
+    }
+  ],
+  "lithium": [
+    {
+      "date": "2026-06-30",
+      "value": 13.4,
+      "unit": "USD/kg"
+    }
+  ],
+  "magnesium": [
+    {
+      "date": "2026-06-30",
+      "value": 3.9,
+      "unit": "USD/kg"
+    }
+  ],
+  "manganese": [
+    {
+      "date": "2026-06-30",
+      "value": 4.2,
+      "unit": "USD/dmtu"
+    }
+  ],
+  "nickel": [
+    {
+      "date": "2026-06-30",
+      "value": 15.6,
+      "unit": "USD/kg"
+    }
+  ],
+  "niobium": [
+    {
+      "date": "2026-06-30",
+      "value": 42,
+      "unit": "USD/kg"
+    }
+  ],
+  "phosphate-rock": [
+    {
+      "date": "2026-06-30",
+      "value": 175,
+      "unit": "USD/tonne"
+    }
+  ],
+  "phosphorus": [
+    {
+      "date": "2026-06-30",
+      "value": 2450,
+      "unit": "USD/tonne"
+    }
+  ],
+  "pgm": [
+    {
+      "date": "2026-06-30",
+      "value": 31500,
+      "unit": "USD/kg"
+    }
+  ],
+  "scandium": [
+    {
+      "date": "2026-06-30",
+      "value": 4200,
+      "unit": "USD/kg"
+    }
+  ],
+  "silicon-metal": [
+    {
+      "date": "2026-06-30",
+      "value": 2.6,
+      "unit": "USD/kg"
+    }
+  ],
+  "tantalum": [
+    {
+      "date": "2026-06-30",
+      "value": 195,
+      "unit": "USD/kg"
+    }
+  ],
+  "titanium-metal": [
+    {
+      "date": "2026-06-30",
+      "value": 9.2,
+      "unit": "USD/kg"
+    }
+  ],
+  "tungsten": [
+    {
+      "date": "2026-06-30",
+      "value": 33.5,
+      "unit": "USD/kg"
+    }
+  ],
+  "vanadium": [
+    {
+      "date": "2026-06-30",
+      "value": 7.4,
+      "unit": "USD/kg"
+    }
+  ],
+  "heavy-ree": [
+    {
+      "date": "2026-06-30",
+      "value": 890,
+      "unit": "USD/kg"
+    }
+  ],
+  "light-ree": [
+    {
+      "date": "2026-06-30",
+      "value": 68,
+      "unit": "USD/kg"
+    }
+  ]
+}

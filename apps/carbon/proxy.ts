@@ -43,11 +43,21 @@ const securityHeaders: Record<string, string> = {
  *    WebSocket de hot-reload Turbopack et les fetchs vers le dev server.
  *  En prod le CSP reste byte-identique à l'historique.
  *
+ * Branche Mapbox (NEXT_PUBLIC_MAPBOX_TOKEN posé — carte /materials) :
+ *  - connect-src ajoute api.mapbox.com / *.tiles.mapbox.com / events.mapbox.com
+ *    (styles, tuiles vectorielles, glyphes, sprites, télémétrie GL JS).
+ *  - worker-src + child-src ajoutent blob: — mapbox-gl instancie son web
+ *    worker depuis un blob URL (child-src = fallback Safari).
+ *  Sans token, aucune de ces directives n'est émise : CSP inchangé.
+ *
  * Durcissement futur (P3) : nonce + 'strict-dynamic' après bascule en rendu
  * dynamique via `export const dynamic = 'force-dynamic'` sur les pages clés.
  */
-function buildCsp(): string {
+export function buildCsp(): string {
   const isDev = process.env.NODE_ENV === "development";
+  // Même critère que lib/mapbox.ts::isMapboxEnabled — dupliqué à dessein :
+  // lire l'env au call-time (et non au module-load) garde la fonction testable.
+  const mapboxOn = (process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "").startsWith("pk.");
 
   const scriptSrc = [
     "'self'",
@@ -71,6 +81,10 @@ function buildCsp(): string {
     "https://*.ingest.sentry.io",
     "https://*.ingest.us.sentry.io",
     "https://*.ingest.de.sentry.io",
+    // Mapbox GL (choroplèthe /materials) — uniquement si le token est posé
+    mapboxOn ? "https://api.mapbox.com" : null,
+    mapboxOn ? "https://*.tiles.mapbox.com" : null,
+    mapboxOn ? "https://events.mapbox.com" : null,
     isDev ? "ws://localhost:*" : null,
     isDev ? "http://localhost:*" : null,
   ]
@@ -84,6 +98,10 @@ function buildCsp(): string {
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
+    // mapbox-gl démarre son web worker depuis un blob URL ; sans ces directives
+    // le fallback default-src 'self' le bloque et la carte reste noire.
+    mapboxOn ? "worker-src 'self' blob:" : null,
+    mapboxOn ? "child-src 'self' blob:" : null,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -93,7 +111,9 @@ function buildCsp(): string {
     //             + moderne report-to via le group défini dans Report-To header
     "report-uri /api/csp-report",
     "report-to csp-endpoint",
-  ].join("; ");
+  ]
+    .filter((v): v is string => Boolean(v))
+    .join("; ");
 }
 
 export function proxy() {

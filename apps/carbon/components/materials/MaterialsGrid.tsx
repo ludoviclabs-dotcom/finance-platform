@@ -1,14 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
+import type { Material } from "@/lib/crm/dataLoader";
 
-interface Producer { country: string; share_pct: number }
-interface PriceSnapshot { value: number; unit: string; trend_3m_pct: number } | null
-interface Material {
-  id: string; name_fr: string; category: string;
-  criticality_eu: string; criticality_score: number;
-  china_dominant: boolean; main_uses: string[];
-  top_producers: Producer[]; price_snapshot: PriceSnapshot;
-}
 interface Props { materials: Material[] }
 
 function getChinaShare(m: Material): number {

@@ -6,7 +6,8 @@ import PriceAlertModule from "@/components/materials/PriceAlertModule";
 import StrategicVsCriticalSection from "@/components/materials/StrategicVsCriticalSection";
 import MaterialsGrid from "@/components/materials/MaterialsGrid";
 import SupplyChainExplainer from "@/components/materials/SupplyChainExplainer";
-import GlobalMap from "@/components/materials/GlobalMap";
+import GlobalMapSection from "@/components/materials/GlobalMapSection";
+import CriticalityTreemap from "@/components/materials/CriticalityTreemap";
 
 export const metadata = {
   title: "Métaux Critiques & Terres Rares | Carbon&Co Intelligence",
@@ -37,16 +38,19 @@ export default async function MaterialsPage() {
           </div>
         </section>
 
-        {/* ROW 2 : Carte mondiale */}
-        <GlobalMap materials={materials} />
+        {/* ROW 2 : Carte mondiale (Mapbox si token, sinon SVG statique) */}
+        <GlobalMapSection materials={materials} />
 
-        {/* ROW 3 : Stratégiques vs Critiques */}
+        {/* ROW 3 : Treemap de criticité */}
+        <CriticalityTreemap materials={materials} />
+
+        {/* ROW 4 : Stratégiques vs Critiques */}
         <StrategicVsCriticalSection materials={materials} />
 
-        {/* ROW 4 : Frise supply chain */}
+        {/* ROW 5 : Frise supply chain */}
         <SupplyChainExplainer />
 
-        {/* ROW 5 : Grille complète filtrable */}
+        {/* ROW 6 : Grille complète filtrable */}
         <MaterialsGrid materials={materials} />
       </div>
     </main>

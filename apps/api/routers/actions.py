@@ -40,6 +40,7 @@ class ActionCreate(BaseModel):
     reduction_tco2e: float | None = None
     lifespan_years: float | None = None
     target_code: str | None = None
+    site_id: int | None = None  # NULL = entreprise entière (défaut historique)
 
 
 class ActionPatch(BaseModel):
@@ -51,6 +52,7 @@ class ActionPatch(BaseModel):
     reduction_tco2e: float | None = None
     lifespan_years: float | None = None
     target_code: str | None = None
+    site_id: int | None = None
 
 
 class StatusPatch(BaseModel):
@@ -120,8 +122,17 @@ def action_events(action_id: int, user: AuthUser = Depends(get_current_user)) ->
 
 
 @router.get("/macc")
-def macc(user: AuthUser = Depends(get_current_user)) -> dict[str, Any]:
-    return actions_service.build_macc(actions_service.list_actions(user.company_id))
+def macc(site_id: int | None = None,
+         user: AuthUser = Depends(get_current_user)) -> dict[str, Any]:
+    """MACC — entreprise entière par défaut, filtrable par site (?site_id=).
+
+    La trajectoire (/trajectory) reste au niveau entreprise : la baseline vient
+    de facts_current qui n'a pas de dimension site — filtrer les actions contre
+    une baseline entreprise produirait une courbe trompeuse.
+    """
+    out = actions_service.build_macc(actions_service.list_actions(user.company_id, site_id=site_id))
+    out["site_id"] = site_id  # écho du scope pour l'UI/exports
+    return out
 
 
 @router.get("/trajectory")

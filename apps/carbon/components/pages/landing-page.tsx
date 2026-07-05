@@ -510,24 +510,29 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
         role="navigation"
         aria-label="Navigation principale"
       >
-        <div className="flex justify-between items-center px-8 md:px-12 py-5 max-w-[1440px] mx-auto">
-          <div className="text-2xl font-extrabold tracking-tighter text-black">Carbon<span className="text-green-600">&</span>Co</div>
+        <div className="flex justify-between items-center gap-4 px-8 md:px-12 py-5 max-w-[1440px] mx-auto">
+          {/* Le logo EST le lien accueil — « Accueil » sort donc du desktop (reste en mobile).
+              9 liens text-sm + logo + 2 CTA ≈ 1520px > conteneur 1440px : le header débordait
+              (liens sous les boutons). text-sm ne revient qu'à 2xl, où la place existe. */}
+          <Link href="/" aria-label="CarbonCo — Accueil" className="flex-shrink-0 text-2xl font-extrabold tracking-tighter text-black">
+            Carbon<span className="text-green-600">&</span>Co
+          </Link>
 
-          <div className="hidden lg:flex items-center gap-5 xl:gap-7">
-            {NAV_LINKS.map(({ href, label }) => (
+          <div className="hidden lg:flex items-center gap-5 2xl:gap-7">
+            {NAV_LINKS.filter(({ href }) => href !== "#hero").map(({ href, label }) => (
               href.startsWith("/") ? (
-                <Link key={href} href={href} className="whitespace-nowrap text-xs xl:text-sm font-semibold text-neutral-500 hover:text-black transition-colors tracking-wide">
+                <Link key={href} href={href} className="whitespace-nowrap text-xs 2xl:text-sm font-semibold text-neutral-500 hover:text-black transition-colors tracking-wide">
                   {label}
                 </Link>
               ) : (
-                <a key={href} href={href} className="whitespace-nowrap text-xs xl:text-sm font-semibold text-neutral-500 hover:text-black transition-colors tracking-wide">
+                <a key={href} href={href} className="whitespace-nowrap text-xs 2xl:text-sm font-semibold text-neutral-500 hover:text-black transition-colors tracking-wide">
                   {label}
                 </a>
               )
             ))}
           </div>
 
-          <div className="hidden xl:flex items-center gap-3">
+          <div className="hidden xl:flex flex-shrink-0 items-center gap-3">
             <button onClick={trackedEnter("header_login")} className="border border-neutral-300 text-black px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-50 transition-colors cursor-pointer">
               Se connecter
             </button>

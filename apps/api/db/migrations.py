@@ -230,11 +230,14 @@ def run_migrations() -> None:
 
 _schema_ensured = False
 
-# Table de la DERNIÈRE migration (026). Sa présence = schéma complet → on évite
-# de rouvrir 26 connexions Neon à chaque cold start. À FAIRE ÉVOLUER si une
-# migration ultérieure doit s'auto-appliquer : pointer vers sa nouvelle table
-# (ou appeler run_migrations() explicitement via un déploiement/So maintenance).
-_SENTINEL_TABLE = "partner_applications"
+# Table de la DERNIÈRE migration (027 — sites). Sa présence = schéma complet →
+# on évite de rouvrir 27 connexions Neon à chaque cold start. À FAIRE ÉVOLUER si
+# une migration ultérieure doit s'auto-appliquer : pointer vers sa nouvelle table
+# (ou appeler run_migrations() explicitement via un déploiement/maintenance).
+# NOTE prod : l'ALTER TABLE actions de 027 exige le propriétaire de la table
+# (neondb_owner) — appliquer 027 manuellement dans le Neon SQL editor ; la
+# sentinelle se contente ensuite de constater que `sites` existe.
+_SENTINEL_TABLE = "sites"
 
 
 def ensure_schema() -> None:

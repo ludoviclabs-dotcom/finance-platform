@@ -23,6 +23,8 @@ export interface Feature {
   normes: string[];
   tag?: string;
   preuve?: string;
+  /** Lien public vers la fonctionnalité quand elle a une page dédiée (ex. /materials). */
+  href?: string;
 }
 
 export interface EsrsRow {

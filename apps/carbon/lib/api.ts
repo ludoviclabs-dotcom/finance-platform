@@ -2414,7 +2414,24 @@ export type Action = {
   reduction_tco2e: number | null;
   lifespan_years: number | null;
   target_code: string | null;
+  site_id: number | null; // null = entreprise entière
 };
+
+export type Site = {
+  id: number;
+  name: string;
+  location: string | null;
+  naf_code: string | null;
+  activity_type: string | null;
+};
+
+export function fetchSites(signal?: AbortSignal): Promise<{ sites: Site[] }> {
+  return apiGet<{ sites: Site[] }>("/sites", signal);
+}
+
+export function createSite(body: { name: string; location?: string | null }, signal?: AbortSignal): Promise<Site | null> {
+  return apiSend<Site>("POST", "/sites", signal, body);
+}
 
 export type MaccBar = {
   id: number;
@@ -2469,8 +2486,9 @@ export function deleteAction(id: number, signal?: AbortSignal): Promise<null> {
   return apiSend<null>("DELETE", `/actions/${id}`, signal) as Promise<null>;
 }
 
-export function fetchMacc(signal?: AbortSignal): Promise<Macc> {
-  return apiGet<Macc>("/actions/macc", signal);
+export function fetchMacc(siteId?: number | null, signal?: AbortSignal): Promise<Macc> {
+  const qs = siteId != null ? `?site_id=${siteId}` : "";
+  return apiGet<Macc>(`/actions/macc${qs}`, signal);
 }
 
 export function fetchTrajectory(years = 5, signal?: AbortSignal): Promise<Trajectory> {

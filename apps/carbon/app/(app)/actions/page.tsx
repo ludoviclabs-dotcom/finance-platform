@@ -11,15 +11,18 @@ import { useCallback, useEffect, useState } from "react";
 
 import {
   createAction,
+  createSite,
   deleteAction,
   downloadMaccPdf,
   downloadTransitionPdf,
   fetchActions,
   fetchMacc,
+  fetchSites,
   fetchTrajectory,
   setActionStatus,
   type Action,
   type Macc,
+  type Site,
   type Trajectory,
 } from "@/lib/api";
 
@@ -41,14 +44,19 @@ function num(v: string): number | null {
 
 export default function ActionsPage() {
   const [actions, setActions] = useState<Action[]>([]);
+  const [sites, setSites] = useState<Site[]>([]);
   const [macc, setMacc] = useState<Macc | null>(null);
+  // "" = entreprise entière (rollup) ; sinon l'id du site filtré.
+  const [maccSite, setMaccSite] = useState<string>("");
   const [traj, setTraj] = useState<Trajectory | null>(null);
-  const [form, setForm] = useState({ title: "", capex: "", reduction: "", lifespan: "", owner: "" });
+  // siteId : "" = entreprise entière, "__new__" = création inline, sinon id.
+  const [form, setForm] = useState({ title: "", capex: "", reduction: "", lifespan: "", owner: "", siteId: "" });
+  const [newSiteName, setNewSiteName] = useState("");
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => {
     fetchActions().then((r) => setActions(r.actions)).catch(() => setActions([]));
-    fetchMacc().then(setMacc).catch(() => setMacc(null));
+    fetchSites().then((r) => setSites(r.sites)).catch(() => setSites([]));
     fetchTrajectory().then(setTraj).catch(() => setTraj(null));
   }, []);
 
@@ -56,18 +64,30 @@ export default function ActionsPage() {
     load();
   }, [load]);
 
+  // La MACC recharge quand le filtre site change (rollup = pas de filtre).
+  useEffect(() => {
+    fetchMacc(maccSite === "" ? null : Number(maccSite)).then(setMacc).catch(() => setMacc(null));
+  }, [maccSite, actions]);
+
   const add = async () => {
     if (!form.title.trim()) return;
     setBusy(true);
     try {
+      let siteId: number | null = form.siteId && form.siteId !== "__new__" ? Number(form.siteId) : null;
+      if (form.siteId === "__new__" && newSiteName.trim()) {
+        const created = await createSite({ name: newSiteName.trim() });
+        if (created) siteId = created.id;
+      }
       await createAction({
         title: form.title.trim(),
         owner: form.owner.trim() || null,
         capex: num(form.capex),
         reduction_tco2e: num(form.reduction),
         lifespan_years: num(form.lifespan),
+        site_id: siteId,
       });
-      setForm({ title: "", capex: "", reduction: "", lifespan: "", owner: "" });
+      setForm({ title: "", capex: "", reduction: "", lifespan: "", owner: "", siteId: "" });
+      setNewSiteName("");
       load();
     } catch {
       /* admin requis / DB indispo */
@@ -75,6 +95,8 @@ export default function ActionsPage() {
       setBusy(false);
     }
   };
+
+  const siteName = (id: number | null) => sites.find((s) => s.id === id)?.name ?? null;
 
   const advance = async (a: Action) => {
     const n = NEXT[a.status];
@@ -102,12 +124,37 @@ export default function ActionsPage() {
       </p>
 
       {/* Ajout d'action */}
-      <div className="rounded-2xl border border-neutral-200 p-4 mb-6 grid grid-cols-2 md:grid-cols-6 gap-2 items-end">
-        <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Action" className="col-span-2 px-2 py-1.5 rounded border border-neutral-200 text-sm" />
-        <input value={form.capex} onChange={(e) => setForm({ ...form, capex: e.target.value })} placeholder="CapEx €" className="px-2 py-1.5 rounded border border-neutral-200 text-sm" />
-        <input value={form.reduction} onChange={(e) => setForm({ ...form, reduction: e.target.value })} placeholder="tCO2e/an" className="px-2 py-1.5 rounded border border-neutral-200 text-sm" />
-        <input value={form.lifespan} onChange={(e) => setForm({ ...form, lifespan: e.target.value })} placeholder="Durée (ans)" className="px-2 py-1.5 rounded border border-neutral-200 text-sm" />
-        <button onClick={add} disabled={busy} className="px-3 py-1.5 rounded-full bg-black text-white text-sm font-semibold disabled:opacity-40">Ajouter</button>
+      <div className="rounded-2xl border border-neutral-200 p-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-2 items-end">
+          <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Action" className="col-span-2 px-2 py-1.5 rounded border border-neutral-200 text-sm" />
+          <input value={form.capex} onChange={(e) => setForm({ ...form, capex: e.target.value })} placeholder="CapEx €" className="px-2 py-1.5 rounded border border-neutral-200 text-sm" />
+          <input value={form.reduction} onChange={(e) => setForm({ ...form, reduction: e.target.value })} placeholder="tCO2e/an" className="px-2 py-1.5 rounded border border-neutral-200 text-sm" />
+          <input value={form.lifespan} onChange={(e) => setForm({ ...form, lifespan: e.target.value })} placeholder="Durée (ans)" className="px-2 py-1.5 rounded border border-neutral-200 text-sm" />
+          <select
+            value={form.siteId}
+            onChange={(e) => setForm({ ...form, siteId: e.target.value })}
+            aria-label="Site"
+            className="px-2 py-1.5 rounded border border-neutral-200 text-sm bg-white"
+          >
+            <option value="">Entreprise entière</option>
+            {sites.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+            <option value="__new__">+ Créer un site…</option>
+          </select>
+          <button onClick={add} disabled={busy} className="px-3 py-1.5 rounded-full bg-black text-white text-sm font-semibold disabled:opacity-40">Ajouter</button>
+        </div>
+        {form.siteId === "__new__" && (
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              value={newSiteName}
+              onChange={(e) => setNewSiteName(e.target.value)}
+              placeholder="Nom du site (ex. Usine de Dunkerque)"
+              className="flex-1 px-2 py-1.5 rounded border border-neutral-200 text-sm"
+            />
+            <span className="text-xs text-neutral-400">Créé avec le levier au clic sur « Ajouter »</span>
+          </div>
+        )}
       </div>
 
       {/* Kanban */}
@@ -123,6 +170,11 @@ export default function ActionsPage() {
                     <button onClick={() => remove(a)} className="text-neutral-300 hover:text-red-500 text-xs">✕</button>
                   </div>
                   {a.owner && <div className="text-xs text-neutral-400">{a.owner}</div>}
+                  {siteName(a.site_id) && (
+                    <span className="inline-block mt-1 text-[10px] font-semibold rounded-full bg-neutral-200 text-neutral-600 px-2 py-0.5">
+                      {siteName(a.site_id)}
+                    </span>
+                  )}
                   {a.reduction_tco2e != null && <div className="text-xs text-neutral-500">-{a.reduction_tco2e} tCO2e/an</div>}
                   {NEXT[a.status] && (
                     <button onClick={() => advance(a)} className="mt-2 text-xs font-semibold text-blue-600 hover:underline">
@@ -142,7 +194,9 @@ export default function ActionsPage() {
       {/* Trajectoire */}
       {traj && (
         <div className="rounded-2xl border border-neutral-200 p-5 mb-6">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500 mb-3">Trajectoire projetée</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500 mb-3">
+            Trajectoire projetée <span className="normal-case font-normal text-neutral-400">(entreprise entière — la baseline n&apos;a pas de dimension site)</span>
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <Stat label="Baseline" value={`${traj.baseline_tco2e} t`} />
             <Stat label="Réalisé" value={`-${traj.reductions.done} t`} color="text-emerald-600" />
@@ -153,11 +207,33 @@ export default function ActionsPage() {
       )}
 
       {/* MACC */}
-      {macc && macc.bars.length > 0 && (
+      {macc && (
         <div className="rounded-2xl border border-neutral-200 p-5">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500 mb-3">
-            Courbe de coût d&apos;abattement (triée)
-          </h2>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500">
+              Courbe de coût d&apos;abattement (triée)
+            </h2>
+            {sites.length > 0 && (
+              <select
+                value={maccSite}
+                onChange={(e) => setMaccSite(e.target.value)}
+                aria-label="Filtrer la MACC par site"
+                className="px-2 py-1 rounded-full border border-neutral-300 text-xs font-semibold bg-white"
+              >
+                <option value="">Entreprise entière</option>
+                {sites.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+          {macc.bars.length === 0 && (
+            <p className="text-xs text-neutral-400">
+              Aucun levier chiffré {maccSite !== "" ? "sur ce site" : ""} pour l&apos;instant.
+            </p>
+          )}
+          {macc.bars.length > 0 && (
+          <>
           <table className="w-full text-xs">
             <thead>
               <tr className="text-neutral-400 uppercase tracking-wide">
@@ -178,6 +254,8 @@ export default function ActionsPage() {
           </table>
           {macc.unpriced.length > 0 && (
             <p className="text-xs text-neutral-400 mt-2">{macc.unpriced.length} action(s) non chiffrée(s) (CapEx/réduction/durée manquants).</p>
+          )}
+          </>
           )}
         </div>
       )}

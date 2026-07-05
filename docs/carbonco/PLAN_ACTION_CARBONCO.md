@@ -394,6 +394,13 @@ conformité, ils ne la remplacent pas.
 - **Animations unifiées** : `Reveal` et `AnimatedCounter` extraits vers
   `components/ui/` (le hook d'origine était neutralisé depuis 66ce7ea —
   scroll-reveal restauré avec garde-fous reduced-motion + no-IntersectionObserver).
+- **Modélisation de site industriel v1** : migration 027 (table `sites`, RLS
+  FORCE pattern 009, `actions.site_id` NULLABLE = « entreprise entière »),
+  routes GET/POST `/sites`, MACC filtrable `?site_id=`, UI (select site +
+  création inline + badge kanban + filtre MACC). Trajectoire volontairement
+  restée entreprise (baseline `facts_current` sans dimension site). Sentinelle
+  `ensure_schema` → `sites`. ⚠ Prod : appliquer 027 MANUELLEMENT dans le Neon
+  SQL editor (ALTER TABLE actions exige neondb_owner, propriétaire des tables).
 
 ### D.2 — Hors périmètre (décision explicite — ne pas démarrer)
 - **Nucléaire / géopolitique** (réacteurs, sanctions, routes maritimes) : aucune
@@ -406,9 +413,10 @@ conformité, ils ne la remplacent pas.
   sans données citées violerait la règle « no uncited normative answer ».
 
 ### D.3 — Candidats futurs (dans cet ordre, si extension décidée)
-1. **Décarbonation — bibliothèque de leviers + modélisation de site industriel** :
-   seul axe directement aligné avec la mission (réduire, pas seulement déclarer).
-   Nouveau modèle de données (leviers : coût/gain CO2/TRL/ROI), chantier séparé.
+1. **Modélisation de site — suites v2** (v1 livrée, voir D.1) : trajectoire par
+   site (exige des facts site-scopés — décision de modèle de données), filtre
+   site sur les exports PDF MACC/plan de transition, DELETE /sites (avec UI de
+   confirmation ; la FK est déjà ON DELETE SET NULL).
 2. **Scope 1 combustion — formulaire direct** : les facteurs ADEME
    énergie/carburants (gaz, fioul, kérosène, GNV…) sont déjà en base
    (`emission_factors`, 502 entrées) et câblés dans le screening FEC ; il manque

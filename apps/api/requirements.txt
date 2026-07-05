@@ -4,6 +4,7 @@ pydantic[email]==2.12.5
 python-multipart==0.0.31
 openpyxl==3.1.5
 httpx==0.28.1
+vercel==0.6.0
 python-jose[cryptography]==3.5.0
 pyasn1>=0.6.3
 passlib[bcrypt]==1.7.4

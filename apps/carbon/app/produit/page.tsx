@@ -95,6 +95,27 @@ export default function ProductIndexPage() {
             );
           })}
         </div>
+
+        {/* Module d'exploration — hors workflow de conformité, même pattern que
+            le callout Proof Twin ci-dessus, en sombre (signature /materials). */}
+        <Link
+          href="/materials"
+          className="mt-12 flex flex-col gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-zinc-600 md:flex-row md:items-center md:justify-between"
+        >
+          <span>
+            <span className="block text-xs font-bold uppercase tracking-[0.24em] text-red-400">
+              Module d&apos;exploration
+            </span>
+            <span className="mt-2 block text-lg font-extrabold tracking-tight text-white">
+              Matières premières critiques — prix, dépendances, producteurs
+            </span>
+            <span className="mt-2 block max-w-2xl text-sm leading-relaxed text-zinc-400">
+              Les 34 matières critiques UE cartographiées pour éclairer vos analyses
+              Scope 3 et votre double matérialité. Snapshot hebdomadaire, chaque point daté.
+            </span>
+          </span>
+          <span className="text-sm font-extrabold text-amber-400">Explorer les matières →</span>
+        </Link>
       </section>
     </main>
   );

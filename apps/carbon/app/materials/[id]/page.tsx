@@ -40,13 +40,30 @@ export default async function MaterialPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
+      {/* Barre contextuelle — même pattern que la liste /materials */}
+      <div className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 text-sm min-w-0">
+            <Link href="/" className="font-extrabold tracking-tighter text-white flex-shrink-0">
+              Carbon<span className="text-green-500">&amp;</span>Co
+            </Link>
+            <span className="text-zinc-600">/</span>
+            <Link href="/materials" className="text-zinc-400 hover:text-white transition flex-shrink-0">
+              Métaux critiques
+            </Link>
+            <span className="text-zinc-600">/</span>
+            <span className="text-zinc-400 truncate">{material.name_fr}</span>
+          </nav>
+          <Link href="/" className="text-sm text-zinc-400 hover:text-white transition flex-shrink-0 ml-4">
+            ← Accueil
+          </Link>
+        </div>
+      </div>
+
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
 
-        {/* Fil d'ariane + badges */}
+        {/* Badges */}
         <div className="space-y-5">
-          <Link href="/materials" className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition">
-            ← Métaux critiques
-          </Link>
           <div className="flex flex-wrap items-center gap-3">
             <span className={`text-xs font-bold px-3 py-1 rounded-full ${
               material.criticality_eu === "Stratégique" ? "bg-red-500/20 text-red-400" : "bg-blue-500/20 text-blue-400"

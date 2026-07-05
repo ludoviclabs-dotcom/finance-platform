@@ -1,5 +1,6 @@
 import { CONTACT_EMAIL } from "@/lib/site-url";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import {
   featuresByStatus,
@@ -95,6 +96,14 @@ export default function EtatDuProduitPage() {
                       )}
                     </div>
                     <p className="text-sm text-neutral-600 leading-relaxed">{feature.description}</p>
+                    {feature.href && (
+                      <Link
+                        href={feature.href}
+                        className="inline-block mt-3 text-sm font-semibold text-emerald-600 hover:underline"
+                      >
+                        Voir la page →
+                      </Link>
+                    )}
                   </div>
                 ))}
               </div>

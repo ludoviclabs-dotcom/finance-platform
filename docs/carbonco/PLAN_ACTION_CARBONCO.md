@@ -376,3 +376,43 @@ Dépend de : / Estimation :
 **Conventions :** commits conventionnels (`feat:`, `fix:`, `chore:`, `docs:`) préfixés de l'ID de tâche ; toute nouvelle variable d'env documentée dans `.env.example` ; toute page de transparence modifiée porte "Dernière mise à jour : <date>" ; jamais de données réelles dans les fixtures (anonymisation systématique).
 
 **Récapitulatif charge (solo, indicatif) :** P0 ≈ 3-4 j · P1 ≈ 7-9 j · P2 ≈ 5-7 j · P3 ≈ 7-9 j · P4 ≈ 9-12 j · P5 ≈ 5-7 j → **36 à 48 jours-homme**, soit environ 4 à 5 mois en soirées/week-ends. Jalon de visibilité maximal : fin P3 (rapport VSME auditable démontrable), atteignable avant l'automne.
+
+---
+
+## ANNEXE D — PÉRIMÈTRE « INTELLIGENCE » (décisions du 5 juillet 2026)
+
+Suite à l'intégration du module Matières premières critiques (`/materials`), les
+axes d'extension évoqués en brainstorm ont été arbitrés. Objectif inchangé :
+**professionnaliser l'existant sans pivot de positionnement** — CarbonCo reste
+une plateforme de conformité CSRD/VSME ; les modules d'exploration éclairent la
+conformité, ils ne la remplacent pas.
+
+### D.1 — Intégré (juillet 2026)
+- **Matières premières critiques** : bande module sur la homepage (chiffres réels
+  du snapshot au build), pont Scope 3/double matérialité sur `/materials`,
+  entrée au registre `feature-status.json` (statut `live`), callout sur `/produit`.
+- **Animations unifiées** : `Reveal` et `AnimatedCounter` extraits vers
+  `components/ui/` (le hook d'origine était neutralisé depuis 66ce7ea —
+  scroll-reveal restauré avec garde-fous reduced-motion + no-IntersectionObserver).
+
+### D.2 — Hors périmètre (décision explicite — ne pas démarrer)
+- **Nucléaire / géopolitique** (réacteurs, sanctions, routes maritimes) : aucune
+  donnée en base, éloignés de la mission conformité — registre « plateforme de
+  renseignement » écarté.
+- **Live feed / ticker temps réel** : contraire à l'architecture locale-first
+  (fraîcheur = batch hebdomadaire Git, aucune API au runtime).
+- **Moteur de scénarios génératif** (« restriction Gallium → impacts ») :
+  impossible sans graphe matière→secteur structuré en base ; une réponse générée
+  sans données citées violerait la règle « no uncited normative answer ».
+
+### D.3 — Candidats futurs (dans cet ordre, si extension décidée)
+1. **Décarbonation — bibliothèque de leviers + modélisation de site industriel** :
+   seul axe directement aligné avec la mission (réduire, pas seulement déclarer).
+   Nouveau modèle de données (leviers : coût/gain CO2/TRL/ROI), chantier séparé.
+2. **Scope 1 combustion — formulaire direct** : les facteurs ADEME
+   énergie/carburants (gaz, fioul, kérosène, GNV…) sont déjà en base
+   (`emission_factors`, 502 entrées) et câblés dans le screening FEC ; il manque
+   seulement une UI de saisie directe des consommations.
+3. **Eau — au-delà du datapoint VSME B6-1** : la consommation (m³) est déjà
+   collectée ; une surcouche « stress hydrique » serait un nouveau pilier — à
+   n'ouvrir que sur demande client documentée.

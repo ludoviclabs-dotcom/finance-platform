@@ -1,5 +1,5 @@
 {
-  "derniere_maj": "2026-07-02",
+  "derniere_maj": "2026-07-05",
   "note": "Source de vérité UNIQUE des statuts produit (T0.2 du PLAN_ACTION_CARBONCO). Consommée par /etat-du-produit, /couverture et /integrations. Aucun statut ne doit être codé en dur dans un composant. statut ∈ live | beta | planifie (+ roadmap pour les intégrations). Un statut 'live' exige une 'preuve' (chemin repo).",
   "features": [
     {
@@ -307,6 +307,16 @@
       "statut": "beta",
       "normes": [],
       "preuve": "apps/api/services/questionnaire_service.py"
+    },
+    {
+      "id": "materiaux-critiques",
+      "label": "Cartographie des matières premières critiques",
+      "description": "Module d'exploration : les 34 matières critiques UE avec prix (historique hebdomadaire), dépendances géographiques, producteurs et criticité. Relie vos catégories Scope 3 aux matières de vos chaînes de valeur et nourrit l'analyse de double matérialité. Données snapshot datées — aucune donnée inventée.",
+      "statut": "live",
+      "normes": ["ESRS E1"],
+      "tag": "Module d'exploration",
+      "href": "/materials",
+      "preuve": "apps/carbon/app/materials/page.tsx"
     }
   ],
   "esrs": [

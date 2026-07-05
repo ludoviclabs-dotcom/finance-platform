@@ -708,9 +708,10 @@ def seed(version: str = VERSION, dry_run: bool = False) -> int:
         with conn.cursor() as cur:
             # S'assurer que la table existe
             cur.execute(
-                "SELECT to_regclass('public.emission_factors')::text"
+                "SELECT to_regclass('public.emission_factors')::text AS t"
             )
-            if cur.fetchone()[0] is None:
+            # get_db() ouvre en RealDictCursor : fetchone()[0] lèverait KeyError.
+            if cur.fetchone()["t"] is None:
                 migration_path = (
                     Path(__file__).parent.parent
                     / "db"

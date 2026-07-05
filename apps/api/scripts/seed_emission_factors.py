@@ -163,8 +163,9 @@ def seed(csv_path: Path, version: str = DEFAULT_VERSION, dry_run: bool = False) 
     inserted = 0
     with get_db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT to_regclass('public.emission_factors')::text")
-            if cur.fetchone()[0] is None:
+            cur.execute("SELECT to_regclass('public.emission_factors')::text AS t")
+            # get_db() ouvre en RealDictCursor : fetchone()[0] lèverait KeyError.
+            if cur.fetchone()["t"] is None:
                 migration = Path(__file__).parent.parent / "db" / "migrations" / "001_emission_factors.sql"
                 cur.execute(migration.read_text(encoding="utf-8"))
                 print("[INFO] Table emission_factors créée.")

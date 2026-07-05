@@ -10,18 +10,11 @@ import os
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
+from services.storage.base import MEDIA_TYPES as _MEDIA_TYPES
 from services.storage.base import StorageError
 from services.storage.local import LocalStorage
 
 router = APIRouter()
-
-# Type MIME inféré depuis l'extension pour un rendu inline (pièces T2.1).
-_MEDIA_TYPES = {
-    ".pdf": "application/pdf",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-}
 
 
 @router.get("/files/{key:path}")

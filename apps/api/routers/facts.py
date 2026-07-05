@@ -17,6 +17,7 @@ from datetime import datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from db.database import db_available, get_db
@@ -254,6 +255,26 @@ async def list_evidence_endpoint(
         "company_id": user.company_id,
         "evidence": evidence_service.list_evidence(company_id=user.company_id, code=code),
     }
+
+
+@router.get("/{code}/evidence/{sha256}/download")
+async def download_evidence_endpoint(
+    code: str,
+    sha256: str,
+    user: AuthUser = Depends(get_current_user),
+) -> Response:
+    """Télécharge une pièce (proxy authentifié — jamais d'URL de stockage directe)."""
+    if not db_available():
+        raise HTTPException(503, detail="Base de données indisponible")
+    if not _SHA256_RE.match(sha256):
+        raise HTTPException(400, detail="SHA-256 invalide (64 caractères hexadécimaux attendus).")
+    try:
+        data, content_type = evidence_service.get_evidence_file(
+            company_id=user.company_id, code=code, sha256=sha256,
+        )
+    except (evidence_service.EvidenceError, StorageError) as exc:
+        raise HTTPException(404, detail=str(exc)) from exc
+    return Response(content=data, media_type=content_type)
 
 
 @router.delete("/{code}/evidence/{sha256}")

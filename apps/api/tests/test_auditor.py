@@ -51,6 +51,19 @@ class TestPublicNoDb:
         r = client.get("/auditor/public/" + "0" * 64 + "/trail/carbon.scope1Tco2e")
         assert r.status_code == 404
 
+    def test_evidence_download_unknown_token_404(self) -> None:
+        r = client.get(
+            "/auditor/public/" + "0" * 64 + "/evidence/carbon.scope1Tco2e/" + "a" * 64 + "/download"
+        )
+        assert r.status_code == 404
+
+    def test_evidence_download_rejects_malformed_sha256(self) -> None:
+        # Validé avant toute résolution de token — 400 même avec un token bidon.
+        r = client.get(
+            "/auditor/public/" + "0" * 64 + "/evidence/carbon.scope1Tco2e/not-a-sha256/download"
+        )
+        assert r.status_code == 400
+
 
 # ── Garde admin ──────────────────────────────────────────────────────────────
 

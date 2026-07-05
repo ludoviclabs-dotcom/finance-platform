@@ -42,7 +42,7 @@ class _Cur:
 
     def fetchone(self):
         # to_regclass renvoie le nom (schéma présent) ou None (absent)
-        return {"t": "public.partner_applications" if self._sentinel else None}
+        return {"t": f"public.{m._SENTINEL_TABLE}" if self._sentinel else None}
 
 
 class _Conn:

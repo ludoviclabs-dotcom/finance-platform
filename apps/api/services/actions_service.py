@@ -134,7 +134,7 @@ def project_trajectory(baseline_tco2e: float, actions: list[dict[str, Any]],
 # DB (RLS) — sous skipif dans les tests
 # ---------------------------------------------------------------------------
 
-_COLS = ("id", "company_id", "title", "description", "status", "owner", "milestone",
+_COLS = ("id", "company_id", "site_id", "title", "description", "status", "owner", "milestone",
          "capex", "reduction_tco2e", "lifespan_years", "target_code", "created_at", "updated_at")
 _NUM = {"capex", "reduction_tco2e", "lifespan_years"}
 
@@ -150,15 +150,26 @@ def _row(r: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def list_actions(company_id: int) -> list[dict[str, Any]]:
+def list_actions(company_id: int, site_id: int | None = None) -> list[dict[str, Any]]:
+    """Actions de la company — optionnellement filtrées sur un site.
+
+    site_id=None = « entreprise entière » (rollup groupe, comportement
+    historique). Le filtre alimente la MACC par site ; les fonctions pures
+    build_macc/project_trajectory ne changent pas.
+    """
     if not db_available():
         return []
+    where = "company_id = %s"
+    params: list[Any] = [company_id]
+    if site_id is not None:
+        where += " AND site_id = %s"
+        params.append(site_id)
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             cur.execute(
-                f"SELECT {', '.join(_COLS)} FROM actions WHERE company_id = %s "
+                f"SELECT {', '.join(_COLS)} FROM actions WHERE {where} "
                 "ORDER BY created_at DESC",
-                (company_id,),
+                params,
             )
             return [_row(r) for r in cur.fetchall()]
 
@@ -167,18 +178,18 @@ def create_action(company_id: int, *, title: str, description: str | None = None
                   owner: str | None = None, milestone: str | None = None,
                   capex: float | None = None, reduction_tco2e: float | None = None,
                   lifespan_years: float | None = None, target_code: str | None = None,
-                  actor: str | None = None) -> dict[str, Any]:
+                  site_id: int | None = None, actor: str | None = None) -> dict[str, Any]:
     if not title or not title.strip():
         raise ActionError("Titre obligatoire.")
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """INSERT INTO actions
-                   (company_id, title, description, status, owner, milestone, capex,
+                   (company_id, site_id, title, description, status, owner, milestone, capex,
                     reduction_tco2e, lifespan_years, target_code)
-                   VALUES (%s,%s,%s,'proposed',%s,%s,%s,%s,%s,%s)
+                   VALUES (%s,%s,%s,%s,'proposed',%s,%s,%s,%s,%s,%s)
                    RETURNING """ + ", ".join(_COLS),
-                (company_id, title.strip(), description, owner, milestone, capex,
+                (company_id, site_id, title.strip(), description, owner, milestone, capex,
                  reduction_tco2e, lifespan_years, target_code),
             )
             row = _row(cur.fetchone())
@@ -191,7 +202,7 @@ def create_action(company_id: int, *, title: str, description: str | None = None
 
 
 _EDITABLE = ("title", "description", "owner", "milestone", "capex",
-             "reduction_tco2e", "lifespan_years", "target_code")
+             "reduction_tco2e", "lifespan_years", "target_code", "site_id")
 
 
 def update_action(company_id: int, action_id: int, patch: dict[str, Any]) -> dict[str, Any]:

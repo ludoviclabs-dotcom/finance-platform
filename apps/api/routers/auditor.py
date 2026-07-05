@@ -20,14 +20,18 @@ from __future__ import annotations
 import io
 import logging
 import os
+import re
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 from routers.auth import require_admin
 from services import auditor_service, evidence_service, export_package, facts_service
 from services.auth_service import AuthUser
+from services.storage import StorageError
+
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -123,8 +127,30 @@ def public_evidence(token: str, code: str) -> dict:
     auditor_service.record_access(token=token, company_id=invite["company_id"], source=f"evidence:{code}")
     return {
         "code": code,
-        "evidence": evidence_service.list_evidence(company_id=invite["company_id"], code=code),
+        "evidence": evidence_service.list_evidence(
+            company_id=invite["company_id"],
+            code=code,
+            url_template=f"/auditor/public/{token}/evidence/{code}/{{sha256}}/download",
+        ),
     }
+
+
+@router.get("/public/{token}/evidence/{code}/{sha256}/download")
+def public_evidence_download(token: str, code: str, sha256: str) -> Response:
+    """Télécharge une pièce (proxy authentifié par le token d'invitation)."""
+    if not _SHA256_RE.match(sha256):
+        raise HTTPException(400, detail="SHA-256 invalide (64 caractères hexadécimaux attendus).")
+    invite = _resolve_or_error(token)
+    auditor_service.record_access(
+        token=token, company_id=invite["company_id"], source=f"evidence-download:{code}",
+    )
+    try:
+        data, content_type = evidence_service.get_evidence_file(
+            company_id=invite["company_id"], code=code, sha256=sha256,
+        )
+    except (evidence_service.EvidenceError, StorageError) as exc:
+        raise HTTPException(404, detail=str(exc)) from exc
+    return Response(content=data, media_type=content_type)
 
 
 @router.get("/public/{token}/pack")

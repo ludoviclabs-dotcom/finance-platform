@@ -9,17 +9,21 @@ import os
 
 from .base import (
     MAX_OBJECT_BYTES,
+    MEDIA_TYPES,
     StorageAdapter,
     StorageError,
     evidence_key,
+    parse_evidence_key,
 )
 from .local import LocalStorage
 
 __all__ = [
     "MAX_OBJECT_BYTES",
+    "MEDIA_TYPES",
     "StorageAdapter",
     "StorageError",
     "evidence_key",
+    "parse_evidence_key",
     "LocalStorage",
     "get_storage",
 ]

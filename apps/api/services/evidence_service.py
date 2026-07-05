@@ -14,11 +14,12 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Any
 
 from services import facts_service
-from services.storage import evidence_key, get_storage
+from services.storage import MEDIA_TYPES, evidence_key, get_storage, parse_evidence_key
 
 logger = logging.getLogger(__name__)
 
@@ -130,16 +131,63 @@ def active_evidence(events: list[Any]) -> list[dict[str, Any]]:
     return list(active.values())
 
 
-def list_evidence(*, company_id: int, code: str, sign: bool = True) -> list[dict[str, Any]]:
-    """Liste les pièces actives d'un datapoint, avec URL signée expirante (15 min)."""
+def list_evidence(
+    *, company_id: int, code: str, sign: bool = True, url_template: str | None = None,
+) -> list[dict[str, Any]]:
+    """Liste les pièces actives d'un datapoint.
+
+    Si `sign`, chaque pièce reçoit `url` = route de téléchargement proxy
+    authentifiée — jamais une URL de stockage directe (Vercel Blob est un
+    store Private : toute lecture exige un Authorization: Bearer côté
+    serveur, un navigateur ne peut pas la charger telle quelle).
+
+    `url_template` doit contenir le littéral `{sha256}` ; par défaut pointe
+    vers la route facts.py (JWT). Le point d'entrée auditor.py (accès par
+    lien à token, cf. routers/auditor.py) fournit son propre template pointant
+    vers sa propre route publique.
+    """
     events = facts_service.get_trail(code=code, company_id=company_id, limit=1000)
     pieces = active_evidence(events)
-    if sign and pieces:
-        storage = get_storage()
+    if sign:
+        template = url_template or f"/facts/{code}/evidence/{{sha256}}/download"
         for p in pieces:
-            try:
-                p["url"] = storage.signed_url(p["storage_key"])
-            except Exception as exc:  # pragma: no cover - best effort
-                logger.warning("signed_url échouée pour %s: %s", p.get("storage_key"), exc)
-                p["url"] = None
+            p["url"] = template.format(sha256=p["sha256"])
     return pieces
+
+
+def get_evidence_file(*, company_id: int, code: str, sha256: str) -> tuple[bytes, str]:
+    """Résout et lit les octets d'une pièce active pour `company_id`/`code`/`sha256`.
+
+    Double vérification anti-IDOR avant toute lecture de stockage :
+      1. La pièce doit être active dans le trail de CETTE company (get_trail
+         est déjà filtré par company_id + RLS).
+      2. La storage_key elle-même doit être adressée à cette company — garde-fou
+         indépendant du (1), au cas où le filtrage amont serait un jour cassé.
+    Une pièce introuvable, révoquée, ou hors-périmètre lève systématiquement la
+    MÊME EvidenceError (le routeur la traduit en 404) : on ne distingue jamais
+    "existe mais pas à vous" de "n'existe pas", pour ne rien laisser fuiter à
+    un appelant sur une autre company.
+
+    Retourne (data, content_type). Peut lever StorageError si le backend de
+    stockage échoue (objet référencé mais absent, panne réseau…).
+    """
+    not_found = EvidenceError(f"Pièce '{sha256}' introuvable pour '{code}'.")
+    pieces = list_evidence(company_id=company_id, code=code, sign=False)
+    piece = next((p for p in pieces if p.get("sha256") == sha256), None)
+    if piece is None:
+        raise not_found
+
+    storage_key = piece.get("storage_key") or ""
+    parsed = parse_evidence_key(storage_key)
+    if parsed is None or parsed[0] != company_id:
+        logger.error(
+            "IDOR bloqué : storage_key=%r hors périmètre de company_id=%s (code=%s, sha256=%s)",
+            storage_key, company_id, code, sha256,
+        )
+        raise not_found
+
+    data = get_storage().get(storage_key)
+    content_type = piece.get("content_type") or MEDIA_TYPES.get(
+        os.path.splitext(piece.get("filename") or "")[1].lower(), "application/octet-stream",
+    )
+    return data, content_type

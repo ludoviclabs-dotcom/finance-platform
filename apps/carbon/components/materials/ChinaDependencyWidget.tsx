@@ -1,6 +1,6 @@
 "use client";
 import { motion, useReducedMotion } from "framer-motion";
-import AnimatedNumber from "./AnimatedNumber";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 interface Producer { country: string; share_pct: number }
 interface Material { id: string; name_fr: string; top_producers: Producer[]; criticality_eu: string }
@@ -34,7 +34,7 @@ export default function ChinaDependencyWidget({ materials }: Props) {
           <p className="text-xs text-zinc-500 mt-0.5">Sur les 34 matières critiques UE</p>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-black text-red-400"><AnimatedNumber value={pct} suffix="%" /></p>
+          <p className="text-3xl font-black text-red-400"><AnimatedCounter value={pct} suffix="%" /></p>
           <p className="text-xs text-zinc-500">sous dominance</p>
         </div>
       </div>

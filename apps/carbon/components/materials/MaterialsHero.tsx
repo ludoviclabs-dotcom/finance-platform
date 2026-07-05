@@ -1,4 +1,4 @@
-import AnimatedNumber from "./AnimatedNumber";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 interface Props { total: number; strategic: number }
 
@@ -44,7 +44,7 @@ export default function MaterialsHero({ total, strategic }: Props) {
             ].map(stat => (
               <div key={stat.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 backdrop-blur p-5">
                 <p className={`text-4xl font-black ${stat.color}`}>
-                  <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                 </p>
                 <p className="text-zinc-400 text-sm mt-1 leading-snug">{stat.label}</p>
               </div>

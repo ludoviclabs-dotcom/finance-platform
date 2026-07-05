@@ -20,9 +20,20 @@ import { RoiCalculator } from "../landing/roi-calculator";
 import { NewsletterForm } from "../landing/newsletter-form";
 import { DemoDisclaimer } from "../landing/demo-disclaimer";
 import { useAnalytics } from "@/lib/hooks/use-analytics";
+import { Reveal } from "@/components/ui/reveal";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
+
+/** Chiffres réels du module Matières critiques (chargés au build, côté serveur). */
+export interface MaterialsStats {
+  total: number;
+  strategic: number;
+  chinaDominant: number;
+  snapshotLabel: string;
+}
 
 interface LandingPageProps {
   onEnterApp: () => void;
+  materialsStats?: MaterialsStats;
 }
 
 const NAV_LINKS = [
@@ -30,83 +41,15 @@ const NAV_LINKS = [
   { href: "#about", label: "Pourquoi CarbonCo" },
   { href: "#features", label: "Fonctionnalités" },
   { href: "/produit", label: "Produit" },
-  { href: "/proof", label: "Preuve" },
   { href: "/materials", label: "Métaux critiques" },
+  { href: "/proof", label: "Preuve" },
   { href: "#how", label: "Comment ça marche" },
   { href: "#pricing", label: "Tarifs" },
   { href: "/demo", label: "Démo" },
 ] as const;
 
-/* ── Scroll-reveal hook ── */
-function useReveal(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(true);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (!("IntersectionObserver" in window)) {
-      setVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true); },
-      { threshold }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-  return { ref, visible };
-}
-
-function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const { ref, visible } = useReveal();
-  const prefersReducedMotion = useReducedMotion();
-  // Quand l'utilisateur a activé prefers-reduced-motion (réglage OS), on saute
-  // l'animation : le contenu est visible immédiatement, sans transition.
-  const shown = prefersReducedMotion || visible;
-  return (
-    <div
-      ref={ref}
-      className={className}
-      style={{
-        opacity: shown ? 1 : 0,
-        transform: shown ? "translateY(0)" : "translateY(32px)",
-        transition: prefersReducedMotion
-          ? "none"
-          : `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* ── CountUp animé déclenché au scroll ── */
-function CountUp({ target, suffix = "", decimals = 0, duration = 1800 }: { target: number; suffix?: string; decimals?: number; duration?: number }) {
-  const { ref, visible } = useReveal(0.3);
-  const [count, setCount] = useState(0);
-  const started = useRef(false);
-
-  useEffect(() => {
-    if (!visible || started.current) return;
-    started.current = true;
-    const start = performance.now();
-    const step = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(parseFloat((eased * target).toFixed(decimals)));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [visible, target, decimals, duration]);
-
-  return (
-    <span ref={ref}>
-      {decimals > 0 ? count.toFixed(decimals) : Math.round(count)}
-      {suffix}
-    </span>
-  );
-}
+/* Reveal (scroll-reveal) et AnimatedCounter vivent désormais dans
+   components/ui — partagés avec /materials et le reste du site. */
 
 /* Hotspot data + UI now live in components/landing/mockup/premium-dashboard-mockup.tsx */
 
@@ -532,7 +475,7 @@ function ProductDemoSection({ onEnterApp }: { onEnterApp: () => void }) {
 }
 
 /* ══════════════════════════════════════════════════════════ */
-export function LandingPage({ onEnterApp }: LandingPageProps) {
+export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
   const { track } = useAnalytics();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [impactsOpen, setImpactsOpen] = useState(false);
@@ -900,6 +843,65 @@ export function LandingPage({ onEnterApp }: LandingPageProps) {
             </div>
           </div>
         </section>
+
+        {/* ══ 4bis. MODULE MATIÈRES CRITIQUES — bande sombre, écho visuel de /materials ══ */}
+        {materialsStats && (
+          <section id="matieres-critiques" className="relative overflow-hidden bg-zinc-950 text-white py-24 px-8 md:px-12">
+            {/* Même trame de points que le hero de /materials : signature visuelle du module */}
+            <div
+              className="absolute inset-0 opacity-[0.04]"
+              style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)", backgroundSize: "40px 40px" }}
+            />
+            <div className="relative max-w-[1440px] mx-auto">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <Reveal>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-red-500/10 border border-red-500/30 px-4 py-1.5 text-sm text-red-400 font-medium mb-6">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                    Module d&apos;exploration · Intelligence matières
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-5">
+                    Votre chaîne de valeur repose sur des{" "}
+                    <span className="bg-gradient-to-r from-red-400 to-amber-400 bg-clip-text text-transparent">
+                      matières critiques
+                    </span>
+                  </h2>
+                  <p className="text-lg text-zinc-400 leading-relaxed max-w-xl mb-8">
+                    L&apos;Union européenne identifie {materialsStats.total} matières premières critiques.
+                    CarbonCo cartographie leurs prix, dépendances et producteurs — le contexte qui
+                    éclaire vos analyses Scope 3 et votre double matérialité.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Link
+                      href="/materials"
+                      className="rounded-xl bg-white text-zinc-900 px-6 py-3 font-semibold text-sm hover:bg-zinc-100 transition"
+                    >
+                      Explorer les matières →
+                    </Link>
+                    <span className="text-xs text-zinc-500">
+                      Snapshot {materialsStats.snapshotLabel} · historique de prix hebdomadaire
+                    </span>
+                  </div>
+                </Reveal>
+                <Reveal delay={0.15}>
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    {[
+                      { value: materialsStats.total, label: "Matières critiques UE", color: "text-white" },
+                      { value: materialsStats.strategic, label: "Jugées stratégiques", color: "text-amber-400" },
+                      { value: materialsStats.chinaDominant, label: "À production dominée par la Chine", color: "text-red-400" },
+                    ].map((stat) => (
+                      <div key={stat.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 backdrop-blur p-5">
+                        <p className={`text-4xl font-black ${stat.color}`}>
+                          <AnimatedCounter value={stat.value} />
+                        </p>
+                        <p className="text-zinc-400 text-sm mt-1 leading-snug">{stat.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </Reveal>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ══ 5. DASHBOARD INTERACTIF — HOTSPOTS ══ */}
         <DashboardShowcase onEnterApp={onEnterApp} />

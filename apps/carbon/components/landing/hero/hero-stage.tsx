@@ -5,7 +5,7 @@
 
 "use client";
 
-import { HeroAvatarSculpt } from "./hero-avatar-sculpt";
+import { HeroAvatarNeo } from "./hero-avatar-neo";
 import styles from "./hero-stage.module.css";
 
 const ACCENT = {
@@ -139,7 +139,7 @@ export function HeroStage() {
         <div className={`relative aspect-[5/6] w-full p-6 ${styles.grain}`}>
           <div className="absolute inset-0 flex items-end justify-center">
             <div className={`${styles.floaty} w-[88%] h-full`}>
-              <HeroAvatarSculpt />
+              <HeroAvatarNeo />
             </div>
           </div>
 

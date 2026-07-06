@@ -1,0 +1,24 @@
+/* Néo — animations (portées de « Avatar Neural — Explorations », V2 composite) */
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes scanXL {
+  0% { transform: translateX(0px); }
+  100% { transform: translateX(150px); }
+}
+@keyframes waveBar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.antennaLed { animation: glowPulse 2.4s ease-in-out infinite; }
+.core       { animation: glowPulse 3s ease-in-out infinite; }
+.scanBar    { animation: scanXL 1.7s ease-in-out infinite alternate; }
+.waveBar    { animation: waveBar 0.9s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.orbitGroup { transform-origin: 170px 192px; animation: orbitSpin linear infinite; }

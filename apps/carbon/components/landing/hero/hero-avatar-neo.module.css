@@ -12,13 +12,13 @@
   0%, 100% { transform: scaleY(0.3); }
   50% { transform: scaleY(1); }
 }
-@keyframes orbitSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes floaty {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
 
 .antennaLed { animation: glowPulse 2.4s ease-in-out infinite; }
 .core       { animation: glowPulse 3s ease-in-out infinite; }
 .scanBar    { animation: scanXL 1.7s ease-in-out infinite alternate; }
 .waveBar    { animation: waveBar 0.9s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-.orbitGroup { transform-origin: 170px 192px; animation: orbitSpin linear infinite; }
+.floaty     { animation: floaty 6.5s ease-in-out infinite; }

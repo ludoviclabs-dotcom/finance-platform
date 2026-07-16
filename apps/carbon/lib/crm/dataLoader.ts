@@ -100,6 +100,18 @@ export function getAlerts(materials: Material[], threshold = 15) {
     .sort((a, b) => Math.abs(b.price_snapshot!.trend_3m_pct) - Math.abs(a.price_snapshot!.trend_3m_pct));
 }
 
+// Au-delà de ce délai, le snapshot est signalé comme potentiellement périmé.
+export const STALE_AFTER_DAYS = 120;
+
+// Calculée côté serveur (page /materials est prérendue statiquement) et jamais
+// recalculée côté client, pour éviter tout mismatch d'hydratation entre le HTML
+// figé au build et un nouveau calcul au moment où le navigateur affiche la page.
+export function isSnapshotStale(snapshotDateIso: string, now: number = Date.now()): boolean {
+  const then = new Date(snapshotDateIso).getTime();
+  if (Number.isNaN(then)) return false;
+  return Math.floor((now - then) / 86_400_000) > STALE_AFTER_DAYS;
+}
+
 export interface MaterialsSummary {
   total: number;
   strategic: number;

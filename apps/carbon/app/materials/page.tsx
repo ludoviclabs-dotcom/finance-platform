@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getMaterials, summarize } from "@/lib/crm/dataLoader";
+import { getMaterials, summarize, isSnapshotStale } from "@/lib/crm/dataLoader";
 import { Reveal } from "@/components/ui/reveal";
 import MaterialsHero from "@/components/materials/MaterialsHero";
 import SnapshotBanner from "@/components/materials/SnapshotBanner";
@@ -30,6 +30,7 @@ export default async function MaterialsPage() {
   const { materials, snapshot_date, methodology_note } = dataset;
   const summary = summarize(materials);
   const snapshotYear = Number(snapshot_date.slice(0, 4));
+  const isStale = isSnapshotStale(snapshot_date);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -52,7 +53,7 @@ export default async function MaterialsPage() {
       <MaterialsHero summary={summary} snapshotYear={snapshotYear} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <SnapshotBanner date={snapshot_date} methodologyNote={methodology_note} estimatedPct={summary.estimatedPct} />
+        <SnapshotBanner date={snapshot_date} methodologyNote={methodology_note} estimatedPct={summary.estimatedPct} isStale={isStale} />
       </div>
 
       {/* Pont vers le cœur du produit : pourquoi ce module existe dans CarbonCo */}

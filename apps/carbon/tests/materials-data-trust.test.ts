@@ -14,7 +14,9 @@ import {
   getChinaShare,
   isChinaConcentrated,
   hasRenderableHistory,
+  isSnapshotStale,
   CHINA_DOMINANCE_THRESHOLD,
+  STALE_AFTER_DAYS,
   type Material,
 } from "@/lib/crm/dataLoader";
 import snapshot from "@/data/crm_full_34_snapshot_2026-06-30.json";
@@ -87,6 +89,27 @@ describe("Dérivation « concentration Chine » (remplace china_dominant figé)"
     expect(CHINA_DOMINANCE_THRESHOLD).toBe(50);
     expect(isChinaConcentrated(antimony)).toBe(false);
     expect(isChinaConcentrated(gallium)).toBe(true);
+  });
+});
+
+describe("isSnapshotStale — calcul déterministe, injectable (pas de Date.now() implicite en test)", () => {
+  it("n'est pas périmé sous le seuil", () => {
+    const now = new Date("2026-07-16").getTime();
+    expect(isSnapshotStale("2026-06-30", now)).toBe(false);
+  });
+
+  it("est périmé au-delà du seuil", () => {
+    const now = new Date("2026-06-30").getTime() + (STALE_AFTER_DAYS + 1) * 86_400_000;
+    expect(isSnapshotStale("2026-06-30", now)).toBe(true);
+  });
+
+  it("n'est pas périmé exactement au seuil (comparaison stricte)", () => {
+    const now = new Date("2026-06-30").getTime() + STALE_AFTER_DAYS * 86_400_000;
+    expect(isSnapshotStale("2026-06-30", now)).toBe(false);
+  });
+
+  it("renvoie false pour une date invalide plutôt que de planter", () => {
+    expect(isSnapshotStale("not-a-date", Date.now())).toBe(false);
   });
 });
 

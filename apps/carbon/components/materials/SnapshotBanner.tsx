@@ -1,26 +1,19 @@
-"use client";
 import { DataStatusBadge } from "@/components/ui/data-status-badge";
 
 interface Props {
   date: string;
   methodologyNote: string;
   estimatedPct: number;
+  // Calculé côté serveur (voir isSnapshotStale dans dataLoader) — jamais
+  // recalculé côté client pour éviter un mismatch d'hydratation sur une page
+  // prérendue statiquement.
+  isStale: boolean;
 }
 
-// Au-delà de ce délai, le snapshot est signalé comme potentiellement périmé.
-const STALE_AFTER_DAYS = 120;
-
-function daysSince(iso: string): number {
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return 0;
-  return Math.floor((Date.now() - then) / 86_400_000);
-}
-
-export default function SnapshotBanner({ date, methodologyNote, estimatedPct }: Props) {
+export default function SnapshotBanner({ date, methodologyNote, estimatedPct, isStale }: Props) {
   const formatted = new Intl.DateTimeFormat("fr-FR", {
     year: "numeric", month: "long", day: "numeric",
   }).format(new Date(date));
-  const isStale = daysSince(date) > STALE_AFTER_DAYS;
 
   return (
     <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 space-y-2">

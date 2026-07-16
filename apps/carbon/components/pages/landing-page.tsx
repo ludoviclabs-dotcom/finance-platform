@@ -27,7 +27,8 @@ import { AnimatedCounter } from "@/components/ui/animated-counter";
 export interface MaterialsStats {
   total: number;
   strategic: number;
-  chinaDominant: number;
+  chinaConcentrated: number;
+  chinaThreshold: number;
   snapshotLabel: string;
 }
 
@@ -883,7 +884,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                       Explorer les matières →
                     </Link>
                     <span className="text-xs text-zinc-500">
-                      Snapshot {materialsStats.snapshotLabel} · historique de prix hebdomadaire
+                      Snapshot {materialsStats.snapshotLabel} · valeurs estimées (démonstration)
                     </span>
                   </div>
                 </Reveal>
@@ -892,7 +893,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                     {[
                       { value: materialsStats.total, label: "Matières critiques UE", color: "text-white" },
                       { value: materialsStats.strategic, label: "Jugées stratégiques", color: "text-amber-400" },
-                      { value: materialsStats.chinaDominant, label: "À production dominée par la Chine", color: "text-red-400" },
+                      { value: materialsStats.chinaConcentrated, label: `Production concentrée en Chine (≥ ${materialsStats.chinaThreshold}%)`, color: "text-red-400" },
                     ].map((stat) => (
                       <div key={stat.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 backdrop-blur p-5">
                         <p className={`text-4xl font-black ${stat.color}`}>

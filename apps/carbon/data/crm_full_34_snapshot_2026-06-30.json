@@ -8,30 +8,67 @@
       "id": "antimony",
       "name_fr": "Antimoine",
       "category": "Métaux critiques / Ignifuges",
-      "criticality_eu": "Critique",
-      "criticality_score": 8.7,
-      "china_dominant": true,
-      "main_uses": ["Retardateurs de flamme", "Batteries plomb-acide", "Munitions"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 48 },
-        { "country": "Russie", "share_pct": 18 },
-        { "country": "Tadjikistan", "share_pct": 9 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 8.7,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Retardateurs de flamme",
+        "Batteries plomb-acide",
+        "Munitions"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 39, "unit": "USD/kg", "trend_3m_pct": 34 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 48
+        },
+        {
+          "country": "Russie",
+          "share_pct": 18
+        },
+        {
+          "country": "Tadjikistan",
+          "share_pct": 9
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 39,
+        "unit": "USD/kg",
+        "trend_3m_pct": 34
+      },
       "data_quality": "estimated"
     },
     {
       "id": "arsenic",
       "name_fr": "Arsenic",
       "category": "Semi-conducteurs / Métallurgie",
-      "criticality_eu": "Critique",
-      "criticality_score": 6.5,
-      "china_dominant": true,
-      "main_uses": ["Semi-conducteurs (GaAs)", "Agents de traitement du bois", "Alliages au plomb"],
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 6.5,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Semi-conducteurs (GaAs)",
+        "Agents de traitement du bois",
+        "Alliages au plomb"
+      ],
       "top_producers": [
-        { "country": "Chine", "share_pct": 70 },
-        { "country": "Maroc", "share_pct": 9 },
-        { "country": "Belgique", "share_pct": 6 }
+        {
+          "country": "Chine",
+          "share_pct": 70
+        },
+        {
+          "country": "Maroc",
+          "share_pct": 9
+        },
+        {
+          "country": "Belgique",
+          "share_pct": 6
+        }
       ],
       "price_snapshot": null,
       "data_quality": "estimated"
@@ -40,46 +77,104 @@
       "id": "baryte",
       "name_fr": "Baryte",
       "category": "Minéraux industriels",
-      "criticality_eu": "Critique",
-      "criticality_score": 5.8,
-      "china_dominant": false,
-      "main_uses": ["Boues de forage pétrolier et gazier", "Charge minérale (peintures, plastiques)", "Radioprotection"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 28 },
-        { "country": "Inde", "share_pct": 15 },
-        { "country": "Maroc", "share_pct": 10 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 5.8,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Boues de forage pétrolier et gazier",
+        "Charge minérale (peintures, plastiques)",
+        "Radioprotection"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 165, "unit": "USD/tonne", "trend_3m_pct": 3 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 28
+        },
+        {
+          "country": "Inde",
+          "share_pct": 15
+        },
+        {
+          "country": "Maroc",
+          "share_pct": 10
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 165,
+        "unit": "USD/tonne",
+        "trend_3m_pct": 3
+      },
       "data_quality": "estimated"
     },
     {
       "id": "bauxite",
       "name_fr": "Bauxite",
       "category": "Métaux légers / Alumine",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 7.2,
-      "china_dominant": false,
-      "main_uses": ["Production d'alumine puis d'aluminium", "Réfractaires", "Abrasifs"],
-      "top_producers": [
-        { "country": "Guinée", "share_pct": 30 },
-        { "country": "Australie", "share_pct": 27 },
-        { "country": "Chine", "share_pct": 15 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7.2,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Production d'alumine puis d'aluminium",
+        "Réfractaires",
+        "Abrasifs"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 58, "unit": "USD/tonne", "trend_3m_pct": 6 },
+      "top_producers": [
+        {
+          "country": "Guinée",
+          "share_pct": 30
+        },
+        {
+          "country": "Australie",
+          "share_pct": 27
+        },
+        {
+          "country": "Chine",
+          "share_pct": 15
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 58,
+        "unit": "USD/tonne",
+        "trend_3m_pct": 6
+      },
       "data_quality": "estimated"
     },
     {
       "id": "beryllium",
       "name_fr": "Béryllium",
       "category": "Métaux légers / Aérospatial",
-      "criticality_eu": "Critique",
-      "criticality_score": 7.0,
-      "china_dominant": false,
-      "main_uses": ["Alliages aérospatiaux", "Fenêtres à rayons X", "Électronique de défense"],
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Alliages aérospatiaux",
+        "Fenêtres à rayons X",
+        "Électronique de défense"
+      ],
       "top_producers": [
-        { "country": "Etats-Unis", "share_pct": 65 },
-        { "country": "Chine", "share_pct": 20 },
-        { "country": "Mozambique", "share_pct": 5 }
+        {
+          "country": "Etats-Unis",
+          "share_pct": 65
+        },
+        {
+          "country": "Chine",
+          "share_pct": 20
+        },
+        {
+          "country": "Mozambique",
+          "share_pct": 5
+        }
       ],
       "price_snapshot": null,
       "data_quality": "estimated"
@@ -88,94 +183,214 @@
       "id": "bismuth",
       "name_fr": "Bismuth",
       "category": "Métaux d'alliage / Pharmacie",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 7.6,
-      "china_dominant": true,
-      "main_uses": ["Pharmaceutique", "Pigments", "Soudures sans plomb"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 80 },
-        { "country": "Laos", "share_pct": 7 },
-        { "country": "Corée du Sud", "share_pct": 5 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7.6,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Pharmaceutique",
+        "Pigments",
+        "Soudures sans plomb"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 12.8, "unit": "USD/kg", "trend_3m_pct": 9 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 80
+        },
+        {
+          "country": "Laos",
+          "share_pct": 7
+        },
+        {
+          "country": "Corée du Sud",
+          "share_pct": 5
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 12.8,
+        "unit": "USD/kg",
+        "trend_3m_pct": 9
+      },
       "data_quality": "estimated"
     },
     {
       "id": "boron",
       "name_fr": "Bore (borates)",
       "category": "Minéraux industriels / Agriculture",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 6.9,
-      "china_dominant": false,
-      "main_uses": ["Verre et fibre de verre", "Engrais", "Aimants permanents"],
-      "top_producers": [
-        { "country": "Turquie", "share_pct": 40 },
-        { "country": "Etats-Unis", "share_pct": 25 },
-        { "country": "Russie", "share_pct": 7 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 6.9,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Verre et fibre de verre",
+        "Engrais",
+        "Aimants permanents"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 380, "unit": "USD/tonne", "trend_3m_pct": 2 },
+      "top_producers": [
+        {
+          "country": "Turquie",
+          "share_pct": 40
+        },
+        {
+          "country": "Etats-Unis",
+          "share_pct": 25
+        },
+        {
+          "country": "Russie",
+          "share_pct": 7
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 380,
+        "unit": "USD/tonne",
+        "trend_3m_pct": 2
+      },
       "data_quality": "estimated"
     },
     {
       "id": "cobalt",
       "name_fr": "Cobalt",
       "category": "Batteries / Alliages",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 8.5,
-      "china_dominant": false,
-      "main_uses": ["Cathodes de batteries", "Superalliages", "Défense"],
-      "top_producers": [
-        { "country": "RD Congo", "share_pct": 74 },
-        { "country": "Indonésie", "share_pct": 8 },
-        { "country": "Russie", "share_pct": 4 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 8.5,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Cathodes de batteries",
+        "Superalliages",
+        "Défense"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 27.8, "unit": "USD/kg", "trend_3m_pct": 11 },
+      "top_producers": [
+        {
+          "country": "RD Congo",
+          "share_pct": 74
+        },
+        {
+          "country": "Indonésie",
+          "share_pct": 8
+        },
+        {
+          "country": "Russie",
+          "share_pct": 4
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 27.8,
+        "unit": "USD/kg",
+        "trend_3m_pct": 11
+      },
       "data_quality": "estimated"
     },
     {
       "id": "coking-coal",
       "name_fr": "Charbon à coke",
       "category": "Combustibles fossiles / Sidérurgie",
-      "criticality_eu": "Critique",
-      "criticality_score": 5.5,
-      "china_dominant": true,
-      "main_uses": ["Production d'acier (haut-fourneau)", "Métallurgie"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 50 },
-        { "country": "Australie", "share_pct": 15 },
-        { "country": "Russie", "share_pct": 10 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 5.5,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Production d'acier (haut-fourneau)",
+        "Métallurgie"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 210, "unit": "USD/tonne", "trend_3m_pct": -8 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 50
+        },
+        {
+          "country": "Australie",
+          "share_pct": 15
+        },
+        {
+          "country": "Russie",
+          "share_pct": 10
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 210,
+        "unit": "USD/tonne",
+        "trend_3m_pct": -8
+      },
       "data_quality": "estimated"
     },
     {
       "id": "copper",
       "name_fr": "Cuivre",
       "category": "Métaux industriels / Électrification",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 7.8,
-      "china_dominant": false,
-      "main_uses": ["Câblage électrique", "Véhicules électriques", "Électronique"],
-      "top_producers": [
-        { "country": "Chili", "share_pct": 24 },
-        { "country": "Pérou", "share_pct": 10 },
-        { "country": "RD Congo", "share_pct": 9 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7.8,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Câblage électrique",
+        "Véhicules électriques",
+        "Électronique"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 9.6, "unit": "USD/kg", "trend_3m_pct": 5 },
+      "top_producers": [
+        {
+          "country": "Chili",
+          "share_pct": 24
+        },
+        {
+          "country": "Pérou",
+          "share_pct": 10
+        },
+        {
+          "country": "RD Congo",
+          "share_pct": 9
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 9.6,
+        "unit": "USD/kg",
+        "trend_3m_pct": 5
+      },
       "data_quality": "estimated"
     },
     {
       "id": "feldspar",
       "name_fr": "Feldspath",
       "category": "Minéraux industriels / Céramique",
-      "criticality_eu": "Critique",
-      "criticality_score": 5.2,
-      "china_dominant": true,
-      "main_uses": ["Céramique", "Verre", "Vitrocéramique"],
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 5.2,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Céramique",
+        "Verre",
+        "Vitrocéramique"
+      ],
       "top_producers": [
-        { "country": "Chine", "share_pct": 50 },
-        { "country": "Turquie", "share_pct": 15 },
-        { "country": "Italie", "share_pct": 8 }
+        {
+          "country": "Chine",
+          "share_pct": 50
+        },
+        {
+          "country": "Turquie",
+          "share_pct": 15
+        },
+        {
+          "country": "Italie",
+          "share_pct": 8
+        }
       ],
       "price_snapshot": null,
       "data_quality": "estimated"
@@ -184,62 +399,141 @@
       "id": "fluorspar",
       "name_fr": "Fluorine (spath fluor)",
       "category": "Minéraux industriels / Chimie",
-      "criticality_eu": "Critique",
-      "criticality_score": 6.8,
-      "china_dominant": true,
-      "main_uses": ["Acide fluorhydrique", "Réfrigérants", "Fondant pour l'aluminium"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 63 },
-        { "country": "Mexique", "share_pct": 14 },
-        { "country": "Mongolie", "share_pct": 8 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 6.8,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Acide fluorhydrique",
+        "Réfrigérants",
+        "Fondant pour l'aluminium"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 420, "unit": "USD/tonne", "trend_3m_pct": 7 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 63
+        },
+        {
+          "country": "Mexique",
+          "share_pct": 14
+        },
+        {
+          "country": "Mongolie",
+          "share_pct": 8
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 420,
+        "unit": "USD/tonne",
+        "trend_3m_pct": 7
+      },
       "data_quality": "estimated"
     },
     {
       "id": "gallium",
       "name_fr": "Gallium",
       "category": "Métaux technologiques",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 9.4,
-      "china_dominant": true,
-      "main_uses": ["Semi-conducteurs (GaN/GaAs)", "Télécoms 5G/6G", "Photovoltaïque"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 98 },
-        { "country": "Russie", "share_pct": 1 },
-        { "country": "Japon", "share_pct": 1 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 9.4,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Semi-conducteurs (GaN/GaAs)",
+        "Télécoms 5G/6G",
+        "Photovoltaïque"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 585, "unit": "USD/kg", "trend_3m_pct": 22 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 98
+        },
+        {
+          "country": "Russie",
+          "share_pct": 1
+        },
+        {
+          "country": "Japon",
+          "share_pct": 1
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 585,
+        "unit": "USD/kg",
+        "trend_3m_pct": 22
+      },
       "data_quality": "estimated"
     },
     {
       "id": "germanium",
       "name_fr": "Germanium",
       "category": "Métaux technologiques",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 9.1,
-      "china_dominant": true,
-      "main_uses": ["Fibre optique", "Imagerie infrarouge", "Semi-conducteurs"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 68 },
-        { "country": "Russie", "share_pct": 4 },
-        { "country": "Etats-Unis", "share_pct": 4 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 9.1,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Fibre optique",
+        "Imagerie infrarouge",
+        "Semi-conducteurs"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 1980, "unit": "USD/kg", "trend_3m_pct": 15 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 68
+        },
+        {
+          "country": "Russie",
+          "share_pct": 4
+        },
+        {
+          "country": "Etats-Unis",
+          "share_pct": 4
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 1980,
+        "unit": "USD/kg",
+        "trend_3m_pct": 15
+      },
       "data_quality": "estimated"
     },
     {
       "id": "hafnium",
       "name_fr": "Hafnium",
       "category": "Métaux réfractaires / Nucléaire",
-      "criticality_eu": "Critique",
-      "criticality_score": 6.6,
-      "china_dominant": false,
-      "main_uses": ["Superalliages aérospatiaux", "Barres de contrôle nucléaires", "Semi-conducteurs avancés"],
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 6.6,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Superalliages aérospatiaux",
+        "Barres de contrôle nucléaires",
+        "Semi-conducteurs avancés"
+      ],
       "top_producers": [
-        { "country": "Chine", "share_pct": 30 },
-        { "country": "France", "share_pct": 25 },
-        { "country": "Etats-Unis", "share_pct": 20 }
+        {
+          "country": "Chine",
+          "share_pct": 30
+        },
+        {
+          "country": "France",
+          "share_pct": 25
+        },
+        {
+          "country": "Etats-Unis",
+          "share_pct": 20
+        }
       ],
       "price_snapshot": null,
       "data_quality": "estimated"
@@ -248,14 +542,30 @@
       "id": "helium",
       "name_fr": "Hélium",
       "category": "Gaz industriels",
-      "criticality_eu": "Critique",
-      "criticality_score": 6.2,
-      "china_dominant": false,
-      "main_uses": ["Refroidissement IRM et supraconducteurs", "Semi-conducteurs", "Aérospatial"],
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 6.2,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Refroidissement IRM et supraconducteurs",
+        "Semi-conducteurs",
+        "Aérospatial"
+      ],
       "top_producers": [
-        { "country": "Etats-Unis", "share_pct": 40 },
-        { "country": "Qatar", "share_pct": 30 },
-        { "country": "Algérie", "share_pct": 8 }
+        {
+          "country": "Etats-Unis",
+          "share_pct": 40
+        },
+        {
+          "country": "Qatar",
+          "share_pct": 30
+        },
+        {
+          "country": "Algérie",
+          "share_pct": 8
+        }
       ],
       "price_snapshot": null,
       "data_quality": "estimated"
@@ -264,190 +574,437 @@
       "id": "natural-graphite",
       "name_fr": "Graphite naturel",
       "category": "Batteries / Anodes",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 8.3,
-      "china_dominant": true,
-      "main_uses": ["Anodes de batteries Li-ion", "Réfractaires", "Lubrifiants"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 65 },
-        { "country": "Mozambique", "share_pct": 9 },
-        { "country": "Madagascar", "share_pct": 8 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 8.3,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Anodes de batteries Li-ion",
+        "Réfractaires",
+        "Lubrifiants"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 850, "unit": "USD/tonne", "trend_3m_pct": -4 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 65
+        },
+        {
+          "country": "Mozambique",
+          "share_pct": 9
+        },
+        {
+          "country": "Madagascar",
+          "share_pct": 8
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 850,
+        "unit": "USD/tonne",
+        "trend_3m_pct": -4
+      },
       "data_quality": "estimated"
     },
     {
       "id": "lithium",
       "name_fr": "Lithium",
       "category": "Batteries",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 8.8,
-      "china_dominant": false,
-      "main_uses": ["Batteries véhicules électriques", "Stockage stationnaire", "Électronique"],
-      "top_producers": [
-        { "country": "Australie", "share_pct": 47 },
-        { "country": "Chili", "share_pct": 24 },
-        { "country": "Chine", "share_pct": 18 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 8.8,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Batteries véhicules électriques",
+        "Stockage stationnaire",
+        "Électronique"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 13.4, "unit": "USD/kg", "trend_3m_pct": -6 },
+      "top_producers": [
+        {
+          "country": "Australie",
+          "share_pct": 47
+        },
+        {
+          "country": "Chili",
+          "share_pct": 24
+        },
+        {
+          "country": "Chine",
+          "share_pct": 18
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 13.4,
+        "unit": "USD/kg",
+        "trend_3m_pct": -6
+      },
       "data_quality": "estimated"
     },
     {
       "id": "magnesium",
       "name_fr": "Magnésium",
       "category": "Métaux légers / Alliages",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 8.0,
-      "china_dominant": true,
-      "main_uses": ["Alliages légers automobile/aérospatial", "Désulfuration de l'acier", "Batteries"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 87 },
-        { "country": "Etats-Unis", "share_pct": 5 },
-        { "country": "Russie", "share_pct": 3 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 8,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Alliages légers automobile/aérospatial",
+        "Désulfuration de l'acier",
+        "Batteries"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 3.9, "unit": "USD/kg", "trend_3m_pct": 10 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 87
+        },
+        {
+          "country": "Etats-Unis",
+          "share_pct": 5
+        },
+        {
+          "country": "Russie",
+          "share_pct": 3
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 3.9,
+        "unit": "USD/kg",
+        "trend_3m_pct": 10
+      },
       "data_quality": "estimated"
     },
     {
       "id": "manganese",
       "name_fr": "Manganèse",
       "category": "Sidérurgie / Alliages",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 6.9,
-      "china_dominant": false,
-      "main_uses": ["Aciers (désoxydation, alliage)", "Batteries Li-ion (cathodes NMC)", "Alliages aluminium"],
-      "top_producers": [
-        { "country": "Afrique du Sud", "share_pct": 35 },
-        { "country": "Gabon", "share_pct": 20 },
-        { "country": "Australie", "share_pct": 14 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 6.9,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Aciers (désoxydation, alliage)",
+        "Batteries Li-ion (cathodes NMC)",
+        "Alliages aluminium"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 4.2, "unit": "USD/dmtu", "trend_3m_pct": 1 },
+      "top_producers": [
+        {
+          "country": "Afrique du Sud",
+          "share_pct": 35
+        },
+        {
+          "country": "Gabon",
+          "share_pct": 20
+        },
+        {
+          "country": "Australie",
+          "share_pct": 14
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 4.2,
+        "unit": "USD/dmtu",
+        "trend_3m_pct": 1
+      },
       "data_quality": "estimated"
     },
     {
       "id": "nickel",
       "name_fr": "Nickel",
       "category": "Batteries / Sidérurgie inox",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 7.3,
-      "china_dominant": false,
-      "main_uses": ["Batteries véhicules électriques", "Aciers inoxydables", "Superalliages"],
-      "top_producers": [
-        { "country": "Indonésie", "share_pct": 50 },
-        { "country": "Philippines", "share_pct": 10 },
-        { "country": "Russie", "share_pct": 6 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7.3,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Batteries véhicules électriques",
+        "Aciers inoxydables",
+        "Superalliages"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 15.6, "unit": "USD/kg", "trend_3m_pct": -3 },
+      "top_producers": [
+        {
+          "country": "Indonésie",
+          "share_pct": 50
+        },
+        {
+          "country": "Philippines",
+          "share_pct": 10
+        },
+        {
+          "country": "Russie",
+          "share_pct": 6
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 15.6,
+        "unit": "USD/kg",
+        "trend_3m_pct": -3
+      },
       "data_quality": "estimated"
     },
     {
       "id": "niobium",
       "name_fr": "Niobium",
       "category": "Sidérurgie / Alliages spéciaux",
-      "criticality_eu": "Critique",
-      "criticality_score": 7.4,
-      "china_dominant": false,
-      "main_uses": ["Aciers microalliés HSLA", "Superalliages", "Supraconducteurs"],
-      "top_producers": [
-        { "country": "Brésil", "share_pct": 88 },
-        { "country": "Canada", "share_pct": 7 },
-        { "country": "Rwanda", "share_pct": 1 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7.4,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Aciers microalliés HSLA",
+        "Superalliages",
+        "Supraconducteurs"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 42, "unit": "USD/kg", "trend_3m_pct": 2 },
+      "top_producers": [
+        {
+          "country": "Brésil",
+          "share_pct": 88
+        },
+        {
+          "country": "Canada",
+          "share_pct": 7
+        },
+        {
+          "country": "Rwanda",
+          "share_pct": 1
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 42,
+        "unit": "USD/kg",
+        "trend_3m_pct": 2
+      },
       "data_quality": "estimated"
     },
     {
       "id": "phosphate-rock",
       "name_fr": "Roche phosphatée",
       "category": "Agriculture / Engrais",
-      "criticality_eu": "Critique",
-      "criticality_score": 6.4,
-      "china_dominant": true,
-      "main_uses": ["Engrais phosphatés", "Acide phosphorique", "Additifs alimentaires"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 40 },
-        { "country": "Maroc", "share_pct": 23 },
-        { "country": "Etats-Unis", "share_pct": 10 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 6.4,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Engrais phosphatés",
+        "Acide phosphorique",
+        "Additifs alimentaires"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 175, "unit": "USD/tonne", "trend_3m_pct": 8 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 40
+        },
+        {
+          "country": "Maroc",
+          "share_pct": 23
+        },
+        {
+          "country": "Etats-Unis",
+          "share_pct": 10
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 175,
+        "unit": "USD/tonne",
+        "trend_3m_pct": 8
+      },
       "data_quality": "estimated"
     },
     {
       "id": "phosphorus",
       "name_fr": "Phosphore",
       "category": "Chimie / Agriculture",
-      "criticality_eu": "Critique",
-      "criticality_score": 6.7,
-      "china_dominant": true,
-      "main_uses": ["Additifs alimentaires", "Retardateurs de flamme", "Agrochimie"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 70 },
-        { "country": "Kazakhstan", "share_pct": 10 },
-        { "country": "Vietnam", "share_pct": 5 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 6.7,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Additifs alimentaires",
+        "Retardateurs de flamme",
+        "Agrochimie"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 2450, "unit": "USD/tonne", "trend_3m_pct": 5 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 70
+        },
+        {
+          "country": "Kazakhstan",
+          "share_pct": 10
+        },
+        {
+          "country": "Vietnam",
+          "share_pct": 5
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 2450,
+        "unit": "USD/tonne",
+        "trend_3m_pct": 5
+      },
       "data_quality": "estimated"
     },
     {
       "id": "pgm",
       "name_fr": "Platinoïdes (PGM)",
       "category": "Platinoïdes / Catalyse",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 8.1,
-      "china_dominant": false,
-      "main_uses": ["Pots catalytiques", "Piles à combustible hydrogène", "Électronique"],
-      "top_producers": [
-        { "country": "Afrique du Sud", "share_pct": 71 },
-        { "country": "Russie", "share_pct": 11 },
-        { "country": "Zimbabwe", "share_pct": 8 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 8.1,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Pots catalytiques",
+        "Piles à combustible hydrogène",
+        "Électronique"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 31500, "unit": "USD/kg", "trend_3m_pct": 4 },
+      "top_producers": [
+        {
+          "country": "Afrique du Sud",
+          "share_pct": 71
+        },
+        {
+          "country": "Russie",
+          "share_pct": 11
+        },
+        {
+          "country": "Zimbabwe",
+          "share_pct": 8
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 31500,
+        "unit": "USD/kg",
+        "trend_3m_pct": 4
+      },
       "data_quality": "estimated"
     },
     {
       "id": "scandium",
       "name_fr": "Scandium",
       "category": "Terres rares / Aérospatial",
-      "criticality_eu": "Critique",
-      "criticality_score": 7.9,
-      "china_dominant": true,
-      "main_uses": ["Alliages aluminium-scandium (aérospatial)", "Piles à combustible SOFC", "Éclairage haute intensité"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 66 },
-        { "country": "Russie", "share_pct": 5 },
-        { "country": "Ukraine", "share_pct": 3 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7.9,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Alliages aluminium-scandium (aérospatial)",
+        "Piles à combustible SOFC",
+        "Éclairage haute intensité"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 4200, "unit": "USD/kg", "trend_3m_pct": 6 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 66
+        },
+        {
+          "country": "Russie",
+          "share_pct": 5
+        },
+        {
+          "country": "Ukraine",
+          "share_pct": 3
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 4200,
+        "unit": "USD/kg",
+        "trend_3m_pct": 6
+      },
       "data_quality": "estimated"
     },
     {
       "id": "silicon-metal",
       "name_fr": "Silicium métal",
       "category": "Métaux technologiques / Semi-conducteurs",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 7.7,
-      "china_dominant": true,
-      "main_uses": ["Panneaux photovoltaïques", "Semi-conducteurs", "Silicones et alliages aluminium"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 68 },
-        { "country": "Brésil", "share_pct": 7 },
-        { "country": "Norvège", "share_pct": 6 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7.7,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Panneaux photovoltaïques",
+        "Semi-conducteurs",
+        "Silicones et alliages aluminium"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 2.6, "unit": "USD/kg", "trend_3m_pct": 12 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 68
+        },
+        {
+          "country": "Brésil",
+          "share_pct": 7
+        },
+        {
+          "country": "Norvège",
+          "share_pct": 6
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 2.6,
+        "unit": "USD/kg",
+        "trend_3m_pct": 12
+      },
       "data_quality": "estimated"
     },
     {
       "id": "strontium",
       "name_fr": "Strontium",
       "category": "Minéraux industriels / Pyrotechnie",
-      "criticality_eu": "Critique",
-      "criticality_score": 5.4,
-      "china_dominant": false,
-      "main_uses": ["Aimants ferrite", "Pyrotechnie", "Céramiques et verres spéciaux"],
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 5.4,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Aimants ferrite",
+        "Pyrotechnie",
+        "Céramiques et verres spéciaux"
+      ],
       "top_producers": [
-        { "country": "Espagne", "share_pct": 30 },
-        { "country": "Chine", "share_pct": 25 },
-        { "country": "Mexique", "share_pct": 20 }
+        {
+          "country": "Espagne",
+          "share_pct": 30
+        },
+        {
+          "country": "Chine",
+          "share_pct": 25
+        },
+        {
+          "country": "Mexique",
+          "share_pct": 20
+        }
       ],
       "price_snapshot": null,
       "data_quality": "estimated"
@@ -456,96 +1013,222 @@
       "id": "tantalum",
       "name_fr": "Tantale",
       "category": "Métaux technologiques / Condensateurs",
-      "criticality_eu": "Critique",
-      "criticality_score": 7.1,
-      "china_dominant": false,
-      "main_uses": ["Condensateurs électroniques", "Superalliages", "Implants médicaux"],
-      "top_producers": [
-        { "country": "RD Congo", "share_pct": 35 },
-        { "country": "Rwanda", "share_pct": 28 },
-        { "country": "Brésil", "share_pct": 10 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7.1,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Condensateurs électroniques",
+        "Superalliages",
+        "Implants médicaux"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 195, "unit": "USD/kg", "trend_3m_pct": 3 },
+      "top_producers": [
+        {
+          "country": "RD Congo",
+          "share_pct": 35
+        },
+        {
+          "country": "Rwanda",
+          "share_pct": 28
+        },
+        {
+          "country": "Brésil",
+          "share_pct": 10
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 195,
+        "unit": "USD/kg",
+        "trend_3m_pct": 3
+      },
       "data_quality": "estimated"
     },
     {
       "id": "titanium-metal",
       "name_fr": "Titane métal",
       "category": "Métaux structuraux / Aérospatial",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 8.2,
-      "china_dominant": true,
-      "main_uses": ["Alliages aérospatiaux", "Implants médicaux", "Industrie navale et défense"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 55 },
-        { "country": "Japon", "share_pct": 17 },
-        { "country": "Russie", "share_pct": 15 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 8.2,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Alliages aérospatiaux",
+        "Implants médicaux",
+        "Industrie navale et défense"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 9.2, "unit": "USD/kg", "trend_3m_pct": 1 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 55
+        },
+        {
+          "country": "Japon",
+          "share_pct": 17
+        },
+        {
+          "country": "Russie",
+          "share_pct": 15
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 9.2,
+        "unit": "USD/kg",
+        "trend_3m_pct": 1
+      },
       "data_quality": "estimated"
     },
     {
       "id": "tungsten",
       "name_fr": "Tungstène",
       "category": "Métaux durs / Défense",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 8.6,
-      "china_dominant": true,
-      "main_uses": ["Carbures cémentés (outils de coupe)", "Alliages haute densité", "Munitions et défense"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 82 },
-        { "country": "Vietnam", "share_pct": 5 },
-        { "country": "Russie", "share_pct": 3 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 8.6,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Carbures cémentés (outils de coupe)",
+        "Alliages haute densité",
+        "Munitions et défense"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 33.5, "unit": "USD/kg", "trend_3m_pct": 9 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 82
+        },
+        {
+          "country": "Vietnam",
+          "share_pct": 5
+        },
+        {
+          "country": "Russie",
+          "share_pct": 3
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 33.5,
+        "unit": "USD/kg",
+        "trend_3m_pct": 9
+      },
       "data_quality": "estimated"
     },
     {
       "id": "vanadium",
       "name_fr": "Vanadium",
       "category": "Sidérurgie / Stockage énergie",
-      "criticality_eu": "Critique",
-      "criticality_score": 7.5,
-      "china_dominant": true,
-      "main_uses": ["Aciers haute résistance", "Batteries redox flow (stockage stationnaire)", "Alliages titane-aluminium-vanadium"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 68 },
-        { "country": "Russie", "share_pct": 18 },
-        { "country": "Afrique du Sud", "share_pct": 8 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 7.5,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Aciers haute résistance",
+        "Batteries redox flow (stockage stationnaire)",
+        "Alliages titane-aluminium-vanadium"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 7.4, "unit": "USD/kg", "trend_3m_pct": -5 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 68
+        },
+        {
+          "country": "Russie",
+          "share_pct": 18
+        },
+        {
+          "country": "Afrique du Sud",
+          "share_pct": 8
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 7.4,
+        "unit": "USD/kg",
+        "trend_3m_pct": -5
+      },
       "data_quality": "estimated"
     },
     {
       "id": "heavy-ree",
       "name_fr": "Terres rares lourdes",
       "category": "Terres rares lourdes",
-      "criticality_eu": "Stratégique",
-      "criticality_score": 9.6,
-      "china_dominant": true,
-      "main_uses": ["Aimants permanents haute performance", "Moteurs électriques", "Électronique de défense"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 95 },
-        { "country": "Myanmar", "share_pct": 4 },
-        { "country": "Etats-Unis", "share_pct": 1 }
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 9.6,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Aimants permanents haute performance",
+        "Moteurs électriques",
+        "Électronique de défense"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 890, "unit": "USD/kg", "trend_3m_pct": 18 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 95
+        },
+        {
+          "country": "Myanmar",
+          "share_pct": 4
+        },
+        {
+          "country": "Etats-Unis",
+          "share_pct": 1
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 890,
+        "unit": "USD/kg",
+        "trend_3m_pct": 18
+      },
       "data_quality": "estimated"
     },
     {
       "id": "light-ree",
       "name_fr": "Terres rares légères",
       "category": "Terres rares légères",
-      "criticality_eu": "Critique",
-      "criticality_score": 8.9,
-      "china_dominant": true,
-      "main_uses": ["Aimants permanents (néodyme)", "Catalyseurs de raffinage pétrolier", "Polissage verre optique"],
-      "top_producers": [
-        { "country": "Chine", "share_pct": 60 },
-        { "country": "Etats-Unis", "share_pct": 12 },
-        { "country": "Myanmar", "share_pct": 9 }
+      "is_critical_eu": true,
+      "is_strategic_eu": false,
+      "regulation_version": "CRMA-2024",
+      "carbonco_supply_risk_score": 8.9,
+      "score_methodology_version": "CC-SUPPLY-RISK-0.1",
+      "score_confidence": null,
+      "main_uses": [
+        "Aimants permanents (néodyme)",
+        "Catalyseurs de raffinage pétrolier",
+        "Polissage verre optique"
       ],
-      "price_snapshot": { "date": "2026-06-30", "value": 68, "unit": "USD/kg", "trend_3m_pct": 14 },
+      "top_producers": [
+        {
+          "country": "Chine",
+          "share_pct": 60
+        },
+        {
+          "country": "Etats-Unis",
+          "share_pct": 12
+        },
+        {
+          "country": "Myanmar",
+          "share_pct": 9
+        }
+      ],
+      "price_snapshot": {
+        "date": "2026-06-30",
+        "value": 68,
+        "unit": "USD/kg",
+        "trend_3m_pct": 14
+      },
       "data_quality": "estimated"
     }
   ]

@@ -311,7 +311,7 @@
     {
       "id": "materiaux-critiques",
       "label": "Cartographie des matières premières critiques",
-      "description": "Module d'exploration : les 34 matières critiques UE avec prix (historique hebdomadaire), dépendances géographiques, producteurs et criticité. Relie vos catégories Scope 3 aux matières de vos chaînes de valeur et nourrit l'analyse de double matérialité. Données snapshot datées — aucune donnée inventée.",
+      "description": "Module d'exploration : les 34 matières critiques UE (dont 17 stratégiques) avec prix, dépendances géographiques, producteurs et score CarbonCo de risque d'approvisionnement. Relie vos catégories Scope 3 aux matières de vos chaînes de valeur et nourrit l'analyse de double matérialité. Snapshot de démonstration daté — valeurs estimées, non normatives.",
       "statut": "live",
       "normes": ["ESRS E1"],
       "tag": "Module d'exploration",

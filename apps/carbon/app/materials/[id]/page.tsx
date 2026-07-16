@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getMaterials, getMaterialById, getChinaShare } from "@/lib/crm/dataLoader";
+import { getMaterials, getMaterialById, getChinaShare, isChinaConcentrated, hasRenderableHistory } from "@/lib/crm/dataLoader";
+import { DataStatusBadge, statusFromQuality } from "@/components/ui/data-status-badge";
 import Sparkline from "@/components/materials/Sparkline";
 
 interface PageProps { params: Promise<{ id: string }> }
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: PageProps) {
   if (!material) return { title: "Matière introuvable | Carbon&Co Intelligence" };
   return {
     title: `${material.name_fr} — Criticité, producteurs & prix | Carbon&Co Intelligence`,
-    description: `${material.name_fr} (${material.category}) : score de criticité UE ${material.criticality_score}, part chinoise ${getChinaShare(material)}%, usages et producteurs clés.`,
+    description: `${material.name_fr} (${material.category}) : score CarbonCo de risque d'approvisionnement ${material.carbonco_supply_risk_score ?? "n.d."} (estimé), part chinoise ${getChinaShare(material)}%, usages et producteurs clés.`,
   };
 }
 
@@ -34,6 +35,7 @@ export default async function MaterialPage({ params }: PageProps) {
   const { materials, snapshot_date } = await getMaterials();
   const china = getChinaShare(material);
   const tone = chinaTone(china);
+  const concentrated = isChinaConcentrated(material);
   const price = material.price_snapshot;
   const history = material.price_history;
   const related = materials.filter(m => m.category === material.category && m.id !== material.id).slice(0, 4);
@@ -65,23 +67,23 @@ export default async function MaterialPage({ params }: PageProps) {
         {/* Badges */}
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-3">
-            <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-              material.criticality_eu === "Stratégique" ? "bg-red-500/20 text-red-400" : "bg-blue-500/20 text-blue-400"
-            }`}>{material.criticality_eu} UE</span>
+            {material.is_strategic_eu ? (
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-red-500/20 text-red-400">
+                Stratégique UE <span className="font-normal opacity-80">(⊂ critique)</span>
+              </span>
+            ) : (
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/20 text-blue-400">Critique UE</span>
+            )}
             <span className="text-xs px-3 py-1 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400">
               {material.category}
             </span>
-            {material.data_quality === "estimated" && (
-              <span className="text-xs px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400">
-                Données estimées — snapshot statique
-              </span>
-            )}
+            <DataStatusBadge status={statusFromQuality(material.data_quality)} size="sm" />
           </div>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight">{material.name_fr}</h1>
             <div className="text-right">
-              <p className="font-mono text-4xl font-black text-amber-400">{material.criticality_score}</p>
-              <p className="text-xs text-zinc-500">Score criticité UE / 10</p>
+              <p className="font-mono text-4xl font-black text-amber-400">{material.carbonco_supply_risk_score ?? "—"}</p>
+              <p className="text-xs text-zinc-500">Score CarbonCo / 10 · estimé</p>
             </div>
           </div>
         </div>
@@ -95,11 +97,12 @@ export default async function MaterialPage({ params }: PageProps) {
                 <div className="flex items-baseline gap-2">
                   <span className="font-mono text-3xl font-black text-white">{price.value}</span>
                   <span className="text-sm text-zinc-500">{price.unit}</span>
-                  <span className={`ml-auto text-sm font-bold ${price.trend_3m_pct > 0 ? "text-red-400" : "text-emerald-400"}`}>
-                    {price.trend_3m_pct > 0 ? "+" : ""}{price.trend_3m_pct}% / 3 mois
+                  <span className={`ml-auto text-sm font-bold ${price.trend_3m_pct > 0 ? "text-red-400" : "text-emerald-400"}`}
+                    title="Tendance 3 mois déclarée par le snapshot — estimation, pas une série observée">
+                    {price.trend_3m_pct > 0 ? "+" : ""}{price.trend_3m_pct}% / 3 mois (est.)
                   </span>
                 </div>
-                {history.length >= 2 ? (
+                {hasRenderableHistory(history) ? (
                   <div className="space-y-1">
                     <Sparkline points={history} width={320} height={64} className="w-full" />
                     <p className="text-xs text-zinc-500">
@@ -107,10 +110,13 @@ export default async function MaterialPage({ params }: PageProps) {
                     </p>
                   </div>
                 ) : (
-                  <p className="text-xs text-zinc-500 border-t border-zinc-800 pt-3">
-                    Historique en construction — un relevé hebdomadaire automatique (GitHub Actions, chaque lundi)
-                    accumule les prix du snapshot. La courbe apparaîtra dès 2 relevés réels.
-                  </p>
+                  <div className="flex items-center gap-2 border-t border-zinc-800 pt-3">
+                    <DataStatusBadge status="ESTIMATED" label="Estimation snapshot" />
+                    <p className="text-xs text-zinc-500">
+                      Un seul relevé disponible — pas d&apos;historique. Une courbe n&apos;apparaîtra
+                      que lorsqu&apos;au moins deux snapshots datés auront été publiés.
+                    </p>
+                  </div>
                 )}
                 <p className="text-[10px] text-zinc-600">Relevé du {price.date}</p>
               </>
@@ -129,7 +135,11 @@ export default async function MaterialPage({ params }: PageProps) {
               <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${china}%` }} />
             </div>
             <p className="text-xs text-zinc-500">
-              Part de la Chine dans la production mondiale{material.china_dominant ? " — matière classée sous dominance chinoise." : "."}
+              Part de la Chine dans la production mondiale{concentrated ? ` — concentration ≥ 50% (stade agrégé).` : "."}
+            </p>
+            <p className="text-[10px] text-zinc-600">
+              Dérivée des producteurs du snapshot — le snapshot ne distingue pas encore extraction,
+              raffinage et transformation.
             </p>
           </div>
         </section>
@@ -175,7 +185,7 @@ export default async function MaterialPage({ params }: PageProps) {
                 <Link key={m.id} href={`/materials/${m.id}`}
                   className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 hover:border-zinc-600 transition">
                   <p className="font-bold text-sm text-white">{m.name_fr}</p>
-                  <p className="font-mono text-xs text-amber-400 mt-1">{m.criticality_score}</p>
+                  <p className="font-mono text-xs text-amber-400 mt-1" title="Score CarbonCo (estimé)">{m.carbonco_supply_risk_score ?? "—"}</p>
                 </Link>
               ))}
             </div>

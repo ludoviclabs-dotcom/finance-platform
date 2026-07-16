@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
+import { DataStatusBadge } from "@/components/ui/data-status-badge";
 
 interface PriceSnapshot { date: string; value: number; unit: string; trend_3m_pct: number }
-interface Material { id: string; name_fr: string; price_snapshot: PriceSnapshot | null; criticality_eu: string }
+interface Material { id: string; name_fr: string; price_snapshot: PriceSnapshot | null }
 interface Props { materials: Material[]; threshold?: number }
 
 type Severity = "MODÉRÉE" | "ÉLEVÉE" | "CRITIQUE";
@@ -39,8 +40,12 @@ export default function PriceAlertModule({ materials, threshold = 15 }: Props) {
                 {alerts.length}
               </span>
             )}
+            <DataStatusBadge status="ESTIMATED" />
           </h3>
-          <p className="text-xs text-zinc-500 mt-0.5">Seuil : variation ≥ {threshold}% sur 3 mois</p>
+          <p className="text-xs text-zinc-500 mt-0.5">
+            Tendance 3 mois <strong className="text-zinc-400">estimée par le snapshot</strong> (seuil ≥ {threshold}%) —
+            pas une série de prix observée.
+          </p>
         </div>
         {dismissed.size > 0 && (
           <button onClick={() => setDismissed(new Set())}

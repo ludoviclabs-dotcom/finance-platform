@@ -1,8 +1,32 @@
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { DataStatusBadge } from "@/components/ui/data-status-badge";
+import type { MaterialsSummary } from "@/lib/crm/dataLoader";
 
-interface Props { total: number; strategic: number }
+interface Props {
+  summary: MaterialsSummary;
+  snapshotYear: number;
+}
 
-export default function MaterialsHero({ total, strategic }: Props) {
+export default function MaterialsHero({ summary, snapshotYear }: Props) {
+  const { total, strategic, critical, chinaConcentrated, estimatedPct, chinaThreshold } = summary;
+
+  // Tous les indicateurs sont DÉRIVÉS du dataset — aucun chiffre en dur.
+  const stats = [
+    { value: critical, suffix: "", label: "Matières critiques UE", color: "text-white", badge: null, note: null },
+    { value: strategic, suffix: "", label: "Dont stratégiques", color: "text-amber-400", badge: null, note: null },
+    {
+      value: chinaConcentrated, suffix: `/${total}`,
+      label: `Production concentrée en Chine (≥ ${chinaThreshold}%)`,
+      color: "text-red-400", badge: null,
+      note: "Stade agrégé — extraction, raffinage et transformation non distingués",
+    },
+    {
+      value: estimatedPct, suffix: "%",
+      label: "Données estimées (snapshot de démonstration)",
+      color: "text-amber-400", badge: "ESTIMATED" as const, note: null,
+    },
+  ];
+
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-950 to-black border-b border-zinc-800">
       <div className="absolute inset-0 opacity-[0.04]"
@@ -12,7 +36,7 @@ export default function MaterialsHero({ total, strategic }: Props) {
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-red-500/10 border border-red-500/30 px-4 py-1.5 text-sm text-red-400 font-medium">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              Intelligence économique · Snapshot {new Date().getFullYear()}
+              Intelligence économique · Snapshot {snapshotYear}
             </div>
             <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight">
               Les{" "}
@@ -36,17 +60,16 @@ export default function MaterialsHero({ total, strategic }: Props) {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {[
-              { value: total, suffix: "", label: "Matières critiques UE", color: "text-white" },
-              { value: strategic, suffix: "", label: "Dont stratégiques", color: "text-amber-400" },
-              { value: 20, suffix: `/${total}`, label: "Dominées par la Chine", color: "text-red-400" },
-              { value: 94, suffix: "%", label: "Aimants permanents chinois", color: "text-red-500" },
-            ].map(stat => (
-              <div key={stat.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 backdrop-blur p-5">
-                <p className={`text-4xl font-black ${stat.color}`}>
-                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                </p>
+            {stats.map(stat => (
+              <div key={stat.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 backdrop-blur p-5 flex flex-col">
+                <div className="flex items-start justify-between gap-2">
+                  <p className={`text-4xl font-black ${stat.color}`}>
+                    <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                  </p>
+                  {stat.badge && <DataStatusBadge status={stat.badge} />}
+                </div>
                 <p className="text-zinc-400 text-sm mt-1 leading-snug">{stat.label}</p>
+                {stat.note && <p className="text-[10px] text-zinc-600 mt-1.5 leading-tight">{stat.note}</p>}
               </div>
             ))}
           </div>

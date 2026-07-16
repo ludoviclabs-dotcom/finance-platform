@@ -95,6 +95,22 @@ const FORBIDDEN_CLAIMS: { pattern: RegExp; reason: string; scope: "public" | "al
     reason: "« Bilan Carbone® » est une marque déposée — utiliser « bilan GES »",
     scope: "all",
   },
+  // ─── PR-01 — Vérité des données /materials ────────────────────────────────
+  {
+    pattern: /aucune donn[ée]e invent[ée]e/i,
+    reason: "PR-01 : « aucune donnée inventée » interdit tant que les valeurs sont estimated",
+    scope: "all",
+  },
+  {
+    pattern: /mise à jour automatique/i,
+    reason: "PR-01 : pas de « mise à jour automatique » — le snapshot est statique, aucun flux externe",
+    scope: "all",
+  },
+  {
+    pattern: /(snapshot|historique)[^.]{0,40}hebdomadaire/i,
+    reason: "PR-01 : pas de promesse de rafraîchissement hebdomadaire du snapshot /materials",
+    scope: "all",
+  },
 ];
 
 /**
@@ -131,9 +147,28 @@ function landingFiles(): { path: string; scope: "public" }[] {
   return out;
 }
 
+/**
+ * Fichiers publics du module /materials (page, fiche matière, composants).
+ * Scannés pour empêcher la réapparition d'un claim de fraîcheur/vérité (PR-01).
+ */
+function materialsFiles(): { path: string; scope: "public" }[] {
+  const out: { path: string; scope: "public" }[] = [];
+  const walk = (abs: string) => {
+    for (const entry of readdirSync(abs, { withFileTypes: true })) {
+      const child = join(abs, entry.name);
+      if (entry.isDirectory()) walk(child);
+      else if (entry.name.endsWith(".tsx")) out.push({ path: relative(ROOT, child), scope: "public" });
+    }
+  };
+  walk(join(ROOT, "app/materials"));
+  walk(join(ROOT, "components/materials"));
+  return out;
+}
+
 const FILES_TO_SCAN: { path: string; scope: "public" | "transparency" }[] = [
   ...STATIC_FILES_TO_SCAN,
   ...landingFiles(),
+  ...materialsFiles(),
 ];
 
 describe("Claims Guard — aucun claim interdit dans l'UI publique", () => {

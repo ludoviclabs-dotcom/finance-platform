@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 interface Producer { country: string; share_pct: number }
-interface Material { id: string; name_fr: string; top_producers: Producer[]; criticality_eu: string }
+interface Material { id: string; name_fr: string; top_producers: Producer[] }
 interface Props { materials: Material[] }
 
 function getChinaShare(m: Material): number {
@@ -82,6 +82,12 @@ export default function ChinaDependencyWidget({ materials }: Props) {
           </div>
         ))}
       </div>
+
+      <p className="text-[10px] leading-relaxed text-zinc-600 border-t border-zinc-800 pt-3">
+        Part chinoise dérivée des producteurs du snapshot, au stade de production agrégé —
+        le snapshot ne distingue pas encore extraction, raffinage et transformation.
+        Valeurs estimées.
+      </p>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { getMaterials } from "@/lib/crm/dataLoader";
+import { getMaterials, summarize } from "@/lib/crm/dataLoader";
 import { HomeClient } from "@/components/pages/home-client";
 
 const MOIS = [
@@ -14,7 +14,7 @@ const MOIS = [
  */
 export default async function Home() {
   const { materials, total_materials, strategic_count, snapshot_date } = await getMaterials();
-  const chinaDominant = materials.filter((m) => m.china_dominant).length;
+  const { chinaConcentrated, chinaThreshold } = summarize(materials);
   const [y, mo, d] = snapshot_date.split("-").map(Number);
   const snapshotLabel = `${d} ${MOIS[mo - 1]} ${y}`;
 
@@ -23,7 +23,8 @@ export default async function Home() {
       materialsStats={{
         total: total_materials,
         strategic: strategic_count,
-        chinaDominant,
+        chinaConcentrated,
+        chinaThreshold,
         snapshotLabel,
       }}
     />

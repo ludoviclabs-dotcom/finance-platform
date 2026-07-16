@@ -1,3 +1,7 @@
+// Frise pédagogique de la chaîne de valeur — les 5 étapes et pays associés
+// illustrent des mécanismes de concentration connus (extraction, raffinage,
+// transformation, composants, produits finis), sans quantification chiffrée :
+// le snapshot actuel ne mesure pas séparément chaque étape par matière.
 const STEPS = [
   {
     icon: "⛏️", step: "01", label: "Extraction",
@@ -8,19 +12,19 @@ const STEPS = [
   {
     icon: "🏭", step: "02", label: "Raffinage",
     desc: "Hydrométallurgie et pyrométallurgie. Étape la plus concentrée géographiquement de la chaîne.",
-    risk: "Quasi-monopole chinois sur 91% des terres rares",
-    countries: ["Chine (91%)", "Japon", "Estonie"],
+    risk: "Capacités de raffinage fortement concentrées dans un nombre limité de pays",
+    countries: ["Chine", "Japon", "Estonie"],
   },
   {
     icon: "🔧", step: "03", label: "Transformation",
     desc: "Fabrication d'alliages, aimants permanents NdFeB, précurseurs de batteries, oxydes spéciaux.",
-    risk: "Chine contrôle 94% des aimants permanents mondiaux",
+    risk: "Capacités de transformation et de fabrication d'aimants géographiquement concentrées",
     countries: ["Chine", "Japon", "Corée du Sud"],
   },
   {
     icon: "🔋", step: "04", label: "Composants",
     desc: "Moteurs électriques, semi-conducteurs GaN/GaAs, cellules photovoltaïques, turbines éoliennes.",
-    risk: "Dépendance aux équipementiers asiatiques (CATL, TSMC, Samsung)",
+    risk: "Dépendance à des écosystèmes industriels spécialisés",
     countries: ["Chine", "Taïwan", "Corée du Sud"],
   },
   {
@@ -39,6 +43,10 @@ export default function SupplyChainExplainer() {
         <p className="text-zinc-400 text-sm mt-1 max-w-2xl">
           De la mine au produit fini, chaque maillon est un point de vulnérabilité stratégique.
           La Chine domine les maillons intermédiaires — les plus critiques et les plus difficiles à dupliquer.
+        </p>
+        <p className="text-[10px] text-zinc-600 mt-1.5 max-w-2xl">
+          Schéma pédagogique — le snapshot actuel ne quantifie pas séparément chaque étape ; les pays
+          cités illustrent des mécanismes de concentration connus, pas une mesure auditée par matière.
         </p>
       </div>
       <div className="relative">

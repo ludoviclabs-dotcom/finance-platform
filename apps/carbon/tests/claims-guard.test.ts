@@ -111,6 +111,45 @@ const FORBIDDEN_CLAIMS: { pattern: RegExp; reason: string; scope: "public" | "al
     reason: "PR-01 : pas de promesse de rafraîchissement hebdomadaire du snapshot /materials",
     scope: "all",
   },
+  // ─── PR-01 post-merge — SupplyChainExplainer : géopolitique non sourcée ───
+  // Ces valeurs n'ont ni source, ni date, ni statut de qualité, ni distinction
+  // extraction/raffinage/transformation dans le dataset — cf. audit post-merge.
+  // Note : ne bannit PAS les pourcentages en général (ex. part Chine dérivée
+  // du dataset, affichée ESTIMATED, reste légitime), seulement ces couples
+  // valeur+sujet précis qui étaient codés en dur sans source.
+  {
+    pattern: /91\s*%[\s\S]{0,40}terres\s+rares|terres\s+rares[\s\S]{0,40}91\s*%/i,
+    reason: "PR-01 : pas de « 91% des terres rares » codé en dur — aucune source/date/statut associée",
+    scope: "all",
+  },
+  {
+    pattern: /94\s*%[\s\S]{0,40}aimants\s+permanents|aimants\s+permanents[\s\S]{0,40}94\s*%/i,
+    reason: "PR-01 : pas de « 94% des aimants permanents » codé en dur — aucune source/date/statut associée",
+    scope: "all",
+  },
+  {
+    pattern: /Quasi-monopole chinois sur 91\s*%/i,
+    reason: "PR-01 : formulation exacte supprimée de SupplyChainExplainer (non sourcée)",
+    scope: "all",
+  },
+  {
+    // Cible spécifiquement le libellé pays retiré des `countries` de SupplyChainExplainer
+    // (ex. `["Chine (91%)", "Japon", "Estonie"]`) — sans dépendre de la présence du mot
+    // « terres rares » à proximité, donc couvre une réintroduction isolée dans le tableau.
+    pattern: /Chine\s*\(\s*91\s*%\s*\)/i,
+    reason: "PR-01 : libellé pays « Chine (91%) » retiré de SupplyChainExplainer (non sourcé)",
+    scope: "all",
+  },
+  {
+    pattern: /Chine contr[ôo]le 94\s*%/i,
+    reason: "PR-01 : formulation exacte supprimée de SupplyChainExplainer (non sourcée)",
+    scope: "all",
+  },
+  {
+    pattern: /[ée]quipementiers asiatiques\s*\(\s*CATL\s*,\s*TSMC\s*,\s*Samsung\s*\)/i,
+    reason: "PR-01 : dépendance à des noms d'équipementiers précis retirée (non sourcée) — formulation générique désormais",
+    scope: "all",
+  },
 ];
 
 /**

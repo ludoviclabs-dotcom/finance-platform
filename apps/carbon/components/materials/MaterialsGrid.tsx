@@ -40,7 +40,7 @@ export default function MaterialsGrid({ materials }: Props) {
     <section id="materiaux" className="space-y-5">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-white">
-          Toutes les matières critiques
+          Toutes les matières critiques{" "}
           <span className="ml-2 text-zinc-500 font-normal text-base">({filtered.length}/{materials.length})</span>
         </h2>
       </div>

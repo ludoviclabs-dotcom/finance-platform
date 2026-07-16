@@ -133,6 +133,14 @@ const FORBIDDEN_CLAIMS: { pattern: RegExp; reason: string; scope: "public" | "al
     scope: "all",
   },
   {
+    // Cible spécifiquement le libellé pays retiré des `countries` de SupplyChainExplainer
+    // (ex. `["Chine (91%)", "Japon", "Estonie"]`) — sans dépendre de la présence du mot
+    // « terres rares » à proximité, donc couvre une réintroduction isolée dans le tableau.
+    pattern: /Chine\s*\(\s*91\s*%\s*\)/i,
+    reason: "PR-01 : libellé pays « Chine (91%) » retiré de SupplyChainExplainer (non sourcé)",
+    scope: "all",
+  },
+  {
     pattern: /Chine contr[ôo]le 94\s*%/i,
     reason: "PR-01 : formulation exacte supprimée de SupplyChainExplainer (non sourcée)",
     scope: "all",

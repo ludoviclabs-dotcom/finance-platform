@@ -2,7 +2,7 @@
 
 **Branche de travail :** `fix/materials-post-merge-reconciliation`.
 **Périmètre strict :** frontend `/materials`, tests de vérité, documentation. Aucune modification `apps/api`, aucune migration, aucune table, aucune donnée externe.
-**Statut : NON COMMITÉ, NON POUSSÉ** (conforme à la consigne — ce document décrit un travail encore local dans le worktree).
+**Statut : COMMITÉ ET POUSSÉ** — commit `1cf9360`, PR [#94](https://github.com/ludoviclabs-dotcom/finance-platform/pull/94) ouverte sur `master`, non mergée (fusion laissée à Ludo).
 
 ---
 
@@ -140,4 +140,6 @@ Vérification du HTML compilé (`.next/server/app/materials.html`) :
 
 **PRÊT POUR REVUE.**
 
-Justification : le seul écart substantif détecté (`SupplyChainExplainer.tsx`) est corrigé et verrouillé par un garde-fou de test ciblé ; toutes les vérifications obligatoires passent (lint 0 erreur, 149/149 tests, build OK, `rg` de contrôle à 0 occurrence) ; la documentation directrice (`PR01_TRACEABILITY.md`) reflète maintenant l'état réel post-merge. Rien n'a été commité ni poussé — en attente de ta validation avant tout commit.
+Commité (`1cf9360`) et poussé sur `fix/materials-post-merge-reconciliation` ; PR #94 ouverte contre `master`, en attente de revue et de fusion par Ludo (non mergée par Claude Code).
+
+Justification : le seul écart substantif détecté (`SupplyChainExplainer.tsx`) est corrigé et verrouillé par un garde-fou de test ciblé ; toutes les vérifications obligatoires passent (lint 0 erreur, 149/149 tests, build OK, `rg` de contrôle à 0 occurrence) ; la documentation directrice (`PR01_TRACEABILITY.md`) reflète maintenant l'état réel post-merge. Commit et push effectués sur autorisation explicite — la fusion de PR #94 reste entièrement à Ludo.

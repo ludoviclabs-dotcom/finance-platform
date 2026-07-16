@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getMaterials } from "@/lib/crm/dataLoader";
+import { getMaterials, summarize } from "@/lib/crm/dataLoader";
 import { Reveal } from "@/components/ui/reveal";
 import MaterialsHero from "@/components/materials/MaterialsHero";
 import SnapshotBanner from "@/components/materials/SnapshotBanner";
@@ -27,7 +27,9 @@ export const metadata: Metadata = {
 
 export default async function MaterialsPage() {
   const dataset = await getMaterials();
-  const { materials, snapshot_date } = dataset;
+  const { materials, snapshot_date, methodology_note } = dataset;
+  const summary = summarize(materials);
+  const snapshotYear = Number(snapshot_date.slice(0, 4));
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -47,10 +49,10 @@ export default async function MaterialsPage() {
         </div>
       </div>
 
-      <MaterialsHero total={materials.length} strategic={dataset.strategic_count} />
+      <MaterialsHero summary={summary} snapshotYear={snapshotYear} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <SnapshotBanner date={snapshot_date} />
+        <SnapshotBanner date={snapshot_date} methodologyNote={methodology_note} estimatedPct={summary.estimatedPct} />
       </div>
 
       {/* Pont vers le cœur du produit : pourquoi ce module existe dans CarbonCo */}
@@ -129,7 +131,8 @@ export default async function MaterialsPage() {
               Ce module fait partie de la plateforme CarbonCo.
             </p>
             <p className="text-sm text-zinc-500">
-              Données mises à jour chaque semaine — aucune donnée inventée, chaque point est daté.
+              Snapshot de démonstration daté du {snapshot_date} — valeurs estimées, non normatives.
+              L&apos;historique n&apos;est enrichi que lorsqu&apos;un nouveau snapshot daté est publié.
             </p>
           </div>
           <div className="flex flex-wrap gap-4">

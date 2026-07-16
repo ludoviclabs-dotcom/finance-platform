@@ -1,24 +1,41 @@
 // Abstraction source de données CRM — swapper l'import pour passer en mode live
 // STATIC : lit le JSON local
 // LIVE   : décommenter le fetch() et ajouter NEXT_PUBLIC_CRM_API_URL dans .env
+//
+// ⚠ Le snapshot est un jeu de DÉMONSTRATION : toutes les matières sont
+// `data_quality: "estimated"` (voir methodology_note). Aucune valeur n'est
+// vérifiée ni destinée à un usage normatif tant qu'un flux sourcé ne les
+// remplace pas.
 
 export type Producer = { country: string; share_pct: number };
 export type PriceSnapshot = { date: string; value: number; unit: string; trend_3m_pct: number } | null;
-// Un point réel d'historique = un price_snapshot daté, accumulé chaque lundi par
-// .github/workflows/materials-price-history.yml (dédup par date — jamais de point inventé).
+// Un point réel d'historique = un price_snapshot daté, re-copié depuis le
+// snapshot LOCAL par .github/workflows/materials-price-history.yml (dédup par
+// date — jamais de point inventé, aucune source externe interrogée). Tant qu'un
+// nouveau snapshot daté n'est pas publié, la série reste à un seul point et
+// n'est donc jamais affichée comme une tendance (voir hasRenderableHistory).
 export type PricePoint = { date: string; value: number; unit: string };
+
+export type DataQuality = "verified" | "estimated" | "manual";
 
 export interface Material {
   id: string;
   name_fr: string;
   category: string;
-  criticality_eu: "Stratégique" | "Critique";
-  criticality_score: number;
-  china_dominant: boolean;
+  // Statut réglementaire CRMA — non exclusif : toute matière stratégique est
+  // aussi critique. Dérivé du snapshot, jamais présenté comme une classification
+  // que CarbonCo aurait produite.
+  is_critical_eu: boolean;
+  is_strategic_eu: boolean;
+  regulation_version: string | null;
+  // Score maison de risque d'approvisionnement — PAS un score officiel UE.
+  carbonco_supply_risk_score: number | null;
+  score_methodology_version: string | null;
+  score_confidence: number | null;
   main_uses: string[];
   top_producers: Producer[];
   price_snapshot: PriceSnapshot;
-  data_quality: "verified" | "estimated" | "manual";
+  data_quality: DataQuality;
   price_history: PricePoint[];
 }
 
@@ -26,6 +43,7 @@ export interface CRMDataset {
   snapshot_date: string;
   total_materials: number;
   strategic_count: number;
+  methodology_note: string;
   materials: Material[];
 }
 
@@ -51,8 +69,25 @@ export async function getMaterialById(id: string): Promise<Material | null> {
   return materials.find(m => m.id === id) ?? null;
 }
 
+// Seuil de « concentration Chine » affiché. Le snapshot ne distingue pas encore
+// extraction / raffinage / transformation : ce ratio agrège toutes les étapes,
+// ce que l'UI doit signaler explicitement (avertissement de stade).
+export const CHINA_DOMINANCE_THRESHOLD = 50;
+
 export function getChinaShare(m: Material): number {
   return m.top_producers.find(p => p.country === "Chine")?.share_pct ?? 0;
+}
+
+// Statut « concentration Chine » DÉRIVÉ des producteurs (remplace l'ancien champ
+// figé china_dominant). Vaut pour le stade de production agrégé disponible.
+export function isChinaConcentrated(m: Material, threshold = CHINA_DOMINANCE_THRESHOLD): boolean {
+  return getChinaShare(m) >= threshold;
+}
+
+// Une série n'est affichable comme tendance qu'à partir de 2 points datés
+// indépendants. En deçà, aucun graphique ni badge ne doit simuler un historique.
+export function hasRenderableHistory(series: PricePoint[] | undefined): boolean {
+  return (series?.length ?? 0) >= 2;
 }
 
 export function isVolatile(m: Material, threshold = 15): boolean {
@@ -63,4 +98,30 @@ export function getAlerts(materials: Material[], threshold = 15) {
   return materials
     .filter(m => isVolatile(m, threshold))
     .sort((a, b) => Math.abs(b.price_snapshot!.trend_3m_pct) - Math.abs(a.price_snapshot!.trend_3m_pct));
+}
+
+export interface MaterialsSummary {
+  total: number;
+  strategic: number;
+  critical: number;
+  chinaConcentrated: number;
+  withPrice: number;
+  estimatedPct: number;
+  chinaThreshold: number;
+}
+
+// Indicateurs de tête — TOUS calculés depuis le dataset, aucun chiffre en dur.
+// Utilisé par le hero /materials et la bande module de la landing.
+export function summarize(materials: Material[]): MaterialsSummary {
+  const total = materials.length;
+  const estimated = materials.filter(m => m.data_quality === "estimated").length;
+  return {
+    total,
+    strategic: materials.filter(m => m.is_strategic_eu).length,
+    critical: materials.filter(m => m.is_critical_eu).length,
+    chinaConcentrated: materials.filter(m => isChinaConcentrated(m)).length,
+    withPrice: materials.filter(m => m.price_snapshot !== null).length,
+    estimatedPct: total === 0 ? 0 : Math.round((estimated / total) * 100),
+    chinaThreshold: CHINA_DOMINANCE_THRESHOLD,
+  };
 }

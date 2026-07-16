@@ -111,7 +111,7 @@ export default function ProductIndexPage() {
             </span>
             <span className="mt-2 block max-w-2xl text-sm leading-relaxed text-zinc-400">
               Les 34 matières critiques UE cartographiées pour éclairer vos analyses
-              Scope 3 et votre double matérialité. Snapshot hebdomadaire, chaque point daté.
+              Scope 3 et votre double matérialité. Snapshot de démonstration daté — valeurs estimées.
             </span>
           </span>
           <span className="text-sm font-extrabold text-amber-400">Explorer les matières →</span>

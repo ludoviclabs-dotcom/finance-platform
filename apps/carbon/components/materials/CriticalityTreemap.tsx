@@ -61,9 +61,9 @@ function TreemapTooltip({ active, payload }: {
       <p className="font-bold text-white text-sm">{d.name}</p>
       <p className="text-xs text-zinc-400 mt-0.5">{d.category}</p>
       <div className="mt-2 space-y-1 text-xs">
-        <p className="text-zinc-300">Score criticité : <span className="font-mono text-amber-400 font-bold">{d.size}</span></p>
+        <p className="text-zinc-300">Score CarbonCo : <span className="font-mono text-amber-400 font-bold">{d.size}</span></p>
         <p className="text-zinc-300">Part Chine : <span className="font-mono font-bold" style={{ color: fillFor(d.china) }}>{d.china}%</span></p>
-        <p className="text-zinc-300">Statut UE : <span className="font-semibold">{d.strategic ? "Stratégique" : "Critique"}</span></p>
+        <p className="text-zinc-300">Statut UE : <span className="font-semibold">{d.strategic ? "Stratégique (⊂ critique)" : "Critique"}</span></p>
       </div>
       <p className="text-[10px] text-zinc-500 mt-2">Cliquer pour ouvrir la fiche →</p>
     </div>
@@ -78,10 +78,10 @@ export default function CriticalityTreemap({ materials }: Props) {
     return {
       id: m.id,
       name: m.name_fr,
-      size: m.criticality_score,
+      size: m.carbonco_supply_risk_score ?? 0,
       china,
       category: m.category,
-      strategic: m.criticality_eu === "Stratégique",
+      strategic: m.is_strategic_eu,
       fill: fillFor(china),
     };
   }).sort((a, b) => b.size - a.size);
@@ -90,9 +90,10 @@ export default function CriticalityTreemap({ materials }: Props) {
     <section id="treemap" className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">Treemap de criticité</h2>
+          <h2 className="text-2xl font-bold text-white">Treemap de risque d&apos;approvisionnement</h2>
           <p className="text-zinc-400 text-sm mt-1">
-            Surface proportionnelle au score de criticité UE. Couleur selon la part chinoise de production.
+            Surface proportionnelle au <strong className="text-zinc-300">score CarbonCo</strong> (risque
+            d&apos;approvisionnement, estimé — pas un score officiel UE). Couleur selon la part chinoise de production.
           </p>
         </div>
         <div className="flex flex-wrap gap-3 shrink-0 text-xs text-zinc-400">

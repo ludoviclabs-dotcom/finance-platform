@@ -3,27 +3,37 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Material } from "@/lib/crm/dataLoader";
+import { getChinaShare, isChinaConcentrated, hasRenderableHistory } from "@/lib/crm/dataLoader";
+import { DataStatusBadge } from "@/components/ui/data-status-badge";
 import Sparkline from "./Sparkline";
 
 interface Props { materials: Material[] }
 
-function getChinaShare(m: Material): number {
-  return m.top_producers.find(p => p.country === "Chine")?.share_pct ?? 0;
-}
+// Filtres NON exclusifs : « Critique » couvre les 34 (toute matière est
+// critique), « Stratégique » son sous-ensemble — une matière stratégique passe
+// donc les deux filtres.
+const FILTERS = ["Toutes", "Stratégique", "Critique", "Chine ≥ 50%"] as const;
+type Filter = (typeof FILTERS)[number];
 
-const FILTERS = ["Toutes", "Stratégique", "Critique", "Chine dominante"];
+function matchesFilter(m: Material, filter: Filter): boolean {
+  switch (filter) {
+    case "Toutes": return true;
+    case "Stratégique": return m.is_strategic_eu;
+    case "Critique": return m.is_critical_eu;
+    case "Chine ≥ 50%": return isChinaConcentrated(m);
+  }
+}
 
 export default function MaterialsGrid({ materials }: Props) {
   const [search, setSearch]     = useState("");
-  const [filter, setFilter]     = useState("Toutes");
+  const [filter, setFilter]     = useState<Filter>("Toutes");
   const [expanded, setExpanded] = useState<string | null>(null);
   const reduceMotion = useReducedMotion();
 
   const filtered = useMemo(() => materials.filter(m => {
     const q = search.toLowerCase();
     const matchSearch = !q || m.name_fr.toLowerCase().includes(q) || m.main_uses.some(u => u.toLowerCase().includes(q));
-    const matchFilter = filter === "Toutes" ? true : filter === "Chine dominante" ? m.china_dominant : m.criticality_eu === filter;
-    return matchSearch && matchFilter;
+    return matchSearch && matchesFilter(m, filter);
   }), [materials, search, filter]);
 
   return (
@@ -66,9 +76,9 @@ export default function MaterialsGrid({ materials }: Props) {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    m.criticality_eu === "Stratégique" ? "bg-red-500/20 text-red-400" : "bg-blue-500/20 text-blue-400"
-                  }`}>{m.criticality_eu.slice(0,4)}.</span>
-                  <span className="font-mono text-amber-400 text-sm font-bold">{m.criticality_score}</span>
+                    m.is_strategic_eu ? "bg-red-500/20 text-red-400" : "bg-blue-500/20 text-blue-400"
+                  }`}>{m.is_strategic_eu ? "Stra." : "Crit."}</span>
+                  <span className="font-mono text-amber-400 text-sm font-bold" title="Score CarbonCo de risque d'approvisionnement (estimé)">{m.carbonco_supply_risk_score ?? "—"}</span>
                 </div>
               </div>
               <div>
@@ -90,13 +100,16 @@ export default function MaterialsGrid({ materials }: Props) {
                     <span className="text-xs text-zinc-500">{m.price_snapshot.unit}</span>
                     <div className="flex items-center gap-1.5">
                       <span className="font-mono text-white text-sm">{m.price_snapshot.value}</span>
-                      <span className={`text-xs font-bold ${ m.price_snapshot.trend_3m_pct > 0 ? "text-red-400" : "text-emerald-400" }`}>
+                      <span className={`text-xs font-bold ${ m.price_snapshot.trend_3m_pct > 0 ? "text-red-400" : "text-emerald-400" }`}
+                        title="Tendance 3 mois déclarée par le snapshot — estimation, pas une série observée">
                         {m.price_snapshot.trend_3m_pct > 0 ? "+" : ""}{m.price_snapshot.trend_3m_pct}%
                       </span>
                     </div>
                   </div>
-                  {m.price_history.length >= 2 && (
+                  {hasRenderableHistory(m.price_history) ? (
                     <Sparkline points={m.price_history} width={200} height={28} className="w-full" />
+                  ) : (
+                    <DataStatusBadge status="ESTIMATED" label="Estimation snapshot" />
                   )}
                 </div>
               )}

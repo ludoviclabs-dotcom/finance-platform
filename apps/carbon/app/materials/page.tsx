@@ -132,8 +132,9 @@ export default async function MaterialsPage() {
               Ce module fait partie de la plateforme CarbonCo.
             </p>
             <p className="text-sm text-zinc-500">
-              Snapshot de démonstration daté du {snapshot_date} — valeurs estimées, non normatives.
-              L&apos;historique n&apos;est enrichi que lorsqu&apos;un nouveau snapshot daté est publié.
+              Snapshot de démonstration daté du {snapshot_date}{" "}
+              — valeurs estimées, non normatives. L&apos;historique n&apos;est enrichi que
+              lorsqu&apos;un nouveau snapshot daté est publié.
             </p>
           </div>
           <div className="flex flex-wrap gap-4">

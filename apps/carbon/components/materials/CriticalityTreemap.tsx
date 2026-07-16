@@ -92,8 +92,8 @@ export default function CriticalityTreemap({ materials }: Props) {
         <div>
           <h2 className="text-2xl font-bold text-white">Treemap de risque d&apos;approvisionnement</h2>
           <p className="text-zinc-400 text-sm mt-1">
-            Surface proportionnelle au <strong className="text-zinc-300">score CarbonCo</strong> (risque
-            d&apos;approvisionnement, estimé — pas un score officiel UE). Couleur selon la part chinoise de production.
+            Surface proportionnelle au <strong className="text-zinc-300">score CarbonCo</strong>{" "}
+            (risque d&apos;approvisionnement, estimé — pas un score officiel UE). Couleur selon la part chinoise de production.
           </p>
         </div>
         <div className="flex flex-wrap gap-3 shrink-0 text-xs text-zinc-400">

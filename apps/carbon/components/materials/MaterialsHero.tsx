@@ -46,9 +46,10 @@ export default function MaterialsHero({ summary, snapshotYear }: Props) {
               <br />au cœur de la géopolitique
             </h1>
             <p className="text-zinc-400 text-lg leading-relaxed max-w-xl">
-              {total} matières premières critiques identifiées par l&apos;Union Européenne,
-              dont <strong className="text-white">{strategic} jugées stratégiques</strong> pour
-              la défense, la transition énergétique et l&apos;autonomie numérique.
+              {total}{" "}
+              matières premières critiques identifiées par l&apos;Union Européenne, dont{" "}
+              <strong className="text-white">{strategic} jugées stratégiques</strong>{" "}
+              pour la défense, la transition énergétique et l&apos;autonomie numérique.
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <a href="#materiaux" className="rounded-xl bg-white text-zinc-900 px-6 py-3 font-semibold text-sm hover:bg-zinc-100 transition">

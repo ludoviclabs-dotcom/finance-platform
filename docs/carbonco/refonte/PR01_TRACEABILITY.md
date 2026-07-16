@@ -1,8 +1,10 @@
 # PR-01 — `fix/materials-data-trust` · Traçabilité
 
 **Périmètre :** vérité et intégrité du module public `/materials` (`apps/carbon`).
-**Statut :** implémentation terminée, validée localement. **Aucun commit, aucun push.**
-**Branche cible prévue :** `fix/materials-data-trust` (travail réalisé dans le worktree `vibrant-maxwell-c3504d`).
+**Statut : FUSIONNÉ sur `master`.**
+- PR [#92](https://github.com/ludoviclabs-dotcom/finance-platform/pull/92) `fix(carbon): aligne /materials sur la réalité des données` — mergée 2026-07-16 (commit `08aca2d`). Branche réelle : `claude/wizardly-allen-18762e` (le nom prévu `fix/materials-data-trust` n'a finalement pas été utilisé).
+- PR [#93](https://github.com/ludoviclabs-dotcom/finance-platform/pull/93) `fix(carbon): corrige les espaces manquants sur /materials` — mergée 2026-07-16 (commit `1b435f7`). Corrige un piège JSX whitespace détecté après déploiement (5 espaces avalés silencieusement à la compilation, cf. §2 « PR #93 »).
+- Réconciliation post-merge : voir `docs/carbonco/refonte/PR01_POST_MERGE_AUDIT.md`.
 
 > Convention de statut : **FAIT** · **PARTIEL** · **NON FAIT** · **NON APPLICABLE**.
 
@@ -46,7 +48,7 @@ Valeurs retenues (validées par Ludo) : `regulation_version = "CRMA-2024"`, `sco
 |---|----------|--------|--------|
 | 5.1 | `DataStatusBadge` accessible (états VERIFIED/ESTIMATED/MANUAL/STALE) | **FAIT** | `components/ui/data-status-badge.tsx` + test |
 | 5.2 | `MethodBadge` si nécessaire | **NON APPLICABLE** | non requis en PR-01 : le score porte déjà sa version, affichée « estimé ». Composant prévu PR-03 |
-| 5.3 | `StalenessWarning` si nécessaire | **PARTIEL** | logique STALE intégrée au `SnapshotBanner` (seuil 120 j → bascule le badge en `STALE`). Pas de composant dédié : le snapshot (30/06/2026) n'est pas périmé aujourd'hui |
+| 5.3 | `StalenessWarning` si nécessaire | **PARTIEL** | logique STALE (`isSnapshotStale()`, seuil 120 j) calculée **côté serveur** dans `dataLoader.ts`, appelée une fois dans `app/materials/page.tsx` (composant serveur async) et passée en prop booléenne à `SnapshotBanner` — qui n'est plus `"use client"`. Correction post-review Codex (PR #92) : la version initiale calculait `Date.now()` côté client, risquant un mismatch d'hydratation sur une page statique. Pas de composant dédié : le snapshot (30/06/2026) n'est pas périmé aujourd'hui |
 | 5.4 | Adapter hero, snapshot banner, filtres, tableaux, cartes, treemap, alertes, dépendance Chine, métadonnées | **FAIT** | voir §2. Cartes (`GlobalMap*`) inchangées : elles n'utilisaient aucun des champs touchés |
 
 ### Étape 6 — Tests
@@ -73,7 +75,6 @@ Valeurs retenues (validées par Ludo) : `regulation_version = "CRMA-2024"`, `sco
 | Aucune donnée externe ajoutée | **FAIT** |
 | Aucun changement de positionnement global de CarbonCo | **FAIT** |
 | Responsive préservé | **FAIT** (structure des grilles/flex inchangée) |
-| Pas de commit / pas de push | **FAIT** |
 
 ---
 
@@ -101,22 +102,33 @@ Valeurs retenues (validées par Ludo) : `regulation_version = "CRMA-2024"`, `sco
 ### Créés (3)
 
 - `apps/carbon/components/ui/data-status-badge.tsx` — composant partagé `DataStatusBadge` + `statusFromQuality`.
-- `apps/carbon/tests/materials-data-trust.test.ts` — invariants modèle/prix/summary/transparence (15 tests).
+- `apps/carbon/tests/materials-data-trust.test.ts` — invariants modèle/prix/summary/transparence.
 - `apps/carbon/tests/data-status-badge.test.tsx` — rendu + accessibilité du badge (4 tests).
 
 > `crm_price_history.json`, `scripts/append-price-history.mjs` et `.github/workflows/materials-price-history.yml` **inchangés** : leur comportement (re-copie du prix du snapshot local, dédup par date, aucun fetch externe) est déjà honnête. Seule leur description publique était trompeuse.
+
+### PR #93 — correctif post-déploiement (whitespace JSX)
+
+Après la fusion de PR #92, un problème visuel signalé sur `/materials` (mots collés : « 34matières », « stratégiquespour ») a révélé un piège JSX classique : un nœud de texte suivant une `{expression}` ou une balise fermante, s'étendant ensuite sur plusieurs lignes source, perd silencieusement l'espace en tête/fin de sa ligne à la compilation Babel/React. Vérifié empiriquement sur le HTML compilé de toute la page (pas seulement le point signalé) : 5 occurrences trouvées et corrigées avec des marqueurs `{" "}` explicites.
+
+- `apps/carbon/components/materials/MaterialsHero.tsx` — paragraphe hero (2 occurrences).
+- `apps/carbon/components/materials/CriticalityTreemap.tsx` — légende du treemap.
+- `apps/carbon/components/materials/MaterialsGrid.tsx` — compteur de résultats.
+- `apps/carbon/app/materials/page.tsx` — footer (date de snapshot) ; a aussi reçu le calcul serveur de `isStale` (voir 5.3).
+- `apps/carbon/lib/crm/dataLoader.ts` — ajout `isSnapshotStale()` + `STALE_AFTER_DAYS` (déplacement de la logique STALE depuis `SnapshotBanner.tsx`, en réponse à une review Codex sur PR #92 signalant un risque de mismatch d'hydratation).
+- `apps/carbon/tests/materials-data-trust.test.ts` — +4 tests `isSnapshotStale` (déterministe, `now` injecté, pas de `Date.now()` implicite en test).
 
 ---
 
 ## 3. Tests associés
 
-- `tests/materials-data-trust.test.ts` (15) — modèle CRMA non exclusif, absence des champs hérités, dérivation Chine, règle « pas de tendance à 1 point », `summarize`, transparence méthodologie.
+- `tests/materials-data-trust.test.ts` (19) — modèle CRMA non exclusif, absence des champs hérités, dérivation Chine, règle « pas de tendance à 1 point », `summarize`, transparence méthodologie, `isSnapshotStale` (+4, PR #93).
 - `tests/data-status-badge.test.tsx` (4) — quatre états, `aria-label`, libellé personnalisé, `statusFromQuality`.
-- `tests/claims-guard.test.ts` (35, +29 par rapport à l'existant) — motifs interdits PR-01 + scan récursif `app/materials` et `components/materials`.
+- `tests/claims-guard.test.ts` (35) — motifs interdits PR-01 + scan récursif `app/materials` et `components/materials`. Étendu lors de la réconciliation post-merge (voir `PR01_POST_MERGE_AUDIT.md`) avec les motifs SupplyChainExplainer.
 
 ---
 
-## 4. Commandes exécutées et résultats
+## 4. Commandes exécutées et résultats (état final, PR #92 + #93 fusionnées)
 
 > Exécutées depuis le worktree `…/vibrant-maxwell-c3504d/apps/carbon`.
 
@@ -124,12 +136,13 @@ Valeurs retenues (validées par Ludo) : `regulation_version = "CRMA-2024"`, `sco
 |----------|----------|
 | `git diff --check` | **OK** — aucun conflit/espace erroné (uniquement des avertissements informatifs LF→CRLF). |
 | `npm --prefix apps/carbon run lint` | **OK** — `0 errors`, 20 warnings **tous préexistants** (aucun dans les fichiers `materials`/`ui` touchés). |
-| `npm --prefix apps/carbon run test` | **OK** — **145 tests / 13 fichiers**, 100 % passés (dont materials-data-trust 15, data-status-badge 4, claims-guard 35). |
+| `npm --prefix apps/carbon run test` | **OK** — **149 tests / 13 fichiers**, 100 % passés (dont materials-data-trust 19, data-status-badge 4, claims-guard 35). |
 | `npm --prefix apps/carbon run build` | **OK** — `/materials` prérendu **statique**, `/materials/[id]` **SSG (34 pages)**. |
 
 Vérification du HTML prérendu (`.next/server/app/materials.html`) :
 - Présents : « Snapshot de démonstration », « Données estimées », « score CarbonCo », « Méthodologie », « Production concentrée en Chine », « Stratégiques vs critiques », « 100% ».
-- Absents : « aucune donnée inventée », « mise à jour automatique », « historique de prix hebdomadaire », « Snapshot hebdomadaire », « 20/34 », « 94 % aimants ».
+- Absents : « aucune donnée inventée », « mise à jour automatique », « historique de prix hebdomadaire », « Snapshot hebdomadaire », « 20/34 », « 94 % aimants », les 5 espaces manquants (PR #93).
+- Vérifié en production sur `carbon-snowy-nine.vercel.app/materials` après déploiement de PR #92 (avant le correctif PR #93).
 
 ---
 
@@ -139,7 +152,8 @@ Vérification du HTML prérendu (`.next/server/app/materials.html`) :
 2. **Score CarbonCo non encore formalisé.** `carbonco_supply_risk_score` conserve les valeurs de démonstration ; `score_confidence = null` (aucune méthode de confiance définie), version `0.1`. La formule versionnée et la confiance calculée relèvent du Method Engine (PR-07).
 3. **Historique de prix à un seul point.** Comportement inchangé et désormais honnêtement décrit. Les vraies séries n'apparaîtront que lorsqu'un flux sourcé remplacera le snapshot.
 4. **Statut `live` conservé** pour le module dans `feature-status.json` : la page est réellement disponible et désormais honnête (démo/estimé explicite). Non rétrogradée en `beta` — à rediscuter si tu préfères marquer un module de démonstration en `beta`.
-5. **`SnapshotBanner` calcule l'état STALE côté client** (`Date.now()`, seuil 120 j) : pas de risque d'hydratation en pratique (bascule impossible à l'échelle d'un chargement de page).
+5. ~~`SnapshotBanner` calcule l'état STALE côté client~~ — **résolu par PR #93** : le calcul est désormais côté serveur (`isSnapshotStale()` dans `dataLoader.ts`, appelé une fois dans `page.tsx`). Voir §2 « PR #93 ».
+6. **`SupplyChainExplainer` non couvert par le périmètre initial de PR-01** : la frise pédagogique contenait des pourcentages géopolitiques codés en dur (91 % terres rares, 94 % aimants permanents, noms d'équipementiers CATL/TSMC/Samsung) sans source ni date. Détecté et corrigé lors de la réconciliation post-merge — voir `PR01_POST_MERGE_AUDIT.md`.
 
 ---
 

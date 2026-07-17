@@ -66,6 +66,16 @@ migration `requires_owner` bloquante ; `4` anomalie `verify`.
    l'approbation de l'environnement qui fait office de confirmation).
 5. Sortie JSON dans les logs du run + artefact `migration-log-<run_id>`.
 
+> **Wiring des variables (hotfix 2026-07-17)** : `DATABASE_ADMIN_URL` est la
+> **source unique** de ce workflow. Il est aussi mappé vers `DATABASE_URL`
+> **uniquement dans ce workflow**, pour compatibilité CLI : les commandes en
+> lecture seule (`status`/`plan`/`verify`) passent par `get_db()` et le garde
+> `db_available()` teste `DATABASE_URL` — sans ce mapping, elles échouent sur
+> « PostgreSQL non configuré » alors que seul `DATABASE_ADMIN_URL` est fourni.
+> L'URL applicative runtime (celle de Vercel) n'est **jamais** utilisée pour
+> migrer ; ici les deux variables pointent volontairement vers la même
+> connexion admin `neondb_owner`.
+
 **Toujours lancer une commande de lecture (`plan` / `baseline --dry-run`)
 avant toute écriture**, lire la sortie, puis relancer en écriture.
 

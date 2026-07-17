@@ -62,9 +62,17 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run migration command
         env:
-          # Connexion admin dédiée (rôle neondb_owner, non poolée). SEUL secret
-          # de ce workflow — jamais le DATABASE_URL applicatif standard.
+          # Source unique de vérité de ce workflow : DATABASE_ADMIN_URL (rôle
+          # neondb_owner, non poolée). Un SEUL secret provisionné.
           DATABASE_ADMIN_URL: ${{ secrets.DATABASE_ADMIN_URL }}
+          # Mappé vers DATABASE_URL UNIQUEMENT dans ce workflow, pour compatibilité
+          # CLI : les commandes en lecture seule (status/plan/verify) passent par
+          # get_db() et le garde db_available() teste DATABASE_URL — sans ce
+          # mapping, elles échouent sur « PostgreSQL non configuré » alors que
+          # seul DATABASE_ADMIN_URL est fourni. Ce n'est PAS l'URL applicative
+          # runtime (celle-ci vit dans Vercel, jamais utilisée pour migrer) :
+          # ici les deux pointent volontairement vers la même connexion admin.
+          DATABASE_URL: ${{ secrets.DATABASE_ADMIN_URL }}
           # is_production() détecte la prod via ENV ici (VERCEL_ENV n'existe pas
           # dans GitHub Actions) → apply exige --yes, fourni explicitement.
           ENV: production

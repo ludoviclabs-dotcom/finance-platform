@@ -204,3 +204,41 @@ immédiatement, indépendamment du reste.
 **Ne pas lancer `apply`** tant que le baseline n'est pas confirmé sain
 (`command=verify` → `{"anomalies": []}` et `/health/schema` →
 `up_to_date: true`).
+
+### Mise à jour (2026-07-17) — le premier correctif était incomplet
+
+Après merge du correctif ci-dessus, le run #6 (déclenché ~2 min après,
+`command=baseline`/`baseline_mode=commit`, sur le commit fusionné) a **reproduit
+exactement le même symptôme** : `current transaction is aborted, commands
+ignored until end of transaction block`.
+
+**Cause probable** : le premier correctif ne protégeait que la **boucle par
+fichier** (sonde + écriture de chaque version). Il ne protégeait **pas** le
+bootstrap (`_ensure_ledger_table`) ni la lecture initiale du ledger
+(`_read_records`), appelés juste avant la boucle. Si l'un des deux échoue
+(par exemple parce qu'une tentative de baseline précédente a laissé
+`schema_migrations` dans un état inattendu), l'exception non rattrapée
+remontait jusqu'au `finally` du verrou advisory, qui tentait alors
+`pg_advisory_unlock` **sur la même transaction déjà abortée** — cette 2ᵉ
+requête échouait à son tour avec « transaction aborted », qui masquait de
+nouveau la vraie cause, ailleurs dans le code que la première fois.
+
+**Cause SQL exacte toujours non confirmée** (aucune trace dans les logs
+disponibles, avant comme après ce complément) — c'est précisément ce que ce
+complément de correctif rend enfin visible.
+
+**Correctif complémentaire** :
+- Le bootstrap et la lecture initiale sont désormais protégés par la **même
+  règle** rollback + erreur explicite que la boucle par fichier.
+- Le déverrouillage advisory (`finally` du verrou) est rendu *best-effort* :
+  s'il échoue à son tour (transaction déjà abortée par une erreur non prévue),
+  l'échec est loggé mais **ne remplace jamais** l'exception d'origine en cours
+  de propagation. Le verrou est de toute façon libéré par PostgreSQL à la
+  fermeture de la connexion (verrou de session, pas de transaction) — cette
+  requête explicite n'est qu'une libération anticipée, jamais la seule garantie.
+
+**Commande à relancer après merge de ce complément** : identique à
+ci-dessus — `plan` puis `baseline --dry-run` d'abord (la vraie cause,
+si elle existe encore, sera cette fois visible où qu'elle se situe dans le
+bootstrap, la lecture ou la boucle), puis `baseline --commit` si propre.
+**Ne pas lancer `apply`** avant `verify` propre et `up_to_date: true`.

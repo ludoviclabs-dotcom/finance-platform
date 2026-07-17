@@ -156,3 +156,25 @@ Erreur : current transaction is aborted, commands ignored until end of transacti
 **Ne pas lancer `apply`** avant que `verify` confirme `{"anomalies": []}` et que `/health/schema` confirme `up_to_date: true`.
 
 **Tests ajoutés** (`test_migration_ledger.py`, DB-gated) : rollback + cause racine visible sur erreur de sonde simulée ; reprise propre après correction de la « panne » ; table du ledger déjà créée mais vide correctement supportée.
+
+---
+
+## 12. Mise à jour du hotfix §11 — le premier correctif était incomplet (2026-07-17)
+
+**Run concerné** : DB Migrate run #6 (`29602138087`), déclenché ~2 min après le merge de PR #99 (commit `b68b477`, confirmé via `head_sha`). **Même symptôme exact** : `current transaction is aborted, commands ignored until end of transaction block`. Log inspecté (`gh run view --job --log`) — de nouveau, aucune erreur PostgreSQL antérieure visible.
+
+**Diagnostic (relecture attentive du code fusionné, pas une supposition)** : le §11 ne protégeait que la **boucle par fichier** (`verify_migration_objects`/`_upsert_ledger_row`). Deux points restaient sans protection :
+1. `_ensure_ledger_table(conn)` + `conn.commit()` — appelé sans `try/except`.
+2. `existing = self._read_records(conn)` — appelé juste après, sans `try/except` non plus.
+
+Si l'un des deux lève une vraie erreur, l'exception non rattrapée remonte à travers `with self.acquire_lock(conn):` — dont le `finally` tente `pg_advisory_unlock` **sur la même connexion, déjà abortée par l'échec précédent**. Cette requête de déverrouillage échoue à son tour avec « current transaction is aborted », qui **remplace** l'exception d'origine (sémantique Python standard : une exception levée dans un `finally` pendant qu'une autre se propage écrase celle-ci) — c'est exactement le même masquage que le §11, mais localisé ailleurs dans le code, donc non couvert par ce premier correctif.
+
+**Cause SQL exacte toujours non confirmée** dans les deux runs (#5 et #6) — honnêteté maintenue : ce complément rend enfin visible la cause, où qu'elle se situe (bootstrap, lecture, ou boucle), au prochain `baseline --dry-run`.
+
+**Correctif complémentaire** (`migration_runner.py`) :
+- `baseline()` : le bootstrap + la lecture initiale sont désormais entourés du même `try/except` → `conn.rollback()` → `MigrationError` explicite (`raise ... from exc`) que la boucle.
+- `acquire_lock()` : le `finally` (déverrouillage advisory) est rendu *best-effort* — un échec y est loggé (`logger.warning`, `exc_info=True`) mais ne relève jamais, pour ne jamais écraser une exception déjà en cours de propagation. Le verrou est de toute façon libéré par PostgreSQL à la fermeture de la connexion (verrou de **session**, indépendant des transactions) — l'unlock explicite n'était qu'une libération anticipée, jamais l'unique garantie.
+
+**Tests ajoutés** : erreur simulée dans `_read_records` (rollback propre, cause racine visible, bootstrap déjà committé reste idempotent, nouvelle tentative fonctionne) ; test direct sur `acquire_lock()` prouvant que son `finally` ne remplace jamais une exception (`ValueError`) déjà en cours de propagation par une erreur psycopg2 secondaire.
+
+**Commande à relancer après merge** : identique au §11 — `plan` puis `baseline --dry-run`, puis `baseline --commit` si propre. **Ne pas lancer `apply`** avant `verify` propre et `up_to_date: true`.

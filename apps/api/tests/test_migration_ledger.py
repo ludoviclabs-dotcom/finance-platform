@@ -252,6 +252,73 @@ def test_baseline_supports_ledger_table_already_created_but_empty(empty_conn, ru
     assert runner.verify() == []
 
 
+# ── Hotfix 2026-07-17 (suite) : le bootstrap/lecture initiale aussi protégés ──
+#
+# Le premier correctif ne protégeait que la boucle par fichier. En production
+# (run #6, après merge du premier correctif), le MÊME symptôme masqué s'est
+# reproduit : `_ensure_ledger_table`/`_read_records` n'étaient pas entourés du
+# même rollback+erreur explicite, et une exception non rattrapée là remontait
+# jusqu'au `finally` de `acquire_lock()`, où `pg_advisory_unlock` échouait à
+# son tour sur la transaction abortée — remplaçant l'exception d'origine par
+# « current transaction is aborted » une seconde fois, ailleurs dans le code.
+
+
+def test_baseline_commit_rolls_back_and_reports_root_cause_when_initial_read_fails(
+    empty_conn, runner, monkeypatch
+):
+    """Erreur simulée dans `_read_records` (appelée par baseline() juste après
+    le bootstrap) : rollback propre, cause racine visible, jamais « transaction
+    aborted ». Le bootstrap lui-même (committé AVANT cet échec) reste
+    idempotent — un nouveau baseline() fonctionne normalement ensuite."""
+    from db.migration_runner import MigrationError
+
+    build_full_db(empty_conn)
+
+    def _boom(self, conn):
+        raise Exception("lecture du ledger impossible (cause racine de test)")
+
+    monkeypatch.setattr(MigrationRunner, "_read_records", _boom)
+
+    with pytest.raises(MigrationError) as exc_info:
+        runner.baseline(dry_run=False)
+
+    message = str(exc_info.value)
+    assert "lecture du ledger impossible" in message, (
+        "la cause racine réelle doit être visible, pas masquée"
+    )
+    assert "current transaction is aborted" not in message
+
+    monkeypatch.undo()  # la "panne" est résolue
+
+    with empty_conn.cursor() as cur:
+        cur.execute("SELECT to_regclass('public.schema_migrations') AS t")
+        assert cur.fetchone()["t"] is not None, (
+            "le bootstrap, committé avant l'échec de lecture, doit rester persisté (idempotence)"
+        )
+
+    result = runner.baseline(dry_run=False)  # nouvelle tentative, "panne" résolue
+    assert result.written_count == 29
+    assert runner.verify() == []
+
+
+def test_acquire_lock_finally_does_not_mask_the_original_exception(runner):
+    """Régression directe du bug (indépendante de baseline()) : si le corps du
+    `with acquire_lock` laisse la transaction abortée (aucun rollback) puis
+    relève une erreur, le `finally` (`pg_advisory_unlock`) ne doit JAMAIS
+    remplacer cette erreur par « current transaction is aborted » — sans la
+    protection best-effort, `pg_advisory_unlock` échouerait à son tour et
+    masquerait l'erreur d'origine (ValueError) derrière l'erreur psycopg2."""
+    with get_db() as conn:
+        with pytest.raises(ValueError, match="erreur du corps, pas de la connexion"):
+            with runner.acquire_lock(conn):
+                try:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT * FROM une_table_totalement_inexistante_xyz")
+                except Exception:
+                    pass  # transaction volontairement laissée abortée (pas de rollback)
+                raise ValueError("erreur du corps, pas de la connexion")
+
+
 # ── verify() — checksum_mismatch et drift_detected ───────────────────────
 
 

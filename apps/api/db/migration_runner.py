@@ -346,8 +346,25 @@ class MigrationRunner:
         try:
             yield
         finally:
-            with conn.cursor() as cur:
-                cur.execute("SELECT pg_advisory_unlock(hashtext(%s))", (ADVISORY_LOCK_KEY,))
+            # Best-effort : si le corps du `with` a laissé la transaction dans
+            # un état aborté (exception non rattrapée par l'appelant), tenter
+            # pg_advisory_unlock lèverait à son tour « current transaction is
+            # aborted » — qui ÉCRASERAIT l'exception d'origine encore en cours
+            # de propagation (finally exécuté pendant unwind), reproduisant
+            # exactement le bug de masquage que ce hotfix corrige. Le verrou
+            # est de toute façon libéré par PostgreSQL à la fermeture de la
+            # connexion (verrou de SESSION, jamais de transaction) — l'unlock
+            # explicite ici n'est qu'une libération anticipée, pas la seule
+            # garantie. Échec loggé, jamais levé.
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT pg_advisory_unlock(hashtext(%s))", (ADVISORY_LOCK_KEY,))
+            except Exception:
+                logger.warning(
+                    "acquire_lock: échec de pg_advisory_unlock (non bloquant — le verrou "
+                    "de session sera de toute façon libéré à la fermeture de la connexion)",
+                    exc_info=True,
+                )
 
     def _ensure_ledger_table(self, conn) -> None:
         """Bootstrap idempotent de `schema_migrations` (§6).
@@ -436,31 +453,47 @@ class MigrationRunner:
         inchangés), mais partie intégrante de ce que `baseline()` doit
         reconnaître (§6).
 
-        Robustesse transactionnelle (hotfix 2026-07-17) : chaque fichier est
-        traité dans sa PROPRE unité de commit, comme `apply_one` — jamais une
-        transaction géante pour les 29 fichiers. Si la sonde ou l'écriture
-        d'UN fichier lève une vraie erreur PostgreSQL (par opposition à un
-        simple `objects_present=False`), le `ROLLBACK` est immédiat et
-        explicite AVANT toute autre commande sur cette connexion — sans quoi
-        PostgreSQL refuse tout le reste avec « current transaction is aborted »,
-        masquant la cause racine réelle. L'erreur d'origine est préservée
-        (`raise ... from exc`) et `baseline()` s'arrête net (pas de baseline
-        partielle silencieuse) : les fichiers déjà traités AVANT l'erreur dans
-        CE run restent committés individuellement, donc un nouveau
-        `baseline --commit` reprend proprement (`already_recorded` les saute).
-        Le bootstrap de la table elle-même est aussi committé immédiatement
-        (comme dans `apply_plan`), pour rester idempotent même si un fichier
-        suivant échoue.
+        Robustesse transactionnelle (hotfix 2026-07-17, complété) : chaque
+        fichier est traité dans sa PROPRE unité de commit, comme `apply_one` —
+        jamais une transaction géante pour les 29 fichiers. Si la sonde ou
+        l'écriture d'UN fichier lève une vraie erreur PostgreSQL (par
+        opposition à un simple `objects_present=False`), le `ROLLBACK` est
+        immédiat et explicite AVANT toute autre commande sur cette connexion —
+        sans quoi PostgreSQL refuse tout le reste avec « current transaction is
+        aborted », masquant la cause racine réelle. L'erreur d'origine est
+        préservée (`raise ... from exc`) et `baseline()` s'arrête net (pas de
+        baseline partielle silencieuse) : les fichiers déjà traités AVANT
+        l'erreur dans CE run restent committés individuellement, donc un
+        nouveau `baseline --commit` reprend proprement (`already_recorded` les
+        saute).
+
+        **Le bootstrap (`_ensure_ledger_table`) et la lecture initiale
+        (`_read_records`) sont protégés par la MÊME règle** — un premier
+        correctif (2026-07-17) ne protégeait que la boucle par fichier, ce qui
+        laissait un trou réel : si le bootstrap ou la lecture initiale
+        échouaient (ex. table déjà présente mais de forme inattendue, issue
+        d'une tentative précédente), l'exception non rattrapée remontait
+        jusqu'au `finally` de `acquire_lock()`, qui tentait alors
+        `pg_advisory_unlock` sur une connexion déjà abortée — reproduisant
+        exactement « current transaction is aborted » et masquant à nouveau la
+        vraie cause. Confirmé en conditions réelles (run #6, après le premier
+        correctif : même symptôme, cette fois-ci hors de la boucle protégée).
         """
         files = [_synthetic_000_file(), *self.discover_migrations()]
         items: list[BaselineItem] = []
         written = 0
         with self._connection_factory() as conn:
             with self.acquire_lock(conn):
-                if not dry_run:
-                    self._ensure_ledger_table(conn)
-                    conn.commit()  # persiste le bootstrap indépendamment du reste (idempotence)
-                existing = self._read_records(conn)
+                try:
+                    if not dry_run:
+                        self._ensure_ledger_table(conn)
+                        conn.commit()  # persiste le bootstrap indépendamment du reste (idempotence)
+                    existing = self._read_records(conn)
+                except Exception as exc:
+                    conn.rollback()
+                    raise MigrationError(
+                        f"baseline: erreur PostgreSQL au bootstrap/lecture du ledger : {exc}"
+                    ) from exc
 
                 for f in files:
                     record = existing.get(f.version)

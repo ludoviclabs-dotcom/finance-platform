@@ -148,4 +148,29 @@ Après correction : tout reste vert localement (compilation, lint, 600 tests uni
 
 **Résultat des tests** : 600 passed / 125 skipped / 5 failed (pré-existants, `vercel` PyPI, sans rapport) en local ; lint et compilation propres. Les 86 tests PostgreSQL (64 probes + 22 ledger, dont les 3 nouveaux ci-dessus) restent non exécutés localement (pas de `docker`) — chaque correction a été retracée pas à pas contre la logique exacte du code pour maximiser la confiance avant le prochain push, mais seul le run CI fait foi.
 
-**Résultat CI** : inconnu au moment de la rédaction — ce commit n'a pas encore été poussé/revérifié. À surveiller sur le prochain run du job `migration-tests`.
+**Résultat CI** : le commit `44691b1` a effectivement tourné en CI — voir §11 pour le résultat réel et la correction du dernier échec.
+
+---
+
+## 11. Correction migration-tests
+
+**Cause exacte du dernier échec CI** (job `migration-tests`, run sur commit `44691b1`) : diagnostiquée en lisant le log réel (`gh run view --job ... --log`). **1 seul test en échec, 85 passed** — confirmation que les 4 corrections Codex + le fix de commit des fixtures (§10) ont bien fonctionné. Le seul échec restant, `test_verify_detects_drift_when_object_dropped`, avait la **même cause racine** que celle déjà corrigée en §10 dans `_migration_fixtures.py`, mais localisée cette fois dans le corps du test lui-même : `cur.execute("DROP TABLE emission_factors")` sur `empty_conn` n'était jamais commité, donc invisible à la connexion séparée ouverte par `runner.verify()` (isolation PostgreSQL READ COMMITTED) — `verify()` continuait de voir la table comme existante et ne détectait donc aucun drift.
+
+**Vérification du point Codex D (sonde 024)** : confirmée déjà résolue par le run CI réel lui-même — `test_probe_024_false_when_rls_policies_removed_after_the_fact` fait partie des 85 tests passés, preuve que le code (§10) et le test couvrent réellement le cas (policies RLS retirées → sonde fausse). Aucune action supplémentaire nécessaire sur ce point.
+
+**Test corrigé** : `test_verify_detects_drift_when_object_dropped` (`apps/api/tests/test_migration_ledger.py`) — ajout d'un `empty_conn.commit()` explicite après le `DROP TABLE`.
+
+**Fichiers modifiés** : `apps/api/tests/test_migration_ledger.py` (1 ligne), ce document.
+
+**Commandes exécutées** :
+```
+cd apps/api
+python -m py_compile db/migration_runner.py db/migration_manifest.py db/migration_cli.py db/migration_probes.py routers/health.py
+python -m pytest -q tests/test_migration_runner.py tests/test_migration_cli.py
+ruff check . --select=E,F,I --ignore=E501
+git diff --check   # depuis la racine
+```
+
+**Résultat local** : `py_compile` propre ; `pytest` : 38 passed ; `ruff` : all checks passed ; `git diff --check` : propre. Toujours aucun `docker`/Postgres local disponible — les 86 tests PostgreSQL restent non revérifiés localement après ce correctif ponctuel.
+
+**Résultat attendu en CI** : `migration-tests` devrait passer à 86/86 (85 déjà verts + le test corrigé). À confirmer sur le prochain run — c'est un correctif d'une ligne, ciblé exactement sur la cause lue dans le log, avec un raisonnement de cause à effet direct (pas une supposition).

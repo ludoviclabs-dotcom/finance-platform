@@ -177,13 +177,20 @@ def test_verify_detects_checksum_mismatch(empty_conn, runner, monkeypatch, tmp_p
 
 
 def test_verify_detects_drift_when_object_dropped(empty_conn, runner):
-    """Ligne `baseline` mais objet supprimé après coup — jamais réappliqué automatiquement."""
+    """Ligne `baseline` mais objet supprimé après coup — jamais réappliqué automatiquement.
+
+    Le DROP doit être commité : `verify()` ouvre sa propre connexion (comme
+    `baseline()`), donc un DROP non commité sur `empty_conn` reste invisible
+    (isolation READ COMMITTED) — même cause que le correctif précédent sur
+    `_migration_fixtures.py`, ici dans le corps du test lui-même.
+    """
     apply_ddl_inline(empty_conn)
     apply_upto(empty_conn, "001")
     runner.baseline(dry_run=False)
 
     with empty_conn.cursor() as cur:
         cur.execute("DROP TABLE emission_factors")
+    empty_conn.commit()
 
     anomalies = runner.verify()
     assert any("001" in a and "drift_detected" in a for a in anomalies)

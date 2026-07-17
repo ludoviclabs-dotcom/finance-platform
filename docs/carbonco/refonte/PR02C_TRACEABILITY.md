@@ -116,3 +116,13 @@ En écrivant le test du chemin d'échec d'`apply_one`, j'ai identifié un bug r�
 - **Aucune baseline production, aucun apply production exécuté par Claude** : seul le code + la doc sont livrés ; toute écriture réelle passe par le workflow protégé, déclenché par Ludo.
 - **Aucun apply automatique** : `apply` n'est appelé que par la commande CLI explicite (elle-même via le workflow approuvé). Jamais au démarrage de l'API, jamais par un cold start, jamais par un déploiement.
 - **Erreurs jamais masquées** : `apply_one` propage toute exception après avoir écrit la ligne `failed` (jamais avalée) ; le fallback `DATABASE_ADMIN_URL`→`DATABASE_URL` est loggé, jamais silencieux.
+
+---
+
+## 10. Hotfix wiring DB Migrate (2026-07-17, post-merge #97)
+
+**Symptôme** : `db-migrate.yml` échouait sur `status` avec « PostgreSQL non configuré (DATABASE_URL manquant ou psycopg2 absent) », alors que le secret `DATABASE_ADMIN_URL` était bien provisionné.
+
+**Cause** : les commandes en lecture seule (`status`/`plan`/`verify`) utilisent le `MigrationRunner()` par défaut → `get_db()` (qui lit `DATABASE_URL`), et `load_records()` est gardé par `db_available()` qui teste `DATABASE_URL` uniquement. Le workflow n'exposait que `DATABASE_ADMIN_URL` → garde en échec. (Les commandes mutantes `baseline`/`apply` passaient déjà, via `get_admin_db`.)
+
+**Correctif (workflow-only, aucun code touché)** : dans `db-migrate.yml`, mapper `DATABASE_URL: ${{ secrets.DATABASE_ADMIN_URL }}` en plus de `DATABASE_ADMIN_URL`. `DATABASE_ADMIN_URL` reste la source unique ; les deux pointent volontairement vers la connexion admin `neondb_owner` **uniquement dans ce workflow**. L'URL applicative runtime (Vercel) n'est jamais utilisée pour migrer. Le workflow reste `workflow_dispatch` uniquement, `environment: production-db`, jamais déclenché automatiquement. Documenté dans `MIGRATIONS_RUNBOOK.md` §4. Branche `fix/db-migrate-admin-url`.

@@ -4,10 +4,8 @@ import os
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from starlette.concurrency import run_in_threadpool
 
-from db import migrations as _migrations
-from db.migrations import ensure_schema, run_migrations
+from db.migrations import run_migrations
 from middleware.rate_limit import RateLimitMiddleware
 from middleware.request_logger import RequestLoggerMiddleware
 from routers import (
@@ -96,24 +94,17 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Migrations DDL : deux déclencheurs complémentaires.
-#  1. startup event — fonctionne en local/uvicorn, MAIS jamais sur @vercel/python
-#     (le runtime serverless n'exécute pas les events lifespan ASGI).
-#  2. ensure_schema() à la 1re requête (middleware ci-dessous) — le seul chemin
-#     fiable en prod Vercel. Idempotent, court-circuité par sentinelle.
+# Migrations DDL — startup event, confort dev local uniquement : fonctionne
+# en local/uvicorn, jamais invoqué en prod (@vercel/python n'exécute pas les
+# events lifespan ASGI). Le second déclencheur historique (ensure_schema_mw,
+# middleware sur la 1re requête, seul chemin qui touchait réellement la prod)
+# a été retiré (PR-02C-retrait) une fois le ledger schema_migrations baseliné
+# en production : le workflow .github/workflows/db-migrate.yml est désormais
+# le seul chemin d'écriture schéma. Voir docs/carbonco/MIGRATIONS_RUNBOOK.md
+# et docs/carbonco/refonte/PR02C_RETIRE_ENSURE_SCHEMA_TRACEABILITY.md.
 @app.on_event("startup")
 async def startup_event() -> None:
     run_migrations()
-
-
-# Garantit le schéma à la 1re requête de chaque cold start (fix Vercel serverless).
-# Après la 1re requête, _schema_ensured=True => court-circuit immédiat, zéro coût.
-@app.middleware("http")
-async def ensure_schema_mw(request: Request, call_next):
-    if not _migrations._schema_ensured:
-        # psycopg2 est bloquant : hors event-loop pour ne pas figer le serveur.
-        await run_in_threadpool(ensure_schema)
-    return await call_next(request)
 
 # ---------------------------------------------------------------------------
 # Body size limiter — reject uploads > 10 MB before they hit route handlers

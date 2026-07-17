@@ -159,6 +159,99 @@ def test_baseline_never_rewrites_existing_row(empty_conn, runner):
     assert first_pass_records["027"].applied_at == second_pass_records["027"].applied_at
 
 
+# ── Hotfix 2026-07-17 : rollback propre + cause racine + reprise ─────────
+#
+# Le workflow DB Migrate a échoué sur `baseline --commit` en production avec
+# « current transaction is aborted, commands ignored until end of transaction
+# block » — un symptôme secondaire qui masquait la vraie erreur PostgreSQL
+# d'origine. `verify_migration_objects` est mocké pour simuler une VRAIE
+# erreur (pas un simple objects_present=False) sur une version précise, sans
+# dépendre d'un état Postgres exotique difficile à reproduire.
+
+
+def test_baseline_commit_rolls_back_and_reports_root_cause_on_probe_error(
+    empty_conn, runner, monkeypatch
+):
+    """Une vraie erreur PostgreSQL sur UNE version : rollback immédiat, cause
+    racine visible dans le message (pas « transaction aborted »), aucune ligne
+    écrite pour la version en échec — mais les versions traitées AVANT restent
+    committées individuellement."""
+    from db.migration_runner import MigrationError
+
+    build_full_db(empty_conn)
+    original = MigrationRunner.verify_migration_objects
+
+    def _boom(self, conn, version):
+        if version == "015":
+            raise Exception("colonne inexistante simulée (cause racine de test)")
+        return original(self, conn, version)
+
+    monkeypatch.setattr(MigrationRunner, "verify_migration_objects", _boom)
+
+    with pytest.raises(MigrationError) as exc_info:
+        runner.baseline(dry_run=False)
+
+    message = str(exc_info.value)
+    assert "015" in message
+    assert "colonne inexistante simulée" in message, (
+        "la cause racine réelle doit être visible dans le message, pas masquée"
+    )
+    assert "current transaction is aborted" not in message, (
+        "le symptôme secondaire ne doit jamais remplacer la vraie erreur"
+    )
+
+    records = runner.load_records()
+    assert records["000"].status == "baseline"  # traitée avant 015 -> committée
+    assert records["014"].status == "baseline"  # idem
+    assert "015" not in records, "aucune ligne partielle pour la version en échec"
+    assert "016" not in records, "le traitement s'arrête net, rien après l'échec"
+
+
+def test_baseline_commit_is_retryable_after_a_failed_attempt(empty_conn, runner, monkeypatch):
+    """Après correction de la cause (ici : simulation levée une seule fois),
+    un nouveau `baseline --commit` reprend proprement — les versions déjà
+    committées lors de la tentative précédente ressortent `already_recorded`,
+    jamais réécrites ; celle qui avait échoué est maintenant traitée."""
+    from db.migration_runner import MigrationError
+
+    build_full_db(empty_conn)
+    original = MigrationRunner.verify_migration_objects
+
+    def _boom_once(self, conn, version):
+        if version == "015":
+            raise Exception("panne simulée transitoire")
+        return original(self, conn, version)
+
+    monkeypatch.setattr(MigrationRunner, "verify_migration_objects", _boom_once)
+    with pytest.raises(MigrationError):
+        runner.baseline(dry_run=False)
+    monkeypatch.undo()  # la "panne" est résolue avant la nouvelle tentative
+
+    result = runner.baseline(dry_run=False)
+    actions = {i.file.version: i.action for i in result.items}
+    assert actions["000"] == "already_recorded"
+    assert actions["014"] == "already_recorded"
+    assert actions["015"] == "baseline", "cette fois, plus d'erreur -> traitée normalement"
+    assert actions["027"] == "baseline"
+
+    assert runner.verify() == [], "le ledger final doit être entièrement sain"
+
+
+def test_baseline_supports_ledger_table_already_created_but_empty(empty_conn, runner):
+    """`schema_migrations` déjà créée (par un run précédent interrompu tôt) mais
+    sans aucune ligne : baseline() doit repartir normalement, pas échouer sur
+    une table qui existe déjà."""
+    build_full_db(empty_conn)
+    runner._ensure_ledger_table(empty_conn)
+    empty_conn.commit()
+    assert runner.load_records() == {}, "précondition : table présente, aucune ligne"
+
+    result = runner.baseline(dry_run=False)
+    assert result.written_count == 29
+    assert all(i.action == "baseline" for i in result.items)
+    assert runner.verify() == []
+
+
 # ── verify() — checksum_mismatch et drift_detected ───────────────────────
 
 

@@ -435,6 +435,22 @@ class MigrationRunner:
         liste — absente de `discover_migrations()`/`build_plan()` (PR-02A,
         inchangés), mais partie intégrante de ce que `baseline()` doit
         reconnaître (§6).
+
+        Robustesse transactionnelle (hotfix 2026-07-17) : chaque fichier est
+        traité dans sa PROPRE unité de commit, comme `apply_one` — jamais une
+        transaction géante pour les 29 fichiers. Si la sonde ou l'écriture
+        d'UN fichier lève une vraie erreur PostgreSQL (par opposition à un
+        simple `objects_present=False`), le `ROLLBACK` est immédiat et
+        explicite AVANT toute autre commande sur cette connexion — sans quoi
+        PostgreSQL refuse tout le reste avec « current transaction is aborted »,
+        masquant la cause racine réelle. L'erreur d'origine est préservée
+        (`raise ... from exc`) et `baseline()` s'arrête net (pas de baseline
+        partielle silencieuse) : les fichiers déjà traités AVANT l'erreur dans
+        CE run restent committés individuellement, donc un nouveau
+        `baseline --commit` reprend proprement (`already_recorded` les saute).
+        Le bootstrap de la table elle-même est aussi committé immédiatement
+        (comme dans `apply_plan`), pour rester idempotent même si un fichier
+        suivant échoue.
         """
         files = [_synthetic_000_file(), *self.discover_migrations()]
         items: list[BaselineItem] = []
@@ -443,6 +459,7 @@ class MigrationRunner:
             with self.acquire_lock(conn):
                 if not dry_run:
                     self._ensure_ledger_table(conn)
+                    conn.commit()  # persiste le bootstrap indépendamment du reste (idempotence)
                 existing = self._read_records(conn)
 
                 for f in files:
@@ -461,7 +478,14 @@ class MigrationRunner:
                         continue
 
                     meta = get_meta(f.version)
-                    objects_present = self.verify_migration_objects(conn, f.version)
+                    try:
+                        objects_present = self.verify_migration_objects(conn, f.version)
+                    except Exception as exc:
+                        conn.rollback()
+                        raise MigrationError(
+                            f"baseline: erreur PostgreSQL en vérifiant les objets de "
+                            f"{f.version} : {exc}"
+                        ) from exc
 
                     if objects_present:
                         action: BaselineAction = "baseline"
@@ -482,9 +506,17 @@ class MigrationRunner:
                     items.append(BaselineItem(file=f, action=action, reason=reason))
 
                     if not dry_run and action in ("baseline", "manual_required"):
-                        self._upsert_ledger_row(
-                            conn, f, meta, status=action, applied_by=None, metadata={}
-                        )
+                        try:
+                            self._upsert_ledger_row(
+                                conn, f, meta, status=action, applied_by=None, metadata={}
+                            )
+                            conn.commit()
+                        except Exception as exc:
+                            conn.rollback()
+                            raise MigrationError(
+                                f"baseline: erreur PostgreSQL en écrivant la ligne {f.version} "
+                                f"('{action}') : {exc}"
+                            ) from exc
                         written += 1
 
         return BaselineResult(items=items, dry_run=dry_run, written_count=written)

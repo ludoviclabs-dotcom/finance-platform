@@ -161,3 +161,46 @@ automatiquement.
   application — ne jamais réappliquer, comparer au git blame) ou
   `drift_detected` (objet attendu absent malgré une ligne — investiguer, ne
   jamais réappliquer automatiquement).
+
+## 11. Hotfix baseline commit transaction aborted (2026-07-17)
+
+**Symptôme** : `db-migrate.yml` → `command=baseline`, `baseline_mode=commit`
+échouait avec :
+
+```
+Erreur : current transaction is aborted, commands ignored until end of transaction block
+```
+
+**Cause racine** : ce message est un **symptôme secondaire** PostgreSQL, pas
+l'erreur d'origine. `baseline()` traitait les 29 versions (000 + 28 fichiers)
+dans **une seule transaction géante** ; dès qu'une vraie erreur SQL survenait
+sur UNE version (sonde ou écriture), aucun `ROLLBACK` n'était émis avant de
+continuer — PostgreSQL refuse alors toute commande suivante sur cette
+connexion avec « transaction aborted », masquant complètement la cause réelle
+dans les logs. **La cause SQL exacte qui a déclenché l'abandon n'est pas
+visible dans les logs du run #5** (c'est précisément ce que ce correctif rend
+visible pour la prochaine tentative) — ne pas supposer laquelle avant de
+relancer `baseline --dry-run` après ce correctif.
+
+**Correctif** : chaque version est désormais traitée dans sa **propre unité de
+commit** (comme `apply_one`). Toute vraie erreur PostgreSQL déclenche un
+`ROLLBACK` immédiat puis une exception explicite qui **inclut le message
+PostgreSQL d'origine et la version concernée** — plus jamais masquée. Arrêt
+strict (pas de baseline partielle silencieuse), mais les versions déjà
+traitées AVANT l'erreur restent committées individuellement : un nouveau
+`baseline --commit` reprend proprement (`already_recorded` pour ce qui est
+déjà fait). Le bootstrap de `schema_migrations` est lui aussi committé
+immédiatement, indépendamment du reste.
+
+**Commande qui avait échoué** : `command=baseline`, `baseline_mode=commit`
+(run #5).
+
+**Commande à relancer après merge de ce hotfix** :
+1. `command=plan` puis `command=baseline`, `baseline_mode=dry-run` d'abord —
+   la vraie cause racine, si elle réapparaît, sera maintenant visible dans la
+   sortie (nom de version + message PostgreSQL réel).
+2. Si `dry-run` est propre, relancer `command=baseline`, `baseline_mode=commit`.
+
+**Ne pas lancer `apply`** tant que le baseline n'est pas confirmé sain
+(`command=verify` → `{"anomalies": []}` et `/health/schema` →
+`up_to_date: true`).

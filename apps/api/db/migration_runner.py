@@ -98,6 +98,15 @@ class MigrationLockError(MigrationError):
     """Le verrou advisory n'a pas pu être obtenu dans le budget imparti."""
 
 
+class ManualMigrationRequired(MigrationError):
+    """`apply` a rencontré une migration `requires_owner` non résolue (I4).
+
+    `apply` ne l'exécute jamais — elle doit passer par `mark-manual-verified`
+    après application manuelle (Neon SQL Editor), jamais par le chemin
+    automatique.
+    """
+
+
 # `baseline()`/`mark_manual_verified()` ont un vocabulaire d'action distinct de
 # `MigrationPlan` (qui répond à « que ferait apply ? », hors périmètre PR-02B) —
 # deux préoccupations différentes, deux types, pas un seul type surchargé.
@@ -200,12 +209,20 @@ class MigrationRunner:
 
     PR-02A : `discover_migrations`/`calculate_checksum`/`load_records`/
     `build_plan`, lecture seule. PR-02B : `acquire_lock`/`baseline`/`verify`/
-    `mark_manual_verified`, mutants mais jamais d'exécution de SQL de
-    migration (`apply_one`/`apply_plan` restent hors périmètre, PR-02C).
+    `mark_manual_verified`. PR-02C : `apply_one`/`apply_plan` (exécution réelle
+    de SQL de migration 028+, jamais des 28 fichiers existants déjà baselinés).
+
+    `connection_factory` (défaut `get_db`, poolée) sélectionne la source de
+    connexion : le CLI l'instancie avec `get_admin_db` (non poolée, rôle
+    neondb_owner) pour les commandes mutantes qui tiennent le verrou advisory
+    (`baseline`/`apply`/`mark-manual-verified`), et laisse le défaut pour les
+    commandes en lecture seule (`status`/`plan`/`verify`). Contrat inchangé
+    pour tout appelant existant qui n'en passe pas.
     """
 
-    def __init__(self, migrations_dir: Path = MIGRATIONS_DIR):
+    def __init__(self, migrations_dir: Path = MIGRATIONS_DIR, connection_factory=None):
         self.migrations_dir = migrations_dir
+        self._connection_factory = connection_factory or get_db
 
     def calculate_checksum(self, path: Path) -> str:
         """SHA-256 des octets bruts du fichier (§7 — pas de normalisation)."""
@@ -250,7 +267,7 @@ class MigrationRunner:
             raise RuntimeError(
                 "PostgreSQL non configuré (DATABASE_URL manquant ou psycopg2 absent)"
             )
-        with get_db() as conn:
+        with self._connection_factory() as conn:
             return self._read_records(conn)
 
     def _read_records(self, conn) -> dict[str, MigrationRecord]:
@@ -353,7 +370,8 @@ class MigrationRunner:
             return migration_probes.verify_object(cur, version)
 
     def _upsert_ledger_row(
-        self, conn, file: MigrationFile, meta, status: str, applied_by: str | None, metadata: dict
+        self, conn, file: MigrationFile, meta, status: str, applied_by: str | None, metadata: dict,
+        execution_ms: int | None = None, error_message: str | None = None,
     ) -> None:
         """Insère ou met à jour la ligne de `version` (upsert explicite).
 
@@ -365,20 +383,27 @@ class MigrationRunner:
         (ex. la transition `manual_required` → `baseline` a besoin d'une
         écriture réelle sur une ligne existante — un `DO NOTHING` l'aurait
         empêchée sans erreur, exactement le défaut signalé par la revue Codex).
+
+        `execution_ms`/`error_message` (PR-02C) : renseignés par `apply_one`
+        (durée d'exécution réelle en cas de succès, message d'erreur en cas
+        d'échec) ; laissés `NULL` par `baseline`/`mark_manual_verified` (qui
+        n'exécutent aucun SQL de migration), comportement inchangé.
         """
         with conn.cursor() as cur:
             cur.execute(
                 """
                 INSERT INTO schema_migrations
-                    (version, name, checksum_sha256, status, applied_at, applied_by,
-                     requires_owner, transactional, metadata)
-                VALUES (%s, %s, %s, %s, now(), %s, %s, %s, %s)
+                    (version, name, checksum_sha256, status, applied_at, execution_ms, applied_by,
+                     requires_owner, transactional, error_message, metadata)
+                VALUES (%s, %s, %s, %s, now(), %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (version) DO UPDATE SET
                     status = EXCLUDED.status,
                     applied_at = EXCLUDED.applied_at,
+                    execution_ms = EXCLUDED.execution_ms,
                     applied_by = EXCLUDED.applied_by,
                     requires_owner = EXCLUDED.requires_owner,
                     transactional = EXCLUDED.transactional,
+                    error_message = EXCLUDED.error_message,
                     metadata = EXCLUDED.metadata
                 """,
                 (
@@ -386,9 +411,11 @@ class MigrationRunner:
                     file.name,
                     file.checksum_sha256,
                     status,
+                    execution_ms,
                     applied_by,
                     meta.requires_owner,
                     meta.transactional,
+                    error_message,
                     json.dumps(metadata),
                 ),
             )
@@ -412,7 +439,7 @@ class MigrationRunner:
         files = [_synthetic_000_file(), *self.discover_migrations()]
         items: list[BaselineItem] = []
         written = 0
-        with get_db() as conn:
+        with self._connection_factory() as conn:
             with self.acquire_lock(conn):
                 if not dry_run:
                     self._ensure_ledger_table(conn)
@@ -478,7 +505,7 @@ class MigrationRunner:
             f.version: f for f in [_synthetic_000_file(), *self.discover_migrations()]
         }
 
-        with get_db() as conn:
+        with self._connection_factory() as conn:
             with conn.cursor() as cur:
                 for version, record in sorted(records.items()):
                     if record.status not in ("applied", "baseline"):
@@ -526,7 +553,7 @@ class MigrationRunner:
             raise KeyError(f"Version inconnue (aucun fichier découvert) : {version}")
 
         meta = get_meta(version)
-        with get_db() as conn:
+        with self._connection_factory() as conn:
             with self.acquire_lock(conn):
                 self._ensure_ledger_table(conn)
                 existing = self._read_records(conn)
@@ -562,3 +589,126 @@ class MigrationRunner:
             error_message=None,
             metadata={"proof": proof},
         )
+
+    # ── PR-02C — apply (exécution réelle de migrations 028+) ────────────────
+
+    def apply_one(self, item: MigrationPlanItem, conn, applied_by: str | None = None) -> MigrationRecord:
+        """Exécute UNE migration dans une transaction dédiée sur `conn` (§11).
+
+        Contrat d'intégrité :
+        - Succès : COMMIT du SQL de migration, PUIS écriture de la ligne
+          `applied` (execution_ms mesuré) dans une transaction séparée — la
+          ligne est écrite APRÈS le COMMIT de la migration (I1), jamais avant.
+        - Échec : ROLLBACK de la migration, PUIS écriture de la ligne `failed`
+          (error_message) dans une transaction séparée (I5), puis l'exception
+          est propagée — jamais avalée (contrainte « ne pas masquer les
+          erreurs »). La migration échouée n'est jamais marquée `applied` et
+          jamais retentée automatiquement.
+
+        Ne vérifie PAS `requires_owner` ici — c'est `apply_plan` qui bloque en
+        amont (I4). `conn` doit être une connexion ouverte tenue sous le
+        verrou advisory ; `applied_by` identifie l'acteur (ex.
+        "github-actions:db-migrate#<run_id>").
+        """
+        file = item.file
+        meta = get_meta(file.version)
+        sql = file.path.read_text(encoding="utf-8")
+
+        started = time.monotonic()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql)
+            conn.commit()  # migration appliquée — COMMIT avant toute écriture de ledger (I1)
+        except Exception as exc:
+            conn.rollback()
+            # Ligne `failed` dans une transaction séparée — tracer l'échec même
+            # si le SQL de migration a été annulé.
+            self._upsert_ledger_row(
+                conn, file, meta, status="failed", applied_by=applied_by,
+                metadata={}, error_message=str(exc),
+            )
+            conn.commit()
+            logger.error("apply_one: migration %s échouée : %s", file.version, exc)
+            raise
+
+        execution_ms = int((time.monotonic() - started) * 1000)
+        self._upsert_ledger_row(
+            conn, file, meta, status="applied", applied_by=applied_by,
+            metadata={}, execution_ms=execution_ms,
+        )
+        conn.commit()
+        logger.info("apply_one: migration %s appliquée (%d ms)", file.version, execution_ms)
+
+        return MigrationRecord(
+            version=file.version,
+            name=file.name,
+            checksum_sha256=file.checksum_sha256,
+            status="applied",
+            applied_at=datetime.now(tz=timezone.utc),
+            execution_ms=execution_ms,
+            applied_by=applied_by,
+            requires_owner=meta.requires_owner,
+            transactional=meta.transactional,
+            error_message=None,
+            metadata={},
+        )
+
+    def apply_plan(
+        self, plan: MigrationPlan | None = None, applied_by: str | None = None
+    ) -> list[MigrationRecord]:
+        """Applique en ordre les items `action='apply'` du plan (§11).
+
+        - `build_plan()` interne si aucun plan fourni.
+        - Lève `ManualMigrationRequired` AVANT toute exécution si le plan
+          contient un item `blocked_manual` sur une migration `requires_owner`
+          (I4) — `apply` ne l'exécute jamais.
+        - Sous `acquire_lock()`, une connexion unique tenue pour tout le run.
+        - Arrêt strict au premier échec (I5) : `apply_one` propage, les items
+          suivants ne sont pas tentés.
+        - Ignore silencieusement les items `skip` (déjà applied/baseline) ;
+          signale mais n'exécute pas les `checksum_mismatch` (bloquant, doit
+          être résolu manuellement).
+
+        Aucune migration 028+ n'existe à ce jour — sur le corpus actuel des 28
+        fichiers déjà baselinés, `apply_plan` n'a donc concrètement rien à
+        exécuter (tous `skip` après baseline, ou `blocked_manual` pour 027).
+        """
+        if plan is None:
+            plan = self.build_plan()
+
+        owner_blocked = [
+            item for item in plan.items
+            if item.action == "blocked_manual" and get_meta(item.file.version).requires_owner
+        ]
+        if owner_blocked:
+            versions = ", ".join(item.file.version for item in owner_blocked)
+            raise ManualMigrationRequired(
+                f"Migration(s) requires_owner non résolue(s) : {versions} — appliquer "
+                "manuellement puis mark-manual-verified ; apply ne les exécute jamais (I4)"
+            )
+
+        mismatches = [item for item in plan.items if item.action == "checksum_mismatch"]
+        if mismatches:
+            versions = ", ".join(item.file.version for item in mismatches)
+            raise MigrationError(
+                f"Checksum mismatch bloquant : {versions} — résoudre avant tout apply (I2)"
+            )
+
+        to_apply = [item for item in plan.items if item.action == "apply"]
+        applied: list[MigrationRecord] = []
+        if not to_apply:
+            return applied
+
+        with self._connection_factory() as conn:
+            with self.acquire_lock(conn):
+                self._ensure_ledger_table(conn)
+                # Persister la table du ledger AVANT d'appliquer : sinon le
+                # rollback du chemin d'échec d'apply_one (SQL invalide)
+                # annulerait aussi ce CREATE TABLE non commité, et l'écriture
+                # de la ligne `failed` échouerait faute de table. Le commit ne
+                # libère pas le verrou advisory (verrou de session, pas de
+                # transaction).
+                conn.commit()
+                for item in to_apply:
+                    applied.append(self.apply_one(item, conn, applied_by=applied_by))
+        return applied

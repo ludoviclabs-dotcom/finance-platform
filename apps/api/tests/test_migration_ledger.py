@@ -24,6 +24,14 @@ from ._migration_fixtures import (
     reset_public_schema,
 )
 
+
+def _runner_with_synthetic_migration(tmp_path, filename, sql):
+    """MigrationRunner pointé vers un dossier temporaire contenant UNE migration
+    synthétique (028+), pour tester `apply` sans toucher aux 28 fichiers réels
+    (déjà baselinés, tous `skip`). Connexion = get_db (le service postgres:16 en CI)."""
+    (tmp_path / filename).write_text(sql, encoding="utf-8")
+    return MigrationRunner(migrations_dir=tmp_path, connection_factory=get_db)
+
 pytestmark = [
     pytest.mark.skipif(
         not os.environ.get("DATABASE_URL"), reason="DATABASE_URL absent — tests PostgreSQL skippés"
@@ -350,3 +358,67 @@ def test_cli_end_to_end_status_verify_baseline_verify(empty_conn, runner):
     committed = runner.baseline(dry_run=False)
     assert committed.written_count == 29
     assert runner.verify() == []
+
+
+# ── PR-02C : apply_one / apply_plan (exécution réelle, migration 028 synthétique) ──
+
+
+def test_apply_plan_executes_synthetic_migration(empty_conn, tmp_path):
+    """apply_plan applique une migration 028+ absente du ledger : ligne `applied`
+    écrite avec execution_ms, objet réellement créé."""
+    runner = _runner_with_synthetic_migration(
+        tmp_path, "028_apply_probe.sql",
+        "CREATE TABLE apply_probe_028 (id INT PRIMARY KEY);\n",
+    )
+    applied = runner.apply_plan(applied_by="test")
+    assert [r.version for r in applied] == ["028"]
+    assert applied[0].status == "applied"
+    assert applied[0].execution_ms is not None and applied[0].execution_ms >= 0
+
+    records = runner.load_records()
+    assert records["028"].status == "applied"
+    assert records["028"].applied_by == "test"
+
+    with empty_conn.cursor() as cur:
+        cur.execute("SELECT to_regclass('public.apply_probe_028') AS t")
+        assert cur.fetchone()["t"] is not None, "l'objet de la migration doit exister réellement"
+
+
+def test_apply_plan_is_noop_second_time(empty_conn, tmp_path):
+    """Rejouer apply_plan après application : la migration est `skip` (déjà applied), rien de neuf."""
+    runner = _runner_with_synthetic_migration(
+        tmp_path, "028_apply_probe.sql", "CREATE TABLE apply_probe_028 (id INT);\n"
+    )
+    runner.apply_plan(applied_by="test")
+    second = runner.apply_plan(applied_by="test")
+    assert second == []
+
+
+def test_apply_one_failure_records_failed_and_raises(empty_conn, tmp_path):
+    """SQL invalide : ROLLBACK, ligne `failed` + error_message (I5), exception propagée
+    (jamais avalée), migration jamais marquée `applied`."""
+    runner = _runner_with_synthetic_migration(
+        tmp_path, "028_broken.sql", "CREATE TABLE oops (id INT) THIS IS INVALID SQL;\n"
+    )
+    with pytest.raises(Exception):
+        runner.apply_plan(applied_by="test")
+
+    records = runner.load_records()
+    assert records["028"].status == "failed"
+    assert records["028"].error_message
+    assert records["028"].applied_at is None or records["028"].status == "failed"
+
+
+def test_apply_plan_blocks_requires_owner_without_executing(empty_conn, tmp_path):
+    """Une migration requires_owner (ex. 027) dans le plan bloque apply (I4) — jamais exécutée."""
+    from db.migration_runner import ManualMigrationRequired
+
+    runner = _runner_with_synthetic_migration(
+        tmp_path, "027_owner.sql", "CREATE TABLE should_not_exist_027 (id INT);\n"
+    )
+    with pytest.raises(ManualMigrationRequired):
+        runner.apply_plan(applied_by="test")
+
+    with empty_conn.cursor() as cur:
+        cur.execute("SELECT to_regclass('public.should_not_exist_027') AS t")
+        assert cur.fetchone()["t"] is None, "la migration requires_owner ne doit jamais être exécutée"

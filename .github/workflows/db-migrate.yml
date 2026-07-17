@@ -1,0 +1,93 @@
+name: DB Migrate
+
+# Workflow MANUEL et PROTÉGÉ pour les opérations de migration du ledger
+# (schema_migrations). Jamais déclenché par push/pull_request/schedule :
+# uniquement workflow_dispatch, avec approbation humaine via l'environnement
+# GitHub protégé `production-db` (reviewers requis, configuré côté Settings).
+#
+# Ce workflow est le SEUL chemin autorisé pour toute écriture sur le schéma de
+# production (PR02_ARCHITECTURE_PLAN.md §17/§23). Il n'est jamais exécuté par
+# un déploiement applicatif ni par un cold start.
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "Commande CLI"
+        required: true
+        type: choice
+        default: "plan"
+        options:
+          - status
+          - plan
+          - verify
+          - baseline
+          - apply
+          - mark-manual-verified
+      baseline_mode:
+        description: "Mode baseline (utilisé si command=baseline)"
+        required: false
+        type: choice
+        default: "dry-run"
+        options:
+          - dry-run
+          - commit
+      mark_version:
+        description: "Version à marquer (si command=mark-manual-verified, ex. 027)"
+        required: false
+        type: string
+      applied_by:
+        description: "Acteur (si command=mark-manual-verified)"
+        required: false
+        type: string
+      proof:
+        description: "Preuve (si command=mark-manual-verified)"
+        required: false
+        type: string
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    # Environnement GitHub protégé : approbation manuelle requise avant que ce
+    # job ne s'exécute. Provisionné par Ludo côté Settings (reviewers) — hors code.
+    environment: production-db
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run migration command
+        env:
+          # Connexion admin dédiée (rôle neondb_owner, non poolée). SEUL secret
+          # de ce workflow — jamais le DATABASE_URL applicatif standard.
+          DATABASE_ADMIN_URL: ${{ secrets.DATABASE_ADMIN_URL }}
+          # is_production() détecte la prod via ENV ici (VERCEL_ENV n'existe pas
+          # dans GitHub Actions) → apply exige --yes, fourni explicitement.
+          ENV: production
+        run: |
+          set -euo pipefail
+          case "${{ github.event.inputs.command }}" in
+            baseline)
+              python -m db.migration_cli baseline --${{ github.event.inputs.baseline_mode }} --json
+              ;;
+            apply)
+              python -m db.migration_cli apply --yes --json
+              ;;
+            mark-manual-verified)
+              python -m db.migration_cli mark-manual-verified \
+                "${{ github.event.inputs.mark_version }}" \
+                --applied-by "${{ github.event.inputs.applied_by }}" \
+                --proof "${{ github.event.inputs.proof }}" --json
+              ;;
+            status|plan|verify)
+              python -m db.migration_cli "${{ github.event.inputs.command }}" --json
+              ;;
+            *)
+              echo "Commande non reconnue : ${{ github.event.inputs.command }}" >&2
+              exit 1
+              ;;
+          esac

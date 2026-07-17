@@ -1,36 +1,47 @@
 """
 migration_cli.py — CLI du ledger de migrations.
 
-PR-02A : `plan` (lecture seule). PR-02B (ajouté ici) : `status`, `verify`,
-`baseline`, `mark-manual-verified`. Volontairement absent : `apply` — décision
-explicite de Ludo, exécution réelle + workflow protégé = PR-02C.
+PR-02A : `plan` (lecture seule). PR-02B : `status`, `verify`, `baseline`,
+`mark-manual-verified`. PR-02C (ajouté ici) : `apply` (exécution réelle,
+protégée en production).
+
+Connexions : les commandes MUTANTES (`baseline`/`apply`/`mark-manual-verified`)
+utilisent `get_admin_db` (non poolée, rôle neondb_owner) ; les commandes en
+LECTURE SEULE (`status`/`plan`/`verify`) restent sur `get_db` (poolée). Cf.
+PR02C_IMPLEMENTATION_PLAN.md §6.
 
 Usage :
     python -m db.migration_cli status                                   [--json]
     python -m db.migration_cli plan                                     [--json]
     python -m db.migration_cli verify                                   [--json]
     python -m db.migration_cli baseline      [--dry-run|--commit]       [--json]
+    python -m db.migration_cli apply         [--yes]                    [--json]
     python -m db.migration_cli mark-manual-verified <version> --applied-by <acteur> --proof <texte>
 
 Codes de sortie : 0 = succès (y compris « rien à faire ») ; 1 = erreur
-d'exécution (connexion DB, arguments invalides) ; 2 = verrou advisory non
-obtenu ; 3 = migration(s) `requires_owner` en attente d'action manuelle après
-`baseline` ; 4 = anomalie détectée par `verify` (checksum_mismatch/drift).
+d'exécution (connexion DB, arguments invalides, confirmation production
+manquante) ; 2 = verrou advisory non obtenu ; 3 = migration(s) `requires_owner`
+en attente d'action manuelle (après `baseline` ou bloquant `apply`) ; 4 =
+anomalie détectée par `verify` (checksum_mismatch/drift).
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from typing import Any
 
+from db.database import get_admin_db
 from db.migration_runner import (
     BaselineResult,
+    ManualMigrationRequired,
     MigrationLockError,
     MigrationPlan,
     MigrationRunner,
 )
+from utils.env import is_production
 
 
 def _plan_to_dict(plan: MigrationPlan) -> dict[str, Any]:
@@ -155,7 +166,7 @@ def _baseline_to_dict(result: BaselineResult) -> dict[str, Any]:
 
 
 def cmd_baseline(args: argparse.Namespace) -> int:
-    runner = MigrationRunner()
+    runner = MigrationRunner(connection_factory=get_admin_db)
     dry_run = not args.commit
     try:
         result = runner.baseline(dry_run=dry_run)
@@ -188,7 +199,7 @@ def cmd_baseline(args: argparse.Namespace) -> int:
 
 
 def cmd_mark_manual_verified(args: argparse.Namespace) -> int:
-    runner = MigrationRunner()
+    runner = MigrationRunner(connection_factory=get_admin_db)
     try:
         record = runner.mark_manual_verified(args.version, applied_by=args.applied_by, proof=args.proof)
     except MigrationLockError as exc:
@@ -211,6 +222,62 @@ def cmd_mark_manual_verified(args: argparse.Namespace) -> int:
         )
     else:
         print(f"{record.version} -> '{record.status}' (applied_by={record.applied_by})")
+    return 0
+
+
+def _default_applied_by() -> str:
+    """Identifie l'acteur d'un apply pour l'audit (applied_by du ledger)."""
+    run_id = os.environ.get("GITHUB_RUN_ID")
+    if run_id:
+        return f"github-actions:db-migrate#{run_id}"
+    return f"cli:{os.environ.get('USER') or os.environ.get('USERNAME') or 'unknown'}"
+
+
+def cmd_apply(args: argparse.Namespace) -> int:
+    # Confirmation renforcée en production : ce CLI tourne en CI non
+    # interactive, donc pas de prompt — l'absence de --yes en contexte prod est
+    # un refus explicite. Le workflow db-migrate.yml passe --yes après
+    # l'approbation humaine de l'environnement GitHub protégé (c'est CE geste
+    # qui constitue la confirmation).
+    if is_production() and not args.yes:
+        print(
+            "Refus : apply en production exige --yes (déclenché via le workflow protégé "
+            "db-migrate.yml après approbation de l'environnement).",
+            file=sys.stderr,
+        )
+        return 1
+
+    runner = MigrationRunner(connection_factory=get_admin_db)
+    try:
+        applied = runner.apply_plan(applied_by=_default_applied_by())
+    except MigrationLockError as exc:
+        print(f"Erreur : {exc}", file=sys.stderr)
+        return 2
+    except ManualMigrationRequired as exc:
+        print(f"Erreur : {exc}", file=sys.stderr)
+        return 3
+    except Exception as exc:  # MigrationError (checksum mismatch) + erreurs de connexion
+        print(f"Erreur : {exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "applied_count": len(applied),
+                    "applied": [
+                        {"version": r.version, "execution_ms": r.execution_ms} for r in applied
+                    ],
+                },
+                indent=2,
+                default=str,
+            )
+        )
+    elif not applied:
+        print("Aucune migration à appliquer (rien de nouveau, ou tout déjà baseline/skip).")
+    else:
+        for r in applied:
+            print(f"{r.version} applied ({r.execution_ms} ms)")
     return 0
 
 
@@ -251,6 +318,16 @@ def build_parser() -> argparse.ArgumentParser:
     baseline_parser.set_defaults(commit=False)
     baseline_parser.add_argument("--json", action="store_true", help="Sortie JSON pour intégration CI.")
     baseline_parser.set_defaults(func=cmd_baseline)
+
+    apply_parser = subparsers.add_parser(
+        "apply", help="Exécute les migrations pending (028+). Protégée en production."
+    )
+    apply_parser.add_argument(
+        "--yes", action="store_true",
+        help="Confirmation requise en production (fournie par le workflow protégé).",
+    )
+    apply_parser.add_argument("--json", action="store_true", help="Sortie JSON pour intégration CI.")
+    apply_parser.set_defaults(func=cmd_apply)
 
     mark_parser = subparsers.add_parser(
         "mark-manual-verified",

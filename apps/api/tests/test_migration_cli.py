@@ -1,11 +1,10 @@
 """
 test_migration_cli.py — CLI du ledger de migrations.
 
-PR-02A : `plan`. PR-02B (ajouté ici) : `status`, `verify`, `baseline`,
-`mark-manual-verified` — testés par mock (monkeypatch de `MigrationRunner`),
-jamais contre une vraie DB ici (voir test_migration_ledger.py pour les tests
-DB-gated des méthodes elles-mêmes). Volontairement absent : `apply` (§0 du
-plan d'implémentation).
+PR-02A : `plan`. PR-02B : `status`, `verify`, `baseline`,
+`mark-manual-verified`. PR-02C (ajouté ici) : `apply`. Tous testés par mock
+(monkeypatch de `MigrationRunner`), jamais contre une vraie DB ici (voir
+test_migration_ledger.py pour les tests DB-gated des méthodes elles-mêmes).
 """
 
 from __future__ import annotations
@@ -20,6 +19,7 @@ from db import migration_cli
 from db.migration_runner import (
     BaselineItem,
     BaselineResult,
+    ManualMigrationRequired,
     MigrationError,
     MigrationFile,
     MigrationLockError,
@@ -228,3 +228,76 @@ def test_cmd_mark_manual_verified_migration_error_exit_code_1(monkeypatch, capsy
     )
     assert exit_code == 1
     assert "non vérifiés" in capsys.readouterr().err
+
+
+# ── apply (PR-02C) ────────────────────────────────────────────────────────
+
+
+def _fake_applied_records():
+    return [
+        MigrationRecord(
+            version="028", name="028_x.sql", checksum_sha256="c", status="applied",
+            applied_at=datetime.now(tz=timezone.utc), execution_ms=42, applied_by="test",
+            requires_owner=False, transactional=True, error_message=None, metadata={},
+        )
+    ]
+
+
+def test_cmd_apply_refuses_in_production_without_yes(monkeypatch, capsys):
+    """En production, apply sans --yes est un refus explicite (exit 1) — jamais d'exécution."""
+    monkeypatch.setattr(migration_cli, "is_production", lambda: True)
+    called = []
+    monkeypatch.setattr(
+        migration_cli.MigrationRunner, "apply_plan",
+        lambda self, applied_by=None: called.append(1) or [],
+    )
+    exit_code = migration_cli.main(["apply"])
+    assert exit_code == 1
+    assert called == [], "apply_plan ne doit jamais être appelé si la confirmation manque"
+    assert "yes" in capsys.readouterr().err.lower()
+
+
+def test_cmd_apply_runs_in_production_with_yes(monkeypatch, capsys):
+    monkeypatch.setattr(migration_cli, "is_production", lambda: True)
+    monkeypatch.setattr(
+        migration_cli.MigrationRunner, "apply_plan",
+        lambda self, applied_by=None: _fake_applied_records(),
+    )
+    exit_code = migration_cli.main(["apply", "--yes", "--json"])
+    assert exit_code == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["applied_count"] == 1
+    assert out["applied"][0]["version"] == "028"
+
+
+def test_cmd_apply_runs_outside_production_without_yes(monkeypatch, capsys):
+    """Hors production, apply ne demande pas --yes."""
+    monkeypatch.setattr(migration_cli, "is_production", lambda: False)
+    monkeypatch.setattr(
+        migration_cli.MigrationRunner, "apply_plan", lambda self, applied_by=None: []
+    )
+    exit_code = migration_cli.main(["apply"])
+    assert exit_code == 0
+    assert "Aucune migration" in capsys.readouterr().out
+
+
+def test_cmd_apply_manual_required_exit_code_3(monkeypatch, capsys):
+    monkeypatch.setattr(migration_cli, "is_production", lambda: False)
+
+    def _boom(self, applied_by=None):
+        raise ManualMigrationRequired("027 requires_owner")
+
+    monkeypatch.setattr(migration_cli.MigrationRunner, "apply_plan", _boom)
+    exit_code = migration_cli.main(["apply"])
+    assert exit_code == 3
+
+
+def test_cmd_apply_lock_error_exit_code_2(monkeypatch, capsys):
+    monkeypatch.setattr(migration_cli, "is_production", lambda: False)
+
+    def _boom(self, applied_by=None):
+        raise MigrationLockError("verrou non obtenu")
+
+    monkeypatch.setattr(migration_cli.MigrationRunner, "apply_plan", _boom)
+    exit_code = migration_cli.main(["apply"])
+    assert exit_code == 2

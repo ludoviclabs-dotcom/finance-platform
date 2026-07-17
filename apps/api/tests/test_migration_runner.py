@@ -15,6 +15,8 @@ from pathlib import Path
 import pytest
 
 from db.migration_runner import (
+    ManualMigrationRequired,
+    MigrationError,
     MigrationFile,
     MigrationRecord,
     MigrationRunner,
@@ -247,3 +249,45 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert actions["004"] == "apply"
     assert actions["009"] == "apply"
     assert plan.has_blocking_issues is True
+
+
+# ── PR-02C : apply_plan — gardes pré-connexion (aucune DB requise) ────────
+# Ces cas lèvent AVANT d'ouvrir une connexion → testables sans PostgreSQL.
+
+
+def test_apply_plan_raises_manual_required_on_requires_owner(tmp_path, monkeypatch):
+    """Un plan contenant une migration requires_owner non résolue (ex. 027) doit
+    lever ManualMigrationRequired avant toute exécution (I4)."""
+    _write(tmp_path, "027_sites.sql")  # get_meta("027").requires_owner is True
+    runner = MigrationRunner(migrations_dir=tmp_path)
+    monkeypatch.setattr(runner, "load_records", lambda: {})
+    with pytest.raises(ManualMigrationRequired):
+        runner.apply_plan()
+
+
+def test_apply_plan_raises_on_checksum_mismatch(tmp_path, monkeypatch):
+    """Un checksum_mismatch bloque tout apply (I2), avant exécution."""
+    _write(tmp_path, "028_new.sql", "CREATE TABLE t028 (id INT);\n")
+    runner = MigrationRunner(migrations_dir=tmp_path)
+    stale = MigrationRecord(
+        version="028", name="028_new.sql", checksum_sha256="ancien-checksum-different",
+        status="applied", applied_at=None, execution_ms=None, applied_by=None,
+        requires_owner=False, transactional=True, error_message=None, metadata={},
+    )
+    monkeypatch.setattr(runner, "load_records", lambda: {"028": stale})
+    with pytest.raises(MigrationError):
+        runner.apply_plan()
+
+
+def test_apply_plan_noop_when_nothing_to_apply(tmp_path, monkeypatch):
+    """Aucun item 'apply' (dossier vide) → retourne [] sans ouvrir de connexion.
+
+    connection_factory qui lève si appelée : prouve qu'aucune connexion n'est
+    ouverte quand il n'y a rien à appliquer.
+    """
+    def _boom():
+        raise AssertionError("aucune connexion ne doit être ouverte")
+
+    runner = MigrationRunner(migrations_dir=tmp_path, connection_factory=_boom)
+    monkeypatch.setattr(runner, "load_records", lambda: {})
+    assert runner.apply_plan() == []

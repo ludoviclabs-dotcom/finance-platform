@@ -182,14 +182,14 @@ def _is_prod() -> bool:
     """Detect production via Vercel's standard VERCEL_ENV variable.
 
     Fail-secure : si VERCEL_ENV n'est pas "development", on considère prod
-    (preview deployments inclus) et on émet le cookie en Secure.
+    (preview deployments inclus) et on émet le cookie en Secure. Logique
+    factorisée dans `utils.env.is_production()` (PR-02C, D-2) — réutilisée par
+    le CLI de migrations ; conservée ici comme alias local pour ne rien
+    changer aux appelants existants de ce module.
     """
-    import os
-    vercel_env = os.environ.get("VERCEL_ENV", "").lower()
-    if vercel_env:
-        return vercel_env != "development"
-    # Hors Vercel : retomber sur ENV pour le dev local
-    return os.environ.get("ENV", "development").lower() in ("production", "prod")
+    from utils.env import is_production
+
+    return is_production()
 
 
 def _cookie_samesite() -> str:

@@ -6,6 +6,26 @@ from pathlib import Path
 _LOADED = False
 
 
+def is_production() -> bool:
+    """Détecte l'environnement de production (fail-secure).
+
+    `VERCEL_ENV` est la source primaire (injectée automatiquement par Vercel :
+    "production" / "preview" / "development"). Si elle est présente et vaut
+    autre chose que "development", on considère prod — preview inclus, par
+    prudence (fail-secure). Hors Vercel (GitHub Actions, CLI local), repli sur
+    `ENV` : le workflow `db-migrate.yml` pose `ENV=production` explicitement,
+    car `VERCEL_ENV` n'existe pas dans GitHub Actions.
+
+    Extrait de `routers/auth.py::_is_prod()` (D-2, PR02_DECISIONS.md) — 2ᵉ
+    point d'usage réel (confirmations renforcées du CLI de migrations) qui
+    justifie la factorisation différée en PR-02B.
+    """
+    vercel_env = os.environ.get("VERCEL_ENV", "").lower()
+    if vercel_env:
+        return vercel_env != "development"
+    return os.environ.get("ENV", "development").lower() in ("production", "prod")
+
+
 def _should_skip_local_key(key: str) -> bool:
     return (
         key == "VERCEL"

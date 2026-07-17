@@ -112,9 +112,18 @@ def _schema_probe() -> dict:
     pending = sum(1 for f in files if f.version not in records)
     resolved_versions = [v for v, r in records.items() if r.status in ("applied", "baseline")]
     schema_version = max(resolved_versions, key=lambda v: (int(v[:3]), v[3:]), default=None)
+    # up_to_date exige que CHAQUE version découverte ait une ligne applied/baseline —
+    # pas seulement pending_count==0 et manual_required_count==0 (revue Codex,
+    # corrigé 2026-07-17) : une ligne 'failed' n'est ni pending (elle existe)
+    # ni manual_required, donc l'ancien calcul déclarait up_to_date=true pour
+    # un schéma dont une migration a réellement échoué — signal de monitoring
+    # trompeur dès qu'apply()/run réel existera (PR-02C).
+    up_to_date = all(
+        f.version in records and records[f.version].status in ("applied", "baseline") for f in files
+    )
     return {
         "schema_version": schema_version,
-        "up_to_date": pending == 0 and manual_required == 0,
+        "up_to_date": up_to_date,
         "pending_count": pending,
         "manual_required_count": manual_required,
     }

@@ -30,15 +30,25 @@ def _sort_key(path: Path) -> tuple[int, str]:
 
 
 def _apply_file(conn, path: Path) -> None:
+    """Exécute et **committe** — sans quoi l'état reste invisible aux autres
+    connexions (`baseline()`/`verify()`/`mark_manual_verified()` ouvrent
+    chacune leur propre connexion via `get_db()`, isolation PostgreSQL par
+    défaut READ COMMITTED : une transaction non commitée d'une session n'est
+    jamais visible d'une autre session, même contre le même conteneur)."""
     sql = path.read_text(encoding="utf-8")
     with conn.cursor() as cur:
         cur.execute(sql)
+    conn.commit()
 
 
 def apply_ddl_inline(conn) -> None:
-    """DDL historique de `migrations.py` — la baseline `version='000'` du ledger."""
+    """DDL historique de `migrations.py` — la baseline `version='000'` du ledger.
+
+    Committe pour la même raison que `_apply_file` (visibilité inter-connexion).
+    """
     with conn.cursor() as cur:
         cur.execute(INLINE_DDL)
+    conn.commit()
 
 
 def apply_upto(conn, max_version: str | None) -> None:

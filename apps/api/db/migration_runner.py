@@ -352,9 +352,20 @@ class MigrationRunner:
         with conn.cursor() as cur:
             return migration_probes.verify_object(cur, version)
 
-    def _write_ledger_row(
+    def _upsert_ledger_row(
         self, conn, file: MigrationFile, meta, status: str, applied_by: str | None, metadata: dict
     ) -> None:
+        """Insère ou met à jour la ligne de `version` (upsert explicite).
+
+        La protection contre l'écrasement silencieux d'une ligne `applied`/
+        `baseline` (contrainte #1) est appliquée par le code APPELANT (une
+        vérification Python explicite avant d'appeler cette méthode — voir
+        `baseline()`/`mark_manual_verified()`), pas par un `ON CONFLICT DO
+        NOTHING` au niveau SQL : un no-op silencieux masquerait un vrai bug
+        (ex. la transition `manual_required` → `baseline` a besoin d'une
+        écriture réelle sur une ligne existante — un `DO NOTHING` l'aurait
+        empêchée sans erreur, exactement le défaut signalé par la revue Codex).
+        """
         with conn.cursor() as cur:
             cur.execute(
                 """
@@ -362,7 +373,13 @@ class MigrationRunner:
                     (version, name, checksum_sha256, status, applied_at, applied_by,
                      requires_owner, transactional, metadata)
                 VALUES (%s, %s, %s, %s, now(), %s, %s, %s, %s)
-                ON CONFLICT (version) DO NOTHING
+                ON CONFLICT (version) DO UPDATE SET
+                    status = EXCLUDED.status,
+                    applied_at = EXCLUDED.applied_at,
+                    applied_by = EXCLUDED.applied_by,
+                    requires_owner = EXCLUDED.requires_owner,
+                    transactional = EXCLUDED.transactional,
+                    metadata = EXCLUDED.metadata
                 """,
                 (
                     file.version,
@@ -438,7 +455,7 @@ class MigrationRunner:
                     items.append(BaselineItem(file=f, action=action, reason=reason))
 
                     if not dry_run and action in ("baseline", "manual_required"):
-                        self._write_ledger_row(
+                        self._upsert_ledger_row(
                             conn, f, meta, status=action, applied_by=None, metadata={}
                         )
                         written += 1
@@ -481,13 +498,25 @@ class MigrationRunner:
         return anomalies
 
     def mark_manual_verified(self, version: str, applied_by: str, proof: str) -> MigrationRecord:
-        """Transition `manual_required`/`pending` → `baseline`, preuve obligatoire (I7).
+        """Transition `manual_required` (ou `pending`) → `baseline`, preuve obligatoire (I7).
 
-        Vérifie quand même les objets avant d'écrire — défense en profondeur :
-        « le vérificateur d'objets fait toujours autorité, jamais l'hypothèse
-        historique » (§8) s'applique aussi à une preuve textuelle humaine, qui
-        pourrait être erronée (mauvaise version, faux souvenir). Refuse
-        d'écrire si les objets ne sont pas réellement là, même avec preuve.
+        Autorise explicitement `manual_required` → `baseline` (revue Codex,
+        corrigé 2026-07-17) — c'est le scénario réel que cette commande sert :
+        `baseline --commit` écrit une ligne `manual_required` pour une
+        migration `requires_owner` dont les objets sont absents (027 par
+        exemple) ; l'opérateur applique le SQL manuellement (Neon SQL
+        Editor) ; `mark-manual-verified` vérifie que les objets sont
+        maintenant là et transitionne CETTE ligne existante vers `baseline`.
+        La version précédente refusait *toute* version déjà présente dans le
+        ledger, rendant ce scénario impossible.
+
+        Reste protégé (refuse, ValueError) si la ligne existante est déjà
+        `applied`/`baseline` — ces états sont définitivement résolus, jamais
+        modifiés silencieusement (contrainte #1). Vérifie quand même les
+        objets avant d'écrire — défense en profondeur : « le vérificateur
+        d'objets fait toujours autorité, jamais l'hypothèse historique » (§8)
+        s'applique aussi à une preuve textuelle humaine, qui pourrait être
+        erronée (mauvaise version, faux souvenir).
         """
         if not applied_by or not proof:
             raise ValueError("applied_by et proof sont obligatoires (I7)")
@@ -501,17 +530,21 @@ class MigrationRunner:
             with self.acquire_lock(conn):
                 self._ensure_ledger_table(conn)
                 existing = self._read_records(conn)
-                if version in existing:
+                current = existing.get(version)
+
+                if current is not None and current.status in ("applied", "baseline"):
                     raise ValueError(
-                        f"Version {version} déjà '{existing[version].status}' dans le ledger — "
-                        "mark-manual-verified ne réécrit jamais une ligne existante (contrainte #1)"
+                        f"Version {version} déjà '{current.status}' dans le ledger — "
+                        "mark-manual-verified ne modifie jamais un état déjà résolu (contrainte #1)"
                     )
+
                 if not self.verify_migration_objects(conn, version):
                     raise MigrationError(
                         f"Objets attendus de {version} non vérifiés présents malgré la preuve "
                         "fournie — refus d'écrire une baseline non corroborée (§8)"
                     )
-                self._write_ledger_row(
+
+                self._upsert_ledger_row(
                     conn, file, meta, status="baseline", applied_by=applied_by,
                     metadata={"proof": proof},
                 )

@@ -87,13 +87,23 @@ def _probe_003(cur) -> bool:
 
 
 def _probe_004(cur) -> bool:
-    """ENABLE seul — jamais FORCE. Distinct de 009 par relforcerowsecurity=false (cf. D-3)."""
+    """ENABLE + policies sur les 5 tables (revue Codex, corrigé 2026-07-17).
+
+    Ne dépend PAS de l'absence de FORCE. La version précédente exigeait
+    explicitement `relforcerowsecurity=false`, pour « distinguer » 004 de 009
+    — mais 009 supersède 004 en réutilisant les MÊMES noms de policies puis en
+    ajoutant FORCE (D-3) : sur une base complète (004 puis 009), FORCE est
+    posé, et cette condition faisait donc échouer 004 alors que ses policies
+    sont bien présentes et actives. FORCE en plus ne les annule pas, il les
+    renforce — le rôle de cette sonde est de vérifier que le SOCLE 004 est
+    satisfait, pas de distinguer "004 seule" de "004+009" (ce n'est pas une
+    distinction dont `baseline()` a besoin : D-3 exige que 004 ET 009 soient
+    TOUTES DEUX marquées baseline quand les deux ont tourné)."""
     tables = ("snapshots", "facts_events", "audit_events", "alert_rules", "products")
-    policies_ok = all(
+    return all(
         _policy_exists(cur, t, f"tenant_isolation_{t}") and _policy_exists(cur, t, f"tenant_isolation_{t}_insert")
         for t in tables
     )
-    return policies_ok and not any(_force_rls(cur, t) for t in tables)
 
 
 def _probe_005(cur) -> bool:
@@ -243,11 +253,23 @@ def _probe_023(cur) -> bool:
 
 
 def _probe_024(cur) -> bool:
+    """Inclut les policies RLS de `supplier_campaigns` (revue Codex, corrigé 2026-07-17).
+
+    La version précédente ne vérifiait que les artefacts créés AVANT le bloc
+    RLS du fichier (table, colonnes ajoutées, fonction SECURITY DEFINER) —
+    une migration partiellement appliquée (ou dont les policies auraient été
+    retirées après coup) restait donc détectée comme complète, permettant à
+    `baseline()` de la valider à tort et à `verify()` de ne jamais signaler la
+    dérive de sécurité."""
     return (
         _table_exists(cur, "supplier_campaigns")
         and _column_exists(cur, "supplier_questionnaire_tokens", "campaign_id")
         and _column_exists(cur, "supplier_answers", "review_status")
         and _is_security_definer(cur, "mark_supplier_token_viewed")
+        and _policy_exists(cur, "supplier_campaigns", "tenant_isolation_supplier_campaigns")
+        and _policy_exists(cur, "supplier_campaigns", "tenant_isolation_supplier_campaigns_ins")
+        and _policy_exists(cur, "supplier_campaigns", "tenant_isolation_supplier_campaigns_upd")
+        and _policy_exists(cur, "supplier_campaigns", "tenant_isolation_supplier_campaigns_del")
     )
 
 

@@ -242,6 +242,40 @@ def test_mark_manual_verified_refuses_to_rewrite_existing_row(empty_conn, runner
         runner.mark_manual_verified("027", applied_by="ludo", proof="preuve")
 
 
+def test_mark_manual_verified_transitions_manual_required_to_baseline(empty_conn, runner):
+    """Scénario réel de la commande (revue Codex, corrigé 2026-07-17) :
+
+    1. `baseline --commit` écrit une ligne `manual_required` pour 027 (requires_owner,
+       objets absents).
+    2. L'opérateur applique manuellement le SQL (ici : simulé via `apply_upto`).
+    3. `mark-manual-verified` vérifie les objets, désormais présents.
+    4. La ligne EXISTANTE passe de `manual_required` à `baseline` — la version
+       précédente refusait cette transition (toute version déjà présente dans
+       le ledger était rejetée sans distinction de statut).
+    """
+    apply_ddl_inline(empty_conn)
+    apply_upto(empty_conn, "026")  # tout sauf 027
+
+    baseline_result = runner.baseline(dry_run=False)
+    actions = {i.file.version: i.action for i in baseline_result.items}
+    assert actions["027"] == "manual_required"
+    assert runner.load_records()["027"].status == "manual_required"
+
+    apply_upto(empty_conn, "027")  # l'opérateur applique 027 manuellement
+
+    record = runner.mark_manual_verified(
+        "027", applied_by="ludo@neon-sql-editor",
+        proof="SELECT to_regclass('public.sites') -> non-null, colonne actions.site_id confirmée",
+    )
+    assert record.status == "baseline"
+    assert record.applied_by == "ludo@neon-sql-editor"
+
+    records = runner.load_records()
+    assert records["027"].status == "baseline"
+    assert records["027"].applied_by == "ludo@neon-sql-editor"
+    assert records["027"].metadata.get("proof")
+
+
 # ── acquire_lock — concurrence simplifiée (2 connexions) ─────────────────
 
 
@@ -261,6 +295,38 @@ def test_acquire_lock_released_after_context_exit(runner):
         # Le verrou de conn_a a été libéré à la sortie du `with` -> conn_b l'obtient sans attendre.
         with runner.acquire_lock(conn_b, timeout_s=1.0, retry_interval_s=0.2):
             pass
+
+
+# ── /health/schema — up_to_date et status='failed' ───────────────────────
+
+
+def test_schema_probe_not_up_to_date_when_a_version_has_failed(empty_conn, runner):
+    """Revue Codex (routers/health.py) : une ligne `failed` doit rendre
+    `up_to_date=false`, pas seulement `pending_count==0 and manual_required_count==0`.
+
+    La version précédente ne comptait `failed` ni dans `pending` (la ligne
+    existe) ni dans `manual_required` — un schéma avec une migration
+    réellement échouée aurait donc été rapporté `up_to_date: true`, un signal
+    de monitoring trompeur.
+    """
+    from routers.health import _schema_probe
+
+    build_full_db(empty_conn)
+    runner.baseline(dry_run=False)
+    assert runner.verify() == []
+    assert _schema_probe()["up_to_date"] is True, "précondition : schéma sain -> up_to_date=true"
+
+    with empty_conn.cursor() as cur:
+        cur.execute(
+            "UPDATE schema_migrations SET status = 'failed', error_message = %s WHERE version = %s",
+            ("simulation de test", "001"),
+        )
+    empty_conn.commit()
+
+    result = _schema_probe()
+    assert result["up_to_date"] is False
+    assert result["pending_count"] == 0
+    assert result["manual_required_count"] == 0  # ni pending ni manual_required : uniquement failed
 
 
 # ── CLI bout-en-bout ──────────────────────────────────────────────────────

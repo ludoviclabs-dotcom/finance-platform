@@ -75,18 +75,20 @@ def test_unknown_version_is_false(empty_conn):
         assert migration_probes.verify_object(cur, "999") is False
 
 
-def test_probe_004_and_009_distinguish_via_force_rls(full_conn):
-    """Le point exact qui a résolu D-3 : seul `relforcerowsecurity` distingue 004 de 009.
+def test_probe_004_and_009_both_true_after_009_supersedes_004(full_conn):
+    """D-3 : 004 ET 009 doivent toutes deux être détectées vraies quand les deux ont tourné.
 
-    Dans `full_conn`, 004 puis 009 ont tourné dans l'ordre réel — les policies
-    de 009 (mêmes noms, DROP+CREATE) ont supersédé celles de 004, et FORCE est
-    posé. `_probe_004` exige explicitement l'ABSENCE de FORCE : elle doit donc
-    être fausse ici, pas parce que les policies sont absentes (elles sont
-    présentes, sous les noms de 009), mais parce que 009 a bien tourné après.
+    Régression (revue Codex, corrigé 2026-07-17) : `_probe_004` exigeait à
+    l'origine l'ABSENCE de FORCE, pour "distinguer" 004 de 009 — mais sur une
+    base complète (004 puis 009, l'ordre réel), 009 pose FORCE, donc
+    l'ancienne sonde 004 échouait après 009, empêchant `baseline()` de marquer
+    004 comme telle sur l'état réel de prod. FORCE en plus ne annule pas les
+    policies de 004, il les renforce — les deux sondes doivent être vraies
+    simultanément.
     """
     with full_conn.cursor() as cur:
         assert migration_probes.verify_object(cur, "009") is True
-        assert migration_probes.verify_object(cur, "004") is False
+        assert migration_probes.verify_object(cur, "004") is True
 
 
 def test_probe_004_true_when_004_alone_without_009(empty_conn):
@@ -144,4 +146,32 @@ def test_probe_027_false_when_sites_exists_but_site_id_column_missing(empty_conn
         assert migration_probes.verify_object(cur, "027") is False, (
             "sites existe et est correctement configurée, mais actions.site_id est absente "
             "— 027 doit rester détectée comme incomplète"
+        )
+
+
+def test_probe_024_false_when_rls_policies_removed_after_the_fact(empty_conn):
+    """Revue Codex : la sonde 024 doit vérifier les policies RLS, pas seulement
+
+    table/colonnes/fonction. Si les policies de `supplier_campaigns` sont
+    retirées après coup (dérive de sécurité), 024 doit redevenir fausse — la
+    version précédente de la sonde restait vraie car elle ne vérifiait que des
+    artefacts créés AVANT le bloc RLS du fichier.
+    """
+    apply_ddl_inline(empty_conn)
+    apply_upto(empty_conn, "024")  # 024 tourne en entier, y compris ses policies
+    with empty_conn.cursor() as cur:
+        assert migration_probes.verify_object(cur, "024") is True, (
+            "précondition : 024 complète (avec policies) doit être détectée vraie"
+        )
+        for policy in (
+            "tenant_isolation_supplier_campaigns",
+            "tenant_isolation_supplier_campaigns_ins",
+            "tenant_isolation_supplier_campaigns_upd",
+            "tenant_isolation_supplier_campaigns_del",
+        ):
+            cur.execute(f"DROP POLICY {policy} ON supplier_campaigns")
+        assert migration_probes.verify_object(cur, "024") is False, (
+            "024 doit redevenir fausse une fois ses policies RLS retirées — sans quoi "
+            "baseline() bénirait à tort une migration devenue incomplète, et verify() "
+            "ne signalerait jamais la dérive de sécurité"
         )

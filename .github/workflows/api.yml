@@ -81,6 +81,36 @@ jobs:
       - name: Block A — validation des classeurs masters
         run: python ../../scripts/carbonco/validate_block_a_workbooks.py --root data
 
+  # Job séparé : tests PostgreSQL du ledger de migrations (PR-02B), contre un
+  # conteneur postgres:16 jetable — jamais Neon. Même pattern de service que
+  # backup.yml::restore-check (déjà en place). Le job `tests` ci-dessus reste
+  # inchangé (mode /tmp, sans DB) et continue de couvrir le reste de la suite.
+  migration-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Tests PostgreSQL — ledger de migrations (PR-02B)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: pytest -q tests/test_migration_probes.py tests/test_migration_ledger.py
+
   security-audit:
     runs-on: ubuntu-latest
     defaults:

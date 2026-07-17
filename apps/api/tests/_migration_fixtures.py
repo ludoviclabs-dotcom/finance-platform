@@ -1,0 +1,77 @@
+"""
+_migration_fixtures.py — construction d'états de base PostgreSQL pour PR-02B.
+
+Pas un fichier de test (pas de préfixe `test_`, jamais collecté par pytest).
+Exécute les fichiers `.sql` RÉELS du dossier `migrations/` (pas une copie de
+schéma recopiée à la main) pour que les fixtures restent vraies si le contenu
+des migrations évolue. N'utilise jamais `run_migrations()`/`migrations.py`
+(qui applique `MANUAL_ONLY_PREFIXES`/`RLS_FORCE`) — exécution directe et
+ordonnée pour un contrôle exact du sous-ensemble simulé.
+
+Jamais contre Neon — conteneur `postgres:16` jetable (CI) ou une instance
+locale explicitement pointée par `DATABASE_URL`.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+from db.migrations import DDL as INLINE_DDL
+
+MIGRATIONS_DIR = Path(__file__).parent.parent / "db" / "migrations"
+
+_SORT_RE = re.compile(r"^(\d{3})([a-z]?)_")
+
+
+def _sort_key(path: Path) -> tuple[int, str]:
+    match = _SORT_RE.match(path.name)
+    return (int(match.group(1)), match.group(2)) if match else (999, path.name)
+
+
+def _apply_file(conn, path: Path) -> None:
+    sql = path.read_text(encoding="utf-8")
+    with conn.cursor() as cur:
+        cur.execute(sql)
+
+
+def apply_ddl_inline(conn) -> None:
+    """DDL historique de `migrations.py` — la baseline `version='000'` du ledger."""
+    with conn.cursor() as cur:
+        cur.execute(INLINE_DDL)
+
+
+def apply_upto(conn, max_version: str | None) -> None:
+    """Applique les fichiers dont le préfixe numérique est <= `max_version`, en ordre croissant.
+
+    `max_version=None` : aucun fichier appliqué (no-op). Ne touche jamais au
+    DDL inline (`apply_ddl_inline`, appelé séparément si besoin) — les deux
+    « 000 » (bootstrap technique vs baseline historique) restent distincts,
+    comme documenté dans migration_runner.py.
+    """
+    if max_version is None:
+        return
+    limit = int(max_version[:3])
+    for path in sorted(MIGRATIONS_DIR.glob("*.sql"), key=_sort_key):
+        num = int(path.name[:3])
+        if num <= limit:
+            _apply_file(conn, path)
+
+
+def build_full_db(conn) -> None:
+    """DDL inline + les 28 fichiers, y compris 004/009/027 — simule la prod réelle (D-3)."""
+    apply_ddl_inline(conn)
+    apply_upto(conn, "027")
+
+
+def reset_public_schema(conn) -> None:
+    """Repart d'un schéma `public` vide — isolation entre tests contre le même conteneur jetable.
+
+    Plus simple et plus explicite qu'un rollback de transaction ouverte (qui
+    demanderait de contourner le commit automatique de `get_db()`) ; un
+    `DROP/CREATE SCHEMA` est bon marché contre un conteneur `postgres:16`
+    dédié aux tests, jamais utilisé contre une base persistante.
+    """
+    with conn.cursor() as cur:
+        cur.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
+    conn.commit()

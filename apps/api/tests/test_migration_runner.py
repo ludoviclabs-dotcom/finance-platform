@@ -66,6 +66,29 @@ def test_discover_ignores_subdirectories(tmp_path):
     assert [f.name for f in files] == ["001_real.sql"]
 
 
+def test_discover_ignores_bootstrap_subdirectory_defensively(tmp_path):
+    """`_bootstrap/000_...sql` (PR-02B) vit hors de `migrations/`, en sibling —
+    zéro risque de découverte par construction. Test défensif au cas où un
+    futur `_bootstrap/` serait par erreur nesté DANS `migrations_dir` : le
+    garde `is_file()` de `discover_migrations()` doit quand même l'ignorer."""
+    bootstrap_dir = tmp_path / "_bootstrap"
+    bootstrap_dir.mkdir()
+    (bootstrap_dir / "000_schema_migrations_ledger.sql").write_text("-- sql\n", encoding="utf-8")
+    _write(tmp_path, "001_real.sql")
+    runner = MigrationRunner(migrations_dir=tmp_path)
+    files = runner.discover_migrations()
+    assert [f.name for f in files] == ["001_real.sql"]
+
+
+def test_discover_real_migrations_dir_has_no_000(tmp_path):
+    """Le vrai `apps/api/db/migrations/` ne contient jamais de fichier `000_...`
+    — celui-ci vit dans `apps/api/db/_bootstrap/` (sibling), confirmé ici
+    contre le vrai dossier plutôt qu'un tmp_path isolé."""
+    runner = MigrationRunner()  # migrations_dir par défaut = apps/api/db/migrations
+    versions = [f.version for f in runner.discover_migrations()]
+    assert "000" not in versions
+
+
 # ── calculate_checksum ───────────────────────────────────────────────────
 
 

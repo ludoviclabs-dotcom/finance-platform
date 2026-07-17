@@ -98,4 +98,12 @@ jobs:
         run: pip install pip-audit
 
       - name: pip-audit (high+critical bloquant)
-        run: pip-audit -r requirements.txt --strict
+        # PYSEC-2026-1325 (ecdsa 0.19.2) — ignoré avec justification (2026-07-17) :
+        #  - dépendance transitive via python-jose[cryptography], jamais déclarée
+        #    directement dans requirements.txt ;
+        #  - aucune version corrective publiée (colonne "Fix Versions" vide) ;
+        #  - canal auxiliaire temporel sur des opérations ECDSA. L'app signe ses JWT
+        #    en HS256 uniquement (services/auth_service.py) → le chemin ECDSA n'est
+        #    jamais exercé ; plateforme locale-first, sans exposition réseau au runtime.
+        #  À retirer si un correctif ecdsa paraît, ou lors d'une migration python-jose → PyJWT.
+        run: pip-audit -r requirements.txt --strict --ignore-vuln PYSEC-2026-1325

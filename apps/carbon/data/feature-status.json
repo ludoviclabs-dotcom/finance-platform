@@ -25,6 +25,15 @@
       "preuve": "apps/api/services/carbon_service.py"
     },
     {
+      "id": "energie-scope2-dual",
+      "label": "Énergie & Scope 2 dual (location + market-based)",
+      "description": "Fondation énergie : compteurs, activités de consommation, instruments contractuels (REC/GO/PPA/tarif vert) et allocations contrôlées avec anti-double-allocation garanti en base. Vue Scope 2 dual location-based et market-based côte à côte. Le moteur de calcul dual (totaux LB/MB en tCO2e) arrive en tranche suivante.",
+      "statut": "beta",
+      "normes": ["ESRS E1", "GHG Protocol Scope 2"],
+      "tag": "ESRS E1 · Scope 2",
+      "preuve": "apps/api/routers/energy.py"
+    },
+    {
       "id": "dashboard-provenance",
       "label": "Dashboard interactif avec provenance des données",
       "description": "Visualisation des émissions par scope, par poste et par période. Chaque chiffre affiché est traçable jusqu'à la source (ligne du fichier Excel, facteur d'émission utilisé, date d'import). Graphiques filtrables et comparaison N/N-1.",

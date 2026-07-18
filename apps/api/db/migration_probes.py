@@ -368,6 +368,28 @@ def _probe_030(cur) -> bool:
     )
 
 
+def _probe_031(cur) -> bool:
+    """Énergie & Scope 2 (PR-06A) : 5 tables purement tenant + RLS FORCE +
+    policy scopée sur chacune + le trigger anti-double-allocation.
+
+    On sonde le trigger `trg_instrument_allocations_guard` en plus des tables :
+    c'est lui qui garantit l'anti-double-allocation EN BASE (le cœur de la
+    migration) — une base où les tables existent mais où le trigger a été
+    retiré est incomplète et doit rester détectée comme telle."""
+    tables = (
+        "energy_meters", "energy_activities", "contractual_instruments",
+        "instrument_allocations", "energy_factor_metadata",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    return _trigger_exists(cur, "instrument_allocations", "trg_instrument_allocations_guard")
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -401,6 +423,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "028": _probe_028,
     "029": _probe_029,
     "030": _probe_030,
+    "031": _probe_031,
 }
 
 

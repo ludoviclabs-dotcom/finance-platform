@@ -86,6 +86,20 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "calcul Scope 3, aucun score (PR-05B). Aucune donnée métier migrée."
         ),
     ),
+    "031": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Énergie & Scope 2 (PR-06A) : 5 nouvelles tables (energy_meters, "
+            "energy_activities, contractual_instruments, instrument_allocations, "
+            "energy_factor_metadata), RLS gen-2 FORCE (purement tenant, sans ligne "
+            "globale), trigger anti-double-allocation (somme allocated_mwh <= "
+            "volume_mwh par instrument). Ne crée que des tables neuves (aucun ALTER "
+            "d'une table existante) — pas de privilège propriétaire requis, comme "
+            "028. Aucun calcul Scope 2, aucun total LB/MB (PR-06B), aucun LLM, "
+            "aucune donnée externe réelle."
+        ),
+    ),
 }
 
 

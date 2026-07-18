@@ -21,12 +21,16 @@ os.environ.setdefault("RATE_LIMIT_DISABLED", "1")
 
 from main import app  # noqa: E402
 
-# Evidence Kernel (PR-03) : fixtures partagées entre tests exposées ici (pas
-# dans chaque fichier test_intelligence_*.py) pour éviter le faux positif
-# pyflakes F811 — un paramètre de test nommé comme un nom importé est lu à
-# tort comme une redéfinition, alors que pytest l'interprète comme une
-# injection de fixture. Une fixture disponible via conftest.py n'a besoin
-# d'aucun import explicite côté fichier de test, donc aucun nom à "redéfinir".
+# Fixtures partagées entre tests exposées ici (pas dans chaque fichier
+# test_*.py) pour éviter le faux positif pyflakes F811 — un paramètre de test
+# nommé comme un nom importé est lu à tort comme une redéfinition, alors que
+# pytest l'interprète comme une injection de fixture. Une fixture disponible via
+# conftest.py n'a besoin d'aucun import explicite côté fichier de test, donc
+# aucun nom à "redéfinir". Énergie & Scope 2 = PR-06A ; Evidence Kernel = PR-03.
+from ._energy_fixtures import (  # noqa: E402,F401
+    energy_companies,
+    energy_schema,
+)
 from ._intelligence_fixtures import (  # noqa: E402,F401
     evidence_kernel_schema,
     two_companies,

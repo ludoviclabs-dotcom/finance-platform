@@ -230,7 +230,7 @@ def test_build_plan_no_blocking_issues_when_all_apply(tmp_path, monkeypatch):
     assert plan.has_blocking_issues is False
 
 
-# ── Corpus réel (31 fichiers : 028 PR-03, 029 PR-04, 030 PR-05A) ─────────
+# ── Corpus réel (32 fichiers : 028 PR-03, 029 PR-04, 030 PR-05A, 031 PR-06A) ──
 
 
 def test_build_plan_against_real_migrations_directory(monkeypatch):
@@ -238,20 +238,21 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
 
     28 fichiers à la clôture de PR-02 (001-027 + 008b) ; 29 depuis l'ajout de
     028 (Evidence Kernel, PR-03) ; 30 depuis 029 (Source Admin — vue de
-    fraîcheur, PR-04) ; 31 depuis 030 (exposition achats, PR-05A) — voir tests
-    dédiés ci-dessous pour 028, 029 et 030.
+    fraîcheur, PR-04) ; 31 depuis 030 (exposition achats, PR-05A) ; 32 depuis
+    031 (fondation énergie, PR-06A) — voir tests dédiés ci-dessous pour 028 à 031.
     """
     runner = MigrationRunner()  # migrations_dir par défaut = apps/api/db/migrations
     monkeypatch.setattr(runner, "load_records", lambda: {})
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 31
+    assert len(versions) == 32
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
     assert "029" in versions
     assert "030" in versions
+    assert "031" in versions
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["027"] == "blocked_manual"
@@ -260,6 +261,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert actions["028"] == "apply"
     assert actions["029"] == "apply"
     assert actions["030"] == "apply"
+    assert actions["031"] == "apply"
     assert plan.has_blocking_issues is True
 
 

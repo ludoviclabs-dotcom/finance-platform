@@ -25,14 +25,17 @@ from models.intelligence import (
     ReleaseCreate,
     ReleaseListResponse,
     ReleaseResponse,
+    ReleaseValidateRequest,
     SourceCreate,
+    SourceFreshness,
     SourceListResponse,
     SourceResponse,
     SourceUpdate,
 )
-from routers.auth import get_current_user, require_analyst
+from routers.auth import get_current_user, require_admin, require_analyst
 from services.auth_service import AuthUser
 from services.intelligence import (
+    freshness_service,
     ingestion_service,
     observation_service,
     release_service,
@@ -121,6 +124,20 @@ async def update_source_endpoint(
         raise _http_error(exc) from exc
 
 
+@router.get("/sources/{source_id}/freshness", response_model=SourceFreshness)
+async def get_source_freshness_endpoint(
+    source_id: int,
+    user: AuthUser = Depends(get_current_user),
+) -> SourceFreshness:
+    """Fraîcheur d'une source (âge de la dernière release, péremption, licence).
+    404 (jamais 403) si hors périmètre tenant — pas de fuite d'existence."""
+    _require_db()
+    result = freshness_service.get_source_freshness(company_id=user.company_id, source_id=source_id)
+    if result is None:
+        raise HTTPException(404, detail=f"Source '{source_id}' introuvable.")
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Releases
 # ---------------------------------------------------------------------------
@@ -162,6 +179,54 @@ async def get_release_endpoint(
     _require_db()
     try:
         return release_service.get_release(company_id=user.company_id, release_id=release_id)
+    except release_service.ReleaseError as exc:
+        raise _http_error(exc) from exc
+
+
+# ---------------------------------------------------------------------------
+# Transitions de release (PR-04) — pilotent le cycle de vie depuis la page
+# Source Admin. `require_admin` : gestes de gouvernance, pas de simple analyste.
+# Les transitions elles-mêmes existent déjà en service (PR-03) ; PR-04 ne fait
+# que les exposer. La licence bloquante n'est pas une erreur : publish renvoie
+# 200 avec le statut `blocked_license` (état normal du cycle de vie).
+# ---------------------------------------------------------------------------
+
+@router.post("/releases/{release_id}/validate", response_model=ReleaseResponse)
+async def validate_release_endpoint(
+    release_id: int,
+    body: ReleaseValidateRequest | None = None,
+    user: AuthUser = Depends(require_admin),
+) -> ReleaseResponse:
+    _require_db()
+    passed = body.passed if body is not None else True
+    try:
+        return release_service.validate_release(
+            company_id=user.company_id, release_id=release_id, passed=passed,
+        )
+    except release_service.ReleaseError as exc:
+        raise _http_error(exc) from exc
+
+
+@router.post("/releases/{release_id}/publish", response_model=ReleaseResponse)
+async def publish_release_endpoint(
+    release_id: int,
+    user: AuthUser = Depends(require_admin),
+) -> ReleaseResponse:
+    _require_db()
+    try:
+        return release_service.publish_release(company_id=user.company_id, release_id=release_id)
+    except release_service.ReleaseError as exc:
+        raise _http_error(exc) from exc
+
+
+@router.post("/releases/{release_id}/supersede", response_model=ReleaseResponse)
+async def supersede_release_endpoint(
+    release_id: int,
+    user: AuthUser = Depends(require_admin),
+) -> ReleaseResponse:
+    _require_db()
+    try:
+        return release_service.supersede_release(company_id=user.company_id, new_release_id=release_id)
     except release_service.ReleaseError as exc:
         raise _http_error(exc) from exc
 

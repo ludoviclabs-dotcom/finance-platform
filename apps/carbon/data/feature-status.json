@@ -7,7 +7,9 @@
       "label": "Import workbook Excel + validation automatique",
       "description": "Chargez votre fichier de collecte de données (modèle CarbonCo fourni). Le système valide la structure, détecte les cellules manquantes et remonte les erreurs avant calcul.",
       "statut": "live",
-      "normes": ["ESRS E1"],
+      "normes": [
+        "ESRS E1"
+      ],
       "tag": "ESRS E1",
       "preuve": "apps/api/routers/excel.py"
     },
@@ -16,7 +18,9 @@
       "label": "Calcul Scope 1, 2 & 3 — GHG Protocol",
       "description": "Calcul des émissions selon la méthodologie GHG Protocol avec facteurs ADEME Base Empreinte® intégrés. Couverture Scope 1 (combustion, flotte, réfrigérants), Scope 2 (électricité, chaleur), Scope 3 partiel (achats, transport, déplacements).",
       "statut": "live",
-      "normes": ["ESRS E1"],
+      "normes": [
+        "ESRS E1"
+      ],
       "tag": "ESRS E1",
       "preuve": "apps/api/services/carbon_service.py"
     },
@@ -25,7 +29,9 @@
       "label": "Dashboard interactif avec provenance des données",
       "description": "Visualisation des émissions par scope, par poste et par période. Chaque chiffre affiché est traçable jusqu'à la source (ligne du fichier Excel, facteur d'émission utilisé, date d'import). Graphiques filtrables et comparaison N/N-1.",
       "statut": "live",
-      "normes": ["ESRS E1"],
+      "normes": [
+        "ESRS E1"
+      ],
       "preuve": "apps/api/services/facts_service.py"
     },
     {
@@ -33,7 +39,10 @@
       "label": "Export PDF rapport CSRD",
       "description": "Génération d'un rapport PDF structuré selon les exigences de présentation ESRS. Inclut les données quantitatives, les narratifs de contexte et les tableaux de conformité.",
       "statut": "live",
-      "normes": ["ESRS E1", "ESRS 2"],
+      "normes": [
+        "ESRS E1",
+        "ESRS 2"
+      ],
       "tag": "ESRS E1 · ESRS 2",
       "preuve": "apps/api/services/export_package.py"
     },
@@ -42,7 +51,9 @@
       "label": "Export Excel structuré + audit trail",
       "description": "Export des données de calcul au format Excel avec horodatage, identifiant utilisateur et hash d'intégrité pour chaque ligne. Permet la vérification par un OTI (Organisme Tiers Indépendant).",
       "statut": "live",
-      "normes": ["ESRS E1"],
+      "normes": [
+        "ESRS E1"
+      ],
       "preuve": "apps/api/services/export_package.py"
     },
     {
@@ -50,7 +61,10 @@
       "label": "Double matérialité — ESRS 1/2 (matrice, versions, export auditable)",
       "description": "Matrice interactive à deux dimensions avec la règle ESRS 1 : un enjeu est matériel si sa matérialité d'impact OU sa matérialité financière atteint le seuil. Justification par enjeu, standards ESRS à couvrir déduits automatiquement, évaluations archivées par exercice (immuables) et export PDF auditable vérifiable sur /verify.",
       "statut": "live",
-      "normes": ["ESRS 1", "ESRS 2"],
+      "normes": [
+        "ESRS 1",
+        "ESRS 2"
+      ],
       "tag": "ESRS 1 · ESRS 2",
       "preuve": "apps/api/routers/materialite.py"
     },
@@ -83,7 +97,9 @@
       "label": "Campagnes fournisseurs Scope 3 (questionnaires, suivi, relances)",
       "description": "Campagnes de collecte centralisées : import CSV de fournisseurs, questionnaire par lien sécurisé sans compte, suivi des réponses (en attente / consulté / répondu), relances automatiques J-14/J-7/deadline (in-app, e-mail optionnel) et revue obligatoire des réponses avant intégration au Scope 3.",
       "statut": "beta",
-      "normes": ["ESRS E1"],
+      "normes": [
+        "ESRS E1"
+      ],
       "tag": "ESRS E1 Scope 3",
       "preuve": "apps/api/services/supplier_campaigns_service.py"
     },
@@ -108,7 +124,9 @@
       "label": "Collecte données sociales — ESRS S1",
       "description": "Formulaire de collecte des indicateurs sociaux (effectifs, conditions de travail, égalité, santé-sécurité). Les données sont collectées et exportées en PDF, mais le scoring de conformité ESRS S1 est encore en développement.",
       "statut": "beta",
-      "normes": ["ESRS S1"],
+      "normes": [
+        "ESRS S1"
+      ],
       "tag": "ESRS S1",
       "preuve": "apps/api/services/esg_service.py"
     },
@@ -192,7 +210,12 @@
       "label": "Modules ESRS E2–E5 approfondis",
       "description": "Développement approfondi des standards Pollution (E2), Eau (E3), Biodiversité (E4) et Économie circulaire (E5). Priorité déterminée selon les demandes clients ; E2 est le prochain dans la file.",
       "statut": "planifie",
-      "normes": ["ESRS E2", "ESRS E3", "ESRS E4", "ESRS E5"],
+      "normes": [
+        "ESRS E2",
+        "ESRS E3",
+        "ESRS E4",
+        "ESRS E5"
+      ],
       "tag": "E2 · E3 · E4 · E5"
     },
     {
@@ -253,7 +276,9 @@
       "label": "Module VSME — rapport volontaire PME (EFRAG)",
       "description": "Référentiel VSME (modules Basic B1-B11 + Comprehensive C1-C9), mapping automatique depuis E1/matérialité/S1/G1 avec jauge de complétude, export Rapport VSME (PDF + annexe Excel auditable) et parcours guidé en 10 étapes. Standard EFRAG public et gratuit. Beta tant que l'ensemble du module n'est pas validé sur Neon ; le référentiel et les exports sont opérationnels.",
       "statut": "beta",
-      "normes": ["VSME"],
+      "normes": [
+        "VSME"
+      ],
       "tag": "VSME",
       "preuve": "apps/api/services/vsme_export.py"
     },
@@ -262,7 +287,9 @@
       "label": "Scope 3 — 15 catégories GHG Protocol",
       "description": "Ventilation du Scope 3 sur les 15 catégories GHG Protocol (codes CC.GES.SCOPE3.1 à 15, chaîne d'intégrité inchangée). La couverture partielle est affichée honnêtement : les catégories non évaluées restent visibles en creux. Beta en attendant la validation complète sur Neon.",
       "statut": "beta",
-      "normes": ["ESRS E1"],
+      "normes": [
+        "ESRS E1"
+      ],
       "tag": "ESRS E1 Scope 3",
       "preuve": "apps/api/services/scope3_service.py"
     },
@@ -271,7 +298,9 @@
       "label": "BEGES réglementaire (France, v5) : export + suivi des dépôts",
       "description": "Table de passage GHG Protocol → nomenclature BEGES v5 (6 catégories / 22 postes), export tableur + PDF déterministes pour dépôt manuel sur bilans-ges.ademe.fr, note méthodologique, encart d'éligibilité, historique des dépôts déclarés et échéance de renouvellement (+4 ans) avec rappels in-app J-180/J-30/échéance. Réconciliation automatique total BEGES = total GHG. Beta.",
       "statut": "beta",
-      "normes": ["ESRS E1"],
+      "normes": [
+        "ESRS E1"
+      ],
       "tag": "BEGES v5",
       "preuve": "apps/api/services/beges_export.py"
     },
@@ -280,7 +309,9 @@
       "label": "Import FEC → screening Scope 3 monétaire",
       "description": "Parseur FEC (art. A.47 A-1 LPF), mapping comptes de charges PCG classe 6 → catégories Scope 3, estimation kgCO2e via ratios monétaires ADEME (qualité = 4). Écran de revue obligatoire : aucun fact n'entre dans la chaîne sans validation humaine. Beta.",
       "statut": "beta",
-      "normes": ["ESRS E1"],
+      "normes": [
+        "ESRS E1"
+      ],
       "tag": "ESRS E1 Scope 3",
       "preuve": "apps/api/services/fec_screening_service.py"
     },
@@ -313,10 +344,25 @@
       "label": "Cartographie des matières premières critiques",
       "description": "Module d'exploration : les 34 matières critiques UE (dont 17 stratégiques) avec prix, dépendances géographiques, producteurs et score CarbonCo de risque d'approvisionnement. Relie vos catégories Scope 3 aux matières de vos chaînes de valeur et nourrit l'analyse de double matérialité. Snapshot de démonstration daté — valeurs estimées, non normatives.",
       "statut": "live",
-      "normes": ["ESRS E1"],
+      "normes": [
+        "ESRS E1"
+      ],
       "tag": "Module d'exploration",
       "href": "/materials",
       "preuve": "apps/carbon/app/materials/page.tsx"
+    },
+    {
+      "id": "intelligence-sources",
+      "label": "Registre des sources & provenance (intelligence)",
+      "description": "Console interne de gestion des sources externes : registre, releases immuables (checksum SHA-256), licences évaluées et fraîcheur. Le snapshot de démonstration /materials y est migré en source+release auditable (observations estimées). Migration byte-fidèle prouvée par un rapport de parité.",
+      "statut": "beta",
+      "normes": [
+        "ESRS E1",
+        "ESRS E5"
+      ],
+      "tag": "Noyau de preuve",
+      "href": "/intelligence/sources",
+      "preuve": "apps/api/services/intelligence/snapshot_migration.py"
     }
   ],
   "esrs": [
@@ -325,7 +371,10 @@
       "name": "Exigences générales",
       "description": "Principes de reporting, périmètre, double matérialité, chaîne de valeur",
       "statut": "live",
-      "exports": ["PDF", "Excel"],
+      "exports": [
+        "PDF",
+        "Excel"
+      ],
       "note": "Couvre les exigences de présentation et de périmètre"
     },
     {
@@ -333,7 +382,10 @@
       "name": "Informations générales",
       "description": "Stratégie, gouvernance, matérialité, gestion des impacts risques et opportunités",
       "statut": "live",
-      "exports": ["PDF", "Excel"],
+      "exports": [
+        "PDF",
+        "Excel"
+      ],
       "note": "Questionnaire double matérialité intégré"
     },
     {
@@ -341,7 +393,11 @@
       "name": "Changement climatique",
       "description": "Atténuation, adaptation, énergie — Scope 1, 2 & 3, GHG Protocol, ADEME Base Empreinte®",
       "statut": "live",
-      "exports": ["PDF", "Excel", "Audit trail"],
+      "exports": [
+        "PDF",
+        "Excel",
+        "Audit trail"
+      ],
       "note": "Module principal — couverture la plus approfondie"
     },
     {
@@ -349,7 +405,9 @@
       "name": "Pollution",
       "description": "Pollution de l'air, de l'eau et des sols, substances préoccupantes",
       "statut": "beta",
-      "exports": ["PDF"],
+      "exports": [
+        "PDF"
+      ],
       "note": "Collecte de données disponible, calculs en cours de validation"
     },
     {
@@ -378,7 +436,9 @@
       "name": "Effectifs propres",
       "description": "Conditions de travail, santé-sécurité, égalité, rémunérations",
       "statut": "beta",
-      "exports": ["PDF"],
+      "exports": [
+        "PDF"
+      ],
       "note": "Formulaire de collecte disponible, scoring en développement"
     },
     {
@@ -407,7 +467,9 @@
       "name": "Conduite des affaires",
       "description": "Éthique des affaires, corruption, lobbying, paiements aux pouvoirs publics",
       "statut": "live",
-      "exports": ["PDF"],
+      "exports": [
+        "PDF"
+      ],
       "note": "Questionnaire structuré + export rapport narratif"
     }
   ],

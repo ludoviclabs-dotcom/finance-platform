@@ -3,11 +3,13 @@ _intelligence_fixtures.py — état PostgreSQL partagé pour les tests Evidence
 Kernel (PR-03). Pas un fichier de test (pas de préfixe `test_`, jamais
 collecté par pytest) — même convention que `_migration_fixtures.py`.
 
-Applique le DDL historique + les fichiers `.sql` RÉELS jusqu'à 028 inclus
-(`_migration_fixtures.apply_ddl_inline` + `apply_upto("028")`) — jamais une
+Applique le DDL historique + les fichiers `.sql` RÉELS jusqu'à 029 inclus
+(`_migration_fixtures.apply_ddl_inline` + `apply_upto("029")`) — jamais une
 copie de schéma recopiée à la main. Idempotent (`CREATE TABLE IF NOT
-EXISTS` partout) : sûr à rappeler même si un autre module de test a déjà
-construit le schéma sur le même conteneur `postgres:16` jetable.
+EXISTS` / `CREATE OR REPLACE VIEW` partout) : sûr à rappeler même si un autre
+module de test a déjà construit le schéma sur le même conteneur `postgres:16`
+jetable. 029 (vue source_freshness) est incluse pour les tests de fraîcheur
+PR-04.
 """
 
 from __future__ import annotations
@@ -29,14 +31,14 @@ EK_TABLES = (
 
 
 def build_evidence_kernel_db(conn) -> None:
-    """DDL historique + 001-028 (inclut le noyau Evidence Kernel)."""
+    """DDL historique + 001-029 (noyau Evidence Kernel 028 + vue de fraîcheur 029)."""
     apply_ddl_inline(conn)
-    apply_upto(conn, "028")
+    apply_upto(conn, "029")
 
 
 @pytest.fixture(scope="module")
 def evidence_kernel_schema():
-    """Applique le schéma jusqu'à 028 une fois par module de test."""
+    """Applique le schéma jusqu'à 029 une fois par module de test."""
     with get_db() as conn:
         build_evidence_kernel_db(conn)
 

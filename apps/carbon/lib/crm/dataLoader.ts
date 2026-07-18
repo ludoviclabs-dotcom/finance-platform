@@ -112,6 +112,15 @@ export function isSnapshotStale(snapshotDateIso: string, now: number = Date.now(
   return Math.floor((now - then) / 86_400_000) > STALE_AFTER_DAYS;
 }
 
+// Âge en jours du snapshot. Calculé côté serveur (page prérendue) et passé en
+// prop aux composants clients — jamais recalculé côté client, même discipline
+// que isSnapshotStale (Date.now() encapsulé ici, hors du rendu d'un composant).
+export function snapshotAgeDays(snapshotDateIso: string, now: number = Date.now()): number {
+  const then = new Date(snapshotDateIso).getTime();
+  if (Number.isNaN(then)) return 0;
+  return Math.max(0, Math.floor((now - then) / 86_400_000));
+}
+
 export interface MaterialsSummary {
   total: number;
   strategic: number;

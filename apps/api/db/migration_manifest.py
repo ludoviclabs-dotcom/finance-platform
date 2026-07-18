@@ -60,6 +60,19 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "de 027. Aucune donnée métier migrée, aucune source externe ingérée."
         ),
     ),
+    "029": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Source Admin (PR-04) : vue source_freshness (security_invoker=true) "
+            "agrégeant par source sa dernière release/statut pour "
+            "/health/intelligence et la page de fraîcheur. Aucune table neuve, "
+            "aucun ALTER — CREATE OR REPLACE VIEW rejouable, hérite de la RLS des "
+            "tables 028. Pas de privilège propriétaire requis. La source démo "
+            "CARBONCO_DEMO_SNAPSHOT et ses observations sont des DONNÉES (créées "
+            "par le CLI d'import via les services PR-03), pas du schéma."
+        ),
+    ),
 }
 
 

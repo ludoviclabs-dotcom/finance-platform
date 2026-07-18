@@ -230,30 +230,32 @@ def test_build_plan_no_blocking_issues_when_all_apply(tmp_path, monkeypatch):
     assert plan.has_blocking_issues is False
 
 
-# ── Corpus réel (29 fichiers existants depuis PR-03/028) ─────────────────
+# ── Corpus réel (30 fichiers existants depuis PR-04/029) ─────────────────
 
 
 def test_build_plan_against_real_migrations_directory(monkeypatch):
     """Critère de sortie PR-02A : plan correct pour les fichiers existants, ledger vide.
 
-    28 fichiers à la clôture de PR-02 (001-027 + 008b) ; 29 depuis l'ajout de
-    028 (Evidence Kernel, PR-03) — voir test dédié ci-dessous pour 028.
+    28 fichiers à la clôture de PR-02 (001-027 + 008b) ; 29 depuis 028 (Evidence
+    Kernel, PR-03) ; 30 depuis 029 (Source Admin — vue de fraîcheur, PR-04).
     """
     runner = MigrationRunner()  # migrations_dir par défaut = apps/api/db/migrations
     monkeypatch.setattr(runner, "load_records", lambda: {})
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 29
+    assert len(versions) == 30
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
+    assert "029" in versions
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["027"] == "blocked_manual"
     assert actions["004"] == "apply"
     assert actions["009"] == "apply"
     assert actions["028"] == "apply"
+    assert actions["029"] == "apply"
     assert plan.has_blocking_issues is True
 
 

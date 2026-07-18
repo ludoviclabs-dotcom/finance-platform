@@ -114,7 +114,7 @@ jobs:
       # PostgreSQL : ajouter chaque nouveau fichier de test DB-gated ici est
       # obligatoire, sinon il ne tourne jamais en CI (chacun construit son
       # propre schéma de façon idempotente — aucun ordre imposé entre eux).
-      - name: Tests PostgreSQL — ledger + Evidence Kernel (PR-02B / PR-03)
+      - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin (PR-02B / PR-03 / PR-04)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: >-
@@ -125,6 +125,9 @@ jobs:
           tests/test_intelligence_releases.py
           tests/test_intelligence_observations.py
           tests/test_intelligence_api.py
+          tests/test_intelligence_adapters.py
+          tests/test_snapshot_migration.py
+          tests/test_intelligence_freshness.py
 
   security-audit:
     runs-on: ubuntu-latest

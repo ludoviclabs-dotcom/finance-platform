@@ -44,6 +44,8 @@ from routers import (
     materialite,
     partners,
     pilier2,
+    procurement,
+    products,
     quality,
     questionnaire,
     report,
@@ -218,3 +220,5 @@ app.include_router(suppliers.router, prefix="/suppliers", tags=["suppliers"])
 app.include_router(materialite.router, prefix="/materialite", tags=["materialite"])
 app.include_router(partners.router, prefix="/partners", tags=["partners (T7.5)"])
 app.include_router(intelligence.router, prefix="/intelligence", tags=["intelligence (PR-03)"])
+app.include_router(procurement.router, prefix="/procurement", tags=["procurement (PR-05A)"])
+app.include_router(products.router, prefix="/products", tags=["products (PR-05A)"])

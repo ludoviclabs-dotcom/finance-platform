@@ -73,6 +73,19 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "par le CLI d'import via les services PR-03), pas du schéma."
         ),
     ),
+    "030": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Exposition achats/fournisseurs (PR-05A) : 9 nouvelles tables "
+            "(supplier_sites, supplier_products, purchase_imports, purchase_lines, "
+            "bom_versions, bom_items, material_mappings, supplier_metric_declarations, "
+            "product_carbon_footprints), RLS génération 2 FORCE + policies par "
+            "commande. Ne crée que des tables neuves (aucun ALTER d'une table "
+            "existante) — pas de privilège propriétaire requis, comme 028. Aucun "
+            "calcul Scope 3, aucun score (PR-05B). Aucune donnée métier migrée."
+        ),
+    ),
 }
 
 

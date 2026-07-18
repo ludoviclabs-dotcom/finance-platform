@@ -417,6 +417,15 @@ export default function FournisseursPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link
+            href="/fournisseurs/exposition"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
+          >
+            Exposition achats
+            <span className="rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 text-[9px] font-bold uppercase px-1.5 py-0.5">
+              Beta
+            </span>
+          </Link>
+          <Link
             href="/fournisseurs/campagnes"
             className="px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
           >

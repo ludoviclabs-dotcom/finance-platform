@@ -349,6 +349,25 @@ def _probe_029(cur) -> bool:
     return _view_has_security_invoker(cur, "source_freshness")
 
 
+def _probe_030(cur) -> bool:
+    """Exposition achats/fournisseurs (PR-05A) : 9 tables + RLS FORCE (policy
+    de lecture par tenant) sur chacune. Vérifie l'existence de la table, la
+    présence de la policy `tenant_isolation_<table>` et FORCE ROW LEVEL
+    SECURITY — mêmes artefacts non ambigus que _probe_028 (aucun trigger
+    d'immutabilité dans cette tranche, contrairement à 028)."""
+    tables = (
+        "supplier_sites", "supplier_products", "purchase_imports", "purchase_lines",
+        "bom_versions", "bom_items", "material_mappings",
+        "supplier_metric_declarations", "product_carbon_footprints",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    return all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -381,6 +400,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "027": _probe_027,
     "028": _probe_028,
     "029": _probe_029,
+    "030": _probe_030,
 }
 
 

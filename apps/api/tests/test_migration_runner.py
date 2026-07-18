@@ -230,25 +230,28 @@ def test_build_plan_no_blocking_issues_when_all_apply(tmp_path, monkeypatch):
     assert plan.has_blocking_issues is False
 
 
-# ── Corpus réel (30 fichiers existants depuis PR-04/029) ─────────────────
+# ── Corpus réel (31 fichiers : 028 PR-03, 029 PR-04, 030 PR-05A) ─────────
 
 
 def test_build_plan_against_real_migrations_directory(monkeypatch):
     """Critère de sortie PR-02A : plan correct pour les fichiers existants, ledger vide.
 
-    28 fichiers à la clôture de PR-02 (001-027 + 008b) ; 29 depuis 028 (Evidence
-    Kernel, PR-03) ; 30 depuis 029 (Source Admin — vue de fraîcheur, PR-04).
+    28 fichiers à la clôture de PR-02 (001-027 + 008b) ; 29 depuis l'ajout de
+    028 (Evidence Kernel, PR-03) ; 30 depuis 029 (Source Admin — vue de
+    fraîcheur, PR-04) ; 31 depuis 030 (exposition achats, PR-05A) — voir tests
+    dédiés ci-dessous pour 028, 029 et 030.
     """
     runner = MigrationRunner()  # migrations_dir par défaut = apps/api/db/migrations
     monkeypatch.setattr(runner, "load_records", lambda: {})
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 30
+    assert len(versions) == 31
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
     assert "029" in versions
+    assert "030" in versions
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["027"] == "blocked_manual"
@@ -256,6 +259,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert actions["009"] == "apply"
     assert actions["028"] == "apply"
     assert actions["029"] == "apply"
+    assert actions["030"] == "apply"
     assert plan.has_blocking_issues is True
 
 
@@ -278,6 +282,30 @@ def test_build_plan_detects_028_pending_on_baselined_027_ledger(monkeypatch):
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["028"] == "apply"
+    assert all(actions[v] == "skip" for v in baselined)
+    assert plan.has_blocking_issues is False
+
+
+# ── PR-05A : migration 030 (exposition achats) détectée par le ledger ─────
+
+
+def test_build_plan_detects_030_pending_on_baselined_ledger(monkeypatch):
+    """030 doit apparaître 'apply' quand le ledger est déjà baseliné sur tout le
+    reste (l'état réel après application de 028) — jamais 'skip' ni bloquée,
+    puisque 030 n'est pas `requires_owner` (elle ne crée que des tables neuves,
+    comme 028)."""
+    runner = MigrationRunner()
+    files = runner.discover_migrations()
+    baselined = {
+        f.version: _record(version=f.version, status="baseline", checksum=f.checksum_sha256)
+        for f in files
+        if f.version != "030"
+    }
+    monkeypatch.setattr(runner, "load_records", lambda: baselined)
+    plan = runner.build_plan()
+
+    actions = {i.file.version: i.action for i in plan.items}
+    assert actions["030"] == "apply"
     assert all(actions[v] == "skip" for v in baselined)
     assert plan.has_blocking_issues is False
 

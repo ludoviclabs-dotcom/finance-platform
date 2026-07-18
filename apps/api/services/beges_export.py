@@ -20,6 +20,7 @@ from typing import Any
 
 from db.database import db_available, get_db
 from services import scope3_service
+from services.carbon import scope2_selection
 from services.vsme_export import _FIXED_META_DATE, _normalize_xlsx, _p, _sha, write_zip
 from utils.excel_sanitize import sanitize_cell
 
@@ -83,8 +84,9 @@ def _reduce_scope_rows(rows: list[tuple[str, Any]]) -> dict[str, Any]:
 
     Scope 2 : on PRÉFÈRE le location-based (LB) ; le market-based (MB) n'est
     retenu que si LB est ABSENT — sur la PRÉSENCE, pas la valeur (LB = 0 est
-    légitime en électricité 100 % renouvelable). Indépendant de l'ordre des
-    lignes (facts_current n'a pas d'ORDER BY garanti).
+    légitime en électricité 100 % renouvelable). Règle consolidée dans
+    `services.carbon.scope2_selection` (PR-06A), partagée avec actions_service.
+    Indépendant de l'ordre des lignes (facts_current n'a pas d'ORDER BY garanti).
     """
     totals: dict[str, Any] = {"S1": 0.0, "S2": 0.0, "S3": {}}
     s2_lb: float | None = None
@@ -93,9 +95,9 @@ def _reduce_scope_rows(rows: list[tuple[str, Any]]) -> dict[str, Any]:
         val = float(value) if value is not None else 0.0
         if code == "CC.GES.SCOPE1":
             totals["S1"] = val
-        elif code == "CC.GES.SCOPE2_LB":
+        elif code == scope2_selection.CODE_SCOPE2_LB:
             s2_lb = val
-        elif code == "CC.GES.SCOPE2_MB":
+        elif code == scope2_selection.CODE_SCOPE2_MB:
             s2_mb = val
         elif code == "CC.GES.SCOPE3":
             totals["S3"]["uncategorized"] = val
@@ -103,10 +105,9 @@ def _reduce_scope_rows(rows: list[tuple[str, Any]]) -> dict[str, Any]:
             n = scope3_service.category_of(code)
             if n is not None:
                 totals["S3"][n] = val
-    if s2_lb is not None:
-        totals["S2"] = s2_lb
-    elif s2_mb is not None:
-        totals["S2"] = s2_mb
+    selection = scope2_selection.select_scope2(s2_lb, s2_mb)
+    if selection is not None:
+        totals["S2"] = selection.value
     return totals
 
 

@@ -19,6 +19,7 @@ import logging
 from typing import Any
 
 from db.database import db_available, get_db
+from services.carbon import scope2_selection
 
 logger = logging.getLogger(__name__)
 
@@ -279,10 +280,11 @@ def baseline_total(company_id: int) -> float:
     """Total GHG courant (tCO2e) depuis facts_current — base de la trajectoire.
 
     S1 + S2 + S3. Scope 2 : préférence location-based (LB), repli sur market-based
-    (MB) si LB ABSENT — sur la présence, pas la valeur (LB = 0 est légitime). Scope
-    3 : agrégat non catégorisé (CC.GES.SCOPE3) + catégories (CC.GES.SCOPE3.{n},
-    Modèle B), disjoints donc sans double comptage. Sans ce repli/cette inclusion,
-    la trajectoire sous-estimerait les émissions.
+    (MB) si LB ABSENT — sur la présence, pas la valeur (LB = 0 est légitime). Règle
+    consolidée dans `services.carbon.scope2_selection` (PR-06A), partagée avec
+    beges_export. Scope 3 : agrégat non catégorisé (CC.GES.SCOPE3) + catégories
+    (CC.GES.SCOPE3.{n}, Modèle B), disjoints donc sans double comptage. Sans ce
+    repli/cette inclusion, la trajectoire sous-estimerait les émissions.
     """
     if not db_available():
         return 0.0
@@ -296,10 +298,9 @@ def baseline_total(company_id: int) -> float:
             vals = {r["code"]: float(r["value"]) for r in cur.fetchall() if r["value"] is not None}
 
     total = vals.get("CC.GES.SCOPE1", 0.0)
-    if "CC.GES.SCOPE2_LB" in vals:
-        total += vals["CC.GES.SCOPE2_LB"]
-    elif "CC.GES.SCOPE2_MB" in vals:
-        total += vals["CC.GES.SCOPE2_MB"]
+    scope2 = scope2_selection.select_scope2_from_facts(vals)
+    if scope2 is not None:
+        total += scope2.value
     total += sum(v for code, v in vals.items()
                  if code == "CC.GES.SCOPE3" or code.startswith("CC.GES.SCOPE3."))
     return round(total, 6)

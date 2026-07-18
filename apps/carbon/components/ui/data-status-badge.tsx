@@ -43,6 +43,27 @@ export function statusFromQuality(q: "verified" | "estimated" | "manual"): DataS
   return q === "verified" ? "VERIFIED" : q === "manual" ? "MANUAL" : "ESTIMATED";
 }
 
+/**
+ * Mapping UNIQUE `data_status` backend → badge front (WAVE_2_INTERFACE_CONTRACTS §2).
+ *
+ * Le vocabulaire backend (`verified/estimated/manual/inferred`) ne coïncide pas
+ * avec le vocabulaire badge (`VERIFIED/ESTIMATED/MANUAL/STALE`) :
+ *   - `inferred` n'a pas de badge dédié → affiché `ESTIMATED` (libellé « Inféré »
+ *     à porter côté appelant via la prop `label`) ;
+ *   - `STALE` est un état DÉRIVÉ (fraîcheur), jamais une valeur backend :
+ *     `isStale=true` force `STALE`, quel que soit le `data_status`.
+ * Centralisé ici pour ne pas disperser la logique entre modules Wave 2.
+ */
+export function dataStatusToBadge(
+  dataStatus: "verified" | "estimated" | "manual" | "inferred",
+  isStale = false,
+): DataStatus {
+  if (isStale) return "STALE";
+  if (dataStatus === "verified") return "VERIFIED";
+  if (dataStatus === "manual") return "MANUAL";
+  return "ESTIMATED"; // estimated + inferred
+}
+
 interface Props {
   status: DataStatus;
   /** Texte optionnel remplaçant le libellé par défaut (ex. « Estimation snapshot »). */

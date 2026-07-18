@@ -145,6 +145,11 @@ class ReleaseListResponse(BaseModel):
     offset: int
 
 
+class ReleaseValidateRequest(BaseModel):
+    """Corps de POST /releases/{id}/validate — `passed=false` met en quarantaine."""
+    passed: bool = True
+
+
 # ---------------------------------------------------------------------------
 # evidence_artifacts
 # ---------------------------------------------------------------------------
@@ -279,3 +284,59 @@ class LicenseDecision(BaseModel):
     allow_derived_use: bool
     reasons: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Fraîcheur des sources (PR-04) — vue source_freshness + licence évaluée
+# ---------------------------------------------------------------------------
+
+class SourceFreshness(BaseModel):
+    source_id: int
+    company_id: int | None
+    code: str
+    publisher: str
+    title: str
+    source_type: SourceType
+    active: bool
+    last_release_id: int | None
+    last_release_key: str | None
+    last_release_status: ReleaseStatus | None
+    last_release_at: datetime | None
+    published_release_count: int
+    total_release_count: int
+    has_release: bool
+    age_days: int | None
+    is_stale: bool
+    # Licence évaluée déterministe (license_policy) — jamais un booléen nu.
+    license_ok: bool
+    allow_display: bool
+    allow_derived_use: bool
+    license_reasons: list[str] = Field(default_factory=list)
+    license_warnings: list[str] = Field(default_factory=list)
+
+
+class SourceFreshnessListResponse(BaseModel):
+    items: list[SourceFreshness]
+    total: int
+    limit: int
+    offset: int
+
+
+class IntelligenceHealthSource(BaseModel):
+    """Ligne minimale et publique (aucun secret) — sources GLOBALES uniquement."""
+    code: str
+    last_release_at: datetime | None
+    age_days: int | None
+    last_release_status: ReleaseStatus | None
+    is_stale: bool
+    license_ok: bool
+
+
+class IntelligenceHealthResponse(BaseModel):
+    status: Literal["ok", "degraded", "empty"]
+    checked_at: datetime
+    source_count: int
+    stale_count: int
+    license_anomaly_count: int
+    sources: list[IntelligenceHealthSource]
+    db: Literal["ok", "not_configured", "down"] = "ok"

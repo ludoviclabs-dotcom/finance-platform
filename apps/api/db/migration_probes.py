@@ -73,6 +73,24 @@ def _trigger_exists(cur, table: str, trigger: str) -> bool:
     return cur.fetchone() is not None
 
 
+def _view_has_security_invoker(cur, view: str) -> bool:
+    """True si la vue existe ET porte l'option `security_invoker=true`.
+
+    Sonde sans ambiguïté de la migration 029 : une vue sans security_invoker
+    bypasserait la RLS des tables sous-jacentes (piège documenté dans le
+    fichier .sql). reloptions est un text[] de la forme
+    `{security_invoker=true}` sur pg_class (relkind='v')."""
+    cur.execute(
+        "SELECT reloptions FROM pg_class WHERE relname = %s AND relkind = 'v'",
+        (view,),
+    )
+    row = cur.fetchone()
+    if row is None:
+        return False
+    opts = row["reloptions"] or []
+    return any(str(o).replace(" ", "").lower() == "security_invoker=true" for o in opts)
+
+
 # ── Sondes déclarées, une par version ────────────────────────────────────
 
 def _probe_000(cur) -> bool:
@@ -324,6 +342,13 @@ def _probe_028(cur) -> bool:
     )
 
 
+def _probe_029(cur) -> bool:
+    """Source Admin (PR-04) : vue source_freshness présente ET en
+    security_invoker (sinon elle bypasserait la RLS des tables 028 — la
+    présence seule ne suffit pas, cf. _view_has_security_invoker)."""
+    return _view_has_security_invoker(cur, "source_freshness")
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -355,6 +380,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "026": _probe_026,
     "027": _probe_027,
     "028": _probe_028,
+    "029": _probe_029,
 }
 
 

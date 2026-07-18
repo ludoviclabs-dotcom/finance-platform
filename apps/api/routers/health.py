@@ -167,3 +167,51 @@ async def health_schema():
         )
     result["checked_at"] = checked_at
     return result
+
+
+def _intelligence_probe() -> dict:
+    """Fraîcheur des sources GLOBALES (aucune donnée tenant, aucun secret) —
+    exécuté hors event-loop via to_thread. Voir freshness_service."""
+    from services.intelligence import freshness_service
+
+    return freshness_service.intelligence_health().model_dump(mode="json")
+
+
+@router.get("/health/intelligence", tags=["health"])
+async def health_intelligence():
+    """État public et minimal de fraîcheur des sources d'intelligence (PR-04).
+
+    Ne lit QUE les sources globales (`company_id IS NULL`) — jamais une donnée
+    tenant, aucun secret. 200 toujours si l'endpoint répond (y compris
+    `status: degraded`/`empty`, informationnels) ; 503 uniquement si la base
+    est configurée mais injoignable ; `not_configured` (mode /tmp) reste 200.
+    Borné à 2 s, même pattern que `_schema_probe`.
+    """
+    checked_at = datetime.now(tz=timezone.utc).isoformat()
+    if not db_available():
+        return {
+            "status": "empty",
+            "checked_at": checked_at,
+            "source_count": 0,
+            "stale_count": 0,
+            "license_anomaly_count": 0,
+            "sources": [],
+            "db": "not_configured",
+        }
+    try:
+        result = await asyncio.wait_for(asyncio.to_thread(_intelligence_probe), timeout=2.0)
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "empty",
+                "checked_at": checked_at,
+                "source_count": 0,
+                "stale_count": 0,
+                "license_anomaly_count": 0,
+                "sources": [],
+                "db": "down",
+            },
+        )
+    result["checked_at"] = checked_at
+    return result

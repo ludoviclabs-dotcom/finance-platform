@@ -104,6 +104,15 @@
       "preuve": "apps/api/services/supplier_campaigns_service.py"
     },
     {
+      "id": "exposition-achats",
+      "label": "Exposition achats / fournisseurs (imports, BOM, PCF sourcées)",
+      "description": "Socle d'exposition Scope 3 amont : import d'achats idempotent par contenu (SHA-256, aucun doublon en cas de rejeu), file de résolution des lignes non mappées avec gate de revue, sites et produits fournisseurs, nomenclatures (BOM) versionnées et déclarations/PCF fournisseurs sourcées via le noyau de preuve. Le calcul Scope 3 et le score fournisseur multi-dimensions arrivent dans une tranche ultérieure (PR-05B).",
+      "statut": "beta",
+      "normes": ["ESRS E1"],
+      "tag": "ESRS E1 Scope 3",
+      "preuve": "apps/api/routers/procurement.py"
+    },
+    {
       "id": "comparaison-multi-exercices",
       "label": "Comparaison multi-exercices (snapshots)",
       "description": "Sauvegarde d'un instantané de vos données à date et comparaison avec les exercices précédents. Fonctionnalité disponible mais l'interface de gestion des versions est en cours d'amélioration.",

@@ -259,8 +259,16 @@ class ObservationListResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# claim_evidence_links (schéma seul dans PR-03 — pas de service/endpoint)
+# claim_evidence_links (schéma PR-03 ; service livré par PR-05A —
+# claim_link_service.py, cf. WAVE_2_INTERFACE_CONTRACTS.md §1)
 # ---------------------------------------------------------------------------
+
+class ClaimEvidenceLinkCreate(BaseModel):
+    claim_type: str = Field(min_length=1, max_length=100)
+    claim_key: str = Field(min_length=1, max_length=255)
+    evidence_artifact_id: int
+    relation_type: ClaimRelationType
+
 
 class ClaimEvidenceLinkResponse(BaseModel):
     id: int
@@ -271,6 +279,13 @@ class ClaimEvidenceLinkResponse(BaseModel):
     relation_type: ClaimRelationType
     created_by: int | None
     created_at: datetime
+
+
+class ClaimEvidenceLinkListResponse(BaseModel):
+    items: list[ClaimEvidenceLinkResponse]
+    total: int
+    limit: int
+    offset: int
 
 
 # ---------------------------------------------------------------------------

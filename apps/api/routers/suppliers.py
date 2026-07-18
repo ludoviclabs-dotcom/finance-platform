@@ -38,9 +38,24 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from db.tenant import get_company_id
-from routers.auth import require_admin, require_analyst, require_cron_or_analyst
+from models.procurement import (
+    SupplierProductCreate,
+    SupplierProductListResponse,
+    SupplierProductResponse,
+    SupplierSiteCreate,
+    SupplierSiteListResponse,
+    SupplierSiteResponse,
+)
+from routers._errors import http_error, require_db
+from routers.auth import (
+    get_current_user,
+    require_admin,
+    require_analyst,
+    require_cron_or_analyst,
+)
 from services import supplier_campaigns_service as campaigns_svc
 from services.auth_service import AuthUser
+from services.procurement import supplier_sites_service
 from services.supplier_campaigns_service import (
     AnswerReviewRequest,
     CampaignCreate,
@@ -297,6 +312,71 @@ def get_supplier_answers(
     user: AuthUser = Depends(require_analyst),
 ) -> list[SupplierAnswerOut]:
     return get_answers(supplier_id, user.company_id)
+
+
+# ---------------------------------------------------------------------------
+# Sites & produits fournisseurs (PR-05A) — sous-ressources de /{supplier_id}.
+# Lecture : get_current_user (JWT réel, PAS get_company_id qui retomberait sur
+# le tenant 1) ; écriture : require_analyst. Ces routes paramétrées + suffixe
+# ne capturent aucune route littérale (pas de conflit d'ordonnancement).
+# ---------------------------------------------------------------------------
+
+@router.get("/{supplier_id}/sites", response_model=SupplierSiteListResponse)
+def get_supplier_sites(
+    supplier_id: int,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+) -> SupplierSiteListResponse:
+    require_db()
+    items, total = supplier_sites_service.list_sites(
+        company_id=user.company_id, supplier_id=supplier_id, limit=limit, offset=offset,
+    )
+    return SupplierSiteListResponse(items=items, total=total, limit=limit, offset=offset)
+
+
+@router.post("/{supplier_id}/sites", response_model=SupplierSiteResponse, status_code=201)
+def post_supplier_site(
+    supplier_id: int,
+    payload: SupplierSiteCreate,
+    user: AuthUser = Depends(require_analyst),
+) -> SupplierSiteResponse:
+    require_db()
+    try:
+        return supplier_sites_service.create_site(
+            company_id=user.company_id, supplier_id=supplier_id, payload=payload, created_by=user.user_id,
+        )
+    except supplier_sites_service.SupplierSitesError as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/{supplier_id}/products", response_model=SupplierProductListResponse)
+def get_supplier_products(
+    supplier_id: int,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+) -> SupplierProductListResponse:
+    require_db()
+    items, total = supplier_sites_service.list_products(
+        company_id=user.company_id, supplier_id=supplier_id, limit=limit, offset=offset,
+    )
+    return SupplierProductListResponse(items=items, total=total, limit=limit, offset=offset)
+
+
+@router.post("/{supplier_id}/products", response_model=SupplierProductResponse, status_code=201)
+def post_supplier_product(
+    supplier_id: int,
+    payload: SupplierProductCreate,
+    user: AuthUser = Depends(require_analyst),
+) -> SupplierProductResponse:
+    require_db()
+    try:
+        return supplier_sites_service.create_product(
+            company_id=user.company_id, supplier_id=supplier_id, payload=payload, created_by=user.user_id,
+        )
+    except supplier_sites_service.SupplierSitesError as exc:
+        raise http_error(exc) from exc
 
 
 # ---------------------------------------------------------------------------

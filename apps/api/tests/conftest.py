@@ -32,6 +32,13 @@ from ._intelligence_fixtures import (  # noqa: E402,F401
     two_companies,
 )
 
+# Exposition achats/fournisseurs (PR-05A) : mêmes raisons que ci-dessus (fixtures
+# partagées via conftest pour éviter le faux positif pyflakes F811).
+from ._procurement_fixtures import (  # noqa: E402,F401
+    procurement_schema,
+    two_companies_proc,
+)
+
 
 @pytest.fixture(autouse=True)
 def _reset_state_between_tests():

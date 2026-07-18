@@ -27,8 +27,12 @@ from ._migration_fixtures import (
 
 def _runner_with_synthetic_migration(tmp_path, filename, sql):
     """MigrationRunner pointé vers un dossier temporaire contenant UNE migration
-    synthétique (028+), pour tester `apply` sans toucher aux 28 fichiers réels
-    (déjà baselinés, tous `skip`). Connexion = get_db (le service postgres:16 en CI)."""
+    synthétique, pour tester `apply` en isolation totale du vrai dossier
+    `migrations/` (ses 29 fichiers réels 001-028 sont hors de portée de ce
+    runner — `migrations_dir=tmp_path`). Le numéro « 028 » utilisé ici est
+    arbitraire et sans lien avec le vrai `028_evidence_kernel.sql` (dossier
+    différent) ; `get_meta("028").requires_owner` reste False, donc l'action
+    calculée est bien `apply`. Connexion = get_db (le service postgres:16 en CI)."""
     (tmp_path / filename).write_text(sql, encoding="utf-8")
     return MigrationRunner(migrations_dir=tmp_path, connection_factory=get_db)
 
@@ -137,7 +141,7 @@ def test_baseline_on_full_db_marks_004_and_009_both_baseline(empty_conn, runner)
     assert actions["009"] == "baseline"
     assert actions["027"] == "baseline"  # objets vérifiés présents -> baseline, pas manual_required
     assert all(a == "baseline" for a in actions.values())
-    assert result.written_count == 29  # 000 + 28 fichiers
+    assert result.written_count == 30  # 000 + 29 fichiers (001-028 dont 008b)
 
     records = runner.load_records()
     assert records["004"].requires_owner is False
@@ -247,7 +251,7 @@ def test_baseline_supports_ledger_table_already_created_but_empty(empty_conn, ru
     assert runner.load_records() == {}, "précondition : table présente, aucune ligne"
 
     result = runner.baseline(dry_run=False)
-    assert result.written_count == 29
+    assert result.written_count == 30
     assert all(i.action == "baseline" for i in result.items)
     assert runner.verify() == []
 
@@ -297,7 +301,7 @@ def test_baseline_commit_rolls_back_and_reports_root_cause_when_initial_read_fai
         )
 
     result = runner.baseline(dry_run=False)  # nouvelle tentative, "panne" résolue
-    assert result.written_count == 29
+    assert result.written_count == 30
     assert runner.verify() == []
 
 
@@ -516,7 +520,7 @@ def test_cli_end_to_end_status_verify_baseline_verify(empty_conn, runner):
     assert dry.written_count == 0
 
     committed = runner.baseline(dry_run=False)
-    assert committed.written_count == 29
+    assert committed.written_count == 30
     assert runner.verify() == []
 
 

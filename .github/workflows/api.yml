@@ -106,10 +106,25 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Tests PostgreSQL — ledger de migrations (PR-02B)
+      # PR-02B : ledger + sondes. PR-03 : Evidence Kernel — migration 028
+      # réellement appliquée (via les fixtures `build_evidence_kernel_db`)
+      # + RLS globale/tenant, triggers d'immutabilité, licence, idempotence.
+      # Ces tests sont DB-gated, donc SKIPPÉS dans le job `tests` (mode /tmp,
+      # sans DATABASE_URL). Ce job est le SEUL à les exécuter contre un vrai
+      # PostgreSQL : ajouter chaque nouveau fichier de test DB-gated ici est
+      # obligatoire, sinon il ne tourne jamais en CI (chacun construit son
+      # propre schéma de façon idempotente — aucun ordre imposé entre eux).
+      - name: Tests PostgreSQL — ledger + Evidence Kernel (PR-02B / PR-03)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-        run: pytest -q tests/test_migration_probes.py tests/test_migration_ledger.py
+        run: >-
+          pytest -q
+          tests/test_migration_probes.py
+          tests/test_migration_ledger.py
+          tests/test_intelligence_sources.py
+          tests/test_intelligence_releases.py
+          tests/test_intelligence_observations.py
+          tests/test_intelligence_api.py
 
   security-audit:
     runs-on: ubuntu-latest

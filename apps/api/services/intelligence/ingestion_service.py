@@ -19,6 +19,11 @@ from models.intelligence import IngestionRunResponse, IngestionStatus
 
 _TERMINAL_STATUSES = {"published", "failed", "blocked_license"}
 
+# Isolation en profondeur (cf. docstring de source_service) : lecture propre au
+# tenant OU globale ; écriture propre au tenant uniquement.
+_READ_SCOPE = "(company_id = %s OR company_id IS NULL)"
+_WRITE_SCOPE = "company_id = %s"
+
 
 class IngestionError(Exception):
     """Erreur métier d'un run d'ingestion (introuvable, statut terminal…)."""
@@ -39,7 +44,10 @@ def start_run(
 ) -> IngestionRunResponse:
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM source_registry WHERE id = %s", (source_id,))
+            cur.execute(
+                f"SELECT id FROM source_registry WHERE id = %s AND {_READ_SCOPE}",
+                (source_id, company_id),
+            )
             if cur.fetchone() is None:
                 raise IngestionError(f"Source '{source_id}' introuvable.")
             cur.execute(
@@ -55,7 +63,12 @@ def start_run(
             )
             row = cur.fetchone()
             if row is None:
-                cur.execute("SELECT * FROM ingestion_runs WHERE idempotency_key = %s", (idempotency_key,))
+                # Re-lecture idempotente scopée au tenant (idempotency_key est
+                # globalement unique, mais un run appartient à son tenant).
+                cur.execute(
+                    f"SELECT * FROM ingestion_runs WHERE idempotency_key = %s AND {_WRITE_SCOPE}",
+                    (idempotency_key, company_id),
+                )
                 row = cur.fetchone()
     if row is None:
         raise IngestionError("Création de run incohérente (conflit détecté puis lecture vide).")
@@ -65,7 +78,10 @@ def start_run(
 def get_run(*, company_id: int, run_id: int) -> IngestionRunResponse:
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM ingestion_runs WHERE id = %s", (run_id,))
+            cur.execute(
+                f"SELECT * FROM ingestion_runs WHERE id = %s AND {_READ_SCOPE}",
+                (run_id, company_id),
+            )
             row = cur.fetchone()
     if row is None:
         raise IngestionError(f"Run '{run_id}' introuvable.")
@@ -75,8 +91,12 @@ def get_run(*, company_id: int, run_id: int) -> IngestionRunResponse:
 def list_runs(
     *, company_id: int, source_id: int | None = None, limit: int = 50, offset: int = 0,
 ) -> tuple[list[IngestionRunResponse], int]:
-    where = "WHERE source_id = %s" if source_id is not None else ""
-    params: tuple[Any, ...] = (source_id,) if source_id is not None else ()
+    clauses: list[str] = [_READ_SCOPE]
+    params: list[Any] = [company_id]
+    if source_id is not None:
+        clauses.append("source_id = %s")
+        params.append(source_id)
+    where = f"WHERE {' AND '.join(clauses)}"
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             cur.execute(f"SELECT COUNT(*) AS c FROM ingestion_runs {where}", params)
@@ -102,7 +122,11 @@ def update_run(
 ) -> IngestionRunResponse:
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM ingestion_runs WHERE id = %s", (run_id,))
+            # Mutation : scopée au tenant propriétaire.
+            cur.execute(
+                f"SELECT * FROM ingestion_runs WHERE id = %s AND {_WRITE_SCOPE}",
+                (run_id, company_id),
+            )
             run = cur.fetchone()
             if run is None:
                 raise IngestionError(f"Run '{run_id}' introuvable.")

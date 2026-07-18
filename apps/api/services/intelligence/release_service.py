@@ -18,6 +18,12 @@ from db.database import get_db
 from models.intelligence import ReleaseCreate, ReleaseResponse
 from services.intelligence import license_policy
 
+# Isolation en profondeur (cf. docstring de source_service) : prédicat de
+# lecture (propre au tenant OU global) et d'écriture (propre au tenant
+# uniquement), répliqué dans chaque requête en plus de la RLS primaire.
+_READ_SCOPE = "(company_id = %s OR company_id IS NULL)"
+_WRITE_SCOPE = "company_id = %s"
+
 
 class ReleaseError(Exception):
     """Erreur métier du cycle de vie d'une release (introuvable, transition invalide…)."""
@@ -35,7 +41,10 @@ def detect_release(
     ni un doublon (§8.4 PR02_ARCHITECTURE_PLAN.md)."""
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM source_registry WHERE id = %s", (source_id,))
+            cur.execute(
+                f"SELECT id FROM source_registry WHERE id = %s AND {_READ_SCOPE}",
+                (source_id, company_id),
+            )
             if cur.fetchone() is None:
                 raise ReleaseError(f"Source '{source_id}' introuvable.")
 
@@ -58,10 +67,14 @@ def detect_release(
             )
             row = cur.fetchone()
             if row is None:
+                # Re-lecture idempotente, scopée au tenant : la même
+                # (source, clé, checksum) rappelée par CE tenant renvoie sa
+                # ligne ; jamais celle d'un autre tenant (l'index d'unicité est
+                # global, mais une release appartient toujours à son détecteur).
                 cur.execute(
                     "SELECT * FROM source_releases "
-                    "WHERE source_id = %s AND release_key = %s AND checksum_sha256 = %s",
-                    (source_id, payload.release_key, payload.checksum_sha256),
+                    f"WHERE source_id = %s AND release_key = %s AND checksum_sha256 = %s AND {_WRITE_SCOPE}",
+                    (source_id, payload.release_key, payload.checksum_sha256, company_id),
                 )
                 row = cur.fetchone()
     if row is None:
@@ -72,7 +85,10 @@ def detect_release(
 def get_release(*, company_id: int, release_id: int) -> ReleaseResponse:
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM source_releases WHERE id = %s", (release_id,))
+            cur.execute(
+                f"SELECT * FROM source_releases WHERE id = %s AND {_READ_SCOPE}",
+                (release_id, company_id),
+            )
             row = cur.fetchone()
     if row is None:
         raise ReleaseError(f"Release '{release_id}' introuvable.")
@@ -84,12 +100,15 @@ def list_releases_for_source(
 ) -> tuple[list[ReleaseResponse], int]:
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) AS c FROM source_releases WHERE source_id = %s", (source_id,))
+            cur.execute(
+                f"SELECT COUNT(*) AS c FROM source_releases WHERE source_id = %s AND {_READ_SCOPE}",
+                (source_id, company_id),
+            )
             total = cur.fetchone()["c"]
             cur.execute(
-                "SELECT * FROM source_releases WHERE source_id = %s "
+                f"SELECT * FROM source_releases WHERE source_id = %s AND {_READ_SCOPE} "
                 "ORDER BY retrieved_at DESC LIMIT %s OFFSET %s",
-                (source_id, limit, offset),
+                (source_id, company_id, limit, offset),
             )
             rows = cur.fetchall()
     return [_row_to_response(r) for r in rows], total
@@ -100,7 +119,11 @@ def validate_release(*, company_id: int, release_id: int, passed: bool) -> Relea
     target_status = "validated" if passed else "quarantined"
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM source_releases WHERE id = %s", (release_id,))
+            # Mutation d'une transition : scopée au tenant propriétaire.
+            cur.execute(
+                f"SELECT * FROM source_releases WHERE id = %s AND {_WRITE_SCOPE}",
+                (release_id, company_id),
+            )
             release = cur.fetchone()
             if release is None:
                 raise ReleaseError(f"Release '{release_id}' introuvable.")
@@ -126,7 +149,10 @@ def publish_release(*, company_id: int, release_id: int) -> ReleaseResponse:
     """
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM source_releases WHERE id = %s", (release_id,))
+            cur.execute(
+                f"SELECT * FROM source_releases WHERE id = %s AND {_WRITE_SCOPE}",
+                (release_id, company_id),
+            )
             release = cur.fetchone()
             if release is None:
                 raise ReleaseError(f"Release '{release_id}' introuvable.")
@@ -136,7 +162,10 @@ def publish_release(*, company_id: int, release_id: int) -> ReleaseResponse:
                     "seule une release 'validated' peut être publiée."
                 )
 
-            cur.execute("SELECT * FROM source_registry WHERE id = %s", (release["source_id"],))
+            cur.execute(
+                f"SELECT * FROM source_registry WHERE id = %s AND {_READ_SCOPE}",
+                (release["source_id"], company_id),
+            )
             source = cur.fetchone()
             decision = license_policy.evaluate(source)
 
@@ -171,7 +200,10 @@ def supersede_release(*, company_id: int, new_release_id: int) -> ReleaseRespons
     """
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM source_releases WHERE id = %s", (new_release_id,))
+            cur.execute(
+                f"SELECT * FROM source_releases WHERE id = %s AND {_WRITE_SCOPE}",
+                (new_release_id, company_id),
+            )
             new_release = cur.fetchone()
             if new_release is None:
                 raise ReleaseError(f"Release '{new_release_id}' introuvable.")
@@ -184,7 +216,10 @@ def supersede_release(*, company_id: int, new_release_id: int) -> ReleaseRespons
             if old_id is None:
                 raise ReleaseError(f"Release '{new_release_id}' n'a pas de supersedes_id — rien à superséder.")
 
-            cur.execute("SELECT * FROM source_releases WHERE id = %s", (old_id,))
+            cur.execute(
+                f"SELECT * FROM source_releases WHERE id = %s AND {_WRITE_SCOPE}",
+                (old_id, company_id),
+            )
             old_release = cur.fetchone()
             if old_release is None:
                 raise ReleaseError(f"Release supersédée '{old_id}' introuvable.")

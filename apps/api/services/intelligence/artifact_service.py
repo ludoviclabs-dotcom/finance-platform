@@ -20,6 +20,10 @@ from db.database import get_db
 from models.intelligence import ArtifactResponse, ArtifactSensitivity
 from services.storage import get_storage
 
+# Isolation en profondeur (cf. docstring de source_service) : lecture propre au
+# tenant OU globale.
+_READ_SCOPE = "(company_id = %s OR company_id IS NULL)"
+
 
 class ArtifactError(Exception):
     """Erreur métier des artefacts de preuve (introuvable, release hors périmètre…)."""
@@ -59,7 +63,10 @@ def register_artifact(
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
             if source_release_id is not None:
-                cur.execute("SELECT id FROM source_releases WHERE id = %s", (source_release_id,))
+                cur.execute(
+                    f"SELECT id FROM source_releases WHERE id = %s AND {_READ_SCOPE}",
+                    (source_release_id, company_id),
+                )
                 if cur.fetchone() is None:
                     raise ArtifactError(f"Release '{source_release_id}' introuvable ou hors périmètre.")
             cur.execute(
@@ -84,7 +91,10 @@ def register_artifact(
 def get_artifact(*, company_id: int, artifact_id: int) -> ArtifactResponse:
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM evidence_artifacts WHERE id = %s", (artifact_id,))
+            cur.execute(
+                f"SELECT * FROM evidence_artifacts WHERE id = %s AND {_READ_SCOPE}",
+                (artifact_id, company_id),
+            )
             row = cur.fetchone()
     if row is None:
         raise ArtifactError(f"Artefact '{artifact_id}' introuvable.")

@@ -65,8 +65,18 @@ def two_companies(evidence_kernel_schema):
     yield tuple(ids)
     with get_db() as conn:
         with conn.cursor() as cur:
+            # Les triggers d'immutabilité (evidence_kernel_guard) REFUSENT tout
+            # DELETE sur source_releases (append-only) et observations (frozen) —
+            # y compris pour ce nettoyage. `session_replication_role = replica`
+            # désactive les triggers utilisateur le temps du teardown (le rôle
+            # CI `postgres` est superuser, seul autorisé à poser ce GUC) ; il
+            # désactive aussi les triggers de FK, donc l'ordre enfants→parents
+            # d'EK_TABLES devient indifférent. La connexion est jetée juste
+            # après (aucune fuite de ce réglage hors du teardown).
+            cur.execute("SET session_replication_role = replica")
             for table in EK_TABLES:
                 cur.execute(f"DELETE FROM {table} WHERE company_id = ANY(%s)", (ids,))
+            cur.execute("SET session_replication_role = origin")
             cur.execute("DELETE FROM companies WHERE id = ANY(%s)", (ids,))
 
 

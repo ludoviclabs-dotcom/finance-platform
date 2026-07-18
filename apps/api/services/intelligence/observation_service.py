@@ -14,6 +14,11 @@ from typing import Any
 from db.database import get_db
 from models.intelligence import ObservationCreate, ObservationResponse
 
+# Isolation en profondeur (cf. docstring de source_service) : lecture propre au
+# tenant OU globale ; écriture/supersession propre au tenant uniquement.
+_READ_SCOPE = "(company_id = %s OR company_id IS NULL)"
+_WRITE_SCOPE = "company_id = %s"
+
 
 class ObservationError(Exception):
     """Erreur métier d'une observation (valeur absente, référence hors périmètre…)."""
@@ -38,7 +43,12 @@ def create_observation(*, company_id: int, payload: ObservationCreate) -> Observ
 
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM source_releases WHERE id = %s", (payload.source_release_id,))
+            # Release/artefact référencés : lisibles par le tenant (les siens ou
+            # un global). L'observation supersédée : la sienne uniquement.
+            cur.execute(
+                f"SELECT id FROM source_releases WHERE id = %s AND {_READ_SCOPE}",
+                (payload.source_release_id, company_id),
+            )
             if cur.fetchone() is None:
                 raise ObservationError(
                     f"Release '{payload.source_release_id}' introuvable ou hors périmètre."
@@ -46,7 +56,8 @@ def create_observation(*, company_id: int, payload: ObservationCreate) -> Observ
 
             if payload.evidence_artifact_id is not None:
                 cur.execute(
-                    "SELECT id FROM evidence_artifacts WHERE id = %s", (payload.evidence_artifact_id,)
+                    f"SELECT id FROM evidence_artifacts WHERE id = %s AND {_READ_SCOPE}",
+                    (payload.evidence_artifact_id, company_id),
                 )
                 if cur.fetchone() is None:
                     raise ObservationError(
@@ -54,7 +65,10 @@ def create_observation(*, company_id: int, payload: ObservationCreate) -> Observ
                     )
 
             if payload.supersedes_id is not None:
-                cur.execute("SELECT id FROM observations WHERE id = %s", (payload.supersedes_id,))
+                cur.execute(
+                    f"SELECT id FROM observations WHERE id = %s AND {_WRITE_SCOPE}",
+                    (payload.supersedes_id, company_id),
+                )
                 if cur.fetchone() is None:
                     raise ObservationError(
                         f"Observation supersédée '{payload.supersedes_id}' introuvable ou hors périmètre."
@@ -86,7 +100,10 @@ def create_observation(*, company_id: int, payload: ObservationCreate) -> Observ
 def get_observation(*, company_id: int, observation_id: int) -> ObservationResponse:
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM observations WHERE id = %s", (observation_id,))
+            cur.execute(
+                f"SELECT * FROM observations WHERE id = %s AND {_READ_SCOPE}",
+                (observation_id, company_id),
+            )
             row = cur.fetchone()
     if row is None:
         raise ObservationError(f"Observation '{observation_id}' introuvable.")
@@ -102,8 +119,8 @@ def list_observations(
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[ObservationResponse], int]:
-    clauses: list[str] = []
-    params: list[Any] = []
+    clauses: list[str] = [_READ_SCOPE]
+    params: list[Any] = [company_id]
     for column, value in (
         ("subject_type", subject_type),
         ("subject_key", subject_key),
@@ -112,7 +129,7 @@ def list_observations(
         if value is not None:
             clauses.append(f"{column} = %s")
             params.append(value)
-    where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+    where = f"WHERE {' AND '.join(clauses)}"
 
     with get_db(company_id=company_id) as conn:
         with conn.cursor() as cur:

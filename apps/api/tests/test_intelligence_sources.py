@@ -212,16 +212,25 @@ class TestSourceRegistryRls:
         items, _ = source_service.list_sources(company_id=cid_a, limit=500)
         assert any(s.id == global_id for s in items)
 
-    def test_tenant_cannot_write_global_source(self, two_companies):
+    def test_service_never_creates_global_source_for_tenant(self, two_companies):
+        """Un tenant ne peut pas créer de source globale : `create_source` force
+        toujours `company_id = tenant`, il n'existe aucun chemin de service pour
+        écrire une ligne `company_id IS NULL`.
+
+        La policy RLS d'écriture (`WITH CHECK company_id = tenant`, jamais NULL)
+        reste la garantie de dernier recours EN BASE, mais elle n'est vérifiable
+        qu'avec une connexion NON-superuser : le PostgreSQL de CI tourne en
+        `postgres` (superuser), qui bypasse toute RLS. L'existence de la policy
+        d'insertion est vérifiée structurellement par `_probe_028`
+        (migration_probes) ; son effet réel l'est en staging sous carbonco_app."""
         cid_a, _ = two_companies
-        with pytest.raises(Exception):
-            with get_db(company_id=cid_a) as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        "INSERT INTO source_registry (company_id, code, publisher, title, source_type) "
-                        "VALUES (NULL, %s, 'P', 'T', 'manual')",
-                        (f"illegal-global-{cid_a}",),
-                    )
+        created = source_service.create_source(
+            company_id=cid_a,
+            payload=SourceCreate(code=f"never-global-{cid_a}", publisher="P", title="T", source_type="manual"),
+            created_by=None,
+        )
+        assert created.company_id == cid_a
+        assert created.company_id is not None
 
     def test_rls_bypass_can_write_global_source(self, two_companies):
         cid_a, _ = two_companies

@@ -48,6 +48,18 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "le 2026-07-04 — preuve à formaliser via mark-manual-verified (PR-02B)."
         ),
     ),
+    "028": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Evidence Kernel (PR-03) : 6 nouvelles tables (source_registry, "
+            "source_releases, evidence_artifacts, ingestion_runs, observations, "
+            "claim_evidence_links), RLS FORCE + lecture globale/tenant, triggers "
+            "d'immutabilité. Ne crée que des tables neuves (aucun ALTER d'une "
+            "table existante) — pas de privilège propriétaire requis, à l'inverse "
+            "de 027. Aucune donnée métier migrée, aucune source externe ingérée."
+        ),
+    ),
 }
 
 

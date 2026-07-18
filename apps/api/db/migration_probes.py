@@ -64,6 +64,15 @@ def _is_security_definer(cur, function: str) -> bool:
     return bool(row and row["prosecdef"])
 
 
+def _trigger_exists(cur, table: str, trigger: str) -> bool:
+    cur.execute(
+        "SELECT 1 FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid "
+        "WHERE c.relname = %s AND t.tgname = %s AND NOT t.tgisinternal",
+        (table, trigger),
+    )
+    return cur.fetchone() is not None
+
+
 # ── Sondes déclarées, une par version ────────────────────────────────────
 
 def _probe_000(cur) -> bool:
@@ -294,6 +303,27 @@ def _probe_027(cur) -> bool:
     )
 
 
+def _probe_028(cur) -> bool:
+    """Evidence Kernel (PR-03) : 6 tables + RLS FORCE (lecture globale/tenant)
+    sur chacune + les 3 triggers d'immutabilité (`evidence_kernel_guard`)."""
+    tables = (
+        "source_registry", "source_releases", "evidence_artifacts",
+        "ingestion_runs", "observations", "claim_evidence_links",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    return (
+        _trigger_exists(cur, "observations", "trg_observations_immutable")
+        and _trigger_exists(cur, "source_releases", "trg_source_releases_guard")
+        and _trigger_exists(cur, "evidence_artifacts", "trg_evidence_artifacts_guard")
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -324,6 +354,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "025": _probe_025,
     "026": _probe_026,
     "027": _probe_027,
+    "028": _probe_028,
 }
 
 

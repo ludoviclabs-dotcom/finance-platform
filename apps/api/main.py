@@ -40,6 +40,7 @@ from routers import (
     history,
     imports,
     ingest,
+    intelligence,
     materialite,
     partners,
     pilier2,
@@ -216,3 +217,4 @@ app.include_router(strategic_mapping.router, prefix="/strategic-mapping", tags=[
 app.include_router(suppliers.router, prefix="/suppliers", tags=["suppliers"])
 app.include_router(materialite.router, prefix="/materialite", tags=["materialite"])
 app.include_router(partners.router, prefix="/partners", tags=["partners (T7.5)"])
+app.include_router(intelligence.router, prefix="/intelligence", tags=["intelligence (PR-03)"])

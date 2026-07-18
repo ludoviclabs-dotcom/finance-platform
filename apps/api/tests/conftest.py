@@ -21,6 +21,17 @@ os.environ.setdefault("RATE_LIMIT_DISABLED", "1")
 
 from main import app  # noqa: E402
 
+# Evidence Kernel (PR-03) : fixtures partagées entre tests exposées ici (pas
+# dans chaque fichier test_intelligence_*.py) pour éviter le faux positif
+# pyflakes F811 — un paramètre de test nommé comme un nom importé est lu à
+# tort comme une redéfinition, alors que pytest l'interprète comme une
+# injection de fixture. Une fixture disponible via conftest.py n'a besoin
+# d'aucun import explicite côté fichier de test, donc aucun nom à "redéfinir".
+from ._intelligence_fixtures import (  # noqa: E402,F401
+    evidence_kernel_schema,
+    two_companies,
+)
+
 
 @pytest.fixture(autouse=True)
 def _reset_state_between_tests():

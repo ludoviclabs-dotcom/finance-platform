@@ -13,6 +13,7 @@ import { AlertTriangle, Info } from "lucide-react";
 import { monthlyEmissions, scopeDetails } from "@/lib/data";
 import { useCarbonSnapshot } from "@/lib/hooks/use-carbon-snapshot";
 import { EnergyScope2Panel } from "@/components/energy/energy-scope2-panel";
+import { Scope2EnginePanel } from "@/components/energy/scope2-engine-panel";
 
 import {
   ScopesHero, ScopeTiles, AnalysisSection, TrendSection, ReductionPriorities,
@@ -188,6 +189,9 @@ export function ScopesPage() {
 
         {/* Énergie & Scope 2 dual — fondation PR-06A (BETA) */}
         <EnergyScope2Panel />
+
+        {/* Moteur de calcul Scope 2 dual — totaux LB/MB + trace PR-06B (BETA) */}
+        <Scope2EnginePanel />
 
         <div className="text-center text-[11px] text-[var(--cc-subtle)] font-mono py-2">
           GHG Protocol Scope 1-2-3 · Facteurs ADEME 2024 · CA {REVENUE_MEUR} M€

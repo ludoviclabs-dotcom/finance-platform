@@ -541,3 +541,251 @@ def verify_zip(zip_bytes: bytes) -> dict[str, Any]:
         "file_integrity": insp["file_integrity"],
         "metadata": reg,
     }
+
+
+# ---------------------------------------------------------------------------
+# Evidence Pack d'un run de calcul Scope 2 dual (PR-06B)
+# ---------------------------------------------------------------------------
+
+SCOPE2_PACK_DOMAIN = "scope2_run"
+
+# Horodatage FIXE des entrées du ZIP. Un evidence pack doit être reproductible
+# BIT À BIT : deux générations du même run doivent produire le même ZIP, donc le
+# même `package_hash`. Or `ZipFile.writestr(str, ...)` estampille chaque entrée
+# avec l'heure courante — d'où cette date d'époque constante, appliquée via un
+# ZipInfo explicite. La date réelle du calcul reste dans `run.json`, signée.
+_ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
+
+
+def _scope2_readme(*, company_name: str, run: dict[str, Any], manifest_hash: str) -> str:
+    result = run.get("result") or {}
+    method = result.get("methodology") or {}
+    return f"""CarbonCo - Evidence Pack Scope 2 dual (location-based & market-based)
+====================================================================
+
+Entreprise      : {company_name}
+Run de calcul   : #{run.get('id')}
+Periode         : {run.get('period_start')} -> {run.get('period_end')}
+Zone de reseau  : {run.get('geography_code')}
+Methodologie    : {method.get('code')} {method.get('version')}
+Statut du run   : {run.get('status')}
+Calcule le      : {run.get('calculated_at')}
+
+Hash manifest   : {manifest_hash}
+
+Resultats
+---------
+
+  Location-based : {result.get('location_based_tco2e')} tCO2e
+  Market-based   : {result.get('market_based_tco2e')} tCO2e
+
+Les DEUX bases sont publiees ensemble. Aucune ne remplace l'autre : le GHG
+Protocol Scope 2 Guidance impose la double comptabilisation.
+
+  Consommation totale       : {result.get('total_consumption_mwh')} MWh
+  Couverture contractuelle  : {result.get('contractual_coverage_mwh')} MWh
+                              ({result.get('contractual_coverage_pct')} %)
+  Part non couverte         : {result.get('uncovered_mwh')} MWh
+  Mix residuel utilise      : {result.get('residual_mix_used')}
+  Couverture du calcul      : {result.get('coverage_pct')} %
+  Confiance                 : {result.get('confidence')} / 100
+  Calcul complet            : {result.get('is_complete')}
+
+Ce que ce pack garantit (et ce qu'il ne garantit pas)
+-----------------------------------------------------
+
+GARANTI :
+  - Chaque ligne de calculation_trace.json porte le NIVEAU de hierarchie de
+    facteur retenu (selection_level) et sa RAISON (selection_reason). Aucun
+    facteur n'a ete choisi silencieusement.
+  - input_snapshot.json contient les entrees GELEES du calcul (activites,
+    allocations, facteurs candidats). Rejouer le moteur sur ce snapshot doit
+    redonner exactement result.json (empreinte input_fingerprint).
+  - Les quantites non couvertes par un instrument contractuel sont VISIBLES
+    (segment "uncovered" de la trace), jamais absorbees dans un total.
+
+INTERDITS RESPECTES :
+  - Une moyenne de reseau nationale n'est JAMAIS presentee comme market-based.
+    Les lignes market-based ne portent que factor_basis = contractual_instrument,
+    market, residual_mix ou documented_fallback (repli explicitement autorise
+    par la methodologie, avec fallback_reason obligatoire).
+  - Une estimation n'est JAMAIS presentee comme verifiee : data_quality vaut
+    "verified" seulement si la preuve existe (certificat d'instrument attache,
+    ou facteur source par une release tracee).
+  - Un proxy fournisseur n'est JAMAIS presente comme facteur contractuel
+    verifie : seul un instrument contractuel alloue produit le niveau
+    "contractual_instrument".
+
+NON GARANTI :
+  - Un run au statut "draft" n'est PAS un resultat officiel. Tant qu'aucun run
+    n'est approuve, les KPI Scope 2 historiques restent la reference.
+
+Verification independante
+-------------------------
+
+  1. SHA-256 du fichier "manifest.json" de ce ZIP :
+       sha256sum manifest.json       (Linux/macOS)
+       Get-FileHash manifest.json    (PowerShell)
+  2. Il doit valoir : {manifest_hash}
+  3. "CHECKSUMS.sha256" liste l'empreinte de chaque fichier :
+       sha256sum -c CHECKSUMS.sha256
+
+Contenu du package
+------------------
+
+- manifest.json           : metadonnees + hashs des fichiers embarques (signe)
+- run.json                : identite du run (periode, methodologie, statut)
+- result.json             : les deux totaux + couverture + confiance
+- calculation_trace.json  : trace ligne a ligne (hierarchie de facteurs)
+- input_snapshot.json     : entrees gelees (reproductibilite)
+- factors.json            : facteurs REELLEMENT utilises et leurs versions
+- warnings.json           : avertissements et facteurs manquants
+- CHECKSUMS.sha256        : empreintes de tous les fichiers
+- README.txt              : ce fichier (informatif, non signe)
+"""
+
+
+def assemble_scope2_pack(
+    *,
+    company_id: int,
+    company_name: str,
+    run: dict[str, Any],
+    trace: list[dict[str, Any]],
+) -> ExportPackage:
+    """Assemble l'Evidence Pack d'un run Scope 2 — fonction PURE (aucune DB).
+
+    Reutilise la convention de pack existante (`manifest.json` signe +
+    `CHECKSUMS.sha256` verifiable par `sha256sum -c`), avec le meme calcul de
+    hash — un auditeur qui sait verifier un pack CarbonCo sait verifier
+    celui-ci. Reproductible : memes entrees ⇒ memes octets ⇒ meme package_hash.
+    """
+    result = run.get("result") or {}
+    warnings = run.get("warnings") or []
+
+    run_meta = {
+        "run_id": run.get("id"),
+        "company_id": company_id,
+        "methodology_code": run.get("methodology_code"),
+        "methodology_version": run.get("methodology_version"),
+        "period_start": str(run.get("period_start")),
+        "period_end": str(run.get("period_end")),
+        "geography_code": run.get("geography_code"),
+        "status": run.get("status"),
+        "input_fingerprint": run.get("input_fingerprint"),
+        "calculated_at": str(run.get("calculated_at")),
+        "approved_at": str(run.get("approved_at")) if run.get("approved_at") else None,
+        "confidence": run.get("confidence"),
+        "coverage_pct": run.get("coverage_pct"),
+    }
+
+    def _dump(payload: Any) -> bytes:
+        return json.dumps(
+            payload, sort_keys=True, indent=2, default=str, ensure_ascii=False
+        ).encode("utf-8")
+
+    signed: dict[str, bytes] = {
+        "run.json": _dump(run_meta),
+        "result.json": _dump(result),
+        "calculation_trace.json": _dump(trace),
+        "input_snapshot.json": _dump(run.get("input_snapshot") or {}),
+        "factors.json": _dump(run.get("factor_versions") or []),
+        "warnings.json": _dump({
+            "warnings": warnings,
+            "missing_factors": result.get("missing_factors") or [],
+        }),
+    }
+
+    manifest: dict[str, Any] = {
+        "manifest_version": MANIFEST_VERSION,
+        "pack_type": SCOPE2_PACK_DOMAIN,
+        "company_id": company_id,
+        "company_name": company_name,
+        "domain": SCOPE2_PACK_DOMAIN,
+        "run_id": run.get("id"),
+        "input_fingerprint": run.get("input_fingerprint"),
+        "files": {
+            name: {"sha256": _sha256_hex(data), "size": len(data)}
+            for name, data in signed.items()
+        },
+        "stats": {
+            "line_count": len(trace),
+            "warning_count": len(warnings),
+            "missing_factor_count": len(result.get("missing_factors") or []),
+            "location_based_tco2e": result.get("location_based_tco2e"),
+            "market_based_tco2e": result.get("market_based_tco2e"),
+        },
+    }
+    manifest_bytes = json.dumps(manifest, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8")
+    manifest_hash = _sha256_hex(manifest_bytes)
+
+    embedded: dict[str, bytes] = {"manifest.json": manifest_bytes, **signed}
+    embedded["README.txt"] = _scope2_readme(
+        company_name=company_name, run=run, manifest_hash=manifest_hash
+    ).encode("utf-8")
+    checksums_bytes = _checksums_file(embedded)
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for name, data in sorted({**embedded, "CHECKSUMS.sha256": checksums_bytes}.items()):
+            info = zipfile.ZipInfo(filename=name, date_time=_ZIP_EPOCH)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            zf.writestr(info, data)
+
+    final_zip = buf.getvalue()
+    final_hash = _sha256_hex(final_zip)
+    filename = f"carbonco-scope2-run-{run.get('id')}-{final_hash[:12]}.zip"
+
+    return ExportPackage(
+        package_hash=final_hash,
+        manifest_hash=manifest_hash,
+        zip_bytes=final_zip,
+        filename=filename,
+        event_count=len(trace),
+        frozen_count=1 if run.get("status") == "approved" else 0,
+        size_bytes=len(final_zip),
+        manifest=manifest,
+    )
+
+
+def build_scope2_evidence_pack(
+    *,
+    company_id: int,
+    company_name: str,
+    run: dict[str, Any],
+    trace: list[dict[str, Any]],
+    generated_by: int | None = None,
+) -> ExportPackage:
+    """Assemble le pack ET l'enregistre dans `export_packages` (domaine
+    `scope2_run`), pour que la page publique `/verify/{hash}` puisse attester de
+    son existence et de sa date comme pour un pack consolide. Idempotent :
+    regenerer le meme run ne cree pas de doublon (`ON CONFLICT DO NOTHING` sur
+    `package_hash`, qui est stable par construction)."""
+    pack = assemble_scope2_pack(
+        company_id=company_id, company_name=company_name, run=run, trace=trace
+    )
+    if db_available():
+        try:
+            with get_db(company_id=company_id) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO export_packages
+                            (company_id, package_hash, manifest_hash, domain, filename,
+                             size_bytes, event_count, frozen_count, generated_by, meta)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (package_hash) DO NOTHING
+                        """,
+                        (
+                            company_id, pack.package_hash, pack.manifest_hash,
+                            SCOPE2_PACK_DOMAIN, pack.filename, pack.size_bytes,
+                            pack.event_count, pack.frozen_count, generated_by,
+                            json.dumps({
+                                "company_name": company_name,
+                                "run_id": run.get("id"),
+                                "input_fingerprint": run.get("input_fingerprint"),
+                            }),
+                        ),
+                    )
+        except Exception as exc:
+            logger.warning("Persist export_packages (scope2) échoué: %s", exc)
+    return pack

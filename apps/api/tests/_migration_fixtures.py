@@ -69,22 +69,23 @@ def apply_upto(conn, max_version: str | None) -> None:
 
 
 def build_full_db(conn) -> None:
-    """DDL inline + TOUS les fichiers `.sql` découverts (001-032, y compris
+    """DDL inline + TOUS les fichiers `.sql` découverts (001-033, y compris
     004/009/027, le noyau Evidence Kernel 028, la vue de fraîcheur 029,
-    l'exposition achats 030, la fondation énergie 031 et le moteur Scope 3
-    achats 032) — « base complète ».
+    l'exposition achats 030, la fondation énergie 031, le moteur Scope 3
+    achats 032 et le moteur de calcul Scope 2 dual 033) — « base complète ».
 
     Doit rester aligné sur `discover_migrations()` : ce fixture représente
     « toutes les migrations appliquées », donc sa borne haute suit la dernière
-    version réelle du dossier (032 depuis PR-05B, sur un master qui porte déjà
-    029 depuis PR-04, 030 depuis PR-05A et 031 depuis PR-06A). Un décalage —
-    p.ex. rester à 031 alors qu'un fichier 032 existe — ferait échouer toute
-    assertion du type « chaque version découverte a une sonde qui passe / est
-    baseline » (la sonde 032 verrait ses objets absents), sans que 032 soit en
-    cause. `apply_upto("032")` applique tous les fichiers de préfixe <= 032. À
-    FAIRE ÉVOLUER à chaque nouvelle migration."""
+    version réelle du dossier (033 depuis PR-06B, sur un master qui porte déjà
+    029 depuis PR-04, 030 depuis PR-05A, 031 depuis PR-06A et 032 depuis
+    PR-05B). Un décalage — p.ex. rester à 032 alors qu'un fichier 033 existe —
+    ferait échouer toute assertion du type « chaque version découverte a une
+    sonde qui passe / est baseline » (la sonde 033 verrait ses objets absents),
+    sans que 033 soit en cause. `apply_upto("033")` applique tous les fichiers
+    de préfixe <= 033 (donc 032 puis 033). À FAIRE ÉVOLUER à chaque nouvelle
+    migration."""
     apply_ddl_inline(conn)
-    apply_upto(conn, "032")
+    apply_upto(conn, "033")
 
 
 def reset_public_schema(conn) -> None:

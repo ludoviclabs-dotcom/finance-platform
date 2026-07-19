@@ -240,14 +240,18 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     028 (Evidence Kernel, PR-03) ; 30 depuis 029 (Source Admin — vue de
     fraîcheur, PR-04) ; 31 depuis 030 (exposition achats, PR-05A) ; 32 depuis
     031 (fondation énergie, PR-06A) ; 33 depuis 032 (moteur Scope 3 achats &
-    hotspots, PR-05B) — voir tests dédiés ci-dessous pour 028 à 032.
+    hotspots, PR-05B) ; 34 depuis 033 (moteur de calcul Scope 2 dual, PR-06B)
+    — voir tests dédiés ci-dessous pour 028 à 033.
+
+    Le plan n'exige AUCUNE contiguïté des préfixes : il trie les fichiers
+    réellement présents. C'est la présence du fichier qui compte, pas la suite.
     """
     runner = MigrationRunner()  # migrations_dir par défaut = apps/api/db/migrations
     monkeypatch.setattr(runner, "load_records", lambda: {})
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 33
+    assert len(versions) == 34
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
@@ -255,6 +259,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert "030" in versions
     assert "031" in versions
     assert "032" in versions
+    assert "033" in versions
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["027"] == "blocked_manual"
@@ -265,6 +270,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert actions["030"] == "apply"
     assert actions["031"] == "apply"
     assert actions["032"] == "apply"
+    assert actions["033"] == "apply"
     assert plan.has_blocking_issues is True
 
 

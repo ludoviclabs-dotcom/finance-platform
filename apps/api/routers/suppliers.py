@@ -42,6 +42,7 @@ from models.procurement import (
     SupplierProductCreate,
     SupplierProductListResponse,
     SupplierProductResponse,
+    SupplierScoreCard,
     SupplierSiteCreate,
     SupplierSiteListResponse,
     SupplierSiteResponse,
@@ -55,7 +56,7 @@ from routers.auth import (
 )
 from services import supplier_campaigns_service as campaigns_svc
 from services.auth_service import AuthUser
-from services.procurement import supplier_sites_service
+from services.procurement import scoring, supplier_sites_service
 from services.supplier_campaigns_service import (
     AnswerReviewRequest,
     CampaignCreate,
@@ -376,6 +377,46 @@ def post_supplier_product(
             company_id=user.company_id, supplier_id=supplier_id, payload=payload, created_by=user.user_id,
         )
     except supplier_sites_service.SupplierSitesError as exc:
+        raise http_error(exc) from exc
+
+
+# ---------------------------------------------------------------------------
+# Profil fournisseur en 5 dimensions (PR-05B) — plan §7.
+#
+# `/risk` et `/evidence-quality` servent la MÊME fiche : les cinq dimensions
+# sont indissociables et volontairement NON agrégées. Exposer un « score de
+# risque » seul rouvrirait la porte au chiffre unique opaque que le plan
+# interdit (§1.10) ; les deux chemins d'URL du plan sont donc honorés, mais
+# aucun ne renvoie un score réduit.
+# ---------------------------------------------------------------------------
+
+@router.get("/{supplier_id}/risk", response_model=SupplierScoreCard)
+def get_supplier_risk(
+    supplier_id: int,
+    run_id: int | None = None,
+    user: AuthUser = Depends(get_current_user),
+) -> SupplierScoreCard:
+    require_db()
+    try:
+        return scoring.get_supplier_scorecard(
+            company_id=user.company_id, supplier_id=supplier_id, run_id=run_id,
+        )
+    except scoring.ScoringError as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/{supplier_id}/evidence-quality", response_model=SupplierScoreCard)
+def get_supplier_evidence_quality(
+    supplier_id: int,
+    run_id: int | None = None,
+    user: AuthUser = Depends(get_current_user),
+) -> SupplierScoreCard:
+    require_db()
+    try:
+        return scoring.get_supplier_scorecard(
+            company_id=user.company_id, supplier_id=supplier_id, run_id=run_id,
+        )
+    except scoring.ScoringError as exc:
         raise http_error(exc) from exc
 
 

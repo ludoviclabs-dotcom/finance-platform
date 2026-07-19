@@ -64,6 +64,20 @@ def _is_security_definer(cur, function: str) -> bool:
     return bool(row and row["prosecdef"])
 
 
+def _constraint_exists(cur, table: str, constraint: str) -> bool:
+    """True si la contrainte nommée existe sur la table.
+
+    Utilisé quand une RÈGLE MÉTIER est portée par un CHECK (pas seulement par
+    du code applicatif) : sa disparition est une dérive de schéma qui doit être
+    détectée, au même titre qu'une table manquante."""
+    cur.execute(
+        "SELECT 1 FROM pg_constraint c JOIN pg_class t ON t.oid = c.conrelid "
+        "WHERE t.relname = %s AND c.conname = %s",
+        (table, constraint),
+    )
+    return cur.fetchone() is not None
+
+
 def _trigger_exists(cur, table: str, trigger: str) -> bool:
     cur.execute(
         "SELECT 1 FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid "
@@ -390,6 +404,33 @@ def _probe_031(cur) -> bool:
     return _trigger_exists(cur, "instrument_allocations", "trg_instrument_allocations_guard")
 
 
+def _probe_032(cur) -> bool:
+    """Moteur Scope 3 achats & hotspots (PR-05B) : 3 tables purement tenant +
+    RLS FORCE + policy scopée sur chacune, ET les contraintes CHECK qui portent
+    les règles non négociables.
+
+    On sonde `procurement_line_results_fallback_reason_check` en plus des
+    tables : c'est elle qui garantit EN BASE qu'aucune ligne ne peut descendre
+    la hiérarchie de méthode sans dire pourquoi (« aucun fallback silencieux »).
+    Une base où les tables existent mais où cette contrainte a été retirée est
+    incomplète et doit rester détectée comme telle — même raisonnement que la
+    sonde 031 pour son trigger anti-double-allocation."""
+    tables = (
+        "procurement_calculation_runs", "procurement_line_results",
+        "procurement_hotspot_selections",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    return _constraint_exists(
+        cur, "procurement_line_results", "procurement_line_results_fallback_reason_check"
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -424,6 +465,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "029": _probe_029,
     "030": _probe_030,
     "031": _probe_031,
+    "032": _probe_032,
 }
 
 

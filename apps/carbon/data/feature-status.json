@@ -122,6 +122,15 @@
       "preuve": "apps/api/routers/procurement.py"
     },
     {
+      "id": "scope3-achats-hotspots",
+      "label": "Moteur Scope 3 achats, hotspots et campagnes ciblées",
+      "description": "Calcul Scope 3 catégorie 1 avec une hiérarchie de méthode explicite : PCF fournisseur vérifiée, puis donnée fournisseur spécifique, puis facteur physique moyen, puis facteur monétaire — et si aucune ne s'applique, la ligne reste NON RÉSOLUE plutôt que d'être estimée au jugé. Chaque ligne affiche sa méthode, son facteur (identifiant + version), sa conversion d'unité et sa raison de repli ; le total n'est jamais montré sans son taux de couverture. Détection de hotspots, sélection humaine, campagne fournisseur créée depuis un hotspot retenu, profil fournisseur en 5 dimensions séparées (jamais un score ESG unique) et Evidence Pack vérifiable hors plateforme.",
+      "statut": "beta",
+      "normes": ["ESRS E1", "GHG Protocol Scope 3 cat. 1"],
+      "tag": "ESRS E1 · Scope 3",
+      "preuve": "apps/api/services/calculations/procurement.py"
+    },
+    {
       "id": "comparaison-multi-exercices",
       "label": "Comparaison multi-exercices (snapshots)",
       "description": "Sauvegarde d'un instantané de vos données à date et comparaison avec les exercices précédents. Fonctionnalité disponible mais l'interface de gestion des versions est en cours d'amélioration.",

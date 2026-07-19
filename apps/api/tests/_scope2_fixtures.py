@@ -130,12 +130,23 @@ def scope2_env(scope2_schema):
 
     with get_db() as conn:
         with conn.cursor() as cur:
+            # session_replication_role=replica : désactive les triggers utilisateur
+            # (dont l'immutabilité des runs 033 ET le guard APPEND-ONLY du noyau
+            # Evidence Kernel sur source_releases — aucun de ces triggers n'est
+            # `ENABLE ALWAYS`) ainsi que les triggers de FK, le temps du cleanup.
+            # Rôle superuser requis, disponible en CI. Connexion jetée juste
+            # après — aucune fuite de ce réglage. Même patron que
+            # test_snapshot_migration.py.
             cur.execute("SET session_replication_role = replica")
             for table in SCOPE2_TABLES:
                 cur.execute(f"DELETE FROM {table} WHERE company_id = ANY(%s)", (ids,))
             cur.execute("DELETE FROM export_packages WHERE company_id = ANY(%s)", (ids,))
             cur.execute("DELETE FROM facts_events WHERE company_id = ANY(%s)", (ids,))
             cur.execute("DELETE FROM sites WHERE company_id = ANY(%s)", (ids,))
+            # Sources/releases créées par le test de licence (registre append-only :
+            # seul le mode replica permet de les retirer).
+            cur.execute("DELETE FROM source_releases WHERE company_id = ANY(%s)", (ids,))
+            cur.execute("DELETE FROM source_registry WHERE company_id = ANY(%s)", (ids,))
             cur.execute("SET session_replication_role = origin")
             cur.execute("DELETE FROM companies WHERE id = ANY(%s)", (ids,))
             cur.execute(

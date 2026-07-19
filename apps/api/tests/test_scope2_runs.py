@@ -234,10 +234,13 @@ class TestCalculateAndStore:
         assert any("licence" in w.lower() for w in run["warnings"])
         assert run["result"]["is_complete"] is False  # écarté ⇒ hiérarchie épuisée
 
-        with get_db(company_id=cid) as conn:
-            with conn.cursor() as cur:
-                cur.execute("DELETE FROM source_releases WHERE id = %s", (release_id,))
-                cur.execute("DELETE FROM source_registry WHERE id = %s", (source_id,))
+        # Pas de cleanup ici : `source_releases` est un registre APPEND-ONLY
+        # (trigger `evidence_kernel_guard` de la migration 028), un DELETE y est
+        # refusé en fonctionnement normal — c'est le comportement attendu du
+        # noyau, pas un obstacle à contourner au milieu d'un test. Le teardown du
+        # module (`_scope2_fixtures.scope2_env`) les retire sous
+        # `session_replication_role = replica`, seul contexte légitime pour ça.
+        assert release_id and source_id  # créés, retirés au teardown du module
 
     def test_hierarchie_sous_nationale_prime_bout_en_bout(self, scope2_env):
         cid = scope2_env["a"]

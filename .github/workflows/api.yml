@@ -114,7 +114,12 @@ jobs:
       # PostgreSQL : ajouter chaque nouveau fichier de test DB-gated ici est
       # obligatoire, sinon il ne tourne jamais en CI (chacun construit son
       # propre schéma de façon idempotente — aucun ordre imposé entre eux).
-      - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin + Procurement + Énergie (PR-02B / PR-03 / PR-04 / PR-05A / PR-06A)
+      # `test_energy_rls_non_superuser.py` fait exception au « superuser » de ce
+      # job : il crée un rôle NOSUPERUSER/NOBYPASSRLS, lui transfère la propriété
+      # des tables énergie et de la fonction trigger, puis rejoue le parcours en
+      # SET LOCAL ROLE. C'est le seul test qui exerce réellement FORCE ROW LEVEL
+      # SECURITY (cf. docs/carbonco/refonte/ENERGY_RLS_NON_SUPERUSER_HARDENING.md).
+      - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin + Procurement + Énergie + RLS non-superuser (PR-02B / PR-03 / PR-04 / PR-05A / PR-06A)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: >-
@@ -135,6 +140,7 @@ jobs:
           tests/test_energy_meters.py
           tests/test_energy_instruments.py
           tests/test_energy_import.py
+          tests/test_energy_rls_non_superuser.py
 
   security-audit:
     runs-on: ubuntu-latest

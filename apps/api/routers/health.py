@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter
@@ -38,15 +39,36 @@ def _db_status() -> str:
 async def _storage_status() -> str:
     """local | not_configured | ok | down.
 
-    En mode vercel-blob, sonde RÉELLE : PUT + GET + DELETE d'une clé fixe
-    (health/probe — écrasée à chaque appel, aucune accumulation). Un token
-    présent mais invalide/expiré rend donc "down", plus jamais un faux "ok".
+    En mode vercel-blob, sonde RÉELLE : PUT + GET + DELETE d'une clé UNIQUE
+    PAR APPEL (Wave 3 — voir note ci-dessous). Un token présent mais
+    invalide/expiré rend donc "down", plus jamais un faux "ok".
 
     Le SDK vercel.blob n'expose un timeout par appel que sur get() ; put()/
     delete() n'ont pas ce paramètre. asyncio.wait_for borne donc la sonde
     entière à 5 s depuis l'extérieur, pour ne jamais bloquer le monitoring
     si l'API Blob est dégradée (le thread de la sonde peut continuer en
     arrière-plan, mais /health répond dans le budget annoncé).
+
+    Wave 3 — clé unique par appel (plus une clé FIXE 'health/probe' partagée) :
+    cette route peut être invoquée plusieurs fois en chevauchement (plusieurs
+    requêtes /health simultanées sur le MÊME déploiement — moniteurs,
+    Vercel lui-même, utilisateur — sans même parler de déploiements distincts
+    partageant le même store Blob). Avec une clé fixe, un PUT concurrent
+    pouvait écraser l'objet entre le PUT et le GET d'un autre appel : la
+    relecture ne correspondait alors plus au payload attendu, et l'appel
+    retombait sur "down" alors que le stockage fonctionnait réellement — un
+    FAUX "down", reproduit en direct en production (5 requêtes fraîches
+    successives : down/ok/down/ok/down en ~2 minutes, alors que le token et le
+    store sont valides — un vrai défaut d'auth/réseau échouerait de façon
+    stable, pas en alternance). Une clé aléatoire par appel élimine la
+    collision PAR CONSTRUCTION (jamais deux appels ne visent le même objet),
+    au prix d'un risque résiduel mineur et assumé : si GET/DELETE échoue APRÈS
+    un PUT réussi, l'objet de CET appel reste orphelin (avant Wave 3, la même
+    situation ne laissait qu'un seul objet PARTAGÉ, réécrit par l'appel
+    suivant — aucune accumulation). Le `try/finally` ci-dessous minimise cette
+    fenêtre : le DELETE est tenté même si le GET a levé, en best-effort (une
+    erreur de suppression ne doit jamais masquer le résultat réel de la
+    lecture ni le transformer en exception inattendue).
     """
     backend = os.environ.get("STORAGE_BACKEND", "local").lower()
     if backend != "vercel-blob":
@@ -59,9 +81,17 @@ async def _storage_status() -> str:
 
         storage = VercelBlobStorage(timeout=5.0)
         payload = b"carbonco-health-probe"
-        url = storage.put("health/probe", payload, content_type="text/plain")
-        data = storage.get(url)
-        storage.delete(url)
+        # Clé unique par appel — jamais réutilisée par un autre appel
+        # (concurrent ou non), donc jamais lue/supprimée par lui non plus.
+        key = f"health/probe/{uuid.uuid4().hex}"
+        url = storage.put(key, payload, content_type="text/plain")
+        try:
+            data = storage.get(url)
+        finally:
+            try:
+                storage.delete(url)
+            except Exception:
+                pass  # best-effort : ne jamais masquer le résultat réel du GET ci-dessus
         return data == payload
 
     try:

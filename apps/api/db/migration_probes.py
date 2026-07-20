@@ -87,6 +87,42 @@ def _trigger_exists(cur, table: str, trigger: str) -> bool:
     return cur.fetchone() is not None
 
 
+def _constraint_definition_contains(cur, table: str, constraint: str, needle: str) -> bool:
+    """True si la contrainte existe ET que sa définition (`pg_get_constraintdef`)
+    contient `needle`.
+
+    Nécessaire quand un NOM de contrainte est RÉUTILISÉ par une migration
+    ultérieure (`DROP CONSTRAINT` + `ADD CONSTRAINT` du même nom) — comme
+    `audit_eventtype_check` (créée par 011, élargie par 012) ou
+    `purchase_lines_mapping_status_check` (créée par 030, élargie par 035) :
+    l'existence seule (`_constraint_exists`) ne distingue pas l'ancienne
+    définition de la nouvelle, même piège que documenté pour la policy
+    `tenant_isolation_alert_rules` partagée par 004/009/021."""
+    cur.execute(
+        "SELECT pg_get_constraintdef(c.oid) AS def FROM pg_constraint c "
+        "JOIN pg_class t ON t.oid = c.conrelid "
+        "WHERE t.relname = %s AND c.conname = %s",
+        (table, constraint),
+    )
+    row = cur.fetchone()
+    return row is not None and needle in (row["def"] or "")
+
+
+def _function_source_contains(cur, function: str, needle: str) -> bool:
+    """True si la fonction existe ET que son corps (`pg_proc.prosrc`) contient `needle`.
+
+    Nécessaire quand une fonction `SECURITY DEFINER` est RECRÉÉE (`CREATE OR
+    REPLACE`, même nom) par une migration ultérieure pour un correctif de
+    comportement — `energy_allocation_guard()`, définie par 031 et dont le
+    corps est remplacé par 035 (verrou `FOR UPDATE` ajouté) : l'existence de
+    la fonction seule (`_is_security_definer`) ne distingue pas l'ancienne
+    implémentation de la nouvelle, même raisonnement que
+    `_constraint_definition_contains`."""
+    cur.execute("SELECT prosrc FROM pg_proc WHERE proname = %s", (function,))
+    row = cur.fetchone()
+    return row is not None and needle in (row["prosrc"] or "")
+
+
 def _view_has_security_invoker(cur, view: str) -> bool:
     """True si la vue existe ET porte l'option `security_invoker=true`.
 
@@ -488,6 +524,31 @@ def _probe_034(cur) -> bool:
     return bool(row) and int(row["n"]) == 8
 
 
+def _probe_035(cur) -> bool:
+    """Wave 3 stabilisation : deux correctifs INDÉPENDANTS sur des tables déjà
+    créées par 030/031 — aucune table neuve, donc aucun `_table_exists` ici.
+
+    (A) `purchase_lines.mapping_note` : colonne neuve, non ambiguë par
+    construction (n'existe dans aucune migration antérieure). ET la
+    contrainte `mapping_status_check` dont la DÉFINITION contient 'ambiguous'
+    — l'existence seule de la contrainte ne suffit pas, son NOM est réutilisé
+    depuis 030 (même piège que `audit_eventtype_check` 011/012, cf.
+    `_constraint_definition_contains`).
+
+    (B) `energy_allocation_guard()` recréée (`CREATE OR REPLACE`, même nom
+    que 031) avec un verrou `FOR UPDATE` avant le calcul de la somme allouée
+    — l'existence de la fonction/trigger seule ne suffit pas non plus (même
+    raisonnement qu'en (A)), on sonde le contenu réel du corps de la fonction.
+    """
+    if not _column_exists(cur, "purchase_lines", "mapping_note"):
+        return False
+    if not _constraint_definition_contains(
+        cur, "purchase_lines", "purchase_lines_mapping_status_check", "ambiguous"
+    ):
+        return False
+    return _function_source_contains(cur, "energy_allocation_guard", "FOR UPDATE")
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -525,6 +586,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "032": _probe_032,
     "033": _probe_033,
     "034": _probe_034,
+    "035": _probe_035,
 }
 
 

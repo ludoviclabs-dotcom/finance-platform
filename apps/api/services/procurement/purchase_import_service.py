@@ -160,7 +160,7 @@ def create_import(
             accepted = rejected = 0
             for line in parsed:
                 has_activity = line["spend_amount"] is not None or line["quantity"] is not None
-                product_id, supplier_id, mapping_status = _auto_map(cur, company_id, line)
+                product_id, supplier_id, mapping_status, mapping_note = _auto_map(cur, company_id, line)
                 if not has_activity:
                     mapping_status = "needs_review"
                     rejected += 1
@@ -171,14 +171,14 @@ def create_import(
                     INSERT INTO purchase_lines
                         (company_id, import_id, supplier_id, supplier_external_code, product_id,
                          product_external_code, purchase_date, quantity, unit, spend_amount, currency,
-                         category_code, origin_country, raw_row_json, mapping_status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                         category_code, origin_country, raw_row_json, mapping_status, mapping_note)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         company_id, import_id, supplier_id, line["supplier_external_code"], product_id,
                         line["product_external_code"], line["purchase_date"], line["quantity"],
                         line["unit"], line["spend_amount"], line["currency"], line["category_code"],
-                        line["origin_country"], json.dumps(line["raw"]), mapping_status,
+                        line["origin_country"], json.dumps(line["raw"]), mapping_status, mapping_note,
                     ),
                 )
             cur.execute(
@@ -190,20 +190,86 @@ def create_import(
     return _import_row_to_response(updated, already_imported=False)
 
 
-def _auto_map(cur, company_id: int, line: dict[str, Any]) -> tuple[int | None, int | None, str]:
+def _auto_map(cur, company_id: int, line: dict[str, Any]) -> tuple[int | None, int | None, str, str | None]:
     """Mapping automatique CONSERVATEUR : une ligne n'est `mapped` que si son
-    code produit externe correspond exactement à un `supplier_products.product_code`
-    du tenant. Sinon `unmapped` (file de résolution). Jamais de devinette floue."""
+    code produit externe correspond à EXACTEMENT UN `supplier_products.product_code`
+    dans le périmètre pertinent — le catalogue du fournisseur explicite de la
+    ligne si `line["supplier_id"]` est déjà résolu, sinon tout le tenant.
+
+    AUCUNE sélection par ordre SQL, premier résultat ou heuristique silencieuse.
+    L'ancien `fetchone()` sans `ORDER BY` EN était une : sur un `product_code`
+    partagé par PLUSIEURS fournisseurs du même tenant (l'unicité de
+    `supplier_products` porte sur `(company_id, supplier_id, product_code)`,
+    PAS `(company_id, product_code)`), le fournisseur retenu dépendait de
+    l'ordre de retour de PostgreSQL — non garanti sans `ORDER BY`. Rattachement
+    arbitraire, déjà observé en CI (commit d857eda : contourné par isolation de
+    test à l'époque, la cause n'était pas corrigée). Plusieurs candidats ->
+    `ambiguous`, jamais deviné ni départagé par un tri quelconque : `ORDER BY id`
+    ci-dessous ne sert qu'à rendre le message d'erreur déterministe (lequel
+    candidat est cité en premier), jamais à choisir un gagnant.
+
+    `mapping_note` porte alors les candidats et la raison de l'ambiguïté — même
+    principe que `fallback_reason` (procurement_line_results, migration 032) :
+    aucun statut ambigu sans dire pourquoi, imposé aussi EN BASE par une
+    contrainte CHECK (migration 035).
+
+    `line["supplier_external_code"]` (texte libre du CSV) N'EST PAS résolu ici
+    en `supplier_id` : `suppliers` ne porte aucun registre de code externe
+    (vérifié — migration 008, colonnes `name`/`contact_*`/`country`/`sector`...
+    sans équivalent code), et deviner par correspondance de nom serait
+    exactement le genre d'heuristique silencieuse que cette fonction élimine.
+    Seul un `supplier_id` DÉJÀ résolu (un futur appelant pourrait le poser sur
+    `line`, p.ex. un registre code->fournisseur à construire séparément)
+    déclenche le périmètre fournisseur explicite ; le pipeline CSV actuel
+    (`parse_purchase_csv`) ne le fournit jamais, donc en pratique aujourd'hui
+    seul le périmètre tenant s'exerce depuis `create_import` — la branche
+    fournisseur explicite est prouvée directement par test (appel direct de
+    `_auto_map` avec un `line["supplier_id"]` posé à la main), pas via un CSV.
+    """
     code = line["product_external_code"]
-    if code:
+    if not code:
+        return None, None, "unmapped", None
+
+    explicit_supplier_id = line.get("supplier_id")
+    if explicit_supplier_id is not None:
         cur.execute(
-            f"SELECT id, supplier_id FROM supplier_products WHERE {_SCOPE} AND product_code = %s",
+            f"SELECT id, supplier_id FROM supplier_products "
+            f"WHERE {_SCOPE} AND supplier_id = %s AND product_code = %s "
+            "ORDER BY id",
+            (company_id, explicit_supplier_id, code),
+        )
+    else:
+        cur.execute(
+            f"SELECT id, supplier_id FROM supplier_products WHERE {_SCOPE} AND product_code = %s "
+            "ORDER BY id",
             (company_id, code),
         )
-        match = cur.fetchone()
-        if match is not None:
-            return match["id"], match["supplier_id"], "mapped"
-    return None, None, "unmapped"
+    candidates = cur.fetchall()
+
+    if len(candidates) == 1:
+        match = candidates[0]
+        return match["id"], match["supplier_id"], "mapped", None
+    if len(candidates) == 0:
+        return None, None, "unmapped", None
+
+    # >= 2 candidats : ambigu, jamais résolu par ordre/premier résultat. Dans le
+    # périmètre "fournisseur explicite", ce cas ne peut structurellement pas se
+    # produire (supplier_products_code_uniq porte sur (company_id, supplier_id,
+    # product_code)) — mais on ne suppose jamais l'invariant d'un autre endroit,
+    # on le VÉRIFIE ici comme dans le périmètre tenant-large.
+    ids = ", ".join(str(c["id"]) for c in candidates)
+    if explicit_supplier_id is not None:
+        note = (
+            f"{len(candidates)} produits partagent le code '{code}' pour le fournisseur "
+            f"explicite {explicit_supplier_id} (candidats supplier_product_id : {ids}) — "
+            "ne devrait pas arriver (product_code est unique par fournisseur)."
+        )
+    else:
+        note = (
+            f"{len(candidates)} fournisseurs partagent le code produit '{code}' sans "
+            f"fournisseur explicite sur la ligne (candidats supplier_product_id : {ids})."
+        )
+    return None, None, "ambiguous", note
 
 
 def get_import(*, company_id: int, import_id: int) -> PurchaseImportResponse:
@@ -277,7 +343,14 @@ def list_resolution_queue(
     *, company_id: int, import_id: int, limit: int = 50, offset: int = 0,
 ) -> tuple[list[PurchaseLineResponse], int]:
     """File de résolution : lignes `unmapped` (donnée exploitable mais produit
-    non rattaché) à corriger manuellement."""
+    non rattaché) à corriger manuellement.
+
+    Note (Wave 3) : les lignes `ambiguous` (plusieurs candidats détectés,
+    cf. `_auto_map`) restent visibles via le filtre générique
+    `GET .../lines?mapping_status=ambiguous`, mais n'alimentent PAS encore
+    cette file dédiée — périmètre volontairement non étendu ici (changerait le
+    contrat déjà testé de cet endpoint) ; candidat naturel pour une PR dédiée
+    si le produit veut fusionner les deux files."""
     return list_lines(
         company_id=company_id, import_id=import_id, mapping_status="unmapped",
         limit=limit, offset=offset,
@@ -296,6 +369,21 @@ def resolve_mappings(
         with conn.cursor() as cur:
             _assert_import_in_scope(cur, company_id, import_id)
             for res in resolutions:
+                if res.mapping_status == "ambiguous":
+                    # 'ambiguous' est un statut SYSTÈME (détecté par _auto_map à
+                    # l'import, avec sa raison en base — mapping_note). Le
+                    # paramétrer manuellement ici violerait la contrainte CHECK
+                    # purchase_lines_mapping_note_check (035) dès que mapping_note
+                    # n'est pas explicitement fourni par cette route ; refusé
+                    # explicitement plutôt que de laisser remonter une erreur SQL
+                    # brute. La résolution manuelle doit rattacher un produit/
+                    # fournisseur précis (mapping_status='resolved'), pas
+                    # réintroduire une ambiguïté.
+                    raise PurchaseImportError(
+                        "'ambiguous' est un statut système (détecté à l'import) — non "
+                        "paramétrable via la résolution manuelle, qui doit rattacher un "
+                        "produit/fournisseur précis."
+                    )
                 if res.product_id is not None:
                     cur.execute(
                         f"SELECT 1 FROM supplier_products WHERE id = %s AND {_SCOPE}",

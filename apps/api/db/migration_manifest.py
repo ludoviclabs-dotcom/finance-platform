@@ -203,6 +203,49 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "calcul exécuté par la migration, aucun PostGIS, aucun LLM."
         ),
     ),
+    "038": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Fondation biodiversité — Locate et Evaluate (PR-09 tranche A) : "
+            "6 nouvelles tables (nature_features référentiel sourcé à portée "
+            "mixte tenant/globale, motif water_risk_areas 036 ; "
+            "site_nature_intersections fait géométrique immuable par trigger, "
+            "motif site_water_screenings 037 — réutilise "
+            "services/calculations/geo.py, jamais un score ; "
+            "nature_dependencies et nature_impacts, deux tables strictement "
+            "séparées par construction, motif TNFD ; leap_assessments et "
+            "leap_assessment_sites, le dossier LEAP). RLS gen-2 FORCE, GRANT "
+            "conditionnel. Ne crée que des tables neuves (aucun ALTER d'une "
+            "table existante) — pas de privilège propriétaire requis, comme "
+            "028/030/031/033/034/037. Numérotation validée pour cette branche "
+            "(038/039), distincte de la réservation indicative 037 du plan "
+            "PR-09 et de la réservation 038 de WAVE_4_INTERFACE_CONTRACTS.md "
+            "§13 pour PR-10 — voir PR09_BIODIVERSITY_LEAP_TRACEABILITY.md. "
+            "Aucun scoring de risque/opportunité ici (039), aucune donnée "
+            "métier migrée, aucune source externe ingérée, aucun LLM."
+        ),
+    ),
+    "039": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Risques, opportunités et brouillons TNFD nature — Assess et "
+            "Prepare (PR-09 tranche B) : 4 nouvelles tables tenant strictes "
+            "(nature_risks/nature_opportunities — risk_score/opportunity_score, "
+            "likelihood et confidence en TROIS colonnes séparées, motif "
+            "crma_article24_assessments 034 ; nature_actions, calquée sur "
+            "mitigation_actions 034 / water_actions 037 ; "
+            "tnfd_disclosure_drafts, is_official_tnfd_disclosure verrouillé à "
+            "false par CHECK — jamais une discipline applicative seule). RLS "
+            "gen-2 FORCE, GRANT conditionnel. Ne crée que des tables neuves "
+            "(aucun ALTER d'une table existante) — pas de privilège "
+            "propriétaire requis, comme 028/030/031/033/034/037/038. Aucun "
+            "calcul exécuté par la migration, aucune donnée métier migrée, "
+            "aucune source externe ingérée, aucun LLM, aucune publication "
+            "automatique de disclosure."
+        ),
+    ),
 }
 
 

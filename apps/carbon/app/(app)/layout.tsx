@@ -38,6 +38,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/pricing":     { title: "Offres",           subtitle: "Plans & tarification" },
   "/securite":    { title: "Sécurité",         subtitle: "Double authentification (2FA)" },
   "/crma":        { title: "Matières critiques", subtitle: "CRMA · aimants permanents · Article 24" },
+  "/nature":      { title: "Nature & biodiversité", subtitle: "TNFD LEAP · risques & opportunités" },
 };
 
 function PageSkeleton() {

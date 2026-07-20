@@ -49,6 +49,15 @@ from ._intelligence_fixtures import (  # noqa: E402,F401
     evidence_kernel_schema,
     two_companies,
 )
+
+# Biodiversité & LEAP (PR-09) : mêmes raisons que ci-dessus — un module de
+# fixtures absent d'ici n'est jamais résolu par pytest, et le défaut reste
+# invisible en local (tests DB-gated skippés sans DATABASE_URL) — piège déjà
+# documenté pour PR-07 (CRMA), toujours vrai ici.
+from ._nature_fixtures import (  # noqa: E402,F401
+    nature_schema,
+    two_companies_nature,
+)
 from ._procurement_fixtures import (  # noqa: E402,F401
     procurement_schema,
     two_companies_proc,

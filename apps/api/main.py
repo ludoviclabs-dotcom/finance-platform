@@ -44,6 +44,7 @@ from routers import (
     ingest,
     intelligence,
     materialite,
+    nature,
     partners,
     pilier2,
     procurement,
@@ -228,3 +229,4 @@ app.include_router(products.router, prefix="/products", tags=["products (PR-05A)
 app.include_router(energy.router, prefix="/energy", tags=["energy (PR-06A)"])
 app.include_router(crma.router, prefix="/crma", tags=["crma (PR-07)"])
 app.include_router(water.router, prefix="/water", tags=["water (PR-08)"])
+app.include_router(nature.router, prefix="/nature", tags=["nature (PR-09)"])

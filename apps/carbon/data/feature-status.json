@@ -436,6 +436,18 @@
       "tag": "Eau",
       "href": "/water",
       "preuve": "apps/api/services/calculations/water_screening.py"
+    },
+    {
+      "id": "biodiversite-tnfd-leap",
+      "label": "Biodiversité : dossiers LEAP, risques et opportunités nature (TNFD)",
+      "description": "Référentiel d'éléments naturels sensibles (aires protégées, zones clés pour la biodiversité, écosystèmes) toujours sourcé, avec masquage systématique de la géométrie précise pour les données confidentielles/restreintes. Intersection site × élément naturel factuelle et immuable (même moteur géométrique que le screening hydrique, sans PostGIS). Dépendances et impacts modélisés comme deux entités strictement séparées — jamais fusionnées, conformément à la distinction TNFD. Dossier LEAP (Locate/Evaluate/Assess/Prepare) progressant par revue humaine à chaque étape. Risque, aléa et confiance : trois grandeurs indépendantes, une composante sans donnée dégrade la confiance mais n'invente jamais un score. Brouillon de disclosure TNFD toujours marqué non officiel, jamais publié automatiquement.",
+      "statut": "beta",
+      "normes": [
+        "ESRS E4"
+      ],
+      "tag": "Biodiversité",
+      "href": "/nature",
+      "preuve": "apps/api/services/calculations/nature_scoring.py"
     }
   ],
   "esrs": [

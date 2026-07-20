@@ -15,10 +15,10 @@ import os
 
 import pytest
 
-from db.database import db_available, get_db
+from db.database import db_available
 from models.iro import FinancialAssessmentCreate, IroActionCreate
 from services.auth_service import AuthUser, create_access_token
-from services.iro import financial_assessment_service, iro_actions_service
+from services.iro import financial_assessment_service, iro_actions_service, iro_service
 
 from ._iro_fixtures import insert_iro
 
@@ -112,8 +112,10 @@ class TestIroActionsService:
             IroActionCreate(action_type="mitigation", title="X", expected_risk_reduction_pct=150.0)
 
     def test_create_on_unknown_iro_raises(self, two_companies_iro):
+        # `assert_iro_in_scope` (iro_service) lève AVANT toute écriture — même
+        # garde-fou que test_impact_assessments.py/test_financial_assessments.py.
         cid_a, _ = two_companies_iro
-        with pytest.raises(iro_actions_service.IroActionError):
+        with pytest.raises(iro_service.IroError):
             iro_actions_service.create_action(
                 company_id=cid_a, iro_id=999999999,
                 payload=IroActionCreate(action_type="mitigation", title="X"),
@@ -126,23 +128,29 @@ class TestIroActionsIsolation:
     def test_tenant_a_cannot_create_action_on_tenant_b_iro(self, two_companies_iro):
         cid_a, cid_b = two_companies_iro
         iro_id = insert_iro(cid_b, "IRO action privé B")
-        with pytest.raises(iro_actions_service.IroActionError):
+        with pytest.raises(iro_service.IroError):
             iro_actions_service.create_action(
                 company_id=cid_a, iro_id=iro_id,
                 payload=IroActionCreate(action_type="mitigation", title="Fuite"),
             )
 
-    def test_raw_sql_rls_blocks_cross_tenant_select(self, two_companies_iro):
+    def test_tenant_a_does_not_see_tenant_b_actions_via_service(self, two_companies_iro):
+        """Défense en profondeur applicative (contrats §7) — le prédicat
+        `company_id = %s` du service isole les tenants même sous le
+        superuser CI qui bypasse la RLS (voir
+        `test_iro.py::TestIroTenantIsolation::
+        test_ci_superuser_connection_bypasses_rls_hence_defense_in_depth_is_mandatory`
+        pour la preuve directe de ce bypass et sa justification). Lister les
+        actions d'un IRO qui appartient à un AUTRE tenant lève — jamais une
+        liste vide qui masquerait silencieusement la fuite."""
         cid_a, cid_b = two_companies_iro
-        iro_id = insert_iro(cid_a, "IRO action RLS")
+        iro_id = insert_iro(cid_a, "IRO action isolation")
         iro_actions_service.create_action(
             company_id=cid_a, iro_id=iro_id,
-            payload=IroActionCreate(action_type="mitigation", title="Privée"),
+            payload=IroActionCreate(action_type="mitigation", title="Privée A"),
         )
-        with get_db(company_id=cid_b) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM iro_actions WHERE iro_id = %s", (iro_id,))
-                assert cur.fetchone() is None
+        with pytest.raises(iro_service.IroError):
+            iro_actions_service.list_actions(company_id=cid_b, iro_id=iro_id)
 
 
 @_skip_no_db_url

@@ -86,10 +86,14 @@
 -- (contrats §7) : le PostgreSQL de CI se connecte en superuser, qui BYPASSE la
 -- RLS — chaque requête de service porte un prédicat `company_id = %s` explicite.
 --
--- Cette migration ne crée QUE des tables neuves (aucun ALTER d'une table
--- existante) — pas de privilège propriétaire requis, comme 028/030/031/034/037.
--- Aucun calcul exécuté par la migration, aucune donnée métier migrée, aucune
--- source externe ingérée, aucun LLM.
+-- Cette migration crée six tables neuves — pas de privilège propriétaire
+-- requis, comme 028/030/031/034/037. Elle élargit AUSSI, à l'identique du
+-- geste déjà appliqué par 011/012/035, la contrainte `audit_eventtype_check`
+-- (DROP + ADD sous le même nom) pour admettre le nouveau littéral
+-- `'materiality_decision'` — ni 011 ni 012 ne sont `requires_owner` pour ce
+-- même geste sur la même table, donc 040 ne l'est pas non plus. Aucun calcul
+-- exécuté par la migration, aucune donnée métier migrée, aucune source
+-- externe ingérée, aucun LLM.
 
 -- ===========================================================================
 -- A. iros — entité centrale
@@ -597,6 +601,24 @@ CREATE POLICY tenant_isolation_disclosure_mappings_delete ON disclosure_mappings
     current_setting('app.rls_bypass', true) = 'on'
     OR company_id = NULLIF(current_setting('app.current_company_id', true), '')::bigint
   );
+
+-- ===========================================================================
+-- ÉLARGISSEMENT — audit_eventtype_check (nouveau littéral 'materiality_decision')
+-- ===========================================================================
+-- Chaque décision de matérialité (materiality_decision_service.decide) est
+-- auditée via audit_service.log_event("materiality_decision", ...) — le
+-- littéral Python (AuditEventType) ne suffit pas seul, la table audit_events
+-- porte sa propre contrainte CHECK, déjà élargie deux fois par le passé
+-- (011 : événements 2FA ; 012 : auditor_invite/auditor_access) selon le même
+-- geste DROP + ADD sous le même nom, repris ici à l'identique. Ni 011 ni 012
+-- ne sont `requires_owner` pour ce geste sur cette même table (vérifié dans
+-- migration_manifest.py) — 040 ne l'est donc pas non plus pour cette raison.
+ALTER TABLE audit_events DROP CONSTRAINT IF EXISTS audit_eventtype_check;
+ALTER TABLE audit_events ADD CONSTRAINT audit_eventtype_check CHECK (event_type IN (
+    'ingest','upload','cache_clear','login','export','validation','error',
+    '2fa_enroll','2fa_success','2fa_fail','2fa_recovery',
+    'auditor_invite','auditor_access','materiality_decision'
+));
 
 -- ===========================================================================
 -- ACCÈS APPLICATIF — GRANT conditionnel (geste 027/028/030/031/033/034/037)

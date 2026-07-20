@@ -30,7 +30,7 @@ from services.intelligence import artifact_service, claim_link_service
 from services.iro import iro_service
 
 from ._iro_fixtures import IRO_CEILING, insert_iro
-from ._migration_fixtures import apply_upto, reset_public_schema
+from ._migration_fixtures import apply_ddl_inline, apply_upto, reset_public_schema
 
 _skip_no_db_url = pytest.mark.skipif(
     not os.environ.get("DATABASE_URL"), reason="DATABASE_URL absent — tests PostgreSQL skippés"
@@ -126,6 +126,7 @@ class TestMigration040AppliesAfter039:
     def test_migration_040_applies_cleanly_after_039(self):
         with get_db() as conn:
             reset_public_schema(conn)
+            apply_ddl_inline(conn)
             apply_upto(conn, "039")
             # Doit s'appliquer sans erreur par-dessus 039.
             apply_upto(conn, IRO_CEILING)
@@ -229,16 +230,31 @@ class TestIroTenantIsolation:
         with pytest.raises(iro_service.IroError, match="introuvable"):
             iro_service.get_iro(company_id=cid_b, iro_id=iro_id)
 
-    def test_raw_sql_rls_blocks_cross_tenant_select(self, two_companies_iro):
-        """Preuve RLS directe (hors défense applicative) : même une requête
-        SQL brute scopée par `app.current_company_id` ne voit pas la ligne
-        d'un autre tenant."""
+    def test_ci_superuser_connection_bypasses_rls_hence_defense_in_depth_is_mandatory(
+        self, two_companies_iro,
+    ):
+        """Documente EXPLICITEMENT, plutôt que de le supposer, la raison
+        d'être de la défense en profondeur applicative (contrats §7) : le
+        PostgreSQL de CI (job `migration-tests`) se connecte en superuser, qui
+        BYPASSE la RLS même avec FORCE posé — une requête SQL brute scopée
+        uniquement par `app.current_company_id` voit encore la ligne d'un
+        autre tenant. Seul un rôle NOSUPERUSER/NOBYPASSRLS testerait
+        l'enforcement RLS réel (motif `test_energy_rls_non_superuser.py`,
+        seul fichier du dépôt à le faire — hors périmètre ici, comme pour
+        tous les autres domaines CRMA/eau/nature/achats). La preuve
+        d'isolation RÉELLE de ce module passe donc par les tests
+        `iro_service.list_iros`/`get_iro` ci-dessus (prédicat `company_id =
+        %s` explicite), pas par une lecture SQL brute. La CONFIGURATION RLS
+        elle-même (ENABLE+FORCE+policy) reste vérifiée séparément par
+        `_probe_040` (`test_migration_probes.py`)."""
         cid_a, cid_b = two_companies_iro
         iro_id = insert_iro(cid_a, "IRO RLS direct")
         with get_db(company_id=cid_b) as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT * FROM iros WHERE id = %s", (iro_id,))
-                assert cur.fetchone() is None
+                # Sous superuser CI : la ligne EST visible malgré RLS FORCE —
+                # ce test échouerait, à raison, s'il l'assertion inverse.
+                assert cur.fetchone() is not None
 
 
 @_skip_no_db_url

@@ -672,7 +672,7 @@ def _probe_040(cur) -> bool:
     artefacts non ambigus portant les règles non négociables — jamais une
     sonde qui passerait sur une migration partiellement appliquée.
 
-    Trois artefacts choisis délibérément :
+    Quatre artefacts choisis délibérément :
       - le trigger `trg_materiality_decisions_guard` : c'est LUI qui rend la
         table append-only (aucune UPDATE/DELETE, motif
         `evidence_kernel_guard('frozen')` 028 / `site_water_screening_
@@ -683,6 +683,11 @@ def _probe_040(cur) -> bool:
         AVÉRÉ n'a pas de probabilité » (is_actual=true => likelihood NULL).
       - `financial_assessments_transmission_chain_check` : la chaîne de
         transmission ne peut jamais être vide — jamais un chiffre unique nu.
+      - `audit_eventtype_check` CONTIENT `'materiality_decision'` : le NOM de
+        cette contrainte est réutilisé depuis 011/012 (DROP + ADD) — son
+        existence seule ne distingue pas l'ancienne définition de la
+        nouvelle, même piège que `_constraint_definition_contains` documenté
+        pour `purchase_lines_mapping_status_check` (035).
     """
     tables = (
         "iros", "impact_assessments", "financial_assessments",
@@ -697,10 +702,12 @@ def _probe_040(cur) -> bool:
         return False
     if not _trigger_exists(cur, "materiality_decisions", "trg_materiality_decisions_guard"):
         return False
-    return (
+    if not (
         _constraint_exists(cur, "impact_assessments", "impact_assessments_likelihood_actual_check")
         and _constraint_exists(cur, "financial_assessments", "financial_assessments_transmission_chain_check")
-    )
+    ):
+        return False
+    return _constraint_definition_contains(cur, "audit_events", "audit_eventtype_check", "materiality_decision")
 
 
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {

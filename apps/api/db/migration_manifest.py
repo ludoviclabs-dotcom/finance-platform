@@ -265,13 +265,16 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "WAVE_4_INTERFACE_CONTRACTS.md §13 obsolète : 038/039 pris par "
             "PR-09 (fondation biodiversité + Assess/Prepare) — PR-10 prend "
             "donc 040, après 039 (renumérotation anticipée par le plan §14). "
-            "RLS gen-2 FORCE, GRANT conditionnel. Ne crée que des tables "
-            "neuves (aucun ALTER d'une table existante) — pas de privilège "
-            "propriétaire requis, comme 028/030/031/033/034/037/038/039. "
-            "Aucun calcul exécuté par la migration, aucune donnée métier "
-            "migrée, aucune source externe ingérée, aucun LLM, aucune "
-            "décision de matérialité automatique, aucun score unique fusionné "
-            "impact+financier."
+            "RLS gen-2 FORCE, GRANT conditionnel. Six tables neuves + UN "
+            "élargissement de contrainte sur une table existante "
+            "(audit_eventtype_check, DROP+ADD sous le même nom pour admettre "
+            "'materiality_decision' — même geste que 011/012/035, ni l'un ni "
+            "l'autre requires_owner pour ce même geste sur cette même table). "
+            "Pas de privilège propriétaire requis, comme 028/030/031/033/034/"
+            "037/038/039. Aucun calcul exécuté par la migration, aucune "
+            "donnée métier migrée, aucune source externe ingérée, aucun LLM, "
+            "aucune décision de matérialité automatique, aucun score unique "
+            "fusionné impact+financier."
         ),
     ),
 }

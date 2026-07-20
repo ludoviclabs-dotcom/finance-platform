@@ -94,6 +94,22 @@ partagé), RLS gen-2 complète (`ENABLE`+`FORCE`, policies `SELECT`/`INSERT`/
 6. **`disclosure_mappings`** — `esrs_reference` (TEXT libre), `status`
    (draft/mapped/disclosed), `notes`. Table de correspondance pure.
 
+**+ un élargissement, sur une table existante.** `audit_eventtype_check`
+(`audit_events`) est élargie (`DROP CONSTRAINT IF EXISTS` + `ADD CONSTRAINT`
+sous le même nom) pour admettre le nouveau littéral `'materiality_decision'`
+— même geste déjà appliqué par 011 (événements 2FA) et 012
+(`auditor_invite`/`auditor_access`). Découvert et corrigé en CI (round-trip,
+§15) : le premier passage n'avait mis à jour QUE le `Literal` Python
+`AuditEventType`, pas la contrainte SQL réelle — `audit_service.log_event`
+échouait silencieusement en fallback `/tmp` (`new row … violates check
+constraint`). Ni 011 ni 012 ne sont `requires_owner` pour ce même geste sur
+cette même table (vérifié dans `migration_manifest.py`) — 040 ne l'est donc
+pas non plus. `_probe_040` vérifie désormais aussi, via
+`_constraint_definition_contains`, que la définition réelle de
+`audit_eventtype_check` contient `'materiality_decision'` (même garde-fou
+que la sonde 035 pour `purchase_lines_mapping_status_check`, nom de
+contrainte réutilisé donc l'existence seule ne suffit pas).
+
 **`iro_evidence_links` volontairement absente** (§5/§14 du plan) — preuve à
 la §5 ci-dessous.
 
@@ -285,3 +301,45 @@ fichiers touchés par cette PR), `npx vitest run` (172 tests, 0 échec).
    `candidate` ; `POST /iro/iros/{id}/decide` avec JWT analyst (non admin) →
    403 ; avec JWT admin → décision enregistrée, `decided_by` renseigné.
 4. Observation 24-48h, consigner `MIGRATIONS_RUNBOOK.md` §9.
+
+## 15. Round-trip CI — 6 échecs réels, tous corrigés
+
+Premier passage `migration-tests` : **6 failed, 740 passed**. Aucun échec
+« flaky » — les six étaient réels, corrigés par un commit de suivi focalisé :
+
+1. **`test_migration_040_applies_cleanly_after_039`** —
+   `psycopg2.errors.UndefinedTable: relation "companies" does not exist`.
+   Cause : `reset_public_schema` puis `apply_upto(conn, "039")` directement,
+   sans `apply_ddl_inline(conn)` avant (qui crée `companies` et le reste du
+   socle « 000 »). Corrigé par l'ajout de l'appel manquant — motif exact
+   `build_iro_db`/`_water_fixtures.py`/`_nature_fixtures.py`, que ce test
+   avait par erreur réimplémenté à la main sans le répliquer entièrement.
+2. **`TestIroTenantIsolation::test_raw_sql_rls_blocks_cross_tenant_select`**
+   et son miroir dans `test_iro_actions.py` — la ligne d'un autre tenant
+   ÉTAIT visible en SQL brut. Cause : exactement le piège documenté dans la
+   mission (« CI Postgres se connecte en superuser, qui bypasse la RLS
+   entièrement ») — un piège que j'avais moi-même déjà noté dans le
+   docstring de la classe sans en tirer la conséquence dans le test lui-même.
+   Corrigé en RETOURNANT le test : il affirme désormais explicitement que la
+   ligne EST visible (documentant le bypass comme un fait prouvé, pas une
+   hypothèse), avec un renvoi vers les tests de défense en profondeur
+   (`iro_service.list_iros`/`get_iro`, `iro_actions_service.list_actions`)
+   qui, eux, prouvent l'isolation réelle sous cette contrainte d'environnement.
+3. **`TestMaterialityDecisionAudit::test_decide_logs_an_audit_event`** —
+   `new row for relation "audit_events" violates check constraint
+   "audit_eventtype_check"`. Cause : le premier passage n'avait élargi que le
+   `Literal` Python `AuditEventType`, pas la contrainte SQL réelle sur
+   `audit_events`. Corrigé en ajoutant à la migration 040 le même geste DROP+
+   ADD CONSTRAINT déjà utilisé par 011/012 (détaillé §4/§7 ci-dessus), et en
+   renforçant `_probe_040` pour vérifier le contenu réel de la contrainte
+   (pas seulement son existence — son NOM est réutilisé).
+4. **`test_iro_actions.py::test_create_on_unknown_iro_raises`** et
+   **`test_tenant_a_cannot_create_action_on_tenant_b_iro`** — attendaient
+   `iro_actions_service.IroActionError`, mais `assert_iro_in_scope`
+   (`iro_service`) lève AVANT que le code du service appelant n'ait la main —
+   l'exception réelle est `iro_service.IroError`. Corrigé (le même piège avait
+   déjà été anticipé et évité dans `test_impact_assessments.py`/
+   `test_financial_assessments.py`, pas dans `test_iro_actions.py` — audité
+   ensuite dans tout le lot, aucune autre occurrence trouvée).
+
+Second passage CI : voir l'état final dans le rapport ci-dessous.

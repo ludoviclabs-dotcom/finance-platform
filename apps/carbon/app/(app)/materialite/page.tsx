@@ -7,8 +7,9 @@
    narratif ESRS. API : /materialite/presets · /positions · /score.
    ════════════════════════════════════════════════════════════════════════════ */
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, Loader2, RefreshCw, Search } from "lucide-react";
+import { AlertTriangle, ClipboardList, Loader2, RefreshCw, Search } from "lucide-react";
 
 import {
   type IssuePosition,
@@ -238,6 +239,18 @@ export default function MaterialitePage() {
             >
               <Search className="w-4 h-4" />
             </button>
+            {/* PR-10 : lien croisé vers le registre IRO détaillé — la matrice
+                2D reste l'outil de visualisation/tri, le registre IRO est la
+                couche granulaire et évidencée en-dessous. Pas une fusion de
+                pages. */}
+            <Link
+              href="/iro"
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[var(--cc-border)] text-xs font-medium text-[var(--cc-muted)] hover:text-[var(--cc-fg)] hover:bg-[var(--cc-surface-2)] transition-colors"
+              title="Registre IRO — impacts, risques et opportunités évidencés"
+            >
+              <ClipboardList className="w-4 h-4" />
+              Registre IRO
+            </Link>
             <EditModeButton on={editMode} onToggle={() => setEditMode((v) => !v)} />
             <SaveButton onSave={handleSave} saved={saved} disabled={saving || positions.length === 0} />
           </div>

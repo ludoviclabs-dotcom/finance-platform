@@ -28,6 +28,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { FeatureStatusBadge } from "@/components/ui/feature-status-badge";
+import { IroCandidateButton } from "@/components/iro/iro-candidate-button";
 import {
   ACTIVITY_LABEL,
   REVIEW_LABEL,
@@ -352,13 +353,26 @@ export default function WaterPage() {
                         </td>
                         <td className="py-2 pr-3">
                           {s.iro_signal ? (
-                            <span
-                              className="text-xs text-purple-600 dark:text-purple-400"
-                              title={s.iro_signal_rationale ?? undefined}
-                              data-testid="water-iro-flagged"
-                            >
-                              À examiner comme IRO
-                            </span>
+                            <div className="flex flex-col items-start gap-2">
+                              <span
+                                className="text-xs text-purple-600 dark:text-purple-400"
+                                title={s.iro_signal_rationale ?? undefined}
+                                data-testid="water-iro-flagged"
+                              >
+                                À examiner comme IRO
+                              </span>
+                              {/* PR-10 : promotion du signal en IRO candidat —
+                                  geste humain SÉPARÉ du signal lui-même, jamais
+                                  automatique (le signal ne crée aucune ligne
+                                  `iros`, voir screening_service.flag_for_iro). */}
+                              <IroCandidateButton
+                                originDomain="water"
+                                originReference={`site_water_screening:${s.id}`}
+                                suggestedTitle={`Stress hydrique — site #${s.site_id}`}
+                                suggestedTopicCode="WR-1"
+                                defaultIroType="risk"
+                              />
+                            </div>
                           ) : (
                             <button
                               type="button"

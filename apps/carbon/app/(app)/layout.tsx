@@ -39,6 +39,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/securite":    { title: "Sécurité",         subtitle: "Double authentification (2FA)" },
   "/crma":        { title: "Matières critiques", subtitle: "CRMA · aimants permanents · Article 24" },
   "/nature":      { title: "Nature & biodiversité", subtitle: "TNFD LEAP · risques & opportunités" },
+  "/iro":         { title: "Registre IRO", subtitle: "Impacts, risques, opportunités · double matérialité" },
 };
 
 function PageSkeleton() {

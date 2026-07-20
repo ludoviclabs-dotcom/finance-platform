@@ -448,6 +448,19 @@
       "tag": "Biodiversité",
       "href": "/nature",
       "preuve": "apps/api/services/calculations/nature_scoring.py"
+    },
+    {
+      "id": "iro-double-materialite",
+      "label": "Registre IRO — impacts, risques et opportunités évidencés",
+      "description": "Entité IRO granulaire et individuellement évidencée, reliée aux signaux des autres modules (matières critiques, eau, nature, énergie) sans jamais transformer un signal en décision automatiquement. Deux dimensions d'évaluation strictement séparées — matérialité d'impact (échelle, étendue, irrémédiabilité, probabilité) et matérialité financière (probabilité, ampleur, chaîne de transmission documentée) — jamais un score combiné. Décision de matérialité toujours humaine, motivée, append-only (une redécision crée une nouvelle ligne, l'historique reste visible). La matrice 2D de double matérialité existante reste l'outil de visualisation et de tri ; ce registre en est la couche détaillée.",
+      "statut": "beta",
+      "normes": [
+        "ESRS 1",
+        "ESRS 2"
+      ],
+      "tag": "Double matérialité",
+      "href": "/iro",
+      "preuve": "apps/api/services/iro/materiality_decision_service.py"
     }
   ],
   "esrs": [

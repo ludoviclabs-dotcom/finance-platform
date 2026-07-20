@@ -3,9 +3,15 @@ _energy_fixtures.py — état PostgreSQL partagé pour les tests Énergie & Scop
 (PR-06A). Pas un fichier de test (pas de préfixe `test_`, jamais collecté) —
 même convention que `_migration_fixtures.py` / `_intelligence_fixtures.py`.
 
-Applique le DDL historique + les fichiers `.sql` RÉELS jusqu'à 031 inclus (donc
-001-028 + 031 ; 029/030 appartiennent à des branches sœurs non mergées). Crée
-deux companies dédiées (`en-test-a/b`) + un site par tenant, avec cleanup en
+Applique le DDL historique + les fichiers `.sql` RÉELS jusqu'à 035 inclus
+(001-035 : le noyau Evidence Kernel 028, l'exposition achats 029/030, la
+fondation énergie 031, le moteur Scope 3 achats 032, le moteur de calcul
+Scope 2 dual 033, le pack CRMA 034 et la stabilisation Wave 3 035 — toutes
+mergées avant Wave 3, `apply_upto` n'exige aucune contiguïté). La borne haute
+DOIT suivre 035 : `energy_allocation_guard()` y est recréée avec un verrou
+`FOR UPDATE` (correctif de concurrence) — un module de test qui s'arrêterait à
+031 exercerait l'ANCIENNE fonction (TOCTOU), pas le correctif. Crée deux
+companies dédiées (`en-test-a/b`) + un site par tenant, avec cleanup en
 tear-down. Idempotent (`CREATE TABLE IF NOT EXISTS`) : sûr à rappeler même si un
 autre module de test a déjà construit le schéma sur le même conteneur jetable.
 """
@@ -30,10 +36,10 @@ ENERGY_TABLES = (
 
 
 def build_energy_db(conn) -> None:
-    """DDL historique + 001-031 (inclut le noyau Evidence Kernel 028 et la
-    fondation énergie 031)."""
+    """DDL historique + 001-035 (inclut le noyau Evidence Kernel 028, la
+    fondation énergie 031 et le correctif de concurrence Wave 3 035)."""
     apply_ddl_inline(conn)
-    apply_upto(conn, "031")
+    apply_upto(conn, "035")
 
 
 @pytest.fixture(scope="module")

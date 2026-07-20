@@ -28,7 +28,11 @@ from models.intelligence import DataStatus
 # ── Vocabulaires (miroir des CHECK de la migration 030) ──────────────────────
 GeocodeReviewStatus = Literal["pending", "accepted", "flagged"]
 PurchaseImportStatus = Literal["pending", "validated", "emitted", "rejected"]
-MappingStatus = Literal["unmapped", "mapped", "needs_review", "resolved"]
+# 'ambiguous' (Wave 3, migration 035) : plusieurs supplier_products candidats
+# pour le même product_code dans le périmètre pertinent — jamais résolu par
+# ordre/premier résultat (cf. purchase_import_service._auto_map). Distinct
+# d'`unmapped` (aucun candidat) : la raison vit dans PurchaseLineResponse.mapping_note.
+MappingStatus = Literal["unmapped", "mapped", "needs_review", "resolved", "ambiguous"]
 BomStatus = Literal["draft", "active", "superseded", "archived"]
 MappingMethod = Literal["manual", "ai_draft", "rule_based", "imported"]
 ReviewStatus = Literal["pending", "accepted", "flagged"]
@@ -157,6 +161,10 @@ class PurchaseLineResponse(BaseModel):
     origin_country: str | None
     raw_row_json: dict[str, Any]
     mapping_status: MappingStatus
+    # Raison lisible + candidats quand mapping_status='ambiguous' (Wave 3) —
+    # même principe que LineResultResponse.fallback_reason : jamais d'ambiguïté
+    # silencieuse. NULL pour les autres statuts.
+    mapping_note: str | None = None
     created_at: datetime
     updated_at: datetime
 

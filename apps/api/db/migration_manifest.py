@@ -153,6 +153,24 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "droit de licence."
         ),
     ),
+    "035": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Wave 3 stabilisation — intégrité achats & concurrence énergie : "
+            "deux correctifs sur des tables déjà créées (030, 031), aucune table "
+            "neuve. (A) purchase_lines_mapping_status_check élargie pour "
+            "accepter 'ambiguous' + colonne mapping_note (raison obligatoire, "
+            "CHECK dédiée) — _auto_map (PR-05A) ne résout plus un product_code "
+            "partagé par plusieurs fournisseurs par premier résultat SQL sans "
+            "ORDER BY. (B) energy_allocation_guard() (CREATE OR REPLACE, même "
+            "nom que 031) verrouille désormais la ligne contractual_instruments "
+            "via SELECT ... FOR UPDATE avant de sommer les allocations "
+            "existantes — ferme le TOCTOU documenté au §6.4 de "
+            "ENERGY_RLS_NON_SUPERUSER_HARDENING.md. Pas de privilège "
+            "propriétaire requis, comme 028/030/031/032/033/034."
+        ),
+    ),
 }
 
 

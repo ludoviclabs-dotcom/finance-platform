@@ -14,12 +14,12 @@ import os
 
 import pytest
 
-from db.database import db_available
+from db.database import db_available, get_db
 from models.procurement import LineResolution, SupplierProductCreate
 from services.procurement import purchase_import_service as pis
 from services.procurement import supplier_sites_service
 
-from ._procurement_fixtures import insert_supplier
+from ._procurement_fixtures import insert_supplier, insert_supplier_product
 
 _skip_no_db_url = pytest.mark.skipif(
     not os.environ.get("DATABASE_URL"), reason="DATABASE_URL absent — tests PostgreSQL skippés"
@@ -182,3 +182,129 @@ class TestPurchaseImportDb:
         assert imp_a.already_imported is False
         assert imp_b.already_imported is False
         assert imp_a.id != imp_b.id
+
+
+# ── Wave 3 : _auto_map — ambiguïté jamais résolue par ordre/premier résultat ─
+#
+# Régression du défaut documenté par le commit d857eda (isolation de tests
+# contournant le symptôme sans corriger la cause) : `_auto_map` résolvait un
+# product_code par `fetchone()` SANS `ORDER BY`, alors que l'unicité de
+# `supplier_products` porte sur (company_id, supplier_id, product_code) — PAS
+# (company_id, product_code). Plusieurs fournisseurs du MÊME tenant peuvent
+# donc légitimement partager un code produit ; l'ancien code attribuait alors
+# la ligne au fournisseur arbitrairement renvoyé en premier par PostgreSQL.
+
+@_skip_no_db_url
+@_skip_no_psycopg2
+class TestAutoMapAmbiguity:
+    def test_ambiguous_product_code_same_tenant_not_silently_attributed(self, two_companies_proc):
+        """Deux fournisseurs du MÊME tenant partagent un product_code : la ligne
+        ne doit être rattachée à AUCUN des deux (ni le premier, ni le second),
+        mais marquée `ambiguous` avec les deux candidats + la raison en clair."""
+        cid_a, _ = two_companies_proc
+        sup1 = insert_supplier(cid_a, "Ambigu Fournisseur Un")
+        sup2 = insert_supplier(cid_a, "Ambigu Fournisseur Deux")
+        prod1 = insert_supplier_product(cid_a, sup1, "AMBIG-CODE-1")
+        prod2 = insert_supplier_product(cid_a, sup2, "AMBIG-CODE-1")
+
+        csv = (
+            "supplier_code,product_code,date,quantity,unit,amount,currency,category,country\n"
+            "UNKNOWN-SUP,AMBIG-CODE-1,2026-01-15,10,kg,1500,EUR,C1,FR\n"
+        )
+        imp = pis.create_import(company_id=cid_a, filename="ambig-same-tenant.csv", content=csv.encode("utf-8"))
+
+        ambiguous, total = pis.list_lines(company_id=cid_a, import_id=imp.id, mapping_status="ambiguous")
+        assert total == 1
+        line = ambiguous[0]
+        assert line.product_id is None, "aucune attribution silencieuse au premier candidat"
+        assert line.supplier_id is None, "aucune attribution silencieuse au second candidat"
+        assert line.mapping_note is not None and line.mapping_note.strip() != ""
+        assert str(prod1) in line.mapping_note and str(prod2) in line.mapping_note
+        # Ni 'mapped' ni le simple 'unmapped' pré-Wave-3 : un statut dédié,
+        # distinct, qui dit qu'il y avait bien des candidats (pas zéro).
+        assert line.mapping_status == "ambiguous"
+        _, unmapped_total = pis.list_lines(company_id=cid_a, import_id=imp.id, mapping_status="unmapped")
+        assert unmapped_total == 0
+
+    def test_explicit_supplier_scopes_resolution_despite_tenant_wide_ambiguity(self, two_companies_proc):
+        """Un `supplier_id` DÉJÀ résolu sur la ligne fait autorité : le code est
+        cherché dans le catalogue de CE fournisseur uniquement. Un product_code
+        ambigu tenant-wide (deux fournisseurs le partagent) doit quand même
+        résoudre proprement dès qu'un périmètre fournisseur explicite le rend
+        unique — l'ambiguïté tenant-wide ne doit jamais contaminer une
+        résolution par ailleurs univoque dans le périmètre explicite."""
+        cid_a, _ = two_companies_proc
+        sup1 = insert_supplier(cid_a, "Explicite Fournisseur Un")
+        sup2 = insert_supplier(cid_a, "Explicite Fournisseur Deux")
+        prod1 = insert_supplier_product(cid_a, sup1, "SHARED-EXPLICIT")
+        insert_supplier_product(cid_a, sup2, "SHARED-EXPLICIT")  # même code -> ambigu tenant-wide
+
+        line = {"product_external_code": "SHARED-EXPLICIT", "supplier_id": sup1}
+        with get_db(company_id=cid_a) as conn:
+            with conn.cursor() as cur:
+                product_id, supplier_id, mapping_status, mapping_note = pis._auto_map(cur, cid_a, line)
+
+        assert mapping_status == "mapped"
+        assert product_id == prod1
+        assert supplier_id == sup1
+        assert mapping_note is None
+
+    def test_cross_tenant_shared_product_code_resolves_independently(self, two_companies_proc):
+        """Un product_code partagé par des fournisseurs de DEUX TENANTS
+        DIFFÉRENTS ne fuit jamais : chaque tenant ne voit que ses propres
+        candidats (`_SCOPE = company_id`). Preuve explicite plutôt que supposée
+        — chaque tenant résout proprement 'mapped' sur SON fournisseur, sans
+        jamais voir ni l'autre tenant ni une ambiguïté fantôme."""
+        cid_a, cid_b = two_companies_proc
+        sup_a = insert_supplier(cid_a, "Tenant A Fournisseur Croisé")
+        sup_b = insert_supplier(cid_b, "Tenant B Fournisseur Croisé")
+        insert_supplier_product(cid_a, sup_a, "CROSS-TENANT-CODE")
+        insert_supplier_product(cid_b, sup_b, "CROSS-TENANT-CODE")
+
+        csv = (
+            "supplier_code,product_code,date,quantity,unit,amount,currency,category,country\n"
+            "X,CROSS-TENANT-CODE,2026-01-15,10,kg,1500,EUR,C1,FR\n"
+        )
+        imp_a = pis.create_import(company_id=cid_a, filename="cross-a.csv", content=csv.encode("utf-8"))
+        imp_b = pis.create_import(company_id=cid_b, filename="cross-b.csv", content=csv.encode("utf-8"))
+
+        mapped_a, total_a = pis.list_lines(company_id=cid_a, import_id=imp_a.id, mapping_status="mapped")
+        mapped_b, total_b = pis.list_lines(company_id=cid_b, import_id=imp_b.id, mapping_status="mapped")
+        assert total_a == 1 and total_b == 1
+        assert mapped_a[0].supplier_id == sup_a
+        assert mapped_b[0].supplier_id == sup_b
+        _, ambiguous_a = pis.list_lines(company_id=cid_a, import_id=imp_a.id, mapping_status="ambiguous")
+        assert ambiguous_a == 0, "le partage du code par un AUTRE tenant ne doit jamais créer d'ambiguïté locale"
+
+    def test_unambiguous_single_supplier_match_unchanged(self, two_companies_proc):
+        """Non-régression explicite : un seul fournisseur, un seul candidat ->
+        toujours 'mapped', exactement comme avant Wave 3 (même comportement,
+        pas seulement 'pas d'exception')."""
+        cid_a, _ = two_companies_proc
+        sup = insert_supplier(cid_a, "Seul Fournisseur SA")
+        prod = insert_supplier_product(cid_a, sup, "SOLO-CODE")
+
+        line = {"product_external_code": "SOLO-CODE"}
+        with get_db(company_id=cid_a) as conn:
+            with conn.cursor() as cur:
+                product_id, supplier_id, mapping_status, mapping_note = pis._auto_map(cur, cid_a, line)
+
+        assert (product_id, supplier_id, mapping_status, mapping_note) == (prod, sup, "mapped", None)
+
+    def test_resolve_mappings_rejects_manual_ambiguous_status(self, two_companies_proc):
+        """'ambiguous' est un statut système (raison obligatoire en base) — le
+        paramétrer à la main via la résolution manuelle est refusé explicitement
+        plutôt que de lever une IntegrityError SQL brute sur la contrainte CHECK."""
+        cid_a, _ = two_companies_proc
+        imp = self._import(cid_a, "reject-manual-ambiguous")
+        queue, total = pis.list_resolution_queue(company_id=cid_a, import_id=imp.id)
+        assert total >= 1
+        target = queue[0]
+        with pytest.raises(pis.PurchaseImportError, match="ambiguous"):
+            pis.resolve_mappings(
+                company_id=cid_a, import_id=imp.id,
+                resolutions=[LineResolution(line_id=target.id, mapping_status="ambiguous")],
+            )
+
+    def _import(self, cid: int, tag: str, filename: str = "achats.csv"):
+        return pis.create_import(company_id=cid, filename=filename, content=_csv(tag).encode("utf-8"))

@@ -3,12 +3,16 @@ _procurement_fixtures.py — état PostgreSQL partagé pour les tests d'expositi
 achats/fournisseurs (PR-05A). Pas un fichier de test (pas de préfixe `test_`,
 jamais collecté par pytest) — même convention que `_intelligence_fixtures.py`.
 
-Applique le DDL historique + les fichiers `.sql` RÉELS jusqu'à 032 inclus
-(001-032 : vue de fraîcheur 029 de PR-04, exposition achats 030 de PR-05A,
-fondation énergie 031 de PR-06A, moteur Scope 3 achats 032 de PR-05B — toutes
-mergées ou portées par cette branche). Idempotent (`CREATE TABLE IF NOT EXISTS`
-partout) : sûr à rappeler même si un autre module de test a déjà construit le
-schéma sur le même conteneur `postgres:16` jetable.
+Applique le DDL historique + les fichiers `.sql` RÉELS jusqu'à 035 inclus
+(001-035 : vue de fraîcheur 029 de PR-04, exposition achats 030 de PR-05A,
+fondation énergie 031 de PR-06A, moteur Scope 3 achats 032 de PR-05B, moteur de
+calcul Scope 2 dual 033 de PR-06B, pack CRMA 034 de PR-07, stabilisation
+Wave 3 035 — toutes mergées ou portées par cette branche). La borne haute DOIT
+suivre 035 : `purchase_lines.mapping_status_check`/`mapping_note` y sont
+élargis (statut `ambiguous`) — un module de test qui s'arrêterait à 032 ne
+verrait pas ces objets. Idempotent (`CREATE TABLE IF NOT EXISTS` partout) : sûr
+à rappeler même si un autre module de test a déjà construit le schéma sur le
+même conteneur `postgres:16` jetable.
 """
 
 from __future__ import annotations
@@ -52,10 +56,11 @@ PROC_SIDE_EFFECT_TABLES = (
 
 
 def build_procurement_db(conn) -> None:
-    """DDL historique + 001-032 (Evidence Kernel 028, exposition achats 030,
-    énergie 031, moteur Scope 3 achats & hotspots 032)."""
+    """DDL historique + 001-035 (Evidence Kernel 028, exposition achats 030,
+    énergie 031, moteur Scope 3 achats & hotspots 032, stabilisation Wave 3 035
+    — statut `ambiguous` + `mapping_note` sur `purchase_lines`)."""
     apply_ddl_inline(conn)
-    apply_upto(conn, "032")
+    apply_upto(conn, "035")
 
 
 @pytest.fixture(scope="module")

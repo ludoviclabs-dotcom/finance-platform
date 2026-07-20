@@ -454,6 +454,40 @@ def _probe_033(cur) -> bool:
     )
 
 
+def _probe_034(cur) -> bool:
+    """CRMA / exposition matières (PR-07) : 11 tables + RLS FORCE + policy
+    scopée sur chacune, ET le vocabulaire des 8 étapes de la chaîne de valeur.
+
+    On sonde les étapes en plus des tables : `processing_stages` peuplée est ce
+    qui rend les observations comparables entre elles. Une base où les tables
+    existent mais où le vocabulaire d'étapes est absent produirait des chaînes
+    de valeur vides sans erreur — elle est incomplète et doit rester détectée
+    comme telle (même geste que le trigger sondé par _probe_031)."""
+    tables = (
+        "material_groups", "material_group_members", "processing_stages",
+        "material_stage_observations", "material_market_observations", "substitutes",
+        "recycling_routes", "trade_or_regulatory_events", "company_material_exposures",
+        "crma_article24_assessments", "mitigation_actions",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    # Les 8 étapes globales du MVP aimants permanents, extraction -> produit.
+    # La policy SELECT autorise `company_id IS NULL` : lisible sans bypass.
+    cur.execute(
+        "SELECT COUNT(*) AS n FROM processing_stages "
+        "WHERE company_id IS NULL AND code = ANY(%s)",
+        (["extraction", "separation", "refining", "metal_alloy",
+          "powder", "magnet", "component", "product"],),
+    )
+    row = cur.fetchone()
+    return bool(row) and int(row["n"]) == 8
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -490,6 +524,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "031": _probe_031,
     "032": _probe_032,
     "033": _probe_033,
+    "034": _probe_034,
 }
 
 

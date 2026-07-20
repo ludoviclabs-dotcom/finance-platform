@@ -119,7 +119,7 @@ jobs:
       # des tables énergie et de la fonction trigger, puis rejoue le parcours en
       # SET LOCAL ROLE. C'est le seul test qui exerce réellement FORCE ROW LEVEL
       # SECURITY (cf. docs/carbonco/refonte/ENERGY_RLS_NON_SUPERUSER_HARDENING.md).
-      - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin + Procurement + Énergie + RLS non-superuser + Scope 3 + Moteur Scope 2 (PR-02B / PR-03 / PR-04 / PR-05A / PR-06A / PR-05B / PR-06B)
+      - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin + Procurement + Énergie + RLS non-superuser + Scope 3 + Moteur Scope 2 + CRMA (PR-02B / PR-03 / PR-04 / PR-05A / PR-06A / PR-05B / PR-06B / PR-07)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: >-
@@ -146,6 +146,9 @@ jobs:
           tests/test_procurement_scoring.py
           tests/test_procurement_evidence_pack.py
           tests/test_scope2_runs.py
+          tests/test_crma_reference.py
+          tests/test_crma_exposure.py
+          tests/test_crma_article24.py
 
   security-audit:
     runs-on: ubuntu-latest

@@ -26,7 +26,21 @@ from main import app  # noqa: E402
 # nommé comme un nom importé est lu à tort comme une redéfinition, alors que
 # pytest l'interprète comme une injection de fixture. Une fixture disponible via
 # conftest.py n'a besoin d'aucun import explicite côté fichier de test, donc
-# aucun nom à "redéfinir". Énergie & Scope 2 = PR-06A ; Evidence Kernel = PR-03.
+# aucun nom à "redéfinir".
+#
+# CRMA = PR-07 ; Énergie & Scope 2 = PR-06A ; Evidence Kernel = PR-03 ;
+# exposition achats/fournisseurs = PR-05A. Ordre alphabétique imposé par la
+# règle isort du job `validate` (`ruff check . --select=E,F,I`) — les blocs
+# séparés par des commentaires ne forment qu'UN seul bloc trié pour isort.
+#
+# Un module de fixtures absent d'ici n'est PAS résolu par pytest, et le défaut
+# reste invisible en local : sans DATABASE_URL, les tests DB-gated sont skippés
+# avant toute résolution de fixture. Seul le job CI `migration-tests`, qui
+# dispose d'un vrai PostgreSQL, le révèle.
+from ._crma_fixtures import (  # noqa: E402,F401
+    crma_schema,
+    two_companies_crma,
+)
 from ._energy_fixtures import (  # noqa: E402,F401
     energy_companies,
     energy_schema,
@@ -35,9 +49,6 @@ from ._intelligence_fixtures import (  # noqa: E402,F401
     evidence_kernel_schema,
     two_companies,
 )
-
-# Exposition achats/fournisseurs (PR-05A) : mêmes raisons que ci-dessus (fixtures
-# partagées via conftest pour éviter le faux positif pyflakes F811).
 from ._procurement_fixtures import (  # noqa: E402,F401
     procurement_schema,
     two_companies_proc,

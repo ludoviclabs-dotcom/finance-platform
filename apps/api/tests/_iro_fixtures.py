@@ -92,6 +92,14 @@ def two_companies_iro(iro_schema):
             cur.execute("SET session_replication_role = replica")
             for table in (*IRO_TABLES, *EK_TABLES):
                 cur.execute(f"DELETE FROM {table} WHERE company_id = ANY(%s)", (ids,))
+            # audit_events : nettoyer les lignes 'materiality_decision' de ce
+            # module AVANT que le module DB-gated suivant ne rejoue
+            # apply_upto("040") — le rejeu réapplique 011/012 dans l'ordre
+            # AVANT 040, donc réduit temporairement audit_eventtype_check à
+            # sa définition étroite pré-040 ; une ligne 'materiality_decision'
+            # encore présente à ce moment ferait échouer ce DROP+ADD
+            # (CheckViolation), découvert en CI (round-trip, traçabilité §15).
+            cur.execute("DELETE FROM audit_events WHERE company_id = ANY(%s)", (ids,))
             cur.execute("SET session_replication_role = origin")
             cur.execute("DELETE FROM companies WHERE id = ANY(%s)", (ids,))
 

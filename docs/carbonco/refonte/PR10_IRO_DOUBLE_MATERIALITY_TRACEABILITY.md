@@ -342,4 +342,38 @@ Premier passage `migration-tests` : **6 failed, 740 passed**. Aucun échec
    `test_financial_assessments.py`, pas dans `test_iro_actions.py` — audité
    ensuite dans tout le lot, aucune autre occurrence trouvée).
 
-Second passage CI : voir l'état final dans le rapport ci-dessous.
+Second passage CI : **738 passed, 8 errors** (setup errors, pas des échecs
+d'assertion) — un SEPTIÈME problème réel, nouveau, révélé seulement par le
+premier correctif :
+
+7. **`ERROR at setup of Test*` (8×) dans `test_iro_actions.py`** —
+   `psycopg2.errors.CheckViolation: check constraint "audit_eventtype_check"
+   … is violated by some row`, cette fois DANS la fixture `iro_schema`
+   elle-même (`build_iro_db` → `apply_upto(conn, "040")`). Cause, non
+   évidente : `apply_upto` REJOUE TOUS les fichiers 001→040 dans l'ordre à
+   CHAQUE appel (aucun `reset_public_schema` entre modules de test DB-gated
+   — seuls les modules `*_schema_not_ready.py` le font). Le module
+   `test_materiality_decisions.py` (qui s'exécute juste avant dans l'ordre
+   déclaré de `api.yml`) avait écrit une ligne réelle `event_type=
+   'materiality_decision'` dans `audit_events`. Quand `test_iro_actions.py`
+   rejoue ensuite `apply_upto("040")`, la boucle traverse d'ABORD 011.sql
+   (qui refait `DROP CONSTRAINT` + `ADD CONSTRAINT` avec la définition
+   ÉTROITE d'origine, sans `materiality_decision` ni même `auditor_invite`/
+   `auditor_access`) AVANT d'atteindre 040.sql qui l'élargit à nouveau — la
+   ligne laissée par le module précédent viole donc temporairement la
+   définition étroite rejouée par 011. Aucune migration antérieure (011/012)
+   n'avait jamais révélé ce risque car aucun test DB-gated n'écrivait
+   réellement `auditor_invite`/`auditor_access` dans la vraie table Postgres
+   avant d'expirer son module (les tests auditeur DB-gated, s'ils existent,
+   tournent dans le job `tests` en mode `/tmp`, jamais contre un vrai
+   Postgres) — PR-10 est la PREMIÈRE PR dont un test DB-gated écrit
+   réellement un littéral audit nouvellement ajouté puis laisse un AUTRE
+   module rejouer la chaîne de migrations par-dessus. Corrigé en ajoutant le
+   nettoyage de `audit_events` (scopé `company_id = ANY(ids)`) au tear-down
+   de `two_companies_iro` (`_iro_fixtures.py`) — la ligne ne survit plus à la
+   fin de SON module, donc n'est plus là pour violer un rejeu étroit
+   ultérieur. Aucune migration frozen (011/012) n'a été modifiée — elles
+   restent des instantanés immuables, conformément au principe documenté
+   dans `migration_manifest.py`.
+
+Troisième passage CI : voir l'état final dans le rapport ci-dessous.

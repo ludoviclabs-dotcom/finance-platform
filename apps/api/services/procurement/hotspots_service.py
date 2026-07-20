@@ -65,19 +65,27 @@ def _assert_run_in_scope(cur, company_id: int, run_id: int) -> None:
         raise HotspotError(f"Run '{run_id}' introuvable.")
 
 
+# Clé du groupe « rattachement inconnu ». Une ligne d'achat non mappée n'a ni
+# fournisseur ni produit : elle DOIT quand même apparaître au classement, avec
+# sa dépense et ses lignes non résolues. La regrouper sous une clé stable plutôt
+# que de la laisser à NULL est ce qui la rend visible — un poste inconnu qui
+# disparaîtrait du classement serait exactement le trou silencieux que cette PR
+# s'interdit. Le libellé dit explicitement qu'il n'y a personne à interroger.
+UNKNOWN_KEY = "inconnu"
+
 # Expression de regroupement par dimension. Table de correspondance FERMÉE :
 # `hotspot_type` vient d'un Literal Pydantic, jamais d'une chaîne libre, donc
 # aucune interpolation de valeur utilisateur dans le SQL.
 _GROUPING: dict[str, tuple[str, str, str]] = {
     # type: (expression de clé, expression de libellé, jointure supplémentaire)
     "supplier": (
-        "r.supplier_id::text",
-        "COALESCE(s.name, 'Fournisseur inconnu')",
+        f"COALESCE(r.supplier_id::text, '{UNKNOWN_KEY}')",
+        "COALESCE(s.name, 'Fournisseur non rattaché')",
         "LEFT JOIN suppliers s ON s.id = r.supplier_id AND s.company_id = r.company_id",
     ),
     "supplier_product": (
-        "r.supplier_product_id::text",
-        "COALESCE(sp.product_name, sp.product_code, 'Produit inconnu')",
+        f"COALESCE(r.supplier_product_id::text, '{UNKNOWN_KEY}')",
+        "COALESCE(sp.product_name, sp.product_code, 'Produit non rattaché')",
         "LEFT JOIN supplier_products sp ON sp.id = r.supplier_product_id "
         "AND sp.company_id = r.company_id",
     ),

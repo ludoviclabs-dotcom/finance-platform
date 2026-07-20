@@ -76,15 +76,26 @@ CREATE TABLE IF NOT EXISTS procurement_calculation_runs (
     ),
     CONSTRAINT procurement_runs_coverage_range_check CHECK (
         coverage_pct IS NULL OR (coverage_pct >= 0 AND coverage_pct <= 100)
-    ),
-    -- Idempotence / reproductibilité : mêmes entrées + même méthodologie
-    -- versionnée = un seul run pour ce tenant.
-    CONSTRAINT procurement_runs_fingerprint_uniq UNIQUE (company_id, input_fingerprint)
+    )
 );
 
 CREATE INDEX IF NOT EXISTS idx_procurement_runs_company ON procurement_calculation_runs(company_id);
 CREATE INDEX IF NOT EXISTS idx_procurement_runs_import ON procurement_calculation_runs(import_id);
 CREATE INDEX IF NOT EXISTS idx_procurement_runs_status ON procurement_calculation_runs(status);
+
+-- Idempotence / reproductibilité : au plus UN run ACTIF par (tenant, empreinte
+-- d'entrée). Index unique PARTIEL, et non une contrainte UNIQUE simple, parce
+-- que deux exigences doivent tenir ENSEMBLE :
+--   * recalculer sur des entrées identiques ne crée pas un second run — le run
+--     actif existant est rendu tel quel (idempotence) ;
+--   * un recalcul FORCÉ produit un nouveau run tout en CONSERVANT le précédent,
+--     marqué `superseded`, pour que l'historique reste auditable.
+-- Une contrainte UNIQUE totale rendait la seconde impossible : le run archivé
+-- occupait la clé et bloquait son remplaçant. Exclure les lignes `superseded`
+-- réconcilie les deux garanties.
+CREATE UNIQUE INDEX IF NOT EXISTS procurement_runs_fingerprint_active_uniq
+    ON procurement_calculation_runs (company_id, input_fingerprint)
+    WHERE status <> 'superseded';
 
 -- ---------------------------------------------------------------------------
 -- B. procurement_line_results — résultat PAR LIGNE d'achat d'un run.

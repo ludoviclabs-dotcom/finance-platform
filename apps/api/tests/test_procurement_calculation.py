@@ -560,21 +560,32 @@ class TestCalculationDb:
             runs.approve_run(company_id=cid_a, run_id=run.id)
 
     def test_declaration_intensity_used_when_accepted(self, two_companies_proc):
+        """Niveau 2 par l'intensité GES déclarée × dépense.
+
+        Le code produit est PROPRE À CE TEST (`SKU-INTENSITY`) et non le `SKU-A`
+        partagé : `two_companies_proc` est de portée module, donc plusieurs
+        fournisseurs du même tenant finiraient par porter un `SKU-A`. Le mapping
+        automatique de PR-05A (`_auto_map`) sélectionne alors un
+        `supplier_products` sans `ORDER BY` — la ligne pourrait être rattachée à
+        un autre fournisseur que celui portant la déclaration, et le test
+        échouerait pour une raison sans rapport avec la hiérarchie de méthode.
+        """
         from services.procurement import calculation_run_service as runs
 
         cid_a, _ = two_companies_proc
         supplier = insert_supplier(cid_a, "Fournisseur Intensité")
-        insert_supplier_product(cid_a, supplier, "SKU-A", category_code="materials")
+        insert_supplier_product(cid_a, supplier, "SKU-INTENSITY", category_code="materials")
         insert_declaration(
             cid_a, supplier, metric_code="ghg_intensity_tco2e_per_meur", value=100.0,
         )
         csv = (
             "supplier_code,product_code,date,quantity,unit,spend,currency,category,country\n"
-            "F-INT,SKU-A,2026-02-01,,,1000000,EUR,materials,FR\n"
+            "F-INT,SKU-INTENSITY,2026-02-01,,,1000000,EUR,materials,FR\n"
         )
         import_id = self._validated_import(cid_a, csv)
         run = runs.calculate(company_id=cid_a, payload=CalculationRequest(import_id=import_id))
         lines, _ = runs.list_line_results(company_id=cid_a, run_id=run.id)
+        # 1 M€ × 100 tCO2e/M€ = 100 tCO2e
         assert lines[0].calculation_method == "supplier_specific_hybrid"
         assert lines[0].result_tco2e == pytest.approx(100.0)
 

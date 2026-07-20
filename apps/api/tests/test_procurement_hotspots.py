@@ -109,6 +109,39 @@ class TestHotspotsDb:
         second = hotspots_service.detect_hotspots(company_id=cid_a, run_id=run_id)
         assert [h.hotspot_key for h in first.items] == [h.hotspot_key for h in second.items]
 
+    def test_unmapped_lines_form_a_visible_unknown_bucket(self, two_companies_proc):
+        """Une ligne sans fournisseur rattaché doit RESTER au classement.
+
+        Elle est regroupée sous une clé stable (`inconnu`) avec sa dépense et ses
+        lignes non résolues : un poste non rattaché qui disparaîtrait du
+        classement serait exactement le trou silencieux que cette PR s'interdit.
+        Aucune campagne n'est possible dessus — il n'y a personne à interroger.
+        """
+        cid_a, _ = two_companies_proc
+        run_id, _ = self._run(cid_a, "HOT-UNMAP")
+        data = hotspots_service.detect_hotspots(
+            company_id=cid_a, run_id=run_id, hotspot_type="supplier",
+        )
+        unknown = next(
+            (h for h in data.items if h.hotspot_key == hotspots_service.UNKNOWN_KEY), None,
+        )
+        assert unknown is not None, "le groupe « non rattaché » doit rester visible"
+        assert unknown.supplier_id is None
+        assert unknown.unresolved_line_count >= 1
+
+        selection = hotspots_service.select_hotspot(
+            company_id=cid_a,
+            payload=HotspotSelectionCreate(
+                run_id=run_id, hotspot_type="supplier",
+                hotspot_key=hotspots_service.UNKNOWN_KEY,
+            ),
+        )
+        with pytest.raises(hotspots_service.HotspotError, match="sans fournisseur"):
+            hotspots_service.create_campaign_from_selection(
+                company_id=cid_a, selection_id=selection.id,
+                payload=CampaignFromHotspotRequest(campaign_name="Sans destinataire"),
+            )
+
     def test_category_dimension_keeps_uncategorised_bucket(self, two_companies_proc):
         cid_a, _ = two_companies_proc
         run_id, _ = self._run(cid_a, "HOT-CAT")

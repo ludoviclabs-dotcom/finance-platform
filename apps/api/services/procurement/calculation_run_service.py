@@ -421,9 +421,12 @@ def calculate(
             fingerprint = _fingerprint(snapshot)
 
             if not payload.force_recalculate:
+                # Un run ARCHIVÉ (`superseded`) ne satisfait pas une demande de
+                # calcul : seul un run actif est rendu au titre de l'idempotence.
+                # Même prédicat que l'index unique partiel de la migration 032.
                 cur.execute(
                     f"SELECT * FROM procurement_calculation_runs "
-                    f"WHERE {_SCOPE} AND input_fingerprint = %s",
+                    f"WHERE {_SCOPE} AND input_fingerprint = %s AND status <> 'superseded'",
                     (company_id, fingerprint),
                 )
                 existing = cur.fetchone()

@@ -54,7 +54,7 @@ oublie.
 | `procurement_line_results_fallback_reason_check` | **Aucun repli silencieux** : tout `method_rank > 1` exige une `fallback_reason` non vide. |
 | `procurement_line_results_unresolved_null_check` | **Aucune valeur inventée** : une ligne `unresolved` ne peut PAS porter de `result_tco2e` (ni 0, ni estimation). |
 | `procurement_line_results_method_rank_coherent_check` | Cohérence méthode ↔ rang : impossible d'enregistrer « spend_based » au rang 1 et de fausser tous les agrégats de couverture. |
-| `procurement_runs_fingerprint_uniq` | Idempotence : mêmes entrées + même méthodologie = un seul run par tenant. |
+| `procurement_runs_fingerprint_active_uniq` (index **partiel**) | Idempotence : au plus un run **actif** par (tenant, empreinte). Partiel (`WHERE status <> 'superseded'`) pour que le recalcul forcé puisse produire un nouveau run **sans détruire** l'archivé — voir §12bis. |
 | `procurement_hotspot_selection_uniq` | Sélection idempotente : re-sélectionner met à jour, n'empile pas. |
 | `procurement_hotspot_campaign_status_check` | Pas de campagne « fantôme » rattachée à un hotspot écarté. |
 
@@ -298,6 +298,44 @@ silencieusement.
 | `db/migration_probes.py` | — | `_probe_032` + enregistrement + helper `_constraint_exists` |
 | `tests/_migration_fixtures.py` | `apply_upto("031")` | `apply_upto("032")` |
 | `tests/_procurement_fixtures.py` | `apply_upto("030")` | `apply_upto("032")` + 3 tables et effets de bord au teardown |
+
+---
+
+## 12bis. Ce que la CI a trouvé et qui a été corrigé (aller-retour assumé)
+
+Le premier passage CI a exécuté les tests DB-gated (**378 passed, 11 failed**) et a
+révélé trois défauts qu'aucun test pur ne pouvait attraper. Ils sont corrigés dans cette
+PR ; ils sont consignés ici parce qu'ils sont instructifs.
+
+1. **Clé de hotspot NULL sur les lignes non rattachées** (9 échecs). Les dimensions
+   `category`/`country` avaient leur `COALESCE`, pas `supplier`/`supplier_product` : une
+   ligne d'achat non mappée produisait `hotspot_key = NULL`, rejeté par Pydantic.
+   Corrigé par une clé stable `UNKNOWN_KEY = 'inconnu'`. **Le fond compte plus que le
+   symptôme** : un poste non rattaché doit rester VISIBLE au classement avec sa dépense
+   et ses lignes non résolues — l'escamoter aurait été précisément le trou silencieux que
+   cette PR s'interdit. Aucune campagne n'est possible dessus (pas de fournisseur à
+   interroger) ; test dédié
+   `test_unmapped_lines_form_a_visible_unknown_bucket`.
+2. **`UNIQUE(company_id, input_fingerprint)` incompatible avec le recalcul forcé.**
+   L'idempotence et la conservation de l'historique se contredisaient : le run archivé
+   occupait la clé et bloquait son remplaçant. Remplacé par un **index unique partiel**
+   (`WHERE status <> 'superseded'`), et la recherche d'idempotence exclut désormais les
+   runs archivés (même prédicat des deux côtés).
+3. **Test de niveau 2 non déterministe.** Il réutilisait le code produit partagé `SKU-A`
+   alors que `two_companies_proc` est de portée module : plusieurs fournisseurs du tenant
+   finissaient par porter un `SKU-A`, et la ligne était rattachée à un autre fournisseur
+   que celui portant la déclaration. Test rendu univoque (`SKU-INTENSITY`).
+
+   **Défaut PR-05A signalé au passage, NON corrigé ici** (hors périmètre, code mergé) :
+   `purchase_import_service._auto_map` fait
+   `SELECT id, supplier_id FROM supplier_products WHERE company_id = %s AND product_code = %s`
+   puis `fetchone()` — **sans `ORDER BY` ni `LIMIT`**. Or l'unicité porte sur
+   `(company_id, supplier_id, product_code)` : deux fournisseurs d'un même tenant peuvent
+   légitimement partager un code produit. Le rattachement est alors **arbitraire**, et une
+   ligne d'achat peut être imputée au mauvais fournisseur — ce qui fausserait ensuite les
+   hotspots et le score de concentration. À traiter dans une PR dédiée (rendre le mapping
+   déterministe, ou le refuser en le renvoyant en file de résolution quand il est ambigu —
+   ce second choix est le plus cohérent avec « aucun fallback silencieux »).
 
 ---
 

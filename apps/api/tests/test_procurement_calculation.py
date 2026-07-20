@@ -431,13 +431,22 @@ class TestCalculationDb:
         yield
         cleanup_emission_factors()
 
-    def _validated_import(self, company_id: int, marker: str) -> int:
-        """Import d'achats propre au marqueur, passé au gate de revue."""
+    def _validated_import(
+        self, company_id: int, marker: str, csv_text: str | None = None,
+    ) -> int:
+        """Import d'achats passé au gate de revue.
+
+        Par défaut le contenu est construit depuis le marqueur (`_csv_for`).
+        `csv_text` permet à un test d'apporter son propre CSV — cas de
+        l'intensité fournisseur, qui a besoin d'une ligne SANS quantité pour
+        forcer la voie « dépense » du niveau 2.
+        """
         from services.procurement import purchase_import_service as imports
 
+        content = csv_text if csv_text is not None else _csv_for(marker)
         imp = imports.create_import(
             company_id=company_id, filename=f"{marker}.csv",
-            content=_csv_for(marker).encode("utf-8"),
+            content=content.encode("utf-8"),
         )
         imports.review_import(company_id=company_id, import_id=imp.id, accept=True)
         return imp.id
@@ -599,11 +608,13 @@ class TestCalculationDb:
         insert_declaration(
             cid_a, supplier, metric_code="ghg_intensity_tco2e_per_meur", value=100.0,
         )
+        # Ligne SANS quantité ni unité : la voie « PCF » du niveau 2 est
+        # inapplicable, seule la voie « intensité × dépense » peut répondre.
         csv = (
             "supplier_code,product_code,date,quantity,unit,spend,currency,category,country\n"
             "F-INT,SKU-INTENSITY,2026-02-01,,,1000000,EUR,materials,FR\n"
         )
-        import_id = self._validated_import(cid_a, csv)
+        import_id = self._validated_import(cid_a, "INTENSITY", csv)
         run = runs.calculate(company_id=cid_a, payload=CalculationRequest(import_id=import_id))
         lines, _ = runs.list_line_results(company_id=cid_a, run_id=run.id)
         # 1 M€ × 100 tCO2e/M€ = 100 tCO2e

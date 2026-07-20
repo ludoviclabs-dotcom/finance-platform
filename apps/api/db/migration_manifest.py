@@ -100,6 +100,22 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "aucune donnée externe réelle."
         ),
     ),
+    "032": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Moteur Scope 3 cat. 1 achats & hotspots (PR-05B) : 3 nouvelles tables "
+            "(procurement_calculation_runs, procurement_line_results, "
+            "procurement_hotspot_selections), RLS gen-2 FORCE + policies par "
+            "commande. Ne crée que des tables neuves (aucun ALTER d'une table "
+            "existante) — pas de privilège propriétaire requis, comme 028/030. "
+            "Contraintes CHECK portant les règles métier non négociables : "
+            "cohérence méthode↔rang, fallback_reason obligatoire dès le rang 2 "
+            "(aucun repli silencieux), result_tco2e NULL obligatoire pour une "
+            "ligne non résolue (aucune valeur inventée). Aucun score ESG unique, "
+            "aucun LLM, aucune donnée métier migrée."
+        ),
+    ),
 }
 
 

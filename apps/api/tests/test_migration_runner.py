@@ -239,20 +239,22 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     28 fichiers à la clôture de PR-02 (001-027 + 008b) ; 29 depuis l'ajout de
     028 (Evidence Kernel, PR-03) ; 30 depuis 029 (Source Admin — vue de
     fraîcheur, PR-04) ; 31 depuis 030 (exposition achats, PR-05A) ; 32 depuis
-    031 (fondation énergie, PR-06A) — voir tests dédiés ci-dessous pour 028 à 031.
+    031 (fondation énergie, PR-06A) ; 33 depuis 032 (moteur Scope 3 achats &
+    hotspots, PR-05B) — voir tests dédiés ci-dessous pour 028 à 032.
     """
     runner = MigrationRunner()  # migrations_dir par défaut = apps/api/db/migrations
     monkeypatch.setattr(runner, "load_records", lambda: {})
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 32
+    assert len(versions) == 33
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
     assert "029" in versions
     assert "030" in versions
     assert "031" in versions
+    assert "032" in versions
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["027"] == "blocked_manual"
@@ -262,6 +264,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert actions["029"] == "apply"
     assert actions["030"] == "apply"
     assert actions["031"] == "apply"
+    assert actions["032"] == "apply"
     assert plan.has_blocking_issues is True
 
 

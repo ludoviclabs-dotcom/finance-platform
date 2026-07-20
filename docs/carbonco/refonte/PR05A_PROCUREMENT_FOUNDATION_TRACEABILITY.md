@@ -60,7 +60,7 @@ valide en PostgreSQL (comparaison croisée int4/int8), même geste que 028.
 | Module | Responsabilité |
 |---|---|
 | `supplier_sites_service.py` | CRUD sites & produits fournisseurs ; garde de périmètre du fournisseur (anti-IDOR). |
-| `purchase_import_service.py` | Parse CSV **pur** (réutilise `csv_import_parsers`), import **idempotent sha256**, mapping auto CONSERVATEUR (mappé seulement si `product_external_code` = `supplier_products.product_code` exact), file de résolution, gate `pending→validated/rejected`. |
+| `purchase_import_service.py` | Parse CSV **pur** (réutilise `csv_import_parsers`), import **idempotent sha256**, mapping auto CONSERVATEUR (mappé seulement si `product_external_code` correspond à **exactement un** `supplier_products.product_code` du tenant), file de résolution, gate `pending→validated/rejected`. |
 | `bom_service.py` | BOM versionnée + arbre d'items (résolution `parent_index`→id serveur, parents avant enfants), mapping matières + gate de revue. |
 | `declarations_service.py` | Déclarations & PCF **sourcées** via `observation_service` + `claim_link_service`. |
 | `intelligence/claim_link_service.py` | **Nouveau** — voir §4. |
@@ -72,6 +72,12 @@ PostgreSQL de CI se connecte en superuser (bypass RLS).
 
 **Aucun fallback silencieux** : une ligne d'achat non rattachée reste `unmapped`
 (file de résolution) ou `needs_review` (pas de donnée d'activité), jamais devinée.
+Le cas **ambigu** (un `product_code` partagé par plusieurs fournisseurs du même
+tenant — l'unicité `supplier_products` porte sur `(company_id, supplier_id,
+product_code)`, pas sur le code seul) est couvert par un statut dédié
+`ambiguous` durci en base par une contrainte CHECK — voir
+`docs/carbonco/refonte/WAVE_3_STABILIZATION_TRACEABILITY.md` §1 pour le détail
+complet (migration 035, `_auto_map`, 5 tests DB-gated dédiés).
 **Aucun LLM** : `material_mappings.mapping_method='ai_draft'` est un point d'ancrage réservé
 (PR-11), documenté ; aucune logique IA en PR-05A.
 

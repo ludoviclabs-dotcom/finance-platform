@@ -171,6 +171,23 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "propriétaire requis, comme 028/030/031/032/033/034."
         ),
     ),
+    "036": MigrationMeta(
+        requires_owner=True,
+        transactional=True,
+        note=(
+            "Géospatial & ledger eau (PR-08 tranche A) : ALTER TABLE sites "
+            "(027, propriété neondb_owner en production — précédent direct 027 "
+            "et son ALTER TABLE actions) exige le rôle propriétaire ; "
+            "application via DATABASE_ADMIN_URL + mark-manual-verified, jamais "
+            "par le chemin carbonco_app automatique. Ajoute aussi 5 tables "
+            "neuves (site_geocode_candidates, water_imports, water_activities, "
+            "water_permits, water_risk_areas) avec RLS gen-2 FORCE + GRANT "
+            "conditionnel. AUCUN PostGIS (décision validée) : coordonnées "
+            "NUMERIC + bbox/boundary_geojson évalués côté Python avec "
+            "method_code explicite. Aucune donnée métier migrée, aucune source "
+            "externe ingérée, aucun LLM."
+        ),
+    ),
 }
 
 

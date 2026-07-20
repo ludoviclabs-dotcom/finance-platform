@@ -60,6 +60,14 @@ from ._scope2_fixtures import (  # noqa: E402,F401
     scope2_schema,
 )
 
+# Géospatial & eau (PR-08) : mêmes raisons que ci-dessus — un module de
+# fixtures absent d'ici n'est jamais résolu par pytest, et le défaut reste
+# invisible en local (tests DB-gated skippés sans DATABASE_URL).
+from ._water_fixtures import (  # noqa: E402,F401
+    two_companies_water,
+    water_schema,
+)
+
 
 @pytest.fixture(autouse=True)
 def _reset_state_between_tests():

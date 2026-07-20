@@ -62,6 +62,7 @@ from routers import (
     vsme_export,
     vsme_mapping,
     vsme_wizard,
+    water,
 )
 
 logger = logging.getLogger(__name__)
@@ -226,3 +227,4 @@ app.include_router(procurement.router, prefix="/procurement", tags=["procurement
 app.include_router(products.router, prefix="/products", tags=["products (PR-05A)"])
 app.include_router(energy.router, prefix="/energy", tags=["energy (PR-06A)"])
 app.include_router(crma.router, prefix="/crma", tags=["crma (PR-07)"])
+app.include_router(water.router, prefix="/water", tags=["water (PR-08)"])

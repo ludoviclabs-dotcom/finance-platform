@@ -390,12 +390,31 @@ class TestAggregatePure:
 # DB-gated — run de bout en bout, idempotence, gate, isolation
 # ═══════════════════════════════════════════════════════════════════════════
 
-_CSV = (
-    "supplier_code,product_code,date,quantity,unit,spend,currency,category,country\n"
-    "F1,SKU-A,2026-01-15,10,kg,500,EUR,materials,FR\n"
-    "F1,SKU-B,2026-01-16,20,kg,800,EUR,materials,DE\n"
-    "F1,SKU-INCONNU,2026-01-17,5,kg,120,EUR,inconnue,FR\n"
-)
+def _csv_for(marker: str) -> str:
+    """CSV d'achats dont les codes produit sont PROPRES au test appelant.
+
+    `two_companies_proc` est de portée module : fournisseurs et produits
+    s'accumulent d'un test à l'autre. Or le mapping automatique de PR-05A
+    (`purchase_import_service._auto_map`) résout un code produit par
+    `SELECT … WHERE company_id AND product_code` + `fetchone()`, **sans
+    `ORDER BY`** — l'unicité portant sur `(company_id, supplier_id,
+    product_code)`, plusieurs fournisseurs peuvent partager un code et le
+    rattachement devient alors arbitraire. Des codes partagés entre tests les
+    feraient échouer pour une raison sans rapport avec la hiérarchie de méthode.
+
+    Ce défaut de PR-05A est documenté au §12bis de la traçabilité PR-05B et
+    laissé à une PR dédiée (code mergé, hors périmètre ici) ; on s'en isole en
+    donnant à chaque test ses propres codes.
+
+    La 3ᵉ ligne n'a volontairement AUCUN `supplier_products` correspondant et
+    porte une catégorie absente du catalogue : elle ressort NON RÉSOLUE.
+    """
+    return (
+        "supplier_code,product_code,date,quantity,unit,spend,currency,category,country\n"
+        f"{marker},SKU-{marker}-A,2026-01-15,10,kg,500,EUR,materials,FR\n"
+        f"{marker},SKU-{marker}-B,2026-01-16,20,kg,800,EUR,materials,DE\n"
+        f"{marker},SKU-{marker}-ORPHELIN,2026-01-17,5,kg,120,EUR,inconnue,FR\n"
+    )
 
 
 @_skip_no_db_url
@@ -412,27 +431,36 @@ class TestCalculationDb:
         yield
         cleanup_emission_factors()
 
-    def _validated_import(self, company_id: int, csv_text: str = _CSV) -> int:
+    def _validated_import(self, company_id: int, marker: str) -> int:
+        """Import d'achats propre au marqueur, passé au gate de revue."""
         from services.procurement import purchase_import_service as imports
 
         imp = imports.create_import(
-            company_id=company_id, filename="achats.csv", content=csv_text.encode("utf-8"),
+            company_id=company_id, filename=f"{marker}.csv",
+            content=_csv_for(marker).encode("utf-8"),
         )
         imports.review_import(company_id=company_id, import_id=imp.id, accept=True)
         return imp.id
+
+    def _products_for(self, company_id: int, marker: str) -> tuple[int, int]:
+        """Fournisseur + ses deux produits, aux codes propres au marqueur."""
+        supplier = insert_supplier(company_id, f"Fournisseur {marker}")
+        product_a = insert_supplier_product(
+            company_id, supplier, f"SKU-{marker}-A", category_code="materials",
+        )
+        insert_supplier_product(
+            company_id, supplier, f"SKU-{marker}-B", category_code="materials",
+        )
+        return supplier, product_a
 
     def test_run_applies_hierarchy_and_keeps_unresolved(self, two_companies_proc):
         from services.procurement import calculation_run_service as runs
 
         cid_a, _ = two_companies_proc
-        supplier = insert_supplier(cid_a, "Fournisseur Calcul")
-        product_a = insert_supplier_product(
-            cid_a, supplier, "SKU-A", category_code="materials",
-        )
-        insert_supplier_product(cid_a, supplier, "SKU-B", category_code="materials")
+        _, product_a = self._products_for(cid_a, "CALC")
         insert_pcf(cid_a, product_a, value_kgco2e=2.5, declared_unit="kg")
 
-        import_id = self._validated_import(cid_a)
+        import_id = self._validated_import(cid_a, "CALC")
         run = runs.calculate(
             company_id=cid_a, payload=CalculationRequest(import_id=import_id),
         )
@@ -462,9 +490,8 @@ class TestCalculationDb:
         from services.procurement import calculation_run_service as runs
 
         cid_a, _ = two_companies_proc
-        supplier = insert_supplier(cid_a, "Fournisseur Idem")
-        insert_supplier_product(cid_a, supplier, "SKU-A", category_code="materials")
-        import_id = self._validated_import(cid_a, _CSV.replace("F1", "F-IDEM"))
+        self._products_for(cid_a, "IDEM")
+        import_id = self._validated_import(cid_a, "IDEM")
 
         first = runs.calculate(company_id=cid_a, payload=CalculationRequest(import_id=import_id))
         second = runs.calculate(company_id=cid_a, payload=CalculationRequest(import_id=import_id))
@@ -480,9 +507,8 @@ class TestCalculationDb:
         from services.procurement import calculation_run_service as runs
 
         cid_a, _ = two_companies_proc
-        supplier = insert_supplier(cid_a, "Fournisseur Force")
-        insert_supplier_product(cid_a, supplier, "SKU-A", category_code="materials")
-        import_id = self._validated_import(cid_a, _CSV.replace("F1", "F-FORCE"))
+        self._products_for(cid_a, "FORCE")
+        import_id = self._validated_import(cid_a, "FORCE")
 
         first = runs.calculate(company_id=cid_a, payload=CalculationRequest(import_id=import_id))
         second = runs.calculate(
@@ -500,7 +526,7 @@ class TestCalculationDb:
         cid_a, _ = two_companies_proc
         imp = imports.create_import(
             company_id=cid_a, filename="pending.csv",
-            content=_CSV.replace("F1", "F-PENDING").encode("utf-8"),
+            content=_csv_for("PENDING").encode("utf-8"),
         )
         with pytest.raises(runs.ProcurementCalculationError, match="validé"):
             runs.calculate(company_id=cid_a, payload=CalculationRequest(import_id=imp.id))
@@ -509,9 +535,8 @@ class TestCalculationDb:
         from services.procurement import calculation_run_service as runs
 
         cid_a, _ = two_companies_proc
-        supplier = insert_supplier(cid_a, "Fournisseur Couv")
-        insert_supplier_product(cid_a, supplier, "SKU-A", category_code="materials")
-        import_id = self._validated_import(cid_a, _CSV.replace("F1", "F-COUV"))
+        self._products_for(cid_a, "COUV")
+        import_id = self._validated_import(cid_a, "COUV")
         run = runs.calculate(company_id=cid_a, payload=CalculationRequest(import_id=import_id))
 
         coverage = runs.get_coverage(company_id=cid_a, run_id=run.id)
@@ -524,12 +549,9 @@ class TestCalculationDb:
         from services.procurement import calculation_run_service as runs
 
         cid_a, _ = two_companies_proc
-        supplier = insert_supplier(cid_a, "Fournisseur Trace")
-        product = insert_supplier_product(
-            cid_a, supplier, "SKU-A", product_name="Acier", category_code="materials",
-        )
+        _, product = self._products_for(cid_a, "TRACE")
         insert_pcf(cid_a, product, value_kgco2e=2.5, declared_unit="kg")
-        import_id = self._validated_import(cid_a, _CSV.replace("F1", "F-TRACE"))
+        import_id = self._validated_import(cid_a, "TRACE")
         run = runs.calculate(company_id=cid_a, payload=CalculationRequest(import_id=import_id))
 
         lines, _ = runs.list_line_results(company_id=cid_a, run_id=run.id, limit=100)
@@ -546,9 +568,8 @@ class TestCalculationDb:
         from services.procurement import calculation_run_service as runs
 
         cid_a, _ = two_companies_proc
-        supplier = insert_supplier(cid_a, "Fournisseur Appro")
-        insert_supplier_product(cid_a, supplier, "SKU-A", category_code="materials")
-        import_id = self._validated_import(cid_a, _CSV.replace("F1", "F-APPRO"))
+        self._products_for(cid_a, "APPRO")
+        import_id = self._validated_import(cid_a, "APPRO")
         run = runs.calculate(company_id=cid_a, payload=CalculationRequest(import_id=import_id))
 
         approved = runs.approve_run(company_id=cid_a, run_id=run.id, approved_by=1)
@@ -613,10 +634,12 @@ class TestCalculationIsolationDb:
         from services.procurement import purchase_import_service as imports
 
         supplier = insert_supplier(company_id, f"Fournisseur {marker}")
-        insert_supplier_product(company_id, supplier, "SKU-A", category_code="materials")
+        insert_supplier_product(
+            company_id, supplier, f"SKU-{marker}-A", category_code="materials",
+        )
         imp = imports.create_import(
             company_id=company_id, filename=f"{marker}.csv",
-            content=_CSV.replace("F1", marker).encode("utf-8"),
+            content=_csv_for(marker).encode("utf-8"),
         )
         imports.review_import(company_id=company_id, import_id=imp.id, accept=True)
         return runs.calculate(

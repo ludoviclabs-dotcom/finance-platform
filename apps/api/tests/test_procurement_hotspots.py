@@ -33,12 +33,31 @@ _skip_no_db_url = pytest.mark.skipif(
 )
 _skip_no_psycopg2 = pytest.mark.skipif(not db_available(), reason="psycopg2/PostgreSQL non disponible")
 
-_CSV = (
-    "supplier_code,product_code,date,quantity,unit,spend,currency,category,country\n"
-    "F1,SKU-A,2026-01-15,100,kg,5000,EUR,materials,FR\n"
-    "F1,SKU-B,2026-01-16,10,kg,800,EUR,materials,DE\n"
-    "F1,SKU-X,2026-01-17,5,kg,120,EUR,inconnue,\n"
-)
+def _csv_for(marker: str) -> str:
+    """CSV d'achats dont les codes produit sont PROPRES au test appelant.
+
+    `two_companies_proc` est de portée module : les fournisseurs et produits
+    s'accumulent d'un test à l'autre. Or le mapping automatique de PR-05A
+    (`purchase_import_service._auto_map`) résout un code produit par
+    `SELECT … WHERE company_id AND product_code` + `fetchone()`, **sans
+    `ORDER BY`** — l'unicité portant sur `(company_id, supplier_id,
+    product_code)`, plusieurs fournisseurs peuvent partager un code et le
+    rattachement devient arbitraire. Des codes partagés entre tests feraient
+    donc échouer ces tests pour une raison sans rapport avec les hotspots.
+
+    Ce défaut de PR-05A est documenté en §12bis de la traçabilité PR-05B et
+    laissé à une PR dédiée (code mergé, hors périmètre ici) ; on s'en isole en
+    donnant à chaque test ses propres codes.
+
+    La 3ᵉ ligne n'a volontairement AUCUN `supplier_products` correspondant :
+    elle reste non mappée et alimente le groupe « non rattaché » du classement.
+    """
+    return (
+        "supplier_code,product_code,date,quantity,unit,spend,currency,category,country\n"
+        f"{marker},SKU-{marker}-A,2026-01-15,100,kg,5000,EUR,materials,FR\n"
+        f"{marker},SKU-{marker}-B,2026-01-16,10,kg,800,EUR,materials,DE\n"
+        f"{marker},SKU-{marker}-ORPHELIN,2026-01-17,5,kg,120,EUR,inconnue,\n"
+    )
 
 
 # ── PUR : gardes de dimension ────────────────────────────────────────────────
@@ -69,16 +88,20 @@ class TestHotspotsDb:
         cleanup_emission_factors()
 
     def _run(self, company_id: int, marker: str) -> tuple[int, int]:
-        """Crée un run calculable et renvoie (run_id, supplier_id)."""
+        """Crée un run calculable ISOLÉ et renvoie (run_id, supplier_id)."""
         from services.procurement import calculation_run_service as runs
         from services.procurement import purchase_import_service as imports
 
         supplier = insert_supplier(company_id, f"Fournisseur {marker}")
-        insert_supplier_product(company_id, supplier, "SKU-A", category_code="materials")
-        insert_supplier_product(company_id, supplier, "SKU-B", category_code="materials")
+        insert_supplier_product(
+            company_id, supplier, f"SKU-{marker}-A", category_code="materials",
+        )
+        insert_supplier_product(
+            company_id, supplier, f"SKU-{marker}-B", category_code="materials",
+        )
         imp = imports.create_import(
             company_id=company_id, filename=f"{marker}.csv",
-            content=_CSV.replace("F1", marker).encode("utf-8"),
+            content=_csv_for(marker).encode("utf-8"),
         )
         imports.review_import(company_id=company_id, import_id=imp.id, accept=True)
         run = runs.calculate(
@@ -305,10 +328,12 @@ class TestHotspotsIsolationDb:
         from services.procurement import purchase_import_service as imports
 
         supplier = insert_supplier(company_id, f"Fournisseur {marker}")
-        insert_supplier_product(company_id, supplier, "SKU-A", category_code="materials")
+        insert_supplier_product(
+            company_id, supplier, f"SKU-{marker}-A", category_code="materials",
+        )
         imp = imports.create_import(
             company_id=company_id, filename=f"{marker}.csv",
-            content=_CSV.replace("F1", marker).encode("utf-8"),
+            content=_csv_for(marker).encode("utf-8"),
         )
         imports.review_import(company_id=company_id, import_id=imp.id, accept=True)
         return runs.calculate(

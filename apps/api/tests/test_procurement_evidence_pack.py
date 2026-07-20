@@ -34,11 +34,17 @@ _skip_no_db_url = pytest.mark.skipif(
 )
 _skip_no_psycopg2 = pytest.mark.skipif(not db_available(), reason="psycopg2/PostgreSQL non disponible")
 
-_CSV = (
-    "supplier_code,product_code,date,quantity,unit,spend,currency,category,country\n"
-    "F1,SKU-A,2026-01-15,100,kg,5000,EUR,materials,FR\n"
-    "F1,SKU-X,2026-01-17,5,kg,120,EUR,inconnue,\n"
-)
+def _csv_for(marker: str) -> str:
+    """CSV aux codes produit PROPRES au test (voir la note de
+    `test_procurement_hotspots.py::_csv_for` : le mapping automatique de PR-05A
+    est ambigu quand plusieurs fournisseurs partagent un code, et la fixture est
+    de portée module). La 2ᵉ ligne est volontairement orpheline : elle ressort
+    non résolue, ce que plusieurs tests de ce module vérifient dans le pack."""
+    return (
+        "supplier_code,product_code,date,quantity,unit,spend,currency,category,country\n"
+        f"{marker},SKU-{marker}-A,2026-01-15,100,kg,5000,EUR,materials,FR\n"
+        f"{marker},SKU-{marker}-ORPHELIN,2026-01-17,5,kg,120,EUR,inconnue,\n"
+    )
 
 
 # ── PUR ─────────────────────────────────────────────────────────────────────
@@ -82,12 +88,12 @@ class TestEvidencePackDb:
 
         supplier = insert_supplier(company_id, f"Fournisseur {marker}")
         product = insert_supplier_product(
-            company_id, supplier, "SKU-A", category_code="materials",
+            company_id, supplier, f"SKU-{marker}-A", category_code="materials",
         )
         insert_pcf(company_id, product, value_kgco2e=2.5, declared_unit="kg")
         imp = imports.create_import(
             company_id=company_id, filename=f"{marker}.csv",
-            content=_CSV.replace("F1", marker).encode("utf-8"),
+            content=_csv_for(marker).encode("utf-8"),
         )
         imports.review_import(company_id=company_id, import_id=imp.id, accept=True)
         return runs.calculate(

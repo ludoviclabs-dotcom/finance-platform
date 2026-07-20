@@ -609,6 +609,37 @@ def _probe_037(cur) -> bool:
     )
 
 
+def _probe_038(cur) -> bool:
+    """Fondation biodiversité — Locate et Evaluate (PR-09 tranche A) : 6 tables
+    neuves + RLS FORCE + policy scopée sur chacune, le trigger d'immutabilité
+    du fait géométrique (précédent site_water_screenings 037 : une base où
+    l'intersection redevient réécrivable n'est PAS la migration 038), et des
+    CHECK porteurs des règles non négociables — bbox de nature_features (une
+    zone sans bornes géographiques valides ne peut pas exister) et
+    l'approbation de leap_assessments (jamais approuvé sans approbateur
+    humain identifié, motif crma_article24_approval_check 034). La séparation
+    dependencies/impacts est structurelle (colonnes disjointes), pas sondée
+    ici objet-par-objet — prouvée par test applicatif dédié plutôt que par
+    introspection de catalogue."""
+    tables = (
+        "nature_features", "site_nature_intersections", "nature_dependencies",
+        "nature_impacts", "leap_assessments", "leap_assessment_sites",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    if not _trigger_exists(cur, "site_nature_intersections", "trg_site_nature_intersections_guard"):
+        return False
+    return (
+        _constraint_exists(cur, "nature_features", "nature_features_bbox_lat_check")
+        and _constraint_exists(cur, "leap_assessments", "leap_assessments_approval_check")
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -649,6 +680,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "035": _probe_035,
     "036": _probe_036,
     "037": _probe_037,
+    "038": _probe_038,
 }
 
 

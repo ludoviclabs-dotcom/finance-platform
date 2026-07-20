@@ -127,7 +127,11 @@ jobs:
       # EN DERNIER — il RÉINITIALISE le schéma public à un état pré-036
       # (reset + 001-035) pour prouver le 503 `schema_not_ready` ; le placer
       # avant un module qui suppose 036/037 casserait ce module-là.
-      - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin + Procurement + Énergie + RLS non-superuser + Scope 3 + Moteur Scope 2 + CRMA + Wave 3 + Géospatial/Eau (PR-02B / PR-03 / PR-04 / PR-05A / PR-06A / PR-05B / PR-06B / PR-07 / Wave 3 / PR-08)
+      # PR-09 (biodiversité & LEAP) : `test_nature_schema_not_ready.py` réinitialise
+      # à son tour le schéma (pré-038, reset + 001-037) — il doit rester
+      # APRÈS `test_water_schema_not_ready.py` (même contrainte d'ordre, deux
+      # resets qui ne se gênent pas tant qu'ils restent les deux DERNIERS).
+      - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin + Procurement + Énergie + RLS non-superuser + Scope 3 + Moteur Scope 2 + CRMA + Wave 3 + Géospatial/Eau + Biodiversité/LEAP (PR-02B / PR-03 / PR-04 / PR-05A / PR-06A / PR-05B / PR-06B / PR-07 / Wave 3 / PR-08 / PR-09)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: >-
@@ -162,6 +166,8 @@ jobs:
           tests/test_water_ledger.py
           tests/test_water_screening_api.py
           tests/test_water_schema_not_ready.py
+          tests/test_nature_ledger.py
+          tests/test_nature_schema_not_ready.py
 
   security-audit:
     runs-on: ubuntu-latest

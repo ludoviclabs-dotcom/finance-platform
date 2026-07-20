@@ -17,8 +17,10 @@ Le parsing (`parse_purchase_csv`) est PUR (bytes → lignes normalisées),
 testable sans base ; il réutilise le patron de `csv_import_parsers` (détection
 d'encodage/délimiteur, recherche de colonne tolérante). Le mapping automatique
 à l'import est volontairement CONSERVATEUR : une ligne n'est `mapped` que si son
-code produit externe correspond exactement à un `supplier_products.product_code`
-du tenant — sinon elle part en file de résolution.
+code produit externe correspond à EXACTEMENT UN `supplier_products.product_code`
+du tenant — sinon elle part en file de résolution. Un code porté par plusieurs
+fournisseurs du tenant (cas permis par l'unicité 030, qui inclut `supplier_id`)
+est donc AMBIGU, jamais attribué d'office : cf. `_auto_map`.
 """
 
 from __future__ import annotations

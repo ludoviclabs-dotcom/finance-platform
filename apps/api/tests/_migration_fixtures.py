@@ -69,15 +69,16 @@ def apply_upto(conn, max_version: str | None) -> None:
 
 
 def build_full_db(conn) -> None:
-    """DDL inline + TOUS les fichiers `.sql` découverts (001-039, y compris
+    """DDL inline + TOUS les fichiers `.sql` découverts (001-040, y compris
     004/009/027, le noyau Evidence Kernel 028, la vue de fraîcheur 029,
     l'exposition achats 030, la fondation énergie 031, le moteur Scope 3
     achats 032, le moteur de calcul Scope 2 dual 033, le pack CRMA 034, la
     stabilisation Wave 3 035, le géospatial & ledger eau 036 (PR-08A — le
     statut requires_owner de 036 est une contrainte de PRODUCTION, pas de CI),
     le screening hydrique 037 (PR-08B), la fondation biodiversité Locate/
-    Evaluate 038 (PR-09 tranche A) et les risques/opportunités/actions/
-    brouillons TNFD 039 (PR-09 tranche B) — « base complète ».
+    Evaluate 038 (PR-09 tranche A), les risques/opportunités/actions/
+    brouillons TNFD 039 (PR-09 tranche B) et le registre IRO/double
+    matérialité 040 (PR-10) — « base complète ».
 
     Doit rester aligné sur `discover_migrations()` : ce fixture représente
     « toutes les migrations appliquées », donc sa borne haute suit la dernière
@@ -87,11 +88,11 @@ def build_full_db(conn) -> None:
     alors qu'un fichier 035 existe — ferait échouer toute assertion du type
     « chaque version découverte a une sonde qui passe / est baseline » (la
     sonde 035 verrait ses objets absents), sans que 035 soit en cause.
-    `apply_upto("039")` applique tous les fichiers de préfixe <= 039 (donc 032,
-    033, 034, 035, 036, 037, 038 puis 039). À FAIRE ÉVOLUER à chaque nouvelle
-    migration."""
+    `apply_upto("040")` applique tous les fichiers de préfixe <= 040 (donc 032,
+    033, 034, 035, 036, 037, 038, 039 puis 040). À FAIRE ÉVOLUER à chaque
+    nouvelle migration."""
     apply_ddl_inline(conn)
-    apply_upto(conn, "039")
+    apply_upto(conn, "040")
 
 
 def reset_public_schema(conn) -> None:

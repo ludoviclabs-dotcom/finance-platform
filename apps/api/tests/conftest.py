@@ -50,6 +50,15 @@ from ._intelligence_fixtures import (  # noqa: E402,F401
     two_companies,
 )
 
+# IRO / double matérialité (PR-10) : mêmes raisons que ci-dessus — un module
+# de fixtures absent d'ici n'est jamais résolu par pytest, et le défaut reste
+# invisible en local (tests DB-gated skippés sans DATABASE_URL) — piège déjà
+# documenté pour PR-07 (CRMA), toujours vrai ici.
+from ._iro_fixtures import (  # noqa: E402,F401
+    iro_schema,
+    two_companies_iro,
+)
+
 # Biodiversité & LEAP (PR-09) : mêmes raisons que ci-dessus — un module de
 # fixtures absent d'ici n'est jamais résolu par pytest, et le défaut reste
 # invisible en local (tests DB-gated skippés sans DATABASE_URL) — piège déjà

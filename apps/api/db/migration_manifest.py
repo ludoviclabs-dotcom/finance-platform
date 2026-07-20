@@ -246,6 +246,37 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "automatique de disclosure."
         ),
     ),
+    "040": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "IRO, double matérialité et transmission financière (PR-10) : 6 "
+            "nouvelles tables tenant strictes (iros — entité centrale, "
+            "statut candidate/under_assessment/assessed/decided/archived ; "
+            "impact_assessments/financial_assessments — composantes "
+            "scale/scope/irremediability/likelihood et likelihood/magnitude "
+            "en colonnes SÉPARÉES, jamais fusionnées, motif "
+            "crma_article24_assessments 034 ; materiality_decisions — "
+            "décision humaine obligatoire (decided_by NOT NULL), APPEND-ONLY "
+            "par trigger dédié (motif evidence_kernel_guard('frozen') 028) ; "
+            "iro_actions, calquée sur mitigation_actions 034 / water_actions "
+            "037 / nature_actions 039 ; disclosure_mappings — table de "
+            "correspondance pure). Réservation indicative 038 de "
+            "WAVE_4_INTERFACE_CONTRACTS.md §13 obsolète : 038/039 pris par "
+            "PR-09 (fondation biodiversité + Assess/Prepare) — PR-10 prend "
+            "donc 040, après 039 (renumérotation anticipée par le plan §14). "
+            "RLS gen-2 FORCE, GRANT conditionnel. Six tables neuves + UN "
+            "élargissement de contrainte sur une table existante "
+            "(audit_eventtype_check, DROP+ADD sous le même nom pour admettre "
+            "'materiality_decision' — même geste que 011/012/035, ni l'un ni "
+            "l'autre requires_owner pour ce même geste sur cette même table). "
+            "Pas de privilège propriétaire requis, comme 028/030/031/033/034/"
+            "037/038/039. Aucun calcul exécuté par la migration, aucune "
+            "donnée métier migrée, aucune source externe ingérée, aucun LLM, "
+            "aucune décision de matérialité automatique, aucun score unique "
+            "fusionné impact+financier."
+        ),
+    ),
 }
 
 

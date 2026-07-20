@@ -36,6 +36,11 @@ AuditEventType = Literal[
     "2fa_recovery",
     "auditor_invite",
     "auditor_access",
+    # PR-10 (IRO / double matérialité) : décision de matérialité humaine,
+    # append-only — motif `auditor_invite`/`auditor_access` (valeur dédiée
+    # plutôt que la valeur générique `validation`, pour rester filtrable par
+    # type sur un geste explicitement sensible et à autorité admin).
+    "materiality_decision",
 ]
 
 

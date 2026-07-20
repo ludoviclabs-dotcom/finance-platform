@@ -666,6 +666,50 @@ def _probe_039(cur) -> bool:
     )
 
 
+def _probe_040(cur) -> bool:
+    """IRO, double matérialité et transmission financière (PR-10) : 6 tables
+    neuves tenant strictes + RLS FORCE + policy scopée sur chacune, ET des
+    artefacts non ambigus portant les règles non négociables — jamais une
+    sonde qui passerait sur une migration partiellement appliquée.
+
+    Quatre artefacts choisis délibérément :
+      - le trigger `trg_materiality_decisions_guard` : c'est LUI qui rend la
+        table append-only (aucune UPDATE/DELETE, motif
+        `evidence_kernel_guard('frozen')` 028 / `site_water_screening_
+        immutability_guard` 037) — une base où les tables existent mais où ce
+        trigger a été retiré n'est PAS la migration 040 (même raisonnement
+        que le trigger d'immutabilité sondé par _probe_037/_probe_038).
+      - `impact_assessments_likelihood_actual_check` : la règle « un impact
+        AVÉRÉ n'a pas de probabilité » (is_actual=true => likelihood NULL).
+      - `financial_assessments_transmission_chain_check` : la chaîne de
+        transmission ne peut jamais être vide — jamais un chiffre unique nu.
+      - `audit_eventtype_check` CONTIENT `'materiality_decision'` : le NOM de
+        cette contrainte est réutilisé depuis 011/012 (DROP + ADD) — son
+        existence seule ne distingue pas l'ancienne définition de la
+        nouvelle, même piège que `_constraint_definition_contains` documenté
+        pour `purchase_lines_mapping_status_check` (035).
+    """
+    tables = (
+        "iros", "impact_assessments", "financial_assessments",
+        "materiality_decisions", "iro_actions", "disclosure_mappings",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    if not _trigger_exists(cur, "materiality_decisions", "trg_materiality_decisions_guard"):
+        return False
+    if not (
+        _constraint_exists(cur, "impact_assessments", "impact_assessments_likelihood_actual_check")
+        and _constraint_exists(cur, "financial_assessments", "financial_assessments_transmission_chain_check")
+    ):
+        return False
+    return _constraint_definition_contains(cur, "audit_events", "audit_eventtype_check", "materiality_decision")
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -708,6 +752,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "037": _probe_037,
     "038": _probe_038,
     "039": _probe_039,
+    "040": _probe_040,
 }
 
 

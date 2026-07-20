@@ -789,3 +789,193 @@ def build_scope2_evidence_pack(
         except Exception as exc:
             logger.warning("Persist export_packages (scope2) échoué: %s", exc)
     return pack
+
+
+# ---------------------------------------------------------------------------
+# Evidence Pack d'un IRO (PR-10) — motif SCOPE2_PACK_DOMAIN, domaine DÉDIÉ
+# (pas une intégration dans consolidated/carbon/esg/finance générique)
+# ---------------------------------------------------------------------------
+
+IRO_PACK_DOMAIN = "iro"
+
+
+def _iro_readme(*, company_name: str, iro: dict[str, Any], manifest_hash: str) -> str:
+    return f"""CarbonCo - Evidence Pack IRO (Impact, Risque ou Opportunité)
+====================================================================
+
+Entreprise      : {company_name}
+IRO             : #{iro.get('id')} - {iro.get('title')}
+Type            : {iro.get('iro_type')}
+Statut          : {iro.get('status')}
+Enjeu (topic)   : {iro.get('topic_code') or 'non renseigne'}
+Origine         : {iro.get('origin_domain')} / {iro.get('origin_reference') or 'manuelle'}
+
+Hash manifest   : {manifest_hash}
+
+Ce que ce pack contient (et ce qu'il NE contient PAS)
+------------------------------------------------------
+
+CONTIENT :
+  - impact_assessments.json et financial_assessments.json : les composantes
+    SEPAREES de chaque dimension (scale/scope/irremediability/likelihood
+    d'un cote, likelihood/magnitude de l'autre). AUCUN score combine.
+  - decisions.json : l'historique COMPLET, append-only, des decisions de
+    materialite humaines (is_material, basis, justification, decideur).
+  - actions.json, disclosure_mappings.json, evidence_links.json (preuves
+    complementaires via claim_evidence_links).
+
+NE CONTIENT PAS :
+  - Aucun champ "score IRO" ou "materiality_score" unique : conforme au
+    principe structurant de la double materialite CSRD/ESRS 1 (impact ET
+    financier restent deux dimensions distinctes, jamais fusionnees).
+  - Aucune decision automatique : chaque decision presente dans ce pack a ete
+    prise par un humain identifie (decided_by), jamais par un calcul.
+
+Verification independante
+-------------------------
+
+  1. SHA-256 du fichier "manifest.json" de ce ZIP :
+       sha256sum manifest.json       (Linux/macOS)
+       Get-FileHash manifest.json    (PowerShell)
+  2. Il doit valoir : {manifest_hash}
+  3. "CHECKSUMS.sha256" liste l'empreinte de chaque fichier :
+       sha256sum -c CHECKSUMS.sha256
+
+Contenu du package
+------------------
+
+- manifest.json               : metadonnees + hashs des fichiers embarques (signe)
+- iro.json                    : identite de l'IRO
+- impact_assessments.json     : evaluations d'impact (composantes separees)
+- financial_assessments.json  : evaluations financieres (chaine de transmission)
+- decisions.json              : historique append-only des decisions humaines
+- actions.json                : actions liees
+- disclosure_mappings.json    : correspondances de disclosure
+- evidence_links.json         : preuves complementaires (claim_evidence_links)
+- CHECKSUMS.sha256            : empreintes de tous les fichiers
+- README.txt                  : ce fichier (informatif, non signe)
+"""
+
+
+def assemble_iro_pack(
+    *,
+    company_id: int,
+    company_name: str,
+    detail: dict[str, Any],
+) -> ExportPackage:
+    """Assemble l'Evidence Pack d'un IRO — fonction PURE (aucune DB).
+
+    `detail` est le `.model_dump(mode="json")` d'un `IroDetailResponse`
+    (`iro_service.get_iro_detail`) — cette fonction ne recalcule rien, elle
+    documente l'état déjà persisté (motif `assemble_scope2_pack`)."""
+    iro = detail.get("iro") or {}
+    impact_assessments = detail.get("impact_assessments") or []
+    financial_assessments = detail.get("financial_assessments") or []
+    decisions = detail.get("decisions") or []
+    actions = detail.get("actions") or []
+    disclosure_mappings = detail.get("disclosure_mappings") or []
+    evidence_links = detail.get("evidence_links") or []
+
+    def _dump(payload: Any) -> bytes:
+        return json.dumps(
+            payload, sort_keys=True, indent=2, default=str, ensure_ascii=False
+        ).encode("utf-8")
+
+    signed: dict[str, bytes] = {
+        "iro.json": _dump(iro),
+        "impact_assessments.json": _dump(impact_assessments),
+        "financial_assessments.json": _dump(financial_assessments),
+        "decisions.json": _dump(decisions),
+        "actions.json": _dump(actions),
+        "disclosure_mappings.json": _dump(disclosure_mappings),
+        "evidence_links.json": _dump(evidence_links),
+    }
+
+    manifest: dict[str, Any] = {
+        "manifest_version": MANIFEST_VERSION,
+        "pack_type": IRO_PACK_DOMAIN,
+        "company_id": company_id,
+        "company_name": company_name,
+        "domain": IRO_PACK_DOMAIN,
+        "iro_id": iro.get("id"),
+        "iro_status": iro.get("status"),
+        "files": {
+            name: {"sha256": _sha256_hex(data), "size": len(data)}
+            for name, data in signed.items()
+        },
+        "stats": {
+            "impact_assessment_count": len(impact_assessments),
+            "financial_assessment_count": len(financial_assessments),
+            "decision_count": len(decisions),
+            "action_count": len(actions),
+            "disclosure_mapping_count": len(disclosure_mappings),
+            "evidence_link_count": len(evidence_links),
+        },
+    }
+    manifest_bytes = json.dumps(manifest, sort_keys=True, indent=2, ensure_ascii=False).encode("utf-8")
+    manifest_hash = _sha256_hex(manifest_bytes)
+
+    embedded: dict[str, bytes] = {"manifest.json": manifest_bytes, **signed}
+    embedded["README.txt"] = _iro_readme(
+        company_name=company_name, iro=iro, manifest_hash=manifest_hash
+    ).encode("utf-8")
+    checksums_bytes = _checksums_file(embedded)
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for name, data in sorted({**embedded, "CHECKSUMS.sha256": checksums_bytes}.items()):
+            info = zipfile.ZipInfo(filename=name, date_time=_ZIP_EPOCH)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            zf.writestr(info, data)
+
+    final_zip = buf.getvalue()
+    final_hash = _sha256_hex(final_zip)
+    filename = f"carbonco-iro-{iro.get('id')}-{final_hash[:12]}.zip"
+
+    return ExportPackage(
+        package_hash=final_hash,
+        manifest_hash=manifest_hash,
+        zip_bytes=final_zip,
+        filename=filename,
+        event_count=len(impact_assessments) + len(financial_assessments) + len(decisions) + len(actions),
+        frozen_count=len(decisions),  # les décisions sont append-only, donc "gelées" dès l'écriture
+        size_bytes=len(final_zip),
+        manifest=manifest,
+    )
+
+
+def build_iro_evidence_pack(
+    *,
+    company_id: int,
+    company_name: str,
+    detail: dict[str, Any],
+    generated_by: int | None = None,
+) -> ExportPackage:
+    """Assemble le pack ET l'enregistre dans `export_packages` (domaine
+    `iro`), pour que `/verify/{hash}` puisse attester de son existence et de
+    sa date. Idempotent : régénérer le même IRO ne crée pas de doublon
+    (`ON CONFLICT DO NOTHING` sur `package_hash`)."""
+    pack = assemble_iro_pack(company_id=company_id, company_name=company_name, detail=detail)
+    iro = detail.get("iro") or {}
+    if db_available():
+        try:
+            with get_db(company_id=company_id) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO export_packages
+                            (company_id, package_hash, manifest_hash, domain, filename,
+                             size_bytes, event_count, frozen_count, generated_by, meta)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (package_hash) DO NOTHING
+                        """,
+                        (
+                            company_id, pack.package_hash, pack.manifest_hash,
+                            IRO_PACK_DOMAIN, pack.filename, pack.size_bytes,
+                            pack.event_count, pack.frozen_count, generated_by,
+                            json.dumps({"company_name": company_name, "iro_id": iro.get("id")}),
+                        ),
+                    )
+        except Exception as exc:
+            logger.warning("Persist export_packages (iro) échoué: %s", exc)
+    return pack

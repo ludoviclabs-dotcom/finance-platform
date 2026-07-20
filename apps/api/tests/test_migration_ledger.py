@@ -150,8 +150,9 @@ def test_baseline_on_full_db_marks_004_and_009_both_baseline(empty_conn, runner)
     assert actions["036"] == "baseline"  # idem : requires_owner n'empêche jamais un baseline vérifié
     assert actions["038"] == "baseline"  # 038 (PR-09A, tables neuves) : jamais requires_owner
     assert actions["039"] == "baseline"  # 039 (PR-09B, tables neuves) : jamais requires_owner
+    assert actions["040"] == "baseline"  # 040 (PR-10, tables neuves) : jamais requires_owner
     assert all(a == "baseline" for a in actions.values())
-    assert result.written_count == 41  # 000 + 40 fichiers (001-039 dont 008b)
+    assert result.written_count == 42  # 000 + 41 fichiers (001-040 dont 008b)
 
     records = runner.load_records()
     assert records["004"].requires_owner is False
@@ -160,6 +161,7 @@ def test_baseline_on_full_db_marks_004_and_009_both_baseline(empty_conn, runner)
     assert records["036"].requires_owner is True
     assert records["038"].requires_owner is False
     assert records["039"].requires_owner is False
+    assert records["040"].requires_owner is False
 
 
 def test_baseline_never_rewrites_existing_row(empty_conn, runner):
@@ -264,7 +266,7 @@ def test_baseline_supports_ledger_table_already_created_but_empty(empty_conn, ru
     assert runner.load_records() == {}, "précondition : table présente, aucune ligne"
 
     result = runner.baseline(dry_run=False)
-    assert result.written_count == 41  # 000 + 40 fichiers (001-039 dont 008b)
+    assert result.written_count == 42  # 000 + 41 fichiers (001-040 dont 008b)
     assert all(i.action == "baseline" for i in result.items)
     assert runner.verify() == []
 
@@ -314,7 +316,7 @@ def test_baseline_commit_rolls_back_and_reports_root_cause_when_initial_read_fai
         )
 
     result = runner.baseline(dry_run=False)  # nouvelle tentative, "panne" résolue
-    assert result.written_count == 41  # 000 + 40 fichiers (001-039 dont 008b)
+    assert result.written_count == 42  # 000 + 41 fichiers (001-040 dont 008b)
     assert runner.verify() == []
 
 
@@ -533,7 +535,7 @@ def test_cli_end_to_end_status_verify_baseline_verify(empty_conn, runner):
     assert dry.written_count == 0
 
     committed = runner.baseline(dry_run=False)
-    assert committed.written_count == 41  # 000 + 40 fichiers (001-039 dont 008b)
+    assert committed.written_count == 42  # 000 + 41 fichiers (001-040 dont 008b)
     assert runner.verify() == []
 
 

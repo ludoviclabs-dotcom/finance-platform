@@ -43,6 +43,7 @@ from routers import (
     imports,
     ingest,
     intelligence,
+    iro,
     materialite,
     nature,
     partners,
@@ -230,3 +231,4 @@ app.include_router(energy.router, prefix="/energy", tags=["energy (PR-06A)"])
 app.include_router(crma.router, prefix="/crma", tags=["crma (PR-07)"])
 app.include_router(water.router, prefix="/water", tags=["water (PR-08)"])
 app.include_router(nature.router, prefix="/nature", tags=["nature (PR-09)"])
+app.include_router(iro.router, prefix="/iro", tags=["iro (PR-10)"])

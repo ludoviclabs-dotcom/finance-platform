@@ -27,11 +27,20 @@
     {
       "id": "energie-scope2-dual",
       "label": "Énergie & Scope 2 dual (location + market-based)",
-      "description": "Fondation énergie : compteurs, activités de consommation, instruments contractuels (REC/GO/PPA/tarif vert) et allocations contrôlées avec anti-double-allocation garanti en base. Vue Scope 2 dual location-based et market-based côte à côte. Le moteur de calcul dual (totaux LB/MB en tCO2e) arrive en tranche suivante.",
+      "description": "Fondation énergie : compteurs, activités de consommation, instruments contractuels (REC/GO/PPA/tarif vert) et allocations contrôlées avec anti-double-allocation garanti en base. Vue Scope 2 dual location-based et market-based côte à côte.",
       "statut": "beta",
       "normes": ["ESRS E1", "GHG Protocol Scope 2"],
       "tag": "ESRS E1 · Scope 2",
       "preuve": "apps/api/routers/energy.py"
+    },
+    {
+      "id": "moteur-scope2-dual",
+      "label": "Moteur de calcul Scope 2 dual (totaux LB/MB + trace)",
+      "description": "Calcul déterministe et reproductible des deux totaux Scope 2 en tCO2e, publiés côte à côte. Hiérarchie de facteurs explicite — location-based : réseau sous-national puis national puis régional documenté ; market-based : instrument contractuel alloué puis facteur fournisseur puis mix résiduel. Aucun facteur choisi silencieusement : chaque ligne de la trace de calcul porte son niveau et sa raison, et l'échec du dernier niveau est une erreur explicite (jamais un zéro). Snapshot d'entrée immuable, Evidence Pack signé, approbation gatée sur la complétude du run.",
+      "statut": "beta",
+      "normes": ["ESRS E1", "GHG Protocol Scope 2 Guidance"],
+      "tag": "ESRS E1 · Scope 2",
+      "preuve": "apps/api/services/calculations/scope2.py"
     },
     {
       "id": "dashboard-provenance",

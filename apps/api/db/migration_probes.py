@@ -431,6 +431,29 @@ def _probe_032(cur) -> bool:
     )
 
 
+def _probe_033(cur) -> bool:
+    """Moteur de calcul Scope 2 dual (PR-06B) : 2 tables purement tenant + RLS
+    FORCE + policy scopée sur chacune + les DEUX triggers d'immutabilité.
+
+    Les triggers font partie des artefacts sondés (comme le trigger
+    anti-double-allocation en 031) : une base où les tables existent mais où
+    l'immutabilité du snapshot d'entrée a été retirée n'est pas la migration
+    033 — le run cesserait d'être un enregistrement infalsifiable, et la sonde
+    doit le détecter."""
+    tables = ("scope2_calculation_runs", "scope2_line_results")
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    return (
+        _trigger_exists(cur, "scope2_calculation_runs", "trg_scope2_runs_immutable")
+        and _trigger_exists(cur, "scope2_line_results", "trg_scope2_lines_immutable")
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -466,6 +489,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "030": _probe_030,
     "031": _probe_031,
     "032": _probe_032,
+    "033": _probe_033,
 }
 
 

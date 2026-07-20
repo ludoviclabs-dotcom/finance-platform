@@ -116,6 +116,21 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "aucun LLM, aucune donnée métier migrée."
         ),
     ),
+    "033": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Moteur de calcul Scope 2 dual (PR-06B) : 2 nouvelles tables "
+            "(scope2_calculation_runs, scope2_line_results), RLS gen-2 FORCE + "
+            "policies par commande, triggers d'immutabilité (snapshot d'entrée, "
+            "résultat et lignes de trace non réécrivables). Ne crée que des tables "
+            "neuves (aucun ALTER d'une table existante) — pas de privilège "
+            "propriétaire requis, comme 028/030/031. Aucun calcul exécuté par la "
+            "migration, aucune donnée métier migrée, aucun LLM, aucun fallback "
+            "silencieux de facteur. Appliquée après 032 (moteur Scope 3 achats, "
+            "PR-05B) : le ledger trie par préfixe sans exiger de contiguïté."
+        ),
+    ),
 }
 
 

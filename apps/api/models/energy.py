@@ -166,4 +166,150 @@ class AllocationResponse(BaseModel):
     allocated_mwh: float
     allocated_at: datetime
     allocated_by: int | None
+
+
+# ---------------------------------------------------------------------------
+# Moteur de calcul Scope 2 dual (PR-06B) — scope2_calculation_runs /
+# scope2_line_results. Ici, et seulement ici, apparaissent des tCO2e.
+# ---------------------------------------------------------------------------
+
+Scope2Basis = Literal["location", "market"]
+Scope2Segment = Literal["total", "covered", "uncovered"]
+Scope2FactorBasis = Literal[
+    "location", "market", "residual_mix", "contractual_instrument", "documented_fallback"
+]
+Scope2RunStatus = Literal["draft", "approved", "superseded"]
+
+
+class Scope2CalculateRequest(BaseModel):
+    """Demande de calcul. `geography_code` (zone de réseau, ex. `FR` ou
+    `FR-IDF`) est OBLIGATOIRE : un calcul location-based sans zone déclarée
+    n'existe pas, et deviner la zone serait un choix silencieux.
+
+    `allow_market_fallback` est le seul interrupteur autorisant le niveau 4 de
+    la hiérarchie market-based ; **faux par défaut** — sans autorisation
+    méthodologique explicite, l'absence de facteur de marché est une erreur
+    remontée, jamais un repli discret sur une moyenne de réseau.
+    """
+
+    period_start: date
+    period_end: date
+    geography_code: str = Field(min_length=2)
+    site_geographies: dict[int, str] = Field(default_factory=dict)
+    include_pending: bool = True
+    allow_market_fallback: bool = False
+    fallback_note: str | None = None
+
+
+class Scope2MissingFactor(BaseModel):
+    energy_activity_id: int
+    basis: Scope2Basis
+    segment: Scope2Segment
+    carrier: Carrier
+    geography_code: str | None
+    activity_mwh: float
+    message: str
+
+
+class Scope2FactorUsed(BaseModel):
+    ef_id: int
+    ef_code: str | None = None
+    ef_version: str | None = None
+    basis: str
+    selection_level: str
+    factor_basis: str
+
+
+class Scope2TraceLine(BaseModel):
+    """Une ligne de la Trace de calcul. `selection_level` + `selection_reason`
+    sont NON NULS : la trace dit toujours d'où vient le facteur retenu."""
+
+    id: int | None = None
+    energy_activity_id: int | None
+    basis: Scope2Basis
+    segment: Scope2Segment
+    instrument_id: int | None = None
+    carrier: Carrier
+    geography_code: str | None
+    period_start: date
+    period_end: date
+    activity_value: float
+    activity_unit: str
+    activity_mwh: float
+    ef_id: int | None = None
+    ef_code: str | None = None
+    ef_version: str | None = None
+    factor_kgco2e_per_mwh: float | None = None
+    factor_basis: Scope2FactorBasis | None = None
+    selection_level: str
+    selection_reason: str
+    result_tco2e: float
+    uncertainty: float | None = None
+    data_quality: EnergyDataStatus
+    fallback_reason: str | None = None
+    warnings: list[str] = Field(default_factory=list)
+
+
+class Scope2ResultData(BaseModel):
+    """Le `data` de l'enveloppe analytique (contrats §4).
+
+    Les DEUX totaux coexistent toujours — aucun champ ne peut en masquer un
+    autre côté API, comme côté UI.
+    """
+
+    run_id: int
+    status: Scope2RunStatus
+    period_start: date
+    period_end: date
+    geography_code: str
+    location_based_tco2e: float
+    market_based_tco2e: float
+    total_consumption_mwh: float
+    calculated_consumption_mwh: float
+    contractual_coverage_mwh: float
+    contractual_coverage_pct: float
+    uncovered_mwh: float
+    residual_mix_used: bool
+    is_complete: bool
+    input_fingerprint: str
+    calculated_at: datetime
+    approved_at: datetime | None = None
+    missing_factors: list[Scope2MissingFactor] = Field(default_factory=list)
+    factors_used: list[Scope2FactorUsed] = Field(default_factory=list)
+    trace: list[Scope2TraceLine] = Field(default_factory=list)
+
+
+class Scope2RunSummary(BaseModel):
+    """Vue de liste d'un run — sans la trace complète (payload contenu)."""
+
+    id: int
+    company_id: int
+    methodology_code: str
+    methodology_version: str
+    period_start: date
+    period_end: date
+    geography_code: str
+    status: Scope2RunStatus
+    location_based_tco2e: float | None = None
+    market_based_tco2e: float | None = None
+    confidence: float | None = None
+    coverage_pct: float | None = None
+    is_complete: bool = False
+    input_fingerprint: str
+    calculated_at: datetime
+    approved_at: datetime | None = None
+    warning_count: int = 0
+
+
+class Scope2RunListResponse(BaseModel):
+    items: list[Scope2RunSummary]
+    total: int
+    limit: int
+    offset: int
+
+
+class Scope2TraceResponse(BaseModel):
+    run_id: int
+    items: list[Scope2TraceLine]
+    total: int
     created_at: datetime

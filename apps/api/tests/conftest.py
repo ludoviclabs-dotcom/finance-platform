@@ -43,6 +43,12 @@ from ._procurement_fixtures import (  # noqa: E402,F401
     two_companies_proc,
 )
 
+# Moteur de calcul Scope 2 dual (PR-06B) : mêmes raisons que ci-dessus.
+from ._scope2_fixtures import (  # noqa: E402,F401
+    scope2_env,
+    scope2_schema,
+)
+
 
 @pytest.fixture(autouse=True)
 def _reset_state_between_tests():

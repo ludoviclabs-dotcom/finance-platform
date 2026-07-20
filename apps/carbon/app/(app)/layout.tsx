@@ -37,6 +37,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/reports":     { title: "Rapports",         subtitle: "Exports & documents" },
   "/pricing":     { title: "Offres",           subtitle: "Plans & tarification" },
   "/securite":    { title: "Sécurité",         subtitle: "Double authentification (2FA)" },
+  "/crma":        { title: "Matières critiques", subtitle: "CRMA · aimants permanents · Article 24" },
 };
 
 function PageSkeleton() {

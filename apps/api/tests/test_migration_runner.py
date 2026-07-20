@@ -230,7 +230,8 @@ def test_build_plan_no_blocking_issues_when_all_apply(tmp_path, monkeypatch):
     assert plan.has_blocking_issues is False
 
 
-# ── Corpus réel (32 fichiers : 028 PR-03, 029 PR-04, 030 PR-05A, 031 PR-06A) ──
+# ── Corpus réel (33 fichiers : 028 PR-03, 029 PR-04, 030 PR-05A, 031 PR-06A,
+#    034 PR-07) ─────────────────────────────────────────────────────────────
 
 
 def test_build_plan_against_real_migrations_directory(monkeypatch):
@@ -240,8 +241,8 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     028 (Evidence Kernel, PR-03) ; 30 depuis 029 (Source Admin — vue de
     fraîcheur, PR-04) ; 31 depuis 030 (exposition achats, PR-05A) ; 32 depuis
     031 (fondation énergie, PR-06A) ; 33 depuis 032 (moteur Scope 3 achats &
-    hotspots, PR-05B) ; 34 depuis 033 (moteur de calcul Scope 2 dual, PR-06B)
-    — voir tests dédiés ci-dessous pour 028 à 033.
+    hotspots, PR-05B) ; 34 depuis 033 (moteur de calcul Scope 2 dual, PR-06B) ;
+    35 depuis 034 (pack CRMA, PR-07) — voir tests dédiés ci-dessous pour 028 à 034.
 
     Le plan n'exige AUCUNE contiguïté des préfixes : il trie les fichiers
     réellement présents. C'est la présence du fichier qui compte, pas la suite.
@@ -251,7 +252,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 34
+    assert len(versions) == 35
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
@@ -260,6 +261,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert "031" in versions
     assert "032" in versions
     assert "033" in versions
+    assert "034" in versions
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["027"] == "blocked_manual"
@@ -271,6 +273,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert actions["031"] == "apply"
     assert actions["032"] == "apply"
     assert actions["033"] == "apply"
+    assert actions["034"] == "apply"
     assert plan.has_blocking_issues is True
 
 
@@ -319,6 +322,35 @@ def test_build_plan_detects_030_pending_on_baselined_ledger(monkeypatch):
     assert actions["030"] == "apply"
     assert all(actions[v] == "skip" for v in baselined)
     assert plan.has_blocking_issues is False
+
+
+# ── PR-07 : migration 034 (pack CRMA) détectée par le ledger ─────────────
+
+
+def test_build_plan_detects_034_pending_on_baselined_ledger(monkeypatch):
+    """034 doit apparaître 'apply' quand le ledger est déjà baseliné sur tout le
+    reste — jamais 'skip' ni bloquée, puisque 034 n'est pas `requires_owner`
+    (elle ne crée que des tables neuves, comme 028/030/031).
+
+    Vérifie aussi qu'un TROU de numérotation (032/033 réservées à d'autres
+    tranches et absentes du dossier) ne perturbe pas le plan : le ledger trie
+    sur le préfixe numérique et n'exige aucune contiguïté."""
+    runner = MigrationRunner()
+    files = runner.discover_migrations()
+    baselined = {
+        f.version: _record(version=f.version, status="baseline", checksum=f.checksum_sha256)
+        for f in files
+        if f.version != "034"
+    }
+    monkeypatch.setattr(runner, "load_records", lambda: baselined)
+    plan = runner.build_plan()
+
+    actions = {i.file.version: i.action for i in plan.items}
+    assert actions["034"] == "apply"
+    assert all(actions[v] == "skip" for v in baselined)
+    assert plan.has_blocking_issues is False
+    # 034 est bien la DERNIÈRE du plan malgré l'absence de 032/033.
+    assert [i.file.version for i in plan.items][-1] == "034"
 
 
 # ── PR-02C : apply_plan — gardes pré-connexion (aucune DB requise) ────────

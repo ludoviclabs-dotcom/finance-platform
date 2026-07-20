@@ -131,6 +131,28 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "PR-05B) : le ledger trie par préfixe sans exiger de contiguïté."
         ),
     ),
+    "034": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "CRMA / exposition matières critiques (PR-07) : 11 nouvelles tables — "
+            "8 référentiels à portée mixte tenant/globale (material_groups, "
+            "material_group_members, processing_stages, material_stage_observations, "
+            "material_market_observations, substitutes, recycling_routes, "
+            "trade_or_regulatory_events) et 3 tables tenant strictes "
+            "(company_material_exposures, crma_article24_assessments, "
+            "mitigation_actions). RLS gen-2 FORCE, policies par commande ; lecture "
+            "tenant OU globale, écriture tenant uniquement (pattern 028). Seule "
+            "écriture de données : les 8 étapes de la chaîne de valeur "
+            "(vocabulaire structurel, pas une donnée factuelle), semées sous "
+            "app.rls_bypass. Ne crée que des tables neuves (aucun ALTER d'une "
+            "table existante) — pas de privilège propriétaire requis, comme 028. "
+            "material_id reste TEXT sans FK : aucun référentiel `materials` "
+            "n'existe encore en base, il relèvera d'une migration ultérieure. "
+            "Aucune source externe ingérée, aucun LLM, aucun prix affiché sans "
+            "droit de licence."
+        ),
+    ),
 }
 
 

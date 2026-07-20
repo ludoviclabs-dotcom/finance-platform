@@ -399,6 +399,19 @@
       "tag": "Noyau de preuve",
       "href": "/intelligence/sources",
       "preuve": "apps/api/services/intelligence/snapshot_migration.py"
+    },
+    {
+      "id": "crma-exposition-matieres",
+      "label": "Exposition matières critiques & aimants permanents (CRMA)",
+      "description": "Chaîne de valeur matière décomposée par étape (extraction, séparation, raffinage, métal & alliage, poudre, aimant, composant, produit), exposition de l'entreprise reliée aux nomenclatures et aux fournisseurs, alternatives, filières de recyclage, stocks et actions d'atténuation. Score CarbonCo Material Exposure versionné, où le risque et la confiance restent deux grandeurs séparées — ce n'est pas un score officiel de l'Union européenne. Prépare le rapport Article 24. Données de démonstration estimées, aucune ingestion externe.",
+      "statut": "beta",
+      "normes": [
+        "ESRS E1",
+        "ESRS E5"
+      ],
+      "tag": "Exposition matières",
+      "href": "/crma",
+      "preuve": "apps/api/services/crma/scoring.py"
     }
   ],
   "esrs": [

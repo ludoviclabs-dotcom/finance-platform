@@ -23,6 +23,7 @@ from routers import (
     consolidation,
     copilot,
     creditrisk,
+    crma,
     cyber,
     dashboard,
     diff,
@@ -224,3 +225,4 @@ app.include_router(intelligence.router, prefix="/intelligence", tags=["intellige
 app.include_router(procurement.router, prefix="/procurement", tags=["procurement (PR-05A)"])
 app.include_router(products.router, prefix="/products", tags=["products (PR-05A)"])
 app.include_router(energy.router, prefix="/energy", tags=["energy (PR-06A)"])
+app.include_router(crma.router, prefix="/crma", tags=["crma (PR-07)"])

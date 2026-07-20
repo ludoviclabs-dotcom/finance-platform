@@ -53,6 +53,25 @@ FAR_SQUARE = {
 }
 
 
+def _isolated_square(base: float, size: float = 2.0) -> dict:
+    """Carré EXCLUSIF (lat/lon `base`..`base+size`) — `two_companies_nature`
+    est un fixture de PORTÉE MODULE (une seule fois par fichier de test), donc
+    les `nature_features` posées par `TestNatureFeatures` (boundary=SQUARE,
+    0-10) restent visibles pour TOUS les tests suivants du même module. Les
+    tests `TestLocate` qui COMPTENT des intersections exactes ont donc besoin
+    chacun d'une région géographique qui ne chevauche NI `SQUARE`/`FAR_SQUARE`
+    NI les régions des autres tests `TestLocate` — jamais une coïncidence de
+    coordonnées entre tests indépendants."""
+    return {
+        "type": "Polygon",
+        "coordinates": [[
+            [base, base], [base + size, base],
+            [base + size, base + size], [base, base + size],
+            [base, base],
+        ]],
+    }
+
+
 def _token_for(company_id: int, role: str = "analyst", user_id: int = 88) -> str:
     user = AuthUser(
         email=f"nature-{role}-{company_id}@test.local", role=role,
@@ -197,10 +216,11 @@ class TestLocate:
 
     def test_locate_creates_pending_matched_intersection(self, two_companies_nature):
         cid_a, _ = two_companies_nature
+        boundary = _isolated_square(20.0)
         _, release_id = insert_source_with_release(cid_a, "nature-locate-1")
-        insert_nature_feature(cid_a, "kba-locate-1", release_id, boundary=SQUARE, feature_kind="kba")
+        insert_nature_feature(cid_a, "kba-locate-1", release_id, boundary=boundary, feature_kind="kba")
         site_id = insert_site(cid_a, "Site Locate 1")
-        accept_site_position(cid_a, site_id, latitude=5.0, longitude=5.0)
+        accept_site_position(cid_a, site_id, latitude=21.0, longitude=21.0)
 
         results = locate_service.locate_site(company_id=cid_a, site_id=site_id)
         assert len(results) == 1
@@ -214,17 +234,22 @@ class TestLocate:
         _, release_id = insert_source_with_release(cid_a, "nature-locate-2")
         insert_nature_feature(cid_a, "kba-far", release_id, boundary=FAR_SQUARE, feature_kind="kba")
         site_id = insert_site(cid_a, "Site loin de tout")
-        accept_site_position(cid_a, site_id, latitude=5.0, longitude=5.0)
+        # Point choisi hors de TOUTE région utilisée ailleurs dans ce module
+        # (SQUARE 0-10, FAR_SQUARE 80-85, régions isolées 20/30/40/50) —
+        # `two_companies_nature` est de portée MODULE : les features posées
+        # par d'autres tests restent visibles ici.
+        accept_site_position(cid_a, site_id, latitude=65.0, longitude=65.0)
 
         results = locate_service.locate_site(company_id=cid_a, site_id=site_id)
         assert results == [], "hors bbox : aucune ligne candidate, pas de faux appariement"
 
     def test_locate_recompute_creates_new_rows_not_overwrite(self, two_companies_nature):
         cid_a, _ = two_companies_nature
+        boundary = _isolated_square(30.0)
         _, release_id = insert_source_with_release(cid_a, "nature-locate-3")
-        insert_nature_feature(cid_a, "kba-recompute", release_id, boundary=SQUARE)
+        insert_nature_feature(cid_a, "kba-recompute", release_id, boundary=boundary)
         site_id = insert_site(cid_a, "Site recompute")
-        accept_site_position(cid_a, site_id, latitude=5.0, longitude=5.0)
+        accept_site_position(cid_a, site_id, latitude=31.0, longitude=31.0)
 
         locate_service.locate_site(company_id=cid_a, site_id=site_id)
         locate_service.locate_site(company_id=cid_a, site_id=site_id)
@@ -234,10 +259,11 @@ class TestLocate:
 
     def test_review_intersection_gate(self, two_companies_nature):
         cid_a, _ = two_companies_nature
+        boundary = _isolated_square(40.0)
         _, release_id = insert_source_with_release(cid_a, "nature-locate-4")
-        insert_nature_feature(cid_a, "kba-review", release_id, boundary=SQUARE)
+        insert_nature_feature(cid_a, "kba-review", release_id, boundary=boundary)
         site_id = insert_site(cid_a, "Site review")
-        accept_site_position(cid_a, site_id, latitude=5.0, longitude=5.0)
+        accept_site_position(cid_a, site_id, latitude=41.0, longitude=41.0)
         [intersection] = locate_service.locate_site(company_id=cid_a, site_id=site_id)
 
         reviewed = locate_service.review_intersection(
@@ -253,10 +279,11 @@ class TestLocate:
         """Preuve DB directe (pas seulement applicative) : une tentative de
         réécriture du fait géométrique lève, trigger 038."""
         cid_a, _ = two_companies_nature
+        boundary = _isolated_square(50.0)
         _, release_id = insert_source_with_release(cid_a, "nature-locate-5")
-        insert_nature_feature(cid_a, "kba-immutable", release_id, boundary=SQUARE)
+        insert_nature_feature(cid_a, "kba-immutable", release_id, boundary=boundary)
         site_id = insert_site(cid_a, "Site immuable")
-        accept_site_position(cid_a, site_id, latitude=5.0, longitude=5.0)
+        accept_site_position(cid_a, site_id, latitude=51.0, longitude=51.0)
         [intersection] = locate_service.locate_site(company_id=cid_a, site_id=site_id)
 
         with pytest.raises(Exception, match="immuable"):
@@ -454,29 +481,6 @@ class TestLeapAssessments:
             company_id=cid_a, assessment_id=assessment.id, target_phase="assess",
         )
         assert advanced.phase == "assess"
-
-    def test_advance_phase_to_prepare_not_supported_in_tranche_a(self, two_companies_nature):
-        """`prepare`/`completed` dépendent de 039 (risques/opportunités/
-        actions/disclosure) — refus explicite, jamais un no-op silencieux."""
-        from models.nature import LeapAssessmentCreate
-
-        cid_a, _ = two_companies_nature
-        site_id = insert_site(cid_a, "Site prepare gate")
-        assessment = leap_service.create_assessment(
-            company_id=cid_a, payload=LeapAssessmentCreate(label="Dossier prepare", site_ids=[site_id]),
-        )
-        leap_service.advance_phase(company_id=cid_a, assessment_id=assessment.id, target_phase="evaluate")
-        dep = dependencies_service.create_dependency(
-            company_id=cid_a,
-            payload=NatureDependencyCreate(
-                site_id=site_id, ecosystem_service="other", dependency_level="low",
-            ),
-        )
-        dependencies_service.review_dependency(company_id=cid_a, dependency_id=dep.id, accept=True, reviewed_by=5)
-        leap_service.advance_phase(company_id=cid_a, assessment_id=assessment.id, target_phase="assess")
-
-        with pytest.raises(leap_service.NatureLeapError, match="pas encore disponible"):
-            leap_service.advance_phase(company_id=cid_a, assessment_id=assessment.id, target_phase="prepare")
 
     def test_review_requires_reviewed_by(self, two_companies_nature):
         from models.nature import LeapAssessmentCreate

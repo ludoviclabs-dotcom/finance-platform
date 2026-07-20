@@ -110,11 +110,22 @@ class TestSchemaNotReady:
         assert resp.json()["detail"] == "schema_not_ready"
 
     def test_locate_endpoint_503_schema_not_ready(self, client, pre038_company):
+        """La position ACCEPTÉE est posée directement en base (colonnes 036,
+        déjà présentes pré-038) pour que le code dépasse le gate de
+        géocodage — sans quoi il échouerait AVANT même de toucher
+        `nature_features` (manquante), masquant le vrai `schema_not_ready`
+        derrière un refus métier normal (409)."""
         cid = pre038_company
         with get_db(company_id=cid) as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    "INSERT INTO sites (company_id, name) VALUES (%s, 'Site pré-038') RETURNING id",
+                    """
+                    INSERT INTO sites
+                        (company_id, name, latitude, longitude, geocode_precision,
+                         geocode_provider, geocode_review_status, geocode_reviewed_by, geocode_reviewed_at)
+                    VALUES (%s, 'Site pré-038', 5.0, 5.0, 'exact', 'manual', 'accepted', 4242, now())
+                    RETURNING id
+                    """,
                     (cid,),
                 )
                 site_id = cur.fetchone()["id"]
@@ -175,9 +186,21 @@ class TestSchemaNotReadyTrancheB:
         assert resp.json()["detail"] == "schema_not_ready"
 
     def test_calculate_risk_503_schema_not_ready(self, client, pre039_company):
+        """Le dossier LEAP référencé doit RÉELLEMENT exister (table 038,
+        déjà présente pré-039) — un `assessment_id` inventé ferait échouer le
+        service AVANT de toucher `nature_risks` (manquante), masquant le vrai
+        `schema_not_ready` derrière un 404 normal."""
+        cid = pre039_company
+        with get_db(company_id=cid) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO leap_assessments (company_id, label) VALUES (%s, 'Dossier pré-039') RETURNING id",
+                    (cid,),
+                )
+                assessment_id = cur.fetchone()["id"]
         resp = client.post(
-            "/nature/risks/calculate", headers=_auth(pre039_company),
-            json={"assessment_id": 1, "title": "x"},
+            "/nature/risks/calculate", headers=_auth(cid),
+            json={"assessment_id": assessment_id, "title": "x"},
         )
         assert resp.status_code == 503
         assert resp.json()["detail"] == "schema_not_ready"
@@ -193,9 +216,20 @@ class TestSchemaNotReadyTrancheB:
         assert resp.json()["detail"] == "schema_not_ready"
 
     def test_disclosure_drafts_503_schema_not_ready(self, client, pre039_company):
+        """Même raison que `test_calculate_risk_503_schema_not_ready` : un
+        dossier LEAP réel (038) est requis pour dépasser la vérification de
+        périmètre avant d'atteindre `tnfd_disclosure_drafts` (manquante)."""
+        cid = pre039_company
+        with get_db(company_id=cid) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO leap_assessments (company_id, label) VALUES (%s, 'Dossier pré-039 disclosure') RETURNING id",
+                    (cid,),
+                )
+                assessment_id = cur.fetchone()["id"]
         resp = client.post(
-            "/nature/disclosure-drafts", headers=_auth(pre039_company),
-            json={"assessment_id": 1, "title": "x"},
+            "/nature/disclosure-drafts", headers=_auth(cid),
+            json={"assessment_id": assessment_id, "title": "x"},
         )
         assert resp.status_code == 503
         assert resp.json()["detail"] == "schema_not_ready"

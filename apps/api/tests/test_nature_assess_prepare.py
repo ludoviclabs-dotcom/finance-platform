@@ -15,6 +15,7 @@ base) ; progression LEAP jusqu'à `completed` (039 débloque `prepare`) ; API
 
 from __future__ import annotations
 
+import itertools
 import os
 
 import pytest
@@ -63,10 +64,19 @@ def _auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
+_site_name_counter = itertools.count(1)
+
+
 def _assessment_with_accepted_dependency(company_id: int, *, dependency_level: str = "high"):
     """Monte un dossier LEAP en 'evaluate' avec un site rattaché et UNE
-    dépendance ACCEPTÉE — le socle minimal pour un score non nul."""
-    site_id = insert_site(company_id, "Site assess-prepare")
+    dépendance ACCEPTÉE — le socle minimal pour un score non nul.
+
+    Nom de site UNIQUE à chaque appel : `sites` porte une contrainte
+    `sites_company_name_uniq (company_id, name)` et `two_companies_nature`
+    est un fixture de portée MODULE (les deux mêmes companies servent à TOUS
+    les tests de ce fichier) — un nom fixe entrerait en collision dès le
+    deuxième test qui appelle ce helper pour la même company."""
+    site_id = insert_site(company_id, f"Site assess-prepare {next(_site_name_counter)}")
     assessment = leap_service.create_assessment(
         company_id=company_id, payload=LeapAssessmentCreate(label="Dossier assess", site_ids=[site_id]),
     )

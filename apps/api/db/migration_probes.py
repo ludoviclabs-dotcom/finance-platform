@@ -640,6 +640,32 @@ def _probe_038(cur) -> bool:
     )
 
 
+def _probe_039(cur) -> bool:
+    """Risques, opportunités et brouillons TNFD nature — Assess et Prepare
+    (PR-09 tranche B) : 4 tables neuves + RLS FORCE + policy scopée sur
+    chacune, et deux CHECK porteurs des règles non négociables — l'intervalle
+    de risk_score/confidence de nature_risks SÉPARÉS (précédent
+    crma_article24_..._range_check, 034), et
+    tnfd_disclosure_drafts_never_certified_check (is_official_tnfd_disclosure
+    verrouillé à false : une base où cette contrainte a disparu autoriserait
+    une ligne 'certifiée' — ce n'est PAS la migration 039)."""
+    tables = ("nature_risks", "nature_opportunities", "nature_actions", "tnfd_disclosure_drafts")
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    return (
+        _constraint_exists(cur, "nature_risks", "nature_risks_score_range_check")
+        and _constraint_exists(cur, "nature_risks", "nature_risks_confidence_range_check")
+        and _constraint_exists(
+            cur, "tnfd_disclosure_drafts", "tnfd_disclosure_drafts_never_certified_check"
+        )
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -681,6 +707,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "036": _probe_036,
     "037": _probe_037,
     "038": _probe_038,
+    "039": _probe_039,
 }
 
 

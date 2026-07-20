@@ -5,10 +5,11 @@ même convention que `_water_fixtures.py`/`_crma_fixtures.py`.
 
 Applique le DDL historique + les fichiers `.sql` RÉELS jusqu'à la borne
 `NATURE_CEILING` (fondation 038 : référentiel, intersections, dépendances/
-impacts, dossiers LEAP). `apply_upto` exécute les fichiers réels en superuser
-CI — 038 n'est PAS `requires_owner` (tables neuves uniquement), contrairement
-à 036, donc aucune distinction production/CI à documenter ici (à la différence
-de `_water_fixtures.py`).
+impacts, dossiers LEAP ; 039 : risques, opportunités, actions, brouillons
+TNFD — tranche B). `apply_upto` exécute les fichiers réels en superuser CI —
+ni 038 ni 039 ne sont `requires_owner` (tables neuves uniquement),
+contrairement à 036, donc aucune distinction production/CI à documenter ici
+(à la différence de `_water_fixtures.py`).
 
 **Toutes les données semées ici sont FICTIVES.** Aucune vraie aire protégée,
 aucune vraie zone KBA, aucune coordonnée réelle d'usine : les géométries sont
@@ -40,14 +41,19 @@ from ._water_fixtures import (  # noqa: F401 — réexportés pour les tests PR-
     insert_source_with_release,
 )
 
-# Borne haute du schéma nature : 038 (fondation Locate/Evaluate, PR-09 tranche A).
-NATURE_CEILING = "038"
+# Borne haute du schéma nature : 039 (fondation Locate/Evaluate 038 + Assess/
+# Prepare 039, PR-09 tranches A+B).
+NATURE_CEILING = "039"
 
 # Tables PR-09, enfants avant parents (le teardown pose de toute façon
 # session_replication_role=replica — triggers FK ET trigger d'immutabilité de
 # site_nature_intersections désactivés le temps du nettoyage, pattern
 # _water_fixtures/_crma_fixtures).
 NATURE_TABLES = (
+    "nature_actions",
+    "tnfd_disclosure_drafts",
+    "nature_opportunities",
+    "nature_risks",
     "leap_assessment_sites",
     "leap_assessments",
     "nature_impacts",

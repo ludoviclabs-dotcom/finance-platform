@@ -3,10 +3,10 @@ leap_service.py — cycle de vie du dossier LEAP (PR-09).
 
 `phase` (locate -> evaluate -> assess -> prepare -> completed) avance d'UN
 cran à la fois, avec une précondition VÉRIFIÉE par transition — jamais une
-avance automatique. Tranche A (038) sait faire avancer jusqu'à `assess` ;
-`prepare`/`completed` arrivent en tranche B (039, qui étend `advance_phase`
-une fois `nature_risks`/`nature_opportunities`/`nature_actions`/
-`tnfd_disclosure_drafts` disponibles).
+avance automatique. Introduit en tranche A (038) pour `evaluate`/`assess`
+(site rattaché, dépendance/impact ACCEPTÉ) ; ÉTENDU par la tranche B (039,
+ce commit) pour `prepare` (risque/opportunité ACCEPTÉ) et `completed`
+(brouillon de disclosure préparé) — même module, jamais dupliqué.
 
 `review()` mirrors `services/crma/article24_service.py::review()` (motif
 imposé par WAVE_4_INTERFACE_CONTRACTS.md §6) : une approbation exige un
@@ -38,11 +38,11 @@ _NEXT_PHASE: dict[str, str] = {
     "assess": "prepare",
     "prepare": "completed",
 }
-# Transitions dont la précondition est vérifiable avec le seul périmètre 038
-# (features/intersections/dépendances/impacts/dossiers). 'prepare'/'completed'
-# dépendent de tables 039 (risques/opportunités/actions/disclosure) — la
-# tranche B étend ce module plutôt que de dupliquer sa logique.
-_SUPPORTED_TARGETS_TRANCHE_A = frozenset({"evaluate", "assess"})
+# Toutes les transitions ont désormais une précondition vérifiable :
+# 'evaluate'/'assess' dépendent du périmètre 038 (dépendances/impacts/sites) ;
+# 'prepare'/'completed' dépendent de 039 (risques/opportunités/disclosure),
+# ajoutées par la tranche B — ce module est ÉTENDU, jamais dupliqué.
+_SUPPORTED_TARGETS = frozenset({"evaluate", "assess", "prepare", "completed"})
 
 
 class NatureLeapError(Exception):
@@ -177,11 +177,8 @@ def advance_phase(
                     f"Transition invalide : '{current}' -> '{target_phase}' "
                     f"(seule '{expected_next}' est atteignable depuis '{current}')."
                 )
-            if target_phase not in _SUPPORTED_TARGETS_TRANCHE_A:
-                raise NatureLeapError(
-                    f"Transition vers '{target_phase}' pas encore disponible : "
-                    "arrive avec PR-09 tranche B (migration 039)."
-                )
+            if target_phase not in _SUPPORTED_TARGETS:
+                raise NatureLeapError(f"Transition vers '{target_phase}' non supportée.")
             if target_phase == "evaluate":
                 cur.execute(
                     "SELECT COUNT(*) AS c FROM leap_assessment_sites WHERE assessment_id = %s AND company_id = %s",
@@ -213,6 +210,43 @@ def advance_phase(
                         "Passage en 'assess' refusé : aucune dépendance ni impact ACCEPTÉ "
                         "pour les sites du dossier — proximité/déclaration ne suffit pas, "
                         "il faut une revue humaine positive."
+                    )
+            elif target_phase == "prepare":
+                # 039 (tranche B) : au moins un risque OU une opportunité
+                # ACCEPTÉ — un calcul seul (jamais revu) ne suffit pas, même
+                # règle que 'assess' : la revue humaine positive est le geste
+                # qui compte, pas le calcul.
+                cur.execute(
+                    """
+                    SELECT COUNT(*) AS c FROM (
+                        SELECT 1 FROM nature_risks
+                        WHERE company_id = %s AND assessment_id = %s AND review_status = 'accepted'
+                        UNION ALL
+                        SELECT 1 FROM nature_opportunities
+                        WHERE company_id = %s AND assessment_id = %s AND review_status = 'accepted'
+                    ) sub
+                    """,
+                    (company_id, assessment_id, company_id, assessment_id),
+                )
+                if cur.fetchone()["c"] == 0:
+                    raise NatureLeapError(
+                        "Passage en 'prepare' refusé : aucun risque ni opportunité ACCEPTÉ "
+                        "pour ce dossier — un score calculé mais jamais revu ne suffit pas."
+                    )
+            elif target_phase == "completed":
+                # 039 : au moins un brouillon de disclosure préparé (jamais
+                # exigé 'approved' — 'completed' constate que le cycle LEAP a
+                # été parcouru, pas qu'une publication a eu lieu : aucune
+                # publication automatique n'existe dans ce dépôt).
+                cur.execute(
+                    "SELECT COUNT(*) AS c FROM tnfd_disclosure_drafts "
+                    "WHERE company_id = %s AND assessment_id = %s",
+                    (company_id, assessment_id),
+                )
+                if cur.fetchone()["c"] == 0:
+                    raise NatureLeapError(
+                        "Passage en 'completed' refusé : aucun brouillon de disclosure "
+                        "TNFD préparé pour ce dossier."
                     )
             cur.execute(
                 f"UPDATE leap_assessments SET phase = %s, updated_at = now() "

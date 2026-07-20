@@ -20,8 +20,18 @@ Endpoints tranche A (038) :
   POST /nature/leap-assessments/{id}/advance-phase
   POST /nature/leap-assessments/{id}/review — approbation humaine (motif article24)
 
-TOUTES les routes de ce fichier sont NEUVES (migration 038 pas encore
-appliquée au moment où la production déploie ce code) : chacune est sous
+Endpoints tranche B (039) :
+  POST /nature/risks/calculate · GET · GET /{id}      — AnalyticalEnvelope
+  POST /nature/risks/{id}/review
+  POST /nature/opportunities/calculate · GET · GET /{id} — AnalyticalEnvelope
+  POST /nature/opportunities/{id}/review
+  POST /nature/actions · GET
+  POST /nature/actions/{id}/review
+  POST /nature/disclosure-drafts · GET · GET /{id}    — TOUJOURS un brouillon
+  POST /nature/disclosure-drafts/{id}/review — require_admin (motif article24)
+
+TOUTES les routes de ce fichier sont NEUVES (migrations 038/039 pas encore
+appliquées au moment où la production déploie ce code) : chacune est sous
 `schema_ready_guard` et répond 503 `schema_not_ready` tant que le schéma
 n'est pas migré — jamais une erreur SQL brute.
 
@@ -34,6 +44,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
 
+from models.analytics import AnalyticalEnvelope
 from models.nature import (
     IntersectionReviewRequest,
     LeapAddSiteRequest,
@@ -42,6 +53,9 @@ from models.nature import (
     LeapAssessmentListResponse,
     LeapAssessmentResponse,
     LocateRequest,
+    NatureActionCreate,
+    NatureActionListResponse,
+    NatureActionResponse,
     NatureDependencyCreate,
     NatureDependencyListResponse,
     NatureDependencyResponse,
@@ -50,19 +64,34 @@ from models.nature import (
     NatureImpactCreate,
     NatureImpactListResponse,
     NatureImpactResponse,
+    NatureOpportunityData,
+    NatureOpportunityListResponse,
+    NatureOpportunitySummary,
+    NatureRiskData,
+    NatureRiskListResponse,
+    NatureRiskSummary,
+    OpportunityCalculateRequest,
     ReviewRequest,
+    RiskCalculateRequest,
     SiteNatureIntersectionListResponse,
     SiteNatureIntersectionResponse,
+    TnfdDisclosureDraftCreate,
+    TnfdDisclosureDraftListResponse,
+    TnfdDisclosureDraftResponse,
 )
 from routers._errors import http_error, require_db, schema_ready_guard
 from routers.auth import get_current_user, require_admin, require_analyst
 from services.auth_service import AuthUser
 from services.nature import (
+    actions_service,
     dependencies_service,
+    disclosure_service,
     features_service,
     impacts_service,
     leap_service,
     locate_service,
+    opportunity_service,
+    risk_service,
 )
 
 router = APIRouter()
@@ -73,6 +102,10 @@ _NATURE_ERRORS = (
     dependencies_service.NatureDependencyError,
     impacts_service.NatureImpactError,
     leap_service.NatureLeapError,
+    risk_service.NatureRiskError,
+    opportunity_service.NatureOpportunityError,
+    actions_service.NatureActionError,
+    disclosure_service.NatureDisclosureError,
 )
 
 
@@ -383,6 +416,280 @@ async def review_leap_assessment_endpoint(
         with schema_ready_guard():
             return leap_service.review(
                 company_id=user.company_id, assessment_id=assessment_id,
+                approve=body.accept, reviewed_by=user.user_id,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+# ---------------------------------------------------------------------------
+# Assess (tranche B) — risques, enveloppe analytique partagée
+# ---------------------------------------------------------------------------
+
+@router.post("/risks/calculate", response_model=AnalyticalEnvelope[NatureRiskData])
+async def calculate_risk_endpoint(
+    body: RiskCalculateRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> AnalyticalEnvelope[NatureRiskData]:
+    """Score PUR à partir des dépendances/impacts/intersections ACCEPTÉS du
+    dossier. `data.risk_score` est `None` si aucune composante n'est
+    calculable — jamais un nombre inventé. `likelihood` est un jugement
+    humain transmis tel quel, jamais dérivé du score."""
+    require_db()
+    try:
+        with schema_ready_guard():
+            return risk_service.calculate(
+                company_id=user.company_id, payload=body, calculated_by=user.user_id,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/risks", response_model=NatureRiskListResponse)
+async def list_risks_endpoint(
+    assessment_id: int | None = Query(None),
+    review_status: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+) -> NatureRiskListResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return risk_service.list_risks(
+                company_id=user.company_id, assessment_id=assessment_id,
+                review_status=review_status, limit=limit, offset=offset,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/risks/{risk_id}", response_model=NatureRiskSummary)
+async def get_risk_endpoint(
+    risk_id: int,
+    user: AuthUser = Depends(get_current_user),
+) -> NatureRiskSummary:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return risk_service.get_risk(company_id=user.company_id, risk_id=risk_id)
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/risks/{risk_id}/review", response_model=NatureRiskSummary)
+async def review_risk_endpoint(
+    risk_id: int,
+    body: ReviewRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> NatureRiskSummary:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return risk_service.review_risk(
+                company_id=user.company_id, risk_id=risk_id,
+                accept=body.accept, reviewed_by=user.user_id,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+# ---------------------------------------------------------------------------
+# Assess (tranche B) — opportunités, même discipline que les risques
+# ---------------------------------------------------------------------------
+
+@router.post("/opportunities/calculate", response_model=AnalyticalEnvelope[NatureOpportunityData])
+async def calculate_opportunity_endpoint(
+    body: OpportunityCalculateRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> AnalyticalEnvelope[NatureOpportunityData]:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return opportunity_service.calculate(
+                company_id=user.company_id, payload=body, calculated_by=user.user_id,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/opportunities", response_model=NatureOpportunityListResponse)
+async def list_opportunities_endpoint(
+    assessment_id: int | None = Query(None),
+    review_status: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+) -> NatureOpportunityListResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return opportunity_service.list_opportunities(
+                company_id=user.company_id, assessment_id=assessment_id,
+                review_status=review_status, limit=limit, offset=offset,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/opportunities/{opportunity_id}", response_model=NatureOpportunitySummary)
+async def get_opportunity_endpoint(
+    opportunity_id: int,
+    user: AuthUser = Depends(get_current_user),
+) -> NatureOpportunitySummary:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return opportunity_service.get_opportunity(
+                company_id=user.company_id, opportunity_id=opportunity_id,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/opportunities/{opportunity_id}/review", response_model=NatureOpportunitySummary)
+async def review_opportunity_endpoint(
+    opportunity_id: int,
+    body: ReviewRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> NatureOpportunitySummary:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return opportunity_service.review_opportunity(
+                company_id=user.company_id, opportunity_id=opportunity_id,
+                accept=body.accept, reviewed_by=user.user_id,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+# ---------------------------------------------------------------------------
+# Prepare (tranche B) — actions
+# ---------------------------------------------------------------------------
+
+@router.post("/actions", response_model=NatureActionResponse, status_code=201)
+async def create_nature_action_endpoint(
+    body: NatureActionCreate,
+    user: AuthUser = Depends(require_analyst),
+) -> NatureActionResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return actions_service.create_action(
+                company_id=user.company_id, payload=body, created_by=user.user_id,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/actions", response_model=NatureActionListResponse)
+async def list_nature_actions_endpoint(
+    risk_id: int | None = Query(None),
+    opportunity_id: int | None = Query(None),
+    assessment_id: int | None = Query(None),
+    status: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+) -> NatureActionListResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return actions_service.list_actions(
+                company_id=user.company_id, risk_id=risk_id, opportunity_id=opportunity_id,
+                assessment_id=assessment_id, status=status, limit=limit, offset=offset,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/actions/{action_id}/review", response_model=NatureActionResponse)
+async def review_nature_action_endpoint(
+    action_id: int,
+    body: ReviewRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> NatureActionResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return actions_service.review_action(
+                company_id=user.company_id, action_id=action_id,
+                accept=body.accept, reviewed_by=user.user_id,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+# ---------------------------------------------------------------------------
+# Prepare (tranche B) — brouillons de disclosure TNFD, TOUJOURS un brouillon
+# ---------------------------------------------------------------------------
+
+@router.post("/disclosure-drafts", response_model=TnfdDisclosureDraftResponse, status_code=201)
+async def create_disclosure_draft_endpoint(
+    body: TnfdDisclosureDraftCreate,
+    user: AuthUser = Depends(require_analyst),
+) -> TnfdDisclosureDraftResponse:
+    """Assemble un brouillon à partir de l'état RÉEL du dossier (dépendances/
+    impacts/risques/opportunités/actions) — `is_official_tnfd_disclosure`
+    toujours `False`, verrouillé en base."""
+    require_db()
+    try:
+        with schema_ready_guard():
+            return disclosure_service.assemble_draft(
+                company_id=user.company_id, payload=body, prepared_by=user.user_id,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/disclosure-drafts", response_model=TnfdDisclosureDraftListResponse)
+async def list_disclosure_drafts_endpoint(
+    assessment_id: int | None = Query(None),
+    status: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+) -> TnfdDisclosureDraftListResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return disclosure_service.list_drafts(
+                company_id=user.company_id, assessment_id=assessment_id, status=status,
+                limit=limit, offset=offset,
+            )
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/disclosure-drafts/{draft_id}", response_model=TnfdDisclosureDraftResponse)
+async def get_disclosure_draft_endpoint(
+    draft_id: int,
+    user: AuthUser = Depends(get_current_user),
+) -> TnfdDisclosureDraftResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return disclosure_service.get_draft(company_id=user.company_id, draft_id=draft_id)
+    except _NATURE_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/disclosure-drafts/{draft_id}/review", response_model=TnfdDisclosureDraftResponse)
+async def review_disclosure_draft_endpoint(
+    draft_id: int,
+    body: ReviewRequest,
+    user: AuthUser = Depends(require_admin),
+) -> TnfdDisclosureDraftResponse:
+    """Approbation à PLUS FORTE PORTÉE que les revues courantes du domaine
+    (`require_admin`, pas `require_analyst`) — un brouillon approuvé reste un
+    brouillon (`is_official_tnfd_disclosure=False` non contournable), mais
+    l'acte d'approbation interne mérite le rôle le plus élevé."""
+    require_db()
+    try:
+        with schema_ready_guard():
+            return disclosure_service.review(
+                company_id=user.company_id, draft_id=draft_id,
                 approve=body.accept, reviewed_by=user.user_id,
             )
     except _NATURE_ERRORS as exc:

@@ -171,6 +171,38 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "propriétaire requis, comme 028/030/031/032/033/034."
         ),
     ),
+    "036": MigrationMeta(
+        requires_owner=True,
+        transactional=True,
+        note=(
+            "Géospatial & ledger eau (PR-08 tranche A) : ALTER TABLE sites "
+            "(027, propriété neondb_owner en production — précédent direct 027 "
+            "et son ALTER TABLE actions) exige le rôle propriétaire ; "
+            "application via DATABASE_ADMIN_URL + mark-manual-verified, jamais "
+            "par le chemin carbonco_app automatique. Ajoute aussi 5 tables "
+            "neuves (site_geocode_candidates, water_imports, water_activities, "
+            "water_permits, water_risk_areas) avec RLS gen-2 FORCE + GRANT "
+            "conditionnel. AUCUN PostGIS (décision validée) : coordonnées "
+            "NUMERIC + bbox/boundary_geojson évalués côté Python avec "
+            "method_code explicite. Aucune donnée métier migrée, aucune source "
+            "externe ingérée, aucun LLM."
+        ),
+    ),
+    "037": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Screening hydrique auditable (PR-08 tranche B) : 3 nouvelles "
+            "tables tenant strictes (site_water_screenings — snapshot d'entrée "
+            "immuable par trigger, précédent 033 ; risque et confiance en deux "
+            "colonnes séparées, précédent 034 ; iro_signal = signal-à-examiner "
+            "humain, jamais une décision de matérialité — water_targets, "
+            "water_actions). RLS gen-2 FORCE, GRANT conditionnel. Ne crée que "
+            "des tables neuves (aucun ALTER d'une table existante) — pas de "
+            "privilège propriétaire requis, comme 028/030/031/033/034. Aucun "
+            "calcul exécuté par la migration, aucun PostGIS, aucun LLM."
+        ),
+    ),
 }
 
 

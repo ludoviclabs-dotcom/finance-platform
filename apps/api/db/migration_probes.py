@@ -549,6 +549,66 @@ def _probe_035(cur) -> bool:
     return _function_source_contains(cur, "energy_allocation_guard", "FOR UPDATE")
 
 
+def _probe_036(cur) -> bool:
+    """Géospatial & ledger eau (PR-08 tranche A). requires_owner=true
+    (manifeste) — vérifiée comme les autres : l'existence des objets compte,
+    pas la façon dont ils ont été créés (manuel Neon SQL Editor, comme 027).
+
+    Artefacts non ambigus : les colonnes géo ajoutées à `sites` (latitude,
+    geocode_review_status — n'existent dans aucune migration antérieure), les
+    5 tables neuves + RLS FORCE + policy scopée sur chacune, le trigger
+    append-only des candidats de géocodage, ET deux CHECK porteurs de règles
+    métier : `sites_geocode_accepted_check` (aucune acceptation anonyme ni
+    coordonnée orpheline) et le `source_release_id NOT NULL` de
+    water_risk_areas est structurel (colonne NOT NULL, sondée via le CHECK
+    bbox qui borne le pré-filtre géométrique)."""
+    if not (
+        _column_exists(cur, "sites", "latitude")
+        and _column_exists(cur, "sites", "longitude")
+        and _column_exists(cur, "sites", "geocode_review_status")
+    ):
+        return False
+    tables = (
+        "site_geocode_candidates", "water_imports", "water_activities",
+        "water_permits", "water_risk_areas",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    if not _trigger_exists(cur, "site_geocode_candidates", "trg_site_geocode_candidates_guard"):
+        return False
+    if not _constraint_exists(cur, "sites", "sites_geocode_accepted_check"):
+        return False
+    return _constraint_exists(cur, "water_risk_areas", "water_risk_areas_bbox_lat_check")
+
+
+def _probe_037(cur) -> bool:
+    """Screening hydrique auditable (PR-08 tranche B) : 3 tables tenant
+    strictes + RLS FORCE + policy scopée sur chacune, le trigger
+    d'immutabilité du run (précédent 033 : une base où le snapshot d'entrée
+    redevient réécrivable n'est PAS la migration 037), et les CHECK porteurs
+    des règles non négociables — risque/confiance en intervalles SÉPARÉS et
+    signal IRO jamais anonyme ni sans justification."""
+    tables = ("site_water_screenings", "water_targets", "water_actions")
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    if not _trigger_exists(cur, "site_water_screenings", "trg_site_water_screenings_immutable"):
+        return False
+    return (
+        _constraint_exists(cur, "site_water_screenings", "site_water_screenings_confidence_range_check")
+        and _constraint_exists(cur, "site_water_screenings", "site_water_screenings_iro_signal_check")
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -587,6 +647,8 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "033": _probe_033,
     "034": _probe_034,
     "035": _probe_035,
+    "036": _probe_036,
+    "037": _probe_037,
 }
 
 

@@ -412,6 +412,30 @@
       "tag": "Exposition matières",
       "href": "/crma",
       "preuve": "apps/api/services/crma/scoring.py"
+    },
+    {
+      "id": "sites-geocodage",
+      "label": "Géolocalisation des sites avec revue humaine",
+      "description": "Coordonnées et précision de géocodage par site, avec gate de revue humaine strict : toute position proposée — y compris une saisie manuelle — reste inutilisable tant qu'un analyste ne l'a pas explicitement acceptée. Historique append-only des candidats (qui a proposé quoi, quand), provenance conservée. Aucun appel à un géocodeur externe : les fournisseurs sont des métadonnées d'audit.",
+      "statut": "beta",
+      "normes": [
+        "ESRS E3"
+      ],
+      "tag": "Géospatial",
+      "href": "/sites-geo",
+      "preuve": "apps/api/services/geo/geocode_service.py"
+    },
+    {
+      "id": "eau-stress-hydrique",
+      "label": "Eau : ledger, permis et screening de stress hydrique",
+      "description": "Prélèvements, consommations et rejets par site (import CSV idempotent, revue humaine), permis avec preuve Evidence Kernel, zones de stress hydrique toujours sourcées et sous licence évaluée. Screening géographique versionné et immuable : pré-filtre par boîte englobante puis point-dans-polygone exact côté serveur (méthode nommée geojson_point_in_polygon_v1 — sans PostGIS ni carte externe), risque et confiance séparés, signal « à examiner comme IRO » posé par un humain avec justification — jamais une décision de matérialité automatique.",
+      "statut": "beta",
+      "normes": [
+        "ESRS E3"
+      ],
+      "tag": "Eau",
+      "href": "/water",
+      "preuve": "apps/api/services/calculations/water_screening.py"
     }
   ],
   "esrs": [

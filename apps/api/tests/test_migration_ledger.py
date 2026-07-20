@@ -99,6 +99,7 @@ def test_baseline_dry_run_on_empty_db(empty_conn, runner):
     assert actions["000"] == "still_pending"
     assert actions["001"] == "still_pending"
     assert actions["027"] == "manual_required"
+    assert actions["036"] == "manual_required"  # requires_owner (PR-08A), comme 027
 
     with empty_conn.cursor() as cur:
         cur.execute("SELECT to_regclass('public.schema_migrations') AS t")
@@ -107,11 +108,16 @@ def test_baseline_dry_run_on_empty_db(empty_conn, runner):
 
 def test_baseline_commit_on_empty_db_writes_only_manual_required(empty_conn, runner):
     result = runner.baseline(dry_run=False)
-    assert result.written_count == 1  # seule 027 (manual_required) est écrite ; le reste still_pending
+    # DEUX versions requires_owner depuis PR-08A : 027 (ALTER TABLE actions)
+    # ET 036 (ALTER TABLE sites). Seules elles sont écrites (manual_required) ;
+    # tout le reste demeure still_pending, donc aucune ligne.
+    assert result.written_count == 2
 
     records = runner.load_records()
     assert records["027"].status == "manual_required"
     assert records["027"].requires_owner is True
+    assert records["036"].status == "manual_required"
+    assert records["036"].requires_owner is True
     assert "001" not in records  # still_pending -> aucune ligne écrite
 
 
@@ -128,6 +134,7 @@ def test_baseline_on_partial_db(empty_conn, runner):
     assert actions["020"] == "baseline"
     assert actions["021"] == "still_pending"
     assert actions["027"] == "manual_required"
+    assert actions["036"] == "manual_required"
 
 
 def test_baseline_on_full_db_marks_004_and_009_both_baseline(empty_conn, runner):
@@ -140,13 +147,15 @@ def test_baseline_on_full_db_marks_004_and_009_both_baseline(empty_conn, runner)
     assert actions["004"] == "baseline"
     assert actions["009"] == "baseline"
     assert actions["027"] == "baseline"  # objets vérifiés présents -> baseline, pas manual_required
+    assert actions["036"] == "baseline"  # idem : requires_owner n'empêche jamais un baseline vérifié
     assert all(a == "baseline" for a in actions.values())
-    assert result.written_count == 37  # 000 + 36 fichiers (001-035 dont 008b)
+    assert result.written_count == 39  # 000 + 38 fichiers (001-037 dont 008b)
 
     records = runner.load_records()
     assert records["004"].requires_owner is False
     assert records["009"].requires_owner is False
     assert records["027"].requires_owner is True  # historisé depuis le manifeste, même si baseline
+    assert records["036"].requires_owner is True
 
 
 def test_baseline_never_rewrites_existing_row(empty_conn, runner):
@@ -251,7 +260,7 @@ def test_baseline_supports_ledger_table_already_created_but_empty(empty_conn, ru
     assert runner.load_records() == {}, "précondition : table présente, aucune ligne"
 
     result = runner.baseline(dry_run=False)
-    assert result.written_count == 37  # 000 + 36 fichiers (001-035 dont 008b)
+    assert result.written_count == 39  # 000 + 38 fichiers (001-037 dont 008b)
     assert all(i.action == "baseline" for i in result.items)
     assert runner.verify() == []
 
@@ -301,7 +310,7 @@ def test_baseline_commit_rolls_back_and_reports_root_cause_when_initial_read_fai
         )
 
     result = runner.baseline(dry_run=False)  # nouvelle tentative, "panne" résolue
-    assert result.written_count == 37  # 000 + 36 fichiers (001-035 dont 008b)
+    assert result.written_count == 39  # 000 + 38 fichiers (001-037 dont 008b)
     assert runner.verify() == []
 
 
@@ -520,7 +529,7 @@ def test_cli_end_to_end_status_verify_baseline_verify(empty_conn, runner):
     assert dry.written_count == 0
 
     committed = runner.baseline(dry_run=False)
-    assert committed.written_count == 37  # 000 + 36 fichiers (001-035 dont 008b)
+    assert committed.written_count == 39  # 000 + 38 fichiers (001-037 dont 008b)
     assert runner.verify() == []
 
 

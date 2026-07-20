@@ -123,7 +123,11 @@ jobs:
       # verrou FOR UPDATE de energy_allocation_guard() avec de VRAIES connexions
       # concurrentes (2 threads) — indépendant de la RLS, donc valable même sous
       # le rôle superuser de ce job (cf. docs/carbonco/refonte/WAVE_3_STABILIZATION_TRACEABILITY.md).
-      - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin + Procurement + Énergie + RLS non-superuser + Scope 3 + Moteur Scope 2 + CRMA + Wave 3 (PR-02B / PR-03 / PR-04 / PR-05A / PR-06A / PR-05B / PR-06B / PR-07 / Wave 3)
+      # PR-08 (géospatial & eau) : `test_water_schema_not_ready.py` doit rester
+      # EN DERNIER — il RÉINITIALISE le schéma public à un état pré-036
+      # (reset + 001-035) pour prouver le 503 `schema_not_ready` ; le placer
+      # avant un module qui suppose 036/037 casserait ce module-là.
+      - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin + Procurement + Énergie + RLS non-superuser + Scope 3 + Moteur Scope 2 + CRMA + Wave 3 + Géospatial/Eau (PR-02B / PR-03 / PR-04 / PR-05A / PR-06A / PR-05B / PR-06B / PR-07 / Wave 3 / PR-08)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: >-
@@ -154,6 +158,10 @@ jobs:
           tests/test_crma_reference.py
           tests/test_crma_exposure.py
           tests/test_crma_article24.py
+          tests/test_sites_geo.py
+          tests/test_water_ledger.py
+          tests/test_water_screening_api.py
+          tests/test_water_schema_not_ready.py
 
   security-audit:
     runs-on: ubuntu-latest

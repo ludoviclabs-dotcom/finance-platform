@@ -586,6 +586,29 @@ def _probe_036(cur) -> bool:
     return _constraint_exists(cur, "water_risk_areas", "water_risk_areas_bbox_lat_check")
 
 
+def _probe_037(cur) -> bool:
+    """Screening hydrique auditable (PR-08 tranche B) : 3 tables tenant
+    strictes + RLS FORCE + policy scopée sur chacune, le trigger
+    d'immutabilité du run (précédent 033 : une base où le snapshot d'entrée
+    redevient réécrivable n'est PAS la migration 037), et les CHECK porteurs
+    des règles non négociables — risque/confiance en intervalles SÉPARÉS et
+    signal IRO jamais anonyme ni sans justification."""
+    tables = ("site_water_screenings", "water_targets", "water_actions")
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    if not _trigger_exists(cur, "site_water_screenings", "trg_site_water_screenings_immutable"):
+        return False
+    return (
+        _constraint_exists(cur, "site_water_screenings", "site_water_screenings_confidence_range_check")
+        and _constraint_exists(cur, "site_water_screenings", "site_water_screenings_iro_signal_check")
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -625,6 +648,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "034": _probe_034,
     "035": _probe_035,
     "036": _probe_036,
+    "037": _probe_037,
 }
 
 

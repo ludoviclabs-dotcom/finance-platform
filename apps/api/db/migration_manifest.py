@@ -188,6 +188,21 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "externe ingérée, aucun LLM."
         ),
     ),
+    "037": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Screening hydrique auditable (PR-08 tranche B) : 3 nouvelles "
+            "tables tenant strictes (site_water_screenings — snapshot d'entrée "
+            "immuable par trigger, précédent 033 ; risque et confiance en deux "
+            "colonnes séparées, précédent 034 ; iro_signal = signal-à-examiner "
+            "humain, jamais une décision de matérialité — water_targets, "
+            "water_actions). RLS gen-2 FORCE, GRANT conditionnel. Ne crée que "
+            "des tables neuves (aucun ALTER d'une table existante) — pas de "
+            "privilège propriétaire requis, comme 028/030/031/033/034. Aucun "
+            "calcul exécuté par la migration, aucun PostGIS, aucun LLM."
+        ),
+    ),
 }
 
 

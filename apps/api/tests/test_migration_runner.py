@@ -230,8 +230,8 @@ def test_build_plan_no_blocking_issues_when_all_apply(tmp_path, monkeypatch):
     assert plan.has_blocking_issues is False
 
 
-# ── Corpus réel (37 fichiers : 028 PR-03, 029 PR-04, 030 PR-05A, 031 PR-06A,
-#    032 PR-05B, 033 PR-06B, 034 PR-07, 035 Wave 3, 036 PR-08A) ────────────────
+# ── Corpus réel (38 fichiers : 028 PR-03, 029 PR-04, 030 PR-05A, 031 PR-06A,
+#    032 PR-05B, 033 PR-06B, 034 PR-07, 035 Wave 3, 036 PR-08A, 037 PR-08B) ────
 
 
 def test_build_plan_against_real_migrations_directory(monkeypatch):
@@ -245,7 +245,9 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     35 depuis 034 (pack CRMA, PR-07) ; 36 depuis 035 (stabilisation Wave 3 —
     intégrité achats & concurrence énergie) ; 37 depuis 036 (géospatial &
     ledger eau, PR-08A — la DEUXIÈME migration requires_owner du dépôt après
-    027 : ALTER TABLE sites) — voir tests dédiés ci-dessous pour 028 à 035.
+    027 : ALTER TABLE sites) ; 38 depuis 037 (screening hydrique, PR-08B —
+    tables neuves uniquement, jamais requires_owner) — voir tests dédiés
+    ci-dessous pour 028 à 036.
 
     Le plan n'exige AUCUNE contiguïté des préfixes : il trie les fichiers
     réellement présents. C'est la présence du fichier qui compte, pas la suite.
@@ -255,7 +257,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 37
+    assert len(versions) == 38
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
@@ -267,6 +269,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert "034" in versions
     assert "035" in versions
     assert "036" in versions
+    assert "037" in versions
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["027"] == "blocked_manual"
@@ -282,8 +285,9 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert actions["035"] == "apply"
     # 036 est requires_owner (ALTER TABLE sites — précédent 027) : jamais
     # 'apply' automatique, toujours le chemin manuel DATABASE_ADMIN_URL +
-    # mark-manual-verified.
+    # mark-manual-verified. 037 (tables neuves uniquement) reste 'apply'.
     assert actions["036"] == "blocked_manual"
+    assert actions["037"] == "apply"
     assert plan.has_blocking_issues is True
 
 
@@ -413,6 +417,28 @@ def test_build_plan_detects_036_blocked_manual_on_baselined_ledger(monkeypatch):
     assert actions["036"] == "blocked_manual"
     assert all(actions[v] == "skip" for v in baselined)
     assert plan.has_blocking_issues is True
+
+
+def test_build_plan_detects_037_pending_on_baselined_ledger(monkeypatch):
+    """037 doit apparaître 'apply' quand le ledger est baseliné sur tout le
+    reste — elle ne crée que des tables neuves (aucun ALTER), comme
+    028/030/031/033/034 : jamais requires_owner. 037 est aussi la DERNIÈRE
+    version réelle du dossier."""
+    runner = MigrationRunner()
+    files = runner.discover_migrations()
+    baselined = {
+        f.version: _record(version=f.version, status="baseline", checksum=f.checksum_sha256)
+        for f in files
+        if f.version != "037"
+    }
+    monkeypatch.setattr(runner, "load_records", lambda: baselined)
+    plan = runner.build_plan()
+
+    actions = {i.file.version: i.action for i in plan.items}
+    assert actions["037"] == "apply"
+    assert all(actions[v] == "skip" for v in baselined)
+    assert plan.has_blocking_issues is False
+    assert [i.file.version for i in plan.items][-1] == "037"
 
 
 # ── PR-02C : apply_plan — gardes pré-connexion (aucune DB requise) ────────

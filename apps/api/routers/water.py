@@ -1,10 +1,10 @@
 """
-routers/water.py — ledger eau (PR-08A), préfixe `/water`.
+routers/water.py — ledger eau et screening hydrique (PR-08), préfixe `/water`.
 
 Lecture (GET) : utilisateur authentifié du tenant (`get_current_user`).
 Écriture (POST) : `require_analyst`.
 
-Endpoints tranche A :
+Endpoints tranche A (036) :
   POST /water/activities/import           — import CSV idempotent (sha256)
   POST /water/imports/{id}/review         — gate de revue d'un import
   POST /water/activities · GET            — saisie directe + liste filtrable
@@ -16,10 +16,19 @@ Endpoints tranche A :
                                             d'administration, jamais par un
                                             endpoint utilisateur)
 
-TOUTES ces routes sont NEUVES (migration 036 pas encore appliquée au moment où
-la production déploie ce code) : chacune est sous `schema_ready_guard` et
-répond 503 `schema_not_ready` tant que le schéma n'est pas migré — jamais une
-erreur SQL brute.
+Endpoints tranche B (037) :
+  POST /water/screenings/calculate        — screening versionné (AnalyticalEnvelope,
+                                            method_code géométrique explicite)
+  GET  /water/screenings · GET /{id}      — historique des runs
+  POST /water/screenings/{id}/flag-for-iro — signal humain « à examiner comme
+                                            IRO » (jamais une décision)
+  POST /water/targets · GET · /review     — cibles eau
+  POST /water/actions · GET · /review     — actions eau
+
+TOUTES ces routes sont NEUVES (migrations 036/037 pas encore appliquées au
+moment où la production déploie ce code) : chacune est sous
+`schema_ready_guard` et répond 503 `schema_not_ready` tant que le schéma n'est
+pas migré — jamais une erreur SQL brute.
 
 Aucun LLM, aucune source externe, aucun appel réseau, aucune écriture de
 production par ce code.
@@ -29,7 +38,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
 
+from models.analytics import AnalyticalEnvelope
 from models.water import (
+    IroSignalRequest,
+    WaterActionCreate,
+    WaterActionListResponse,
+    WaterActionResponse,
     WaterActivityCreate,
     WaterActivityListResponse,
     WaterActivityResponse,
@@ -41,11 +55,24 @@ from models.water import (
     WaterPermitListResponse,
     WaterPermitResponse,
     WaterRiskAreaListResponse,
+    WaterScreeningData,
+    WaterScreeningListResponse,
+    WaterScreeningRequest,
+    WaterScreeningSummary,
+    WaterTargetCreate,
+    WaterTargetListResponse,
+    WaterTargetResponse,
 )
 from routers._errors import http_error, require_db, schema_ready_guard
 from routers.auth import get_current_user, require_analyst
 from services.auth_service import AuthUser
-from services.water import activities_service, permits_service, risk_areas_service
+from services.water import (
+    activities_service,
+    permits_service,
+    risk_areas_service,
+    screening_service,
+    targets_actions_service,
+)
 
 router = APIRouter()
 
@@ -53,6 +80,8 @@ _WATER_ERRORS = (
     activities_service.WaterActivityError,
     permits_service.WaterPermitError,
     risk_areas_service.WaterRiskAreaError,
+    screening_service.WaterScreeningError,
+    targets_actions_service.WaterPlanError,
 )
 
 
@@ -235,6 +264,190 @@ async def list_risk_areas_endpoint(
             return risk_areas_service.list_areas(
                 company_id=user.company_id, scenario_code=scenario_code,
                 area_kind=area_kind, limit=limit, offset=offset,
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+# ---------------------------------------------------------------------------
+# Screening (tranche B) — résultat versionné, enveloppe analytique partagée
+# ---------------------------------------------------------------------------
+
+@router.post("/screenings/calculate", response_model=AnalyticalEnvelope[WaterScreeningData])
+async def calculate_screening_endpoint(
+    body: WaterScreeningRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> AnalyticalEnvelope[WaterScreeningData]:
+    """Screening versionné et immuable. Refus EXPLICITES (jamais silencieux) :
+    position non acceptée, précision insuffisante, référentiel vide, licence
+    sans usage dérivé. `data.method_code` nomme la méthode géométrique réelle
+    (geojson_point_in_polygon_v1 — jamais présentée comme ST_Intersects)."""
+    require_db()
+    try:
+        with schema_ready_guard():
+            return screening_service.calculate(
+                company_id=user.company_id, site_id=body.site_id,
+                scenario_code=body.scenario_code, calculated_by=user.user_id,
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/screenings", response_model=WaterScreeningListResponse)
+async def list_screenings_endpoint(
+    site_id: int | None = Query(None),
+    iro_signal: bool | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+) -> WaterScreeningListResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return screening_service.list_screenings(
+                company_id=user.company_id, site_id=site_id, iro_signal=iro_signal,
+                limit=limit, offset=offset,
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/screenings/{screening_id}", response_model=WaterScreeningSummary)
+async def get_screening_endpoint(
+    screening_id: int,
+    user: AuthUser = Depends(get_current_user),
+) -> WaterScreeningSummary:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return screening_service.get_screening(
+                company_id=user.company_id, screening_id=screening_id
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/screenings/{screening_id}/flag-for-iro", response_model=WaterScreeningSummary)
+async def flag_screening_for_iro_endpoint(
+    screening_id: int,
+    body: IroSignalRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> WaterScreeningSummary:
+    """Signal HUMAIN « à examiner comme IRO », justification obligatoire. Ne
+    crée jamais de ligne IRO ni de décision de matérialité (PR-10)."""
+    require_db()
+    try:
+        with schema_ready_guard():
+            return screening_service.flag_for_iro(
+                company_id=user.company_id, screening_id=screening_id,
+                rationale=body.rationale, flagged_by=user.user_id,
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+# ---------------------------------------------------------------------------
+# Cibles et actions (tranche B)
+# ---------------------------------------------------------------------------
+
+@router.post("/targets", response_model=WaterTargetResponse, status_code=201)
+async def create_target_endpoint(
+    body: WaterTargetCreate,
+    user: AuthUser = Depends(require_analyst),
+) -> WaterTargetResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return targets_actions_service.create_target(
+                company_id=user.company_id, payload=body, created_by=user.user_id,
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/targets", response_model=WaterTargetListResponse)
+async def list_targets_endpoint(
+    site_id: int | None = Query(None),
+    screening_id: int | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+) -> WaterTargetListResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return targets_actions_service.list_targets(
+                company_id=user.company_id, site_id=site_id,
+                screening_id=screening_id, limit=limit, offset=offset,
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/targets/{target_id}/review", response_model=WaterTargetResponse)
+async def review_target_endpoint(
+    target_id: int,
+    body: WaterActivityReviewRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> WaterTargetResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return targets_actions_service.review_target(
+                company_id=user.company_id, target_id=target_id,
+                accept=body.accept, reviewed_by=user.user_id,
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/actions", response_model=WaterActionResponse, status_code=201)
+async def create_water_action_endpoint(
+    body: WaterActionCreate,
+    user: AuthUser = Depends(require_analyst),
+) -> WaterActionResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return targets_actions_service.create_action(
+                company_id=user.company_id, payload=body, created_by=user.user_id,
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/actions", response_model=WaterActionListResponse)
+async def list_water_actions_endpoint(
+    site_id: int | None = Query(None),
+    screening_id: int | None = Query(None),
+    status: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+) -> WaterActionListResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return targets_actions_service.list_actions(
+                company_id=user.company_id, site_id=site_id,
+                screening_id=screening_id, status=status, limit=limit, offset=offset,
+            )
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/actions/{action_id}/review", response_model=WaterActionResponse)
+async def review_water_action_endpoint(
+    action_id: int,
+    body: WaterActivityReviewRequest,
+    user: AuthUser = Depends(require_analyst),
+) -> WaterActionResponse:
+    require_db()
+    try:
+        with schema_ready_guard():
+            return targets_actions_service.review_action(
+                company_id=user.company_id, action_id=action_id,
+                accept=body.accept, reviewed_by=user.user_id,
             )
     except _WATER_ERRORS as exc:
         raise http_error(exc) from exc

@@ -29,9 +29,8 @@ from db.database import get_db
 from ._intelligence_fixtures import EK_TABLES
 from ._migration_fixtures import apply_ddl_inline, apply_upto
 
-# Borne haute du schéma eau. Tranche A = "036" ; passera à "037" avec la
-# tranche B (screenings/cibles/actions).
-WATER_CEILING = "036"
+# Borne haute du schéma eau : 037 (fondation 036 + screening/cibles/actions).
+WATER_CEILING = "037"
 
 # Tables PR-08, enfants avant parents (le teardown pose de toute façon
 # session_replication_role=replica — triggers FK ET triggers d'immutabilité/

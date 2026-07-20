@@ -160,6 +160,7 @@ jobs:
           tests/test_crma_article24.py
           tests/test_sites_geo.py
           tests/test_water_ledger.py
+          tests/test_water_screening_api.py
           tests/test_water_schema_not_ready.py
 
   security-audit:

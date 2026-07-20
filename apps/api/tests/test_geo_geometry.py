@@ -253,7 +253,10 @@ def test_pr08_migrations_contain_no_postgis_reference():
 
     migrations_dir = Path(__file__).parent.parent / "db" / "migrations"
     files = sorted(p.name for p in migrations_dir.glob("03[67]_*.sql"))
-    assert "036_geospatial_sites_water.sql" in files
+    assert files == [
+        "036_geospatial_sites_water.sql",
+        "037_water_screening_actions.sql",
+    ]
     for name in files:
         text = (migrations_dir / name).read_text(encoding="utf-8").lower()
         # « postgis » n'apparaît que pour DOCUMENTER la décision de ne pas

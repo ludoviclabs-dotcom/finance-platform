@@ -149,7 +149,7 @@ def test_baseline_on_full_db_marks_004_and_009_both_baseline(empty_conn, runner)
     assert actions["027"] == "baseline"  # objets vérifiés présents -> baseline, pas manual_required
     assert actions["036"] == "baseline"  # idem : requires_owner n'empêche jamais un baseline vérifié
     assert all(a == "baseline" for a in actions.values())
-    assert result.written_count == 38  # 000 + 37 fichiers (001-036 dont 008b)
+    assert result.written_count == 39  # 000 + 38 fichiers (001-037 dont 008b)
 
     records = runner.load_records()
     assert records["004"].requires_owner is False
@@ -260,7 +260,7 @@ def test_baseline_supports_ledger_table_already_created_but_empty(empty_conn, ru
     assert runner.load_records() == {}, "précondition : table présente, aucune ligne"
 
     result = runner.baseline(dry_run=False)
-    assert result.written_count == 38  # 000 + 37 fichiers (001-036 dont 008b)
+    assert result.written_count == 39  # 000 + 38 fichiers (001-037 dont 008b)
     assert all(i.action == "baseline" for i in result.items)
     assert runner.verify() == []
 
@@ -310,7 +310,7 @@ def test_baseline_commit_rolls_back_and_reports_root_cause_when_initial_read_fai
         )
 
     result = runner.baseline(dry_run=False)  # nouvelle tentative, "panne" résolue
-    assert result.written_count == 38  # 000 + 37 fichiers (001-036 dont 008b)
+    assert result.written_count == 39  # 000 + 38 fichiers (001-037 dont 008b)
     assert runner.verify() == []
 
 
@@ -529,7 +529,7 @@ def test_cli_end_to_end_status_verify_baseline_verify(empty_conn, runner):
     assert dry.written_count == 0
 
     committed = runner.baseline(dry_run=False)
-    assert committed.written_count == 38  # 000 + 37 fichiers (001-036 dont 008b)
+    assert committed.written_count == 39  # 000 + 38 fichiers (001-037 dont 008b)
     assert runner.verify() == []
 
 

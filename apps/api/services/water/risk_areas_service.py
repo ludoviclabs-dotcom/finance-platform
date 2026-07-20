@@ -47,7 +47,9 @@ def _license_for_release(cur, *, company_id: int | None, release_id: int) -> tup
     """Décision de licence de la source portant une release, ou (None, None)."""
     cur.execute(
         f"""
-        SELECT s.code AS source_code, {", ".join("s." + c for c in _LICENSE_COLUMNS)}
+        SELECT s.code AS source_code, r.release_key,
+               r.retrieved_at AS release_retrieved_at,
+               {", ".join("s." + c for c in _LICENSE_COLUMNS)}
         FROM source_releases r
         JOIN source_registry s ON s.id = r.source_id
         WHERE r.id = %s
@@ -234,5 +236,6 @@ def candidate_areas_for_point(
                 area["license_decision"] = decision
                 area["source_code"] = (source or {}).get("source_code")
                 area["attribution_text"] = (source or {}).get("attribution_text")
+                area["release_retrieved_at"] = (source or {}).get("release_retrieved_at")
                 out.append(area)
     return out

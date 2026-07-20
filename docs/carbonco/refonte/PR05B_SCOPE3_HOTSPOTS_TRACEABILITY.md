@@ -6,7 +6,8 @@ campagnes ciblées, score fournisseur, Evidence Pack.
 **Migration réservée :** `032_procurement_scope3_hotspots.sql` (seule ajoutée).
 **Base :** `origin/master` (`df13229`), migrations 001-031 mergées.
 Ne dépend d'aucun code PR-04/PR-06 non mergé.
-**Statut : implémenté, en attente de CI PostgreSQL (`migration-tests`). PR non mergée automatiquement.**
+**Statut : implémenté, `migration-tests` VERTE (390 tests PostgreSQL passés, dont les
+~40 tests DB-gated de cette PR). PR non mergée automatiquement.**
 
 > Convention de statut : **FAIT** · **PARTIEL** · **NON FAIT** · **HORS PÉRIMÈTRE**.
 
@@ -303,9 +304,17 @@ silencieusement.
 
 ## 12bis. Ce que la CI a trouvé et qui a été corrigé (aller-retour assumé)
 
-Le premier passage CI a exécuté les tests DB-gated (**378 passed, 11 failed**) et a
-révélé trois défauts qu'aucun test pur ne pouvait attraper. Ils sont corrigés dans cette
-PR ; ils sont consignés ici parce qu'ils sont instructifs.
+L'aller-retour CI annoncé au §15 a bien eu lieu, en quatre passages :
+
+| Passage | Résultat | Nature des échecs |
+|---|---|---|
+| 1 (`c2d1439`) | 378 passed, **11 failed** | 3 défauts réels (ci-dessous) |
+| 2 (`38acfa7`) | 388 passed, **2 failed** | hypothèses de test invalidées par le partage de données |
+| 3 (`d857eda`) | 389 passed, **1 failed** | régression introduite par le refactor du passage 2 |
+| 4 (`3f64108`) | **390 passed, 0 failed** | — `migration-tests` **verte** |
+
+Les tests DB-gated de cette PR ont donc **réellement tourné** en CI (ils sont skippés
+localement, faute de PostgreSQL). Défauts trouvés et corrigés :
 
 1. **Clé de hotspot NULL sur les lignes non rattachées** (9 échecs). Les dimensions
    `category`/`country` avaient leur `COALESCE`, pas `supplier`/`supplier_product` : une
@@ -336,6 +345,14 @@ PR ; ils sont consignés ici parce qu'ils sont instructifs.
    hotspots et le score de concentration. À traiter dans une PR dédiée (rendre le mapping
    déterministe, ou le refuser en le renvoyant en file de résolution quand il est ambigu —
    ce second choix est le plus cohérent avec « aucun fallback silencieux »).
+
+4. **Régression du refactor de test** (passage 3 → 4). En isolant les données de chaque
+   test, `_validated_import` est passé de « reçoit un CSV » à « reçoit un marqueur et
+   construit le CSV » — mais un appelant lui passait encore un CSV complet. Les deux
+   paramètres étant des `str`, rien ne le signalait avant l'exécution : le CSV entier
+   était interpolé comme marqueur et le parseur rejetait le résultat. Corrigé par un
+   paramètre `csv_text` explicite et optionnel. Rappel utile : un refactor de signature
+   entre deux types identiques ne se voit qu'à l'exécution.
 
 ---
 
@@ -372,11 +389,11 @@ enregistrés depuis PR-05A ; PR-05B ne fait qu'étendre leurs endpoints.
 
 ---
 
-## 15. Ce qui n'est prouvé QUE par la CI
+## 15. Ce qui n'est prouvé QUE par la CI — et qui l'est effectivement
 
 Aucun PostgreSQL ni Docker sur le poste de développement (Windows) : **tous** les tests
-DB-gated sont skippés localement. Ne sont donc réellement vérifiés qu'en CI
-(`migration-tests`) :
+DB-gated sont skippés localement. Ils ont bien tourné en CI (`migration-tests` verte au
+4ᵉ passage, **390 passed**, cf. §12bis). Ne sont donc vérifiés QUE là :
 
 - l'applicabilité de la migration 032 après 031, et ses contraintes CHECK ;
 - `_probe_032` et l'absence de faux `drift_detected` après `apply` ;
@@ -385,8 +402,14 @@ DB-gated sont skippés localement. Ne sont donc réellement vérifiés qu'en CI
 - la création de campagne depuis un hotspot et ses refus ;
 - l'Evidence Pack (contenu, intégrité, reproductibilité).
 
-**Un aller-retour CI est à prévoir** si une requête SQL comporte une erreur qu'aucun test
-pur ne peut attraper (leçon PR-02/03/05A).
+L'aller-retour CI annoncé (leçon PR-02/03/05A) a effectivement été nécessaire — voir
+§12bis pour ce qu'il a révélé.
+
+> **Note sur `gitleaks`.** Un des deux runs dupliqués du workflow a échoué pendant
+> l'incident d'API GitHub du 2026-07-20 : l'action plante sur
+> `GET /repos/.../pulls/109/commits` (HTTP 503) **avant** de scanner quoi que ce soit —
+> aucun secret n'est en cause. Le run jumeau, au même commit, est vert. À relancer si le
+> check reste rouge.
 
 ---
 

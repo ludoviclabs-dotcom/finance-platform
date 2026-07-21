@@ -26,9 +26,18 @@ from models.ai_review import (
     RunListResponse,
     RunResponse,
 )
-from services.intelligence.ai import citation_service, entailment_service, grounding_service, provider
+from services.intelligence.ai import (
+    citation_service,
+    entailment_service,
+    grounding_service,
+    provider,
+)
 from services.intelligence.ai.grounding_service import AiGroundingError
-from services.intelligence.ai.prompts import POLICY_VERSION, PROMPT_VERSION, system_prompt_for
+from services.intelligence.ai.prompts import (
+    POLICY_VERSION,
+    PROMPT_VERSION,
+    system_prompt_for,
+)
 
 _SCOPE = "company_id = %s"
 

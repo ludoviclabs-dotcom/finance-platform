@@ -23,7 +23,7 @@ import os
 from dataclasses import dataclass, field
 from typing import Callable
 
-from models.ai_review import ModelClaim, ModelCitation, ModelRequest, ModelResult
+from models.ai_review import ModelCitation, ModelClaim, ModelRequest, ModelResult
 
 # Plafond de contexte (garde-fou coût/timeout, AI_GOVERNANCE_CONTRACTS.md §11).
 MAX_INPUT_TOKENS = 20_000

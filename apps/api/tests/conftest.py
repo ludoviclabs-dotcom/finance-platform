@@ -21,6 +21,13 @@ os.environ.setdefault("RATE_LIMIT_DISABLED", "1")
 
 from main import app  # noqa: E402
 
+# Journal IA de revue/explication (PR-11) : mêmes raisons que ci-dessus — un
+# module de fixtures absent d'ici n'est jamais résolu par pytest.
+from ._ai_review_fixtures import (  # noqa: E402,F401
+    ai_env,
+    ai_schema,
+)
+
 # Fixtures partagées entre tests exposées ici (pas dans chaque fichier
 # test_*.py) pour éviter le faux positif pyflakes F811 — un paramètre de test
 # nommé comme un nom importé est lu à tort comme une redéfinition, alors que
@@ -84,13 +91,6 @@ from ._scope2_fixtures import (  # noqa: E402,F401
 from ._water_fixtures import (  # noqa: E402,F401
     two_companies_water,
     water_schema,
-)
-
-# Journal IA de revue/explication (PR-11) : mêmes raisons que ci-dessus — un
-# module de fixtures absent d'ici n'est jamais résolu par pytest.
-from ._ai_review_fixtures import (  # noqa: E402,F401
-    ai_env,
-    ai_schema,
 )
 
 

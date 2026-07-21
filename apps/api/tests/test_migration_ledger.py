@@ -535,7 +535,7 @@ def test_cli_end_to_end_status_verify_baseline_verify(empty_conn, runner):
     assert dry.written_count == 0
 
     committed = runner.baseline(dry_run=False)
-    assert committed.written_count == 42  # 000 + 41 fichiers (001-040 dont 008b)
+    assert committed.written_count == 43  # 000 + 42 fichiers (001-041 dont 008b)
     assert runner.verify() == []
 
 

@@ -12,7 +12,13 @@ from __future__ import annotations
 
 import pytest
 
-from models.ai_review import ModelCitation, ModelClaim, ModelRequest, ReferenceItem, ReferencePack
+from models.ai_review import (
+    ModelCitation,
+    ModelClaim,
+    ModelRequest,
+    ReferenceItem,
+    ReferencePack,
+)
 from services.intelligence.ai import citation_service, entailment_service, provider
 from services.intelligence.ai.prompts import system_prompt_for
 from services.intelligence.ai.provider import BudgetExceeded, ProviderUnavailable

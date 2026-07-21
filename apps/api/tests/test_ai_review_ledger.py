@@ -13,7 +13,12 @@ from __future__ import annotations
 import pytest
 
 from db.database import db_available, get_db
-from models.ai_review import ModelCitation, ModelClaim, ModelResult, ReviewDecisionCreate
+from models.ai_review import (
+    ModelCitation,
+    ModelClaim,
+    ModelResult,
+    ReviewDecisionCreate,
+)
 from services.intelligence.ai import review_decision_service, review_service
 from services.intelligence.ai.provider import GenerateResult, ProviderUnavailable
 

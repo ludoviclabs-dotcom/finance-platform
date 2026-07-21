@@ -86,6 +86,13 @@ from ._water_fixtures import (  # noqa: E402,F401
     water_schema,
 )
 
+# Journal IA de revue/explication (PR-11) : mêmes raisons que ci-dessus — un
+# module de fixtures absent d'ici n'est jamais résolu par pytest.
+from ._ai_review_fixtures import (  # noqa: E402,F401
+    ai_env,
+    ai_schema,
+)
+
 
 @pytest.fixture(autouse=True)
 def _reset_state_between_tests():

@@ -2635,3 +2635,319 @@ export async function downloadQuestionnaire(questionnaire?: string, signal?: Abo
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+// ---------------------------------------------------------------------------
+// PR-11 — Revue / explication IA (/ai/review/*)
+//
+// Assistant de revue ancré : chaque « claim » IA porte un label de sortie
+// (DRAFT / SUGGESTION / REVIEW_REQUIRED), un statut de support vis-à-vis des
+// preuves, et des citations résolues vers le noyau Evidence Kernel. RIEN n'est
+// publié automatiquement : la décision humaine (accept/reject/modify) passe par
+// POST /ai/review/runs/{id}/decision avec une justification OBLIGATOIRE.
+//
+// Les états non nominaux sont contractuels et remontés en erreurs TYPÉES pour
+// que l'UI (ReviewGate) affiche un message clair plutôt qu'une erreur brute :
+//   - 429            → limite de débit (rate-limit) ;
+//   - 503            → fournisseur IA indisponible, OU schéma pas prêt
+//                      (`detail === "schema_not_ready"`) ;
+//   - 404            → sujet introuvable ;
+//   - 401            → session expirée.
+// ---------------------------------------------------------------------------
+
+export type ReviewRunStatus =
+  | "pending"
+  | "succeeded"
+  | "failed"
+  | "blocked_license"
+  | "refused";
+export type ReviewReviewStatus = "draft" | "needs_review" | "approved" | "rejected";
+export type ReviewOutputLabel = "DRAFT" | "SUGGESTION" | "REVIEW_REQUIRED";
+export type ReviewSupportStatus =
+  | "supported"
+  | "partially_supported"
+  | "contradicted"
+  | "unsupported";
+export type ReviewCitationResourceType =
+  | "source"
+  | "release"
+  | "artifact"
+  | "observation"
+  | "claim_link"
+  | "calc_result";
+export type ReviewCitationDataStatus = "verified" | "estimated" | "manual" | "inferred";
+export type ReviewSensitivity = "public" | "internal" | "confidential" | "restricted";
+export type ReviewDecisionKind = "accept" | "reject" | "modify";
+export type ReviewFeedback = "useful" | "not_useful" | "incorrect";
+
+export interface ReviewCitationLocator {
+  page_reference?: string | null;
+  table_reference?: string | null;
+  cell_reference?: string | null;
+  excerpt?: string | null;
+}
+
+export interface CitationResponse {
+  id: number;
+  resource_type: ReviewCitationResourceType;
+  internal_id: number | null;
+  source_id: number | null;
+  release_id: number | null;
+  artifact_id: number | null;
+  observation_id: number | null;
+  locator: ReviewCitationLocator | null;
+  data_status: ReviewCitationDataStatus | null;
+  sensitivity: ReviewSensitivity | null;
+  license_ok: boolean;
+  stale: boolean;
+}
+
+export interface ClaimResponse {
+  id: number;
+  claim_index: number;
+  claim_text: string;
+  structured_payload: Record<string, unknown> | null;
+  output_label: ReviewOutputLabel;
+  support_status: ReviewSupportStatus;
+  citations: CitationResponse[];
+}
+
+export interface RunResponse {
+  id: number;
+  company_id: number;
+  use_case: string;
+  subject_type: string;
+  subject_key: string;
+  provider: string;
+  model: string;
+  model_version: string | null;
+  prompt_version: string | null;
+  policy_version: string | null;
+  input_hash: string | null;
+  status: ReviewRunStatus;
+  review_status: ReviewReviewStatus;
+  tokens_input: number | null;
+  tokens_output: number | null;
+  cost_estimate: number | null;
+  latency_ms: number | null;
+  error_code: string | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface ReviewRunResponse {
+  run: RunResponse;
+  claims: ClaimResponse[];
+  schema_valid: boolean;
+  citation_resolved: boolean;
+  license_allowed: boolean;
+}
+
+export interface RunListResponse {
+  items: RunResponse[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ReviewDecisionCreate {
+  decision: ReviewDecisionKind;
+  /** Obligatoire, non vide — validé aussi côté API. */
+  justification: string;
+  modified_output?: Record<string, unknown> | null;
+  feedback?: ReviewFeedback | null;
+}
+
+export interface ReviewDecisionResponse {
+  id: number;
+  run_id: number;
+  company_id: number;
+  decision: ReviewDecisionKind;
+  reviewer_id: number | null;
+  justification: string;
+  feedback: ReviewFeedback | null;
+  supersedes_id: number | null;
+  created_at: string;
+  business_effect?: Record<string, unknown> | null;
+}
+
+/** Catégorie contractuelle d'échec, pour un rendu UI dédié (ReviewGate). */
+export type ReviewErrorKind =
+  | "rate_limited"
+  | "unavailable"
+  | "not_found"
+  | "unauthorized"
+  | "generic";
+
+/** Erreur typée des endpoints /ai/review/* — jamais une erreur brute côté UI. */
+export class ReviewApiError extends Error {
+  readonly kind: ReviewErrorKind;
+  readonly status: number;
+  readonly retryAfterSeconds: number | null;
+  /** Vrai quand un 503 porte `detail === "schema_not_ready"`. */
+  readonly schemaNotReady: boolean;
+
+  constructor(
+    kind: ReviewErrorKind,
+    status: number,
+    message: string,
+    opts: { retryAfterSeconds?: number | null; schemaNotReady?: boolean } = {},
+  ) {
+    super(message);
+    this.name = "ReviewApiError";
+    this.kind = kind;
+    this.status = status;
+    this.retryAfterSeconds = opts.retryAfterSeconds ?? null;
+    this.schemaNotReady = opts.schemaNotReady ?? false;
+  }
+}
+
+function extractDetail(payload: unknown): string {
+  if (payload && typeof payload === "object") {
+    const p = payload as { detail?: unknown; error?: unknown; message?: unknown };
+    const raw = p.detail ?? p.error ?? p.message;
+    if (typeof raw === "string") return raw;
+    if (raw != null) return String(raw);
+  }
+  return "";
+}
+
+async function reviewFetch<T>(
+  method: "GET" | "POST",
+  path: string,
+  body?: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
+  const headers: Record<string, string> = { Accept: "application/json", ...authHeaders() };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+
+  const res = await _fetchWithRetry(`${API_BASE_URL}${path}`, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    signal,
+  });
+
+  if (!res.ok) {
+    let payload: unknown = null;
+    try {
+      payload = await res.json();
+    } catch {
+      /* corps non-JSON : message générique ci-dessous */
+    }
+    const detail = extractDetail(payload);
+
+    if (res.status === 429) {
+      const headerRetry = Number(res.headers.get("retry-after"));
+      const bodyRetry = Number(
+        (payload as { retryAfterSeconds?: unknown })?.retryAfterSeconds,
+      );
+      const retryAfterSeconds = Number.isFinite(headerRetry)
+        ? headerRetry
+        : Number.isFinite(bodyRetry)
+          ? bodyRetry
+          : null;
+      throw new ReviewApiError("rate_limited", 429, detail || "Trop de requêtes.", {
+        retryAfterSeconds,
+      });
+    }
+    if (res.status === 503) {
+      const schemaNotReady = detail === "schema_not_ready";
+      throw new ReviewApiError(
+        "unavailable",
+        503,
+        schemaNotReady ? "schema_not_ready" : detail || "Fournisseur IA indisponible.",
+        { schemaNotReady },
+      );
+    }
+    if (res.status === 404) {
+      throw new ReviewApiError("not_found", 404, detail || "Sujet introuvable.");
+    }
+    if (res.status === 401) {
+      throw new ReviewApiError("unauthorized", 401, detail || "Session expirée.");
+    }
+    throw new ReviewApiError("generic", res.status, detail || `API ${res.status} on ${path}`);
+  }
+
+  return (await res.json()) as T;
+}
+
+/** UC-1 — Revue IA d'un candidat IRO. POST /ai/review/iro/{iro_id} → 201. */
+export function reviewIroCandidate(
+  iroId: number,
+  signal?: AbortSignal,
+): Promise<ReviewRunResponse> {
+  return reviewFetch<ReviewRunResponse>("POST", `/ai/review/iro/${iroId}`, undefined, signal);
+}
+
+/**
+ * UC-2 — Explication IA d'un run de calcul. POST /ai/review/calc/{envelope_ref}
+ * → 201. `envelope_ref` conserve le « : » (caractère de chemin valide) pour
+ * matcher le paramètre backend « scope2:{runId} ».
+ */
+export function reviewCalcRun(
+  envelopeRef: string,
+  signal?: AbortSignal,
+): Promise<ReviewRunResponse> {
+  return reviewFetch<ReviewRunResponse>(
+    "POST",
+    `/ai/review/calc/${envelopeRef}`,
+    undefined,
+    signal,
+  );
+}
+
+/** Helper : explication d'un run Scope 2 (envelope_ref « scope2:{runId} »). */
+export function reviewScope2Run(
+  runId: number,
+  signal?: AbortSignal,
+): Promise<ReviewRunResponse> {
+  return reviewCalcRun(`scope2:${runId}`, signal);
+}
+
+export interface ReviewRunListParams {
+  use_case?: string;
+  subject_type?: string;
+  subject_key?: string;
+  status?: ReviewRunStatus;
+  limit?: number;
+  offset?: number;
+}
+
+/** Historique des runs de revue. GET /ai/review/runs. */
+export function fetchReviewRuns(
+  params: ReviewRunListParams = {},
+  signal?: AbortSignal,
+): Promise<RunListResponse> {
+  const qs = new URLSearchParams();
+  if (params.use_case) qs.set("use_case", params.use_case);
+  if (params.subject_type) qs.set("subject_type", params.subject_type);
+  if (params.subject_key) qs.set("subject_key", params.subject_key);
+  if (params.status) qs.set("status", params.status);
+  if (params.limit != null) qs.set("limit", String(params.limit));
+  if (params.offset != null) qs.set("offset", String(params.offset));
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return reviewFetch<RunListResponse>("GET", `/ai/review/runs${query}`, undefined, signal);
+}
+
+/** Détail d'un run de revue. GET /ai/review/runs/{run_id}. */
+export function fetchReviewRun(runId: number, signal?: AbortSignal): Promise<ReviewRunResponse> {
+  return reviewFetch<ReviewRunResponse>("GET", `/ai/review/runs/${runId}`, undefined, signal);
+}
+
+/**
+ * Décision humaine sur un run. POST /ai/review/runs/{run_id}/decision → 201.
+ * La justification DOIT être non vide (l'API la rejette sinon) — jamais de
+ * publication automatique.
+ */
+export function submitReviewDecision(
+  runId: number,
+  body: ReviewDecisionCreate,
+  signal?: AbortSignal,
+): Promise<ReviewDecisionResponse> {
+  return reviewFetch<ReviewDecisionResponse>(
+    "POST",
+    `/ai/review/runs/${runId}/decision`,
+    body,
+    signal,
+  );
+}

@@ -41,6 +41,11 @@ AuditEventType = Literal[
     # plutôt que la valeur générique `validation`, pour rester filtrable par
     # type sur un geste explicitement sensible et à autorité admin).
     "materiality_decision",
+    # PR-11 (assistant IA) : décision humaine sur une revue IA (accept/reject/
+    # modify), déjà append-only dans ai_review_decisions — auditée aussi ici pour
+    # la visibilité plateforme (valeur dédiée, filtrable). Constrainte SQL élargie
+    # par la migration 041 (geste DROP+ADD 011/012/040).
+    "ai_review_decision",
 ]
 
 

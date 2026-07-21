@@ -11,6 +11,7 @@ from middleware.request_logger import RequestLoggerMiddleware
 from routers import (
     actions,
     admin,
+    ai_review,
     alerts,
     audit,
     auditor,
@@ -232,3 +233,4 @@ app.include_router(crma.router, prefix="/crma", tags=["crma (PR-07)"])
 app.include_router(water.router, prefix="/water", tags=["water (PR-08)"])
 app.include_router(nature.router, prefix="/nature", tags=["nature (PR-09)"])
 app.include_router(iro.router, prefix="/iro", tags=["iro (PR-10)"])
+app.include_router(ai_review.router, prefix="/ai", tags=["ai-review (PR-11)"])

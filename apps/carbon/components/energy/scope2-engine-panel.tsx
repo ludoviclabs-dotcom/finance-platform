@@ -24,10 +24,13 @@ import {
   FileWarning,
   Gauge,
   ListTree,
+  Sparkles,
   Zap,
 } from "lucide-react";
 
 import { FeatureStatusBadge } from "@/components/ui/feature-status-badge";
+import { ReviewGate } from "@/components/intelligence/review-gate";
+import { reviewScope2Run, type ReviewRunResponse } from "@/lib/api";
 import {
   downloadScope2EvidencePack,
   fetchScope2Run,
@@ -187,14 +190,71 @@ export function Scope2EnginePanel() {
       )}
 
       {state.status === "ready" && (
-        <Scope2RunView
-          envelope={state.envelope}
-          traceOpen={traceOpen}
-          onToggleTrace={() => setTraceOpen((v) => !v)}
-          downloadError={downloadError}
-        />
+        <>
+          <Scope2RunView
+            envelope={state.envelope}
+            traceOpen={traceOpen}
+            onToggleTrace={() => setTraceOpen((v) => !v)}
+            downloadError={downloadError}
+          />
+          {runId !== null && <Scope2AiExplanation runId={runId} />}
+        </>
       )}
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Explication IA (PR-11) — même ReviewGate que la fiche IRO (UC-2). N'altère
+// aucun KPI : c'est une lecture assistée, décision humaine, rien de publié.
+// ---------------------------------------------------------------------------
+
+function Scope2AiExplanation({ runId }: { runId: number }) {
+  const [result, setResult] = useState<ReviewRunResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const [started, setStarted] = useState(false);
+
+  const run = useCallback(async () => {
+    setStarted(true);
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await reviewScope2Run(runId);
+      setResult(res);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [runId]);
+
+  if (!started) {
+    return (
+      <div className="mt-5">
+        <button
+          type="button"
+          onClick={run}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium transition hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+          data-testid="scope2-run-ai-explanation"
+        >
+          <Sparkles className="h-3.5 w-3.5" aria-hidden />
+          Explication IA
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-5">
+      <ReviewGate
+        result={result}
+        loading={loading}
+        error={error}
+        onRegenerate={run}
+        title="Explication IA du run Scope 2"
+      />
+    </div>
   );
 }
 

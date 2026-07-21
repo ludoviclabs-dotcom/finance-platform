@@ -88,11 +88,11 @@ def build_full_db(conn) -> None:
     alors qu'un fichier 035 existe — ferait échouer toute assertion du type
     « chaque version découverte a une sonde qui passe / est baseline » (la
     sonde 035 verrait ses objets absents), sans que 035 soit en cause.
-    `apply_upto("040")` applique tous les fichiers de préfixe <= 040 (donc 032,
-    033, 034, 035, 036, 037, 038, 039 puis 040). À FAIRE ÉVOLUER à chaque
+    `apply_upto("041")` applique tous les fichiers de préfixe <= 041 (donc 032,
+    033, 034, 035, 036, 037, 038, 039, 040 puis 041). À FAIRE ÉVOLUER à chaque
     nouvelle migration."""
     apply_ddl_inline(conn)
-    apply_upto(conn, "040")
+    apply_upto(conn, "041")
 
 
 def reset_public_schema(conn) -> None:

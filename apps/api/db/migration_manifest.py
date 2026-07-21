@@ -277,6 +277,26 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "fusionné impact+financier."
         ),
     ),
+    "041": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "AI Review Ledger (PR-11) : 4 nouvelles tables tenant strictes "
+            "(ai_runs, ai_claims, ai_citations, ai_review_decisions) — journal "
+            "auditable de l'assistant IA de REVUE et d'EXPLICATION cité, jamais "
+            "un moteur de décision. RLS gen-2 FORCE, triggers d'immutabilité "
+            "(ai_runs : provenance immuable, DELETE refusé ; ai_claims / "
+            "ai_citations / ai_review_decisions : append-only, motif "
+            "materiality_decisions 040 / evidence_kernel_guard('frozen') 028), "
+            "GRANT conditionnel + UN élargissement de audit_eventtype_check "
+            "(littéral 'ai_review_decision', DROP+ADD sous le même nom, geste "
+            "identique à 011/012/040). Pas de privilège propriétaire requis, "
+            "comme 028/030/040. Aucun LLM appelé par la migration, aucun appel "
+            "réseau, aucune donnée métier migrée, aucune décision automatique, "
+            "aucun calcul réglementaire, aucun contenu sensible en clair stocké "
+            "par défaut (identifiants + hachages + sortie structurée seulement)."
+        ),
+    ),
 }
 
 

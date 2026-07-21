@@ -2,6 +2,8 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 
 import type { AiContextResponse } from "@/lib/api";
 import { isLiveAi, demoStreamResponse } from "@/lib/ai/provider";
+import { checkCopilotRateLimit } from "@/lib/rate-limit";
+import { verifyBearerToken } from "@/lib/verify-jwt";
 
 export const maxDuration = 60;
 
@@ -69,9 +71,43 @@ export async function POST(req: Request) {
 
   const { messages, aiContext } = body;
 
-  // Mode démonstration par défaut : aucune API payante appelée.
+  // --- Sécurité (PR-11) -----------------------------------------------------
+  // Ce endpoint sert la vitrine marketing publique (panneau « Variante IA »
+  // sans session). Le chemin DÉMO par défaut (NEURAL_MODE != "live") reste donc
+  // ouvert et NE fait AUCUN appel modèle payant.
+  //
+  // Le chemin LIVE (payant) est en revanche protégé : il exige une session
+  // authentifiée ET reste sous rate-limit. Une requête LIVE anonyme retombe sur
+  // la réponse démo — jamais d'exécution payante anonyme.
   if (!isLiveAi()) {
     return demoStreamResponse(buildDemoVariant(aiContext));
+  }
+
+  const payload = await verifyBearerToken(req.headers.get("authorization"));
+  if (!payload) {
+    // Live activé mais appel non authentifié → démo, jamais d'appel payant.
+    return demoStreamResponse(buildDemoVariant(aiContext));
+  }
+
+  const rl = await checkCopilotRateLimit(`u:${payload.sub}`);
+  if (!rl.success) {
+    return new Response(
+      JSON.stringify({
+        error: "rate_limited",
+        message: "Trop de requêtes. Réessayez dans quelques instants.",
+        retryAfterSeconds: rl.retryAfterSeconds,
+      }),
+      {
+        status: 429,
+        headers: {
+          "content-type": "application/json",
+          "retry-after": String(rl.retryAfterSeconds),
+          "x-ratelimit-limit": String(rl.limit),
+          "x-ratelimit-remaining": String(rl.remaining),
+          "x-ratelimit-reset": String(rl.reset),
+        },
+      },
+    );
   }
 
   const result = streamText({

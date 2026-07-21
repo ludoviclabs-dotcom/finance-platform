@@ -1,16 +1,16 @@
 # MODULE 2 — Ressources stratégiques & dépendances industrielles étendues
 ## SOURCE OF TRUTH (vérité d'architecture et de périmètre)
 
-> **Phase :** cadrage / inventaire de l'existant / validation méthodologique **UNIQUEMENT**.
+> **Phase :** cadrage / inventaire de l'existant / validation méthodologique, **arbitrage Ludo appliqué** (D-1 à D-6, `MODULE2_DECISIONS.md` §2).
 > **Date :** 2026-07-22 · **Branche :** `docs/strategic-resources-cadrage` · **Base :** `origin/master` `2175f89` (schéma `041`).
-> **Statut :** DRAFT de cadrage. Aucun code, aucune migration, aucune route, aucune interface produits ici.
-> Ce document fixe **ce qui existe déjà** et **ce qui serait réellement nouveau** ; il ne conçoit pas l'architecture (voir `MODULE2_HANDOFF.md` → NEXT_ACTION).
+> **Statut :** DRAFT de cadrage + arbitrages structurants. Aucun code, aucune migration, aucune route, aucune interface produits ici.
+> Ce document fixe **ce qui existe déjà**, **ce qui serait réellement nouveau**, et **ce qui a été décidé mais pas encore créé** (`resource_catalog`, `resource_aliases`, `company_resource_exposure_links`, `resource_stage_families`) ; il ne conçoit pas l'architecture détaillée (voir `MODULE2_HANDOFF.md` → NEXT_ACTION).
 
 Ce fichier est le point d'ancrage des cinq autres livrables de cadrage :
 - `REGULATORY_SOURCE_MATRIX.md` — vérité réglementaire (CRMA, EUDR, REACH, CLP, dual-use, ESRS).
 - `DATA_SOURCE_AND_LICENSE_MATRIX.md` — datasets, millésimes, licences, droits d'usage.
 - `METHODOLOGY_AND_ALGORITHMS.md` — formules, unités, biais, tests, formules rejetées.
-- `MODULE2_DECISIONS.md` — décisions confirmées et ouvertes.
+- `MODULE2_DECISIONS.md` — décisions de cadrage, **arbitrages structurants Ludo D-1 à D-6**, décisions encore ouvertes.
 - `MODULE2_HANDOFF.md` — état de phase, questions bloquantes, NEXT_ACTION.
 
 ---
@@ -60,6 +60,19 @@ Ce fichier est le point d'ancrage des cinq autres livrables de cadrage :
 
 Services patron à cloner/paramétrer : `services/crma/{reference_service,stage_service,scoring,exposure_service,article24_service}.py` ; `services/intelligence/{license_policy,observation_service,release_service}.py`. Routeur patron : `routers/crma.py` (24 endpoints, lecture=`get_current_user`, écriture=`require_analyst`). Modèles patron : `models/crma.py` (Literal miroir des CHECK SQL).
 
+### 2.2 Nouveaux objets d'architecture DÉCIDÉS (arbitrage Ludo — pas encore créés)
+
+Ces objets sont **actés par `MODULE2_DECISIONS.md` §2 (D-1 à D-6)**. Ils n'existent pas dans le dépôt à ce stade — cible de la phase d'architecture définitive, pas du cadrage.
+
+| Objet | Rôle | Décision | Contrainte |
+|---|---|---|---|
+| `resource_catalog` | Référentiel canonique de ressources | D-2 | Coexiste avec `material_id TEXT` legacy — ne le remplace pas. |
+| `resource_aliases` | Table d'alias (`legacy_material_id`/CAS/EC/HS-CN/REACH/internal/other) | D-2 | Rapprochement progressif ; aucune réécriture brutale des tables CRMA existantes. |
+| `company_resource_exposure_links` | Pont d'exposition ressource → objet existant (`bom_item`/`purchase_line`/`energy_activity`/`water_activity`/`supplier_declaration`/`manual_assessment`) | D-1 | Le module Resources orchestre, ne remplace ni Energy ni CRMA ni Procurement. |
+| Modèle multi-rôle (`material`/`feedstock`/`energy_carrier`/`process_input`/`industrial_gas`/`nuclear_fuel`/`biomass`/`water`) | Une ressource porte plusieurs rôles, jamais un choix exclusif | D-1 | Non exclusif par construction (même principe que critique/stratégique en 034). |
+| `resource_stage_families` / `resource_stage_applicability` (nom à trancher) | Vocabulaire d'étapes par famille de ressource | D-6 | Étend `processing_stages`/`stage_code`/`stage_order`/`is_upstream` — DB-driven, jamais codé en dur. |
+| Littéral `iros.origin_domain='strategic_resources'` | Lignée IRO pour ressources étendues non-CRMA | D-5 | Extension de contrainte SQL **documentée comme migration future**, pas exécutée ici. |
+
 ---
 
 ## 3. Terminologie (à employer sans dérive)
@@ -74,6 +87,9 @@ Services patron à cloner/paramétrer : `services/crma/{reference_service,stage_
 | **étape (stage)** | Maillon ordonné de la chaîne de valeur (`processing_stages`, `stage_order`, `is_upstream`). Les étapes **ne se moyennent jamais**. |
 | **source_release** | Version immuable d'une source (Evidence Kernel). Tout fait « vérifié » ou tout prix de marché la référence. |
 | **Deux surfaces « matières »** | `/materials` (public, statique, 34 minerais démo) **≠** `/crma` (tenant, exposition Article 24 auditable). Elles ne partagent aucune donnée aujourd'hui. |
+| **rôle (multi-rôle)** | Une ressource peut porter plusieurs rôles simultanément (`material`/`feedstock`/`energy_carrier`/`process_input`/`industrial_gas`/`nuclear_fuel`/`biomass`/`water`), jamais un choix exclusif — décision D-1. |
+| **`resource_catalog` / `resource_aliases`** | Référentiel canonique **décidé** (D-2), pas encore créé. Coexiste avec `material_id TEXT` legacy via alias — ne le remplace jamais brutalement. |
+| **`third_country_dependency`** | Nom honnête de la seule dimension pays du MVP (part hors UE) — **ne jamais dire « country risk score »** (D-3). Un futur risque-pays sourcé (WGI) est gated, pas construit. |
 
 ---
 
@@ -120,24 +136,24 @@ Chaînes de valeur **spécifiques** requises (les 8 étapes actuelles sont **pro
 | Hydrogène, GNL, uranium, charbon à coke | dépendance / concentration / substituabilité (modèle 034) | **combustion / Scope 2** = module Énergie (`031/033`, porteurs `electricity\|gas\|heat\|steam\|cooling\|other` — **pas** de commodité combustible) |
 | Bois, caoutchouc, coton, lin, chanvre | dépendance d'approvisionnement (modèle 034) | **empreinte eau** = module Eau (`036/037`) ; **biodiversité / TNFD** = module Nature (`038/039`) |
 
-**Décision ouverte** (→ `MODULE2_DECISIONS.md`) : un combustible (hydrogène/GNL/uranium) est-il modélisé comme **matière** (034) pour l'angle dépendance, tout en restant un **porteur** (031) pour l'angle Scope 2 ? Aucun pont table « porteur énergie ↔ commodité stratégique » n'existe aujourd'hui.
+**Décision D-1 (Ludo, `MODULE2_DECISIONS.md` §2) :** un combustible n'est **pas** un choix exclusif matière-ou-porteur — modèle **multi-rôle**. Hydrogène/GNL/uranium peuvent porter le rôle `energy_carrier` (Energy, 031, Scope 2) **et** `feedstock`/`nuclear_fuel` (dépendance, `resource_catalog`) simultanément. Le pont **`company_resource_exposure_links`** (§2.2) reliera les deux angles — décidé, pas encore créé.
 
 ---
 
 ## 5. Ce qui manque réellement (gaps — à construire, pas à réutiliser)
 
-Confirmés par l'inventaire architecture (file:line) :
+Confirmés par l'inventaire architecture (file:line). **Statut mis à jour après arbitrage Ludo** (`MODULE2_DECISIONS.md` §2) — la direction est tranchée pour la plupart ; rien n'est encore construit.
 
-1. **Aucune table de référence `materials`** : `material_id` est du texte libre non validé ; `033_material_reference_crma.sql` jamais mergée (`034:48-56`). Pas de garantie qu'un `material_id` soit connu, pas de métadonnée canonique.
-2. **Aucune liste canonique côté API** : seul le snapshot **frontend** énumère 34 minerais ; gaz/biomasse/combustibles en sont absents.
-3. **Aucun groupe de famille** `industrial_gases` / `biomass_fibers` / `energy_fuels` : `material_groups` existe comme mécanisme mais 034 ne sème **aucun** groupe global (seulement les 8 étapes).
-4. **Aucun jeu d'étapes alternatif** : `processing_stages` ne contient que la chaîne aimant à 8 étapes.
-5. **Aucune table de risque-pays / gouvernance** : le scoring n'utilise qu'un **binaire UE/hors-UE codé en dur** (`scoring.py:100`). Tout pondérateur géopolitique par pays devra être **construit et sourcé** (miroir de `water_risk_areas`) — **jamais inventé**.
-6. **Aucun pont combustible ↔ commodité** : l'énergie (031) ne modélise que des porteurs Scope 2.
-7. **Aucune surface produit « ressources »** : `lib/product-modules.ts` a 8 modules, aucun pour les ressources stratégiques.
-8. **`iros.origin_domain`** exigerait un nouveau littéral `strategic_resources` (petite migration `DROP/ADD CONSTRAINT`, non-propriétaire, motif `040:616`) — sauf à réutiliser le domaine `crma`.
+1. **~~Aucune table de référence `materials`~~ → DÉCIDÉ (D-2) :** créer `resource_catalog` + `resource_aliases`, `material_id` legacy préservé. `033_material_reference_crma.sql` reste non mergée (`034:48-56`) — le nouveau référentiel ne la ressuscite pas, il la remplace conceptuellement.
+2. **Aucune liste canonique côté API** : seul le snapshot **frontend** énumère 34 minerais ; gaz/biomasse/combustibles en sont absents. `resource_catalog` (D-2, gap #1) est la réponse architecturale — reste à peupler.
+3. **Aucun groupe de famille** `industrial_gases` / `biomass_fibers` / `energy_fuels` : `material_groups` existe comme mécanisme mais 034 ne sème **aucun** groupe global (seulement les 8 étapes). **Pas directement résolu par D-1..D-6** — reste un item d'implémentation en architecture (semer les groupes de famille).
+4. **~~Aucun jeu d'étapes alternatif~~ → DÉCIDÉ (D-6) :** étendre `processing_stages`/`stage_code`/`stage_order`/`is_upstream` + nouvelle table `resource_stage_families`/`resource_stage_applicability` (nom à trancher), DB-driven, jamais codé en dur.
+5. **~~Aucune table de risque-pays / gouvernance~~ → DÉCIDÉ (D-3) :** MVP = garder le binaire UE/hors-UE (`scoring.py:100`), **renommé** `third_country_dependency` (jamais « country risk score »). v2 = WGI sourcé, strictement gated (licence confirmée, `source_release`, confiance séparée) — non construit tant que ces conditions ne sont pas réunies.
+6. **~~Aucun pont combustible ↔ commodité~~ → DÉCIDÉ (D-1) :** modèle multi-rôle + `company_resource_exposure_links` reliant ressource ↔ `bom_item`/`purchase_line`/`energy_activity`/`water_activity`/`supplier_declaration`/`manual_assessment`.
+7. **Aucune surface produit « ressources »** : `lib/product-modules.ts` a 8 modules, aucun pour les ressources stratégiques. **Non adressé par l'arbitrage** — reste un gap pour la phase produit/architecture.
+8. **~~`iros.origin_domain` exigerait un nouveau littéral~~ → DÉCIDÉ (D-5) :** ajouter `strategic_resources` en plus de `crma` (routage selon l'origine réelle du signal). Migration `DROP/ADD CONSTRAINT` (motif `040:616`) **documentée en architecture, pas exécutée** dans cette phase.
 
-**Piège de réutilisation n°1 (à répéter partout) :** `NOMINAL_WEIGHTS`, `STAGE_ORDER`, `UPSTREAM_STAGES`, `EU_COUNTRY_CODES` de `scoring.py` sont **spécifiques aux aimants** — le moteur doit être **paramétré par famille**, pas cloné à l'identique.
+**Piège de réutilisation n°1 (à répéter partout, toujours vrai après arbitrage) :** `NOMINAL_WEIGHTS`, `STAGE_ORDER`, `UPSTREAM_STAGES`, `EU_COUNTRY_CODES` de `scoring.py` sont **spécifiques aux aimants** — le moteur doit être **paramétré par famille**, pas cloné à l'identique (CD-2).
 
 ---
 
@@ -152,10 +168,8 @@ Confirmés par l'inventaire architecture (file:line) :
 
 ---
 
-## 7. UNRESOLVED (à confirmer avant l'architecture définitive)
+## 7. UNRESOLVED
 
-- Statut réglementaire **primaire** exact de chaque ressource → `REGULATORY_SOURCE_MATRIX.md` (agents en cours).
-- Licences réelles des datasets candidats → `DATA_SOURCE_AND_LICENSE_MATRIX.md` (agents en cours).
-- Formules retenues/rejetées et tests → `METHODOLOGY_AND_ALGORITHMS.md` (agents en cours).
-- Décision « combustible = matière et/ou porteur » (§4.3).
-- Introduire ou non une vraie table de référence `materials` (gap n°1) — arbitrage architecture.
+**Toutes les décisions d'architecture de cette liste d'origine sont tranchées** (D-1 à D-6, `MODULE2_DECISIONS.md` §2) : combustible = matière et/ou porteur (§4.3, D-1) ; table de référence `resource_catalog` (§5 gap #1, D-2). Les statuts réglementaires et licences sont établis dans `REGULATORY_SOURCE_MATRIX.md` / `DATA_SOURCE_AND_LICENSE_MATRIX.md` avec leurs propres UNRESOLVED résiduels (manques de source primaire réels, pas des choix) — voir `MODULE2_HANDOFF.md` §5 pour la liste consolidée. Les formules sont validées dans `METHODOLOGY_AND_ALGORITHMS.md`.
+
+Ne reste UNRESOLVED **dans ce document** que ce qui dépend d'une décision non couverte par D-1 à D-6 : gap #3 (semis des groupes de famille) et gap #7 (surface produit « ressources ») — ce sont des items d'implémentation d'architecture, pas des inconnues de source.

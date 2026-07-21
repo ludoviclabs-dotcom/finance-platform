@@ -1,7 +1,7 @@
 # MODULE 2 — Méthodologie & algorithmes
 
-> **Phase :** cadrage (lecture seule). **Date : 2026-07-22.**
-> Constat central : **la méthode existante (`services/crma/scoring.py`, `CC-MATERIAL-EXPOSURE 0.1.0`) est saine et MODULE 2 doit la RÉUTILISER, pas la réinventer.** Ses invariants — risque≠confiance, jamais de fusion inter-étapes, manquant≠zéro, sourcé-ou-avoué — sont exactement les garde-fous d'un module « ressources stratégiques ». Les vrais manques : **risque-pays réel** (absent, à sourcer), **analyse de sensibilité** (absente, requise), **désambiguïsation des intensités**, **durcissement du HHI** face à une faible couverture de marché.
+> **Phase :** cadrage (lecture seule) + arbitrage Ludo appliqué (D-3, D-4 — `MODULE2_DECISIONS.md` §2). **Date : 2026-07-22.**
+> Constat central : **la méthode existante (`services/crma/scoring.py`, `CC-MATERIAL-EXPOSURE 0.1.0`) est saine et MODULE 2 doit la RÉUTILISER, pas la réinventer.** Ses invariants — risque≠confiance, jamais de fusion inter-étapes, manquant≠zéro, sourcé-ou-avoué — sont exactement les garde-fous d'un module « ressources stratégiques ». **Risque-pays (D-3) et intensités (D-4) sont désormais tranchés** — voir B.4/B.7. Restent réellement ouverts : **analyse de sensibilité** (absente, requise), **durcissement du HHI** face à une faible couverture de marché, poids de confiance, provenance de composante.
 > Ce document propose des formules **candidates** ; aucune n'est implémentée dans cette phase.
 
 ---
@@ -49,7 +49,8 @@
 - **Warnings.** Ne pas afficher le résiduel à 2 décimales comme s'il était mesuré ; soumettre `0.3` et les ancres à l'analyse de sensibilité (B.8).
 - **Tests.** monotonie `mature<commercial<pilot<research` (présent) ; pénalité augmente strictement et plafonne à 100 ; `argmin` choisit le meilleur ; manquant→indisponible (pas zéro).
 
-### B.4 Risque-pays — actuellement BINAIRE UE/hors-UE (**GAP — à sourcer, jamais inventer**)
+### B.4 Risque-pays — actuellement BINAIRE UE/hors-UE (**DÉCIDÉ — D-3, `MODULE2_DECISIONS.md` §2**)
+- **Décision Ludo D-3 (2026-07-22).** **MVP : ne pas créer de score risque-pays inventé.** Garder `third_country_dependency` tel quel, **renommé honnêtement** — jamais « country risk score ». **v2 : gated**, un indicateur sourcé (ex. WGI ci-dessous) n'est intégré **que si** : source officielle vérifiée, licence confirmée, année disponible, méthodologie documentée, `source_release` enregistrée, confiance séparée, aucune transformation opaque. **Règle absolue : aucun score pays sans `source_release`.** Le formalisme ci-dessous reste la spécification **candidate pour v2** — non implémentée tant que les conditions ne sont pas réunies.
 - **État actuel, dit clairement.** La seule dimension pays = `third_country_dependency` = part hors du set EU-27 codé en dur. C'est une distinction **réglementaire/structurelle** (quels États sont légalement dans l'UE — un fait, correctement codé en dur), **pas un jugement de risque.** Elle traite Norvège/Suisse/USA comme Chine/RDC. À **renommer « part hors UE »**, pas « risque-pays ».
 - **Formulation réelle proposée (base WGI).** Pour chaque pays producteur `c` de part `s_c`, poids de risque de gouvernance `r_c ∈ [0,1]` dérivé des **World Bank Worldwide Governance Indicators** : depuis le rang percentile `pr_c` → `r_c = 1 − pr_c/100` ; ou depuis l'estimé `g_c ∈ [−2.5, 2.5]` → `r_c = (2.5 − g_c)/5`. Risque-pays d'étape = **moyenne pondérée par les parts** `R_stage = Σ_c (s_c/observed_total)·r_c` (0–1, ×100 pour affichage). Dimensions candidates : Political Stability, Government Effectiveness, Rule of Law (point de décision).
 - **Données REQUISES (le nœud).** WGI par pays et par an, **ingérés via l'Evidence Kernel** comme source sous licence (`source_release_id`, `data_status`) ; **les erreurs-types WGI portées dans la CONFIANCE, pas le risque** (WGI = modèle à composantes inobservées sur ~35 sources, chaque score a un écart-type). Nature perceptuelle, biais occidental, non spécifique à l'appro. → à **disclaimer**. Alternatives (chacune à ingérer + licencier) : OECD FDI Regulatory Restrictiveness Index, indices de restriction commerciale (OTRI), Global Trade Alert.
@@ -72,13 +73,24 @@
 - **Recommandations.** Documenter chaque poids ; OAT sensibilité sur les poids de confiance (B.8) ; pente de fraîcheur en constante nommée couvrant tous les types de faits ; résoudre le double-comptage de couverture.
 - **Tests.** monotonie par sous-composante (ceteris paribus) ; bornes (tout-0→0, tout-1→100) ; risque invariant à toute entrée de confiance (présent) ; fraîcheur aux bornes d'année ; chemin du défaut licence.
 
-### B.7 Intensités — DÉSAMBIGUÏSER (point de décision explicite)
+### B.7 Intensités — DÉSAMBIGUÏSÉ (**DÉCIDÉ — D-4, `MODULE2_DECISIONS.md` §2**)
+- **Décision Ludo D-4 (2026-07-22).** **Le Module 2 ne devient PAS un nouveau moteur carbone.** L'intensité carbone (b) ne peut être **affichée/reliée que depuis les moteurs existants** — Scope 2, Scope 3, Product Carbon Footprint, Energy, Procurement — jamais calculée en propre par MODULE 2. En contrepartie, MODULE 2 **peut calculer de nouvelles intensités ressources**, propres au module :
+  - m³ / unité fonctionnelle ;
+  - kg / unité produite ;
+  - tonne / produit ;
+  - kg / M€ ;
+  - kg / heure de fonctionnement ;
+
+  **à condition que le dénominateur soit explicitement documenté** (source, unité, périmètre, année) — sans quoi l'intensité n'est pas publiée.
+
+  **Interdictions strictes (D-4) :** aucun facteur d'émission codé en dur ; aucun `kgCO2e/kN` de poussée (ni aucun paramètre opérationnel défense/spatial assimilable — cf. CD-9) ; aucun calcul carbone propre au spatial/défense ; aucune intensité sans source, unité, périmètre et année. Tout facteur carbone futur passe par l'Evidence Kernel + `source_release` — jamais fabriqué.
+
 Trois sens distincts — ne pas laisser un mot les confondre :
-- **(a) Intensité matière** = kg matière / unité produit. **Unités** kg/unité. **Supportable maintenant** : `material_mappings.mass_value/mass_unit` × `bom_items.quantity` (tenant, sans licence externe).
-- **(b) Intensité carbone** = kgCO2e / kg matière. **Unités** kgCO2e/kg. **Partiellement supportable** : `emission_factors` (001) a `factor_kgco2e` par `kg`, `category='materials'`, ADEME, versionné — **mais** (i) **pas de crosswalk `material_id → ef_code`**, (ii) le catalogue ADEME générique **manque probablement de facteurs terres-rares / aimants**. Pour les ressources stratégiques : généralement **de NOUVEAUX facteurs sourcés via l'Evidence Kernel** requis — **ne pas fabriquer de kgCO2e/kg pour les terres rares.**
-- **(c) Intensité d'appro./exposition** = degré d'exposition tenant. **Unités** kg/an, €/an, % d'appro. **Supportable maintenant** : `company_material_exposures` (`annual_mass_kg`, `annual_spend_eur`, `share_of_supply_pct`).
-- **Décision MODULE 2.** Nommer les trois séparément ; décider si l'intensité **carbone** est même dans le périmètre MODULE 2 (peut relever du MODULE 1). (a) et (c) partent des données existantes ; (b) exige un crosswalk + probablement de nouveaux facteurs sourcés — sinon l'omettre plutôt que l'inventer.
-- **Tests.** gardes de cohérence d'unités (kg vs t vs €) ; rapport de couverture du crosswalk ; test que (b) n'est émis **que** là où un facteur sourcé existe.
+- **(a) Intensité matière** = kg matière / unité produit. **Unités** kg/unité. **Supportable maintenant** : `material_mappings.mass_value/mass_unit` × `bom_items.quantity` (tenant, sans licence externe). **Dans le périmètre D-4** (intensité ressource).
+- **(b) Intensité carbone** = kgCO2e / kg matière. **Unités** kgCO2e/kg. **HORS calcul propre à MODULE 2 (D-4)** — affichage/lien uniquement depuis les moteurs existants. `emission_factors` (001) a `factor_kgco2e` par `kg`, `category='materials'`, ADEME, versionné — **mais** (i) **pas de crosswalk `material_id → ef_code`**, (ii) le catalogue ADEME générique **manque probablement de facteurs terres-rares / aimants**. Si un crosswalk est construit (par un moteur existant, pas par MODULE 2), **ne jamais fabriquer de kgCO2e/kg pour les terres rares** sans facteur sourcé.
+- **(c) Intensité d'appro./exposition** = degré d'exposition tenant. **Unités** kg/an, €/an, % d'appro. **Supportable maintenant** : `company_material_exposures` (`annual_mass_kg`, `annual_spend_eur`, `share_of_supply_pct`). **Dans le périmètre D-4.**
+- **Nouvelles intensités ressources (D-4)** : m³/unité fonctionnelle, kg/unité produite, tonne/produit, kg/M€, kg/heure — **dans le périmètre**, gardées par la documentation obligatoire du dénominateur.
+- **Tests.** gardes de cohérence d'unités (kg vs t vs €vs m³) ; rapport de couverture du crosswalk carbone (si un moteur existant l'expose) ; test que (b) n'est **jamais calculé** par MODULE 2, seulement lié/affiché ; test que toute intensité ressource sans dénominateur documenté est rejetée à la publication.
 
 ### B.8 Analyse de sensibilité — ABSENTE ; **livrable requis**
 - **Méthode : perturbation un-à-la-fois (OAT).**
@@ -116,19 +128,19 @@ Trois sens distincts — ne pas laisser un mot les confondre :
 
 ---
 
-## D. Décisions méthodologiques ouvertes pour MODULE 2 (→ `MODULE2_DECISIONS.md`)
+## D. Décisions méthodologiques — statut après arbitrage Ludo (→ `MODULE2_DECISIONS.md` §2)
 
-1. **Risque-pays (UNRESOLVED).** Ingérer WGI (ou restriction commerciale) via Evidence Kernel, choisir dimension(s) et carte `r_c`, porter les erreurs-types dans la confiance — **ou** garder binaire UE/hors-UE et le renommer « part hors UE ». Aucun poids codé en dur dans les deux cas.
-2. **Échelle/seuils/garde de couverture HHI (UNRESOLVED).** Confirmer l'échelle 0–100 et relabelliser « HHI % » ; décider d'exposer les bandes DOJ via ÷100 (15/18/25) et `N_eff` ; poser une **garde de couverture minimale** ; envisager la bande de couverture.
-3. **Périmètre des intensités (UNRESOLVED).** Décider lesquelles (matière / carbone / appro.) sont dans le périmètre ; crosswalk `material_id→ef_code` si carbone voulu ; n'émettre le carbone que là où un facteur est sourcé.
-4. **Analyse de sensibilité (REQUISE — implémenter).** Fixer δ, décider la surface de sortie (tornado + bande + inversion de rang), et si la bande est persistée dans le JSON d'évaluation.
-5. **Poids de confiance (UNRESOLVED).** Justifier/calibrer ou documenter comme jugement ; corriger la non-indépendance `stage_coverage`/`component_coverage` ; élargir la fraîcheur ; résoudre le défaut `license_access`.
-6. **Provenance de composante (décision).** Attacher les `source_release_id` à chaque `ScoreComponent`.
-7. **Vocabulaire de chaîne de valeur au-delà des aimants (décision).** `STAGE_ORDER` dans `scoring.py` (8 étapes aimants) **duplique** le semis DB de 034 §3bis. « Dépendances industrielles étendues » implique d'autres chaînes → semer des vocabulaires d'étapes **globaux par famille de matière** et piloter `scoring.py` depuis eux, plutôt que coder en dur — sinon les deux listes divergeront.
-8. **Raffinements substitution (mineur/UNRESOLVED).** Garder meilleur-substitut ou ajouter la largeur de portefeuille ; exposer le coefficient `0.3` et les ancres comme constantes nommées et testées en sensibilité.
-9. **Compagnons concentration fournisseurs (mineur).** Garder HHI ; option CR1 + nombre pour la lisibilité.
+1. **~~Risque-pays~~ → RÉSOLU (D-3).** MVP = garder `third_country_dependency` binaire UE/hors-UE, renommé honnêtement, aucun poids inventé. v2 = WGI (ou restriction commerciale) via Evidence Kernel, **gated** sur licence confirmée + `source_release` + confiance séparée — non implémenté tant que ces conditions ne sont pas réunies. Voir B.4.
+2. **Échelle/seuils/garde de couverture HHI (encore ouvert).** Confirmer l'échelle 0–100 et relabelliser « HHI % » ; décider d'exposer les bandes DOJ via ÷100 (15/18/25) et `N_eff` ; poser une **garde de couverture minimale** ; envisager la bande de couverture. **Non adressé par l'arbitrage** — à trancher en architecture.
+3. **~~Périmètre des intensités~~ → RÉSOLU (D-4).** Carbone = affichage/lien depuis moteurs existants (Scope 2/3, PCF, Energy, Procurement) seulement, jamais calculé par MODULE 2. Nouvelles intensités **ressources** autorisées (m³/unité, kg/unité, tonne/produit, kg/M€, kg/heure) si dénominateur documenté. Voir B.7.
+4. **Analyse de sensibilité (REQUISE — encore à spécifier).** Fixer δ, décider la surface de sortie (tornado + bande + inversion de rang), et si la bande est persistée dans le JSON d'évaluation. **Non adressé par l'arbitrage** (O-5) — à spécifier en architecture.
+5. **Poids de confiance (encore ouvert).** Justifier/calibrer ou documenter comme jugement ; corriger la non-indépendance `stage_coverage`/`component_coverage` ; élargir la fraîcheur ; résoudre le défaut `license_access`. **Non adressé par l'arbitrage.**
+6. **Provenance de composante (encore ouvert).** Attacher les `source_release_id` à chaque `ScoreComponent`. **Non adressé par l'arbitrage.**
+7. **~~Vocabulaire de chaîne de valeur au-delà des aimants~~ → RÉSOLU (D-6).** `STAGE_ORDER` dans `scoring.py` (8 étapes aimants) **duplique** le semis DB de 034 §3bis — décision : étendre `processing_stages`/`stage_code`/`stage_order`/`is_upstream` + nouvelle table `resource_stage_families`/`resource_stage_applicability`, **DB-driven**, jamais codé en dur. `scoring.py` devra lire ce vocabulaire plutôt que ses constantes actuelles.
+8. **Raffinements substitution (mineur, encore ouvert/O-8 adjacent).** Garder meilleur-substitut ou ajouter la largeur de portefeuille ; exposer le coefficient `0.3` et les ancres comme constantes nommées et testées en sensibilité.
+9. **Compagnons concentration fournisseurs (mineur, encore ouvert).** Garder HHI ; option CR1 + nombre pour la lisibilité.
 
-**Rien ci-dessus n'exige de réinventer le cœur.** Les invariants sont l'atout ; le travail de MODULE 2 est le **sourcing** (risque-pays, facteurs d'intensité), le **durcissement** (garde de couverture HHI, normalisation des codes), et l'**outillage d'honnêteté** (bande de sensibilité, provenance de composante).
+**Rien ci-dessus n'exige de réinventer le cœur.** Les invariants sont l'atout ; le travail de MODULE 2 est le **sourcing** (facteurs d'intensité via moteurs existants, WGI v2 gated), le **durcissement** (garde de couverture HHI, normalisation des codes), et l'**outillage d'honnêteté** (bande de sensibilité, provenance de composante). Items 2, 4, 5, 6, 8, 9 restent à spécifier en phase d'architecture — non bloquants pour la démarrer (cf. `MODULE2_DECISIONS.md` §3).
 
 ---
 

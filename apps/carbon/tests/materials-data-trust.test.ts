@@ -13,10 +13,14 @@ import {
   summarize,
   getChinaShare,
   isChinaConcentrated,
+  getChinaTier,
   hasRenderableHistory,
   isSnapshotStale,
   CHINA_DOMINANCE_THRESHOLD,
+  CHINA_MID_TIER_THRESHOLD,
   STALE_AFTER_DAYS,
+  VOLATILITY_THRESHOLD_PCT,
+  getAlerts,
   type Material,
 } from "@/lib/crm/dataLoader";
 import snapshot from "@/data/crm_full_34_snapshot_2026-06-30.json";
@@ -90,6 +94,16 @@ describe("Dérivation « concentration Chine » (remplace china_dominant figé)"
     expect(isChinaConcentrated(antimony)).toBe(false);
     expect(isChinaConcentrated(gallium)).toBe(true);
   });
+
+  it("getChinaTier découpe en 3 paliers aux bornes exactes", () => {
+    expect(CHINA_MID_TIER_THRESHOLD).toBe(20);
+    expect(getChinaTier(0)).toBe("low");
+    expect(getChinaTier(19)).toBe("low");
+    expect(getChinaTier(20)).toBe("mid");
+    expect(getChinaTier(49)).toBe("mid");
+    expect(getChinaTier(50)).toBe("high");
+    expect(getChinaTier(100)).toBe("high");
+  });
 });
 
 describe("isSnapshotStale — calcul déterministe, injectable (pas de Date.now() implicite en test)", () => {
@@ -144,6 +158,8 @@ describe("summarize() — indicateurs dérivés, aucun chiffre en dur", () => {
     expect(s.chinaConcentrated).toBe(materials.filter(m => isChinaConcentrated(m)).length);
     expect(s.withPrice).toBe(materials.filter(m => m.price_snapshot !== null).length);
     expect(s.chinaThreshold).toBe(CHINA_DOMINANCE_THRESHOLD);
+    expect(s.alerts).toBe(getAlerts(materials).length);
+    expect(s.alertsThreshold).toBe(VOLATILITY_THRESHOLD_PCT);
   });
 
   it("estimatedPct vaut 100 tant que toutes les valeurs sont estimées", async () => {

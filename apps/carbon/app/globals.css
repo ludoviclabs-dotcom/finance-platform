@@ -362,7 +362,17 @@ h1, h2, h3 {
   .carbon-aurora,
   .carbon-grid-drift,
   .carbon-sheen,
-  .carbon-ripple-ping {
+  .carbon-ripple-ping,
+  .mx-flow,
+  .mx-ping-ring,
+  .mx-pulse-dot,
+  .mx-alert-glow,
+  .mx-row-glow,
+  .mx-drift-bg,
+  .mx-aurora-1,
+  .mx-aurora-2,
+  .mx-beam,
+  .mx-ticker-track {
     animation: none;
   }
   /* États finaux figés pour le tracé SVG et la frappe */
@@ -1317,3 +1327,106 @@ h1, h2, h3 {
   .sc-tiles    { grid-template-columns: 1fr; }
   .sc-hero-num { font-size: 34px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MATERIALS INTELLIGENCE — /materials v2 ("Métaux critiques")
+   Palette et animations scopées sous [data-mx], indépendantes du thème global
+   data-theme (cette page ne rend pas le header du site — cf.
+   components/materials/MxThemeProvider.tsx) et du système `.cc-*` du cockpit
+   authentifié (page publique, non liée). Sombre par défaut, variante Clair
+   sous [data-mx-theme="clair"].
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-mx] {
+  --mx-bg:        #070C15;
+  --mx-surface:   #0C1422;
+  --mx-card:      #101A2B;
+  --mx-card-2:    #16223A;
+  --mx-border:    rgba(255,255,255,.08);
+  --mx-border-2:  rgba(255,255,255,.16);
+  --mx-fg:        #E8EDF4;
+  --mx-muted:     #8A99B0;
+  --mx-subtle:    #5C6B82;
+  --mx-em:        #34D399;
+  --mx-em-dark:   #059669;
+  --mx-amber:     #FBBF24;
+  --mx-red:       #F87171;
+  --mx-blue:      #60A5FA;
+  --mx-cyan:      #22D3EE;
+  --mx-violet:    #A78BFA;
+  --mx-tier-high: #E0655A;
+  --mx-tier-mid:  #D9A13F;
+  --mx-tier-low:  #31A377;
+  --mx-shadow:    none;
+  --mx-chip:      #141F31;
+  --mx-app-bg:
+    radial-gradient(1000px 560px at 12% -8%,  rgba(52,211,153,.08), transparent 60%),
+    radial-gradient(900px 600px at 94% 2%,    rgba(124,58,237,.08), transparent 58%),
+    radial-gradient(1000px 640px at 55% 112%, rgba(34,211,238,.06), transparent 62%),
+    #070C15;
+
+  --mx-font-display: var(--font-space-grotesk), ui-sans-serif, sans-serif;
+  --mx-font-mono:    var(--font-jetbrains-mono), ui-monospace, Menlo, Consolas, monospace;
+
+  background: var(--mx-app-bg);
+  color: var(--mx-fg);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+[data-mx][data-mx-theme="clair"] {
+  --mx-bg:        #F2F6FB;
+  --mx-surface:   #FFFFFF;
+  --mx-card:      #FFFFFF;
+  --mx-card-2:    #EDF2F9;
+  --mx-border:    rgba(15,23,42,.10);
+  --mx-border-2:  rgba(15,23,42,.20);
+  --mx-fg:        #0F172A;
+  --mx-muted:     #54657D;
+  --mx-subtle:    #8B99AC;
+  --mx-em:        #059669;
+  --mx-em-dark:   #047857;
+  --mx-amber:     #B45309;
+  --mx-red:       #DC2626;
+  --mx-blue:      #2563EB;
+  --mx-cyan:      #0891B2;
+  --mx-violet:    #7C3AED;
+  --mx-tier-high: #C94F43;
+  --mx-tier-mid:  #B8862B;
+  --mx-tier-low:  #178A66;
+  --mx-shadow:    0 1px 3px rgba(15,23,42,.07);
+  --mx-chip:      #E7EDF5;
+  --mx-app-bg:
+    radial-gradient(1000px 560px at 12% -8%,  rgba(5,150,105,.07), transparent 60%),
+    radial-gradient(900px 600px at 94% 2%,    rgba(124,58,237,.05), transparent 58%),
+    radial-gradient(1000px 640px at 55% 112%, rgba(8,145,178,.06), transparent 62%),
+    #F2F6FB;
+}
+
+@keyframes mx-grow       { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes mx-in         { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes mx-ticker     { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes mx-dash       { to { stroke-dashoffset: -16; } }
+@keyframes mx-ping       { 0% { r: 3; opacity: .9; } 100% { r: 15; opacity: 0; } }
+@keyframes mx-drift      { from { background-position: 0 0; } to { background-position: 64px 64px; } }
+@keyframes mx-aurora     { 0%, 100% { transform: translate3d(0,0,0) scale(1); } 33% { transform: translate3d(4%,-4%,0) scale(1.1); } 66% { transform: translate3d(-4%,4%,0) scale(1.05); } }
+@keyframes mx-beam       { 0% { transform: translateX(-110%); } 60%, 100% { transform: translateX(240%); } }
+@keyframes mx-pulse-dot  { 50% { box-shadow: 0 0 0 6px rgba(52,211,153,0); } }
+@keyframes mx-alert-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0); } 50% { box-shadow: 0 0 24px 0 rgba(251,191,36,.26); } }
+@keyframes mx-row-glow   { 0%, 100% { box-shadow: 0 0 0 rgba(224,101,90,0); } 50% { box-shadow: 0 0 12px rgba(224,101,90,.6); } }
+
+.mx-flow           { animation: mx-dash 1.1s linear infinite; }
+.mx-ping-ring      { animation: mx-ping 2.2s ease-out infinite; }
+.mx-pulse-dot      { animation: mx-pulse-dot 1.8s ease-out infinite; }
+.mx-alert-glow     { animation: mx-alert-glow 2.4s ease-in-out infinite; }
+.mx-row-glow       { animation: mx-row-glow 2.2s ease-in-out infinite; }
+.mx-drift-bg       { animation: mx-drift 42s linear infinite; }
+.mx-aurora-1       { animation: mx-aurora 22s ease-in-out infinite; }
+.mx-aurora-2       { animation: mx-aurora 28s ease-in-out infinite reverse; }
+.mx-beam           { animation: mx-beam 4.5s ease-in-out infinite; }
+.mx-ticker-track   { animation: mx-ticker 55s linear infinite; }
+.mx-ticker-track:hover { animation-play-state: paused; }
+
+.mx-scrollbar-none { scrollbar-width: none; }
+.mx-scrollbar-none::-webkit-scrollbar { display: none; }
+
+.mx-anchor { scroll-margin-top: 100px; }

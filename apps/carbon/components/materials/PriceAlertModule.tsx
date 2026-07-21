@@ -1,9 +1,8 @@
 "use client";
 import { useState } from "react";
 import { DataStatusBadge } from "@/components/ui/data-status-badge";
+import type { Material } from "@/lib/crm/dataLoader";
 
-interface PriceSnapshot { date: string; value: number; unit: string; trend_3m_pct: number }
-interface Material { id: string; name_fr: string; price_snapshot: PriceSnapshot | null }
 interface Props { materials: Material[]; threshold?: number }
 
 type Severity = "MODÉRÉE" | "ÉLEVÉE" | "CRITIQUE";
@@ -15,10 +14,10 @@ function getSeverity(pct: number, threshold: number): Severity {
   return "MODÉRÉE";
 }
 
-const SEV_STYLES: Record<Severity, { badge: string; border: string; icon: string }> = {
-  "CRITIQUE":  { badge: "bg-red-500/20 text-red-400 border-red-500/30",    border: "border-red-500/20",    icon: "🔴" },
-  "ÉLEVÉE":    { badge: "bg-amber-500/20 text-amber-400 border-amber-500/30", border: "border-amber-500/20", icon: "🟠" },
-  "MODÉRÉE":   { badge: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", border: "border-yellow-500/20", icon: "🟡" },
+const SEV_COLOR: Record<Severity, string> = {
+  CRITIQUE: "var(--mx-red)",
+  ÉLEVÉE: "var(--mx-amber)",
+  MODÉRÉE: "var(--mx-muted)",
 };
 
 export default function PriceAlertModule({ materials, threshold = 15 }: Props) {
@@ -29,62 +28,105 @@ export default function PriceAlertModule({ materials, threshold = 15 }: Props) {
     .filter(m => !dismissed.has(m.id))
     .sort((a, b) => Math.abs(b.price_snapshot!.trend_3m_pct) - Math.abs(a.price_snapshot!.trend_3m_pct));
 
+  const maxAbs = alerts.length ? Math.abs(alerts[0].price_snapshot!.trend_3m_pct) : 1;
+
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 space-y-4 h-full">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="font-bold text-white flex items-center gap-2">
-            ⚡ Alertes volatilité
-            {alerts.length > 0 && (
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold">
-                {alerts.length}
-              </span>
-            )}
-            <DataStatusBadge status="ESTIMATED" />
-          </h3>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Tendance 3 mois <strong className="text-zinc-400">estimée par le snapshot</strong> (seuil ≥ {threshold}%) —
-            pas une série de prix observée.
-          </p>
-        </div>
+    <div className="rounded-2xl border p-5 flex flex-col h-full" style={{ borderColor: "var(--mx-border)", background: "var(--mx-card)", boxShadow: "var(--mx-shadow)" }}>
+      <div className="flex items-baseline justify-between gap-3 mb-1">
+        <h3 className="m-0 flex items-center gap-2.5 font-semibold text-base" style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-fg)" }}>
+          Alertes volatilité
+          {alerts.length > 0 && (
+            <span
+              className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full font-bold text-[11px]"
+              style={{ background: "var(--mx-red)", color: "#fff", fontFamily: "var(--mx-font-mono)" }}
+            >
+              {alerts.length}
+            </span>
+          )}
+          <DataStatusBadge status="ESTIMATED" />
+        </h3>
         {dismissed.size > 0 && (
-          <button onClick={() => setDismissed(new Set())}
-            className="text-xs text-zinc-500 hover:text-zinc-300 transition">
+          <button
+            onClick={() => setDismissed(new Set())}
+            className="text-xs cursor-pointer transition-colors"
+            style={{ color: "var(--mx-subtle)" }}
+          >
             Restaurer ({dismissed.size})
           </button>
         )}
       </div>
+      <p className="m-0 mb-3 text-xs" style={{ color: "var(--mx-subtle)" }}>
+        Tendance 3 mois <strong style={{ color: "var(--mx-muted)" }}>estimée par le snapshot</strong> — pas une série de prix observée · seuil ≥ {threshold}%
+      </p>
+
+      <div className="flex items-center gap-2.5 my-1.5">
+        <span className="flex-1" />
+        <span className="font-semibold text-[9.5px] tracking-[0.1em]" style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-em)" }}>◀ BAISSE</span>
+        <span className="w-px h-3" style={{ background: "var(--mx-border-2)" }} />
+        <span className="font-semibold text-[9.5px] tracking-[0.1em]" style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-red)" }}>HAUSSE ▶</span>
+        <span className="flex-1" />
+      </div>
 
       {alerts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-8 text-zinc-600">
-          <span className="text-3xl mb-2">✅</span>
-          <p className="text-sm">Aucune alerte active</p>
-          <p className="text-xs mt-1">Toutes les matières sont sous le seuil de {threshold}%</p>
+        <div className="flex flex-col items-center justify-center py-8" style={{ color: "var(--mx-subtle)" }}>
+          <p className="text-sm m-0">Aucune alerte active</p>
+          <p className="text-xs mt-1 m-0">Toutes les matières sont sous le seuil de {threshold}%</p>
         </div>
       ) : (
-        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+        <div className="flex flex-col gap-1.5 overflow-y-auto pr-1" style={{ maxHeight: 330 }}>
           {alerts.map(m => {
             const p = m.price_snapshot!;
-            const sev = getSeverity(p.trend_3m_pct, threshold);
-            const s = SEV_STYLES[sev];
-            const isUp = p.trend_3m_pct > 0;
+            const t = p.trend_3m_pct;
+            const abs = Math.abs(t);
+            const isUp = t > 0;
+            const sev = getSeverity(t, threshold);
+            const sevColor = SEV_COLOR[sev];
             return (
-              <div key={m.id} className={`rounded-xl border ${s.border} bg-zinc-800/50 px-4 py-3 flex items-center justify-between gap-3`}>
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span>{s.icon}</span>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-sm text-white truncate">{m.name_fr}</p>
-                    <p className="text-xs text-zinc-500">{p.value} {p.unit}</p>
+              <div key={m.id} className="flex items-center gap-3 px-3 py-2 rounded-[10px] border border-transparent transition-colors hover:border-[var(--mx-border)]">
+                <span className="w-28 shrink-0 text-[12.5px] font-semibold overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: "var(--mx-fg)" }}>
+                  {m.name_fr}
+                </span>
+                <span className="w-[92px] shrink-0 text-right text-[10.5px]" style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-subtle)" }}>
+                  {p.value.toLocaleString("fr-FR")} {p.unit}
+                </span>
+                <div className="flex-1 flex items-center h-4">
+                  <div className="flex-1 flex justify-end">
+                    <div
+                      className="h-3 rounded-l-md"
+                      style={{
+                        width: !isUp ? `${(abs / maxAbs) * 100}%` : "0%",
+                        background: "linear-gradient(270deg, var(--mx-em), color-mix(in srgb, var(--mx-em) 40%, transparent))",
+                      }}
+                    />
+                  </div>
+                  <div className="w-px h-4 shrink-0" style={{ background: "var(--mx-border-2)" }} />
+                  <div className="flex-1">
+                    <div
+                      className="h-3 rounded-r-md"
+                      style={{
+                        width: isUp ? `${(abs / maxAbs) * 100}%` : "0%",
+                        background: "linear-gradient(90deg, color-mix(in srgb, var(--mx-red) 40%, transparent), var(--mx-red))",
+                      }}
+                    />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className={`text-sm font-bold ${isUp ? "text-red-400" : "text-emerald-400"}`}>
-                    {isUp ? "▲" : "▼"} {Math.abs(p.trend_3m_pct)}%
-                  </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${s.badge}`}>{sev}</span>
-                  <button onClick={() => setDismissed(prev => new Set([...prev, m.id]))}
-                    className="text-zinc-600 hover:text-zinc-400 transition text-xs">✕</button>
-                </div>
+                <span className="w-14 shrink-0 text-right font-bold text-[12.5px]" style={{ fontFamily: "var(--mx-font-mono)", color: isUp ? "var(--mx-red)" : "var(--mx-em)" }}>
+                  {isUp ? "+" : "−"}{abs}%
+                </span>
+                <span
+                  className="w-16 shrink-0 text-center rounded-full font-semibold text-[9.5px] py-0.5"
+                  style={{ color: sevColor, background: `color-mix(in srgb, ${sevColor} 14%, transparent)` }}
+                >
+                  {sev}
+                </span>
+                <button
+                  onClick={() => setDismissed(prev => new Set([...prev, m.id]))}
+                  className="shrink-0 text-xs cursor-pointer transition-colors"
+                  style={{ color: "var(--mx-subtle)" }}
+                  aria-label={`Ignorer l'alerte ${m.name_fr}`}
+                >
+                  ✕
+                </button>
               </div>
             );
           })}

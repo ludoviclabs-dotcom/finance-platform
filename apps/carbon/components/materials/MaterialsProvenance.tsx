@@ -35,20 +35,22 @@ export default function MaterialsProvenance({ snapshotDate, isStale, ageDays, at
 
   return (
     <div
-      className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2 text-xs"
+      className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs"
+      style={{ borderColor: "var(--mx-border)", background: "color-mix(in srgb, var(--mx-surface) 60%, transparent)" }}
       data-testid="materials-provenance"
     >
-      <p className="text-zinc-400">
-        <span className="text-zinc-500">Source :</span>{" "}
-        <span className="font-mono text-zinc-300">{DEMO_SOURCE_CODE}</span>
-        <span className="text-zinc-600"> · </span>
-        release <span className="text-zinc-300">{snapshotDate}</span>
-        <span className="text-zinc-600"> · </span>
-        <span className={isStale ? "text-zinc-400" : "text-amber-300"}>{isStale ? "Périmé" : "Estimé"}</span>
+      <p className="m-0" style={{ color: "var(--mx-muted)" }}>
+        <span style={{ color: "var(--mx-subtle)" }}>Source :</span>{" "}
+        <span style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-fg)" }}>{DEMO_SOURCE_CODE}</span>
+        <span style={{ color: "var(--mx-subtle)" }}> · </span>
+        release <span style={{ color: "var(--mx-fg)" }}>{snapshotDate}</span>
+        <span style={{ color: "var(--mx-subtle)" }}> · </span>
+        <span style={{ color: isStale ? "var(--mx-muted)" : "var(--mx-amber)" }}>{isStale ? "Périmé" : "Estimé"}</span>
       </p>
       <button
         onClick={() => setOpen(true)}
-        className="shrink-0 rounded-md border border-zinc-700 px-2.5 py-1 font-semibold text-zinc-300 hover:border-emerald-500/50 hover:text-white transition"
+        className="shrink-0 rounded-md border px-2.5 py-1 font-semibold transition-colors"
+        style={{ borderColor: "var(--mx-border-2)", color: "var(--mx-muted)" }}
         data-testid="materials-provenance-open"
       >
         Provenance

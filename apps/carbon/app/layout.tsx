@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Manrope } from "next/font/google";
+import { Inter, Space_Grotesk, Manrope, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/toast";
@@ -49,6 +49,14 @@ const manrope = Manrope({
   variable: "--font-manrope",
   display: "swap",
   preload: false, // secondary font, non-critical
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+  preload: false, // used only by /materials's numeric/mono accents
 });
 
 export const metadata: Metadata = {
@@ -119,7 +127,7 @@ export default function RootLayout({
     <html
       lang="fr"
       data-theme="dark"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${manrope.variable}`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
       // `data-theme` est réécrit par THEME_INIT_SCRIPT avant la première peinture
       // (cf. <script> dans <head> ci-dessous) pour respecter la préférence stockée
       // dans localStorage ou `prefers-color-scheme`. Sans `suppressHydrationWarning`,

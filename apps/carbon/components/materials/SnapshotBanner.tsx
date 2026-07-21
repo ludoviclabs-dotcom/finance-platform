@@ -16,30 +16,33 @@ export default function SnapshotBanner({ date, methodologyNote, estimatedPct, is
   }).format(new Date(date));
 
   return (
-    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 space-y-2">
+    <div
+      className="rounded-xl border px-4 py-3 flex flex-col gap-2"
+      style={{ borderColor: "color-mix(in srgb, var(--mx-amber) 30%, transparent)", background: "color-mix(in srgb, var(--mx-amber) 5%, transparent)" }}
+    >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <span className="text-amber-400 text-lg leading-none mt-0.5">📅</span>
+        <div className="flex items-start gap-2.5">
+          <span className="text-lg leading-none mt-0.5" style={{ color: "var(--mx-amber)" }}>📅</span>
           <div>
-            <p className="text-sm font-semibold text-amber-300">
+            <p className="m-0 text-sm font-semibold" style={{ color: "var(--mx-amber)" }}>
               Snapshot de démonstration — {formatted}
             </p>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Valeurs estimées à partir de repères publics (USGS, Commission Européenne
-              CRMA/RMIS, LME, Trading Economics). Non destinées à un usage normatif.
-              L&apos;historique local n&apos;est enrichi que lorsqu&apos;un nouveau snapshot daté est publié.
+            <p className="m-0 mt-0.5 text-xs" style={{ color: "var(--mx-muted)" }}>
+              Valeurs estimées à partir de repères publics (USGS, Commission Européenne CRMA/RMIS, LME, Trading
+              Economics). Non destinées à un usage normatif. L&apos;historique local n&apos;est enrichi que
+              lorsqu&apos;un nouveau snapshot daté est publié.
             </p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-1.5 shrink-0">
           <DataStatusBadge status={isStale ? "STALE" : "ESTIMATED"} />
-          <span className="hidden sm:inline text-[10px] text-zinc-500">
+          <span className="hidden sm:inline text-[10px]" style={{ color: "var(--mx-subtle)" }}>
             {estimatedPct}% des valeurs estimées
           </span>
         </div>
       </div>
-      <p className="text-[11px] leading-relaxed text-zinc-500 border-t border-amber-500/15 pt-2">
-        <span className="font-semibold text-zinc-400">Méthodologie —</span> {methodologyNote}
+      <p className="m-0 text-[11px] leading-relaxed border-t pt-2" style={{ color: "var(--mx-subtle)", borderColor: "color-mix(in srgb, var(--mx-amber) 15%, transparent)" }}>
+        <span className="font-semibold" style={{ color: "var(--mx-muted)" }}>Méthodologie —</span> {methodologyNote}
       </p>
     </div>
   );

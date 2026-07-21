@@ -1,23 +1,62 @@
 "use client";
-// Aiguillage carte : Mapbox interactive si NEXT_PUBLIC_MAPBOX_TOKEN est posé,
-// sinon fallback SVG statique (GlobalMap) — comportement actuel inchangé.
-// Le chunk mapbox-gl (~1,5 Mo) n'est téléchargé que si la carte interactive est rendue.
-import dynamic from "next/dynamic";
-import type { Material } from "@/lib/crm/dataLoader";
-import { isMapboxEnabled } from "@/lib/mapbox";
-import GlobalMap from "./GlobalMap";
 
-const InteractiveGlobalMap = dynamic(() => import("./InteractiveGlobalMap"), {
-  ssr: false,
-  loading: () => (
-    <section id="carte" className="space-y-4">
-      <h2 className="text-2xl font-bold text-white">Cartographie mondiale</h2>
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 h-80 lg:h-[26rem] animate-pulse" />
-    </section>
-  ),
-});
+import { useMemo, useState } from "react";
+import type { Material } from "@/lib/crm/dataLoader";
+import { computeCountryWeights } from "@/lib/crm/countryWeights";
+import WorldMap from "./map/WorldMap";
+import CountryRankingSidebar from "./map/CountryRankingSidebar";
 
 export default function GlobalMapSection({ materials }: { materials: Material[] }) {
-  if (!isMapboxEnabled()) return <GlobalMap materials={materials} />;
-  return <InteractiveGlobalMap materials={materials} />;
+  const weights = useMemo(() => computeCountryWeights(materials), [materials]);
+  const [showFlows, setShowFlows] = useState(true);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+
+  return (
+    <section id="carte" className="mx-anchor space-y-4">
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <p
+            className="m-0 mb-1.5 flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.16em]"
+            style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-cyan)" }}
+          >
+            <span className="w-[22px] h-px" style={{ background: "var(--mx-cyan)" }} />
+            Géographie de l&apos;approvisionnement
+          </p>
+          <h2 className="m-0 font-bold text-2xl tracking-tight" style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-fg)" }}>
+            Cartographie mondiale
+          </h2>
+          <p className="mt-1.5 mb-0 text-[13px]" style={{ color: "var(--mx-muted)" }}>
+            Poids cumulé des pays producteurs sur les 34 matières critiques UE. Survoler ou cliquer un pays pour le détail.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowFlows(v => !v)}
+          className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] border text-xs font-semibold cursor-pointer"
+          style={{
+            borderColor: showFlows ? "color-mix(in srgb, var(--mx-cyan) 55%, transparent)" : "var(--mx-border-2)",
+            background: showFlows ? "color-mix(in srgb, var(--mx-cyan) 8%, var(--mx-card))" : "var(--mx-card)",
+            color: showFlows ? "var(--mx-cyan)" : "var(--mx-muted)",
+          }}
+        >
+          <span className="w-[7px] h-[7px] rounded-full" style={{ background: "var(--mx-cyan)" }} />
+          Flux vers l&apos;Europe
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-stretch">
+        <WorldMap
+          weights={weights}
+          showFlows={showFlows}
+          selectedCountry={selectedCountry}
+          onSelectCountry={setSelectedCountry}
+        />
+        <CountryRankingSidebar
+          weights={weights}
+          selectedCountry={selectedCountry}
+          onSelectCountry={setSelectedCountry}
+        />
+      </div>
+    </section>
+  );
 }

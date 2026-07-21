@@ -1,0 +1,38 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "reporting_year": 2025,
+  "electricity_gwh": 8.6,
+  "electricity_mwh": 8600,
+  "status": "manual",
+  "method": "meter readings",
+  "scope2": {
+    "location_based_tco2e": 1860,
+    "market_based_tco2e": 1090,
+    "lb_factor_tco2e_per_mwh": 0.2163,
+    "contractual_coverage_pct": 54,
+    "status": "estimated",
+    "method": "GHG Protocol Scope 2 dual reporting"
+  },
+  "contractual_instruments": [
+    {
+      "key": "ppa-hydro",
+      "type": "PPA",
+      "energy_source": "hydro",
+      "mwh": 3200,
+      "residual_factor_tco2e_per_mwh": 0.0,
+      "status": "manual",
+      "synthetic": true
+    },
+    {
+      "key": "guarantees-of-origin",
+      "type": "GO",
+      "energy_source": "wind",
+      "mwh": 1444,
+      "residual_factor_tco2e_per_mwh": 0.0,
+      "status": "manual",
+      "synthetic": true
+    }
+  ],
+  "note": "Couverture = (3200+1444)/8600 = 54%. LB 1860 > MB 1090 (instruments bas-carbone). Résultats déterministes, jamais recalculés par l'IA."
+}

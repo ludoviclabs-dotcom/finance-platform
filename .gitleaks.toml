@@ -13,4 +13,13 @@ description = "Faux positifs verifies (identifiants de poste BEGES, pas des secr
 regexTarget = "line"
 regexes = [
   '''S3\.uncategorized''',
+  # Fixtures de DÉMONSTRATION 100% fictives : le champ JSON « "key": "<id>" »
+  # (identifiant sémantique kebab-case, ex. water-reduction-2030) matche la règle
+  # generic-api-key, mais n'est PAS un secret — donnée inventée (synthetic=true).
+  '''"key": "[a-z][a-z0-9-]+"''',
+]
+paths = [
+  # Scénarios de démonstration produit : données entièrement fictives, jamais de
+  # credential réel (voir docs/carbonco/demo/ASTERION_SCENARIO.md).
+  '''apps/api/demo/scenarios/.*\.json''',
 ]

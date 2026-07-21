@@ -1,0 +1,72 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "note": "Spécification déterministe des claims de la revue IA (mode demo). Implémentée en code (demo_scenarios.py) et reflétée côté frontend (canned ReviewRunResponse). Les citations sont dérivées du reference pack réel par match_marker (jamais d'ID codé en dur). Le statut de support est calculé par entailment_service, jamais déclaré ici (colonne 'expected_support' = attendu à vérifier).",
+  "subjects": {
+    "iro_review": {
+      "match": { "title_contains": "aimants terres rares" },
+      "use_case": "iro_review",
+      "claims": [
+        {
+          "claim_text": "La dépendance aux terres rares lourdes dépasse 90% pour la chaîne aimants du E-Drive X4.",
+          "output_label": "REVIEW_REQUIRED",
+          "cite_marker": "dependency",
+          "contradiction": false,
+          "expected_support": "partially_supported",
+          "rationale": "Cite une observation estimated (92%) ; résolue mais non corroborée déterministiquement en UC-1 -> au mieux partiel."
+        },
+        {
+          "claim_text": "Le contenu recyclé des aimants NdFeB est de 80% (déclaration fournisseur).",
+          "output_label": "REVIEW_REQUIRED",
+          "cite_marker": "recycled",
+          "contradiction": true,
+          "expected_support": "contradicted",
+          "rationale": "La preuve citée (audit tiers) prouve 35% -> flag contradiction + citation résolue -> contradicted."
+        },
+        {
+          "claim_text": "Un fournisseur alternatif d'aimants serait qualifiable en moins de 90 jours.",
+          "output_label": "SUGGESTION",
+          "cite_marker": null,
+          "contradiction": false,
+          "expected_support": "unsupported",
+          "rationale": "Aucune référence interne ne soutient l'affirmation -> non étayé."
+        }
+      ],
+      "review_questions": [
+        "Quelle est la source et la date de l'estimation de dépendance 92% ? Peut-elle être vérifiée ?",
+        "La méthode de calcul du taux recyclé déclaré (80%) est-elle documentée et auditée ?",
+        "Existe-t-il un plan de qualification chiffré pour un fournisseur alternatif ?"
+      ],
+      "action_suggestions": [
+        "Diversifier la source d'aimants (qualifier une seconde source, tracer le délai réel).",
+        "Documenter et faire auditer la méthode du taux de contenu recyclé.",
+        "Rattacher l'estimation de dépendance à une source datée et versionnée."
+      ]
+    },
+    "calc_explanation": {
+      "match": { "envelope_prefix": "scope2:" },
+      "use_case": "calc_explanation",
+      "claims": [
+        {
+          "claim_text": "Le Scope 2 market-based (1 090 tCO2e) est cohérent avec une couverture contractuelle de 54% et le calcul déterministe du run.",
+          "output_label": "REVIEW_REQUIRED",
+          "cite_marker": "calc",
+          "contradiction": false,
+          "expected_support": "supported",
+          "rationale": "UC-2 : cite le résultat de calcul déterministe (calc_result), toutes citations résolues et fraîches -> supported (corroboration déterministe)."
+        }
+      ],
+      "review_questions": [
+        "Quels instruments contractuels justifient la couverture de 54% ?"
+      ],
+      "action_suggestions": [
+        "Augmenter la couverture contractuelle bas-carbone pour réduire l'écart LB/MB."
+      ]
+    }
+  },
+  "excluded_evidence_trace": [
+    { "marker": "pricing", "reason": "sensitivity", "label": "Grille tarifaire fournisseur (confidential)" },
+    { "marker": "benchmark", "reason": "license_blocked", "label": "Benchmark sectoriel (licence sans affichage)" }
+  ],
+  "badges": ["IA SIMULÉE", "ZÉRO APPEL EXTERNE", "DÉMONSTRATION FICTIVE"]
+}

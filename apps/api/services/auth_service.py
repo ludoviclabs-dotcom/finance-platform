@@ -59,6 +59,14 @@ if os.environ.get("VERCEL_ENV") == "production" and _JWT_SECRET == _DEV_JWT_SECR
 _JWT_ALGORITHM = "HS256"
 _ACCESS_TTL_MINUTES = int(os.environ.get("AUTH_ACCESS_TTL_MINUTES", "15"))
 _REFRESH_TTL_DAYS = int(os.environ.get("AUTH_REFRESH_TTL_DAYS", "30"))
+# Session démo produit : courte, non renouvelable (aucun refresh cookie émis).
+_DEMO_TTL_MINUTES = int(os.environ.get("AUTH_DEMO_TTL_MINUTES", "30"))
+
+# Tenant de démonstration fixe et isolé (scénario Asterion Motion). L'utilisateur
+# démo est créé avec un mot de passe aléatoire INUTILISABLE : la seule porte
+# d'entrée est POST /auth/demo (aucun secret client, aucun login mot de passe).
+DEMO_TENANT_SLUG = "asterion-motion-demo"
+DEMO_USER_EMAIL = "demo-analyst@asterion-motion-demo.carbonco.fr"
 
 _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -70,6 +78,7 @@ class AuthUser(BaseModel):
     role: str = "analyst"
     company_id: int = 1
     user_id: int | None = None  # Phase 3.A — nécessaire pour traçabilité reviews/freezes
+    is_demo: bool = False  # session de démonstration produit (tenant Asterion, IA demo only)
 
 
 # ---------------------------------------------------------------------------
@@ -251,7 +260,88 @@ def decode_token(token: str) -> Optional[AuthUser]:
         user_id = None
     return AuthUser(
         email=email, role=role, company_id=int(company_id), user_id=user_id,
+        is_demo=payload.get("demo") is True,
     )
+
+
+# ---------------------------------------------------------------------------
+# Demo session (produit) — POST /auth/demo, tenant fixe, sans mot de passe client
+# ---------------------------------------------------------------------------
+
+def ensure_demo_tenant() -> Optional[AuthUser]:
+    """Crée (idempotent) le tenant démo + son utilisateur analyste, et renvoie
+    l'AuthUser correspondant. Mot de passe aléatoire non réutilisable : l'accès
+    passe UNIQUEMENT par /auth/demo (aucun secret exposé côté client).
+
+    N'ensemence PAS les données métier (scénario Asterion) — c'est le rôle du
+    workflow protégé `demo-scenario.yml` (scripts/demo_seed.py). Ici on garantit
+    seulement de quoi ouvrir une session isolée.
+    """
+    if not db_available():
+        return None
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO companies (name, slug, plan)
+                    VALUES ('Asterion Motion (démo)', %s, 'starter')
+                    ON CONFLICT (slug) DO NOTHING
+                    """,
+                    (DEMO_TENANT_SLUG,),
+                )
+                cur.execute("SELECT id FROM companies WHERE slug = %s", (DEMO_TENANT_SLUG,))
+                row = cur.fetchone()
+                if not row:
+                    return None
+                company_id = row["id"] if isinstance(row, dict) else row[0]
+
+                cur.execute("SELECT id FROM users WHERE email = %s", (DEMO_USER_EMAIL,))
+                urow = cur.fetchone()
+                if urow:
+                    user_id = urow["id"] if isinstance(urow, dict) else urow[0]
+                else:
+                    unusable = _pwd_context.hash(secrets.token_urlsafe(32))
+                    cur.execute(
+                        """
+                        INSERT INTO users (company_id, email, password_hash, role)
+                        VALUES (%s, %s, %s, 'analyst')
+                        ON CONFLICT (email) DO NOTHING
+                        RETURNING id
+                        """,
+                        (company_id, DEMO_USER_EMAIL, unusable),
+                    )
+                    ins = cur.fetchone()
+                    if ins:
+                        user_id = ins["id"] if isinstance(ins, dict) else ins[0]
+                    else:
+                        cur.execute("SELECT id FROM users WHERE email = %s", (DEMO_USER_EMAIL,))
+                        again = cur.fetchone()
+                        user_id = again["id"] if isinstance(again, dict) else again[0]
+        return AuthUser(
+            email=DEMO_USER_EMAIL, role="analyst", company_id=int(company_id),
+            user_id=int(user_id), is_demo=True,
+        )
+    except Exception as exc:
+        logger.warning("Impossible de préparer le tenant démo : %s", exc)
+        return None
+
+
+def create_demo_access_token(user: AuthUser) -> tuple[str, datetime]:
+    """JWT court (DEMO_TTL_MINUTES) avec claim `demo=true`. AUCUN refresh cookie
+    n'est émis par l'endpoint : la session expire d'elle-même (non renouvelable)."""
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=_DEMO_TTL_MINUTES)
+    payload = {
+        "sub": user.email,
+        "role": "analyst",
+        "cid": user.company_id,
+        "demo": True,
+        "exp": expires_at,
+    }
+    if user.user_id is not None:
+        payload["uid"] = user.user_id
+    token = jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALGORITHM)
+    return token, expires_at
 
 
 # ---------------------------------------------------------------------------

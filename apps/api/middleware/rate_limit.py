@@ -50,6 +50,7 @@ RULES: dict[str, RateRule] = {
     "/auth": RateRule(limit=20, window_seconds=60, scope="ip"),         # /auth/* global (T1.5)
     "/auth/totp": RateRule(limit=5, window_seconds=900, scope="ip"),   # 5 échecs -> 15 min (2FA)
     "/auth/login": RateRule(limit=5, window_seconds=60, scope="ip"),
+    "/auth/demo": RateRule(limit=10, window_seconds=60, scope="ip"),   # session démo produit (anti-abus)
     "/excel/upload": RateRule(limit=10, window_seconds=3600, scope="user"),          # 10 uploads/h (T1.5)
     "/excel/ingest-uploaded": RateRule(limit=10, window_seconds=3600, scope="user"), # 10 uploads/h (T1.5)
     "/excel": RateRule(limit=20, window_seconds=60, scope="user"),

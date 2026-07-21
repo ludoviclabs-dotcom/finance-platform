@@ -16,7 +16,7 @@ import { LoginScreen } from "@/components/pages/login-screen";
 import { useAuth } from "@/lib/hooks/use-auth";
 
 export function LoginClient() {
-  const { auth, ready, login, verifyTotp } = useAuth();
+  const { auth, ready, login, loginDemo, verifyTotp } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -38,10 +38,11 @@ export function LoginClient() {
         return result;
       }}
       onDemo={async () => {
-        const result = await login("demo@carbonco.fr", "CarbonCo2024!");
+        // Session démo sécurisée : aucun identifiant en clair dans le bundle.
+        // Le backend (POST /auth/demo) provisionne le tenant Asterion et émet
+        // un JWT court sans refresh cookie (auto-expiration).
+        const result = await loginDemo();
         if (result.ok) router.replace("/dashboard");
-        // Les identifiants démo existent dès que l'API a seedé les users (premier login).
-        // Si l'erreur persiste, voir /login — les identifiants sont créés automatiquement.
       }}
     />
   );

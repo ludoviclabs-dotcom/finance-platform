@@ -1,0 +1,47 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "company": {
+    "key": "asterion-motion",
+    "slug": "asterion-motion-demo",
+    "legal_name": "Asterion Motion SAS",
+    "display_name": "Asterion Motion",
+    "sector": "Équipementier — moteurs électriques de traction",
+    "country": "FR",
+    "reporting_year": 2025,
+    "frameworks": ["CSRD", "ESRS", "VSME"],
+    "synthetic": true,
+    "note": "Entreprise entièrement fictive créée pour la démonstration produit."
+  },
+  "demo_user": {
+    "key": "asterion-analyst",
+    "email": "analyste@asterion-motion-demo.carbonco",
+    "display_name": "Analyste Démo",
+    "role": "analyst",
+    "synthetic": true
+  },
+  "sites": [
+    {
+      "key": "asterion-hq",
+      "name": "Siège & usine d'assemblage",
+      "country": "FR",
+      "latitude": 45.764,
+      "longitude": 4.8357,
+      "location_precision": "city",
+      "role": "assembly",
+      "synthetic": true,
+      "status": "manual"
+    },
+    {
+      "key": "asterion-winding",
+      "name": "Atelier bobinage",
+      "country": "FR",
+      "latitude": 45.187,
+      "longitude": 5.7245,
+      "location_precision": "city",
+      "role": "winding",
+      "synthetic": true,
+      "status": "manual"
+    }
+  ]
+}

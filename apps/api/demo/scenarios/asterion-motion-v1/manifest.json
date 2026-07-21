@@ -1,0 +1,56 @@
+{
+  "scenario": "asterion-motion-v1",
+  "title": "Asterion Motion SAS — E-Drive X4",
+  "synthetic": true,
+  "fictional": true,
+  "version": 1,
+  "tenant_slug": "asterion-motion-demo",
+  "description": "Scénario industriel 100% fictif pour la démonstration produit CarbonCo Intelligence. Aucune donnée réelle. IA en mode demo déterministe, zéro appel externe.",
+  "files": [
+    "company.json",
+    "suppliers.json",
+    "products-and-bom.json",
+    "purchases.json",
+    "energy.json",
+    "water.json",
+    "nature.json",
+    "crma.json",
+    "iro.json",
+    "evidence.json",
+    "ai-review.json",
+    "narration.json"
+  ],
+  "expected_metrics": {
+    "motors_per_year": 12000,
+    "ndfeb_kg_per_motor": 12.5,
+    "copper_kg_per_motor": 18,
+    "aluminium_kg_per_motor": 29,
+    "purchases_total_eur": 5800000,
+    "scope3_purchases_tco2e": 3480,
+    "scope3_magnets_share_pct": 61.8,
+    "electricity_gwh": 8.6,
+    "scope2_lb_tco2e": 1860,
+    "scope2_mb_tco2e": 1090,
+    "contractual_coverage_pct": 54,
+    "water_m3": 72000,
+    "water_stress": "high",
+    "water_confidence": 0.81,
+    "heavy_rare_earth_dependency_pct": 92,
+    "heavy_rare_earth_dependency_status": "estimated",
+    "financial_exposure_indicative_eur": 1400000
+  },
+  "ai_expected_support": {
+    "magnets_scope3_share": "supported",
+    "heavy_rare_earth_dependency": "partially_supported",
+    "recycled_content_claim": "contradicted",
+    "alternative_supplier_90d": "unsupported"
+  },
+  "governance": {
+    "ai_review_mode": "demo",
+    "no_paid_model": true,
+    "no_network": true,
+    "no_sql_migration": true,
+    "reset_scope": "tenant-only",
+    "badges": ["IA SIMULÉE", "ZÉRO APPEL EXTERNE", "DÉMONSTRATION FICTIVE"]
+  }
+}

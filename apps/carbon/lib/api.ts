@@ -465,6 +465,30 @@ export async function loginRequest(
   return (await res.json()) as LoginResponse;
 }
 
+/**
+ * Session de démonstration produit (tenant Asterion, mode demo IA).
+ *
+ * Aucun identifiant/mot de passe n'est envoyé ni embarqué côté client : le
+ * backend (`POST /auth/demo`) provisionne le tenant démo et émet un JWT court
+ * SANS refresh cookie (session non renouvelable, auto-expiration). Remplace
+ * l'ancien bouton démo qui compilait un mot de passe en clair dans le bundle.
+ */
+export async function demoLoginRequest(signal?: AbortSignal): Promise<LoginResponse> {
+  const res = await fetch(`${API_BASE_URL}/auth/demo`, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+    signal,
+  });
+  if (res.status === 503) {
+    throw new Error("Accès démo indisponible pour le moment.");
+  }
+  if (!res.ok) {
+    throw new Error(`API ${res.status} on /auth/demo`);
+  }
+  return (await res.json()) as LoginResponse;
+}
+
 // --- 2FA TOTP (T1.4) ---
 
 /** Étape 2 du login : valide le code TOTP (ou un code de récupération). */

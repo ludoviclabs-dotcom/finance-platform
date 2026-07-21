@@ -1,0 +1,61 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "products": [
+    {
+      "key": "e-drive-x4",
+      "name": "E-Drive X4",
+      "description": "Moteur synchrone à aimants permanents pour traction électrique",
+      "annual_volume": 12000,
+      "unit": "motor",
+      "synthetic": true,
+      "status": "manual"
+    }
+  ],
+  "bom": [
+    {
+      "product_key": "e-drive-x4",
+      "material": "NdFeB permanent magnets",
+      "material_code": "NDFEB",
+      "supplier_key": "supplier-magnets",
+      "kg_per_unit": 12.5,
+      "annual_kg": 150000,
+      "status": "estimated",
+      "method": "engineering estimate",
+      "synthetic": true
+    },
+    {
+      "product_key": "e-drive-x4",
+      "material": "Copper wire",
+      "material_code": "CU",
+      "supplier_key": "supplier-copper",
+      "kg_per_unit": 18,
+      "annual_kg": 216000,
+      "status": "manual",
+      "method": "BOM declared",
+      "synthetic": true
+    },
+    {
+      "product_key": "e-drive-x4",
+      "material": "Aluminium housing",
+      "material_code": "AL",
+      "supplier_key": "supplier-aluminium",
+      "kg_per_unit": 29,
+      "annual_kg": 348000,
+      "status": "manual",
+      "method": "BOM declared",
+      "synthetic": true
+    }
+  ],
+  "recycled_content": {
+    "material_code": "NDFEB",
+    "declared_pct": 80,
+    "declared_status": "manual",
+    "declared_source": "supplier self-declaration",
+    "proven_pct": 35,
+    "proven_status": "verified",
+    "proven_source": "third-party mass-balance audit",
+    "synthetic": true,
+    "note": "Écart déclaré (80%) vs prouvé (35%) — support de contradiction déterministe (cas IA #3)."
+  }
+}

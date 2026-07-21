@@ -1,0 +1,56 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "reporting_year": 2025,
+  "framework": "TNFD LEAP",
+  "risks": [
+    {
+      "key": "nature-water-dependency",
+      "title": "Dépendance à la ressource en eau (site siège)",
+      "risk_score": 0.68,
+      "likelihood": "likely",
+      "confidence": 0.79,
+      "status": "estimated",
+      "synthetic": true,
+      "note": "likelihood (jugement humain) et confidence sont des colonnes séparées ; score jamais dérivé de la likelihood."
+    },
+    {
+      "key": "nature-raw-material-pressure",
+      "title": "Pression d'extraction terres rares (chaîne amont aimants)",
+      "risk_score": 0.74,
+      "likelihood": "likely",
+      "confidence": 0.66,
+      "status": "estimated",
+      "synthetic": true
+    }
+  ],
+  "opportunities": [
+    {
+      "key": "nature-recycled-magnets",
+      "title": "Aimants à contenu recyclé (réduction de pression amont)",
+      "opportunity_score": 0.58,
+      "confidence": 0.6,
+      "status": "inferred",
+      "synthetic": true
+    }
+  ],
+  "features": [
+    {
+      "key": "nature-feature-basin",
+      "site_key": "asterion-hq",
+      "feature_type": "water_basin",
+      "sensitivity": "high",
+      "synthetic": true,
+      "status": "estimated"
+    }
+  ],
+  "tnfd_disclosure_drafts": [
+    {
+      "key": "tnfd-draft-2025",
+      "status": "draft",
+      "is_official_tnfd_disclosure": false,
+      "synthetic": true,
+      "note": "is_official_tnfd_disclosure verrouillé à false (jamais publié automatiquement)."
+    }
+  ]
+}

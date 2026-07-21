@@ -25,7 +25,7 @@ export function DemoSpotlight({
     <motion.div
       data-testid="demo-spotlight"
       data-active={active}
-      initial={reduce ? false : { opacity: 0.92, scale: 0.995 }}
+      initial={{ opacity: 0.92, scale: 0.995 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: reduce ? 0 : 0.24, ease: "easeOut" }}
       className={`rounded-2xl ${active ? "ring-1 ring-carbon-emerald/25" : ""} ${className}`}

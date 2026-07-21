@@ -15,8 +15,18 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Cockpit /demo/asterion-motion", () => {
   test.beforeEach(async ({ page }) => {
+    // Émule prefers-reduced-motion : rendu stabilisé (état final immédiat) — teste
+    // aussi le chemin d'accessibilité requis, et évite les faux « not stable »
+    // dus aux transitions pendant les clics rapides.
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/demo/asterion-motion");
     await expect(page.getByTestId("demo-asterion")).toBeVisible();
+    // Ferme la bannière cookies (choix privé : essentiels uniquement) — sinon
+    // elle intercepte les clics sur les commandes en bas de page.
+    await page
+      .getByRole("button", { name: /Essentiels uniquement/i })
+      .click({ timeout: 3000 })
+      .catch(() => {});
   });
 
   test("monte avec les badges fictifs et l'étape 1/10", async ({ page }) => {

@@ -28,7 +28,8 @@ export type Page =
   | "actions"
   | "imports"
   | "diff"
-  | "securite";
+  | "securite"
+  | "demo-studio";
 
 export interface ChatMessage {
   role: "user" | "assistant";

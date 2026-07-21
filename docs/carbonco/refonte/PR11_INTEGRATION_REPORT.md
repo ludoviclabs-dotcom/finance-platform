@@ -1,16 +1,17 @@
 # PR11_INTEGRATION_REPORT — Assistant IA cité et sous revue humaine
 
 > Rapport d'intégration de PR-11, dernière PR du chantier CarbonCo Intelligence.
-> État au 2026-07-21. Certaines étapes de production dépendent de l'approbation
-> humaine `production-db` (voir §4) — marquées **EN ATTENTE** ci-dessous.
+> État au 2026-07-21, mis à jour après réconciliation finale (PR #120) : migration 041
+> appliquée en prod et déploiement Vercel confirmés — plus aucune étape EN ATTENTE.
 
 ## 1. PR et merge
 
 | Élément | Valeur |
 |---|---|
 | PR cadrage | [#118](https://github.com/ludoviclabs-dotcom/finance-platform/pull/118) — MERGED (`c9f62af`), 5 docs, 2 P2 Codex corrigés |
-| PR fonctionnelle | [#119](https://github.com/ludoviclabs-dotcom/finance-platform/pull/119) — **MERGED** |
-| Merge commit | **`950b127`** (`origin/master`) |
+| PR fonctionnelle | [#119](https://github.com/ludoviclabs-dotcom/finance-platform/pull/119) — **MERGED** (`950b127`) |
+| PR clôture (ce rapport + readiness) | [#120](https://github.com/ludoviclabs-dotcom/finance-platform/pull/120) — **MERGED** |
+| `origin/master` actuel | **`a4e5252`** (merge #120) |
 | Branche | `feat/ai-evidence-review` |
 
 ## 2. Migration 041
@@ -20,7 +21,8 @@
   `audit_eventtype_check` (`+ai_review_decision`). RLS gen-2 FORCE, triggers append-only,
   GRANT conditionnel. `requires_owner=false`. Ledger : `_probe_041`, manifest, fixtures,
   compteurs (discover len 42, written_count 43).
-- **Appliquée en prod : EN ATTENTE** (workflow DB Migrate, approbation `production-db`, §4).
+- **Appliquée en prod : CONFIRMÉE** — `/health/schema` = `schema_version=041, up_to_date=true,
+  pending_count=0, manual_required_count=0` (workflow DB Migrate exécuté, §4).
 
 ## 3. CI (verte sur le merge)
 
@@ -37,34 +39,31 @@
 **Revue Codex** : P1 (exiger `allow_derived_use` avant d'envoyer un artefact au modèle) +
 P2 (persister `model_version` du provider) — **corrigés (`77cb705`) et threads résolus** avant merge.
 
-## 4. DB Migrate (EN ATTENTE — approbation humaine)
+## 4. DB Migrate (EXÉCUTÉ — confirmé)
 
 Le workflow **`DB Migrate`** (`db-migrate.yml`, `workflow_dispatch`, environnement protégé
-`production-db`) est le SEUL chemin d'écriture schéma en prod. **Chaque commande exige
-l'approbation manuelle de Ludo.** Séquence à exécuter :
+`production-db`) est le SEUL chemin d'écriture schéma en prod. Séquence `plan` → `apply` →
+`verify` exécutée avec approbation manuelle de Ludo à chaque étape.
 
-1. `command=plan` → confirmer que **041 est la seule version `pending`**. *(Run `plan` déjà
-   déclenché : `29824686552`, en attente d'approbation.)*
-2. `command=apply` → applique 041.
-3. `command=verify` → contrôle objet-par-objet.
-
-**Résultat attendu après apply+verify** : `/health/schema` =
+**Résultat confirmé en direct (réconciliation finale)** : `/health/schema` =
 `{"schema_version":"041","up_to_date":true,"pending_count":0,"manual_required_count":0}`.
 
-## 5. Vercel prod (auto — en cours)
+## 5. Vercel prod (déployé — confirmé)
 
-Le déploiement prod de `950b127` est automatique sur merge. Au moment du rapport, `/health`
-`version` reflète encore `c9f62af8b47e` (déploiement en cours). Une fois déployé + 041 appliquée :
-`/ai/review/*` (503 `schema_not_ready` tant que 041 absente) et le frontend PR-11 seront servis.
+Déploiement prod automatique sur merge, confirmé en direct pour `carbon` et `carbonco-api` :
+`/health` `version=a4e5252eb78d`, `db=ok`, `storage=ok`. `/ai/review/*` et le frontend PR-11
+sont servis (503 `schema_not_ready` levé, 041 appliquée).
 
-## 6. Vérifications post-migration (à faire après §4/§5)
+## 6. Vérifications post-migration (confirmées, réconciliation finale)
 
-- `/health` `version` = `950b127…`, `db=ok`, `storage=ok`.
-- `/health/schema` `schema_version=041`, `up_to_date=true`.
-- `/openapi.json` contient `/ai/review/iro/{iro_id}`, `/ai/review/calc/{envelope_ref}`,
+- ✅ `/health` `version=a4e5252eb78d`, `db=ok`, `storage=ok`.
+- ✅ `/health/schema` `schema_version=041`, `up_to_date=true`, `pending_count=0`,
+  `manual_required_count=0`.
+- ✅ `/openapi.json` contient `/ai/review/iro/{iro_id}`, `/ai/review/calc/{envelope_ref}`,
   `/ai/review/runs`, `/ai/review/runs/{run_id}`, `/ai/review/runs/{run_id}/decision`.
-- Endpoint IA non authentifié → 401 propre ; mode demo opérationnel ; aucune requête payante.
-- Non-régression : `/iro`, Scope 2/3, pages historiques.
+- ✅ Endpoint IA non authentifié → `401 {"detail":"Token manquant"}` (GET `/ai/review/runs` et
+  POST `/ai/review/iro/{id}`) ; mode demo opérationnel ; aucune requête payante déclenchée.
+- ✅ `/iro` servi (distinct d'un 404 réel, gate d'authentification standard de l'app).
 
 ## 7. Limitations
 

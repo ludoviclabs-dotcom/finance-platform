@@ -1,9 +1,9 @@
 # CARBONCO_INTELLIGENCE_FINAL_READINESS
 
 > Sign-off de fin de chantier CarbonCo Intelligence (11 PR). État au 2026-07-21,
-> `origin/master` = `950b127`. Le chantier est **TERMINÉ côté code**. Le seul reliquat
-> est opérationnel : appliquer la migration 041 en prod (approbation `production-db`) +
-> déploiement Vercel — voir `PR11_INTEGRATION_REPORT.md` §4/§5.
+> `origin/master` = `a4e5252` (PR #120). Le chantier est **TERMINÉ, code et production
+> confirmés** : migration 041 appliquée, déploiement Vercel confirmé — voir
+> `PR11_INTEGRATION_REPORT.md` §4/§5 (mis à jour).
 
 ## 1. Vagues livrées
 
@@ -13,12 +13,12 @@
 | Wave 2 (PR-04/05A/06A) | source admin, procurement, énergie/Scope 2 | 029-031 | MERGÉ, prod |
 | Wave 3 (PR-05B/06B/07 + stab.) | Scope 3, moteur Scope 2, CRMA, intégrité | 032-035 | MERGÉ, prod |
 | Wave 4 (PR-08/09/10) | géospatial/eau, biodiversité/TNFD, IRO/double matérialité | 036-040 | MERGÉ, prod |
-| **PR-11** | **assistant IA cité + revue humaine** | **041** | **MERGÉ**, prod **EN ATTENTE** (§4 report) |
+| **PR-11** | **assistant IA cité + revue humaine** | **041** | **MERGÉ**, prod **CONFIRMÉ** |
 
 ## 2. Schéma
 
-- Master : **42 migrations (001-041)**. Prod : **040 appliquée** ; **041 EN ATTENTE**
-  d'application (DB Migrate, approbation humaine). Cible : `schema_version=041`.
+- Master : **42 migrations (001-041)**. Prod : **041 appliquée** — `schema_version=041,
+  up_to_date=true, pending_count=0, manual_required_count=0` (confirmé en direct).
 
 ## 3. Modules & routes (surface API)
 
@@ -68,9 +68,10 @@ décision humaine. Santé : `/health`, `/health/schema`, `/health/intelligence`.
 
 ## 8. Statut « prêt pour démonstration »
 
-**Prêt une fois** : (a) migration 041 appliquée (`/health/schema=041`), (b) déploiement Vercel
-de `950b127` effectif (`/health` `version=950b127`, `/ai/review/*` servis). Le mode IA est
-**demo par défaut** (déterministe, zéro coût) — la démonstration ne nécessite AUCUNE activation
-payante. L'activation live reste une décision séparée (`AI_LIVE_ACTIVATION_RUNBOOK.md`).
+**PRÊT** : (a) migration 041 appliquée (`/health/schema` `schema_version=041, up_to_date=true`),
+(b) déploiement Vercel confirmé (`/health` `version=a4e5252eb78d`, `/ai/review/*` servis). Le
+mode IA est **demo par défaut** (déterministe, zéro coût) — la démonstration ne nécessite AUCUNE
+activation payante. L'activation live reste une décision séparée (`AI_LIVE_ACTIVATION_RUNBOOK.md`).
 
-**Ne pas démarrer de nouveau module métier après PR-11 : le chantier Intelligence est clos.**
+**Chantier Intelligence clos. Prochaine étape : démonstration produit, ou activation live
+contrôlée sur décision explicite de Ludo.**

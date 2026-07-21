@@ -1,31 +1,37 @@
-# MODULE 2 — HANDOFF (cadrage)
+# MODULE 2 — HANDOFF
 
 > **Module :** Ressources stratégiques & dépendances industrielles étendues.
-> **Date : 2026-07-22** · **Branche :** `docs/strategic-resources-cadrage` · **Base :** `origin/master` `2175f89` (schéma `041`).
+> **Date : 2026-07-22** · **Branche :** `docs/strategic-resources-architecture` · **Base :** `origin/master` `c29baf3` (PR #125 mergée, schéma `041`).
 
 ```
-STATUS=PHASE_1_ARBITRAGE_APPLIED
-NEXT_ACTION=architecture définitive (docs-only)
+STATUS=PHASE_2_ARCHITECTURE_READY
+NEXT_ACTION=PR-M2A catalogue et réglementation
+MIGRATION_N=042 (réservée, non créée) — fondation catalogue ressources
+MIGRATION_N1=043 (réservée, non créée) — expositions & moteur d'assessment
 ```
 
 ## 1. État de la phase
 
-**Phase 1 (cadrage) TERMINÉE** puis **arbitrage Ludo des 6 questions bloquantes REÇU ET APPLIQUÉ** (décisions D-1 à D-6, cf. §3). **Toujours documentaire uniquement** — l'arbitrage ne lève pas l'interdiction de coder :
-- ❌ Aucun fichier sous `apps/` modifié. ❌ Aucune migration. ❌ Aucun développement. ❌ Aucune route ni interface. ❌ Aucune donnée factuelle non sourcée générée.
-- ✅ Cadrage mené par **4 agents en lecture seule** (architecture, réglementation, données/licences, méthodologie) — aucun n'a écrit dans le dépôt.
-- ✅ 6 livrables sous `docs/carbonco/resources/`, désormais mis à jour avec les arbitrages D-1 à D-6.
-- ✅ Toute donnée non confirmée par source primaire reste marquée **UNRESOLVED** (§5 — resserré aux seuls manques réels de source/licence, cf. critère au §5).
+**Phase 1 (cadrage) TERMINÉE + arbitrage Ludo D-1 à D-6 appliqué (PR #125 mergée).** **Phase 2 (architecture définitive) TERMINÉE**, **documentaire uniquement** — l'architecture ne lève pas l'interdiction de coder :
+- ❌ Aucun fichier sous `apps/` modifié. ❌ Aucune migration SQL réelle. ❌ Aucune migration existante modifiée. ❌ Aucun développement/route/interface. ❌ Aucun frontend. ❌ Aucun seed. ❌ Aucune migration lancée.
+- ✅ Numéro de migration **vérifié réellement** contre `apps/api/db/migrations/` + `migration_manifest.py` : dernière = **041**, aucun trou, aucun 042 non mergé → **N=042, N+1=043 réservés** (pas supposés).
+- ✅ 5 documents d'architecture créés + HANDOFF/DECISIONS/METHODOLOGY mis à jour.
+- ✅ Interdictions de contenu Défense/Spatial matérialisées dans le schéma et la revue (`MODULE2_RLS_AND_SECURITY.md` §7).
 
-## 2. Fichiers créés
+## 2. Fichiers créés / mis à jour
+
+**Nouveaux (Phase 2) :**
 
 | Fichier | Contenu |
 |---|---|
-| `docs/carbonco/resources/MODULE2_SOURCE_OF_TRUTH.md` | Stack réelle, tables/services réutilisés, terminologie, ressources nouvelles vs déjà couvertes, hors périmètre, gaps. |
-| `docs/carbonco/resources/REGULATORY_SOURCE_MATRIX.md` | CRMA, EUDR, REACH, CLP, dual-use, RED III/CBAM, Euratom, ESRS — statut, annexe, validité, source primaire, date, certitude. |
-| `docs/carbonco/resources/DATA_SOURCE_AND_LICENSE_MATRIX.md` | Datasets, éditeurs, millésimes, licences, droits (stockage/affichage/dérivé), fréquence, limites, mapping booléens CarbonCo. |
-| `docs/carbonco/resources/METHODOLOGY_AND_ALGORITHMS.md` | Formules (HHI, concentration, substituabilité, risque-pays, confiance, intensités, sensibilité), unités, conditions, biais, warnings, tests, **formules rejetées**. |
-| `docs/carbonco/resources/MODULE2_DECISIONS.md` | Décisions de cadrage (CD-1..CD-9) + **arbitrages structurants Ludo D-1 à D-6** + décisions encore ouvertes. |
-| `docs/carbonco/resources/MODULE2_HANDOFF.md` | Ce document. |
+| `docs/carbonco/resources/MODULE2_DATA_MODEL.md` | Modèle cible : 042 (catalogue, aliases, regulatory, uses, roles, stage-applicability) + 043 (supply obs, exposure links, assessment runs, dimensions, ALTER iros). Par table : finalité/portée/colonnes/types/clés/CHECK/index/FK/immutabilité/idempotence/EK/RLS/exemples/limites. |
+| `docs/carbonco/resources/MODULE2_API_CONTRACTS.md` | Router `/resources` : 13 endpoints, rôles, pagination, modèles Pydantic, erreurs, `schema_not_ready`, interdictions, exemples JSON. |
+| `docs/carbonco/resources/MODULE2_RLS_AND_SECURITY.md` | RLS gen-2 FORCE, profils mixte/tenant, bypass admin, défense applicative, anti-IDOR, immutabilité, EK/licence, frontière Défense/Spatial stricte. |
+| `docs/carbonco/resources/MODULE2_TEST_STRATEGY.md` | Matrice de tests (ledger, probes, RLS, services, API, HHI, licence, IDOR, IRO, frontend, demo, contenu) + tests HHI obligatoires (échelle 0–10000). |
+| `docs/carbonco/resources/MODULE2_IMPLEMENTATION_PLAN.md` | Découpage PR-M2A→M2D : fichiers, risques, critères de merge, tests, opérations post-merge, hors périmètre. |
+
+**Mis à jour (Phase 2) :** `MODULE2_HANDOFF.md` (ce doc), `MODULE2_DECISIONS.md` (§ architecture + HHI 0–10000 + O-8), `METHODOLOGY_AND_ALGORITHMS.md` (§B.1/§D-2 échelle HHI).
+**Inchangés (Phase 1) :** `MODULE2_SOURCE_OF_TRUTH.md`, `REGULATORY_SOURCE_MATRIX.md`, `DATA_SOURCE_AND_LICENSE_MATRIX.md` (aucun fait nouveau).
 
 ## 3. Décisions confirmées (résumé — détail dans `MODULE2_DECISIONS.md`)
 
@@ -64,21 +70,16 @@ Données/licences (`DATA_SOURCE_AND_LICENSE_MATRIX.md` §5) :
 - Droit d'usage dérivé exact de la **Transparency Platform ENTSOG** (PDF de termes non récupéré) → défaut = bloqué.
 - Millésimes exacts (USGS MCS 2026 vs 2025 ; WGI 2024 vs MAJ 2025 ; édition BGS) — indicatifs, non vérifiés-licence.
 
-Aucun UNRESOLVED méthodologique ou architectural ne subsiste : les points précédemment listés ici (risque-pays, vocabulaire d'étapes, périmètre des intensités, combustible/porteur, table de référence, lignée IRO) sont **résolus par D-1 à D-6** (§4). Les paramètres d'implémentation restants (échelle/garde HHI, poids de confiance, provenance de composante, δ de sensibilité, nom du score) sont des choix d'architecture non bloquants, listés dans `MODULE2_DECISIONS.md` §3.
+Ces UNRESOLVED réglementaires/licence sont portés **en base** par `resource_regulatory_statuses` (CHECK `sourced` : `confirmed` ⇒ release) et par le gate licence O-10 — l'architecture ne les résout pas (dépendances de source externes) mais les **rend explicites et non-bloquants** pour démarrer PR-M2A. Les paramètres d'implémentation restants (garde de couverture HHI, poids de confiance, δ de sensibilité) sont listés dans `MODULE2_DECISIONS.md` §3 et `MODULE2_IMPLEMENTATION_PLAN.md`.
 
 ## 6. NEXT_ACTION
 
-**= ARCHITECTURE DÉFINITIVE (docs-only pour l'instant).**
+**= PR-M2A — Catalogue & réglementation** (première PR d'implémentation, cf. `MODULE2_IMPLEMENTATION_PLAN.md`).
 
-Toutes les questions bloquantes étant tranchées (§4), produire le plan d'architecture détaillé de MODULE 2 :
-- spécifier `resource_catalog` + `resource_aliases` (D-2) — schéma, contraintes, non-destruction de l'existant ;
-- spécifier `company_resource_exposure_links` (D-1) et le modèle multi-rôle ;
-- spécifier l'extension de `processing_stages` / `resource_stage_families` par famille (D-6) et le paramétrage par famille de `scoring.py` (CD-2) ;
-- spécifier le routage `iros.origin_domain` incluant `strategic_resources` (D-5) — migration **documentée**, pas exécutée ;
-- spécifier le calcul honnête de `third_country_dependency` MVP et les conditions de gate pour un futur risque-pays WGI (D-3) ;
-- spécifier les intensités ressources (D-4) et leurs gardes de dénominateur ;
-- plan de sourcing (sources ouvertes retenues) + politique de licence appliquée (dégrade la confiance) ;
-- spécification de l'analyse de sensibilité (O-5) et de la provenance de composante (`METHODOLOGY_AND_ALGORITHMS.md` §B.5/§B.8) ;
-- réservation de migration(s) (numérotées mais non écrites), contrats d'interface, matrice de tests.
+Contenu de PR-M2A (sur décision explicite de Ludo, une PR à la fois) :
+- migration **042** (`resource_catalog`, `resource_roles`, `resource_aliases`, `resource_regulatory_statuses`, `resource_sector_uses`, `resource_stage_applicability`) + manifeste + `_probe_042` ;
+- modèles `models/resources.py`, services `services/resources/*` (lecture), router `routers/resources.py` (GET catalogue/alias/réglementation/usages/supply) ;
+- service d'import des ressources canoniques (données, hors migration) ;
+- tests RLS/probes DB-gated + `PR_M2A_TRACEABILITY.md`.
 
-**Toujours pas de code, pas de migration réelle, pas de modification sous `apps/`, pas de push, pas de PR** tant que l'architecture définitive n'est pas elle-même validée par Ludo.
+**Interdictions maintenues jusqu'à validation explicite** : pas de code, pas de migration réelle, pas de modification sous `apps/`, pas de frontend, pas de seed, pas de push de code, pas de PR de code, pas de merge automatique. Cette phase (architecture) reste **docs-only**.

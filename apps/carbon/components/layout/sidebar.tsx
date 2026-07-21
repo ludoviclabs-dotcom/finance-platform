@@ -11,6 +11,7 @@ import {
   Sparkles, ShieldCheck, Database, Upload, ClipboardList, History, Settings, Bell,
   Inbox, Factory, ListChecks, ClipboardCheck,
   FileText, Receipt, TrendingDown, CalendarClock, GitCompare, Building2, FolderInput,
+  FlaskConical,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -107,6 +108,18 @@ const navGroups: NavGroup[] = [
       { id: "securite", href: "/securite", label: "Sécurité 2FA",    icon: <ShieldCheck className="w-5 h-5" /> },
       { id: "admin",    href: "/admin",    label: "Administration",  icon: <Settings className="w-5 h-5" /> },
       { id: "pricing", href: "/pricing", label: "Offres",           icon: <CreditCard className="w-5 h-5" /> },
+    ],
+  },
+  {
+    // Groupe volontairement séparé des modules métier (cf. cc-nav-grp--demo) :
+    // point d'entrée vers le cockpit de démonstration 100% fictif (Asterion Motion).
+    group: "Démonstration",
+    items: [
+      {
+        id: "demo-studio", href: "/demo/asterion-motion", label: "Demo Studio",
+        icon: <FlaskConical className="w-5 h-5" />,
+        badge: { text: "DÉMO", color: "bg-amber-500/15 text-amber-600" },
+      },
     ],
   },
 ];
@@ -234,7 +247,10 @@ export function Sidebar({
         {/* Nav — groupée par catégorie (Pilotage / Conformité / Données / IA & Audit) */}
         <nav className="flex-1 py-3 px-2 overflow-y-auto">
           {navGroups.map((grp) => (
-            <div key={grp.group} className="cc-nav-grp">
+            <div
+              key={grp.group}
+              className={`cc-nav-grp ${grp.group === "Démonstration" ? "cc-nav-grp--demo" : ""}`}
+            >
               {!collapsed && <div className="cc-nav-grp-t">{grp.group}</div>}
               <div className="space-y-0.5">
                 {grp.items.map((item) => {

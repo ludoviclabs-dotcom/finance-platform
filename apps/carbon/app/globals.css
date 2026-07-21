@@ -701,6 +701,8 @@ h1, h2, h3 {
 /* ─── Cockpit sidebar (groupes + score ESG) ──────────────────────────────── */
 .cc-nav-grp     { margin-bottom: 12px; }
 .cc-nav-grp-t   { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .11em; color: var(--cc-subtle); padding: 6px 10px 4px; }
+/* Groupe "Démonstration" : séparateur visuel net vis-à-vis des modules métier. */
+.cc-nav-grp--demo { margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--color-border); }
 
 /* Tag à côté du logo CarbonCo (cockpit) */
 .cc-logo-tag {

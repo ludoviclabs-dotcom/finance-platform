@@ -24,10 +24,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 import demo_reset  # noqa: E402
 import demo_seed  # noqa: E402
 
-from db.database import get_db  # noqa: E402
+from db.database import db_available, get_db  # noqa: E402
 from services.auth_service import DEMO_TENANT_SLUG  # noqa: E402
 
 from ._migration_fixtures import apply_ddl_inline, apply_upto  # noqa: E402
+
+# DB-gated : skippé sans PostgreSQL (job `tests` mode /tmp) — seul `migration-tests`
+# l'exécute, comme les autres tests DB-gated (test_ai_review_ledger, etc.).
+pytestmark = pytest.mark.skipif(not db_available(), reason="PostgreSQL requis (DB-gated)")
 
 CEILING = "041"
 
@@ -43,6 +47,17 @@ _ALL_TENANT_TABLES = (
 @pytest.fixture(scope="module")
 def demo_schema():
     with get_db() as conn:
+        with conn.cursor() as cur:
+            # `audit_events` peut contenir des types ÉLARGIS (040 materiality_decision,
+            # 041 ai_review_decision) laissés par un module DB-gated précédent dans le
+            # MÊME Postgres CI. `apply_upto` rejoue la contrainte ÉTROITE de 011
+            # (audit_eventtype_check) qui échouerait sur ces lignes -> purge avant
+            # reconstruction (piège documenté du chantier).
+            cur.execute("SELECT to_regclass('public.audit_events') AS reg")
+            if cur.fetchone()["reg"] is not None:
+                cur.execute("SET session_replication_role = replica")
+                cur.execute("DELETE FROM audit_events")
+                cur.execute("SET session_replication_role = origin")
         apply_ddl_inline(conn)
         apply_upto(conn, CEILING)
 

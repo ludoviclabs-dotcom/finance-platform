@@ -187,6 +187,7 @@ jobs:
           tests/test_materiality_decisions.py
           tests/test_iro_actions.py
           tests/test_ai_review_ledger.py
+          tests/test_demo_seed.py
           tests/test_water_schema_not_ready.py
           tests/test_nature_schema_not_ready.py
 

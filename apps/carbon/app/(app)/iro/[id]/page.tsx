@@ -17,9 +17,11 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Sparkles } from "lucide-react";
 
 import { FeatureStatusBadge } from "@/components/ui/feature-status-badge";
+import { ReviewGate } from "@/components/intelligence/review-gate";
+import { reviewIroCandidate, type ReviewRunResponse } from "@/lib/api";
 import {
   DisclosureMapping,
   FINANCIAL_CHANNEL_LABEL,
@@ -230,6 +232,8 @@ function IroDetailContent({
         hasAnyAssessment={detail.impact_assessments.length > 0 || detail.financial_assessments.length > 0}
         runAction={runAction}
       />
+
+      <AiReviewSection iroId={iro.id} />
 
       <ActionsSection iroId={iro.id} actions={detail.actions} runAction={runAction} />
 
@@ -536,6 +540,69 @@ function NumberField({ label, value, onChange }: { label: string; value: string;
         className="w-24 rounded border border-[var(--color-border)] bg-transparent px-2 py-1"
       />
     </label>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Revue IA (PR-11) — analyse ancrée d'un candidat IRO, sous contrôle humain
+// ---------------------------------------------------------------------------
+
+function AiReviewSection({ iroId }: { iroId: number }) {
+  const [result, setResult] = useState<ReviewRunResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const [started, setStarted] = useState(false);
+
+  const runReview = useCallback(async () => {
+    setStarted(true);
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await reviewIroCandidate(iroId);
+      setResult(res);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [iroId]);
+
+  return (
+    <section className="mb-8" data-testid="iro-ai-review-section">
+      {!started ? (
+        <div className="rounded-2xl border border-[var(--color-border)] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg font-bold text-[var(--color-foreground)]">
+                Revue IA
+              </h2>
+              <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
+                Analyse assistée, ancrée sur vos preuves. Chaque énoncé reste un
+                brouillon ou une suggestion — la décision demeure humaine, rien
+                n&apos;est publié automatiquement.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={runReview}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-carbon-emerald px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+              data-testid="iro-run-ai-review"
+            >
+              <Sparkles className="h-3.5 w-3.5" aria-hidden />
+              Lancer la revue IA
+            </button>
+          </div>
+        </div>
+      ) : (
+        <ReviewGate
+          result={result}
+          loading={loading}
+          error={error}
+          onRegenerate={runReview}
+          title="Revue IA du candidat IRO"
+        />
+      )}
+    </section>
   );
 }
 

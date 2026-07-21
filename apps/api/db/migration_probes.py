@@ -710,6 +710,41 @@ def _probe_040(cur) -> bool:
     return _constraint_definition_contains(cur, "audit_events", "audit_eventtype_check", "materiality_decision")
 
 
+def _probe_041(cur) -> bool:
+    """AI Review Ledger (PR-11) : 4 tables tenant strictes (company_id NOT NULL)
+    + RLS FORCE + policy scopée sur chacune, ET les triggers d'immutabilité qui
+    rendent le journal append-only (motif materiality_decisions 040). Une base
+    où les tables existent mais où ces triggers ont été retirés n'est PAS la
+    migration 041 — même raisonnement que _probe_040/_probe_037. Les contraintes
+    de vocabulaire (output_label DRAFT/SUGGESTION/REVIEW_REQUIRED, resource_type,
+    decision) portent les règles non négociables de la couche IA."""
+    tables = ("ai_runs", "ai_claims", "ai_citations", "ai_review_decisions")
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    if not (
+        _trigger_exists(cur, "ai_runs", "trg_ai_runs_guard")
+        and _trigger_exists(cur, "ai_claims", "trg_ai_claims_guard")
+        and _trigger_exists(cur, "ai_citations", "trg_ai_citations_guard")
+        and _trigger_exists(cur, "ai_review_decisions", "trg_ai_review_decisions_guard")
+    ):
+        return False
+    if not (
+        _constraint_exists(cur, "ai_claims", "ai_claims_output_label_check")
+        and _constraint_exists(cur, "ai_citations", "ai_citations_resource_type_check")
+        and _constraint_exists(cur, "ai_review_decisions", "ai_review_decisions_decision_check")
+    ):
+        return False
+    # Élargissement audit_eventtype_check : le NOM de la contrainte est réutilisé
+    # depuis 011/012/040 (DROP+ADD) — son existence seule ne distingue pas
+    # l'ancienne de la nouvelle définition, on vérifie donc le CONTENU.
+    return _constraint_definition_contains(cur, "audit_events", "audit_eventtype_check", "ai_review_decision")
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -753,6 +788,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "038": _probe_038,
     "039": _probe_039,
     "040": _probe_040,
+    "041": _probe_041,
 }
 
 

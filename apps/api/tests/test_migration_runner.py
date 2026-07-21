@@ -263,7 +263,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 41
+    assert len(versions) == 42
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
@@ -513,7 +513,7 @@ def test_build_plan_detects_039_pending_on_baselined_ledger(monkeypatch):
 def test_build_plan_detects_040_pending_on_baselined_ledger(monkeypatch):
     """040 doit apparaître 'apply' quand le ledger est baseliné sur tout le
     reste — elle ne crée que des tables neuves (aucun ALTER), jamais
-    requires_owner. 040 est aussi la DERNIÈRE version réelle du dossier."""
+    requires_owner."""
     runner = MigrationRunner()
     files = runner.discover_migrations()
     baselined = {
@@ -528,7 +528,29 @@ def test_build_plan_detects_040_pending_on_baselined_ledger(monkeypatch):
     assert actions["040"] == "apply"
     assert all(actions[v] == "skip" for v in baselined)
     assert plan.has_blocking_issues is False
-    assert [i.file.version for i in plan.items][-1] == "040"
+
+
+# ── PR-11 : migration 041 (AI Review Ledger) — tables neuves uniquement, jamais
+#    requires_owner, comme 028/040 ; 041 est la DERNIÈRE version réelle ────────
+def test_build_plan_detects_041_pending_on_baselined_ledger(monkeypatch):
+    """041 doit apparaître 'apply' quand le ledger est baseliné sur tout le
+    reste — journal IA, tables neuves seulement, jamais requires_owner. 041 est
+    la DERNIÈRE version réelle du dossier."""
+    runner = MigrationRunner()
+    files = runner.discover_migrations()
+    baselined = {
+        f.version: _record(version=f.version, status="baseline", checksum=f.checksum_sha256)
+        for f in files
+        if f.version != "041"
+    }
+    monkeypatch.setattr(runner, "load_records", lambda: baselined)
+    plan = runner.build_plan()
+
+    actions = {i.file.version: i.action for i in plan.items}
+    assert actions["041"] == "apply"
+    assert all(actions[v] == "skip" for v in baselined)
+    assert plan.has_blocking_issues is False
+    assert [i.file.version for i in plan.items][-1] == "041"
 
 
 # ── PR-02C : apply_plan — gardes pré-connexion (aucune DB requise) ────────

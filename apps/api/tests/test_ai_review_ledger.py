@@ -39,6 +39,7 @@ def _stub(cited_per_claim, *, unavailable=False):
         ]
         return GenerateResult(
             result=ModelResult(claims=claims), provider="demo", model="demo",
+            model_version="stub-model-v1",
             tokens_input=10, tokens_output=5, cost_estimate=0.0, latency_ms=1,
         )
     return _p
@@ -57,7 +58,7 @@ def test_pipeline_excludes_sensitive_blocked_and_invented(ai_env):
         created_by=91, provider_fn=stub,
     )
     assert res.run.status == "succeeded"
-    assert res.run.model_version == "demo"  # version provider persistée (P2)
+    assert res.run.model_version == "stub-model-v1"  # version provider persistée (P2)
     # Seule la preuve normale est citée et persistée.
     persisted = [c for claim in res.claims for c in claim.citations]
     assert len(persisted) == 1 and persisted[0].internal_id == ai_env["normal_id"]

@@ -90,10 +90,18 @@ def demo_generate(request: ModelRequest) -> GenerateResult:
       SUGGESTION de questions de revue. Jamais de décision, jamais de calcul.
     """
     tokens_in = _check_budget(request)
+
+    # Démo produit : claims scénarisés déterministes (Asterion Motion). N'altère
+    # aucun autre sujet/tenant (scenario_claims retourne None => générique ci-dessous).
+    from services.intelligence.ai.demo_scenarios import scenario_claims
+
+    scripted = scenario_claims(request)
     refs = request.pack.references
     claims: list[ModelClaim] = []
 
-    if not refs:
+    if scripted is not None:
+        claims = scripted
+    elif not refs:
         claims.append(
             ModelClaim(
                 claim_text=(

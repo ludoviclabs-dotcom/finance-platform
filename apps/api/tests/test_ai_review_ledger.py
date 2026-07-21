@@ -49,13 +49,15 @@ def test_pipeline_excludes_sensitive_blocked_and_invented(ai_env):
     normal = f"artifact:{ai_env['normal_id']}"
     conf = f"artifact:{ai_env['conf_id']}"
     blocked = f"artifact:{ai_env['blocked_id']}"
-    stub = _stub([[normal], ["artifact:999999"], [conf], [blocked]])
+    derived = f"artifact:{ai_env['derived_id']}"
+    stub = _stub([[normal], ["artifact:999999"], [conf], [blocked], [derived]])
 
     res = review_service.run_review(
         company_id=cid, use_case="iro_review", subject_key=str(iid),
         created_by=91, provider_fn=stub,
     )
     assert res.run.status == "succeeded"
+    assert res.run.model_version == "demo"  # version provider persistée (P2)
     # Seule la preuve normale est citée et persistée.
     persisted = [c for claim in res.claims for c in claim.citations]
     assert len(persisted) == 1 and persisted[0].internal_id == ai_env["normal_id"]
@@ -64,20 +66,22 @@ def test_pipeline_excludes_sensitive_blocked_and_invented(ai_env):
     assert by_idx[0].support_status in ("supported", "partially_supported")
     assert by_idx[1].support_status == "unsupported"  # inventée
     assert by_idx[2].support_status == "unsupported"  # confidentielle exclue du pack
-    assert by_idx[3].support_status == "unsupported"  # licence bloquante exclue du pack
+    assert by_idx[3].support_status == "unsupported"  # licence bloquante (display) exclue
+    assert by_idx[4].support_status == "unsupported"  # derived_use bloqué exclu (P1)
 
-    # allowed_reference_ids (audit) ne contient JAMAIS le confidentiel/bloqué.
+    # allowed_reference_ids (audit) ne contient JAMAIS confidentiel/bloqué/derived.
     with get_db(company_id=cid) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT allowed_reference_ids FROM ai_runs WHERE id=%s", (res.run.id,))
             allowed = cur.fetchone()["allowed_reference_ids"]
             cur.execute(
-                "SELECT COUNT(*) AS c FROM ai_citations WHERE run_id=%s AND internal_id IN (%s,%s)",
-                (res.run.id, ai_env["conf_id"], ai_env["blocked_id"]),
+                "SELECT COUNT(*) AS c FROM ai_citations WHERE run_id=%s AND internal_id IN (%s,%s,%s)",
+                (res.run.id, ai_env["conf_id"], ai_env["blocked_id"], ai_env["derived_id"]),
             )
             leaked = cur.fetchone()["c"]
     ids = {r["internal_id"] for r in allowed}
     assert ai_env["conf_id"] not in ids and ai_env["blocked_id"] not in ids
+    assert ai_env["derived_id"] not in ids
     assert ai_env["normal_id"] in ids
     assert leaked == 0
 

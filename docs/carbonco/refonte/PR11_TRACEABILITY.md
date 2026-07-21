@@ -125,8 +125,12 @@ provider indisponible→503 ; quota→429). Vérifié : les 5 routes montées
 
 ## 7. Grounding, citations, sécurité, licences, sensibilité
 
-- Grounding backend-only, sous RLS + `license_policy.evaluate` (allow_display /
-  allow_derived_use) + exclusion confidential/restricted + minimisation des extraits.
+- Grounding backend-only, sous RLS + `license_policy.evaluate` : exclusion des
+  artefacts `confidential`/`restricted`, à `allow_display=false` (licence
+  d'affichage) ET à `allow_derived_use=false` (envoyer un extrait à un modèle qui
+  en dérive du texte est un usage DÉRIVÉ — §5bis) + minimisation des extraits.
+- `ai_runs.model_version` persiste la version reportée par le provider à la
+  complétion (transition unique NULL→valeur autorisée par le trigger, puis figée).
 - Citation résolue contre l'ensemble autorisé : **inventée/cross-tenant/bloquée/
   sensible = rejetée** → claim `unsupported`. `ai_citations` distinct de
   `claim_evidence_links` : une citation modèle ne devient un lien validé que par

@@ -98,15 +98,46 @@ def _seed_iro_with_evidence(company_id: int) -> dict:
             )
             blocked_id = cur.fetchone()["id"]
 
+            # (d) source display_allowed=true MAIS derived_use_allowed=false → EXCLU :
+            #     envoyer un extrait à un modèle qui en dérive est un usage dérivé.
+            cur.execute(
+                """INSERT INTO source_registry
+                   (company_id, code, publisher, title, source_type, active,
+                    display_allowed, derived_use_allowed)
+                   VALUES (%s,%s,'Pub','Src derivee','file', true, true, false) RETURNING id""",
+                (company_id, f"derived-{company_id}"),
+            )
+            dsrc_id = cur.fetchone()["id"]
+            cur.execute(
+                """INSERT INTO source_releases
+                   (source_id, company_id, release_key, checksum_sha256, status)
+                   VALUES (%s,%s,'r1',%s,'published') RETURNING id""",
+                (dsrc_id, company_id, f"sha-drel-{company_id}"),
+            )
+            drel_id = cur.fetchone()["id"]
+            cur.execute(
+                """INSERT INTO evidence_artifacts
+                   (company_id, source_release_id, blob_key, sha256, filename, mime_type,
+                    excerpt, sensitivity, created_by)
+                   VALUES (%s,%s,%s,%s,'derivee.pdf','application/pdf',
+                           'extrait derive', 'internal', 91) RETURNING id""",
+                (company_id, drel_id, f"k-der-{company_id}", f"sha-der-{company_id}"),
+            )
+            derived_id = cur.fetchone()["id"]
+
             # Liens preuve↔IRO (convention claim_type='iro', claim_key='iro:{id}').
-            for aid, rel in ((normal_id, "supports"), (conf_id, "supports"), (blocked_id, "supports")):
+            for aid, rel in ((normal_id, "supports"), (conf_id, "supports"),
+                             (blocked_id, "supports"), (derived_id, "supports")):
                 cur.execute(
                     """INSERT INTO claim_evidence_links
                        (company_id, claim_type, claim_key, evidence_artifact_id, relation_type, created_by)
                        VALUES (%s,'iro',%s,%s,%s,91)""",
                     (company_id, f"iro:{iro.id}", aid, rel),
                 )
-    return {"iro_id": iro.id, "normal_id": normal_id, "conf_id": conf_id, "blocked_id": blocked_id}
+    return {
+        "iro_id": iro.id, "normal_id": normal_id, "conf_id": conf_id,
+        "blocked_id": blocked_id, "derived_id": derived_id,
+    }
 
 
 @pytest.fixture(scope="function")

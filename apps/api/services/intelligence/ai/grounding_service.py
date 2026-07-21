@@ -136,9 +136,14 @@ def _build_iro_pack(*, company_id: int, subject_key: str) -> GroundingResult:
         if sensitivity in ("confidential", "restricted"):
             excluded.append({"artifact_id": meta["id"], "reason": "sensitivity", "sensitivity": sensitivity})
             continue
-        allow_display, _allow_derived = _license_allows_display(meta)
+        allow_display, allow_derived = _license_allows_display(meta)
         if not allow_display:
             excluded.append({"artifact_id": meta["id"], "reason": "license_blocked"})
+            continue
+        if not allow_derived:
+            # Envoyer un extrait à un modèle qui en dérive du texte = usage DÉRIVÉ :
+            # exiger allow_derived_use (AI_GOVERNANCE §5bis), sinon EXCLU du pack.
+            excluded.append({"artifact_id": meta["id"], "reason": "derived_use_blocked"})
             continue
         locator = {
             "page_reference": meta.get("page_reference"),

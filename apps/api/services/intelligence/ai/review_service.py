@@ -222,11 +222,11 @@ def run_review(
                     )
                 )
             cur.execute(
-                f"""UPDATE ai_runs SET status='succeeded', tokens_input=%s, tokens_output=%s,
-                    cost_estimate=%s, latency_ms=%s, completed_at=now()
+                f"""UPDATE ai_runs SET status='succeeded', model_version=%s, tokens_input=%s,
+                    tokens_output=%s, cost_estimate=%s, latency_ms=%s, completed_at=now()
                     WHERE id=%s AND {_SCOPE}""",
-                (gen.tokens_input, gen.tokens_output, gen.cost_estimate, gen.latency_ms,
-                 run_id, company_id),
+                (gen.model_version, gen.tokens_input, gen.tokens_output, gen.cost_estimate,
+                 gen.latency_ms, run_id, company_id),
             )
 
     run = get_run_row(company_id=company_id, run_id=run_id)

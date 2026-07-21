@@ -261,7 +261,7 @@ BEGIN
      AND NEW.subject_key           IS NOT DISTINCT FROM OLD.subject_key
      AND NEW.provider              IS NOT DISTINCT FROM OLD.provider
      AND NEW.model                 IS NOT DISTINCT FROM OLD.model
-     AND NEW.model_version         IS NOT DISTINCT FROM OLD.model_version
+     AND (NEW.model_version IS NOT DISTINCT FROM OLD.model_version OR OLD.model_version IS NULL)
      AND NEW.prompt_version        IS NOT DISTINCT FROM OLD.prompt_version
      AND NEW.policy_version        IS NOT DISTINCT FROM OLD.policy_version
      AND NEW.input_hash            IS NOT DISTINCT FROM OLD.input_hash

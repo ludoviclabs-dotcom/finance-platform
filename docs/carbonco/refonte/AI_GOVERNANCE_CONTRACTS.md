@@ -303,8 +303,9 @@ Contrats fournisseur :
 - L'humain peut **accepter / rejeter / modifier**, avec **justification** enregistrée
   (`ai_review_decisions`, append-only, reviewer tracé).
 - **Accepter** une suggestion ne la publie pas : cela déclenche le **geste métier humain** correspondant
-  (ex. créer un `iros` candidate via `iro_service.create_candidate`, ou lier une preuve via
-  `claim_link_service`) — jamais une écriture directe par le modèle.
+  (ex. créer un `iros` candidate via `iro_service.create_iro(company_id=…, payload=IroCreate(…), created_by=…)`
+  — qui force **déjà** `status='candidate'`, **aucun chemin `create_candidate` parallèle à créer** —, ou lier
+  une preuve via `claim_link_service.create_link`) — jamais une écriture directe par le modèle.
 - **Aucun bouton « publier automatiquement »**. La décision de matérialité reste exclusivement
   `materiality_decisions.decide()` (humain).
 

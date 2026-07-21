@@ -73,12 +73,16 @@ CONTRAINTES DURES (non négociables) :
      audit_service.log_event), prompts/ (versionnés en code, séparation instructions/données).
    - models/ai_review.py (Pydantic strict, no untyped JSON). routers/ai_review.py (prefix /ai, endpoints
      du §7, pagination {items,total,limit,offset}, _errors.py). Monter le router dans main.py.
-   - Réutiliser (ne pas recréer) : claim_link_service, license_policy, artifact_service,
-     observation_service, iro_service/materiality_decision_service, AnalyticalEnvelope, audit_service,
-     get_db(company_id), utils/env.is_production.
+   - Réutiliser (ne pas recréer) : claim_link_service, license_policy.evaluate, artifact_service,
+     observation_service, iro_service.create_iro(payload=IroCreate(...)) (force status='candidate', PAS de
+     create_candidate) / materiality_decision_service.decide, AnalyticalEnvelope, audit_service.log_event,
+     get_db importé « from db.database import get_db » (module apps/api/db/database.py, PAS apps/api/database.py),
+     db/tenant.py::get_company_id, utils/env.is_production.
    Frontend (apps/carbon) :
-   - components/intelligence/{review-gate,source-drawer,evidence-list,license-warning}.tsx + iro-candidate-button.
-     Badges DRAFT/AI SUGGESTION/REVIEW_REQUIRED, modèle+date, citations numérotées, panneau preuve,
+   - CRÉER uniquement components/intelligence/review-gate.tsx + components/intelligence/iro-candidate-button.tsx.
+     RÉUTILISER les existants (Wave 2) : components/intelligence/{source-drawer,evidence-list,license-warning,
+     staleness-warning}.tsx + components/ui/data-status-badge.tsx (dataStatusToBadge).
+     ReviewGate : badges DRAFT/AI SUGGESTION/REVIEW_REQUIRED, modèle+date, citations numérotées, panneau preuve,
      avertissements unsupported/contradicted/stale, accepter/rejeter/modifier + justification,
      feedback utile/inutile/incorrect, régénération explicite, états rate-limit / provider indisponible.
      AUCUN bouton « publier automatiquement ». Réutiliser useChat/SafeMarkdown pour le seul brouillon.

@@ -220,13 +220,18 @@ Sous `apps/api/services/intelligence/ai/` (emplacement prévu par `PLAN…` §4)
 - `review_service.py` — orchestration : run → validation JSON → citations → entailment → gate §16.4 →
   persistance `ai_runs/ai_claims/ai_citations` ; applique l'étiquetage DRAFT/SUGGESTION/REVIEW_REQUIRED.
 - `review_decision_service.py` — enregistre la décision humaine (`ai_review_decisions`) et déclenche le
-  **geste métier humain** (jamais d'écriture modèle) ; `audit_service.log_event`.
+  **geste métier humain** (jamais d'écriture modèle ; pour un IRO accepté :
+  `iro_service.create_iro(company_id=…, payload=IroCreate(…), created_by=…)`, qui force déjà
+  `status='candidate'` — **pas de `create_candidate` parallèle**) ; `audit_service.log_event`.
 - `prompts/` — prompts **versionnés en code** (constante `PROMPT_VERSION`, séparation instructions/données).
 - `models/ai_review.py` — Pydantic strict (sortie modèle, citation, résultat de revue) ; **no untyped JSON**.
 
-Réutilisés (non recréés) : `claim_link_service`, `license_policy`, `artifact_service`,
-`observation_service`, `iro_service` / `materiality_decision_service`, `audit_service`,
-`AnalyticalEnvelope`, `utils/env.py::is_production`, `database.py::get_db(company_id)`.
+Réutilisés (non recréés) : `claim_link_service.{create_link,list_links}`, `license_policy.evaluate`,
+`artifact_service`, `observation_service`, `iro_service.create_iro(payload=IroCreate(…))` (force déjà
+`status='candidate'`) / `materiality_decision_service.decide`, `audit_service.log_event`,
+`AnalyticalEnvelope` (`models/analytics.py`), `utils/env.py::is_production`,
+**`get_db` importé depuis `apps/api/db/database.py`** (`from db.database import get_db` ;
+`get_db(company_id=…)` pose `SET LOCAL app.current_company_id`), `db/tenant.py::get_company_id`.
 
 ---
 
@@ -250,17 +255,24 @@ Toutes authentifiées (JWT, `get_company_id`), rate-limitées (par tenant + util
 
 ## 8. Frontend (à créer / réutiliser)
 
-Composants prévus par `PLAN…` §17 (aujourd'hui inexistants) :
+**À CRÉER** (n'existent pas encore) :
 
 - `components/intelligence/review-gate.tsx` (`ReviewGate`) — carte de revue : badge `DRAFT`/`AI SUGGESTION`/
   `REVIEW_REQUIRED`, modèle + date, citations numérotées, avertissements `unsupported`/`contradicted`/`stale`,
   boutons accepter/rejeter/modifier + justification, feedback (utile/inutile/incorrect), régénération
   explicite, états `rate-limit` / `provider indisponible`. **Aucun bouton « publier auto ».**
-- `SourceDrawer` / `EvidenceList` — panneau de preuve (ouvre l'artefact d'origine, locators).
-- `LicenseWarning` — badge `LICENSED`/`BLOCKED` + réserve.
-- `IroCandidateButton` — promotion humaine d'un signal en IRO candidate (déjà prévu §17).
-- Réutilise : `useChat`/`SafeMarkdown` (pour le **brouillon** narratif seulement), `DataStatusBadge`,
-  `FeatureStatusBadge`, `dataStatusToBadge`, animations, `lib/ai/provider.ts` (demo/live).
+- `components/intelligence/iro-candidate-button.tsx` (`IroCandidateButton`) — promotion humaine d'un signal
+  en IRO candidate (déjà prévu §17), câblée à `POST /iro/iros` (jamais un `create_candidate`).
+
+**DÉJÀ EXISTANTS — à RÉUTILISER tels quels** (créés en Wave 2 / PR-04, `components/intelligence/`) :
+
+- `source-drawer.tsx` (`SourceDrawer`) / `evidence-list.tsx` (`EvidenceList`) — panneau de preuve
+  (ouvre l'artefact d'origine, locators).
+- `license-warning.tsx` (`LicenseWarning`) — badge `LICENSED`/`BLOCKED` + réserve ;
+  `staleness-warning.tsx` (`StalenessWarning`) — état `stale`.
+- Autres réutilisés : `useChat`/`SafeMarkdown` (pour le **brouillon** narratif seulement),
+  `DataStatusBadge` + `dataStatusToBadge` (`components/ui/data-status-badge.tsx`), `FeatureStatusBadge`,
+  animations, `lib/ai/provider.ts` (demo/live).
 
 Intégration MVP : bouton « Revue IA » sur la page IRO (`/iro/[id]`) et sur le panneau Scope 2
 (`scope2-engine-panel.tsx`). UX cohérente, accessible (aria), sans substitution silencieuse de modèle.
@@ -290,8 +302,10 @@ Aucun test CI obligatoire ne dépend d'un appel modèle payant/non déterministe
 `routers/ai_review.py` ; tests `tests/test_ai_review_*.py` + fixtures.
 **Modifier (backend)** : `main.py` (monter le router) ; `.github/workflows/api.yml` (inscrire les tests
 DB-gated dans `migration-tests`).
-**Créer (frontend)** : `components/intelligence/{review-gate,source-drawer,evidence-list,license-warning}.tsx`,
-`components/intelligence/iro-candidate-button.tsx` ; hooks/appels API ; tests.
+**Créer (frontend)** : `components/intelligence/review-gate.tsx` +
+`components/intelligence/iro-candidate-button.tsx` (les SEULS nouveaux) ; hooks/appels API ; tests.
+**Réutiliser (frontend, existants)** : `components/intelligence/{source-drawer,evidence-list,license-warning,staleness-warning}.tsx`,
+`components/ui/data-status-badge.tsx` (+`dataStatusToBadge`).
 **Modifier (frontend)** : pages `/iro/[id]` et panneau Scope 2 (bouton « Revue IA ») ; `lib/api.ts` ;
 éventuellement `lib/rate-limit.ts` (fail-safe) ; `value-mapping-variant/route.ts` (auth+rate-limit — dette).
 **Docs** : `PR11_TRACEABILITY.md` (au moment du code).

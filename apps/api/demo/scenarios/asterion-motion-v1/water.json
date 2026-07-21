@@ -1,0 +1,51 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "reporting_year": 2025,
+  "withdrawal_m3": 72000,
+  "status": "manual",
+  "method": "site meter readings",
+  "screenings": [
+    {
+      "site_key": "asterion-hq",
+      "water_stress": "high",
+      "risk_category": "high",
+      "confidence": 0.81,
+      "basin": "Rhône (fictif)",
+      "method": "geojson_point_in_polygon_v1 over synthetic WRI-style layer",
+      "status": "estimated",
+      "synthetic": true,
+      "note": "Le stress hydrique (risque) est élevé ; la confidence (0,81) est une dimension SÉPARÉE — risque ≠ confiance."
+    },
+    {
+      "site_key": "asterion-winding",
+      "water_stress": "medium",
+      "risk_category": "medium",
+      "confidence": 0.74,
+      "basin": "Isère (fictif)",
+      "method": "geojson_point_in_polygon_v1 over synthetic WRI-style layer",
+      "status": "estimated",
+      "synthetic": true
+    }
+  ],
+  "targets": [
+    {
+      "key": "water-reduction-2030",
+      "description": "Réduire le prélèvement de 15% d'ici 2030 (intention déclarée)",
+      "target_reduction_pct": 15,
+      "target_year": 2030,
+      "status": "manual",
+      "synthetic": true
+    }
+  ],
+  "actions": [
+    {
+      "key": "closed-loop-cooling",
+      "description": "Boucle de refroidissement fermée sur l'atelier bobinage",
+      "expected_reduction_m3": 8000,
+      "status": "manual",
+      "synthetic": true,
+      "note": "Intention déclarée, jamais soustraite automatiquement d'un résultat."
+    }
+  ]
+}

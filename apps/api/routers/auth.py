@@ -33,10 +33,12 @@ from services.auth_service import (
     AuthUser,
     authenticate,
     create_access_token,
+    create_demo_access_token,
     create_pre_auth_token,
     create_refresh_token,
     decode_pre_auth_token,
     decode_token,
+    ensure_demo_tenant,
     has_role,
     revoke_refresh_token,
     rotate_refresh_token,
@@ -268,6 +270,38 @@ def _issue_session(user: AuthUser, request: Request, response: Response) -> Logi
         company_id=user.company_id,
     )
 
+    return LoginResponse(
+        accessToken=access_token,
+        expiresAt=access_expires.isoformat(),
+        user=user,
+    )
+
+
+@router.post("/demo", response_model=LoginResponse)
+async def demo_login(request: Request) -> LoginResponse:
+    """Session de démonstration produit — tenant fixe `asterion-motion-demo`,
+    rôle analyste, courte durée, SANS refresh cookie (auto-expiration, non
+    renouvelable). Aucun mot de passe n'est requis ni exposé côté client :
+    remplace l'ancien bouton démo qui embarquait un identifiant en clair.
+
+    L'IA reste en mode demo (aucune activation live). Le tenant démo est isolé
+    (RLS) et sans permission globale (rôle analyste, jamais admin).
+    """
+    user = ensure_demo_tenant()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Accès démo indisponible (base non configurée).",
+        )
+    access_token, access_expires = create_demo_access_token(user)
+    log_event(
+        event_type="login",
+        title=f"Session démo — {user.email}",
+        status="ok",
+        user=user.email,
+        company_id=user.company_id,
+    )
+    # Volontairement AUCUN refresh cookie : la session démo expire seule.
     return LoginResponse(
         accessToken=access_token,
         expiresAt=access_expires.isoformat(),

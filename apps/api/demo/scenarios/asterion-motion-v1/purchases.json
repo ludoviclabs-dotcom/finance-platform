@@ -1,0 +1,53 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "reporting_year": 2025,
+  "currency": "EUR",
+  "total_spend_eur": 5800000,
+  "scope3_purchases_tco2e": 3480,
+  "magnets_share_pct": 61.8,
+  "status": "estimated",
+  "method": "spend-based + physical-unit hybrid (EEIO monetary factors, magnets on physical factor)",
+  "lines": [
+    {
+      "key": "purchase-magnets",
+      "supplier_key": "supplier-magnets",
+      "material_code": "NDFEB",
+      "category": "Permanent magnets",
+      "spend_eur": 2610000,
+      "physical_kg": 150000,
+      "emission_factor_kgco2e_per_kg": 14.34,
+      "scope3_tco2e": 2151,
+      "share_pct": 61.8,
+      "factor_status": "estimated",
+      "synthetic": true
+    },
+    {
+      "key": "purchase-copper",
+      "supplier_key": "supplier-copper",
+      "material_code": "CU",
+      "category": "Copper wire",
+      "spend_eur": 1740000,
+      "physical_kg": 216000,
+      "emission_factor_kgco2e_per_kg": 3.7,
+      "scope3_tco2e": 799,
+      "share_pct": 23.0,
+      "factor_status": "estimated",
+      "synthetic": true
+    },
+    {
+      "key": "purchase-aluminium",
+      "supplier_key": "supplier-aluminium",
+      "material_code": "AL",
+      "category": "Aluminium housing",
+      "spend_eur": 1160000,
+      "physical_kg": 348000,
+      "emission_factor_kgco2e_per_kg": 1.52,
+      "scope3_tco2e": 530,
+      "share_pct": 15.2,
+      "factor_status": "estimated",
+      "synthetic": true
+    }
+  ],
+  "note": "Somme des lignes = 3 480 tCO2e ; part aimants = 2 151/3 480 = 61,8% (hotspot n°1, corrobore le cas IA #1 supported)."
+}

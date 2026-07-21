@@ -1,0 +1,80 @@
+name: Demo Scenario
+
+# Workflow MANUEL et PROTÉGÉ pour peupler / vérifier / réinitialiser le tenant de
+# DÉMONSTRATION « Asterion Motion » (100% fictif). Jamais déclenché par push /
+# pull_request / schedule ni par un déploiement : uniquement workflow_dispatch,
+# avec approbation humaine via l'environnement GitHub protégé `production-db`.
+#
+# N'affecte QUE le tenant `asterion-motion-demo` (garde-fou de slug dans les
+# scripts). Ne touche jamais de donnée réelle. IA en mode demo (aucun coût).
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action"
+        required: true
+        type: choice
+        default: "verify"
+        options:
+          - verify
+          - seed
+          - reset
+      mode:
+        description: "Mode (seed: dry-run|commit ; reset: dry-run|commit)"
+        required: false
+        type: choice
+        default: "dry-run"
+        options:
+          - dry-run
+          - commit
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    # Approbation manuelle requise (reviewers configurés côté Settings — hors code).
+    environment: production-db
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run demo scenario command
+        env:
+          # Même contrat de connexion que db-migrate.yml : une seule source
+          # (DATABASE_ADMIN_URL, rôle neondb_owner), mappée aussi sur DATABASE_URL
+          # pour les commandes qui passent par get_db()/db_available().
+          DATABASE_ADMIN_URL: ${{ secrets.DATABASE_ADMIN_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_ADMIN_URL }}
+          ENV: production
+          # L'IA reste en mode demo (aucune activation live, aucun secret modèle).
+          AI_REVIEW_MODE: demo
+        run: |
+          set -euo pipefail
+          case "${{ github.event.inputs.action }}" in
+            verify)
+              python scripts/demo_verify.py
+              ;;
+            seed)
+              if [ "${{ github.event.inputs.mode }}" = "commit" ]; then
+                python scripts/demo_seed.py
+              else
+                python scripts/demo_seed.py --dry-run
+              fi
+              ;;
+            reset)
+              if [ "${{ github.event.inputs.mode }}" = "commit" ]; then
+                python scripts/demo_reset.py --yes
+              else
+                python scripts/demo_reset.py --dry-run
+              fi
+              ;;
+            *)
+              echo "Action non reconnue : ${{ github.event.inputs.action }}" >&2
+              exit 1
+              ;;
+          esac

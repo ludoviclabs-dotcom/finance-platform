@@ -1,0 +1,154 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "note": "Preuves seedées pour rendre la revue IA cité déterministe. Les artefacts inclus (tenant-own ou licence display OK, non sensibles) entrent dans le reference pack et sont citables ; les artefacts exclus (sensibilité/licence) démontrent le filtrage dans la trace fonctionnelle.",
+  "sources": [
+    {
+      "key": "source-market-study",
+      "code": "ASTERION-MKT-RE-2025",
+      "publisher": "Cabinet d'étude terres rares (fictif)",
+      "title": "Étude de marché — dépendance terres rares lourdes",
+      "source_type": "market_study",
+      "active": true,
+      "display_allowed": true,
+      "derived_use_allowed": true,
+      "attribution_text": "Étude fictive de démonstration",
+      "synthetic": true
+    },
+    {
+      "key": "source-blocked-benchmark",
+      "code": "ASTERION-BENCH-LOCKED",
+      "publisher": "Fournisseur de données sous licence restrictive (fictif)",
+      "title": "Benchmark sectoriel (licence sans affichage)",
+      "source_type": "benchmark",
+      "active": true,
+      "display_allowed": false,
+      "derived_use_allowed": false,
+      "attribution_text": "Licence restrictive — non affichable",
+      "synthetic": true,
+      "note": "Sert à démontrer l'exclusion LICENCE dans la trace du grounding."
+    }
+  ],
+  "releases": [
+    {
+      "key": "release-market-study-2025",
+      "source_key": "source-market-study",
+      "release_key": "2025-Q1",
+      "status": "published",
+      "synthetic": true
+    },
+    {
+      "key": "release-blocked-2025",
+      "source_key": "source-blocked-benchmark",
+      "release_key": "2025-Q1",
+      "status": "published",
+      "synthetic": true
+    }
+  ],
+  "artifacts": [
+    {
+      "key": "artifact-dependency-study",
+      "filename": "asterion-heavy-rare-earth-dependency.pdf",
+      "release_key": "release-market-study-2025",
+      "sensitivity": "internal",
+      "page_reference": "p.12",
+      "excerpt": "Dépendance estimée à 92% aux terres rares lourdes (dysprosium, terbium) pour la chaîne aimants — estimation, non vérifiée.",
+      "match_marker": "dependency",
+      "synthetic": true,
+      "included_in_pack": true,
+      "note": "Cité par le claim dépendance -> partially_supported (estimé, non corroboré déterministiquement en UC-1)."
+    },
+    {
+      "key": "artifact-recycled-audit",
+      "filename": "asterion-recycled-content-audit.pdf",
+      "release_key": null,
+      "sensitivity": "internal",
+      "page_reference": "p.4",
+      "excerpt": "Audit masse-bilan tiers : contenu recyclé PROUVÉ 35% des aimants NdFeB (déclaration fournisseur : 80%).",
+      "match_marker": "recycled",
+      "synthetic": true,
+      "included_in_pack": true,
+      "note": "Tenant-own (pas de release) -> licence auto OK. Cité par le claim contenu recyclé -> contradicted (le claim affirme 80%, la preuve prouve 35%)."
+    },
+    {
+      "key": "artifact-supplier-pricing-confidential",
+      "filename": "asterion-supplier-pricing.pdf",
+      "release_key": null,
+      "sensitivity": "confidential",
+      "page_reference": "p.1",
+      "excerpt": "[CONFIDENTIEL] Grille tarifaire fournisseur aimants.",
+      "match_marker": "pricing",
+      "synthetic": true,
+      "included_in_pack": false,
+      "excluded_reason": "sensitivity",
+      "note": "Exclu du pack (confidential) -> démontre le filtrage sensibilité."
+    },
+    {
+      "key": "artifact-blocked-benchmark",
+      "filename": "asterion-sector-benchmark.pdf",
+      "release_key": "release-blocked-2025",
+      "sensitivity": "internal",
+      "page_reference": "p.7",
+      "excerpt": "Benchmark sectoriel — licence sans droit d'affichage.",
+      "match_marker": "benchmark",
+      "synthetic": true,
+      "included_in_pack": false,
+      "excluded_reason": "license_blocked",
+      "note": "Source display_allowed=false -> exclu du pack -> démontre le filtrage licence."
+    }
+  ],
+  "observations": [
+    {
+      "key": "obs-dependency",
+      "metric": "heavy_rare_earth_dependency_pct",
+      "value": 92,
+      "unit": "%",
+      "data_status": "estimated",
+      "methodology_version": "market-study-v1",
+      "artifact_key": "artifact-dependency-study",
+      "synthetic": true
+    },
+    {
+      "key": "obs-recycled-proven",
+      "metric": "recycled_content_pct",
+      "value": 35,
+      "unit": "%",
+      "data_status": "verified",
+      "methodology_version": "mass-balance-audit-v1",
+      "artifact_key": "artifact-recycled-audit",
+      "synthetic": true
+    },
+    {
+      "key": "obs-recycled-declared",
+      "metric": "recycled_content_declared_pct",
+      "value": 80,
+      "unit": "%",
+      "data_status": "manual",
+      "methodology_version": "supplier-declaration",
+      "artifact_key": null,
+      "synthetic": true
+    }
+  ],
+  "iro_evidence_links": [
+    {
+      "iro_key": "iro-magnet-dependency",
+      "artifact_key": "artifact-dependency-study",
+      "relation_type": "supports"
+    },
+    {
+      "iro_key": "iro-magnet-dependency",
+      "artifact_key": "artifact-recycled-audit",
+      "relation_type": "supports"
+    },
+    {
+      "iro_key": "iro-magnet-dependency",
+      "artifact_key": "artifact-supplier-pricing-confidential",
+      "relation_type": "supports"
+    },
+    {
+      "iro_key": "iro-magnet-dependency",
+      "artifact_key": "artifact-blocked-benchmark",
+      "relation_type": "supports"
+    }
+  ]
+}

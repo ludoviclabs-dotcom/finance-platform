@@ -1,0 +1,37 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "iros": [
+    {
+      "key": "iro-magnet-dependency",
+      "title": "Dépendance critique aux aimants terres rares (E-Drive X4)",
+      "iro_type": "risk",
+      "origin_domain": "crma",
+      "origin_reference": "crma-art24-ndfeb",
+      "topic_code": "ESRS E1 / resource use",
+      "description": "Risque d'approvisionnement et d'impact lié à la dépendance aux aimants NdFeB (terres rares lourdes) pour le moteur E-Drive X4. Sujet de la revue IA de démonstration.",
+      "status": "candidate",
+      "synthetic": true,
+      "impact_assessment": {
+        "scale": 4,
+        "scope": 3,
+        "irremediability": 3,
+        "likelihood": "likely",
+        "status": "estimated",
+        "note": "Composantes séparées ; aucun score de matérialité unique."
+      },
+      "financial_assessment": {
+        "magnitude": 4,
+        "likelihood": "likely",
+        "financial_exposure_eur": 1400000,
+        "exposure_status": "estimated",
+        "note": "Exposition financière indicative (fourchette), jamais présentée comme certaine."
+      },
+      "evidence_keys": [
+        "artifact-dependency-study",
+        "artifact-recycled-audit"
+      ]
+    }
+  ],
+  "note": "Un seul IRO candidate, sujet de la revue IA (UC-1). La décision de matérialité reste exclusivement humaine (materiality_decisions.decide)."
+}

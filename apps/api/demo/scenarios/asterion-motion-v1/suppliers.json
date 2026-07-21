@@ -1,0 +1,45 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "suppliers": [
+    {
+      "key": "supplier-magnets",
+      "name": "Helios Magnetics (fictif)",
+      "country": "CN",
+      "material_focus": "NdFeB permanent magnets",
+      "criticality": "high",
+      "synthetic": true,
+      "status": "manual",
+      "note": "Fournisseur d'aimants terres rares — concentration géographique élevée (fictive)."
+    },
+    {
+      "key": "supplier-copper",
+      "name": "Rhone Copper Works (fictif)",
+      "country": "DE",
+      "material_focus": "Copper wire",
+      "criticality": "medium",
+      "synthetic": true,
+      "status": "manual"
+    },
+    {
+      "key": "supplier-aluminium",
+      "name": "Alpine Alu Casting (fictif)",
+      "country": "FR",
+      "material_focus": "Aluminium housings",
+      "criticality": "low",
+      "synthetic": true,
+      "status": "manual"
+    },
+    {
+      "key": "supplier-magnets-alt",
+      "name": "Nordic Rare Earths (fictif, prospect)",
+      "country": "SE",
+      "material_focus": "NdFeB permanent magnets (recycled feedstock)",
+      "criticality": "high",
+      "qualification_status": "prospect",
+      "synthetic": true,
+      "status": "inferred",
+      "note": "Fournisseur alternatif non qualifié — délai de qualification NON étayé (cas IA #4)."
+    }
+  ]
+}

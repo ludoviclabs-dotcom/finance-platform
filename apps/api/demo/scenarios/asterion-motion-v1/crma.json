@@ -1,0 +1,44 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "reporting_year": 2025,
+  "regulation_version": "CRMA-2024",
+  "materials": [
+    {
+      "key": "crma-ndfeb",
+      "material": "Aimants NdFeB (néodyme, dysprosium, terbium)",
+      "material_code": "NDFEB",
+      "is_critical_eu": true,
+      "is_strategic_eu": true,
+      "heavy_rare_earth_dependency_pct": 92,
+      "dependency_status": "estimated",
+      "china_concentration_pct": 87,
+      "supply_risk_note": "Score interne « CarbonCo Supply Risk Score » — jamais présenté comme note officielle UE.",
+      "status": "estimated",
+      "synthetic": true
+    },
+    {
+      "key": "crma-copper",
+      "material": "Cuivre",
+      "material_code": "CU",
+      "is_critical_eu": false,
+      "is_strategic_eu": true,
+      "heavy_rare_earth_dependency_pct": null,
+      "dependency_status": "manual",
+      "status": "manual",
+      "synthetic": true
+    }
+  ],
+  "article24_assessments": [
+    {
+      "key": "crma-art24-ndfeb",
+      "material_code": "NDFEB",
+      "supply_risk_score": 0.82,
+      "confidence": 0.7,
+      "likelihood": "likely",
+      "status": "estimated",
+      "synthetic": true,
+      "note": "supply_risk_score, confidence et likelihood en colonnes séparées ; dépendance 92% est estimée, jamais présentée comme vérifiée (support du cas IA #2 partially_supported)."
+    }
+  ]
+}

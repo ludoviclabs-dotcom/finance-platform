@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 import {
+  demoLoginRequest,
   fetchMe,
   getAuthToken,
   loginRequest,
@@ -216,6 +217,18 @@ export function useAuth() {
     [establishSession],
   );
 
+  // Session de démonstration produit : aucun secret client (POST /auth/demo).
+  const loginDemo = useCallback(async (): Promise<LoginResult> => {
+    try {
+      const res = await demoLoginRequest();
+      establishSession(res);
+      return { ok: true };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Accès démo indisponible.";
+      return { ok: false, error: message };
+    }
+  }, [establishSession]);
+
   // Étape 2 du login : valide le code TOTP (ou un code de récupération).
   const verifyTotp = useCallback(
     async (preAuthToken: string, code: string): Promise<LoginResult> => {
@@ -242,5 +255,5 @@ export function useAuth() {
     setAuth({ status: "unauthenticated" });
   }, []);
 
-  return { auth, ready, login, verifyTotp, logout };
+  return { auth, ready, login, loginDemo, verifyTotp, logout };
 }

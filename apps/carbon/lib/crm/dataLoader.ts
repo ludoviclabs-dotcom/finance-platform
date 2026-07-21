@@ -90,14 +90,30 @@ export function hasRenderableHistory(series: PricePoint[] | undefined): boolean 
   return (series?.length ?? 0) >= 2;
 }
 
-export function isVolatile(m: Material, threshold = 15): boolean {
+// Seuil de « volatilité » affiché (tendance 3 mois estimée). Nommé comme
+// CHINA_DOMINANCE_THRESHOLD pour être réutilisé cohéremment (résumé, module
+// d'alertes) plutôt que recopié en dur à chaque appel.
+export const VOLATILITY_THRESHOLD_PCT = 15;
+
+export function isVolatile(m: Material, threshold = VOLATILITY_THRESHOLD_PCT): boolean {
   return Math.abs(m.price_snapshot?.trend_3m_pct ?? 0) >= threshold;
 }
 
-export function getAlerts(materials: Material[], threshold = 15) {
+export function getAlerts(materials: Material[], threshold = VOLATILITY_THRESHOLD_PCT) {
   return materials
     .filter(m => isVolatile(m, threshold))
     .sort((a, b) => Math.abs(b.price_snapshot!.trend_3m_pct) - Math.abs(a.price_snapshot!.trend_3m_pct));
+}
+
+// Palier de dépendance Chine à 3 niveaux (vs le seuil binaire isChinaConcentrated) :
+// high = dominance critique, mid = présence significative, low = diversifié.
+export const CHINA_MID_TIER_THRESHOLD = 20;
+export type ChinaTier = "high" | "mid" | "low";
+
+export function getChinaTier(share: number): ChinaTier {
+  if (share >= CHINA_DOMINANCE_THRESHOLD) return "high";
+  if (share >= CHINA_MID_TIER_THRESHOLD) return "mid";
+  return "low";
 }
 
 // Au-delà de ce délai, le snapshot est signalé comme potentiellement périmé.
@@ -129,6 +145,8 @@ export interface MaterialsSummary {
   withPrice: number;
   estimatedPct: number;
   chinaThreshold: number;
+  alerts: number;
+  alertsThreshold: number;
 }
 
 // Indicateurs de tête — TOUS calculés depuis le dataset, aucun chiffre en dur.
@@ -144,5 +162,7 @@ export function summarize(materials: Material[]): MaterialsSummary {
     withPrice: materials.filter(m => m.price_snapshot !== null).length,
     estimatedPct: total === 0 ? 0 : Math.round((estimated / total) * 100),
     chinaThreshold: CHINA_DOMINANCE_THRESHOLD,
+    alerts: getAlerts(materials).length,
+    alertsThreshold: VOLATILITY_THRESHOLD_PCT,
   };
 }

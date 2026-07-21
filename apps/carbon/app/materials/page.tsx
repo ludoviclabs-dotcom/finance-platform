@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getMaterials, summarize, isSnapshotStale, snapshotAgeDays } from "@/lib/crm/dataLoader";
 import { Reveal } from "@/components/ui/reveal";
+import { MxThemeProvider } from "@/components/materials/MxThemeProvider";
+import MxNav from "@/components/materials/MxNav";
+import MxTicker from "@/components/materials/MxTicker";
 import MaterialsHero from "@/components/materials/MaterialsHero";
 import SnapshotBanner from "@/components/materials/SnapshotBanner";
 import MaterialsProvenance from "@/components/materials/MaterialsProvenance";
@@ -26,6 +29,40 @@ export const metadata: Metadata = {
   },
 };
 
+const WHY_ITEMS = [
+  {
+    n: "01", color: "var(--mx-em)",
+    body: (
+      <>
+        Ces matières alimentent vos catégories{" "}
+        <Link href="/produit/scope-3" className="font-semibold hover:underline" style={{ color: "var(--mx-em)" }}>
+          Scope 3
+        </Link>{" "}
+        — achats de biens, transport amont, utilisation des produits vendus.
+      </>
+    ),
+  },
+  {
+    n: "02", color: "var(--mx-cyan)",
+    body: (
+      <>
+        Leur criticité (dépendance, volatilité des prix, concentration géographique) nourrit votre{" "}
+        <strong className="font-semibold" style={{ color: "var(--mx-fg)" }}>double matérialité</strong> : risques
+        financiers d&apos;un côté, impacts de l&apos;autre.
+      </>
+    ),
+  },
+  {
+    n: "03", color: "var(--mx-violet)",
+    body: (
+      <>
+        Les donneurs d&apos;ordre soumis à la CSRD demandent ces données à leurs fournisseurs. Cette page vous aide
+        à identifier où votre chaîne de valeur est la plus exposée.
+      </>
+    ),
+  },
+];
+
 export default async function MaterialsPage() {
   const dataset = await getMaterials();
   const { materials, snapshot_date, methodology_note } = dataset;
@@ -35,129 +72,110 @@ export default async function MaterialsPage() {
   // Âge calculé côté serveur (page prérendue), passé en prop — jamais recalculé
   // côté client, comme isStale, pour éviter un écart d'hydratation.
   const ageDays = snapshotAgeDays(snapshot_date);
+  // Formatage déterministe DD.MM.YYYY par découpe de chaîne (pas de Date() /
+  // fuseau horaire côté client) — même discipline que snapshotYear ci-dessus.
+  const [snapYear, snapMonth, snapDay] = snapshot_date.split("-");
+  const snapshotDateLabel = `${snapDay}.${snapMonth}.${snapYear}`;
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      {/* Barre de navigation contextuelle — même pattern que /produit, en sombre */}
-      <div className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 text-sm">
-            <Link href="/" className="font-extrabold tracking-tighter text-white">
-              Carbon<span className="text-green-500">&amp;</span>Co
-            </Link>
-            <span className="text-zinc-600">/</span>
-            <span className="text-zinc-400">Métaux critiques</span>
-          </nav>
-          <Link href="/" className="text-sm text-zinc-400 hover:text-white transition">
-            ← Accueil
-          </Link>
+    <MxThemeProvider>
+      <main className="min-h-screen">
+        <MxNav snapshotDateLabel={snapshotDateLabel} />
+        <MxTicker materials={materials} />
+
+        <MaterialsHero summary={summary} snapshotYear={snapshotYear} />
+
+        <div className="max-w-[1280px] mx-auto px-5 md:px-7 mt-4 space-y-3">
+          <SnapshotBanner date={snapshot_date} methodologyNote={methodology_note} estimatedPct={summary.estimatedPct} isStale={isStale} />
+          <MaterialsProvenance snapshotDate={snapshot_date} isStale={isStale} ageDays={ageDays} />
         </div>
-      </div>
 
-      <MaterialsHero summary={summary} snapshotYear={snapshotYear} />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 space-y-3">
-        <SnapshotBanner date={snapshot_date} methodologyNote={methodology_note} estimatedPct={summary.estimatedPct} isStale={isStale} />
-        <MaterialsProvenance snapshotDate={snapshot_date} isStale={isStale} ageDays={ageDays} />
-      </div>
-
-      {/* Pont vers le cœur du produit : pourquoi ce module existe dans CarbonCo */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <Reveal>
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 md:p-8">
-          <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-3">
-            Pourquoi ces matières comptent
-          </p>
-          <div className="grid md:grid-cols-3 gap-6 text-sm leading-relaxed text-zinc-300">
-            <p>
-              Ces matières alimentent vos catégories{" "}
-              <Link href="/produit/scope-3" className="text-emerald-400 hover:underline font-semibold">
-                Scope 3
-              </Link>{" "}
-              — achats de biens, transport amont, utilisation des produits vendus.
-            </p>
-            <p>
-              Leur criticité (dépendance, volatilité des prix, concentration géographique)
-              nourrit votre <strong className="text-white">double matérialité</strong> : risques
-              financiers d&apos;un côté, impacts de l&apos;autre.
-            </p>
-            <p>
-              Les donneurs d&apos;ordre soumis à la CSRD demandent ces données à leurs
-              fournisseurs. Cette page vous aide à identifier où votre chaîne de valeur
-              est la plus exposée.
-            </p>
-          </div>
+        <div className="max-w-[1280px] mx-auto px-5 md:px-7">
+          <Reveal>
+            <section
+              className="mt-10 rounded-2xl border p-6 md:p-7"
+              style={{
+                background: "linear-gradient(120deg, color-mix(in srgb, var(--mx-em) 6%, transparent), transparent 55%), var(--mx-card)",
+                borderColor: "color-mix(in srgb, var(--mx-em) 25%, var(--mx-border))",
+                boxShadow: "var(--mx-shadow)",
+              }}
+            >
+              <p className="m-0 mb-4 font-semibold text-[10.5px] uppercase tracking-[0.16em]" style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-em)" }}>
+                Pourquoi ces matières comptent
+              </p>
+              <div className="grid md:grid-cols-3 gap-7">
+                {WHY_ITEMS.map(item => (
+                  <div key={item.n} className="flex gap-3.5">
+                    <span className="font-bold text-xs pt-0.5" style={{ fontFamily: "var(--mx-font-mono)", color: item.color }}>{item.n}</span>
+                    <p className="m-0 text-[13px] leading-relaxed" style={{ color: "var(--mx-muted)" }}>{item.body}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </Reveal>
         </div>
-        </Reveal>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+        <div className="max-w-[1280px] mx-auto px-5 md:px-7 py-10 flex flex-col gap-14">
+          <Reveal>
+            <section className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-stretch">
+              <div className="lg:col-span-3">
+                <PriceAlertModule materials={materials} threshold={15} />
+              </div>
+              <div className="lg:col-span-2">
+                <ChinaDependencyWidget materials={materials} />
+              </div>
+            </section>
+          </Reveal>
 
-        {/* ROW 1 : Alertes volatilité + Dépendance chinoise */}
-        <Reveal>
-          <section className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3">
-              <PriceAlertModule materials={materials} threshold={15} />
+          <Reveal>
+            <GlobalMapSection materials={materials} />
+          </Reveal>
+
+          <Reveal>
+            <CriticalityTreemap materials={materials} />
+          </Reveal>
+
+          <Reveal>
+            <StrategicVsCriticalSection materials={materials} />
+          </Reveal>
+
+          <Reveal>
+            <SupplyChainExplainer />
+          </Reveal>
+
+          <Reveal>
+            <MaterialsGrid materials={materials} />
+          </Reveal>
+
+          <footer className="border-t pt-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-5" style={{ borderColor: "var(--mx-border)" }}>
+            <div>
+              <p className="m-0 mb-1 text-sm font-semibold" style={{ color: "var(--mx-fg)" }}>
+                Ce module fait partie de la plateforme CarbonCo.
+              </p>
+              <p className="m-0 text-sm" style={{ color: "var(--mx-subtle)" }}>
+                Snapshot de démonstration daté du {snapshot_date} — valeurs estimées, non normatives. L&apos;historique
+                n&apos;est enrichi que lorsqu&apos;un nouveau snapshot daté est publié.
+              </p>
             </div>
-            <div className="lg:col-span-2">
-              <ChinaDependencyWidget materials={materials} />
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/etat-du-produit"
+                className="rounded-[10px] border px-5 py-2.5 font-semibold text-sm transition-colors"
+                style={{ borderColor: "var(--mx-border-2)", color: "var(--mx-fg)" }}
+              >
+                État du produit
+              </Link>
+              <Link
+                href="/"
+                className="rounded-[10px] px-5 py-2.5 font-semibold text-sm transition"
+                style={{ background: "linear-gradient(120deg, var(--mx-em-dark), var(--mx-em))", color: "#06121E" }}
+              >
+                Retour à l&apos;accueil →
+              </Link>
             </div>
-          </section>
-        </Reveal>
-
-        {/* ROW 2 : Carte mondiale (Mapbox si token, sinon SVG statique) */}
-        <Reveal>
-          <GlobalMapSection materials={materials} />
-        </Reveal>
-
-        {/* ROW 3 : Treemap de criticité */}
-        <Reveal>
-          <CriticalityTreemap materials={materials} />
-        </Reveal>
-
-        {/* ROW 4 : Stratégiques vs Critiques */}
-        <Reveal>
-          <StrategicVsCriticalSection materials={materials} />
-        </Reveal>
-
-        {/* ROW 5 : Frise supply chain */}
-        <Reveal>
-          <SupplyChainExplainer />
-        </Reveal>
-
-        {/* ROW 6 : Grille complète filtrable */}
-        <Reveal>
-          <MaterialsGrid materials={materials} />
-        </Reveal>
-
-        {/* Pied de module — retour vers le produit et l'état de la plateforme */}
-        <footer className="border-t border-zinc-800 pt-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div>
-            <p className="text-sm font-semibold text-white mb-1">
-              Ce module fait partie de la plateforme CarbonCo.
-            </p>
-            <p className="text-sm text-zinc-500">
-              Snapshot de démonstration daté du {snapshot_date}{" "}
-              — valeurs estimées, non normatives. L&apos;historique n&apos;est enrichi que
-              lorsqu&apos;un nouveau snapshot daté est publié.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <Link
-              href="/etat-du-produit"
-              className="rounded-xl border border-zinc-700 text-zinc-300 px-5 py-2.5 font-semibold text-sm hover:border-zinc-500 transition"
-            >
-              État du produit
-            </Link>
-            <Link
-              href="/"
-              className="rounded-xl bg-white text-zinc-900 px-5 py-2.5 font-semibold text-sm hover:bg-zinc-100 transition"
-            >
-              Retour à l&apos;accueil →
-            </Link>
-          </div>
-        </footer>
-      </div>
-    </main>
+          </footer>
+        </div>
+      </main>
+    </MxThemeProvider>
   );
 }

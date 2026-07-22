@@ -219,14 +219,20 @@ def run_migrations() -> None:
 
 
 # ---------------------------------------------------------------------------
-# ensure_schema — déclencheur paresseux (fiable sur Vercel serverless)
+# ensure_schema — déclencheur paresseux HISTORIQUE (RETIRÉ, non câblé)
 # ---------------------------------------------------------------------------
-# Le runtime @vercel/python N'EXÉCUTE PAS les events lifespan/startup ASGI :
-# `@app.on_event("startup")` ne se déclenche jamais en prod, donc les migrations
-# .sql (001-026) n'ont jamais tourné (schéma prod incomplet, découvert le
-# 04/07/2026). ensure_schema() est appelée à la 1re requête de chaque cold start
-# (via un middleware) : au plus une tentative par process, court-circuitée par
-# une sentinelle bon marché quand le schéma est déjà complet.
+# ⚠️ Ce chemin n'est PLUS branché : le middleware `ensure_schema_mw` qui
+# l'appelait à la 1re requête a été retiré (PR-02C-retrait) une fois le ledger
+# `schema_migrations` baseliné en production. Le SEUL chemin d'écriture schéma
+# est désormais le workflow `.github/workflows/db-migrate.yml`
+# (cf. MIGRATIONS_RUNBOOK.md §0).
+#
+# Correctif d'une hypothèse erronée qui figurait ici : le runtime Python de
+# Vercel INVOQUE bien les events lifespan/startup ASGI (constaté sur
+# @vercel/python 6.51.1). La fonction est conservée (couverte par
+# test_ensure_schema.py) mais reste INERTE tant qu'aucun appelant ne l'invoque ;
+# elle ne doit pas être recâblée en prod — la garde de démarrage vit désormais
+# dans `main._maybe_run_startup_migrations` (opt-in local uniquement).
 
 _schema_ensured = False
 

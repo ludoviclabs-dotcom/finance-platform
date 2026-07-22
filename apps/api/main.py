@@ -68,6 +68,7 @@ from routers import (
     vsme_wizard,
     water,
 )
+from utils.env import is_production
 
 logger = logging.getLogger(__name__)
 
@@ -104,17 +105,41 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Migrations DDL — startup event, confort dev local uniquement : fonctionne
-# en local/uvicorn, jamais invoqué en prod (@vercel/python n'exécute pas les
-# events lifespan ASGI). Le second déclencheur historique (ensure_schema_mw,
-# middleware sur la 1re requête, seul chemin qui touchait réellement la prod)
-# a été retiré (PR-02C-retrait) une fois le ledger schema_migrations baseliné
-# en production : le workflow .github/workflows/db-migrate.yml est désormais
-# le seul chemin d'écriture schéma. Voir docs/carbonco/MIGRATIONS_RUNBOOK.md
-# et docs/carbonco/refonte/PR02C_RETIRE_ENSURE_SCHEMA_TRACEABILITY.md.
+# ---------------------------------------------------------------------------
+# Migrations DDL au démarrage — DÉSACTIVÉES PAR DÉFAUT.
+# ---------------------------------------------------------------------------
+# Le schéma de production est modifié EXCLUSIVEMENT via le workflow protégé
+# .github/workflows/db-migrate.yml (principe non négociable, cf.
+# docs/carbonco/MIGRATIONS_RUNBOOK.md §0). Ce hook de démarrage n'est qu'un
+# confort de dev LOCAL : opt-in explicite par RUN_STARTUP_MIGRATIONS=1, et
+# JAMAIS exécuté sur Vercel (production ou preview) ni en production, quel que
+# soit ce flag.
+#
+# Correctif d'une hypothèse erronée : le runtime Python de Vercel INVOQUE bien
+# les events lifespan/startup ASGI (constaté sur @vercel/python 6.51.1).
+# L'ancien appel inconditionnel `run_migrations()` tentait donc un CREATE TABLE
+# au cold start avec le rôle applicatif et échouait sur « permission denied for
+# schema public » — capturé (non fatal) mais bruyant, et contraire au principe
+# ci-dessus. La garde supprime cette tentative à la source, sans masquer une
+# vraie erreur de connexion DB (les requêtes réelles remontent leurs erreurs via
+# get_db) ni toucher aux privilèges PostgreSQL. Cf. PR02C_RETIRE_ENSURE_SCHEMA.
+def _maybe_run_startup_migrations() -> None:
+    """Exécute les migrations DDL au démarrage UNIQUEMENT en dev local opt-in.
+
+    Disabled par défaut. Ne tourne que si RUN_STARTUP_MIGRATIONS=1 ET hors
+    Vercel ET hors production. Sinon : no-op tracé en info (jamais error/warning).
+    """
+    opt_in = os.environ.get("RUN_STARTUP_MIGRATIONS") == "1"
+    on_vercel = bool(os.environ.get("VERCEL"))
+    if opt_in and not on_vercel and not is_production():
+        run_migrations()
+    else:
+        logger.info("Startup migrations disabled; use DB Migrate workflow")
+
+
 @app.on_event("startup")
 async def startup_event() -> None:
-    run_migrations()
+    _maybe_run_startup_migrations()
 
 # ---------------------------------------------------------------------------
 # Body size limiter — reject uploads > 10 MB before they hit route handlers

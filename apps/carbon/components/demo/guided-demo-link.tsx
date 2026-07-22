@@ -10,22 +10,21 @@
  * POST /auth/demo (session démo, aucun secret client) avant de rediriger.
  */
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { ArrowRight, FlaskConical } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useDemoAccess } from "@/lib/hooks/use-demo-access";
 
 export function GuidedDemoLink() {
-  const router = useRouter();
-  const { loginDemo } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { auth, loginDemo } = useAuth();
+  const { loading, enterDemo } = useDemoAccess(auth, loginDemo);
 
-  const go = useCallback(async () => {
-    setLoading(true);
-    await loginDemo(); // best-effort : le cockpit fonctionne aussi hors session
-    router.push("/demo/asterion-motion");
-  }, [loginDemo, router]);
+  const go = useCallback(() => {
+    // strict:false — best-effort : le cockpit fonctionne aussi hors session,
+    // la destination est déjà publique (comportement inchangé).
+    void enterDemo("/demo/asterion-motion", { strict: false });
+  }, [enterDemo]);
 
   return (
     <button

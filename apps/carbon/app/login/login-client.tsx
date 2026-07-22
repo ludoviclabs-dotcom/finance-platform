@@ -5,45 +5,68 @@
  *
  * Découpé du `page.tsx` (server component) pour permettre la déclaration des
  * metadata SEO côté serveur. Le `<LoginScreen>` est toujours rendu côté SSR :
- * plus de page blanche pendant l'hydratation du provider auth. Si l'utilisateur
- * est déjà authentifié, on redirige vers /dashboard via useEffect après
- * hydratation.
+ * plus de page blanche pendant l'hydratation du provider auth.
+ *
+ * `safeNext` est reçu en prop, déjà validé côté serveur par `page.tsx`
+ * (getSafeInternalRedirect) — ce composant n'appelle JAMAIS useSearchParams()
+ * lui-même : ce hook opterait son sous-arbre en rendu client (CSR bailout)
+ * et exigerait une limite Suspense renvoyant un fallback vide dans le HTML
+ * initial, ce qui casserait le rendu SSR du formulaire de connexion.
  */
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LoginScreen } from "@/components/pages/login-screen";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useDemoAccess } from "@/lib/hooks/use-demo-access";
 
-export function LoginClient() {
+const RESOURCES_DEMO_CONTEXT = {
+  title: "Accéder aux Ressources stratégiques",
+  description:
+    "Ce cockpit utilise les données de votre organisation. Vous pouvez vous connecter ou ouvrir l'environnement fictif Asterion.",
+  demoLabel: "Ouvrir le cockpit de démonstration",
+};
+
+interface LoginClientProps {
+  safeNext: string;
+}
+
+export function LoginClient({ safeNext }: LoginClientProps) {
   const { auth, ready, login, loginDemo, verifyTotp } = useAuth();
+  const { loading: demoLoading, error: demoError, enterDemo } = useDemoAccess(auth, loginDemo);
   const router = useRouter();
+
+  const demoContext = safeNext.startsWith("/resources") ? RESOURCES_DEMO_CONTEXT : null;
 
   useEffect(() => {
     if (ready && auth.status === "authenticated") {
-      router.replace("/dashboard");
+      router.replace(safeNext);
     }
-  }, [ready, auth.status, router]);
+  }, [ready, auth.status, router, safeNext]);
 
   return (
     <LoginScreen
       onLogin={async (email, password) => {
         const result = await login(email, password);
-        if (result.ok) router.replace("/dashboard");
+        if (result.ok) router.replace(safeNext);
         return result;
       }}
       onVerifyTotp={async (preAuthToken, code) => {
         const result = await verifyTotp(preAuthToken, code);
-        if (result.ok) router.replace("/dashboard");
+        if (result.ok) router.replace(safeNext);
         return result;
       }}
-      onDemo={async () => {
+      onDemo={() => {
         // Session démo sécurisée : aucun identifiant en clair dans le bundle.
         // Le backend (POST /auth/demo) provisionne le tenant Asterion et émet
-        // un JWT court sans refresh cookie (auto-expiration).
-        const result = await loginDemo();
-        if (result.ok) router.replace("/dashboard");
+        // un JWT court sans refresh cookie (auto-expiration). enterDemo gère
+        // loading/erreur et navigue vers `safeNext` (strict : jamais de faux
+        // succès si l'appel échoue).
+        void enterDemo(safeNext);
       }}
+      demoLoading={demoLoading}
+      demoError={demoError}
+      demoContext={demoContext}
     />
   );
 }

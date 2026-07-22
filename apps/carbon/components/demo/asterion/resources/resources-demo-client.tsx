@@ -21,6 +21,7 @@ export function ResourcesDemoClient() {
       testId="demo-asterion-resources"
       eyebrow="CarbonCo · Module 2 · Démonstration"
       title="Asterion Motion — dépendances industrielles étendues"
+      controlledExplore
     />
   );
 }

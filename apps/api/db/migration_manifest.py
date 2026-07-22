@@ -297,6 +297,25 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "par défaut (identifiants + hachages + sortie structurée seulement)."
         ),
     ),
+    "042": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Module 2 — fondation catalogue ressources (PR-M2A) : 4 nouvelles "
+            "tables à portée mixte tenant/globale (resource_catalog, "
+            "resource_aliases, resource_regulatory_statuses, resource_sector_uses). "
+            "RLS gen-2 FORCE, policies par commande ; lecture tenant OU globale, "
+            "écriture tenant uniquement (pattern 028/034). Ne crée que des tables "
+            "neuves (aucun ALTER d'une table existante) — pas de privilège "
+            "propriétaire requis, comme 028/030/034. AUCUNE donnée semée : les "
+            "ressources canoniques sont des DONNÉES chargées par un service "
+            "d'import (Source Admin / Evidence Kernel), jamais par la migration. "
+            "Statut réglementaire NON EXCLUSIF (lignes par régime, aucun booléen) ; "
+            "certainty='confirmed' exige source_release_id (pas de fait sans "
+            "source). Legacy material_id (030/034) préservé via resource_aliases "
+            "(D-2), aucune migration historique modifiée."
+        ),
+    ),
 }
 
 

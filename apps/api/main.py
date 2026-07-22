@@ -54,6 +54,7 @@ from routers import (
     quality,
     questionnaire,
     report,
+    resources,
     reviews,
     scope3,
     sites,
@@ -234,3 +235,4 @@ app.include_router(water.router, prefix="/water", tags=["water (PR-08)"])
 app.include_router(nature.router, prefix="/nature", tags=["nature (PR-09)"])
 app.include_router(iro.router, prefix="/iro", tags=["iro (PR-10)"])
 app.include_router(ai_review.router, prefix="/ai", tags=["ai-review (PR-11)"])
+app.include_router(resources.router, prefix="/resources", tags=["resources (Module 2 / PR-M2A)"])

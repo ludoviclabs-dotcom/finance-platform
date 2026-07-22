@@ -263,7 +263,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 42
+    assert len(versions) == 43
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
@@ -279,6 +279,8 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert "038" in versions
     assert "039" in versions
     assert "040" in versions
+    assert "041" in versions
+    assert "042" in versions
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["027"] == "blocked_manual"
@@ -301,6 +303,8 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert actions["038"] == "apply"
     assert actions["039"] == "apply"
     assert actions["040"] == "apply"
+    # 042 (Module 2 / PR-M2A, tables neuves uniquement) : jamais requires_owner.
+    assert actions["042"] == "apply"
     assert plan.has_blocking_issues is True
 
 
@@ -532,25 +536,26 @@ def test_build_plan_detects_040_pending_on_baselined_ledger(monkeypatch):
 
 # ── PR-11 : migration 041 (AI Review Ledger) — tables neuves uniquement, jamais
 #    requires_owner, comme 028/040 ; 041 est la DERNIÈRE version réelle ────────
-def test_build_plan_detects_041_pending_on_baselined_ledger(monkeypatch):
-    """041 doit apparaître 'apply' quand le ledger est baseliné sur tout le
-    reste — journal IA, tables neuves seulement, jamais requires_owner. 041 est
-    la DERNIÈRE version réelle du dossier."""
+def test_build_plan_detects_042_pending_on_baselined_ledger(monkeypatch):
+    """042 doit apparaître 'apply' quand le ledger est baseliné sur tout le
+    reste — fondation catalogue ressources (Module 2 / PR-M2A), tables neuves
+    seulement, jamais requires_owner. 042 est la DERNIÈRE version réelle du
+    dossier."""
     runner = MigrationRunner()
     files = runner.discover_migrations()
     baselined = {
         f.version: _record(version=f.version, status="baseline", checksum=f.checksum_sha256)
         for f in files
-        if f.version != "041"
+        if f.version != "042"
     }
     monkeypatch.setattr(runner, "load_records", lambda: baselined)
     plan = runner.build_plan()
 
     actions = {i.file.version: i.action for i in plan.items}
-    assert actions["041"] == "apply"
+    assert actions["042"] == "apply"
     assert all(actions[v] == "skip" for v in baselined)
     assert plan.has_blocking_issues is False
-    assert [i.file.version for i in plan.items][-1] == "041"
+    assert [i.file.version for i in plan.items][-1] == "042"
 
 
 # ── PR-02C : apply_plan — gardes pré-connexion (aucune DB requise) ────────

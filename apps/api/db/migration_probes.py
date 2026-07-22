@@ -745,6 +745,36 @@ def _probe_041(cur) -> bool:
     return _constraint_definition_contains(cur, "audit_events", "audit_eventtype_check", "ai_review_decision")
 
 
+def _probe_042(cur) -> bool:
+    """Module 2 — fondation catalogue ressources (PR-M2A) : 4 tables neuves à
+    portée mixte + RLS FORCE + policy scopée sur chacune, ET les CHECK qui
+    portent les règles non négociables (statut sourcé, vocabulaires). Une base
+    où les tables existent mais où la RLS FORCE ou le CHECK `sourced` a été
+    retiré n'est PAS la migration 042 — même raisonnement que _probe_034/040."""
+    tables = (
+        "resource_catalog", "resource_aliases",
+        "resource_regulatory_statuses", "resource_sector_uses",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    # Règles métier portées par des CHECK : leur disparition est une dérive.
+    return (
+        _constraint_exists(cur, "resource_catalog", "resource_catalog_sourced_check")
+        and _constraint_exists(
+            cur, "resource_regulatory_statuses", "resource_regulatory_statuses_sourced_check"
+        )
+        and _constraint_exists(
+            cur, "resource_regulatory_statuses", "resource_regulatory_statuses_regime_check"
+        )
+        and _constraint_exists(cur, "resource_sector_uses", "resource_sector_uses_sourced_check")
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -789,6 +819,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "039": _probe_039,
     "040": _probe_040,
     "041": _probe_041,
+    "042": _probe_042,
 }
 
 

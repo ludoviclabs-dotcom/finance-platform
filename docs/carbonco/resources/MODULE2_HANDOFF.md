@@ -4,11 +4,22 @@
 > **Date : 2026-07-22** · **Branche :** `docs/strategic-resources-architecture` · **Base :** `origin/master` `c29baf3` (PR #125 mergée, schéma `041`).
 
 ```
-STATUS=PR_M2B_IMPLEMENTED
-NEXT_ACTION=merger PR-M2B, appliquer migration 043, puis lancer le frontend (PR-M2C)
+STATUS=PR_M2C_IMPLEMENTED
+NEXT_ACTION=extension Asterion (PR-M2D)
 MIGRATION_042=APPLIQUÉE (PR-M2A mergée #127)
-MIGRATION_043=CRÉÉE (branche feat/resources-assessment-engine, PR-M2B) — expositions & moteur d'assessment
+MIGRATION_043=MERGÉE (PR-M2B #128, master 79c3dbf)
+FRONTEND=PR-M2C ouverte (branche feat/resources-cockpit) — cockpit /resources, NON mergée
 ```
+
+> **Mise à jour PR-M2C (frontend implémenté) :** cockpit Ressources `apps/carbon` — 5 pages
+> (`/resources`, `/resources/[slug]`, `/resources/exposures`, `/resources/assessments`,
+> `/resources/methodology`), client typé `lib/api/resources.ts`, composants `components/resources/*`,
+> feature `resources-module` (beta) enregistrée, tests vitest (37 nouveaux) + Playwright + a11y +
+> reduced-motion. Vérifs locales : vitest 237/237, `tsc --noEmit` exit 0, eslint 0, `next build` OK.
+> Détail : `PR_M2C_TRACEABILITY.md`. Décomposition stricte (jamais de jauge opaque), risque≠confiance,
+> indice secondaire + disclaimer non officiel. **NEXT_ACTION = extension Asterion (PR-M2D)** — parcours
+> de démonstration ressources 100 % fictif, sur décision explicite de Ludo. Post-merge : redéploiement
+> Vercel `carbon` ; vérifier `/health/schema=043` en prod (sinon les pages affichent `schema_not_ready`).
 
 > **Mise à jour PR-M2A (mergée #127) :** migration **042** (catalogue) en production ; base master `14e57b1`.
 >

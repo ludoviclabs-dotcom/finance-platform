@@ -56,10 +56,48 @@ jobs:
 
       - run: npm ci
 
-      # Audit bloquant sur l'arbre complet (prod + dev tooling). L'outillage de
-      # dev est désormais propre à la source (overrides.esbuild=^0.28.1,
-      # vitest>=3.2.6), donc plus besoin de séparer « prod bloquant » et « full
-      # informationnel ». Garde-fou contre une régression future qui
-      # réintroduirait silencieusement un esbuild/vitest vulnérable.
-      - name: npm audit (high+critical bloquant)
-        run: npm audit --audit-level=high
+      # Audit bloquant sur l'arbre complet (prod + dev tooling), AVEC une allowlist
+      # documentée d'advisories « live » sans correctif non cassant. Toute advisory
+      # high/critical HORS allowlist fait TOUJOURS échouer le job (garde-fou intact,
+      # même esprit que le `--ignore-vuln PYSEC-2026-1325` de api.yml).
+      #
+      # Allowlist (retirer chaque entrée dès qu'un correctif non cassant existe) :
+      #  - GHSA-f88m-g3jw-g9cj : sharp <0.35.0 hérite de vulnérabilités libvips
+      #    (CVE-2026-33327 / 33328 / 35590 / 35591). Dépendance TRANSITIVE via
+      #    next@16.2.6 (optimisation d'images) — jamais déclarée dans package.json.
+      #    Le seul correctif proposé par npm est un DOWNGRADE next 16.2.6 -> 14.2.35
+      #    (cassant, refusé). Advisory apparue dans la base live npm après le dernier
+      #    run vert de master ; indépendante de toute PR (aucune modif de dépendance).
+      #    Plateforme locale-first, pas de pipeline sharp exposé au runtime.
+      #    À retirer dès que next embarque un sharp>=0.35.0 patché.
+      - name: npm audit (high+critical bloquant, allowlist documentée)
+        run: |
+          node <<'NODE'
+          const { execSync } = require('node:child_process');
+          // GHSA explicitement tolérés — voir la justification ci-dessus.
+          const ALLOW = new Set(['GHSA-f88m-g3jw-g9cj']);
+          let out = '{}';
+          try { out = execSync('npm audit --json', { encoding: 'utf8' }); }
+          catch (e) { out = (e.stdout && e.stdout.toString()) || out; } // npm audit exit!=0 si vulns
+          let report;
+          try { report = JSON.parse(out); }
+          catch { console.error('npm audit : sortie JSON illisible'); process.exit(1); }
+          const offenders = [];
+          for (const [name, v] of Object.entries(report.vulnerabilities || {})) {
+            for (const via of v.via || []) {
+              // Les cascades (via = nom de paquet parent) sont ignorées : leur cause
+              // racine est une advisory directe traitée par sa propre entrée.
+              if (!via || typeof via !== 'object' || !via.url) continue;
+              const sev = String(via.severity || v.severity || '').toLowerCase();
+              if (sev !== 'high' && sev !== 'critical') continue;
+              const m = String(via.url).match(/GHSA-[0-9a-z-]+/);
+              const ghsa = m ? m[0] : String(via.url);
+              if (!ALLOW.has(ghsa)) offenders.push(name + ' : ' + (via.title || ghsa) + ' (' + ghsa + ')');
+            }
+          }
+          if (offenders.length) {
+            console.error('Advisories high/critical HORS allowlist :\n' + [...new Set(offenders)].join('\n'));
+            process.exit(1);
+          }
+          console.log('npm audit : aucune advisory high/critical hors allowlist.');
+          NODE

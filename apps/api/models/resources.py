@@ -21,7 +21,7 @@ Invariants portés par les TYPES :
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -195,6 +195,230 @@ class ResourceSectorUseResponse(BaseModel):
 
 class ResourceSectorUseListResponse(BaseModel):
     items: list[ResourceSectorUseResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+# ===========================================================================
+# PR-M2B — Expositions & assessments (migration 043)
+# ===========================================================================
+
+Role = Literal[
+    "material", "feedstock", "energy_carrier", "process_input",
+    "industrial_gas", "nuclear_fuel", "biomass", "water",
+]
+LinkKind = Literal[
+    "bom_item", "purchase_line", "energy_activity",
+    "water_activity", "supplier_declaration", "manual",
+]
+SupplyMetric = Literal[
+    "production", "reserves", "refining_capacity", "trade_export", "trade_import"
+]
+DimensionKind = Literal["risk", "confidence"]
+RunStatus = Literal["computed", "approved", "superseded"]
+
+
+# ── resource_supply_observations ─────────────────────────────────────────────
+
+class ResourceSupplyObservationCreate(BaseModel):
+    stage_code: str = Field(min_length=1, max_length=100)
+    country_code: str = Field(min_length=1, max_length=8)
+    metric_code: SupplyMetric = "production"
+    share_pct: float | None = Field(default=None, ge=0, le=100)
+    volume_value: float | None = None
+    volume_unit: str | None = None
+    reference_year: int = Field(ge=1900, le=2100)
+    data_status: DataStatus = "estimated"
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    methodology_version: str | None = None
+    source_release_id: int | None = None
+    evidence_artifact_id: int | None = None
+    observed_at: datetime | None = None
+
+
+class ResourceSupplyObservationResponse(BaseModel):
+    id: int
+    company_id: int | None
+    resource_id: int
+    stage_code: str
+    country_code: str
+    metric_code: SupplyMetric
+    share_pct: float | None
+    volume_value: float | None
+    volume_unit: str | None
+    reference_year: int
+    data_status: DataStatus
+    confidence: float | None
+    source_release_id: int | None
+    evidence_artifact_id: int | None
+    created_at: datetime
+
+
+class ResourceSupplyObservationListResponse(BaseModel):
+    items: list[ResourceSupplyObservationResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+# ── company_resource_exposure_links ──────────────────────────────────────────
+
+class ResourceExposureLinkCreate(BaseModel):
+    resource_slug: str = Field(min_length=1, max_length=120)
+    role: Role
+    link_kind: LinkKind
+    bom_item_id: int | None = None
+    purchase_line_id: int | None = None
+    energy_activity_id: int | None = None
+    water_activity_id: int | None = None
+    supplier_declaration_id: int | None = None
+    manual_note: str | None = None
+    annual_mass_kg: float | None = Field(default=None, ge=0)
+    annual_spend_eur: float | None = Field(default=None, ge=0)
+    share_of_supply_pct: float | None = Field(default=None, ge=0, le=100)
+    stock_coverage_days: float | None = Field(default=None, ge=0)
+    data_status: DataStatus = "manual"
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    notes: str | None = None
+
+
+class ResourceExposureLinkResponse(BaseModel):
+    id: int
+    company_id: int
+    resource_id: int
+    resource_slug: str | None = None
+    role: Role
+    link_kind: LinkKind
+    linked_ref: str | None = None  # pointeur lisible, ex. "purchase_line:842"
+    annual_mass_kg: float | None
+    annual_spend_eur: float | None
+    share_of_supply_pct: float | None
+    stock_coverage_days: float | None
+    data_status: DataStatus
+    created_at: datetime
+
+
+class ResourceExposureLinkListResponse(BaseModel):
+    items: list[ResourceExposureLinkResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+# ── resource_assessment_runs / dimensions ────────────────────────────────────
+
+class ResourceAssessmentRunCreate(BaseModel):
+    resource_slug: str = Field(min_length=1, max_length=120)
+    assessment_year: int = Field(ge=1900, le=2100)
+    as_of: date | None = None
+
+
+class ResourceDimension(BaseModel):
+    """Composante inspectable — risque OU confiance, jamais additionnées.
+    `detail` porte les sous-valeurs SÉPARÉES (ex. substituabilité :
+    {maturity, penalty_pct}). `source_release_ids` = provenance."""
+    kind: DimensionKind
+    dimension_code: str
+    available: bool
+    risk_value: float | None = None
+    weight: float | None = None
+    contribution: float | None = None
+    raw_value: float | None = None
+    raw_unit: str | None = None
+    stage_code: str | None = None
+    rationale: str | None = None
+    detail: dict[str, Any] = Field(default_factory=dict)
+    source_release_ids: list[int] = Field(default_factory=list)
+
+
+class ResourceAssessmentResult(BaseModel):
+    """Sortie PURE du moteur (`services/resources/scoring.py`). `risk_score`
+    est `None` si des données obligatoires manquent — jamais un indice inventé.
+    `confidence` reste calculée. `input_hash` rend le run reproductible."""
+    risk_score: float | None
+    confidence: float
+    coverage_pct: float | None
+    observed_hhi: float | None
+    missing_share_pct: float | None
+    methodology_code: str
+    methodology_version: str
+    input_hash: str
+    dimensions: list[ResourceDimension] = Field(default_factory=list)
+    drivers: list[dict[str, Any]] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    sensitivity: dict[str, Any] | None = None
+    disclaimer: str = ""
+
+
+class ResourceAssessmentSummary(BaseModel):
+    run_id: int
+    resource_slug: str
+    resource_id: int
+    assessment_year: int
+    status: RunStatus
+    risk_score: float | None
+    confidence: float | None
+    coverage_pct: float | None
+    observed_hhi: float | None
+    missing_share_pct: float | None
+    methodology_code: str
+    methodology_version: str
+    calculated_at: datetime
+
+
+class ResourceAssessmentDetail(BaseModel):
+    run_id: int
+    resource_slug: str
+    resource_id: int
+    assessment_year: int
+    status: RunStatus
+    risk_score: float | None
+    confidence: float | None
+    coverage_pct: float | None
+    observed_hhi: float | None
+    missing_share_pct: float | None
+    methodology_code: str
+    methodology_version: str
+    input_hash: str
+    drivers: list[dict[str, Any]]
+    warnings: list[str]
+    sensitivity: dict[str, Any] | None
+    iro_signal_id: int | None
+    calculated_at: datetime
+    dimensions: list[ResourceDimension]
+    disclaimer: str
+
+
+class ResourceAssessmentListResponse(BaseModel):
+    items: list[ResourceAssessmentSummary]
+    total: int
+    limit: int
+    offset: int
+
+
+class ResourceDimensionListResponse(BaseModel):
+    items: list[ResourceDimension]
+    total: int
+    limit: int
+    offset: int
+
+
+# ── Alertes dérivées (lecture seule) ─────────────────────────────────────────
+
+AlertKind = Literal["high_dependency", "stale_supply_data", "license_blocked", "regulatory_flag"]
+
+
+class ResourceAlert(BaseModel):
+    kind: AlertKind
+    severity: Literal["low", "medium", "high", "critical"]
+    resource_slug: str
+    message: str
+    as_of: date | None = None
+
+
+class ResourceAlertListResponse(BaseModel):
+    items: list[ResourceAlert]
     total: int
     limit: int
     offset: int

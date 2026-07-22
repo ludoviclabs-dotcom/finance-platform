@@ -4,6 +4,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Leaf, ArrowRight, Eye, EyeOff, Shield, Lock, CheckCircle, AlertCircle } from "lucide-react";
 
+interface DemoContext {
+  title: string;
+  description: string;
+  demoLabel: string;
+}
+
 interface LoginScreenProps {
   onLogin: (
     email: string,
@@ -14,9 +20,22 @@ interface LoginScreenProps {
     code: string
   ) => Promise<{ ok: boolean; error?: string }>;
   onDemo: () => void;
+  /** État de l'appel POST /auth/demo en cours (bouton désactivé pendant l'appel). */
+  demoLoading?: boolean;
+  /** Erreur POST /auth/demo — visible et récupérable, jamais un faux succès. */
+  demoError?: string | null;
+  /** Contexte affiché quand `next` cible une page protégée (ex. /resources). */
+  demoContext?: DemoContext | null;
 }
 
-export function LoginScreen({ onLogin, onVerifyTotp, onDemo }: LoginScreenProps) {
+export function LoginScreen({
+  onLogin,
+  onVerifyTotp,
+  onDemo,
+  demoLoading = false,
+  demoError = null,
+  demoContext = null,
+}: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -357,17 +376,40 @@ export function LoginScreen({ onLogin, onVerifyTotp, onDemo }: LoginScreenProps)
 
           {/* CTA démo secondaire — masqué pendant l'étape 2FA */}
           {step === "password" && (
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-5 text-center">
-            <p className="text-xs text-white/40 mb-3">Pas encore client ?</p>
-            <button
-              type="button"
-              onClick={onDemo}
-              className="w-full py-3 rounded-xl border border-white/20 text-white font-semibold text-sm hover:bg-white/10 transition-all hover:scale-[1.01] cursor-pointer flex items-center justify-center gap-2"
-            >
-              Accès démo (sans compte)
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </button>
-          </div>
+          <>
+            {demoContext && (
+              <div
+                className="mb-4 rounded-2xl border border-carbon-emerald/30 bg-carbon-emerald/5 p-5"
+                data-testid="login-demo-context"
+              >
+                <h3 className="text-sm font-semibold text-white mb-1">{demoContext.title}</h3>
+                <p className="text-xs text-white/60 leading-relaxed">{demoContext.description}</p>
+              </div>
+            )}
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-5 text-center">
+              <p className="text-xs text-white/40 mb-3">Pas encore client ?</p>
+              <button
+                type="button"
+                onClick={onDemo}
+                disabled={demoLoading}
+                data-testid="login-demo-button"
+                className="w-full py-3 rounded-xl border border-white/20 text-white font-semibold text-sm hover:bg-white/10 transition-all hover:scale-[1.01] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {demoLoading ? "Connexion…" : (demoContext?.demoLabel ?? "Accès démo (sans compte)")}
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </button>
+              {demoError && (
+                <p
+                  role="alert"
+                  aria-live="polite"
+                  data-testid="login-demo-error"
+                  className="mt-3 text-xs text-red-300"
+                >
+                  {demoError}
+                </p>
+              )}
+            </div>
+          </>
           )}
 
           {/* Trust signals */}

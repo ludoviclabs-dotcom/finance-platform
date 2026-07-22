@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { LoginClient } from "./login-client";
 
 export const metadata: Metadata = {
@@ -10,5 +11,12 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
-  return <LoginClient />;
+  // useSearchParams() (lecture de `next`) exige une limite Suspense — sans
+  // fallback visuel : le formulaire est déjà rendu SSR, seule la lecture du
+  // paramètre next est différée de quelques millisecondes à l'hydratation.
+  return (
+    <Suspense fallback={null}>
+      <LoginClient />
+    </Suspense>
+  );
 }

@@ -4,6 +4,11 @@
  * DemoStepCard — contenu d'une étape : titre, narration, métrique en avant
  * (count-up + badge de statut réel), et lien « Explorer dans l'application ».
  * L'étape IA délègue son rendu à <AiActivityTrace/> (voir DemoShell).
+ *
+ * `onExplore` (optionnel) remplace le simple <Link> par un bouton contrôlé —
+ * utilisé quand la destination est une page protégée et doit d'abord assurer
+ * une session démo (cf. DemoShell `controlledExplore`). Sans `onExplore`
+ * (défaut), le lien direct historique est inchangé.
  */
 
 import Link from "next/link";
@@ -14,7 +19,21 @@ import { DataStatusBadge, statusFromQuality } from "@/components/ui/data-status-
 import type { TourStep } from "@/lib/demo/asterion-motion-tour";
 import { DemoNarration } from "./demo-narration";
 
-export function DemoStepCard({ step, children }: { step: TourStep; children?: React.ReactNode }) {
+interface DemoStepCardProps {
+  step: TourStep;
+  children?: React.ReactNode;
+  onExplore?: (href: string) => void;
+  exploreLoading?: boolean;
+  exploreError?: string | null;
+}
+
+export function DemoStepCard({
+  step,
+  children,
+  onExplore,
+  exploreLoading = false,
+  exploreError = null,
+}: DemoStepCardProps) {
   const m = step.metric;
   return (
     <div className="space-y-5" data-testid={`demo-step-${step.id}`}>
@@ -48,14 +67,34 @@ export function DemoStepCard({ step, children }: { step: TourStep; children?: Re
 
       {children}
 
-      <Link
-        href={step.exploreHref}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-carbon-emerald/40 bg-carbon-emerald/10 px-3 py-1.5 text-sm font-medium text-carbon-emerald-light transition hover:bg-carbon-emerald/20"
-        data-testid="demo-explore-link"
-      >
-        Explorer dans l&apos;application
-        <ArrowUpRight className="h-4 w-4" aria-hidden />
-      </Link>
+      {onExplore ? (
+        <div className="flex flex-col items-start gap-1.5">
+          <button
+            type="button"
+            onClick={() => onExplore(step.exploreHref)}
+            disabled={exploreLoading}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-carbon-emerald/40 bg-carbon-emerald/10 px-3 py-1.5 text-sm font-medium text-carbon-emerald-light transition hover:bg-carbon-emerald/20 disabled:opacity-50"
+            data-testid="demo-explore-link"
+          >
+            {exploreLoading ? "Ouverture…" : "Explorer dans l'application"}
+            <ArrowUpRight className="h-4 w-4" aria-hidden />
+          </button>
+          {exploreError && (
+            <p className="text-xs text-rose-300" role="alert" data-testid="demo-explore-error">
+              {exploreError}
+            </p>
+          )}
+        </div>
+      ) : (
+        <Link
+          href={step.exploreHref}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-carbon-emerald/40 bg-carbon-emerald/10 px-3 py-1.5 text-sm font-medium text-carbon-emerald-light transition hover:bg-carbon-emerald/20"
+          data-testid="demo-explore-link"
+        >
+          Explorer dans l&apos;application
+          <ArrowUpRight className="h-4 w-4" aria-hidden />
+        </Link>
+      )}
     </div>
   );
 }

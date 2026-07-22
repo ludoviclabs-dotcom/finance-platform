@@ -77,9 +77,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (ready && auth.status !== "authenticated") {
-      router.replace("/login");
+      // Conserve la destination complète (chemin + query string) pour y
+      // revenir après connexion — window.location.search est lu ici (effet
+      // client-only) plutôt que useSearchParams() pour éviter d'exiger une
+      // limite Suspense sur ce layout.
+      const search = typeof window !== "undefined" ? window.location.search : "";
+      const destination = `${pathname}${search}`;
+      router.replace(`/login?next=${encodeURIComponent(destination)}`);
     }
-  }, [ready, auth.status, router]);
+  }, [ready, auth.status, pathname, router]);
 
   // Ferme le drawer mobile quand la route change
   useEffect(() => {

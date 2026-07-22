@@ -16,6 +16,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, LogIn, ShieldCheck } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useDemoAccess } from "@/lib/hooks/use-demo-access";
 import { ASTERION_BADGES } from "@/lib/demo/asterion-motion-data";
 import {
   ASTERION_TOUR,
@@ -41,6 +42,13 @@ interface DemoShellProps {
   testId?: string;
   eyebrow?: string;
   title?: string;
+  /**
+   * Rend « Explorer dans l'application » comme une action contrôlée (assure
+   * la session démo avant de naviguer vers une page protégée) au lieu d'un
+   * simple lien. Défaut false : /demo/asterion-motion garde son lien direct
+   * historique (destinations déjà accessibles au tenant démo courant).
+   */
+  controlledExplore?: boolean;
 }
 
 export function DemoShell({
@@ -50,6 +58,7 @@ export function DemoShell({
   testId = "demo-asterion",
   eyebrow = "CarbonCo · Démonstration produit",
   title = "Asterion Motion — revue ESG augmentée",
+  controlledExplore = false,
 }: DemoShellProps = {}) {
   const LAST = tour.length - 1;
   const [current, setCurrent] = useState(0);
@@ -91,17 +100,8 @@ export function DemoShell({
 
   // Session démo sécurisée (active les liens d'exploration sur le tenant réel).
   const { auth, loginDemo } = useAuth();
-  const [connecting, setConnecting] = useState(false);
-  const [connectError, setConnectError] = useState<string | null>(null);
-  const connected = auth.status === "authenticated";
-
-  const connect = useCallback(async () => {
-    setConnecting(true);
-    setConnectError(null);
-    const res = await loginDemo();
-    if (!res.ok) setConnectError("error" in res ? res.error : "Accès démo indisponible.");
-    setConnecting(false);
-  }, [loginDemo]);
+  const { connected, loading: connecting, error: connectError, connect, enterDemo } =
+    useDemoAccess(auth, loginDemo);
 
   return (
     <div
@@ -204,7 +204,12 @@ export function DemoShell({
       <main className="flex-1">
         <DemoSpotlight active={mode !== "explore"}>
           <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6">
-            <DemoStepCard step={step}>
+            <DemoStepCard
+              step={step}
+              onExplore={controlledExplore ? (href) => void enterDemo(href) : undefined}
+              exploreLoading={controlledExplore ? connecting : false}
+              exploreError={controlledExplore ? connectError : null}
+            >
               {renderStepBody ? renderStepBody(step) : step.isAiStep ? <AiActivityTrace /> : null}
             </DemoStepCard>
           </div>

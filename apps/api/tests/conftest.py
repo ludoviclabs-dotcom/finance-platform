@@ -79,6 +79,14 @@ from ._procurement_fixtures import (  # noqa: E402,F401
     two_companies_proc,
 )
 
+# Module 2 — fondation catalogue ressources (PR-M2A) : mêmes raisons que
+# ci-dessus — un module de fixtures absent d'ici n'est jamais résolu par pytest,
+# défaut invisible en local (tests DB-gated skippés sans DATABASE_URL).
+from ._resources_fixtures import (  # noqa: E402,F401
+    resources_schema,
+    two_companies_resources,
+)
+
 # Moteur de calcul Scope 2 dual (PR-06B) : mêmes raisons que ci-dessus.
 from ._scope2_fixtures import (  # noqa: E402,F401
     scope2_env,

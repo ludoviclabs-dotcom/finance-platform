@@ -4,11 +4,13 @@
 > **Date : 2026-07-22** · **Branche :** `docs/strategic-resources-architecture` · **Base :** `origin/master` `c29baf3` (PR #125 mergée, schéma `041`).
 
 ```
-STATUS=PHASE_2_ARCHITECTURE_READY
-NEXT_ACTION=PR-M2A catalogue et réglementation
-MIGRATION_N=042 (réservée, non créée) — fondation catalogue ressources
-MIGRATION_N1=043 (réservée, non créée) — expositions & moteur d'assessment
+STATUS=PR_M2A_IMPLEMENTED
+NEXT_ACTION=merger PR-M2A, appliquer migration 042, puis lancer PR-M2B
+MIGRATION_042=CRÉÉE (branche feat/resources-catalog-foundation, PR-M2A) — fondation catalogue ressources
+MIGRATION_043=réservée, non créée — expositions & moteur d'assessment (PR-M2B)
 ```
+
+> **Mise à jour PR-M2A (implémentation code) :** la première tranche de code du Module 2 est implémentée sur `feat/resources-catalog-foundation` (migration **042** : `resource_catalog`, `resource_aliases`, `resource_regulatory_statuses`, `resource_sector_uses` + RLS gen-2 + modèles + services catalogue/réglementation + API de lecture `/resources` + tests). Détail : `PR_M2A_TRACEABILITY.md`. `resource_roles` (D-1) et `resource_stage_applicability` (D-6) reportés à PR-M2B/043. **NEXT_ACTION = merger PR-M2A (décision Ludo) → appliquer 042 via `db-migrate.yml` → lancer PR-M2B.**
 
 ## 1. État de la phase
 

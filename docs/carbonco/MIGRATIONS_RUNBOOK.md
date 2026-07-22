@@ -10,6 +10,17 @@ design). Public : opérateur avec accès au workflow GitHub protégé (Ludo).
 > un déploiement Vercel. Le **seul** chemin autorisé est le workflow manuel
 > `.github/workflows/db-migrate.yml`, protégé par approbation humaine.
 
+> **Application dans le code (2026-07-22)** : le hook `@app.on_event("startup")`
+> de l'API n'appelle plus `run_migrations()` inconditionnellement. La garde
+> `main._maybe_run_startup_migrations` est **désactivée par défaut** ; elle ne
+> tourne qu'en dev **local** avec `RUN_STARTUP_MIGRATIONS=1`, **jamais** sur
+> Vercel (production/preview) ni en production. Correctif d'une hypothèse
+> erronée : le runtime Python de Vercel (`@vercel/python` 6.51.1) invoque bien
+> les events lifespan/startup ASGI — l'ancien appel inconditionnel provoquait un
+> `permission denied for schema public` (capturé, non fatal, mais bruyant) au
+> cold start. La garde supprime cette tentative sans masquer une vraie erreur DB
+> ni modifier aucun privilège PostgreSQL.
+
 ---
 
 ## 1. Architecture en bref

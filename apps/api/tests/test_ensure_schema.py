@@ -1,8 +1,13 @@
 """
-test_ensure_schema.py — déclencheur paresseux de migrations (fix Vercel serverless).
+test_ensure_schema.py — logique interne du déclencheur paresseux ensure_schema()
+(code HISTORIQUE, retiré de la prod — voir db/migrations.py).
 
-@vercel/python n'exécute pas les events lifespan ASGI → ensure_schema() est le
-seul chemin fiable pour appliquer les migrations en prod. Contrat testé (mocké,
+⚠️ ensure_schema() n'est plus câblé (middleware `ensure_schema_mw` retiré,
+PR-02C-retrait). Le runtime Python de Vercel INVOQUE bien les events lifespan
+ASGI (constaté sur @vercel/python 6.51.1) ; les migrations de démarrage sont
+désormais gardées par `main._maybe_run_startup_migrations` (opt-in local
+uniquement ; DB Migrate = seul chemin d'écriture schéma prod). Ces tests
+couvrent la logique interne de la fonction conservée. Contrat testé (mocké,
 sans DB réelle) :
   - DB absente (mode /tmp)          → no-op, run_migrations JAMAIS appelée
   - sentinelle présente (schéma OK) → run_migrations JAMAIS appelée (court-circuit)

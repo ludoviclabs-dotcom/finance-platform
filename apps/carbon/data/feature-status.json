@@ -1,5 +1,5 @@
 {
-  "derniere_maj": "2026-07-05",
+  "derniere_maj": "2026-07-22",
   "note": "Source de vérité UNIQUE des statuts produit (T0.2 du PLAN_ACTION_CARBONCO). Consommée par /etat-du-produit, /couverture et /integrations. Aucun statut ne doit être codé en dur dans un composant. statut ∈ live | beta | planifie (+ roadmap pour les intégrations). Un statut 'live' exige une 'preuve' (chemin repo).",
   "features": [
     {
@@ -461,6 +461,16 @@
       "tag": "Double matérialité",
       "href": "/iro",
       "preuve": "apps/api/services/iro/materiality_decision_service.py"
+    },
+    {
+      "id": "resources-module",
+      "label": "Ressources stratégiques & dépendances industrielles étendues",
+      "description": "Cockpit transversal des dépendances ressources — matières critiques (CRMA), gaz industriels, combustibles, biomasse. Statut réglementaire versionné et non exclusif (CRMA, EUDR, REACH, RED III, Euratom…), concentration géographique par étape au barème HHI 0-10000, dépendance hors UE, concentration fournisseur, substituabilité et couverture de stock. Risque et confiance strictement séparés (une donnée bloquée par licence dégrade la confiance, jamais le risque) ; un indice de risque non calculable s'affiche « Non calculé », jamais zéro. L'indice global reste secondaire et décomposable, qualifié de méthode CarbonCo non officielle — ce n'est pas une notation réglementaire de l'Union européenne. Aucun recalcul carbone : l'exposition environnementale se lit dans les modules Eau, Énergie et Achats.",
+      "statut": "beta",
+      "normes": ["ESRS E5", "ESRS E1"],
+      "tag": "Ressources",
+      "href": "/resources",
+      "preuve": "apps/api/services/resources/scoring.py"
     }
   ],
   "esrs": [

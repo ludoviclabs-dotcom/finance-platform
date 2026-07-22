@@ -40,6 +40,10 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/crma":        { title: "Matières critiques", subtitle: "CRMA · aimants permanents · Article 24" },
   "/nature":      { title: "Nature & biodiversité", subtitle: "TNFD LEAP · risques & opportunités" },
   "/iro":         { title: "Registre IRO", subtitle: "Impacts, risques, opportunités · double matérialité" },
+  "/resources":   { title: "Ressources stratégiques", subtitle: "Dépendances industrielles · concentration · risque ≠ confiance" },
+  "/resources/exposures":   { title: "Expositions ressources", subtitle: "Ponts achats · énergie · eau · nomenclature" },
+  "/resources/assessments": { title: "Assessments ressources", subtitle: "Runs immuables · CarbonCo Resource Exposure Score" },
+  "/resources/methodology": { title: "Méthodologie ressources", subtitle: "CC-RESOURCE-EXPOSURE · méthode CarbonCo non officielle" },
 };
 
 function PageSkeleton() {

@@ -323,6 +323,10 @@ export interface AuthUser {
   email: string;
   role: string;
   company_id?: number;
+  /** `true` pour une session de démonstration produit (JWT à claim `demo`,
+   * tenant Asterion). Renvoyé par `/auth/demo` et `/auth/me` ; absent/false
+   * pour un compte réel. */
+  is_demo?: boolean;
 }
 
 export interface LoginResponse {

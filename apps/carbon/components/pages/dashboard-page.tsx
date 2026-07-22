@@ -17,6 +17,7 @@ import { ReviewStatusBadge } from "@/components/ui/review-status-badge";
 import { useAuditMode } from "@/lib/hooks/use-audit-mode";
 import { useReviewStatusBatch } from "@/lib/hooks/use-review-status";
 import { useConsolidatedSnapshot } from "@/lib/hooks/use-consolidated-snapshot";
+import { ResourcesAccessCard } from "@/components/dashboard/resources-access-card";
 
 import { monthlyEmissions, scopeDetails, recentActivity } from "@/lib/data";
 import { pageVariants } from "@/lib/animations";
@@ -381,6 +382,9 @@ export function DashboardPage() {
 
         {/* Donut + radar benchmark */}
         <AnalyticsRow scopes={scopes} benchmark={BENCHMARK_DATA} />
+
+        {/* Accès au module Ressources stratégiques (Module 2, données réelles) */}
+        <ResourcesAccessCard />
 
         {/* ESRS heat + activity + sources */}
         <FooterRow

@@ -8,6 +8,7 @@ import { SkeletonCard, SkeletonChart, SkeletonRow } from "@/components/ui/skelet
 import { KeyboardShortcuts } from "@/components/ui/keyboard-shortcuts";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { AuthProvider } from "@/lib/hooks/auth-context";
 import { AuditModeProvider } from "@/lib/hooks/use-audit-mode";
 import { OnboardingTour } from "@/components/ui/onboarding-tour";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
@@ -100,6 +101,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuditModeProvider>
       <ConfirmDialogProvider>
+      <AuthProvider value={auth}>
       <div id="main-content" className="min-h-screen bg-[var(--color-background)]">
         <OfflineBanner />
         <KeyboardShortcuts />
@@ -132,6 +134,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+      </AuthProvider>
       </ConfirmDialogProvider>
     </AuditModeProvider>
   );

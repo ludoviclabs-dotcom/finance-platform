@@ -302,12 +302,24 @@ class Scenario(_Base):
     nature: dict = Field(default_factory=dict)
     crma: dict = Field(default_factory=dict)
     narration: dict = Field(default_factory=dict)
+    # MODULE 2 (PR-M2D) — ressources stratégiques (dict souple, fichier optionnel).
+    resources: dict = Field(default_factory=dict)
 
 
 def _read_json(scenario_dir: Path, filename: str) -> dict:
     path = scenario_dir / filename
     if not path.exists():
         raise FileNotFoundError(f"Fichier de scénario manquant : {path}")
+    with path.open("r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _read_json_optional(scenario_dir: Path, filename: str) -> dict:
+    """Comme _read_json mais renvoie {} si le fichier est absent (extension
+    facultative d'un scénario — ex. resources.json n'existe que pour Asterion)."""
+    path = scenario_dir / filename
+    if not path.exists():
+        return {}
     with path.open("r", encoding="utf-8") as fh:
         return json.load(fh)
 
@@ -346,4 +358,5 @@ def load_scenario(name: str = DEFAULT_SCENARIO) -> Scenario:
         nature=_read_json(sdir, "nature.json"),
         crma=_read_json(sdir, "crma.json"),
         narration=_read_json(sdir, "narration.json"),
+        resources=_read_json_optional(sdir, "resources.json"),
     )

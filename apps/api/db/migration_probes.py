@@ -775,6 +775,37 @@ def _probe_042(cur) -> bool:
     )
 
 
+def _probe_043(cur) -> bool:
+    """Module 2 — expositions & moteur d'assessment (PR-M2B) : 4 tables neuves +
+    RLS FORCE + policy scopée sur chacune, ET les triggers d'immutabilité qui
+    figent runs et dimensions (motif _probe_033/_probe_040). Une base où les
+    tables existent mais où ces triggers — ou le CHECK de cohérence de cible du
+    pont d'exposition — ont été retirés n'est PAS la migration 043."""
+    tables = (
+        "resource_supply_observations", "company_resource_exposure_links",
+        "resource_assessment_runs", "resource_assessment_dimensions",
+    )
+    if not all(_table_exists(cur, t) for t in tables):
+        return False
+    if not all(
+        _policy_exists(cur, t, f"tenant_isolation_{t}") and _force_rls(cur, t)
+        for t in tables
+    ):
+        return False
+    if not (
+        _trigger_exists(cur, "resource_assessment_runs", "trg_resource_run_immutable")
+        and _trigger_exists(
+            cur, "resource_assessment_dimensions", "trg_resource_dimension_immutable"
+        )
+    ):
+        return False
+    return (
+        _constraint_exists(cur, "company_resource_exposure_links", "crel_target_check")
+        and _constraint_exists(cur, "resource_supply_observations", "resource_supply_sourced_check")
+        and _constraint_exists(cur, "resource_assessment_runs", "resource_run_risk_range_check")
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -820,6 +851,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "040": _probe_040,
     "041": _probe_041,
     "042": _probe_042,
+    "043": _probe_043,
 }
 
 

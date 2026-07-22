@@ -88,12 +88,11 @@ def build_full_db(conn) -> None:
     alors qu'un fichier 035 existe — ferait échouer toute assertion du type
     « chaque version découverte a une sonde qui passe / est baseline » (la
     sonde 035 verrait ses objets absents), sans que 035 soit en cause.
-    `apply_upto("042")` applique tous les fichiers de préfixe <= 042 (donc 032,
-    033, 034, 035, 036, 037, 038, 039, 040, 041 puis 042 — la fondation
-    catalogue ressources du Module 2 / PR-M2A). À FAIRE ÉVOLUER à chaque
-    nouvelle migration."""
+    `apply_upto("043")` applique tous les fichiers de préfixe <= 043 (donc …041,
+    042 fondation catalogue ressources / PR-M2A, puis 043 expositions & moteur
+    d'assessment / PR-M2B). À FAIRE ÉVOLUER à chaque nouvelle migration."""
     apply_ddl_inline(conn)
-    apply_upto(conn, "042")
+    apply_upto(conn, "043")
 
 
 def reset_public_schema(conn) -> None:

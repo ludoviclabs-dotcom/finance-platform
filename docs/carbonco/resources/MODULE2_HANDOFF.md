@@ -4,13 +4,15 @@
 > **Date : 2026-07-22** · **Branche :** `docs/strategic-resources-architecture` · **Base :** `origin/master` `c29baf3` (PR #125 mergée, schéma `041`).
 
 ```
-STATUS=PR_M2A_IMPLEMENTED
-NEXT_ACTION=merger PR-M2A, appliquer migration 042, puis lancer PR-M2B
-MIGRATION_042=CRÉÉE (branche feat/resources-catalog-foundation, PR-M2A) — fondation catalogue ressources
-MIGRATION_043=réservée, non créée — expositions & moteur d'assessment (PR-M2B)
+STATUS=PR_M2B_IMPLEMENTED
+NEXT_ACTION=merger PR-M2B, appliquer migration 043, puis lancer le frontend (PR-M2C)
+MIGRATION_042=APPLIQUÉE (PR-M2A mergée #127)
+MIGRATION_043=CRÉÉE (branche feat/resources-assessment-engine, PR-M2B) — expositions & moteur d'assessment
 ```
 
-> **Mise à jour PR-M2A (implémentation code) :** la première tranche de code du Module 2 est implémentée sur `feat/resources-catalog-foundation` (migration **042** : `resource_catalog`, `resource_aliases`, `resource_regulatory_statuses`, `resource_sector_uses` + RLS gen-2 + modèles + services catalogue/réglementation + API de lecture `/resources` + tests). Détail : `PR_M2A_TRACEABILITY.md`. `resource_roles` (D-1) et `resource_stage_applicability` (D-6) reportés à PR-M2B/043. **NEXT_ACTION = merger PR-M2A (décision Ludo) → appliquer 042 via `db-migrate.yml` → lancer PR-M2B.**
+> **Mise à jour PR-M2A (mergée #127) :** migration **042** (catalogue) en production ; base master `14e57b1`.
+>
+> **Mise à jour PR-M2B (implémentation code) :** le moteur multidimensionnel est implémenté sur `feat/resources-assessment-engine` (migration **043** : `resource_supply_observations`, `company_resource_exposure_links`, `resource_assessment_runs`, `resource_assessment_dimensions` + RLS gen-2 + triggers d'immutabilité + moteur PUR `scoring.py` HHI 0-10000 + services supply/exposure/assessment + API supply/exposures/assessments/alerts + tests). Détail : `PR_M2B_TRACEABILITY.md`. Reportés : émission IRO (D-5, `iros_origin_domain_check` non élargie), `resource_roles`/`resource_stage_applicability` (D-1/D-6), union legacy `material_stage_observations`. **NEXT_ACTION = merger PR-M2B (décision Ludo) → appliquer 043 via `db-migrate.yml` → lancer le frontend PR-M2C.**
 
 ## 1. État de la phase
 

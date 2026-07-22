@@ -316,6 +316,26 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "(D-2), aucune migration historique modifiée."
         ),
     ),
+    "043": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Module 2 — expositions & moteur d'assessment (PR-M2B) : 4 nouvelles "
+            "tables (resource_supply_observations à portée mixte ; "
+            "company_resource_exposure_links / resource_assessment_runs / "
+            "resource_assessment_dimensions tenant strictes). RLS gen-2 FORCE + "
+            "policies par commande. Triggers d'immutabilité sur les runs "
+            "(input_snapshot/input_hash/chiffres figés, motif "
+            "scope2_run_immutability_guard 033) et les dimensions (append-only). "
+            "Ne crée QUE des tables neuves (aucun ALTER) — pas de privilège "
+            "propriétaire requis, comme 028/030/031/033/034/042. "
+            "iros_origin_domain_check NON élargie ici : l'émission de signal IRO "
+            "(strategic_resources, D-5) reportée ; iro_signal_id = FK nullable "
+            "forward-compatible. Risque≠confiance (colonnes séparées), run "
+            "immuable reproductible (input_hash), aucun calcul carbone (D-4). "
+            "Aucune donnée métier semée, aucun LLM."
+        ),
+    ),
 }
 
 

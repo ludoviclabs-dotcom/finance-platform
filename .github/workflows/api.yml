@@ -178,6 +178,7 @@ jobs:
           tests/test_crma_article24.py
           tests/test_resources_catalog.py
           tests/test_resources_regulatory.py
+          tests/test_resources_assessment.py
           tests/test_sites_geo.py
           tests/test_water_ledger.py
           tests/test_water_screening_api.py

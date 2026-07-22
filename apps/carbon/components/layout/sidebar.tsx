@@ -4,16 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  LayoutDashboard, Target, BookOpen, Bot,
-  FileBarChart, CreditCard, Leaf, LogOut,
-  ChevronLeft, ChevronRight, X, Scale,
-  Sparkles, ShieldCheck, Database, Upload, ClipboardList, History, Settings, Bell,
-  Inbox, Factory, ListChecks, ClipboardCheck,
-  FileText, Receipt, TrendingDown, CalendarClock, GitCompare, Building2, FolderInput,
-  FlaskConical,
-} from "lucide-react";
-import type { Page } from "@/lib/types";
+import { Leaf, LogOut, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { NAV_GROUPS, isNavItemActive } from "@/lib/nav-config";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -22,107 +14,6 @@ interface SidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }
-
-type NavItem = {
-  id: Page;
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-  badge?: { text: string; color: string };
-};
-
-type NavGroup = { group: string; items: NavItem[] };
-
-const navGroups: NavGroup[] = [
-  {
-    group: "Pilotage",
-    items: [
-      { id: "dashboard",   href: "/dashboard",   label: "Cockpit",       icon: <LayoutDashboard className="w-5 h-5" /> },
-      { id: "scopes",      href: "/scopes",      label: "Scopes 1-2-3",  icon: <Target className="w-5 h-5" /> },
-      { id: "materialite", href: "/materialite", label: "Matérialité",   icon: <Scale className="w-5 h-5" /> },
-    ],
-  },
-  {
-    group: "Conformité CSRD",
-    items: [
-      {
-        id: "esrs", href: "/esrs", label: "ESRS / CSRD", icon: <BookOpen className="w-5 h-5" />,
-        badge: { text: "3 alertes", color: "bg-red-500/15 text-red-400" },
-      },
-      {
-        id: "vsme", href: "/vsme", label: "VSME", icon: <Sparkles className="w-5 h-5" />,
-        badge: { text: "Nouveau", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
-      },
-      {
-        id: "datapoints", href: "/datapoints", label: "Datapoints CSRD", icon: <ListChecks className="w-5 h-5" />,
-        badge: { text: "RAG", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
-      },
-      {
-        id: "review", href: "/review", label: "Validation CSRD", icon: <ClipboardCheck className="w-5 h-5" />,
-        badge: { text: "ESRS", color: "bg-amber-500/15 text-amber-600" },
-      },
-      {
-        id: "reports", href: "/reports", label: "Rapports & iXBRL", icon: <FileBarChart className="w-5 h-5" />,
-        badge: { text: "ESEF", color: "bg-amber-500/15 text-amber-600" },
-      },
-    ],
-  },
-  {
-    group: "Données",
-    items: [
-      {
-        id: "fournisseurs", href: "/fournisseurs", label: "Fournisseurs", icon: <Factory className="w-5 h-5" />,
-        badge: { text: "Scope 3", color: "bg-blue-500/15 text-blue-400" },
-      },
-      { id: "upload",  href: "/upload",  label: "Import Excel",     icon: <Upload className="w-5 h-5" /> },
-      { id: "fec",     href: "/fec",     label: "Import FEC",       icon: <Receipt className="w-5 h-5" /> },
-      { id: "imports", href: "/imports", label: "Imports fichiers", icon: <FolderInput className="w-5 h-5" /> },
-      { id: "ingest",  href: "/ingest",  label: "Synchronisation",  icon: <Database className="w-5 h-5" /> },
-      { id: "qc",      href: "/qc",      label: "Contrôles qualité", icon: <ShieldCheck className="w-5 h-5" /> },
-    ],
-  },
-  {
-    group: "Restitution & périmètre",
-    items: [
-      { id: "beges",         href: "/beges",         label: "BEGES (France)",     icon: <FileText className="w-5 h-5" /> },
-      { id: "actions",       href: "/actions",       label: "Plan d'action",      icon: <TrendingDown className="w-5 h-5" /> },
-      { id: "baselines",     href: "/baselines",     label: "Année de référence", icon: <CalendarClock className="w-5 h-5" /> },
-      { id: "diff",          href: "/diff",          label: "Multi-exercices",    icon: <GitCompare className="w-5 h-5" /> },
-      { id: "consolidation", href: "/consolidation", label: "Consolidation",      icon: <Building2 className="w-5 h-5" /> },
-    ],
-  },
-  {
-    group: "IA & Audit",
-    items: [
-      {
-        id: "copilot", href: "/copilot", label: "Copilote IA", icon: <Bot className="w-5 h-5" />,
-        badge: { text: "IA", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
-      },
-      {
-        id: "revue", href: "/revue", label: "Validation Merkle", icon: <Inbox className="w-5 h-5" />,
-        badge: { text: "Phase 3", color: "bg-violet-500/15 text-violet-400" },
-      },
-      { id: "audit",    href: "/audit",    label: "Journal d'audit", icon: <ClipboardList className="w-5 h-5" /> },
-      { id: "history",  href: "/history",  label: "Historique",      icon: <History className="w-5 h-5" /> },
-      { id: "alerts",   href: "/alerts",   label: "Alertes",         icon: <Bell className="w-5 h-5" /> },
-      { id: "securite", href: "/securite", label: "Sécurité 2FA",    icon: <ShieldCheck className="w-5 h-5" /> },
-      { id: "admin",    href: "/admin",    label: "Administration",  icon: <Settings className="w-5 h-5" /> },
-      { id: "pricing", href: "/pricing", label: "Offres",           icon: <CreditCard className="w-5 h-5" /> },
-    ],
-  },
-  {
-    // Groupe volontairement séparé des modules métier (cf. cc-nav-grp--demo) :
-    // point d'entrée vers le cockpit de démonstration 100% fictif (Asterion Motion).
-    group: "Démonstration",
-    items: [
-      {
-        id: "demo-studio", href: "/demo/asterion-motion", label: "Demo Studio",
-        icon: <FlaskConical className="w-5 h-5" />,
-        badge: { text: "DÉMO", color: "bg-amber-500/15 text-amber-600" },
-      },
-    ],
-  },
-];
 
 const ESG_SCORE = 62;
 
@@ -246,7 +137,7 @@ export function Sidebar({
 
         {/* Nav — groupée par catégorie (Pilotage / Conformité / Données / IA & Audit) */}
         <nav className="flex-1 py-3 px-2 overflow-y-auto">
-          {navGroups.map((grp) => (
+          {NAV_GROUPS.map((grp) => (
             <div
               key={grp.group}
               className={`cc-nav-grp ${grp.group === "Démonstration" ? "cc-nav-grp--demo" : ""}`}
@@ -254,13 +145,14 @@ export function Sidebar({
               {!collapsed && <div className="cc-nav-grp-t">{grp.group}</div>}
               <div className="space-y-0.5">
                 {grp.items.map((item) => {
-                  const active = pathname === item.href || pathname?.startsWith(item.href + "/");
+                  const active = isNavItemActive(pathname, item.href);
                   return (
                     <Link
                       key={item.id}
                       href={item.href}
                       onClick={() => onMobileClose?.()}
                       title={collapsed ? item.label : undefined}
+                      aria-current={active ? "page" : undefined}
                       className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                         active
                           ? "bg-carbon-emerald/15 text-carbon-emerald-light"

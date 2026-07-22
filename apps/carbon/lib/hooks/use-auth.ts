@@ -20,7 +20,7 @@ const ACCESS_TOKEN_REFRESH_MS = 14 * 60 * 1000;
 
 export type AuthState =
   | { status: "unauthenticated" }
-  | { status: "authenticated"; email: string; role: string; companyId: number };
+  | { status: "authenticated"; email: string; role: string; companyId: number; isDemo: boolean };
 
 export type LoginResult =
   | { ok: true }
@@ -33,6 +33,7 @@ interface InMemorySession {
   email: string;
   role: string;
   companyId: number;
+  isDemo: boolean;
   expiresAt: number;
 }
 
@@ -43,6 +44,7 @@ function sessionFromResponse(res: Awaited<ReturnType<typeof loginRequest>>): InM
     email: res.user.email,
     role: res.user.role,
     companyId: res.user.company_id ?? 1,
+    isDemo: res.user.is_demo ?? false,
     expiresAt: Number.isFinite(expiresAt)
       ? expiresAt
       : Date.now() + ACCESS_TOKEN_REFRESH_MS,
@@ -89,6 +91,7 @@ export function useAuth() {
         email: session.email,
         role: session.role,
         companyId: session.companyId,
+        isDemo: session.isDemo,
       });
       scheduleRefresh(session.expiresAt);
       return session.token;
@@ -134,6 +137,7 @@ export function useAuth() {
             email: res.user.email,
             role: res.user.role,
             companyId: res.user.company_id ?? 1,
+            isDemo: res.user.is_demo ?? false,
           });
           return;
         } catch {
@@ -158,6 +162,7 @@ export function useAuth() {
             email: res.user.email,
             role: res.user.role,
             companyId: res.user.company_id ?? 1,
+            isDemo: res.user.is_demo ?? false,
           });
         }
       } catch {
@@ -192,6 +197,7 @@ export function useAuth() {
         email: session.email,
         role: session.role,
         companyId: session.companyId,
+        isDemo: session.isDemo,
       });
       scheduleRefresh(session.expiresAt);
     },

@@ -12,9 +12,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Boxes, FlaskConical, SearchX } from "lucide-react";
 import { FeatureStatusBadge } from "@/components/ui/feature-status-badge";
 import { ResourceNav } from "@/components/resources/resource-nav";
 import { ResourceDataStatus } from "@/components/resources/resource-data-status";
+import { DemoSessionBanner } from "@/components/resources/demo-session-banner";
+import {
+  ResourceEmptyState,
+  resourcesEmptyStateKind,
+} from "@/components/resources/resource-empty-state";
+import { useIsDemoSession } from "@/lib/hooks/auth-context";
 import {
   ALERT_KIND_LABEL,
   FAMILY_LABEL,
@@ -45,6 +52,7 @@ export default function ResourcesCatalogPage() {
   const [alerts, setAlerts] = useState<ResourceAlert[]>([]);
   const [family, setFamily] = useState<ResourceFamily | "all">("all");
   const [query, setQuery] = useState("");
+  const isDemo = useIsDemoSession();
 
   const load = useCallback(
     async (fam: ResourceFamily | "all", signal?: AbortSignal) => {
@@ -88,6 +96,19 @@ export default function ResourcesCatalogPage() {
     );
   }, [items, query]);
 
+  const resetFilters = useCallback(() => {
+    setFamily("all");
+    setQuery("");
+  }, []);
+
+  const emptyKind = resourcesEmptyStateKind({
+    itemsLength: items.length,
+    filteredLength: filtered.length,
+    family,
+    query,
+    isDemo,
+  });
+
   return (
     <div className="mx-auto max-w-6xl p-6">
       <header className="mb-6">
@@ -101,6 +122,8 @@ export default function ResourcesCatalogPage() {
           séparés.
         </p>
       </header>
+
+      {isDemo && <DemoSessionBanner />}
 
       <ResourceNav active="catalog" />
 
@@ -192,11 +215,57 @@ export default function ResourcesCatalogPage() {
             </label>
           </div>
 
-          {filtered.length === 0 ? (
-            <p data-testid="resources-empty" className="text-sm text-[var(--color-muted-foreground)]">
-              Aucune ressource ne correspond. Le référentiel s&apos;alimente via l&apos;administration
-              des sources (Evidence Kernel), hors requête utilisateur.
-            </p>
+          {emptyKind === "no-results" ? (
+            <ResourceEmptyState
+              testId="resources-empty-no-results"
+              icon={<SearchX className="h-6 w-6" />}
+              title="Aucun résultat pour ces filtres"
+              description="Aucune ressource ne correspond à la famille ou au terme recherché. Réinitialisez pour revoir tout le catalogue."
+              actions={[
+                {
+                  label: "Réinitialiser les filtres",
+                  onClick: resetFilters,
+                  variant: "ghost",
+                  testId: "resources-reset-filters",
+                },
+              ]}
+            />
+          ) : emptyKind === "empty-demo" ? (
+            <ResourceEmptyState
+              testId="resources-empty-demo"
+              icon={<FlaskConical className="h-6 w-6" />}
+              title="Le scénario Asterion n'est pas encore initialisé"
+              description="Les données synthétiques doivent être chargées via le workflow protégé de démonstration avant d'explorer le cockpit."
+              actions={[
+                {
+                  label: "Voir le parcours guidé",
+                  href: "/demo/asterion-resources",
+                  variant: "primary",
+                  testId: "resources-empty-demo-tour",
+                },
+              ]}
+            />
+          ) : emptyKind === "empty-real" ? (
+            <ResourceEmptyState
+              testId="resources-empty-real"
+              icon={<Boxes className="h-6 w-6" />}
+              title="Aucune dépendance encore cartographiée"
+              description="Importez une nomenclature, reliez vos achats ou configurez les ressources que votre organisation souhaite surveiller."
+              actions={[
+                {
+                  label: "Importer des données",
+                  href: "/imports",
+                  variant: "primary",
+                  testId: "resources-empty-real-import",
+                },
+                {
+                  label: "Configurer les sources",
+                  href: "/resources/methodology",
+                  variant: "ghost",
+                  testId: "resources-empty-real-sources",
+                },
+              ]}
+            />
           ) : (
             <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="resources-grid">
               {filtered.map((r) => (

@@ -4,12 +4,36 @@
 > **Date : 2026-07-22** · **Branche :** `docs/strategic-resources-architecture` · **Base :** `origin/master` `c29baf3` (PR #125 mergée, schéma `041`).
 
 ```
-STATUS=PR_M2D_IMPLEMENTED
-NEXT_ACTION=intégration finale
-MIGRATION_042=APPLIQUÉE (PR-M2A mergée #127)
-MIGRATION_043=MERGÉE (PR-M2B #128)
-FRONTEND=PR-M2C MERGÉE (#129, master d7d7505) — cockpit /resources
-DEMO=PR-M2D ouverte (branche feat/demo-asterion-strategic-resources) — séquence Asterion ressources, NON mergée
+STATUS=MODULE2_MVP_COMPLETE
+SCHEMA_VERSION=043
+VERCEL_PYTHON_RUNTIME=AUTODETECT
+STARTUP_MIGRATIONS=DISABLED_IN_PRODUCTION
+NEXT_ACTION=pack EUDR ou audit produit final
+PRODUCTION_COMMIT=6479e11922e1 (Merge PR #132)
+PRODUCTION_DEPLOYMENT=dpl_9Jm8JXbLmKbsK3mDHUYDiEeKhn27 (carbonco-api, READY)
+```
+
+> **✅ CLÔTURE PRODUCTION (2026-07-22).** Le Module 2 est **complet, appliqué et
+> vérifié en production de bout en bout**. Migration `043` **appliquée** (DB Migrate
+> apply run `29934245339`, `applied_count=1`), `/health/schema` = `043 / up_to_date /
+> pending 0`. Runtime Python Vercel **réparé** ([PR #131](https://github.com/ludoviclabs-dotcom/finance-platform/pull/131),
+> merge `17828b2`) : `carbonco-api` déployé `READY` (plus d'erreur builder
+> `@vercel/python@4.3.1`). Migrations de démarrage **désactivées en production**
+> ([PR #132](https://github.com/ludoviclabs-dotcom/finance-platform/pull/132), merge
+> `6479e11`) : plus aucun `permission denied for schema public` au cold start (log
+> sobre `Startup migrations disabled; use DB Migrate workflow`). Production
+> `carbonco-api` = `dpl_9Jm8JXbLmKbsK3mDHUYDiEeKhn27` (`/health` version `6479e11`,
+> `db=ok`, `storage=ok`), frontend `carbon` READY. Détail complet, preuves et runs :
+> **`MODULE2_INTEGRATION_REPORT.md`** ; readiness Go/No-Go : **`MODULE2_FINAL_READINESS.md`** ;
+> extensions préparées (non codées) : **`MODULE2_FUTURE_PACKS.md`**.
+> **NEXT_ACTION = pack EUDR ou audit produit final** (décision Ludo).
+
+### Historique de phase (avant clôture)
+
+```
+PHASE_ANTÉRIEURE : STATUS=PR_M2D_IMPLEMENTED, NEXT_ACTION=intégration finale
+MIGRATION_042=APPLIQUÉE (PR-M2A #127) · MIGRATION_043=MERGÉE (PR-M2B #128)
+FRONTEND=PR-M2C #129 · DEMO=PR-M2D #130
 ```
 
 > **Mise à jour PR-M2D (démo Asterion ressources) :** extension du Demo Studio « Asterion Motion »

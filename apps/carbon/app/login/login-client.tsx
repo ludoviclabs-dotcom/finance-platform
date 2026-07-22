@@ -7,18 +7,18 @@
  * metadata SEO côté serveur. Le `<LoginScreen>` est toujours rendu côté SSR :
  * plus de page blanche pendant l'hydratation du provider auth.
  *
- * Destination `next` : si l'utilisateur arrivait sur une route protégée
- * (ex. /resources) sans session, la garde `(app)/layout.tsx` l'a envoyé ici
- * avec `?next=<chemin encodé>`. On y revient après connexion — jamais de
- * confiance directe dans la valeur brute (getSafeInternalRedirect).
+ * `safeNext` est reçu en prop, déjà validé côté serveur par `page.tsx`
+ * (getSafeInternalRedirect) — ce composant n'appelle JAMAIS useSearchParams()
+ * lui-même : ce hook opterait son sous-arbre en rendu client (CSR bailout)
+ * et exigerait une limite Suspense renvoyant un fallback vide dans le HTML
+ * initial, ce qui casserait le rendu SSR du formulaire de connexion.
  */
 
-import { useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { LoginScreen } from "@/components/pages/login-screen";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useDemoAccess } from "@/lib/hooks/use-demo-access";
-import { getSafeInternalRedirect } from "@/lib/auth/safe-redirect";
 
 const RESOURCES_DEMO_CONTEXT = {
   title: "Accéder aux Ressources stratégiques",
@@ -27,16 +27,15 @@ const RESOURCES_DEMO_CONTEXT = {
   demoLabel: "Ouvrir le cockpit de démonstration",
 };
 
-export function LoginClient() {
+interface LoginClientProps {
+  safeNext: string;
+}
+
+export function LoginClient({ safeNext }: LoginClientProps) {
   const { auth, ready, login, loginDemo, verifyTotp } = useAuth();
   const { loading: demoLoading, error: demoError, enterDemo } = useDemoAccess(auth, loginDemo);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const safeNext = useMemo(
-    () => getSafeInternalRedirect(searchParams.get("next"), "/dashboard"),
-    [searchParams],
-  );
   const demoContext = safeNext.startsWith("/resources") ? RESOURCES_DEMO_CONTEXT : null;
 
   useEffect(() => {

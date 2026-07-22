@@ -1,0 +1,161 @@
+{
+  "scenario": "asterion-motion-v1",
+  "synthetic": true,
+  "note": "Extension MODULE 2 (PR-M2D) — dépendances industrielles étendues d'Asterion Motion. 100% FICTIF (synthetic=true), valeurs estimated/manual, aucune statistique mondiale réelle : ces parts pays sont la CARTOGRAPHIE D'APPROVISIONNEMENT ESTIMÉE du tenant démo, jamais une donnée de production mondiale. Aucun contenu Défense/Spatial opérationnel. Toutes les ressources sont TENANT-SCOPED (company_id = tenant Asterion), jamais globales.",
+  "reference_year": 2024,
+  "assessment_year": 2025,
+  "reference_date": "2026-06-30",
+  "expected_assessments": {
+    "note": "Valeurs canoniques produites par le moteur PUR services/resources/scoring.py sur les entrées ci-dessous (barème HHI 0-10000, risque≠confiance). Vérifiées par demo_verify et le test de stabilité — jamais saisies à la main sans recalcul.",
+    "silicon-metal": { "risk_score": 70.58, "confidence": 79.4, "observed_hhi": 6239.67, "coverage_pct": 88.0, "missing_share_pct": 12.0, "missing_dimensions": ["substitutability"] },
+    "helium": { "risk_score": 64.4, "confidence": 80.6, "observed_hhi": 4111.53, "coverage_pct": 92.0, "missing_share_pct": 8.0, "missing_dimensions": ["substitutability"] },
+    "xenon": { "risk_score": 66.67, "confidence": 75.8, "observed_hhi": 3520.82, "coverage_pct": 86.0, "missing_share_pct": 14.0, "missing_dimensions": ["substitutability", "stock_coverage"] },
+    "hydrogen": { "risk_score": 25.06, "confidence": 77.0, "observed_hhi": 2654.32, "coverage_pct": 90.0, "missing_share_pct": 10.0, "missing_dimensions": ["supplier_dependency", "substitutability"] },
+    "coking-coal": { "risk_score": 55.1, "confidence": 78.2, "observed_hhi": 3208.62, "coverage_pct": 84.0, "missing_share_pct": 16.0, "missing_dimensions": ["substitutability"] }
+  },
+  "source": {
+    "code": "ASTERION-RES-INTEL",
+    "publisher": "Cellule dépendances ressources Asterion (fictif)",
+    "title": "Cartographie interne des dépendances ressources — exercice 2024 (démo)",
+    "release_key": "2024-annual"
+  },
+  "resources": [
+    {
+      "slug": "silicon-metal",
+      "name": "Silicon metal",
+      "name_fr": "Silicium métal",
+      "primary_family": "critical_raw_material",
+      "data_status": "estimated",
+      "description": "Silicium métal (électronique de puissance des moteurs E-Drive X4). Ressource pilote de la démonstration : concentration élevée en amont, dépendance hors UE, exposition via un achat réel.",
+      "aliases": [
+        { "alias_kind": "hs_cn", "alias_value": "2804 69" },
+        { "alias_kind": "internal", "alias_value": "AST-SI-01" }
+      ],
+      "regulatory": [
+        { "regime": "crma", "regulation_ref": "Reg (UE) 2024/1252 (illustratif)", "list_or_annex": "Stratégique + Critique", "listing_status": "listed", "certainty": "probable", "verified_on": "2024-05-01", "validity_note": "Classement illustratif de démonstration, non vérifié officiellement." }
+      ],
+      "uses": [
+        { "sector_code": "C27", "use_label": "Électronique de puissance (onduleurs moteurs)", "criticality_note": "Intrant des semi-conducteurs de puissance.", "data_status": "estimated" },
+        { "sector_code": "C24", "use_label": "Alliages & silicones", "criticality_note": null, "data_status": "manual" }
+      ],
+      "supply": [
+        { "stage_code": "mining", "country_code": "CN", "share_pct": 40 },
+        { "stage_code": "mining", "country_code": "RU", "share_pct": 22 },
+        { "stage_code": "mining", "country_code": "BR", "share_pct": 16 },
+        { "stage_code": "smelting", "country_code": "CN", "share_pct": 68 },
+        { "stage_code": "smelting", "country_code": "NO", "share_pct": 12 },
+        { "stage_code": "smelting", "country_code": "FR", "share_pct": 8 }
+      ],
+      "exposures": [
+        { "link_kind": "purchase_line", "role": "material", "share_of_supply_pct": 60, "stock_coverage_days": 45, "annual_mass_kg": 9000, "annual_spend_eur": 180000, "data_status": "estimated", "note": "Fournisseur principal — ligne d'achat 2024 (démo)." },
+        { "link_kind": "manual", "role": "material", "share_of_supply_pct": 40, "annual_mass_kg": 6000, "data_status": "manual", "manual_note": "Second fournisseur silicium (saisie manuelle démo)." }
+      ]
+    },
+    {
+      "slug": "helium",
+      "name": "Helium",
+      "name_fr": "Hélium",
+      "primary_family": "industrial_gas",
+      "data_status": "estimated",
+      "description": "Hélium (refroidissement cryogénique, contrôle qualité). Gaz industriel critique CRMA, forte dépendance hors UE.",
+      "aliases": [
+        { "alias_kind": "cas", "alias_value": "7440-59-7" }
+      ],
+      "regulatory": [
+        { "regime": "crma", "regulation_ref": "Reg (UE) 2024/1252 (illustratif)", "list_or_annex": "Annexe II — Critique", "listing_status": "listed", "certainty": "probable", "verified_on": "2024-05-01", "validity_note": "Classement illustratif de démonstration." }
+      ],
+      "uses": [
+        { "sector_code": "C26", "use_label": "Refroidissement cryogénique & contrôle qualité", "criticality_note": "Usage-secteur seulement.", "data_status": "estimated" }
+      ],
+      "supply": [
+        { "stage_code": "purification", "country_code": "QA", "share_pct": 50 },
+        { "stage_code": "purification", "country_code": "US", "share_pct": 28 },
+        { "stage_code": "purification", "country_code": "DZ", "share_pct": 14 }
+      ],
+      "exposures": [
+        { "link_kind": "manual", "role": "industrial_gas", "share_of_supply_pct": 70, "stock_coverage_days": 25, "annual_mass_kg": 1200, "data_status": "manual", "manual_note": "Fournisseur gaz principal (démo) — couverture de stock tendue." },
+        { "link_kind": "manual", "role": "industrial_gas", "share_of_supply_pct": 30, "annual_mass_kg": 500, "data_status": "manual", "manual_note": "Fournisseur gaz secondaire (démo)." }
+      ]
+    },
+    {
+      "slug": "xenon",
+      "name": "Xenon",
+      "name_fr": "Xénon",
+      "primary_family": "industrial_gas",
+      "data_status": "estimated",
+      "description": "Xénon (gravure semi-conducteurs, imagerie médicale). Gaz rare non-CRMA, approvisionnement mono-source dans la démo.",
+      "aliases": [
+        { "alias_kind": "cas", "alias_value": "7440-63-3" }
+      ],
+      "regulatory": [
+        { "regime": "crma", "regulation_ref": "Reg (UE) 2024/1252 (illustratif)", "list_or_annex": "Hors liste CRMA", "listing_status": "not_listed", "certainty": "probable", "verified_on": "2024-05-01", "validity_note": "Non-CRMA — illustratif, distinct de l'hélium." }
+      ],
+      "uses": [
+        { "sector_code": "C26", "use_label": "Gravure de semi-conducteurs & imagerie médicale", "criticality_note": "Usage-secteur seulement.", "data_status": "estimated" }
+      ],
+      "supply": [
+        { "stage_code": "separation", "country_code": "CN", "share_pct": 42 },
+        { "stage_code": "separation", "country_code": "RU", "share_pct": 26 },
+        { "stage_code": "separation", "country_code": "FR", "share_pct": 10 },
+        { "stage_code": "separation", "country_code": "US", "share_pct": 8 }
+      ],
+      "exposures": [
+        { "link_kind": "manual", "role": "industrial_gas", "share_of_supply_pct": 100, "annual_mass_kg": 90, "data_status": "manual", "manual_note": "Fournisseur unique (démo) — couverture de stock NON renseignée (donnée manquante)." }
+      ]
+    },
+    {
+      "slug": "hydrogen",
+      "name": "Hydrogen",
+      "name_fr": "Hydrogène",
+      "primary_family": "energy_fuel",
+      "data_status": "estimated",
+      "description": "Hydrogène (vecteur énergétique / procédé). RFNBO (RED III) et bien CBAM, PAS matière première CRMA. Approvisionnement majoritairement UE dans la démo → risque plus faible.",
+      "aliases": [
+        { "alias_kind": "cas", "alias_value": "1333-74-0" }
+      ],
+      "regulatory": [
+        { "regime": "red_iii", "regulation_ref": "Directive (UE) 2023/2413 (illustratif)", "list_or_annex": "RFNBO", "listing_status": "in_scope", "certainty": "probable", "verified_on": "2024-05-01", "validity_note": "RFNBO — illustratif." },
+        { "regime": "cbam", "regulation_ref": "Reg (UE) 2023/956 (illustratif)", "list_or_annex": "Bien CBAM", "listing_status": "in_scope", "certainty": "probable", "verified_on": "2024-05-01", "validity_note": "Bien CBAM — illustratif." }
+      ],
+      "uses": [
+        { "sector_code": "C20", "use_label": "Vecteur énergétique & procédé", "criticality_note": "Usage-secteur seulement.", "data_status": "estimated" }
+      ],
+      "supply": [
+        { "stage_code": "production", "country_code": "FR", "share_pct": 30 },
+        { "stage_code": "production", "country_code": "DE", "share_pct": 25 },
+        { "stage_code": "production", "country_code": "NL", "share_pct": 20 },
+        { "stage_code": "production", "country_code": "ES", "share_pct": 15 }
+      ],
+      "exposures": [
+        { "link_kind": "energy_activity", "role": "energy_carrier", "stock_coverage_days": 60, "data_status": "estimated", "note": "Exposition issue d'une activité énergie réelle (démo) — pas de part fournisseur renseignée (donnée manquante)." }
+      ]
+    },
+    {
+      "slug": "coking-coal",
+      "name": "Coking coal",
+      "name_fr": "Charbon à coke",
+      "primary_family": "energy_fuel",
+      "data_status": "estimated",
+      "description": "Charbon à coke (réduction métallurgique amont de la chaîne acier). Critique CRMA (PAS bien CBAM). Dépendance hors UE marquée.",
+      "aliases": [
+        { "alias_kind": "hs_cn", "alias_value": "2701 12" }
+      ],
+      "regulatory": [
+        { "regime": "crma", "regulation_ref": "Reg (UE) 2024/1252 (illustratif)", "list_or_annex": "Annexe II — Critique", "listing_status": "listed", "certainty": "probable", "verified_on": "2024-05-01", "validity_note": "Critique CRMA — illustratif." }
+      ],
+      "uses": [
+        { "sector_code": "C24", "use_label": "Réduction métallurgique (amont acier)", "criticality_note": "Usage-secteur seulement.", "data_status": "estimated" }
+      ],
+      "supply": [
+        { "stage_code": "mining", "country_code": "AU", "share_pct": 40 },
+        { "stage_code": "mining", "country_code": "US", "share_pct": 18 },
+        { "stage_code": "mining", "country_code": "CA", "share_pct": 14 },
+        { "stage_code": "mining", "country_code": "RU", "share_pct": 12 }
+      ],
+      "exposures": [
+        { "link_kind": "manual", "role": "feedstock", "share_of_supply_pct": 55, "stock_coverage_days": 90, "annual_mass_kg": 40000, "data_status": "manual", "manual_note": "Approvisionnement métallurgique amont principal (démo)." },
+        { "link_kind": "manual", "role": "feedstock", "share_of_supply_pct": 45, "annual_mass_kg": 32000, "data_status": "manual", "manual_note": "Approvisionnement métallurgique amont secondaire (démo)." }
+      ]
+    }
+  ]
+}

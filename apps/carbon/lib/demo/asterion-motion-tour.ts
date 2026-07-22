@@ -29,6 +29,9 @@ export interface TourStep {
   durationMs: number;
   /** Étape IA : affiche la trace fonctionnelle + la revue citée. */
   isAiStep?: boolean;
+  /** Discriminant de corps personnalisé (ex. séquence Ressources, PR-M2D) — le
+   *  shell délègue le rendu à `renderStepBody(step)` quand il est fourni. */
+  beat?: string;
 }
 
 export const ASTERION_TOUR: TourStep[] = [

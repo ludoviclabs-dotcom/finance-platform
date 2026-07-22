@@ -33,6 +33,21 @@ from services.auth_service import DEMO_TENANT_SLUG  # noqa: E402
 
 # Ordre de suppression (enfants -> parents), toutes filtrées company_id = démo.
 _DELETE_ORDER = [
+    # MODULE 2 — ressources stratégiques (PR-M2D), enfants -> parents. Les liens
+    # d'exposition référencent purchase_lines/energy_activities : supprimés avant.
+    # resource_catalog/supply/uses/réglementaire référencent source_releases :
+    # supprimés avant source_releases (plus bas). Tables absentes ignorées.
+    "resource_assessment_dimensions",
+    "resource_assessment_runs",
+    "company_resource_exposure_links",
+    "purchase_lines",
+    "purchase_imports",
+    "energy_activities",
+    "resource_supply_observations",
+    "resource_sector_uses",
+    "resource_regulatory_statuses",
+    "resource_aliases",
+    "resource_catalog",
     "ai_citations",
     "ai_claims",
     "ai_review_decisions",

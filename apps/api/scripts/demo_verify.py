@@ -78,6 +78,56 @@ def _arithmetic(sc: Scenario, rep: Report) -> None:
               _approx(coverage, m.contractual_coverage_pct, tol=0.5))
 
 
+def _resource_arithmetic(sc: Scenario, rep: Report) -> None:
+    """MODULE 2 — recalcule l'assessment de chaque ressource via le moteur PUR
+    (`scoring.assess`, sans base) et vérifie qu'il reproduit EXACTEMENT les valeurs
+    canoniques déclarées (`expected_assessments`). Prouve la stabilité des calculs
+    et que les valeurs canoniques ne sont pas périmées. `market_total` n'affecte
+    pas les valeurs affichées (seule license_access en dépend, =1 si rien de bloqué)."""
+    cfg = sc.resources or {}
+    resources = cfg.get("resources") or []
+    if not resources:
+        rep.skip("ressources (arithmétique)", "aucune extension resources.json")
+        return
+    from datetime import date
+
+    from services.resources import scoring
+
+    reference_year = int(cfg.get("reference_year", 2024))
+    as_of = date.fromisoformat(str(cfg.get("reference_date", "2026-06-30")))
+    expected = cfg.get("expected_assessments", {})
+    for res in resources:
+        slug = res["slug"]
+        obs = [
+            {"stage_code": o["stage_code"], "country_code": o["country_code"],
+             "metric_code": o.get("metric_code", "production"), "share_pct": o.get("share_pct"),
+             "reference_year": reference_year, "data_status": o.get("data_status", "estimated"),
+             "source_release_id": 1}
+            for o in res.get("supply", [])
+        ]
+        shares = [x["share_of_supply_pct"] for x in res.get("exposures", [])
+                  if x.get("share_of_supply_pct") is not None]
+        stocks = [x["stock_coverage_days"] for x in res.get("exposures", [])
+                  if x.get("stock_coverage_days") is not None]
+        result = scoring.assess(
+            resource_slug=slug, observation_rows=obs, supplier_shares=shares, substitutes=[],
+            stock_coverage_days=min(stocks) if stocks else None, as_of=as_of,
+            market_total=1, market_blocked=0,
+        )
+        exp = expected.get(slug, {})
+        rep.check(f"{slug} risque", exp.get("risk_score"), result.risk_score,
+                  _approx(result.risk_score if result.risk_score is not None else -1,
+                          exp.get("risk_score", -999), tol=0.05))
+        rep.check(f"{slug} confiance", exp.get("confidence"), result.confidence,
+                  _approx(result.confidence, exp.get("confidence", -999), tol=0.05))
+        rep.check(f"{slug} HHI", exp.get("observed_hhi"), result.observed_hhi,
+                  _approx(result.observed_hhi if result.observed_hhi is not None else -1,
+                          exp.get("observed_hhi", -999), tol=0.05))
+        missing = sorted(d.dimension_code for d in result.dimensions if d.kind == "risk" and not d.available)
+        exp_missing = sorted(exp.get("missing_dimensions", []))
+        rep.check(f"{slug} données manquantes", exp_missing, missing, missing == exp_missing)
+
+
 def _population(sc: Scenario, rep: Report) -> int | None:
     """Vérifie le peuplement DB. Retourne le company_id démo (ou None)."""
     try:
@@ -107,6 +157,30 @@ def _population(sc: Scenario, rep: Report) -> int | None:
                 cur.execute("SELECT count(*) AS n FROM observations WHERE company_id = %s", (cid,))
                 n_obs = cur.fetchone()["n"]
                 rep.check("observations", ">=10", n_obs, n_obs >= 10)
+
+                # MODULE 2 — ressources seedées + parité d'un run courant.
+                res_list = (sc.resources or {}).get("resources") or []
+                if res_list:
+                    cur.execute("SELECT count(*) AS n FROM resource_catalog WHERE company_id = %s", (cid,))
+                    n_res = cur.fetchone()["n"]
+                    rep.check("ressources catalogue", len(res_list), n_res, n_res >= len(res_list))
+                    cur.execute(
+                        "SELECT count(*) AS n FROM resource_assessment_runs WHERE company_id = %s AND status <> 'superseded'",
+                        (cid,),
+                    )
+                    n_run = cur.fetchone()["n"]
+                    rep.check("assessments courants", len(res_list), n_run, n_run >= len(res_list))
+                    exp = (sc.resources or {}).get("expected_assessments", {}).get("silicon-metal", {})
+                    cur.execute(
+                        """SELECT r.risk_score FROM resource_assessment_runs r
+                           JOIN resource_catalog c ON c.id = r.resource_id
+                           WHERE r.company_id = %s AND c.slug = %s AND r.status <> 'superseded'""",
+                        (cid, "silicon-metal"),
+                    )
+                    row = cur.fetchone()
+                    if row and row["risk_score"] is not None and exp:
+                        rep.check("silicium run risque", exp.get("risk_score"), float(row["risk_score"]),
+                                  _approx(float(row["risk_score"]), exp["risk_score"], 0.05))
                 return cid
     except Exception as exc:  # noqa: BLE001
         rep.skip("peuplement DB", f"{type(exc).__name__}")
@@ -147,6 +221,7 @@ def run(scenario_name: str) -> int:
 
     print(f"== demo_verify :: scénario {sc.name} :: tenant {DEMO_TENANT_SLUG} ==\n")
     _arithmetic(sc, rep)
+    _resource_arithmetic(sc, rep)
 
     if db_available():
         cid = _population(sc, rep)

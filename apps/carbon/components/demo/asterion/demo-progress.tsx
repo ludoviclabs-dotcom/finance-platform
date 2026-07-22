@@ -5,16 +5,19 @@
  * Cliquable en mode explore/guided ; reflète l'étape courante (aria-current).
  */
 
-import { ASTERION_TOUR } from "@/lib/demo/asterion-motion-tour";
+import { ASTERION_TOUR, type TourStep } from "@/lib/demo/asterion-motion-tour";
 
 export function DemoProgress({
   current,
   onSelect,
+  steps = ASTERION_TOUR,
 }: {
   current: number;
   onSelect: (index: number) => void;
+  /** Parcours affiché (défaut = tour Asterion Motion) — paramétrable pour réutilisation. */
+  steps?: TourStep[];
 }) {
-  const pct = ((current + 1) / ASTERION_TOUR.length) * 100;
+  const pct = ((current + 1) / steps.length) * 100;
   return (
     <div className="w-full" data-testid="demo-progress">
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
@@ -24,12 +27,12 @@ export function DemoProgress({
           role="progressbar"
           aria-valuenow={current + 1}
           aria-valuemin={1}
-          aria-valuemax={ASTERION_TOUR.length}
-          aria-label={`Étape ${current + 1} sur ${ASTERION_TOUR.length}`}
+          aria-valuemax={steps.length}
+          aria-label={`Étape ${current + 1} sur ${steps.length}`}
         />
       </div>
       <ol className="mt-3 flex flex-wrap gap-1.5">
-        {ASTERION_TOUR.map((step, i) => {
+        {steps.map((step, i) => {
           const active = i === current;
           const done = i < current;
           return (

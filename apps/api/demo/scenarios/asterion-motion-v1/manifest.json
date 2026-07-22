@@ -18,7 +18,8 @@
     "iro.json",
     "evidence.json",
     "ai-review.json",
-    "narration.json"
+    "narration.json",
+    "resources.json"
   ],
   "expected_metrics": {
     "motors_per_year": 12000,

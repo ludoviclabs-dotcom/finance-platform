@@ -360,6 +360,307 @@ def _seed_scaffolding(company_id: int, sc: Scenario, report: SeedReport) -> None
 
 
 # --------------------------------------------------------------------------- #
+# Seed MODULE 2 — ressources stratégiques (PR-M2D), tenant-scoped, dans la
+# transaction du cœur. Insère les ENTRÉES synthétiques (catalogue, alias,
+# réglementaire, usages, observations de supply, liens d'exposition) puis calcule
+# l'assessment via le MOTEUR RÉEL (`scoring.assess`) — jamais un chiffre inventé.
+# --------------------------------------------------------------------------- #
+def _ensure_demo_purchase_line(one, cur, company_id: int, created_by: int | None, sc: Scenario) -> int:
+    """Import + ligne d'achat fictifs (silicium) pour ancrer une exposition
+    `link_kind='purchase_line'` RÉELLE (démonstration de l'orchestration D-1)."""
+    sha = _sha(sc.name, "res-purchase-import")
+    row = one("SELECT id FROM purchase_imports WHERE company_id = %s AND sha256 = %s", (company_id, sha))
+    import_id = row["id"] if row else one(
+        """
+        INSERT INTO purchase_imports
+            (company_id, filename, sha256, status, row_count, accepted_count, imported_by)
+        VALUES (%s,%s,%s,'validated',1,1,%s) RETURNING id
+        """,
+        (company_id, "asterion-resources-purchases-2024-demo.csv", sha, created_by),
+    )["id"]
+    row = one(
+        "SELECT id FROM purchase_lines WHERE company_id = %s AND import_id = %s AND category_code = %s",
+        (company_id, import_id, "SI-DEMO"),
+    )
+    if row:
+        return row["id"]
+    return one(
+        """
+        INSERT INTO purchase_lines
+            (company_id, import_id, quantity, unit, spend_amount, currency, category_code,
+             origin_country, purchase_date, mapping_status, raw_row_json)
+        VALUES (%s,%s,%s,'kg',%s,'EUR',%s,%s,%s,'mapped',%s::jsonb) RETURNING id
+        """,
+        (company_id, import_id, 9000, 180000, "SI-DEMO", "CN", "2024-06-01",
+         json.dumps({"demo": True, "material": "silicon-metal"})),
+    )["id"]
+
+
+def _ensure_demo_energy_activity(one, cur, company_id: int, reference_year: int) -> int:
+    """Activité énergie fictive (hydrogène) pour ancrer une exposition
+    `link_kind='energy_activity'` RÉELLE. carrier='other' (H2 n'est pas un porteur
+    Scope 2 standard). Idempotent sur (company_id, meter_id NULL, période, carrier)."""
+    ps, pe = f"{reference_year}-01-01", f"{reference_year}-12-31"
+    row = one(
+        """
+        SELECT id FROM energy_activities
+        WHERE company_id = %s AND meter_id IS NULL AND period_start = %s
+          AND period_end = %s AND carrier = %s
+        """,
+        (company_id, ps, pe, "other"),
+    )
+    if row:
+        return row["id"]
+    return one(
+        """
+        INSERT INTO energy_activities
+            (company_id, carrier, quantity, unit, period_start, period_end, data_status, review_status)
+        VALUES (%s,'other',%s,'MWh',%s,%s,'estimated','accepted') RETURNING id
+        """,
+        (company_id, 1200, ps, pe),
+    )["id"]
+
+
+def _seed_resources(conn, company_id: int, created_by: int | None, sc: Scenario, report: SeedReport) -> None:
+    from datetime import date
+
+    from services.resources import assessment_service, scoring  # dépendance Module 2
+
+    cfg = sc.resources or {}
+    resources = cfg.get("resources") or []
+    if not resources:
+        return  # scénario sans extension ressources (autres scénarios)
+
+    cur = conn.cursor()
+
+    def one(sql: str, params: tuple):
+        cur.execute(sql, params)
+        return cur.fetchone()
+
+    reference_year = int(cfg.get("reference_year", 2024))
+    assessment_year = int(cfg.get("assessment_year", 2025))
+    as_of = date.fromisoformat(str(cfg.get("reference_date", "2026-06-30")))
+
+    # --- Source Evidence Kernel dédiée (synthétique, usage dérivé AUTORISÉ) ---
+    src = cfg.get("source", {})
+    src_code = src.get("code", "ASTERION-RES-INTEL")
+    row = one("SELECT id FROM source_registry WHERE company_id = %s AND code = %s", (company_id, src_code))
+    if row:
+        source_id = row["id"]
+        report.add("res_source", False)
+    else:
+        source_id = one(
+            """
+            INSERT INTO source_registry
+                (company_id, code, publisher, title, source_type,
+                 display_allowed, derived_use_allowed, active, attribution_text, created_by)
+            VALUES (%s,%s,%s,%s,'manual',TRUE,TRUE,TRUE,%s,%s) RETURNING id
+            """,
+            (company_id, src_code, src.get("publisher", "Asterion (fictif)"),
+             src.get("title", "Cartographie ressources (démo)"),
+             "Données de démonstration fictives (synthetic=true)", created_by),
+        )["id"]
+        report.add("res_source", True)
+
+    release_key = src.get("release_key", "2024-annual")
+    checksum = _sha(sc.name, "res-release", release_key)
+    row = one(
+        "SELECT id FROM source_releases WHERE source_id = %s AND release_key = %s AND checksum_sha256 = %s",
+        (source_id, release_key, checksum),
+    )
+    if row:
+        release_id = row["id"]
+        report.add("res_release", False)
+    else:
+        release_id = one(
+            """
+            INSERT INTO source_releases
+                (source_id, company_id, release_key, checksum_sha256, status, published_at, created_by)
+            VALUES (%s,%s,%s,%s,'published', now(), %s) RETURNING id
+            """,
+            (source_id, company_id, release_key, checksum, created_by),
+        )["id"]
+        report.add("res_release", True)
+
+    # --- Parents d'exposition RÉELS (achat + activité énergie) ---
+    purchase_line_id = _ensure_demo_purchase_line(one, cur, company_id, created_by, sc)
+    energy_activity_id = _ensure_demo_energy_activity(one, cur, company_id, reference_year)
+
+    for res in resources:
+        slug = res["slug"]
+        row = one("SELECT id FROM resource_catalog WHERE company_id = %s AND slug = %s", (company_id, slug))
+        if row:
+            rid = row["id"]
+            report.add("resource", False)
+        else:
+            rid = one(
+                """
+                INSERT INTO resource_catalog
+                    (company_id, slug, name, name_fr, primary_family, description,
+                     data_status, source_release_id, created_by)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
+                """,
+                (company_id, slug, res["name"], res.get("name_fr"),
+                 res.get("primary_family", "other"), res.get("description"),
+                 res.get("data_status", "estimated"), release_id, created_by),
+            )["id"]
+            report.add("resource", True)
+
+        for al in res.get("aliases", []):
+            if one("SELECT id FROM resource_aliases WHERE resource_id = %s AND alias_kind = %s AND alias_value = %s",
+                   (rid, al["alias_kind"], al["alias_value"])):
+                report.add("res_alias", False)
+                continue
+            cur.execute(
+                "INSERT INTO resource_aliases (company_id, resource_id, alias_kind, alias_value) VALUES (%s,%s,%s,%s)",
+                (company_id, rid, al["alias_kind"], al["alias_value"]),
+            )
+            report.add("res_alias", True)
+
+        for rg in res.get("regulatory", []):
+            if one(
+                """SELECT id FROM resource_regulatory_statuses WHERE company_id = %s AND resource_id = %s
+                   AND regime = %s AND regulation_ref IS NOT DISTINCT FROM %s""",
+                (company_id, rid, rg["regime"], rg.get("regulation_ref")),
+            ):
+                report.add("res_regulation", False)
+                continue
+            cur.execute(
+                """
+                INSERT INTO resource_regulatory_statuses
+                    (company_id, resource_id, regime, regulation_ref, list_or_annex, listing_status,
+                     validity_note, certainty, verified_on, created_by)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (company_id, rid, rg["regime"], rg.get("regulation_ref"), rg.get("list_or_annex"),
+                 rg["listing_status"], rg.get("validity_note"), rg.get("certainty", "probable"),
+                 rg.get("verified_on"), created_by),
+            )
+            report.add("res_regulation", True)
+
+        for u in res.get("uses", []):
+            if one(
+                """SELECT id FROM resource_sector_uses WHERE company_id = %s AND resource_id = %s
+                   AND sector_code IS NOT DISTINCT FROM %s AND use_label = %s""",
+                (company_id, rid, u.get("sector_code"), u["use_label"]),
+            ):
+                report.add("res_use", False)
+                continue
+            cur.execute(
+                """
+                INSERT INTO resource_sector_uses
+                    (company_id, resource_id, sector_code, use_label, criticality_note,
+                     data_status, source_release_id, created_by)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (company_id, rid, u.get("sector_code"), u["use_label"], u.get("criticality_note"),
+                 u.get("data_status", "manual"), release_id, created_by),
+            )
+            report.add("res_use", True)
+
+        for o in res.get("supply", []):
+            metric = o.get("metric_code", "production")
+            if one(
+                """SELECT id FROM resource_supply_observations WHERE company_id = %s AND resource_id = %s
+                   AND stage_code = %s AND country_code = %s AND reference_year = %s AND metric_code = %s""",
+                (company_id, rid, o["stage_code"], o["country_code"], reference_year, metric),
+            ):
+                report.add("res_supply", False)
+                continue
+            cur.execute(
+                """
+                INSERT INTO resource_supply_observations
+                    (company_id, resource_id, stage_code, country_code, metric_code, share_pct,
+                     reference_year, data_status, source_release_id, methodology_version, observed_at, created_by)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, now(), %s)
+                """,
+                (company_id, rid, o["stage_code"], o["country_code"], metric, o.get("share_pct"),
+                 reference_year, o.get("data_status", "estimated"), release_id, "asterion-supply-map-v1", created_by),
+            )
+            report.add("res_supply", True)
+
+        for xp in res.get("exposures", []):
+            lk = xp["link_kind"]
+            share = xp.get("share_of_supply_pct")
+            if one(
+                """SELECT id FROM company_resource_exposure_links WHERE company_id = %s AND resource_id = %s
+                   AND link_kind = %s AND share_of_supply_pct IS NOT DISTINCT FROM %s""",
+                (company_id, rid, lk, share),
+            ):
+                report.add("res_exposure", False)
+                continue
+            purchase_id = purchase_line_id if lk == "purchase_line" else None
+            energy_id = energy_activity_id if lk == "energy_activity" else None
+            manual_note = xp.get("manual_note", "Exposition de démonstration.") if lk == "manual" else None
+            cur.execute(
+                """
+                INSERT INTO company_resource_exposure_links
+                    (company_id, resource_id, role, link_kind, purchase_line_id, energy_activity_id,
+                     manual_note, annual_mass_kg, annual_spend_eur, share_of_supply_pct,
+                     stock_coverage_days, data_status, notes, created_by)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (company_id, rid, xp["role"], lk, purchase_id, energy_id, manual_note,
+                 xp.get("annual_mass_kg"), xp.get("annual_spend_eur"), share,
+                 xp.get("stock_coverage_days"), xp.get("data_status", "manual"), xp.get("note"), created_by),
+            )
+            report.add("res_exposure", True)
+
+        # --- Assessment RÉEL (moteur pur, même transaction, idempotent par input_hash) ---
+        inputs = assessment_service._gather_inputs(
+            cur, company_id=company_id, resource_id=rid, resource_slug=slug
+        )
+        result = scoring.assess(
+            resource_slug=slug, observation_rows=inputs["observations"],
+            supplier_shares=inputs["supplier_shares"], substitutes=inputs["substitutes"],
+            stock_coverage_days=inputs["stock_days"], as_of=as_of,
+            market_total=inputs["market_total"], market_blocked=inputs["market_blocked"],
+        )
+        existing_run = one(
+            """SELECT id, input_hash FROM resource_assessment_runs
+               WHERE company_id = %s AND resource_id = %s AND assessment_year = %s AND status <> 'superseded'""",
+            (company_id, rid, assessment_year),
+        )
+        if existing_run and existing_run["input_hash"] == result.input_hash:
+            report.add("resource_assessment", False)
+            continue
+        cur.execute(
+            """UPDATE resource_assessment_runs SET status = 'superseded', updated_at = now()
+               WHERE company_id = %s AND resource_id = %s AND assessment_year = %s AND status <> 'superseded'""",
+            (company_id, rid, assessment_year),
+        )
+        run_id = one(
+            """
+            INSERT INTO resource_assessment_runs
+                (company_id, resource_id, assessment_year, status, risk_score, confidence,
+                 coverage_pct, observed_hhi, missing_share_pct, methodology_code, methodology_version,
+                 input_snapshot, input_hash, drivers, warnings, sensitivity, calculated_by)
+            VALUES (%s,%s,%s,'computed',%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
+            """,
+            (company_id, rid, assessment_year, result.risk_score, result.confidence,
+             result.coverage_pct, result.observed_hhi, result.missing_share_pct,
+             result.methodology_code, result.methodology_version,
+             json.dumps({"inputs": inputs, "as_of": as_of.isoformat()}, default=str),
+             result.input_hash, json.dumps(result.drivers, default=str), json.dumps(result.warnings),
+             json.dumps(result.sensitivity, default=str) if result.sensitivity is not None else None,
+             created_by),
+        )["id"]
+        for d in result.dimensions:
+            cur.execute(
+                """
+                INSERT INTO resource_assessment_dimensions
+                    (company_id, run_id, kind, dimension_code, available, risk_value, weight,
+                     contribution, raw_value, raw_unit, stage_code, rationale, detail, source_release_ids)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (company_id, run_id, d.kind, d.dimension_code, d.available, d.risk_value, d.weight,
+                 d.contribution, d.raw_value, d.raw_unit, d.stage_code, d.rationale,
+                 json.dumps(d.detail, default=str), json.dumps(d.source_release_ids)),
+            )
+        report.add("resource_assessment", True)
+
+
+# --------------------------------------------------------------------------- #
 # Entrée
 # --------------------------------------------------------------------------- #
 def run(dry_run: bool, scenario_name: str) -> int:
@@ -372,6 +673,7 @@ def run(dry_run: bool, scenario_name: str) -> int:
 
     if dry_run:
         ev = sc.evidence
+        res = (sc.resources or {}).get("resources") or []
         plan = {
             "company": sc.company.company.legal_name,
             "sources": len(ev.sources) + 1,
@@ -382,6 +684,13 @@ def run(dry_run: bool, scenario_name: str) -> int:
             "claim_links": len(ev.iro_evidence_links),
             "suppliers": len(sc.suppliers),
             "sites": len(sc.company.sites),
+            "resources": len(res),
+            "resource_source": 1,
+            "resource_supply_observations": sum(len(r.get("supply", [])) for r in res),
+            "resource_exposure_links": sum(len(r.get("exposures", [])) for r in res),
+            "resource_regulatory_statuses": sum(len(r.get("regulatory", [])) for r in res),
+            "resource_sector_uses": sum(len(r.get("uses", [])) for r in res),
+            "resource_assessments": len(res),
         }
         print("[dry-run] plan d'insertion (idempotent, aucun écrit) :")
         print(json.dumps(plan, indent=2, ensure_ascii=False))
@@ -406,9 +715,11 @@ def run(dry_run: bool, scenario_name: str) -> int:
             )
 
     report = SeedReport()
-    # Transaction unique : Evidence Kernel + IRO (le cœur de la revue IA).
+    # Transaction unique : Evidence Kernel + IRO (le cœur de la revue IA) + Module 2
+    # (ressources stratégiques : entrées synthétiques + assessment via moteur réel).
     with get_db(company_id=company_id) as conn:
         _seed_core(conn, company_id, created_by, sc, report)
+        _seed_resources(conn, company_id, created_by, sc, report)
 
     # Scaffolding additif (best-effort, transactions séparées).
     _seed_scaffolding(company_id, sc, report)

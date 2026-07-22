@@ -4,12 +4,24 @@
 > **Date : 2026-07-22** · **Branche :** `docs/strategic-resources-architecture` · **Base :** `origin/master` `c29baf3` (PR #125 mergée, schéma `041`).
 
 ```
-STATUS=PR_M2C_IMPLEMENTED
-NEXT_ACTION=extension Asterion (PR-M2D)
+STATUS=PR_M2D_IMPLEMENTED
+NEXT_ACTION=intégration finale
 MIGRATION_042=APPLIQUÉE (PR-M2A mergée #127)
-MIGRATION_043=MERGÉE (PR-M2B #128, master 79c3dbf)
-FRONTEND=PR-M2C ouverte (branche feat/resources-cockpit) — cockpit /resources, NON mergée
+MIGRATION_043=MERGÉE (PR-M2B #128)
+FRONTEND=PR-M2C MERGÉE (#129, master d7d7505) — cockpit /resources
+DEMO=PR-M2D ouverte (branche feat/demo-asterion-strategic-resources) — séquence Asterion ressources, NON mergée
 ```
+
+> **Mise à jour PR-M2D (démo Asterion ressources) :** extension du Demo Studio « Asterion Motion »
+> avec la séquence **« Dépendances industrielles étendues »**. Backend : `resources.json` (5 ressources
+> synthétiques : hélium/xénon/hydrogène/silicium métal/charbon à coke), `demo_seed._seed_resources`
+> (entrées tenant-scoped + assessment via moteur RÉEL, idempotent par input_hash), `demo_reset`/`demo_verify`
+> étendus, tests DB-gated + pur. Frontend : route SŒUR `/demo/asterion-resources` (10 beats rendant les vrais
+> composants `/resources`), `DemoShell` paramétré (rétrocompatible, `/demo/asterion-motion` intact), tests
+> vitest + Playwright. 100 % fictif, ZÉRO migration, ZÉRO appel externe. Vérifs locales : `demo_verify`
+> parité OK, vitest 246/246, `tsc` 0, eslint 0, `next build` OK. Détail : `PR_M2D_DEMO_TRACEABILITY.md`.
+> **NEXT_ACTION = intégration finale.** Post-merge (Ludo) : `demo-scenario action=seed mode=commit` pour une
+> démo « vivante » (schéma prod doit être à 043).
 
 > **Mise à jour PR-M2C (frontend implémenté) :** cockpit Ressources `apps/carbon` — 5 pages
 > (`/resources`, `/resources/[slug]`, `/resources/exposures`, `/resources/assessments`,

@@ -33,9 +33,15 @@ from ._migration_fixtures import apply_ddl_inline, apply_upto  # noqa: E402
 # l'exécute, comme les autres tests DB-gated (test_ai_review_ledger, etc.).
 pytestmark = pytest.mark.skipif(not db_available(), reason="PostgreSQL requis (DB-gated)")
 
-CEILING = "041"
+# 043 : le seed peuple désormais les tables MODULE 2 (ressources) — 042/043 requises.
+CEILING = "043"
 
 _ALL_TENANT_TABLES = (
+    # MODULE 2 (PR-M2D) — enfants -> parents (teardown sous session_replication_role=replica).
+    "resource_assessment_dimensions", "resource_assessment_runs",
+    "company_resource_exposure_links", "purchase_lines", "purchase_imports",
+    "energy_activities", "resource_supply_observations", "resource_sector_uses",
+    "resource_regulatory_statuses", "resource_aliases", "resource_catalog",
     "ai_citations", "ai_claims", "ai_review_decisions", "ai_runs",
     "claim_evidence_links", "observations", "evidence_artifacts",
     "source_releases", "source_registry", "materiality_decisions",
@@ -113,6 +119,71 @@ def test_seed_is_idempotent_and_populates_evidence(clean_demo):
     assert second == first
 
 
+def test_resource_seed_idempotent_scoped_and_stable(clean_demo):
+    """MODULE 2 (PR-M2D) : le seed ressources peuple le tenant démo, est idempotent
+    (re-seed => aucun doublon, run NON recréé car input_hash identique), les valeurs
+    reproduisent le moteur RÉEL (parité), et rien n'est écrit en global."""
+    assert demo_seed.run(dry_run=False, scenario_name="asterion-motion-v1") == 0
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cid = _cid(cur, DEMO_TENANT_SLUG)
+            assert cid is not None
+            first = {
+                t: _count(cur, t, cid)
+                for t in ("resource_catalog", "resource_supply_observations",
+                          "company_resource_exposure_links")
+            }
+            cur.execute(
+                "SELECT count(*) AS n FROM resource_assessment_runs WHERE company_id = %s AND status <> 'superseded'",
+                (cid,),
+            )
+            first_runs = cur.fetchone()["n"]
+            # Toutes NOS ressources sont tenant-scoped : le slug pilote existe pour le
+            # tenant démo, jamais en global (company_id IS NULL).
+            cur.execute("SELECT count(*) AS n FROM resource_catalog WHERE company_id = %s AND slug = 'silicon-metal'", (cid,))
+            assert cur.fetchone()["n"] == 1
+            cur.execute("SELECT count(*) AS n FROM resource_catalog WHERE company_id IS NULL AND slug = 'silicon-metal'")
+            assert cur.fetchone()["n"] == 0
+            # Parité moteur : le run silicium reproduit EXACTEMENT les valeurs canoniques.
+            cur.execute(
+                """SELECT r.risk_score, r.confidence, r.observed_hhi, r.input_hash
+                   FROM resource_assessment_runs r JOIN resource_catalog c ON c.id = r.resource_id
+                   WHERE r.company_id = %s AND c.slug = 'silicon-metal' AND r.status <> 'superseded'""",
+                (cid,),
+            )
+            run = cur.fetchone()
+            assert run is not None
+            assert abs(float(run["risk_score"]) - 70.58) < 0.05
+            assert abs(float(run["confidence"]) - 79.4) < 0.05
+            assert abs(float(run["observed_hhi"]) - 6239.67) < 0.05
+            hash1 = run["input_hash"]
+    assert first["resource_catalog"] == 5
+    assert first["resource_supply_observations"] == 21
+    assert first["company_resource_exposure_links"] == 8
+    assert first_runs == 5
+
+    # Re-seed : idempotent (aucun doublon ; run non recréé car input_hash stable).
+    assert demo_seed.run(dry_run=False, scenario_name="asterion-motion-v1") == 0
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cid = _cid(cur, DEMO_TENANT_SLUG)
+            second = {t: _count(cur, t, cid) for t in first}
+            cur.execute(
+                "SELECT count(*) AS n FROM resource_assessment_runs WHERE company_id = %s AND status <> 'superseded'",
+                (cid,),
+            )
+            second_runs = cur.fetchone()["n"]
+            cur.execute(
+                """SELECT r.input_hash FROM resource_assessment_runs r JOIN resource_catalog c ON c.id = r.resource_id
+                   WHERE r.company_id = %s AND c.slug = 'silicon-metal' AND r.status <> 'superseded'""",
+                (cid,),
+            )
+            hash2 = cur.fetchone()["input_hash"]
+    assert second == first          # aucun doublon d'entrées
+    assert second_runs == first_runs == 5   # aucun run superseded en plus (calcul stable)
+    assert hash2 == hash1           # empreinte figée => reproductibilité
+
+
 def test_seeded_iro_drives_real_ai_review_statuses(clean_demo):
     from services.intelligence.ai import review_service
 
@@ -150,6 +221,12 @@ def test_reset_is_tenant_scoped_and_keeps_shell(clean_demo):
                    VALUES (%s,'IRO réel voisin','risk','manual','candidate')""",
                 (other,),
             )
+            # Ressource MODULE 2 du voisin : NE DOIT PAS être touchée par le reset démo.
+            cur.execute(
+                """INSERT INTO resource_catalog (company_id, slug, name, primary_family, data_status)
+                   VALUES (%s,'neighbor-resource','Neighbor resource','other','manual')""",
+                (other,),
+            )
 
     assert demo_reset.run(dry_run=False, assume_yes=True) == 0
 
@@ -161,8 +238,13 @@ def test_reset_is_tenant_scoped_and_keeps_shell(clean_demo):
             assert _count(cur, "iros", demo_cid) == 0
             assert _count(cur, "evidence_artifacts", demo_cid) == 0
             assert _count(cur, "claim_evidence_links", demo_cid) == 0
-            # Tenant voisin intact.
+            # MODULE 2 : ressources + assessments du tenant démo vidés.
+            assert _count(cur, "resource_catalog", demo_cid) == 0
+            assert _count(cur, "resource_assessment_runs", demo_cid) == 0
+            assert _count(cur, "company_resource_exposure_links", demo_cid) == 0
+            # Tenant voisin intact (IRO ET ressource).
             assert _count(cur, "iros", other) == 1
+            assert _count(cur, "resource_catalog", other) == 1
 
 
 def test_reset_refuses_without_yes(clean_demo):

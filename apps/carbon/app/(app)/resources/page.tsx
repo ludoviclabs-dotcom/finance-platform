@@ -1,18 +1,20 @@
 "use client";
 
 /**
- * Cockpit Ressources — catalogue (Module 2, PR-M2C, BETA).
+ * Cockpit Ressources — catalogue (Module 2, BETA).
  *
- * Consomme `/resources/catalog` + `/resources/alerts`. États loading /
+ * Consomme `/resources/catalog` + `/resources/alerts` (+ `/resources/assessments`
+ * en enrichissement tolérant, pour les jauges de risque). États loading /
  * schema_not_ready / error / empty explicites — jamais de fallback silencieux.
- * Le catalogue mêle ressources globales et tenant ; chaque carte porte le statut
- * de la donnée et l'indication de source. Aucun score opaque ici : le catalogue
- * oriente vers la fiche décomposée.
+ *
+ * Refonte visuelle : bandeau de chiffres-clés (agrégats RÉELS), signaux en
+ * barres honnêtes (score réel + bande), cartes à jauge de risque réelle. Aucune
+ * donnée inventée — pas de tendance ni de sparkline (aucune série n'existe).
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Boxes, FlaskConical, SearchX } from "lucide-react";
+import { Boxes, FlaskConical, SearchX, ShieldAlert, Flame, ShieldCheck } from "lucide-react";
 import { FeatureStatusBadge } from "@/components/ui/feature-status-badge";
 import { ResourceNav } from "@/components/resources/resource-nav";
 import { ResourceDataStatus } from "@/components/resources/resource-data-status";
@@ -21,15 +23,21 @@ import {
   ResourceEmptyState,
   resourcesEmptyStateKind,
 } from "@/components/resources/resource-empty-state";
+import { StatTile } from "@/components/resources/viz/stat-tile";
+import { RadialGauge } from "@/components/resources/viz/radial-gauge";
 import { useIsDemoSession } from "@/lib/hooks/auth-context";
+import { BAND_HEX, riskToneHex, hhiTone, meanOrNull } from "@/lib/resources-viz";
 import {
   ALERT_KIND_LABEL,
   FAMILY_LABEL,
   SEVERITY_TONE,
   SchemaNotReadyError,
   fetchResourceAlerts,
+  fetchResourceAssessments,
   fetchResourceCatalog,
+  riskBand,
   type ResourceAlert,
+  type ResourceAssessmentSummary,
   type ResourceCatalogItem,
   type ResourceFamily,
 } from "@/lib/api/resources";
@@ -50,6 +58,7 @@ export default function ResourcesCatalogPage() {
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<ResourceCatalogItem[]>([]);
   const [alerts, setAlerts] = useState<ResourceAlert[]>([]);
+  const [assessments, setAssessments] = useState<Map<string, ResourceAssessmentSummary>>(new Map());
   const [family, setFamily] = useState<ResourceFamily | "all">("all");
   const [query, setQuery] = useState("");
   const isDemo = useIsDemoSession();
@@ -59,12 +68,16 @@ export default function ResourcesCatalogPage() {
       setState("loading");
       setError(null);
       try {
-        const [catalog, alertList] = await Promise.all([
+        const [catalog, alertList, assessList] = await Promise.all([
           fetchResourceCatalog(fam === "all" ? {} : { family: fam }, signal),
           fetchResourceAlerts(signal),
+          // Enrichissement tolérant : si l'endpoint échoue, les jauges affichent
+          // « n.c. » plutôt que de casser le catalogue.
+          fetchResourceAssessments({ current_only: true }, signal).catch(() => null),
         ]);
         setItems(catalog.items);
         setAlerts(alertList.items);
+        setAssessments(new Map((assessList?.items ?? []).map((a) => [a.resource_slug, a])));
         setState("ready");
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
@@ -108,6 +121,28 @@ export default function ResourcesCatalogPage() {
     query,
     isDemo,
   });
+
+  // Chiffres-clés RÉELS sur la vue courante (respecte les filtres actifs).
+  const hero = useMemo(() => {
+    const visible = filtered
+      .map((i) => assessments.get(i.slug))
+      .filter((a): a is ResourceAssessmentSummary => a !== undefined);
+    const risks = visible
+      .map((a) => a.risk_score)
+      .filter((r): r is number => typeof r === "number");
+    const slugs = new Set(filtered.map((i) => i.slug));
+    const highAlerts = alerts.filter(
+      (a) => (a.severity === "high" || a.severity === "critical") && slugs.has(a.resource_slug),
+    ).length;
+    return {
+      count: filtered.length,
+      highAlerts,
+      maxRisk: risks.length ? Math.max(...risks) : null,
+      avgConfidence: meanOrNull(visible.map((a) => a.confidence)),
+    };
+  }, [filtered, assessments, alerts]);
+
+  const showHero = state === "ready" && items.length > 0 && emptyKind === "grid";
 
   return (
     <div className="mx-auto max-w-6xl p-6">
@@ -158,30 +193,97 @@ export default function ResourcesCatalogPage() {
 
       {state === "ready" && (
         <div data-testid="resources-content">
+          {showHero && (
+            <section
+              className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4"
+              data-testid="resources-hero"
+            >
+              <StatTile
+                testId="resources-hero-count"
+                label="Ressources suivies"
+                value={hero.count}
+                icon={<Boxes className="h-5 w-5" />}
+                accent="var(--color-foreground)"
+              />
+              <StatTile
+                testId="resources-hero-alerts"
+                label="Signaux élevés"
+                value={hero.highAlerts}
+                icon={<ShieldAlert className="h-5 w-5" />}
+                accent={hero.highAlerts > 0 ? BAND_HEX.severe : "var(--color-foreground)"}
+              />
+              <StatTile
+                testId="resources-hero-maxrisk"
+                label="Exposition max"
+                value={hero.maxRisk}
+                decimals={1}
+                icon={<Flame className="h-5 w-5" />}
+                accent={riskToneHex(hero.maxRisk)}
+                context={hero.maxRisk !== null ? riskBand(hero.maxRisk).label : "Non calculé"}
+              />
+              <StatTile
+                testId="resources-hero-confidence"
+                label="Confiance moyenne"
+                value={hero.avgConfidence}
+                suffix=" %"
+                decimals={0}
+                icon={<ShieldCheck className="h-5 w-5" />}
+                accent="var(--color-foreground)"
+                context="Qualité du socle documentaire"
+              />
+            </section>
+          )}
+
           {alerts.length > 0 && (
             <section className="mb-6" data-testid="resources-alerts">
               <h2 className="mb-2 text-lg font-semibold text-[var(--color-foreground)]">Signaux</h2>
-              <ul className="space-y-1">
-                {alerts.map((a, i) => (
-                  <li
-                    key={`${a.kind}-${a.resource_slug}-${i}`}
-                    className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm"
-                  >
-                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${SEVERITY_TONE[a.severity]}`}>
-                      {a.severity}
-                    </span>
-                    <span className="font-medium text-[var(--color-foreground)]">
-                      {ALERT_KIND_LABEL[a.kind]}
-                    </span>
-                    <Link
-                      href={`/resources/${encodeURIComponent(a.resource_slug)}`}
-                      className="font-mono text-xs text-[var(--color-muted-foreground)] hover:underline"
+              <ul className="space-y-2">
+                {alerts.map((a, i) => {
+                  const risk = assessments.get(a.resource_slug)?.risk_score ?? null;
+                  const band = riskBand(risk);
+                  return (
+                    <li
+                      key={`${a.kind}-${a.resource_slug}-${i}`}
+                      className="rounded-lg border border-[var(--color-border)] px-3 py-2.5"
+                      data-testid={`resources-signal-${a.resource_slug}`}
                     >
-                      {a.resource_slug}
-                    </Link>
-                    <span className="text-[var(--color-muted-foreground)]">— {a.message}</span>
-                  </li>
-                ))}
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${SEVERITY_TONE[a.severity]}`}
+                        >
+                          {a.severity}
+                        </span>
+                        <span className="font-medium text-[var(--color-foreground)]">
+                          {ALERT_KIND_LABEL[a.kind]}
+                        </span>
+                        <Link
+                          href={`/resources/${encodeURIComponent(a.resource_slug)}`}
+                          className="font-mono text-xs text-[var(--color-muted-foreground)] hover:underline"
+                        >
+                          {a.resource_slug}
+                        </Link>
+                        <span className="text-[var(--color-muted-foreground)]">— {a.message}</span>
+                      </div>
+                      {risk !== null && (
+                        <div className="mt-2 flex items-center gap-3">
+                          <div
+                            className="relative h-2 flex-1 overflow-hidden rounded-full bg-[var(--color-surface-raised)]"
+                            role="img"
+                            aria-label={`Exposition ${Math.round(risk)} sur 100 — ${band.label}`}
+                          >
+                            <div
+                              className="h-full rounded-full"
+                              style={{ width: `${Math.min(100, risk)}%`, background: riskToneHex(risk), transition: "width .5s ease" }}
+                            />
+                          </div>
+                          <span className="w-24 shrink-0 text-right text-xs tabular-nums text-[var(--color-muted-foreground)]">
+                            {Math.round(risk)}/100 · {band.label}
+                          </span>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           )}
@@ -268,33 +370,66 @@ export default function ResourcesCatalogPage() {
             />
           ) : (
             <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="resources-grid">
-              {filtered.map((r) => (
-                <li key={r.id}>
-                  <Link
-                    href={`/resources/${encodeURIComponent(r.slug)}`}
-                    data-testid={`resource-card-${r.slug}`}
-                    className="block h-full rounded-xl border border-[var(--color-border)] p-4 transition hover:border-emerald-500/50"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="font-semibold text-[var(--color-foreground)]">
-                        {r.name_fr ?? r.name}
-                      </span>
-                      <ResourceDataStatus status={r.data_status} />
-                    </div>
-                    <p className="mt-1 font-mono text-xs text-[var(--color-muted-foreground)]">{r.slug}</p>
-                    <div className="mt-2 flex items-center justify-between text-xs">
-                      <span className="rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[var(--color-muted-foreground)]">
-                        {FAMILY_LABEL[r.primary_family]}
-                      </span>
-                      <span
-                        className={r.has_source ? "text-emerald-600 dark:text-emerald-400" : "text-[var(--color-muted-foreground)]"}
-                      >
-                        {r.has_source ? "● sourcé" : "○ non sourcé"}
-                      </span>
-                    </div>
-                  </Link>
-                </li>
-              ))}
+              {filtered.map((r) => {
+                const assess = assessments.get(r.slug);
+                const risk = assess?.risk_score ?? null;
+                const band = riskBand(risk);
+                const hhi = assess?.observed_hhi ?? null;
+                return (
+                  <li key={r.id}>
+                    <Link
+                      href={`/resources/${encodeURIComponent(r.slug)}`}
+                      data-testid={`resource-card-${r.slug}`}
+                      className="flex h-full flex-col rounded-xl border border-[var(--color-border)] p-4 transition-all hover:-translate-y-0.5 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <span className="block font-semibold text-[var(--color-foreground)]">
+                            {r.name_fr ?? r.name}
+                          </span>
+                          <p className="mt-0.5 font-mono text-xs text-[var(--color-muted-foreground)]">{r.slug}</p>
+                        </div>
+                        <RadialGauge
+                          value={risk}
+                          size={54}
+                          stroke={5}
+                          color={riskToneHex(risk)}
+                          bandLabel={band.label}
+                          ariaTitle={`Exposition ${r.name_fr ?? r.name}`}
+                          testId={`resource-gauge-${r.slug}`}
+                        />
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+                        <span className="rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[var(--color-muted-foreground)]">
+                          {FAMILY_LABEL[r.primary_family]}
+                        </span>
+                        <span
+                          className="rounded-full px-2 py-0.5 font-medium"
+                          style={{ color: riskToneHex(risk), background: `${riskToneHex(risk)}1f` }}
+                        >
+                          {band.label}
+                        </span>
+                        {hhi !== null && (
+                          <span
+                            className="rounded-full px-2 py-0.5"
+                            style={{ color: BAND_HEX[hhiTone(hhi)], background: `${BAND_HEX[hhiTone(hhi)]}1f` }}
+                          >
+                            HHI {Math.round(hhi)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-3 flex items-center justify-between border-t border-[var(--color-border)] pt-2 text-xs">
+                        <ResourceDataStatus status={r.data_status} />
+                        <span
+                          className={r.has_source ? "text-emerald-600 dark:text-emerald-400" : "text-[var(--color-muted-foreground)]"}
+                        >
+                          {r.has_source ? "● sourcé" : "○ non sourcé"}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

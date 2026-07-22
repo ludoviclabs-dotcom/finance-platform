@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import { FeatureStatusBadge } from "@/components/ui/feature-status-badge";
 import { ResourceNav } from "@/components/resources/resource-nav";
 import { AssessmentSummaryTable } from "@/components/resources/assessment-summary-table";
+import { ResourceRiskComparison } from "@/components/resources/resource-risk-comparison";
 import { MethodologyDisclaimer } from "@/components/resources/methodology-disclaimer";
 import {
   SchemaNotReadyError,
@@ -104,6 +105,8 @@ export default function ResourceAssessmentsPage() {
             />
             Runs courants uniquement (masquer l&apos;historique remplacé)
           </label>
+
+          {currentOnly && <ResourceRiskComparison runs={runs} />}
 
           <AssessmentSummaryTable runs={runs} />
 

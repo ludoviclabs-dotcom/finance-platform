@@ -27,7 +27,8 @@
 
 ### B.1 HHI (indice de Herfindahl-Hirschman)
 - **Formule.** `H = Σ_i s_i²`. Deux échelles : fractionnaire (`s_i` somment à 1 → `H ∈ [1/n, 1]`) ; points de % (DOJ/FTC, `S_i ∈ 0–100 → H ∈ [10000/n, 10000]`). `H_pct = 10000·H_frac`.
-- **Choix du code.** `hhi_pct = Σ (s_i/observed_total)² × 100` → échelle **0–100** (code = DOJ ÷ 100 : un pays→100 ; quatre égaux→25). **VALIDÉ.**
+- **Choix du code (CRMA existant).** `hhi_pct = Σ (s_i/observed_total)² × 100` → échelle **0–100** (code = DOJ ÷ 100 : un pays→100 ; quatre égaux→25). **VALIDÉ.**
+- **Décision MODULE 2 (arch. Phase 2, `MODULE2_TEST_STRATEGY.md` §6).** MODULE 2 adopte l'**échelle canonique DOJ 0–10000** (monopole = 10000 ; quatre parts égales = 2500) pour la valeur **brute** affichée/stockée (`raw_unit='HHI'`), ce qui lève le libellé impropre « HHI % ». Réconciliation avec `scoring.py` sans régression : paramétrer `herfindahl_pct(shares, scale=10000)` — **défaut `scale=100` inchangé pour CRMA** ; la contribution au composite reste en 0–100 via `risk_value = HHI/100`, donc la pondération est identique. Ceci **résout** l'item ouvert §D-2 (échelle) pour MODULE 2.
 - **Unités.** Indice sans dimension. Compagnon utile : **nombre effectif de pays sources `N_eff = 1/Σs_i² = 100/hhi_pct`**.
 - **Conditions de validité.** `observed_total_pct` élevé (≳70–80 %), `country_count` réel, étape = vrai marché global (extraction, séparation, raffinage).
 - **Hypothèses.** Renormaliser au total observé suppose que le **reste non observé a la même concentration** ; ne mesure que la concentration **géographique**.
@@ -131,7 +132,7 @@ Trois sens distincts — ne pas laisser un mot les confondre :
 ## D. Décisions méthodologiques — statut après arbitrage Ludo (→ `MODULE2_DECISIONS.md` §2)
 
 1. **~~Risque-pays~~ → RÉSOLU (D-3).** MVP = garder `third_country_dependency` binaire UE/hors-UE, renommé honnêtement, aucun poids inventé. v2 = WGI (ou restriction commerciale) via Evidence Kernel, **gated** sur licence confirmée + `source_release` + confiance séparée — non implémenté tant que ces conditions ne sont pas réunies. Voir B.4.
-2. **Échelle/seuils/garde de couverture HHI (encore ouvert).** Confirmer l'échelle 0–100 et relabelliser « HHI % » ; décider d'exposer les bandes DOJ via ÷100 (15/18/25) et `N_eff` ; poser une **garde de couverture minimale** ; envisager la bande de couverture. **Non adressé par l'arbitrage** — à trancher en architecture.
+2. **Échelle HHI → TRANCHÉE (Phase 2).** MODULE 2 adopte l'échelle canonique **DOJ 0–10000** (valeur brute), CRMA garde 0–100 par défaut de `herfindahl_pct` — cf. §B.1 et `MODULE2_TEST_STRATEGY.md` §6. **Restent ouverts** (implémentation) : exposer ou non les libellés de bande DOJ et `N_eff` ; poser la **garde de couverture minimale** ; publier la bande de couverture `[Σp², Σp²+(1−T)²]`.
 3. **~~Périmètre des intensités~~ → RÉSOLU (D-4).** Carbone = affichage/lien depuis moteurs existants (Scope 2/3, PCF, Energy, Procurement) seulement, jamais calculé par MODULE 2. Nouvelles intensités **ressources** autorisées (m³/unité, kg/unité, tonne/produit, kg/M€, kg/heure) si dénominateur documenté. Voir B.7.
 4. **Analyse de sensibilité (REQUISE — encore à spécifier).** Fixer δ, décider la surface de sortie (tornado + bande + inversion de rang), et si la bande est persistée dans le JSON d'évaluation. **Non adressé par l'arbitrage** (O-5) — à spécifier en architecture.
 5. **Poids de confiance (encore ouvert).** Justifier/calibrer ou documenter comme jugement ; corriger la non-indépendance `stage_coverage`/`component_coverage` ; élargir la fraîcheur ; résoudre le défaut `license_access`. **Non adressé par l'arbitrage.**

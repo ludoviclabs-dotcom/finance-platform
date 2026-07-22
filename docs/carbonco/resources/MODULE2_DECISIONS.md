@@ -128,9 +128,24 @@ Les facteurs carbone futurs (crosswalk `material_id→ef_code`) devront passer p
 
 ---
 
-## 3. Décisions encore ouvertes (reste à trancher en phase d'architecture)
+## 2 bis. Décisions d'architecture (Phase 2 — docs-only)
 
-> Les six questions bloquantes du cadrage (Q-1 à Q-6 / O-1 à O-4, O-6, O-7) sont **résolues par D-1 à D-6 ci-dessus**. Ne restent ouvertes que des paramètres d'implémentation, non bloquants pour démarrer l'architecture.
+L'architecture définitive de D-1 à D-6 est figée dans cinq documents : `MODULE2_DATA_MODEL.md`, `MODULE2_API_CONTRACTS.md`, `MODULE2_RLS_AND_SECURITY.md`, `MODULE2_TEST_STRATEGY.md`, `MODULE2_IMPLEMENTATION_PLAN.md`. Décisions dérivées actées :
+
+| # | Décision | Fondement |
+|---|---|---|
+| **A-1** | **Migrations réservées : 042 (fondation catalogue), 043 (expositions & assessments)** — vérifié contre `apps/api/db/migrations/` (dernière = 041) + `migration_manifest.py`, pas supposé. **Non créées** dans cette phase. | `MODULE2_DATA_MODEL.md` §2/§3 |
+| **A-2** | **Assessments = modèle « run » immuable** (`resource_assessment_runs` + `resource_assessment_dimensions`, trigger d'immuabilité, supersession), motif `scope2_calculation_runs` 033 — pas le modèle mutable de `crma_article24_assessments`. | `MODULE2_DATA_MODEL.md` §3.C/§3.D |
+| **A-3** | **HHI sur échelle canonique DOJ 0–10000** pour MODULE 2 (monopole=10000, quatre égales=2500). Réconciliation `scoring.py` : `herfindahl_pct(scale=…)`, défaut 100 CRMA inchangé (zéro régression). **Résout l'item ouvert §D-2 méthodologie.** | `MODULE2_TEST_STRATEGY.md` §6, `METHODOLOGY_AND_ALGORITHMS.md` §B.1 |
+| **A-4** | **Pont d'exposition polymorphe** `company_resource_exposure_links` (FK nullables vers `bom_items`/`purchase_lines`/`energy_activities`/`water_activities`/`supplier_metric_declarations` + manuel), CHECK « exactement une cible cohérente », anti-IDOR applicatif. **D-4** : ne stocke ni ne recalcule aucun carbone. | `MODULE2_DATA_MODEL.md` §3.B |
+| **A-5** | **Élargissement `iros_origin_domain_check`** (DROP+ADD même nom, +`strategic_resources`) en 043 ; sonde par **contenu** (`_constraint_definition_contains`), précédent `audit_eventtype_check` 040/041. | `MODULE2_DATA_MODEL.md` §3.E, `MODULE2_TEST_STRATEGY.md` §2 |
+| **A-6** | **Provenance par composante** : `resource_assessment_dimensions.source_release_ids` — comble le gap méthodologie §B.5. | `MODULE2_DATA_MODEL.md` §3.D |
+
+---
+
+## 3. Décisions encore ouvertes (reste à trancher en phase d'implémentation)
+
+> Les six questions bloquantes du cadrage (Q-1 à Q-6 / O-1 à O-4, O-6, O-7) sont **résolues par D-1 à D-6**, et l'architecture est figée (§2 bis). Ne restent ouverts que des paramètres d'implémentation, non bloquants pour démarrer **PR-M2A**.
 
 | # | Question | Statut |
 |---|---|---|
@@ -141,7 +156,7 @@ Les facteurs carbone futurs (crosswalk `material_id→ef_code`) devront passer p
 | **O-5** | Analyse de sensibilité : fixer δ, surface de sortie (tornado + bande + inversion de rang), persistance de la bande ? | **Ouvert** — à spécifier en architecture (`METHODOLOGY_AND_ALGORITHMS.md` §B.8). |
 | ~~O-6~~ | Lignée IRO : `crma` ou `strategic_resources` ? | **RÉSOLU → D-5** (les deux, selon règle de routage) |
 | ~~O-7~~ | Vocabulaires d'étapes par famille, DB-driven ? | **RÉSOLU → D-6** (`processing_stages` étendu + `resource_stage_families`) |
-| **O-8** | Nom du module/score : étendre `CC-MATERIAL-EXPOSURE` ou verser un nouveau code ? | **Ouvert, mineur** — à trancher en architecture ; garder la séparation frontend illustratif (`CC-SUPPLY-RISK-0.1`) / backend auditable. |
+| **O-8** | Nom du module/score : étendre `CC-MATERIAL-EXPOSURE` ou verser un nouveau code ? | **Proposition retenue à confirmer en PR-M2B** : `methodology_code='CC-RESOURCE-EXPOSURE' 0.1.0` (colonne, pas enum figé), distinct du frontend illustratif `CC-SUPPLY-RISK-0.1` et du backend CRMA `CC-MATERIAL-EXPOSURE`. |
 | **O-9** | ESRS simplifiés en attente (acte délégué non adopté) — ne pas figer les champs d'information réglementaire avant adoption. | **Ouvert — dépendance externe réelle** (source non encore publiée) ; seul item de ce tableau relevant d'un manque de source, pas d'un choix. |
 | **O-10** | `license_policy.evaluate()` dérive `allow_derived_use = active AND derived_use_allowed` **sans** `commercial_use_allowed` (ce dernier ne produit qu'un *warning*). Les sources à réserve commerciale **conditionnelle** (FAOSTAT ; sous-ensembles Eurostat pays hors UE / CH-AT) ne peuvent donc PAS être onboardées en `derived_use_allowed=true` sans autoriser un calcul dérivé commercial interdit. | **Ouvert — sécurité licence** (surfacé par revue Codex sur PR #125). **Défaut sûr = `derived_use_allowed=false`** sur le sous-ensemble à réserve, tant que le modèle de licence n'est pas étendu pour bloquer l'usage dérivé en contexte commercial quand `commercial_use_allowed=false` (ou scoper l'ingestion au sous-ensemble sans réserve). Cf. `DATA_SOURCE_AND_LICENSE_MATRIX.md` §6. |
 

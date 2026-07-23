@@ -1,0 +1,10 @@
+project: carbonco-water-intelligence
+active_prompt: P00
+status: not_started
+default_branch: master
+private_cockpit_route: /water
+public_intelligence_route: /water-intelligence
+last_merged_prompt: null
+next_prompt: P01
+migrations_expected: false
+blocking_issues: []

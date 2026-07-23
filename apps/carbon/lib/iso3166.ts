@@ -82,3 +82,35 @@ export function iso3166Alpha2ToNumeric(code: string | null | undefined): string 
 export function normalizeIsoNumeric(id: string | number | null | undefined): string {
   return String(id ?? "").trim().padStart(3, "0");
 }
+
+/**
+ * Noms FR des pays susceptibles d'apparaître dans les observations d'offre
+ * (producteurs de matières critiques, gaz industriels et combustibles). Couvre
+ * l'usage réel, pas la norme entière : un code absent est rendu TEL QUEL
+ * (jamais un nom inventé ni un pays masqué).
+ */
+const COUNTRY_NAME_FR: Readonly<Record<string, string>> = {
+  AE: "Émirats arabes unis", AO: "Angola", AR: "Argentine", AU: "Australie",
+  BE: "Belgique", BO: "Bolivie", BR: "Brésil", CA: "Canada", CD: "RD Congo",
+  CL: "Chili", CN: "Chine", CO: "Colombie", CZ: "Tchéquie", DE: "Allemagne",
+  DZ: "Algérie", EG: "Égypte", ES: "Espagne", FI: "Finlande", FR: "France",
+  GA: "Gabon", GB: "Royaume-Uni", GN: "Guinée", ID: "Indonésie", IN: "Inde",
+  IR: "Iran", IT: "Italie", JP: "Japon", KZ: "Kazakhstan", LA: "Laos",
+  MA: "Maroc", MG: "Madagascar", MM: "Myanmar", MN: "Mongolie", MX: "Mexique",
+  MY: "Malaisie", MZ: "Mozambique", NA: "Namibie", NG: "Nigéria", NL: "Pays-Bas",
+  NO: "Norvège", PE: "Pérou", PH: "Philippines", PL: "Pologne", QA: "Qatar",
+  RU: "Russie", SA: "Arabie saoudite", SE: "Suède", TH: "Thaïlande",
+  TR: "Turquie", UA: "Ukraine", US: "États-Unis", UZ: "Ouzbékistan",
+  VN: "Viêt Nam", ZA: "Afrique du Sud", ZM: "Zambie", ZW: "Zimbabwe",
+  KR: "Corée du Sud", TW: "Taïwan", RS: "Serbie", TJ: "Tadjikistan",
+};
+
+/**
+ * Libellé lisible d'un code pays alpha-2. Repli EXPLICITE sur le code normalisé
+ * si le pays n'est pas dans la table — un code inconnu reste visible, il n'est
+ * jamais remplacé par un nom approximatif.
+ */
+export function countryLabelFr(code: string): string {
+  const key = String(code ?? "").trim().toUpperCase();
+  return COUNTRY_NAME_FR[key] ?? key;
+}

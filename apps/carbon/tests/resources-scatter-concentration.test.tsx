@@ -107,16 +107,20 @@ describe("RiskConfidenceScatter", () => {
     expect(renderToStaticMarkup(<RiskConfidenceScatter runs={[]} namesBySlug={new Map()} />)).toBe("");
   });
 
-  it("ne dessine aucune zone de danger a seuil code en dur", () => {
-    // Le seuil 66.0 n'existe que dans du texte libre backend — jamais parse ici.
+  it("trace les reperes sur les bornes de bandes typees, jamais sur le seuil d alerte non type", () => {
     const html = renderToStaticMarkup(
       <RiskConfidenceScatter
         runs={[run({ resource_slug: "xenon", risk_score: 66.67, confidence: 75 })]}
         namesBySlug={new Map()}
       />,
     );
+    // Le seuil d alerte « 66.0 » n existe que dans du texte libre backend :
+    // il ne doit jamais etre code en dur dans la geometrie du graphique.
     expect(html).not.toContain("66.0");
-    expect(html).not.toContain("risque élevé");
+    // En revanche les bornes de bandes reelles (riskBand 75 / confidenceBand 70)
+    // servent bien de reperes de lecture.
+    expect(html).toContain("risque élevé · confiance à renforcer");
+    expect(html).toContain("stroke-dasharray");
   });
 });
 
@@ -125,7 +129,7 @@ describe("RiskConfidenceScatter", () => {
 // ---------------------------------------------------------------------------
 
 describe("AggregateConcentrationPanel", () => {
-  it("rend les barres classées et le HHI moyen réel", () => {
+  it("rend les barres classées, les noms FR et le HHI moyen réel", () => {
     const html = renderToStaticMarkup(
       <AggregateConcentrationPanel
         shares={[{ countryCode: "CN", sharePct: 41.2 }, { countryCode: "US", sharePct: 15.3 }]}
@@ -134,9 +138,24 @@ describe("AggregateConcentrationPanel", () => {
       />,
     );
     expect(html).toContain('data-testid="agg"');
-    expect(html).toContain("CN");
+    expect(html).toContain("Chine");
+    expect(html).toContain("États-Unis");
     expect(html).toContain("41 %");
     expect(html).toContain("3947");
+  });
+
+  it("un code pays inconnu reste visible tel quel, jamais renomme arbitrairement", () => {
+    const html = renderToStaticMarkup(
+      <AggregateConcentrationPanel shares={[{ countryCode: "ZZ", sharePct: 100 }]} avgHhi={null} />,
+    );
+    expect(html).toContain("ZZ");
+  });
+
+  it("le bucket Autres n est pas traite comme un code pays", () => {
+    const html = renderToStaticMarkup(
+      <AggregateConcentrationPanel shares={[{ countryCode: "Autres", sharePct: 20 }]} avgHhi={null} />,
+    );
+    expect(html).toContain("Autres");
   });
 
   it("masque la note HHI si aucune moyenne n est calculable", () => {

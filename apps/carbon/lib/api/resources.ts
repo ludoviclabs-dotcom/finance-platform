@@ -546,6 +546,54 @@ export function fetchResourceAlerts(
 }
 
 // ---------------------------------------------------------------------------
+// Sélection du run courant — PUR
+// ---------------------------------------------------------------------------
+
+/**
+ * `current_only=true` n'exclut que les runs *superseded* pour un couple
+ * (ressource, année) : une ressource évaluée sur PLUSIEURS années renvoie donc
+ * plusieurs runs non-superseded. Cette fonction tranche explicitement, sans
+ * jamais dépendre de l'ordre de l'API.
+ *
+ * Le run « le plus récent » est défini ainsi, dans cet ordre :
+ *   1. `assessment_year` décroissant ;
+ *   2. puis `calculated_at` décroissant (horodatage absent/illisible = le plus
+ *      ancien — jamais gagnant par défaut) ;
+ *   3. puis `run_id` décroissant, départage stable et déterministe.
+ */
+function isMoreRecentRun(
+  candidate: ResourceAssessmentSummary,
+  incumbent: ResourceAssessmentSummary,
+): boolean {
+  if (candidate.assessment_year !== incumbent.assessment_year) {
+    return candidate.assessment_year > incumbent.assessment_year;
+  }
+  const tsCandidate = Date.parse(candidate.calculated_at ?? "");
+  const tsIncumbent = Date.parse(incumbent.calculated_at ?? "");
+  const a = Number.isFinite(tsCandidate) ? tsCandidate : Number.NEGATIVE_INFINITY;
+  const b = Number.isFinite(tsIncumbent) ? tsIncumbent : Number.NEGATIVE_INFINITY;
+  if (a !== b) return a > b;
+  return candidate.run_id > incumbent.run_id;
+}
+
+/**
+ * Réduit une liste de runs à AU PLUS UN run par `resource_slug` : le plus récent
+ * au sens de `isMoreRecentRun`. Source unique pour le bandeau de KPI, les cartes
+ * du catalogue, les barres de signaux et la comparaison des expositions — aucun
+ * ancien run ne peut donc écraser le plus récent.
+ */
+export function selectLatestAssessmentPerResource(
+  runs: ResourceAssessmentSummary[],
+): Map<string, ResourceAssessmentSummary> {
+  const latest = new Map<string, ResourceAssessmentSummary>();
+  for (const run of runs) {
+    const incumbent = latest.get(run.resource_slug);
+    if (!incumbent || isMoreRecentRun(run, incumbent)) latest.set(run.resource_slug, run);
+  }
+  return latest;
+}
+
+// ---------------------------------------------------------------------------
 // Présentation — libellés FR (jamais codés en dur dans les composants)
 // ---------------------------------------------------------------------------
 

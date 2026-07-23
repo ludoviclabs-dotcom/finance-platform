@@ -1,6 +1,6 @@
-> **Mission active — P02 uniquement. Ne pas lancer P03.**
+> **Mission active — P03 uniquement. Ne pas lancer P04.**
 
-# P02 — Contrats du read model public et budgets
+# P03 — Pipeline opérateur générique hors runtime
 
 
 ## En-tête invariant à placer au début de chaque mission
@@ -25,51 +25,56 @@ Règles absolues :
 
 ## Mission spécifique
 
-**Branche :** `feat/water-intelligence-p02-contracts`
+**Branche :** `feat/water-intelligence-p03-ingestion-pipeline`
 
 ### Objectif
 
-Définir les contrats Python et TypeScript du module public, sans migration et sans UI complète.
+Construire l’ossature d’ingestion réutilisable autour du `SourceAdapter` et de l’Evidence Kernel, uniquement avec des fixtures locales.
 
 ### Tâches
 
-1. Inspecter `models/analytics.py`, `models/water.py`, `lib/api/water.ts`, les modèles Intelligence et les badges existants.
-2. Créer des contrats miroir pour :
-   - `WaterIntelligenceManifest`
-   - `WaterMetricObservation`
-   - `WaterGeoLayerDescriptor`
-   - `WaterSourceReference`
-   - `WaterLicenseDecision`
-   - `WaterQualityMetadata`
-   - `WaterScenario`
-   - `WaterGeographyRef`
-   - `WaterEditorialRecord`
-   - `WaterLegalRecord`
-3. Garantir par les types :
-   - risque et confiance séparés ;
-   - valeur absente distincte de zéro ;
-   - période et géographie obligatoires ;
-   - source/release obligatoires pour une donnée publiée ;
-   - licence d’affichage explicite ;
-   - méthode et version explicites ;
-   - statut `observed`, `modelled`, `estimated`, `manual`, `fixture`.
-4. Ajouter un mini manifest de fixture clairement étiqueté.
-5. Ajouter des validateurs Zod côté frontend et Pydantic côté API.
-6. Ajouter un test de compatibilité contractuelle entre la fixture Python et TypeScript.
-7. Documenter les budgets de payload et les niveaux de zoom.
+1. Réutiliser le contrat `detect_releases → fetch_release → parse → normalize`.
+2. Ajouter une couche d’orchestration eau :
+   - plan ;
+   - fetch ;
+   - parse ;
+   - normalize ;
+   - derive ;
+   - validate ;
+   - publish.
+3. Séparer strictement :
+   - adaptateur de source ;
+   - normalisation ;
+   - dérivation ;
+   - écriture Evidence Kernel ;
+   - construction du snapshot public.
+4. Ajouter une CLI opérateur, jamais appelée par une route HTTP.
+5. Ajouter :
+   - checksum ;
+   - idempotence ;
+   - reprise ;
+   - rapport de parité ;
+   - dry-run ;
+   - journal machine-readable ;
+   - refus de publication si licence ou validation bloquent.
+6. Introduire une interface de transport HTTP injectable, mais uniquement un faux transport dans cette PR.
+7. Fixer les bornes : nombre de pages, volume brut, durée, fenêtre temporelle et fréquence.
+8. Ajouter des fixtures minimales et des tests de reprise, duplication, corruption, licence bloquée et donnée absente.
 
 ### Interdictions
 
-- aucune table ;
-- aucun endpoint public ;
-- aucune donnée réelle ;
-- aucun score composite ;
-- aucun package nouveau.
+- aucun connecteur réel ;
+- aucun secret ;
+- aucun cron ;
+- aucun endpoint d’écriture utilisateur ;
+- aucune migration sauf preuve préalable d’un manque et PR séparée ;
+- aucun LLM.
 
 ### Critères d’acceptation
 
-- un manifest invalide est refusé avec une erreur lisible ;
-- un record sans release ou avec `display_allowed=false` ne peut pas être publié ;
-- une valeur `null` ne devient jamais `0` ;
-- schémas versionnés ;
-- tests backend et frontend verts.
+- mêmes octets → même release et même snapshot ;
+- second passage → zéro doublon ;
+- échec partiel → pas de release publiée ;
+- logs sans secret ;
+- dry-run sans écriture ;
+- tests entièrement hors réseau.

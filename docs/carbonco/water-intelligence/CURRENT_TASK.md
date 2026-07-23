@@ -1,6 +1,6 @@
-> **Mission active — ne pas exécuter les prompts suivants**
+> **Mission active — P01 uniquement. Ne pas lancer P02.**
 
-# P00 — Audit immuable et ADR de frontière
+# P01 — Normalisation du catalogue de sources fourni
 
 
 ## En-tête invariant à placer au début de chaque mission
@@ -25,50 +25,57 @@ Règles absolues :
 
 ## Mission spécifique
 
-**Branche :** `docs/water-intelligence-p00-baseline`
-
-Travail documentaire uniquement. Ne modifie aucun code applicatif, package, migration ou configuration Vercel.
+**Branche :** `feat/water-intelligence-p01-source-catalog`
 
 ### Objectif
 
-Établir la vérité du dépôt avant toute implémentation et figer les frontières entre le cockpit eau existant et le nouveau module public.
+Transformer le CSV opérateur en un catalogue versionné et validé, sans télécharger de données et sans enregistrer encore de release réelle.
 
-### Inspection obligatoire
+### Entrée
 
-- route existante `apps/carbon/app/(app)/water/page.tsx` ;
-- client `apps/carbon/lib/api/water.ts` ;
-- modèles, routes, services et migrations eau dans `apps/api` ;
-- Evidence Kernel et Source Admin ;
-- `/materials`, `/resources`, `/iro`, `/materialite` ;
-- configuration de navigation, authentification, CSP, feature status ;
-- workflows frontend/API/migrations ;
-- projet et dernières Preview/Production Vercel ;
-- CSV de sources fourni par l’opérateur.
+Le CSV contient les portails Eaufrance, HydroPortail, ADES, SIGES, InfoTerre, Naïades, SANDRE, BNPE, SISPEA, Sextant, data.gouv/SIE et Géoportail/Géorisques.
 
-### Livrables
+### Tâches
 
-Créer uniquement :
+1. Définir un schéma de catalogue distinct d’une observation :
+   - `source_code`
+   - `portal_name`
+   - `theme`
+   - `geographic_scope`
+   - `source_role`
+   - `connector_candidate`
+   - `access_mode`
+   - `official_domain`
+   - `priority`
+   - `planned_prompt`
+   - `notes`
+2. Ajouter un parseur pur et déterministe du CSV.
+3. Normaliser les espaces, accents et codes, sans corriger silencieusement un contenu ambigu.
+4. Produire un fichier normalisé et un rapport de validation.
+5. Distinguer :
+   - portail de découverte ;
+   - référentiel ;
+   - API ;
+   - service OGC ;
+   - téléchargement de release ;
+   - donnée contextuelle non ingérée.
+6. Ne créer aucune ligne factuelle dans `source_registry` à ce stade.
+7. Ajouter des tests avec le CSV complet et des cas invalides.
 
-- `docs/carbonco/water-intelligence/00_BASELINE_AUDIT.md`
-- `docs/carbonco/water-intelligence/01_ADR_SURFACES_AND_ROUTES.md`
-- `docs/carbonco/water-intelligence/02_CURRENT_CAPABILITIES_MATRIX.md`
-- `docs/carbonco/water-intelligence/03_RISKS_AND_STOP_CONDITIONS.md`
+### Interdictions
 
-L’ADR doit retenir par défaut :
-
-- `/water` = cockpit authentifié existant, inchangé ;
-- `/water-intelligence` = module public ;
-- aucune donnée tenant dans la surface publique ;
-- aucun appel externe au runtime ;
-- réutilisation de l’Evidence Kernel ;
-- aucune migration tant qu’un manque concret de schéma n’est pas démontré.
+- aucun appel réseau ;
+- aucune URL devinée ;
+- aucun statut de licence supposé ;
+- aucune migration ;
+- aucun seed automatique de production ;
+- aucune donnée métier.
 
 ### Critères d’acceptation
 
-- carte exacte des routes et groupes Next.js ;
-- liste des tables et invariants déjà présents ;
-- liste des composants réutilisables ;
-- liste des collisions potentielles ;
-- décision explicite sur les données brutes, dérivées et publiées ;
-- SHA de base, commandes et résultats consignés ;
-- zéro fichier hors `docs/carbonco/water-intelligence/`.
+- Les 12 lignes du CSV brut fourni par l’opérateur sont conservées et traçables sans altération ; les 4 sources recommandées ajoutées dans le registre seed sont explicitement distinguées par leur origine ; le registre normalisé couvre donc 16 entrées au total, sans faire croire que le CSV initial contenait 16 lignes.
+- zéro doublon de `source_code` ;
+- ambiguïtés explicites dans le rapport ;
+- résultat stable byte pour byte ;
+- tests purs verts ;
+- documentation expliquant quels portails deviennent des connecteurs et lesquels restent des index.

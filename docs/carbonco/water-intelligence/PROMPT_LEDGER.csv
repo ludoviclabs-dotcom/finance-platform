@@ -1,5 +1,5 @@
 prompt,status,branch,pr_number,merge_sha,preview_url,report
-P00,not_started,docs/water-intelligence-p00-baseline,,,,
+P00,review,docs/water-intelligence-p00-baseline,,,,
 P01,blocked,feat/water-intelligence-p01-source-catalog,,,,
 P02,blocked,feat/water-intelligence-p02-contracts,,,,
 P03,blocked,feat/water-intelligence-p03-ingestion-pipeline,,,,

@@ -36,6 +36,7 @@ import {
   fetchResourceAssessments,
   fetchResourceCatalog,
   riskBand,
+  selectLatestAssessmentPerResource,
   type ResourceAlert,
   type ResourceAssessmentSummary,
   type ResourceCatalogItem,
@@ -77,7 +78,9 @@ export default function ResourcesCatalogPage() {
         ]);
         setItems(catalog.items);
         setAlerts(alertList.items);
-        setAssessments(new Map((assessList?.items ?? []).map((a) => [a.resource_slug, a])));
+        // Une ressource peut avoir plusieurs runs non-superseded (un par année) :
+        // on sélectionne explicitement le plus récent, sans dépendre de l'ordre API.
+        setAssessments(selectLatestAssessmentPerResource(assessList?.items ?? []));
         setState("ready");
       } catch (e) {
         if ((e as Error).name === "AbortError") return;

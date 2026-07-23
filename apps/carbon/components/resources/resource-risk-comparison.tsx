@@ -8,22 +8,42 @@
  * la confiance est affichée SÉPARÉMENT (jamais fusionnée avec le risque). Un
  * risque non calculé s'affiche « Non calculé », jamais 0.
  *
- * `current_only=true` côté page ⇒ un run par ressource : la comparaison est donc
- * bien ressource-à-ressource.
+ * ATTENTION : `current_only=true` ne garantit PAS un run par ressource — il exclut
+ * seulement les runs superseded d'un couple (ressource, année). Une ressource
+ * évaluée sur plusieurs années renverrait donc plusieurs lignes (et des clés React
+ * dupliquées). On réduit donc explicitement au run le plus récent par slug via
+ * `selectLatestAssessmentPerResource` : EXACTEMENT une ligne par ressource.
+ * Une éventuelle vue historique (plusieurs années) devra être un composant distinct.
  */
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 import {
   formatPct,
   riskBand,
+  selectLatestAssessmentPerResource,
   type ResourceAssessmentSummary,
 } from "@/lib/api/resources";
 import { riskToneHex } from "@/lib/resources-viz";
 
 export function ResourceRiskComparison({ runs }: { runs: ResourceAssessmentSummary[] }) {
-  const ranked = [...runs].sort((a, b) => (b.risk_score ?? -1) - (a.risk_score ?? -1));
+  // Une ligne par ressource, puis ordre déterministe :
+  // risque décroissant → confiance décroissante → slug (départage stable).
+  const ranked = useMemo(() => {
+    const latest = [...selectLatestAssessmentPerResource(runs).values()];
+    return latest.sort((a, b) => {
+      const riskA = a.risk_score ?? -1;
+      const riskB = b.risk_score ?? -1;
+      if (riskA !== riskB) return riskB - riskA;
+      const confA = a.confidence ?? -1;
+      const confB = b.confidence ?? -1;
+      if (confA !== confB) return confB - confA;
+      return a.resource_slug.localeCompare(b.resource_slug);
+    });
+  }, [runs]);
+
   if (ranked.length === 0) return null;
 
   return (

@@ -475,7 +475,13 @@ h1, h2, h3 {
 
 /* ─── Hero ───────────────────────────────────────────────────────────────── */
 .cc-hero { display: grid; grid-template-columns: 1fr 312px; gap: 16px; }
-.cc-hero-traj  { padding: 20px 22px 18px; }
+.cc-hero-traj  { padding: 20px 22px 18px; position: relative; overflow: hidden; }
+.cc-hero-traj::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(500px at var(--mx, 70%) var(--my, 0%), rgba(52, 211, 153, .10), transparent 60%);
+  transition: background .1s;
+}
+.cc-hero-traj > * { position: relative; z-index: 1; }
 .cc-hero-head  { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 6px; }
 .cc-hero-metric{ display: flex; align-items: baseline; gap: 9px; margin-top: 7px; }
 .cc-hero-num   { font-family: var(--font-display, 'Space Grotesk'), sans-serif; font-weight: 700; font-size: 42px; line-height: 1; letter-spacing: -.03em; color: var(--cc-fg); }

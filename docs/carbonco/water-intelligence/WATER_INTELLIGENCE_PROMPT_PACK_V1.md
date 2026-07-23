@@ -378,7 +378,7 @@ Le CSV contient les portails Eaufrance, HydroPortail, ADES, SIGES, InfoTerre, Na
 
 ### Critères d’acceptation
 
-- les 12 lignes sont conservées et traçables ;
+- Les 12 lignes du CSV brut fourni par l’opérateur sont conservées et traçables sans altération ; les 4 sources recommandées ajoutées dans le registre seed sont explicitement distinguées par leur origine ; le registre normalisé couvre donc 16 entrées au total, sans faire croire que le CSV initial contenait 16 lignes.
 - zéro doublon de `source_code` ;
 - ambiguïtés explicites dans le rapport ;
 - résultat stable byte pour byte ;

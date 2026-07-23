@@ -52,18 +52,10 @@ export function hhiTone(hhi: number | null): BandTone {
   return "low";
 }
 
-/**
- * Table Alpha-2 → ISO 3166-1 numérique, pour faire correspondre les
- * `country_code` des observations au `id` numérique du topo world-atlas
- * (offline). Ne couvre QUE les pays réellement présents (démo + robustesse) —
- * un pays absent de la table n'est simplement pas colorié sur la carte.
- */
-export const ISO_A2_TO_NUM: Record<string, string> = {
-  CN: "156", RU: "643", BR: "076", NO: "578", FR: "250", QA: "634", US: "840",
-  DZ: "012", DE: "276", NL: "528", ES: "724", AU: "036", CA: "124", IN: "356",
-  ZA: "710", JP: "392", KR: "410", GB: "826", IT: "380", BE: "056", PL: "616",
-  UA: "804", KZ: "398", CL: "152", CD: "180", MZ: "508", GN: "324", FI: "246",
-};
+// NOTE : la table Alpha-2 → ISO numérique partielle qui vivait ici a été
+// remplacée par le référentiel ISO 3166-1 COMPLET de `lib/iso3166.ts` (P2 #137) :
+// une table partielle rendait un pays valide mais absent (ex. SE, AR) visuellement
+// identique à un pays sans donnée.
 
 /** `true` si le code pays fait partie de l'UE-27 (pour lecture « hors UE »). */
 const EU27 = new Set([

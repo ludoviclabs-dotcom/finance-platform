@@ -7,8 +7,15 @@
  * (rampe séquentielle ambre, une seule teinte) ; les pays sans donnée reçoivent
  * un neutre distinct.
  *
- * Accessibilité : chaque pays colorié porte un `<title>` (part), et une « vue
- * tableau » textuelle liste les parts sous la carte (jamais couleur seule).
+ * COUVERTURE PAYS (P2) : la jointure passe par le référentiel ISO 3166-1 complet
+ * (`lib/iso3166.ts`), et les DEUX côtés sont zero-paddés — les `id` de world-atlas
+ * ne sont pas tous sur 3 chiffres (ex. `76` pour le Brésil). Un code non assigné
+ * n'est JAMAIS colorié comme une part nulle : il est signalé explicitement, sa part
+ * reste dans la vue tableau, et si AUCUNE observation n'est cartographiable la carte
+ * n'est pas rendue du tout (plutôt qu'une carte trompeuse).
+ *
+ * Accessibilité : chaque pays colorié porte un `<title>`, et la vue tableau liste
+ * TOUTES les observations (jamais couleur seule, jamais d'omission silencieuse).
  */
 
 import { useMemo, useState } from "react";
@@ -17,7 +24,8 @@ import { feature } from "topojson-client";
 import type { FeatureCollection, Geometry } from "geojson";
 import worldTopo from "world-atlas/countries-110m.json";
 
-import { ISO_A2_TO_NUM, shareToAmber } from "@/lib/resources-viz";
+import { iso3166Alpha2ToNumeric, normalizeIsoNumeric } from "@/lib/iso3166";
+import { shareToAmber } from "@/lib/resources-viz";
 
 type CountryProps = { name?: string };
 
@@ -44,67 +52,100 @@ export function ConcentrationChoropleth({
 }) {
   const [hover, setHover] = useState<{ label: string; x: number; y: number } | null>(null);
 
-  const { paths, shareByNum, maxShare, ranked } = useMemo(() => {
+  const { paths, shareByNum, maxShare, ranked, unmapped } = useMemo(() => {
+    // Vue tableau : TOUTES les observations, normalisées, triées — jamais filtrées.
+    const rankedShares = shares
+      .map((s) => ({
+        code: String(s.country_code ?? "").trim().toUpperCase(),
+        share: s.share_pct,
+      }))
+      .sort((a, b) => b.share - a.share);
+
     const byNum = new Map<string, number>();
-    const byCode: { code: string; share: number }[] = [];
-    for (const s of shares) {
-      const num = ISO_A2_TO_NUM[s.country_code.toUpperCase()];
-      if (num) byNum.set(num, (byNum.get(num) ?? 0) + s.share_pct);
-      byCode.push({ code: s.country_code.toUpperCase(), share: s.share_pct });
+    const unmappedCodes: string[] = [];
+    for (const s of rankedShares) {
+      const numeric = iso3166Alpha2ToNumeric(s.code);
+      if (numeric === null) {
+        // Code non assigné ISO : signalé, jamais confondu avec « part nulle ».
+        if (!unmappedCodes.includes(s.code)) unmappedCodes.push(s.code);
+        continue;
+      }
+      byNum.set(numeric, (byNum.get(numeric) ?? 0) + s.share);
     }
+
     const max = Math.max(1, ...byNum.values());
     const projection = geoNaturalEarth1().fitSize([width, height], WORLD);
     const draw = geoPath(projection);
     const p = WORLD.features.map((f) => ({
-      id: String(f.id),
+      id: normalizeIsoNumeric(f.id as string | number),
       name: f.properties?.name ?? "",
       d: draw(f) ?? "",
     }));
-    const rankedShares = [...byCode].sort((a, b) => b.share - a.share);
-    return { paths: p, shareByNum: byNum, maxShare: max, ranked: rankedShares };
+
+    return {
+      paths: p,
+      shareByNum: byNum,
+      maxShare: max,
+      ranked: rankedShares,
+      unmapped: unmappedCodes,
+    };
   }, [shares, width, height]);
 
   if (shares.length === 0) return null;
 
+  const mappable = shareByNum.size > 0;
+
   return (
     <div className="relative" data-testid={testId}>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        width="100%"
-        role="img"
-        aria-label="Carte des parts d'approvisionnement par pays"
-        onMouseLeave={() => setHover(null)}
-      >
-        {paths.map((p) => {
-          const share = shareByNum.get(p.id);
-          const fill = share !== undefined ? shareToAmber(share, maxShare) : NEUTRAL;
-          return (
-            <path
-              key={p.id}
-              d={p.d}
-              fill={fill}
-              stroke="var(--color-border)"
-              strokeWidth={0.4}
-              onMouseMove={
-                share !== undefined
-                  ? (e) => {
-                      const rect = (e.currentTarget.ownerSVGElement as SVGSVGElement).getBoundingClientRect();
-                      setHover({
-                        label: `${p.name} · ${Math.round(share)} %`,
-                        x: e.clientX - rect.left,
-                        y: e.clientY - rect.top,
-                      });
-                    }
-                  : undefined
-              }
-            >
-              {share !== undefined && <title>{`${p.name} : ${Math.round(share)} %`}</title>}
-            </path>
-          );
-        })}
-      </svg>
+      {mappable ? (
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          width="100%"
+          role="img"
+          aria-label="Carte des parts d'approvisionnement par pays"
+          onMouseLeave={() => setHover(null)}
+        >
+          {paths.map((p) => {
+            const share = shareByNum.get(p.id);
+            const fill = share !== undefined ? shareToAmber(share, maxShare) : NEUTRAL;
+            return (
+              <path
+                key={p.id}
+                d={p.d}
+                fill={fill}
+                stroke="var(--color-border)"
+                strokeWidth={0.4}
+                onMouseMove={
+                  share !== undefined
+                    ? (e) => {
+                        const rect = (
+                          e.currentTarget.ownerSVGElement as SVGSVGElement
+                        ).getBoundingClientRect();
+                        setHover({
+                          label: `${p.name} · ${Math.round(share)} %`,
+                          x: e.clientX - rect.left,
+                          y: e.clientY - rect.top,
+                        });
+                      }
+                    : undefined
+                }
+              >
+                {share !== undefined && <title>{`${p.name} : ${Math.round(share)} %`}</title>}
+              </path>
+            );
+          })}
+        </svg>
+      ) : (
+        <p
+          data-testid="choropleth-unavailable"
+          role="status"
+          className="rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-400"
+        >
+          Carte indisponible : code pays non reconnu. Les parts restent lisibles ci-dessous.
+        </p>
+      )}
 
-      {hover && (
+      {hover && mappable && (
         <div
           className="pointer-events-none absolute z-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-[11px] font-medium text-[var(--color-foreground)] shadow-lg"
           style={{ left: hover.x + 8, top: hover.y + 8 }}
@@ -113,8 +154,22 @@ export function ConcentrationChoropleth({
         </div>
       )}
 
-      {/* Vue tableau (accessibilité + jamais couleur seule) */}
-      <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[var(--color-muted-foreground)]">
+      {unmapped.length > 0 && mappable && (
+        <p
+          data-testid="choropleth-unmapped-warning"
+          role="status"
+          className="mt-2 text-[11px] text-amber-700 dark:text-amber-400"
+        >
+          {unmapped.length} code(s) pays non cartographiable(s) : {unmapped.join(", ")} — part(s)
+          conservée(s) dans le tableau ci-dessous.
+        </p>
+      )}
+
+      {/* Vue tableau — TOUJOURS complète (mappée ou non), jamais couleur seule */}
+      <ul
+        className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[var(--color-muted-foreground)]"
+        data-testid="choropleth-table"
+      >
         {ranked.map((r) => (
           <li key={r.code} className="tabular-nums">
             <span className="font-mono">{r.code}</span> {Math.round(r.share)} %

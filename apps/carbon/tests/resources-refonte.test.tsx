@@ -27,7 +27,6 @@ import {
   shareToAmber,
   isEu,
   meanOrNull,
-  ISO_A2_TO_NUM,
 } from "@/lib/resources-viz";
 import { RadialGauge } from "@/components/resources/viz/radial-gauge";
 import { StatTile } from "@/components/resources/viz/stat-tile";
@@ -84,11 +83,6 @@ describe("resources-viz — mappings honnêtes", () => {
     expect(meanOrNull([])).toBeNull();
   });
 
-  it("ISO_A2_TO_NUM mappe les pays de la démo vers l ISO numérique", () => {
-    expect(ISO_A2_TO_NUM.CN).toBe("156");
-    expect(ISO_A2_TO_NUM.FR).toBe("250");
-    expect(ISO_A2_TO_NUM.AU).toBe("036");
-  });
 });
 
 // ---------------------------------------------------------------------------

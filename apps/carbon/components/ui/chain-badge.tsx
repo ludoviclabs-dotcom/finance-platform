@@ -1,9 +1,12 @@
 "use client";
 
 /**
- * ChainBadge — badge de confiance « Chaîne d'intégrité vérifiée » (T2.5).
+ * ChainBadge — badge de confiance « Chaîne d'intégrité » (T2.5).
  * Lit /chain/status (dernière vérification planifiée, sinon contrôle live).
- * Rouge si la chaîne est rompue.
+ * Rouge si la chaîne est rompue. Thème sombre + point pulsant.
+ *
+ * Champs RÉELS uniquement : `ok`, `broken_at`, `checked`, `verified_at`
+ * (horodatage affiché seulement s'il existe — jamais inventé).
  */
 
 import { useEffect, useState } from "react";
@@ -36,11 +39,11 @@ export function ChainBadge() {
   if (!status.ok) {
     return (
       <div
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border bg-red-50 border-red-200 text-red-700 text-xs font-semibold"
+        className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-500 dark:text-red-400"
         data-testid="chain-badge"
         role="status"
       >
-        <span className="w-2 h-2 rounded-full bg-red-500" />
+        <span className="h-2 w-2 rounded-full bg-red-500" />
         Chaîne d&apos;intégrité ROMPUE (event #{status.broken_at})
       </div>
     );
@@ -48,13 +51,18 @@ export function ChainBadge() {
 
   return (
     <div
-      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border bg-emerald-50 border-emerald-200 text-emerald-700 text-xs font-semibold"
+      className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400"
       data-testid="chain-badge"
       role="status"
     >
-      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+      <span className="relative flex h-2 w-2" aria-hidden="true">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+      </span>
       Chaîne d&apos;intégrité vérifiée
-      {when ? ` le ${when}` : ""} — {status.checked} events
+      <span className="font-normal text-[var(--color-foreground-muted)]">
+        · {status.checked} events{when ? ` · ${when}` : ""}
+      </span>
     </div>
   );
 }

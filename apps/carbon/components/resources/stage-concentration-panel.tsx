@@ -19,6 +19,7 @@ import {
 import { ProvenanceRefs } from "./provenance";
 import { ResourceDataStatus } from "./resource-data-status";
 import { EmptyNote } from "./section";
+import { ConcentrationChoropleth } from "./viz/concentration-choropleth";
 
 const HHI_TONE: Record<string, string> = {
   unknown: "text-[var(--color-muted-foreground)]",
@@ -149,8 +150,22 @@ export function StageConcentrationPanel({
       </EmptyNote>
     );
   }
+  // Étape déterminante = HHI le plus élevé (jamais une moyenne inter-étapes).
+  const driving = stages.reduce((a, b) => ((b.hhi ?? 0) > (a.hhi ?? 0) ? b : a));
+  const drivingShares = driving.country_shares.map((c) => ({
+    country_code: c.country_code,
+    share_pct: c.share_pct,
+  }));
   return (
     <div className="space-y-3" data-testid="stage-concentration">
+      {drivingShares.length > 0 && (
+        <div className="rounded-xl border border-[var(--color-border)] p-4" data-testid="stage-choropleth">
+          <p className="mb-2 text-[10px] uppercase tracking-wide text-[var(--color-muted-foreground)]">
+            Concentration géographique — étape déterminante&nbsp;: {driving.stage_code}
+          </p>
+          <ConcentrationChoropleth shares={drivingShares} testId="stage-choropleth-map" />
+        </div>
+      )}
       {stages.map((s) => (
         <StageCard key={`${s.stage_code}-${s.reference_year}`} stage={s} />
       ))}

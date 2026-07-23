@@ -1,6 +1,6 @@
-> **Mission active — P01 uniquement. Ne pas lancer P02.**
+> **Mission active — P02 uniquement. Ne pas lancer P03.**
 
-# P01 — Normalisation du catalogue de sources fourni
+# P02 — Contrats du read model public et budgets
 
 
 ## En-tête invariant à placer au début de chaque mission
@@ -25,57 +25,51 @@ Règles absolues :
 
 ## Mission spécifique
 
-**Branche :** `feat/water-intelligence-p01-source-catalog`
+**Branche :** `feat/water-intelligence-p02-contracts`
 
 ### Objectif
 
-Transformer le CSV opérateur en un catalogue versionné et validé, sans télécharger de données et sans enregistrer encore de release réelle.
-
-### Entrée
-
-Le CSV contient les portails Eaufrance, HydroPortail, ADES, SIGES, InfoTerre, Naïades, SANDRE, BNPE, SISPEA, Sextant, data.gouv/SIE et Géoportail/Géorisques.
+Définir les contrats Python et TypeScript du module public, sans migration et sans UI complète.
 
 ### Tâches
 
-1. Définir un schéma de catalogue distinct d’une observation :
-   - `source_code`
-   - `portal_name`
-   - `theme`
-   - `geographic_scope`
-   - `source_role`
-   - `connector_candidate`
-   - `access_mode`
-   - `official_domain`
-   - `priority`
-   - `planned_prompt`
-   - `notes`
-2. Ajouter un parseur pur et déterministe du CSV.
-3. Normaliser les espaces, accents et codes, sans corriger silencieusement un contenu ambigu.
-4. Produire un fichier normalisé et un rapport de validation.
-5. Distinguer :
-   - portail de découverte ;
-   - référentiel ;
-   - API ;
-   - service OGC ;
-   - téléchargement de release ;
-   - donnée contextuelle non ingérée.
-6. Ne créer aucune ligne factuelle dans `source_registry` à ce stade.
-7. Ajouter des tests avec le CSV complet et des cas invalides.
+1. Inspecter `models/analytics.py`, `models/water.py`, `lib/api/water.ts`, les modèles Intelligence et les badges existants.
+2. Créer des contrats miroir pour :
+   - `WaterIntelligenceManifest`
+   - `WaterMetricObservation`
+   - `WaterGeoLayerDescriptor`
+   - `WaterSourceReference`
+   - `WaterLicenseDecision`
+   - `WaterQualityMetadata`
+   - `WaterScenario`
+   - `WaterGeographyRef`
+   - `WaterEditorialRecord`
+   - `WaterLegalRecord`
+3. Garantir par les types :
+   - risque et confiance séparés ;
+   - valeur absente distincte de zéro ;
+   - période et géographie obligatoires ;
+   - source/release obligatoires pour une donnée publiée ;
+   - licence d’affichage explicite ;
+   - méthode et version explicites ;
+   - statut `observed`, `modelled`, `estimated`, `manual`, `fixture`.
+4. Ajouter un mini manifest de fixture clairement étiqueté.
+5. Ajouter des validateurs Zod côté frontend et Pydantic côté API.
+6. Ajouter un test de compatibilité contractuelle entre la fixture Python et TypeScript.
+7. Documenter les budgets de payload et les niveaux de zoom.
 
 ### Interdictions
 
-- aucun appel réseau ;
-- aucune URL devinée ;
-- aucun statut de licence supposé ;
-- aucune migration ;
-- aucun seed automatique de production ;
-- aucune donnée métier.
+- aucune table ;
+- aucun endpoint public ;
+- aucune donnée réelle ;
+- aucun score composite ;
+- aucun package nouveau.
 
 ### Critères d’acceptation
 
-- Les 12 lignes du CSV brut fourni par l’opérateur sont conservées et traçables sans altération ; les 4 sources recommandées ajoutées dans le registre seed sont explicitement distinguées par leur origine ; le registre normalisé couvre donc 16 entrées au total, sans faire croire que le CSV initial contenait 16 lignes.
-- zéro doublon de `source_code` ;
-- ambiguïtés explicites dans le rapport ;
-- résultat stable byte pour byte ;
-- tests purs verts ;
-- documentation expliquant quels portails deviennent des connecteurs et lesquels restent des index.
+- un manifest invalide est refusé avec une erreur lisible ;
+- un record sans release ou avec `display_allowed=false` ne peut pas être publié ;
+- une valeur `null` ne devient jamais `0` ;
+- schémas versionnés ;
+- tests backend et frontend verts.

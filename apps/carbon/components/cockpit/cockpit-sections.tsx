@@ -1,17 +1,20 @@
 "use client";
 
-/* CarbonCo Cockpit — sections de contenu (Hero, ScopeStrip, NeuralPanel, AnalyticsRow, FooterRow). */
+/* CarbonCo Cockpit — sections de contenu (Hero, ScopeStrip, NeuralPanel, AnalyticsRow,
+   BridgeRow, SourcesRow). L'ordre et les libellés suivent la maquette « Refonte
+   CarbonCo » (frame 1a). */
 
 import { useState, type MouseEvent } from "react";
 import {
-  AlertTriangle, ArrowRight, X, ChevronDown, TrendingUp, TrendingDown,
-  Factory, Zap, Truck, FileText, Sparkles, Target as TargetIcon, CheckCircle, Bot,
-  Upload, Database,
+  AlertTriangle, ArrowRight, X, ChevronDown, TrendingDown,
+  Factory, Zap, Truck, FileText, Sparkles, CheckCircle, Bot,
+  Upload, Database, PieChart, Radar, BarChart3, LayoutGrid, Gauge, MessageCircle, Flag,
+  Lightbulb,
 } from "lucide-react";
 import {
   TrajectoryChart, ScoreRing, TargetGauge, ScopeDonut, RadarChart, Sparkline, CategoryBars,
-  fmt, useCountUp,
-  type MonthPoint, type ScopesOn,
+  WaterfallChart, fmt, useCountUp,
+  type MonthPoint, type ScopesOn, type WaterfallStep,
 } from "./cockpit-charts";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
@@ -31,7 +34,7 @@ export type ScopeRow = {
 };
 export type NeuralItem = {
   id: string;
-  type: "anomalie" | "opportunité" | "compliance" | "draft";
+  type: "anomalie" | "opportunité" | "action" | "compliance" | "draft";
   title: string;
   desc: string;
   metric: string;
@@ -128,7 +131,7 @@ export function Hero({
       <div className="cc-card cc-hero-traj" onMouseMove={onSpotlight}>
         <div className="cc-hero-head">
           <div>
-            <div className="cc-eyebrow"><TrendingUp className="w-3.5 h-3.5" /> Trajectoire carbone</div>
+            <div className="cc-eyebrow"><TrendingDown className="w-3.5 h-3.5" /> Trajectoire net-zéro</div>
             <div className="cc-hero-metric">
               <span className="cc-hero-num">{fmt(total)}</span>
               <span className="cc-hero-unit">tCO₂e</span>
@@ -136,7 +139,7 @@ export function Hero({
                 {deltaPct < 0 ? "▼" : "▲"} {Math.abs(deltaPct).toFixed(1)} %
               </span>
             </div>
-            <div className="cc-hero-sub">Émissions totales S1+S2+S3 · 12 mois glissants</div>
+            <div className="cc-hero-sub">12 mois glissants · émissions S1+S2+S3 consolidées</div>
           </div>
           <div className="cc-hero-legend">
             {legend.map((l) => (
@@ -160,8 +163,8 @@ export function Hero({
 
         <div className="cc-hero-foot">
           <div className="cc-hero-target-row">
-            <span>Objectif 2025 · {fmt(target2025)} t</span>
-            <span className="cc-em-txt">−{fmt(remaining)} t restants</span>
+            <span>Objectif SBTi 2030 · <strong className="cc-mono cc-em-txt">−42 %</strong> vs 2023</span>
+            <span>Reste <strong className="cc-mono cc-warn-txt">{fmt(Math.max(0, remaining))}</strong> tCO₂e à réduire</span>
           </div>
           <TargetGauge current={totalEmissions} target={target2025} max={Math.max(target2025 * 1.4, totalEmissions * 1.15)} />
         </div>
@@ -169,7 +172,7 @@ export function Hero({
 
       {/* Score conformité */}
       <div className="cc-card cc-hero-score">
-        <div className="cc-eyebrow"><CheckCircle className="w-3.5 h-3.5" /> Conformité ESRS / CSRD</div>
+        <div className="cc-eyebrow"><Gauge className="w-3.5 h-3.5" /> Score de conformité ESRS</div>
         <div className="cc-score-ring-wrap">
           <ScoreRing value={esrs.score} target={esrs.target} size={138} />
         </div>
@@ -179,8 +182,8 @@ export function Hero({
           <div><span className="cc-pip muted" />{esrs.notStarted} non démarré</div>
         </div>
         <div className="cc-score-goal">
-          <TargetIcon className="w-3.5 h-3.5" style={{ color: "var(--cc-em)" }} />
-          <span>Objectif <strong>{esrs.target}/100</strong> · {Math.max(0, esrs.target - esrs.score)} pts à gagner</span>
+          <Flag className="w-3.5 h-3.5" style={{ color: "var(--cc-em)" }} />
+          <span>Objectif : <strong>{esrs.target}</strong> · +{Math.max(0, esrs.target - esrs.score)} pts nécessaires</span>
         </div>
       </div>
     </section>
@@ -219,12 +222,13 @@ export function ScopeStrip({ scopes }: { scopes: ScopeRow[] }) {
             <div className="cc-scope-metric">
               <span className="cc-scope-val">{fmt(s.total)}</span>
               <span className="cc-scope-unit">tCO₂e</span>
-              <span className="cc-scope-share">{s.share} %</span>
+              {/* La part dominante est teintée à la couleur du scope (cf. maquette). */}
+              <span className={`cc-scope-share ${s.share >= 50 ? "is-major" : ""}`}>{s.share} %</span>
             </div>
 
             <div className="cc-scope-tags">
               <span className={`cc-trend ${s.trend < 0 ? "down" : "up"}`}>
-                {s.trend < 0 ? "▼" : "▲"} {Math.abs(s.trend).toFixed(1)} %
+                {s.trend < 0 ? "−" : "+"}{fmt(Math.abs(s.trend), Number.isInteger(s.trend) ? 0 : 1)} %
               </span>
               <span className={`cc-sbti ${s.sbti.status}`}>{s.sbti.text}</span>
             </div>
@@ -245,15 +249,17 @@ export function ScopeStrip({ scopes }: { scopes: ScopeRow[] }) {
 /* ─── NeuralPanel : insights + suggestions ──────────────────────────────── */
 const NEURAL_CFG: Record<NeuralItem["type"], { label: string; c: string }> = {
   anomalie:      { label: "Anomalie",     c: "#F87171" },
-  "opportunité": { label: "Opportunité",  c: "#34D399" },
+  "opportunité": { label: "Opportunité",  c: "#A78BFA" },
+  action:        { label: "Action",       c: "#34D399" },
   compliance:    { label: "Compliance",   c: "#FBBF24" },
-  draft:         { label: "Brouillon IA", c: "#A78BFA" },
+  draft:         { label: "Brouillon IA", c: "#60A5FA" },
 };
 
 function NeuralPill({ type }: { type: NeuralItem["type"] }) {
   const cfg = NEURAL_CFG[type];
   const Ico = type === "anomalie" ? AlertTriangle
-    : type === "opportunité" ? TrendingUp
+    : type === "opportunité" ? Lightbulb
+    : type === "action" ? TrendingDown
     : type === "compliance" ? FileText
     : Sparkles;
   return (
@@ -282,8 +288,10 @@ export function NeuralPanel({
         <div className="cc-neural-brand">
           <div className="cc-neural-orb"><Sparkles className="w-3.5 h-3.5" /></div>
           <div>
-            <div className="cc-neural-title">NEURAL <span className="cc-neural-by">· intelligence ESG</span></div>
-            <div className="cc-neural-sub">{items.length} signaux actifs · analyse en continu</div>
+            <div className="cc-neural-title">NEURAL <span className="cc-neural-by">· Copilote CarbonCo</span></div>
+            <div className="cc-neural-sub">
+              {items.length} insights proactifs · généré par IA — à valider RSE
+            </div>
           </div>
         </div>
         <div className="cc-seg sm">
@@ -301,7 +309,7 @@ export function NeuralPanel({
           </button>
         </div>
         <button className="cc-neural-ask" onClick={onOpenCopilot}>
-          <Bot className="w-3.5 h-3.5" /> Demander à NEURAL
+          <MessageCircle className="w-3.5 h-3.5" /> Poser une question
         </button>
       </div>
 
@@ -379,10 +387,7 @@ export function AnalyticsRow({
     <section className="cc-analytics">
       <div className="cc-card cc-repart">
         <div className="cc-card-head">
-          <div>
-            <div className="cc-card-title">Répartition par scope</div>
-            <div className="cc-card-sub">Part de chaque périmètre dans l&apos;empreinte totale</div>
-          </div>
+          <div className="cc-eyebrow"><PieChart className="w-3.5 h-3.5" /> Répartition par scope</div>
         </div>
         <div className="cc-repart-body">
           <ScopeDonut items={donutItems} active={active} onHover={(id) => setActive(id as ScopeRow["id"] | null)} />
@@ -406,13 +411,10 @@ export function AnalyticsRow({
 
       <div className="cc-card cc-bench">
         <div className="cc-card-head">
-          <div>
-            <div className="cc-card-title">Benchmark sectoriel</div>
-            <div className="cc-card-sub">Votre performance vs médiane industrie manufacturière</div>
-          </div>
+          <div className="cc-eyebrow"><Radar className="w-3.5 h-3.5" /> Benchmark sectoriel</div>
           <span className="cc-bench-int">
             Intensité <strong>{benchmark.intensity.you}</strong>{" "}
-            <i>vs {benchmark.intensity.sector} tCO₂e/M€</i>
+            <i>/ {benchmark.intensity.sector} secteur</i> tCO₂e/M€
           </span>
         </div>
         <div className="cc-bench-body">
@@ -427,8 +429,8 @@ export function AnalyticsRow({
                 <div>
                   <div className="cc-bench-row-label">{r.label}</div>
                   <div className="cc-bench-row-vals">
-                    <strong>{r.you}</strong>
-                    <span>secteur · {r.sector}</span>
+                    <strong className={r.status === "top" ? "cc-em-txt" : ""}>{r.you}</strong>
+                    <span>vs {r.sector}</span>
                   </div>
                 </div>
                 <span className={`cc-bench-tag ${r.status === "top" ? "top" : "warn"}`}>{r.tag}</span>
@@ -441,7 +443,7 @@ export function AnalyticsRow({
   );
 }
 
-/* ─── FooterRow : ESRS heat + activity + sources/échéances ──────────────── */
+/* ─── BridgeRow : waterfall des leviers + heatmap ESRS ──────────────────── */
 function heatColor(v: number) {
   if (v >= 75) return "#34D399";
   if (v >= 55) return "#FBBF24";
@@ -461,29 +463,34 @@ const ACT_COLORS: Record<ActivityRow["type"], string> = {
   report: "#A78BFA",
 };
 
-export function FooterRow({
+export function BridgeRow({
   esrs,
-  activity,
-  connectors,
-  deadlines,
+  waterfall,
 }: {
   esrs: EsrsState;
-  activity: ActivityRow[];
-  connectors: Connector[];
-  deadlines: Deadline[];
+  waterfall: WaterfallStep[];
 }) {
   return (
-    <section className="cc-footer">
+    <section className="cc-bridge">
+      <div className="cc-card cc-wf-card">
+        <div className="cc-card-head">
+          <div className="cc-eyebrow">
+            <BarChart3 className="w-3.5 h-3.5" /> Variation des émissions 2023 → 2025
+          </div>
+          <span className="cc-card-note">bridge par levier</span>
+        </div>
+        <WaterfallChart steps={waterfall} height={210} />
+      </div>
+
       <div className="cc-card cc-esrs-heat">
         <div className="cc-card-head">
-          <div>
-            <div className="cc-card-title">Avancement ESRS</div>
-            <div className="cc-card-sub">Couverture par standard</div>
+          <div className="cc-eyebrow">
+            <LayoutGrid className="w-3.5 h-3.5" /> Conformité ESRS · heatmap
           </div>
         </div>
         <div className="cc-heat-grid">
           {esrs.radial.map((e) => (
-            <div key={e.k} className="cc-heat-cell" title={`${e.k} ${e.label} · ${e.v}%`}>
+            <div key={e.k} className="cc-heat-cell" title={`${e.k} ${e.label} · ${e.v} %`}>
               <div
                 className="cc-heat-ring"
                 style={{
@@ -492,18 +499,30 @@ export function FooterRow({
               >
                 <span>{e.k}</span>
               </div>
-              <div className="cc-heat-v cc-mono">{e.v}%</div>
+              <div className="cc-heat-l">{e.label}</div>
             </div>
           ))}
         </div>
       </div>
+    </section>
+  );
+}
 
+/* ─── SourcesRow : activité récente + connecteurs/échéances ─────────────── */
+export function SourcesRow({
+  activity,
+  connectors,
+  deadlines,
+}: {
+  activity: ActivityRow[];
+  connectors: Connector[];
+  deadlines: Deadline[];
+}) {
+  return (
+    <section className="cc-sources-row">
       <div className="cc-card cc-act">
         <div className="cc-card-head">
-          <div>
-            <div className="cc-card-title">Activité récente</div>
-            <div className="cc-card-sub">Dernières actions</div>
-          </div>
+          <div className="cc-eyebrow"><CheckCircle className="w-3.5 h-3.5" /> Activité récente</div>
         </div>
         <div className="cc-act-list">
           {activity.slice(0, 4).map((a) => {
@@ -527,10 +546,7 @@ export function FooterRow({
 
       <div className="cc-card cc-sources">
         <div className="cc-card-head">
-          <div>
-            <div className="cc-card-title">Sources &amp; échéances</div>
-            <div className="cc-card-sub">Connecteurs et jalons</div>
-          </div>
+          <div className="cc-eyebrow"><Database className="w-3.5 h-3.5" /> Sources &amp; échéances</div>
         </div>
         <div className="cc-dl-list">
           {deadlines.map((d) => (
@@ -560,7 +576,16 @@ export function CopilotDrawer({
   open,
   onClose,
   userFirstName = "Marie",
-}: { open: boolean; onClose: () => void; userFirstName?: string }) {
+  scope3SharePct = 78,
+}: {
+  open: boolean;
+  onClose: () => void;
+  userFirstName?: string;
+  /** Part du Scope 3 dans le total — passée par l'appelant pour rester en
+   *  phase avec la carte Scope 3 et le donut plutôt que de figer un chiffre
+   *  ici (cf. incohérence 62 % / 78 % corrigée en revue). */
+  scope3SharePct?: number;
+}) {
   const prompts = [
     "Pourquoi mon Scope 2 a augmenté en mars ?",
     "Comment atteindre l'objectif 2025 ?",
@@ -596,7 +621,7 @@ export function CopilotDrawer({
             <div className="cc-chat-av"><Sparkles className="w-3.5 h-3.5" /></div>
             <div className="cc-chat-bubble">
               Bonjour {userFirstName} 👋 J&apos;ai analysé vos données. Votre{" "}
-              <strong>Scope 3</strong> (62 %) reste le principal levier. Je peux vous aider à le réduire,
+              <strong>Scope 3</strong> ({scope3SharePct} %) reste le principal levier. Je peux vous aider à le réduire,
               suivre votre conformité ESRS, ou pré-rédiger un rapport.
             </div>
           </div>

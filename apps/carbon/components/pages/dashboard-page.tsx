@@ -26,14 +26,15 @@ import { monthlyEmissions, scopeDetails, recentActivity } from "@/lib/data";
 import { pageVariants } from "@/lib/animations";
 
 import {
-  Hero, ScopeStrip, NeuralPanel, AnalyticsRow, FooterRow, CopilotDrawer, RegBanner,
+  Hero, ScopeStrip, NeuralPanel, AnalyticsRow, BridgeRow, SourcesRow, CopilotDrawer, RegBanner,
   type ScopeRow, type NeuralItem, type Suggestion, type Benchmark,
   type EsrsState, type ActivityRow, type Connector, type Deadline,
 } from "@/components/cockpit/cockpit-sections";
-import type { ScopesOn, MonthPoint } from "@/components/cockpit/cockpit-charts";
+import type { ScopesOn, MonthPoint, WaterfallStep } from "@/components/cockpit/cockpit-charts";
 
 /* ─── Données statiques pour le cockpit (rejouent celles de la maquette) ── */
-const TARGET_EMISSIONS = 5200;
+/* Objectif SBTi 2030 : −42 % vs la base 2023 du bridge (11 200 tCO₂e). */
+const TARGET_EMISSIONS = 6500;
 
 const SCOPE_META: Record<1 | 2 | 3, {
   desc: string;
@@ -49,29 +50,40 @@ const SCOPE_META: Record<1 | 2 | 3, {
     color: "#34D399",
     icon: "factory",
     label: "Émissions directes",
-    share: 22,
-    sbti: { status: "ok", text: "−8 % vs trajectoire SBTi" },
-    spark: [148, 142, 150, 132, 126, 120, 116, 118, 128, 132, 138, 145],
+    share: 13,
+    sbti: { status: "ok", text: "SBTi ✓ on-track" },
+    spark: [112, 107, 121, 102, 97, 93, 88, 91, 100, 104, 110, 115],
   },
   2: {
     desc: "Électricité, chauffage urbain, vapeur",
     color: "#22D3EE",
     icon: "zap",
     label: "Énergie achetée",
-    share: 16,
-    sbti: { status: "warn", text: "−2 % vs trajectoire SBTi" },
-    spark: [92, 88, 96, 82, 78, 74, 72, 70, 78, 82, 86, 90],
+    share: 9,
+    sbti: { status: "warn", text: "SBTi ⚠ à surveiller" },
+    spark: [81, 78, 86, 74, 71, 69, 67, 65, 71, 72, 76, 80],
   },
   3: {
     desc: "Achats, transport amont/aval, déplacements, déchets, usage produits",
     color: "#A78BFA",
     icon: "truck",
     label: "Chaîne de valeur",
-    share: 62,
-    sbti: { status: "alert", text: "+4 % vs trajectoire SBTi" },
-    spark: [358, 348, 372, 332, 318, 300, 290, 285, 312, 322, 338, 358],
+    share: 78,
+    sbti: { status: "alert", text: "SBTi ✗ hors-piste" },
+    spark: [685, 654, 725, 624, 594, 564, 544, 534, 584, 604, 634, 674],
   },
 };
+
+/* Bridge 2023 → 2025 (maquette) : 11 200 − 1 250 − 680 − 520 − 100 + 900 = 9 550. */
+const WATERFALL: WaterfallStep[] = [
+  { label: "Base 2023",       value: 11200, kind: "base"  },
+  { label: "Énergie verte",   value: -1250, kind: "delta" },
+  { label: "Efficacité",      value:  -680, kind: "delta" },
+  { label: "Fret optimisé",   value:  -520, kind: "delta" },
+  { label: "Mix produit",     value:  -100, kind: "delta" },
+  { label: "Croissance",      value:   900, kind: "delta" },
+  { label: "Total 2025",      value:     0, kind: "total" },
+];
 
 const ESRS_DATA: EsrsState = {
   score: 62,
@@ -83,8 +95,8 @@ const ESRS_DATA: EsrsState = {
     { k: "E1", label: "Climat",        v: 85 },
     { k: "E2", label: "Pollution",     v: 72 },
     { k: "E3", label: "Eau",           v: 60 },
-    { k: "E4", label: "Biodiversité",  v: 45 },
-    { k: "E5", label: "Circulaire",    v: 55 },
+    { k: "E4", label: "Biodiv.",       v: 45 },
+    { k: "E5", label: "Écon. circ.",   v: 55 },
     { k: "S1", label: "Effectifs",     v: 90 },
     { k: "S2", label: "Chaîne val.",   v: 40 },
     { k: "S3", label: "Communautés",   v: 30 },
@@ -96,43 +108,40 @@ const ESRS_DATA: EsrsState = {
 const BENCHMARK_DATA: Benchmark = {
   intensity: { you: 42, sector: 58 },
   radar: [
-    { axis: "Scope 1", you: 22, sector: 30 },
-    { axis: "Scope 2", you: 16, sector: 25 },
-    { axis: "Scope 3", you: 62, sector: 45 },
+    { axis: "Scope 1", you: 13, sector: 30 },
+    { axis: "Scope 2", you:  9, sector: 25 },
+    { axis: "Scope 3", you: 78, sector: 45 },
     { axis: "ESRS",    you: 62, sector: 48 },
     { axis: "Énergie", you: 74, sector: 60 },
   ],
   rows: [
-    { label: "Intensité carbone", you: "42 tCO₂e/M€", sector: "58 tCO₂e/M€", status: "top",  tag: "Top 25 %" },
-    { label: "Part Scope 3",      you: "62 %",        sector: "45 %",        status: "warn", tag: "À améliorer" },
-    { label: "Conformité ESRS",   you: "62/100",      sector: "48/100",      status: "top",  tag: "Top 25 %" },
+    { label: "Intensité carbone", you: "42",   sector: "58",   status: "top",  tag: "Top 25 %" },
+    { label: "Part Scope 3",      you: "78 %", sector: "45 %", status: "warn", tag: "À améliorer" },
   ],
 };
 
 const NEURAL_ITEMS: NeuralItem[] = [
   {
-    id: "anom-1", type: "anomalie",
-    title: "Pic d'émissions Scope 2 détecté",
-    desc: "Électricité +34 % en mars vs février — corrélé avec la mise en route de la ligne 4.",
-    metric: "+34 %", metricLabel: "Scope 2", cta: "Analyser", time: "8 min",
+    id: "opp-1", type: "opportunité",
+    // 7 420 / 9 550 = 78 % (part du Scope 3 dans le total) ; 2 680 / 7 420 = 36 %
+    // (part des achats dans le Scope 3) — deux chiffres distincts, cf. revue.
+    title: "Le Scope 3 pèse 78 % de vos émissions",
+    desc: "Les achats en sont le premier poste (36 % du Scope 3). Lancer un questionnaire fournisseurs ciblé sur les 5 postes majeurs.",
+    metric: "−1 240", metricLabel: "tCO₂e potentiel",
+    cta: "Lancer le questionnaire", time: "il y a 2 h",
   },
   {
-    id: "opp-1", type: "opportunité",
-    title: "Optimisation Scope 1 — Flotte véhicules",
-    desc: "3 véhicules éligibles à l'électrification. ROI estimé 18 mois, soit 124 tCO₂e évitées par an.",
-    metric: "−124", metricLabel: "tCO₂e/an", cta: "Plan d'action", time: "32 min",
+    id: "act-1", type: "action",
+    title: "Contrat d'électricité verte",
+    desc: "Basculer 3 sites sur un PPA renouvelable réduirait le Scope 2 de 40 %.",
+    metric: "−356", metricLabel: "tCO₂e / an",
+    cta: "Voir le plan d'action", time: "il y a 5 h",
   },
   {
     id: "comp-1", type: "compliance",
     title: "ESRS E1-6 — Données manquantes",
     desc: "Divulgation Scope 3 cat. 11 (utilisation des produits vendus) non complétée.",
-    metric: "1", metricLabel: "point à compléter", cta: "Compléter", time: "1 h",
-  },
-  {
-    id: "draft-1", type: "draft",
-    title: "Rapport ESRS E1 pré-rédigé",
-    desc: "NEURAL a pré-rédigé la section narrative complète. Prêt à être relu et validé.",
-    metric: "87 %", metricLabel: "complété", cta: "Consulter", time: "2 h",
+    metric: "1", metricLabel: "point à compléter", cta: "Compléter", time: "il y a 1 j",
   },
 ];
 
@@ -309,13 +318,15 @@ export function DashboardPage() {
           </div>
         )}
 
+        {/* Démo : bandeau discret au thème du cockpit (la maquette n'a pas de
+            bandeau clair ici ; la mention reste, elle, obligatoire). */}
         {!isLive && !carbonError && (
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700">
-            <Info className="w-4 h-4 flex-shrink-0" />
-            <p className="text-xs flex-1">
-              <strong>Données de démonstration</strong> — les chiffres affichés sont fictifs.
-              Pour voir vos données réelles, importez votre classeur Excel via{" "}
-              <a href="/upload" className="underline font-semibold hover:text-blue-900">Import de données</a>.
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-2)] px-3.5 py-2.5">
+            <Info className="h-4 w-4 flex-shrink-0 text-[var(--cc-blue)]" />
+            <p className="flex-1 text-xs text-[var(--cc-muted)]">
+              <strong className="text-[var(--cc-fg)]">Données de démonstration</strong> — chiffres
+              fictifs. Pour vos données réelles, importez votre classeur via{" "}
+              <a href="/upload" className="font-semibold underline text-[var(--cc-em)]">Import de données</a>.
             </p>
           </div>
         )}
@@ -323,20 +334,9 @@ export function DashboardPage() {
         {/* Bandeau audit-mode */}
         <AuditModeBanner />
 
-        {/* Titre cockpit */}
-        <div className="flex items-end justify-between gap-3 pt-2">
-          <div>
-            <h2 className="font-display font-bold text-2xl leading-tight">
-              Tableau de bord ESG — {companyName}
-            </h2>
-            <p className="text-xs text-[var(--color-foreground-muted)] mt-1">
-              Vue d&apos;ensemble · Données au {new Date().toLocaleDateString("fr-FR")}
-              {isLive ? " · Source : classeurs Excel" : ""}
-            </p>
-          </div>
-        </div>
-
-        {/* Hero : trajectoire + score conformité */}
+        {/* Hero : trajectoire + score conformité
+            (pas de titre in-content : la barre supérieure porte déjà
+            « Tableau de bord · Vue d'ensemble ESG », comme dans la maquette) */}
         <Hero
           totalEmissions={totalValue}
           target2025={TARGET_EMISSIONS}
@@ -385,34 +385,36 @@ export function DashboardPage() {
         {/* Preuve & qualité (score audit, couverture de pièces, méthodes) */}
         <QualityPanel />
 
-        {/* ESRS heat + activity + sources */}
-        <FooterRow
-          esrs={esrsState}
-          activity={activity}
-          connectors={CONNECTORS}
-          deadlines={DEADLINES}
-        />
+        {/* Bridge des leviers 2023 → 2025 + heatmap ESRS (cf. maquette) */}
+        <BridgeRow esrs={esrsState} waterfall={WATERFALL} />
 
         {/* Scope 3 par catégorie (15 postes, filtrable) */}
         <Scope3Panel />
 
-        {/* Accès au module Ressources stratégiques (Module 2, données réelles) */}
-        <ResourcesAccessCard />
-
-        {/* NEURAL unifié — clôt le cockpit (cf. maquette) */}
+        {/* NEURAL unifié — clôt la séquence de la maquette */}
         <NeuralPanel
           items={NEURAL_ITEMS}
           suggestions={SUGGESTIONS}
           onOpenCopilot={() => setCopilotOpen(true)}
         />
 
+        {/* Hors maquette, conservés : activité, connecteurs/échéances, accès
+            au module Ressources stratégiques. */}
+        <SourcesRow activity={activity} connectors={CONNECTORS} deadlines={DEADLINES} />
+
+        <ResourcesAccessCard />
+
         <div className="text-center text-[11px] text-[var(--color-foreground-subtle)] font-mono py-2">
-          Données de démonstration · chiffres fictifs fidèles à l&apos;app CarbonCo
+          {companyName} · données de démonstration, chiffres fictifs
         </div>
       </div>
 
       {/* Drawer copilote (slide-in droit) */}
-      <CopilotDrawer open={copilotOpen} onClose={() => setCopilotOpen(false)} />
+      <CopilotDrawer
+        open={copilotOpen}
+        onClose={() => setCopilotOpen(false)}
+        scope3SharePct={scopes.find((s) => s.id === 3)?.share}
+      />
 
       {/* Drawer provenance (préservé) */}
       <KpiProvenanceDrawer

@@ -1,11 +1,10 @@
 project: carbonco-water-intelligence
-active_prompt: P01
-status: review
+active_prompt: P02
+status: ready
 default_branch: master
 private_cockpit_route: /water
 public_intelligence_route: /water-intelligence
-last_merged_prompt: P00
-next_prompt: P02
+last_merged_prompt: P01
+next_prompt: P03
 migrations_expected: false
-blocking_issues:
-  - "Catalogue normalisé + rapport de validation produits (docs uniquement, SOURCE_CATALOG_NORMALIZED_V1.csv + SOURCE_CATALOG_VALIDATION_REPORT.md) ; le parseur Python déterministe et les tests automatisés du CSV (tâches 2 et 7 du prompt maître) restent à implémenter dans apps/api avant que P01 soit totalement conforme au prompt maître."
+blocking_issues: []

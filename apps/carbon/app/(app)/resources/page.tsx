@@ -14,7 +14,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Boxes, FlaskConical, SearchX, ShieldAlert, Flame, ShieldCheck } from "lucide-react";
+import {
+  Boxes, FlaskConical, SearchX, ShieldAlert, Flame, ShieldCheck, ScatterChart, Globe2,
+} from "lucide-react";
 import { FeatureStatusBadge } from "@/components/ui/feature-status-badge";
 import { ResourceNav } from "@/components/resources/resource-nav";
 import { ResourceDataStatus } from "@/components/resources/resource-data-status";
@@ -25,16 +27,22 @@ import {
 } from "@/components/resources/resource-empty-state";
 import { StatTile } from "@/components/resources/viz/stat-tile";
 import { RadialGauge } from "@/components/resources/viz/radial-gauge";
+import { RiskConfidenceScatter } from "@/components/resources/viz/risk-confidence-scatter";
+import { AggregateConcentrationPanel } from "@/components/resources/viz/aggregate-concentration-panel";
 import { useIsDemoSession } from "@/lib/hooks/auth-context";
-import { BAND_HEX, riskToneHex, hhiTone, meanOrNull } from "@/lib/resources-viz";
+import {
+  BAND_HEX, riskToneHex, hhiTone, meanOrNull, aggregateCountryConcentration,
+} from "@/lib/resources-viz";
 import {
   ALERT_KIND_LABEL,
   FAMILY_LABEL,
   SEVERITY_TONE,
   SchemaNotReadyError,
+  buildStageConcentration,
   fetchResourceAlerts,
   fetchResourceAssessments,
   fetchResourceCatalog,
+  fetchResourceSupply,
   riskBand,
   selectLatestAssessmentPerResource,
   type ResourceAlert,
@@ -42,6 +50,10 @@ import {
   type ResourceCatalogItem,
   type ResourceFamily,
 } from "@/lib/api/resources";
+
+/** Portefeuille agrégé plafonné aux N ressources les plus exposées (jamais
+ * silencieux : la troncature, si elle joue, est affichée dans l'UI). */
+const AGGREGATE_SUPPLY_CAP = 24;
 
 type PageState = "loading" | "schema_not_ready" | "error" | "ready";
 
@@ -62,6 +74,9 @@ export default function ResourcesCatalogPage() {
   const [assessments, setAssessments] = useState<Map<string, ResourceAssessmentSummary>>(new Map());
   const [family, setFamily] = useState<ResourceFamily | "all">("all");
   const [query, setQuery] = useState("");
+  const [drivingByResource, setDrivingByResource] = useState<
+    Map<string, { shares: { country_code: string; share_pct: number }[]; hhi: number | null }>
+  >(new Map());
   const isDemo = useIsDemoSession();
 
   const load = useCallback(
@@ -100,6 +115,52 @@ export default function ResourcesCatalogPage() {
     load(family, ctrl.signal);
     return () => ctrl.abort();
   }, [load, family]);
+
+  // Concentration pays agrégée (vue portefeuille) : une étape déterminante par
+  // ressource, jamais une moyenne inter-étapes d'une même ressource. Dépend de
+  // `items` (filtre Famille, côté serveur) — PAS de `query` — pour éviter une
+  // rafale de requêtes à chaque frappe dans la recherche ; le nuage risque ×
+  // confiance, lui, suit `filtered` (déjà chargé, aucun coût réseau).
+  // Plafonné aux ressources les plus exposées : jamais une troncature muette.
+  useEffect(() => {
+    if (items.length === 0) {
+      setDrivingByResource(new Map());
+      return;
+    }
+    const ranked = [...items].sort((a, b) => {
+      const ra = assessments.get(a.slug)?.risk_score ?? -1;
+      const rb = assessments.get(b.slug)?.risk_score ?? -1;
+      return rb - ra;
+    });
+    const targets = ranked.slice(0, AGGREGATE_SUPPLY_CAP);
+    const ctrl = new AbortController();
+    (async () => {
+      const results = await Promise.allSettled(
+        targets.map((r) => fetchResourceSupply(r.slug, {}, ctrl.signal)),
+      );
+      if (ctrl.signal.aborted) return;
+      const next = new Map<string, { shares: { country_code: string; share_pct: number }[]; hhi: number | null }>();
+      targets.forEach((r, i) => {
+        const res = results[i];
+        if (res.status !== "fulfilled") return;
+        const stages = buildStageConcentration(res.value.items);
+        if (stages.length === 0) return;
+        const driving = stages.reduce((a, b) => ((b.hhi ?? 0) > (a.hhi ?? 0) ? b : a));
+        if (driving.country_shares.length === 0) return;
+        next.set(r.slug, {
+          shares: driving.country_shares.map((c) => ({ country_code: c.country_code, share_pct: c.share_pct })),
+          hhi: driving.hhi,
+        });
+      });
+      setDrivingByResource(next);
+    })();
+    return () => ctrl.abort();
+    // `assessments` sert uniquement au tri initial (ressources les + exposées
+    // d'abord) ; la re-course à chaque mise à jour d'assessments (même contenu,
+    // référence différente) n'est ni utile ni souhaitée — seul un changement
+    // d'`items` doit refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -144,6 +205,28 @@ export default function ResourcesCatalogPage() {
       avgConfidence: meanOrNull(visible.map((a) => a.confidence)),
     };
   }, [filtered, assessments, alerts]);
+
+  // Nuage risque × confiance : suit `filtered` (client-only, déjà chargé).
+  const scatterRuns = useMemo(
+    () => filtered.map((i) => assessments.get(i.slug)).filter((a): a is ResourceAssessmentSummary => !!a),
+    [filtered, assessments],
+  );
+  const namesBySlug = useMemo(
+    () => new Map(items.map((i) => [i.slug, i.name_fr ?? i.name])),
+    [items],
+  );
+
+  // Concentration pays agrégée : dérivée de `drivingByResource` (fetch réseau
+  // découplé de la recherche, cf. l'effet ci-dessus).
+  const aggConcentration = useMemo(
+    () => aggregateCountryConcentration([...drivingByResource.values()].map((v) => v.shares)),
+    [drivingByResource],
+  );
+  const avgDrivingHhi = useMemo(
+    () => meanOrNull([...drivingByResource.values()].map((v) => v.hhi)),
+    [drivingByResource],
+  );
+  const concentrationTruncated = items.length > AGGREGATE_SUPPLY_CAP;
 
   const showHero = state === "ready" && items.length > 0 && emptyKind === "grid";
 
@@ -234,6 +317,46 @@ export default function ResourcesCatalogPage() {
                 accent="var(--color-foreground)"
                 context="Qualité du socle documentaire"
               />
+            </section>
+          )}
+
+          {showHero && (scatterRuns.length > 0 || aggConcentration.length > 0) && (
+            <section className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+              {scatterRuns.length > 0 && (
+                <div className="rounded-xl border border-[var(--color-border)] p-4">
+                  <div className="mb-1 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                      <ScatterChart className="h-3.5 w-3.5" style={{ color: "#34D399" }} />
+                      Risque × Confiance
+                    </div>
+                    <span className="text-[11px] text-[var(--color-foreground-subtle)]">
+                      taille ∝ HHI · survolez un point
+                    </span>
+                  </div>
+                  <RiskConfidenceScatter
+                    runs={scatterRuns}
+                    namesBySlug={namesBySlug}
+                    testId="resources-scatter"
+                  />
+                </div>
+              )}
+              {aggConcentration.length > 0 && (
+                <div className="rounded-xl border border-[var(--color-border)] p-4">
+                  <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                    <Globe2 className="h-3.5 w-3.5" style={{ color: "#34D399" }} />
+                    Concentration d&apos;appro.
+                  </div>
+                  <p className="mb-3 text-[11px] text-[var(--color-foreground-subtle)]">
+                    principaux pays fournisseurs · étape déterminante de chaque ressource
+                    {concentrationTruncated && ` (top ${AGGREGATE_SUPPLY_CAP} par exposition)`}
+                  </p>
+                  <AggregateConcentrationPanel
+                    shares={aggConcentration}
+                    avgHhi={avgDrivingHhi}
+                    testId="resources-aggregate-concentration"
+                  />
+                </div>
+              )}
             </section>
           )}
 

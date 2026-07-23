@@ -123,8 +123,10 @@ const BENCHMARK_DATA: Benchmark = {
 const NEURAL_ITEMS: NeuralItem[] = [
   {
     id: "opp-1", type: "opportunité",
-    title: "78 % du Scope 3 vient des achats",
-    desc: "Lancer un questionnaire fournisseurs ciblé sur les 5 postes majeurs.",
+    // 7 420 / 9 550 = 78 % (part du Scope 3 dans le total) ; 2 680 / 7 420 = 36 %
+    // (part des achats dans le Scope 3) — deux chiffres distincts, cf. revue.
+    title: "Le Scope 3 pèse 78 % de vos émissions",
+    desc: "Les achats en sont le premier poste (36 % du Scope 3). Lancer un questionnaire fournisseurs ciblé sur les 5 postes majeurs.",
     metric: "−1 240", metricLabel: "tCO₂e potentiel",
     cta: "Lancer le questionnaire", time: "il y a 2 h",
   },
@@ -408,7 +410,11 @@ export function DashboardPage() {
       </div>
 
       {/* Drawer copilote (slide-in droit) */}
-      <CopilotDrawer open={copilotOpen} onClose={() => setCopilotOpen(false)} />
+      <CopilotDrawer
+        open={copilotOpen}
+        onClose={() => setCopilotOpen(false)}
+        scope3SharePct={scopes.find((s) => s.id === 3)?.share}
+      />
 
       {/* Drawer provenance (préservé) */}
       <KpiProvenanceDrawer

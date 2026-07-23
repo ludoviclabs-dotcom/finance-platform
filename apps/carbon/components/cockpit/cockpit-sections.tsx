@@ -576,7 +576,16 @@ export function CopilotDrawer({
   open,
   onClose,
   userFirstName = "Marie",
-}: { open: boolean; onClose: () => void; userFirstName?: string }) {
+  scope3SharePct = 78,
+}: {
+  open: boolean;
+  onClose: () => void;
+  userFirstName?: string;
+  /** Part du Scope 3 dans le total — passée par l'appelant pour rester en
+   *  phase avec la carte Scope 3 et le donut plutôt que de figer un chiffre
+   *  ici (cf. incohérence 62 % / 78 % corrigée en revue). */
+  scope3SharePct?: number;
+}) {
   const prompts = [
     "Pourquoi mon Scope 2 a augmenté en mars ?",
     "Comment atteindre l'objectif 2025 ?",
@@ -612,7 +621,7 @@ export function CopilotDrawer({
             <div className="cc-chat-av"><Sparkles className="w-3.5 h-3.5" /></div>
             <div className="cc-chat-bubble">
               Bonjour {userFirstName} 👋 J&apos;ai analysé vos données. Votre{" "}
-              <strong>Scope 3</strong> (62 %) reste le principal levier. Je peux vous aider à le réduire,
+              <strong>Scope 3</strong> ({scope3SharePct} %) reste le principal levier. Je peux vous aider à le réduire,
               suivre votre conformité ESRS, ou pré-rédiger un rapport.
             </div>
           </div>

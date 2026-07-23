@@ -33,8 +33,11 @@ export function StatTile({
 }) {
   const num = typeof value === "number" && !Number.isNaN(value) ? value : null;
   const animated = useCountUp(num ?? 0, 1000, [num]);
-  const real = num === null ? "—" : `${num.toFixed(decimals)}${suffix}`;
-  const shown = num === null ? "—" : `${animated.toFixed(decimals)}${suffix}`;
+  // Format français : séparateur de milliers + virgule décimale (12 840 / 2,4).
+  const nf = (n: number) =>
+    n.toLocaleString("fr-FR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  const real = num === null ? "—" : `${nf(num)}${suffix}`;
+  const shown = num === null ? "—" : `${nf(animated)}${suffix}`;
 
   return (
     <div

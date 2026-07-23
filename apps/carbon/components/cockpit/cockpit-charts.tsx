@@ -1,7 +1,8 @@
 "use client";
 
 /* CarbonCo Cockpit — datavisualisation SVG sans dépendance.
-   Composants : TrajectoryChart, ScoreRing, TargetGauge, ScopeDonut, RadarChart, Sparkline, CategoryBars. */
+   Composants : TrajectoryChart, ScoreRing, TargetGauge, ScopeDonut, RadarChart, Sparkline,
+   WaterfallChart, CategoryBars. */
 
 import { useEffect, useRef, useState } from "react";
 
@@ -424,6 +425,88 @@ export function Sparkline({
       <path d={area} fill={`url(#${id})`} />
       <path d={d} fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" />
     </svg>
+  );
+}
+
+/* ─── WaterfallChart : bridge des émissions par levier ───────────────────── */
+export type WaterfallStep = {
+  label: string;
+  /** Ancre (`base`/`total`) : valeur absolue. `delta` : variation signée. */
+  value: number;
+  kind: "base" | "delta" | "total";
+};
+
+const WF_COLOR = {
+  anchor: "#8A99B0",
+  down: "#34D399",
+  up: "#F87171",
+  total: "#34D399",
+} as const;
+
+/** Cumule les étapes en barres positionnées (hors rendu : l'accumulateur ne doit
+ *  pas être réassigné depuis une closure de rendu). */
+function buildWaterfallBars(steps: WaterfallStep[]) {
+  const bars: (WaterfallStep & {
+    start: number; end: number; lo: number; hi: number; color: string; text: string;
+  })[] = [];
+  let running = 0;
+  for (const s of steps) {
+    const start = s.kind === "delta" ? running : 0;
+    const end = s.kind === "base" ? s.value
+      : s.kind === "total" ? running
+      : running + s.value;
+    if (s.kind !== "total") running = end;
+    const color = s.kind === "base" ? WF_COLOR.anchor
+      : s.kind === "total" ? WF_COLOR.total
+      : s.value < 0 ? WF_COLOR.down : WF_COLOR.up;
+    const text = s.kind === "delta"
+      ? `${s.value < 0 ? "−" : "+"}${fmt(Math.abs(s.value))}`
+      : fmt(end);
+    bars.push({ ...s, start, end, color, text, lo: Math.min(start, end), hi: Math.max(start, end) });
+  }
+  return bars;
+}
+
+export function WaterfallChart({
+  steps, height = 210,
+}: { steps: WaterfallStep[]; height?: number }) {
+  const bars = buildWaterfallBars(steps);
+  const max = Math.max(1, ...bars.map((b) => b.hi));
+  const pct = (v: number) => (v / max) * 100;
+  const summary = bars.map((b) => `${b.label} ${b.text}`).join(", ");
+
+  return (
+    <div className="cc-wf" role="img" aria-label={`Bridge des émissions : ${summary}`}>
+      <div className="cc-wf-plot" style={{ height }}>
+        {bars.map((b, i) => (
+          <div key={b.label} className="cc-wf-col">
+            <span
+              className="cc-wf-val cc-mono"
+              style={{ bottom: `${pct(b.hi)}%`, color: b.color }}
+            >
+              {b.text}
+            </span>
+            <span
+              className="cc-wf-bar"
+              style={{
+                bottom: `${pct(b.lo)}%`,
+                height: `max(3px, ${pct(b.hi - b.lo)}%)`,
+                background: b.color,
+                opacity: b.kind === "delta" ? 0.92 : 1,
+              }}
+            />
+            {i < bars.length - 1 && (
+              <span className="cc-wf-link" style={{ bottom: `${pct(b.end)}%` }} />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="cc-wf-axis">
+        {bars.map((b) => (
+          <span key={b.label} title={b.label}>{b.label}</span>
+        ))}
+      </div>
+    </div>
   );
 }
 

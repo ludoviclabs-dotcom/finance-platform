@@ -11,15 +11,16 @@
  * au survol des catégories vides.
  *
  * Repli démonstration : jeu FICTIF clairement étiqueté si le backend est
- * injoignable.
+ * injoignable OU s'il répond pour un tenant VIDE (aucune catégorie évaluée),
+ * afin que le panneau ne reste pas à « 0 / 15 » au milieu d'un cockpit nourri
+ * par les données de démonstration.
  */
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CheckCircle2, CircleDashed, ArrowRight } from "lucide-react";
+import { CheckCircle2, CircleDashed, ArrowRight, Layers } from "lucide-react";
 
-import { StatTile } from "@/components/resources/viz/stat-tile";
 import { fetchScope3Breakdown, type Scope3Breakdown } from "@/lib/api";
 
 function fmt(v: number): string {
@@ -44,19 +45,32 @@ const SCOPE3_LABELS = [
   "Investissements",
 ];
 
-const DEMO_VALUES: Record<number, number> = { 1: 3800, 3: 862, 4: 1450, 5: 180, 6: 520, 7: 410 };
-const DEMO_SCOPE3: Scope3Breakdown = {
-  categories: SCOPE3_LABELS.map((label, i) => {
-    const code = i + 1;
-    const value = DEMO_VALUES[code] ?? 0;
-    return { code, label, value, evaluated: value > 0 };
-  }),
-  coverage: [1, 3, 4, 5, 6, 7],
-  coverage_count: 6,
-  categorized_total: 7222,
-  uncategorized_total: 0,
-  total_scope3: 7222,
+/* Jeu fictif calé sur la maquette (12 catégories évaluées sur 15) et cohérent
+   avec le total Scope 3 du cockpit : Σ = 7 420 tCO₂e. Les catégories 3.10,
+   3.13 et 3.14 restent volontairement non évaluées. */
+const DEMO_VALUES: Record<number, number> = {
+  1: 2680, 2: 450, 3: 610, 4: 1020, 5: 130, 6: 370, 7: 290, 8: 70,
+  9: 510, 11: 890, 12: 170, 15: 230,
 };
+const DEMO_CATEGORIES = SCOPE3_LABELS.map((label, i) => {
+  const code = i + 1;
+  const value = DEMO_VALUES[code] ?? 0;
+  return { code, label, value, evaluated: value > 0 };
+});
+const DEMO_TOTAL = DEMO_CATEGORIES.reduce((sum, c) => sum + c.value, 0);
+const DEMO_SCOPE3: Scope3Breakdown = {
+  categories: DEMO_CATEGORIES,
+  coverage: DEMO_CATEGORIES.filter((c) => c.evaluated).map((c) => c.code),
+  coverage_count: DEMO_CATEGORIES.filter((c) => c.evaluated).length,
+  categorized_total: DEMO_TOTAL,
+  uncategorized_total: 0,
+  total_scope3: DEMO_TOTAL,
+};
+
+/** Aucune catégorie évaluée = rien à restituer, pas « 0 tCO₂e mesurés ». */
+function isEmpty(b: Scope3Breakdown): boolean {
+  return b.coverage_count === 0;
+}
 
 type Filter = "all" | "evaluated" | "todo";
 
@@ -73,8 +87,9 @@ export function Scope3Panel() {
     return () => ctrl.abort();
   }, []);
 
-  const display = data ?? (failed ? DEMO_SCOPE3 : null);
-  const isDemo = !data && failed;
+  const live = data && !isEmpty(data) ? data : null;
+  const display = live ?? (data || failed ? DEMO_SCOPE3 : null);
+  const isDemo = display !== null && live === null;
 
   const max = useMemo(
     () => Math.max(1, ...(display?.categories ?? []).map((c) => c.value)),
@@ -97,28 +112,30 @@ export function Scope3Panel() {
   ];
 
   return (
-    <div
-      className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
-      data-testid="scope3-panel"
-    >
+    <div className="cc-card px-[22px] py-5" data-testid="scope3-panel">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-[var(--color-muted-foreground)]">
-            Scope 3 par catégorie
+          <h3 className="cc-eyebrow">
+            <Layers className="h-3.5 w-3.5" /> Scope 3 par catégorie
           </h3>
           {isDemo && (
-            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-500">
               Démo — données fictives
             </span>
           )}
         </div>
-        <div className="flex items-center gap-4">
-          <StatTile
-            testId="scope3-coverage"
-            label="Couverture"
-            value={evaluated}
-            context={`sur 15 · ${fmt(display.total_scope3)} tCO₂e`}
-          />
+        <div
+          className="text-right"
+          data-testid="scope3-coverage"
+          aria-label={`Couverture : ${evaluated} catégories sur 15, ${fmt(display.total_scope3)} tCO₂e`}
+        >
+          <div className="font-display text-xl font-bold leading-none tabular-nums">
+            {evaluated}
+            <span className="text-xs font-normal text-[var(--color-foreground-subtle)]"> / 15</span>
+          </div>
+          <div className="mt-1 text-[9.5px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+            Couverture · {fmt(display.total_scope3)} tCO₂e
+          </div>
         </div>
       </div>
 
@@ -179,11 +196,19 @@ export function Scope3Panel() {
                 {fmt(c.value)}
               </span>
             ) : (
-              <span className="flex w-20 justify-end">
+              <span className="relative flex w-20 items-center justify-end">
+                {/* La maquette affiche « — » au repos ; « Renseigner » n'apparaît
+                    qu'au survol / focus clavier (le lien reste tabulable). */}
+                <span
+                  aria-hidden="true"
+                  className="font-mono text-[var(--color-foreground-subtle)] transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"
+                >
+                  —
+                </span>
                 <Link
                   href="/upload"
                   data-testid={`scope3-fill-${c.code}`}
-                  className="inline-flex items-center gap-0.5 text-[var(--color-foreground-subtle)] opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 hover:text-carbon-emerald-light"
+                  className="absolute inset-y-0 right-0 inline-flex items-center gap-0.5 whitespace-nowrap text-[var(--color-foreground-subtle)] opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 hover:text-carbon-emerald-light"
                 >
                   Renseigner <ArrowRight className="h-3 w-3" />
                 </Link>

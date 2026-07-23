@@ -141,7 +141,7 @@ export function Scope3Panel() {
         ))}
       </div>
 
-      <ul className="space-y-0.5" data-testid="scope3-rows">
+      <ul className="grid grid-cols-1 gap-x-6 gap-y-0.5 lg:grid-cols-2" data-testid="scope3-rows">
         {rows.map((c) => (
           <li
             key={c.code}

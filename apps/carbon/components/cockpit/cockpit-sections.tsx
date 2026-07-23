@@ -2,7 +2,7 @@
 
 /* CarbonCo Cockpit — sections de contenu (Hero, ScopeStrip, NeuralPanel, AnalyticsRow, FooterRow). */
 
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import {
   AlertTriangle, ArrowRight, X, ChevronDown, TrendingUp, TrendingDown,
   Factory, Zap, Truck, FileText, Sparkles, Target as TargetIcon, CheckCircle, Bot,
@@ -116,10 +116,16 @@ export function Hero({
     { k: "s3", c: "#A78BFA", label: "Scope 3" },
   ];
   const targetMonthly = target2025 / 12;
+  const onSpotlight = (e: MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    el.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
   return (
     <section className="cc-hero">
       {/* Trajectoire */}
-      <div className="cc-card cc-hero-traj">
+      <div className="cc-card cc-hero-traj" onMouseMove={onSpotlight}>
         <div className="cc-hero-head">
           <div>
             <div className="cc-eyebrow"><TrendingUp className="w-3.5 h-3.5" /> Trajectoire carbone</div>

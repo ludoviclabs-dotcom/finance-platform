@@ -86,3 +86,39 @@ export function meanOrNull(values: Array<number | null | undefined>): number | n
   if (nums.length === 0) return null;
   return nums.reduce((s, v) => s + v, 0) / nums.length;
 }
+
+export type AggregatedCountryShare = { countryCode: string; sharePct: number };
+
+/**
+ * Agrège en vue portefeuille les parts pays de l'étape DÉTERMINANTE (HHI le
+ * plus élevé) de chaque ressource — une seule étape par ressource, jamais une
+ * moyenne inter-étapes d'UNE MÊME ressource (cette agrégation cumule ENTRE
+ * ressources, elle ne moyenne pas les étapes d'une ressource donnée).
+ *
+ * Renvoie les `topN-1` premiers pays par part cumulée + un bucket « Autres »
+ * pour le reste (jamais une omission silencieuse du solde). `[]` si aucune
+ * part n'est disponible (jamais un graphique vide présenté comme une donnée).
+ */
+export function aggregateCountryConcentration(
+  perResourceDrivingShares: Array<{ country_code: string; share_pct: number }[]>,
+  topN = 6,
+): AggregatedCountryShare[] {
+  const totals = new Map<string, number>();
+  let grandTotal = 0;
+  for (const shares of perResourceDrivingShares) {
+    for (const s of shares) {
+      totals.set(s.country_code, (totals.get(s.country_code) ?? 0) + s.share_pct);
+      grandTotal += s.share_pct;
+    }
+  }
+  if (grandTotal <= 0) return [];
+
+  const ranked = [...totals.entries()]
+    .map(([countryCode, sum]) => ({ countryCode, sharePct: (sum / grandTotal) * 100 }))
+    .sort((a, b) => b.sharePct - a.sharePct);
+
+  if (ranked.length <= topN) return ranked;
+  const top = ranked.slice(0, topN - 1);
+  const restSum = ranked.slice(topN - 1).reduce((s, r) => s + r.sharePct, 0);
+  return [...top, { countryCode: "Autres", sharePct: restSum }];
+}

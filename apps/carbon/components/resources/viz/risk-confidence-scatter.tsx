@@ -23,7 +23,14 @@
 
 import { useState } from "react";
 import type { ResourceAssessmentSummary } from "@/lib/api/resources";
-import { riskToneHex } from "@/lib/resources-viz";
+import { BAND_HEX, riskToneHex } from "@/lib/resources-viz";
+
+/** Bornes de bandes RÉELLES (miroir de `riskBand` / `confidenceBand` de
+ * `lib/api/crma.ts`) : risque ≥ 75 = « Élevé », confiance ≥ 70 = « solide ».
+ * Ce sont des constantes typées et documentées du domaine — contrairement au
+ * seuil d'alerte « ≥ 66.0 », qui n'existe que dans du texte libre backend. */
+const RISK_HIGH_BAND = 75;
+const CONFIDENCE_SOLID_BAND = 70;
 
 type ScatterPoint = {
   slug: string;
@@ -82,6 +89,49 @@ export function RiskConfidenceScatter({
         role="img"
         aria-label="Nuage de points risque contre confiance, taille proportionnelle à la concentration HHI"
       >
+        {/* Repères de quadrant tracés sur les bornes de bandes RÉELLES et typées
+            (`riskBand` : 75 = « Élevé » ; `confidenceBand` : 70 = « solide ») —
+            jamais sur le seuil d'alerte « 66.0 », qui n'existe que dans du texte
+            libre backend et dériverait sans prévenir. */}
+        <rect
+          x={x(RISK_HIGH_BAND)}
+          y={padT}
+          width={x(100) - x(RISK_HIGH_BAND)}
+          height={y(CONFIDENCE_SOLID_BAND) - padT}
+          fill="#F87171"
+          fillOpacity={0.05}
+        />
+        <line
+          x1={x(RISK_HIGH_BAND)}
+          x2={x(RISK_HIGH_BAND)}
+          y1={padT}
+          y2={padT + iH}
+          stroke={BAND_HEX.severe}
+          strokeWidth={1}
+          strokeDasharray="5 4"
+          opacity={0.5}
+        />
+        <line
+          x1={padL}
+          x2={padL + iW}
+          y1={y(CONFIDENCE_SOLID_BAND)}
+          y2={y(CONFIDENCE_SOLID_BAND)}
+          stroke="#22D3EE"
+          strokeWidth={1}
+          strokeDasharray="5 4"
+          opacity={0.4}
+        />
+        <text
+          x={x(100) - 6}
+          y={padT + 13}
+          textAnchor="end"
+          fontSize={9}
+          fill={BAND_HEX.severe}
+          opacity={0.85}
+        >
+          risque élevé · confiance à renforcer
+        </text>
+
         {ticks.map((t) => (
           <g key={t}>
             <line x1={x(t)} x2={x(t)} y1={padT} y2={padT + iH} stroke="var(--color-border)" strokeWidth={1} />

@@ -63,12 +63,14 @@ jobs:
       #
       # Allowlist (retirer chaque entrée dès qu'un correctif non cassant existe) :
       #  - GHSA-f88m-g3jw-g9cj : sharp <0.35.0 hérite de vulnérabilités libvips
-      #    (CVE-2026-33327 / 33328 / 35590 / 35591). Dépendance TRANSITIVE via
-      #    next@16.2.6 (optimisation d'images) — jamais déclarée dans package.json.
-      #    Le seul correctif proposé par npm est un DOWNGRADE next 16.2.6 -> 14.2.35
-      #    (cassant, refusé). Advisory apparue dans la base live npm après le dernier
-      #    run vert de master ; indépendante de toute PR (aucune modif de dépendance).
-      #    Plateforme locale-first, pas de pipeline sharp exposé au runtime.
+      #    (CVE-2026-33327 / 33328 / 35590 / 35591). Dépendance TRANSITIVE et
+      #    OPTIONNELLE via next (optimisation d'images) — jamais déclarée dans
+      #    package.json. Réévalué sur PR #137 avec next@16.2.11 : npm résout
+      #    toujours sharp@0.34.5 (next exige `sharp@^0.34.5`), donc AUCUN correctif
+      #    non cassant n'existe côté CarbonCo. Plateforme locale-first, pas de
+      #    pipeline sharp exposé au runtime.
+      #    Analyse détaillée + date de réévaluation :
+      #    docs/carbonco/security/NPM_ADVISORY_GHSA-f88m-g3jw-g9cj.md
       #    À retirer dès que next embarque un sharp>=0.35.0 patché.
       - name: npm audit (high+critical bloquant, allowlist documentée)
         run: |

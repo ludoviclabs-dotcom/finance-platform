@@ -18,6 +18,9 @@ import { useAuditMode } from "@/lib/hooks/use-audit-mode";
 import { useReviewStatusBatch } from "@/lib/hooks/use-review-status";
 import { useConsolidatedSnapshot } from "@/lib/hooks/use-consolidated-snapshot";
 import { ResourcesAccessCard } from "@/components/dashboard/resources-access-card";
+import { ChainBadge } from "@/components/ui/chain-badge";
+import { QualityPanel } from "@/components/ui/quality-panel";
+import { Scope3Panel } from "@/components/ui/scope3-panel";
 
 import { monthlyEmissions, scopeDetails, recentActivity } from "@/lib/data";
 import { pageVariants } from "@/lib/animations";
@@ -287,6 +290,9 @@ export function DashboardPage() {
     <motion.div {...pageVariants} className="cc-app space-y-0">
       <div className="px-6 pt-4 pb-6 space-y-4">
 
+        {/* Chaîne d'intégrité (ouvre le cockpit, comme la maquette) */}
+        <ChainBadge />
+
         {/* Bandeau réglementaire EFRAG */}
         <RegBanner
           note={{ src: "EFRAG", date: "15/03/26", text: "Nouvelles guidelines ESRS E1-6 · Scope 3 cat. 15 précisé." }}
@@ -373,18 +379,11 @@ export function DashboardPage() {
           </div>
         )}
 
-        {/* NEURAL unifié */}
-        <NeuralPanel
-          items={NEURAL_ITEMS}
-          suggestions={SUGGESTIONS}
-          onOpenCopilot={() => setCopilotOpen(true)}
-        />
-
         {/* Donut + radar benchmark */}
         <AnalyticsRow scopes={scopes} benchmark={BENCHMARK_DATA} />
 
-        {/* Accès au module Ressources stratégiques (Module 2, données réelles) */}
-        <ResourcesAccessCard />
+        {/* Preuve & qualité (score audit, couverture de pièces, méthodes) */}
+        <QualityPanel />
 
         {/* ESRS heat + activity + sources */}
         <FooterRow
@@ -392,6 +391,19 @@ export function DashboardPage() {
           activity={activity}
           connectors={CONNECTORS}
           deadlines={DEADLINES}
+        />
+
+        {/* Scope 3 par catégorie (15 postes, filtrable) */}
+        <Scope3Panel />
+
+        {/* Accès au module Ressources stratégiques (Module 2, données réelles) */}
+        <ResourcesAccessCard />
+
+        {/* NEURAL unifié — clôt le cockpit (cf. maquette) */}
+        <NeuralPanel
+          items={NEURAL_ITEMS}
+          suggestions={SUGGESTIONS}
+          onOpenCopilot={() => setCopilotOpen(true)}
         />
 
         <div className="text-center text-[11px] text-[var(--color-foreground-subtle)] font-mono py-2">

@@ -12,6 +12,7 @@
  */
 
 import { motion } from "framer-motion";
+import { countryLabelFr } from "@/lib/iso3166";
 import type { AggregatedCountryShare } from "@/lib/resources-viz";
 
 const RANK_COLOR = ["#FB923C", "#FBBF24", "#A3E635", "#A3E635", "#5C6B82", "#5C6B82"];
@@ -33,13 +34,16 @@ export function AggregateConcentrationPanel({
       <ul className="flex flex-col gap-2.5">
         {shares.map((s, i) => (
           <li key={s.countryCode} className="flex items-center gap-2.5" data-testid={`agg-country-${s.countryCode}`}>
-            <span className="w-20 flex-shrink-0 truncate text-sm font-medium text-[var(--color-foreground)]">
-              {s.countryCode}
+            <span
+              className="w-24 flex-shrink-0 truncate text-sm font-medium text-[var(--color-foreground)]"
+              title={s.countryCode}
+            >
+              {s.countryCode === "Autres" ? "Autres" : countryLabelFr(s.countryCode)}
             </span>
             <div
               className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--color-surface-raised)]"
               role="img"
-              aria-label={`${s.countryCode} : ${s.sharePct.toFixed(1)} % de la concentration cumulée`}
+              aria-label={`${s.countryCode === "Autres" ? "Autres" : countryLabelFr(s.countryCode)} : ${s.sharePct.toFixed(1)} % de la concentration cumulée`}
             >
               <motion.div
                 className="h-full rounded-full"

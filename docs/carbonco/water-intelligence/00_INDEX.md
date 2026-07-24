@@ -4,7 +4,8 @@ Point d'entrée court du chantier CarbonCo Water Intelligence.
 
 ## Mission active
 
-**Wave B — Famille Hub'Eau (MACRO-PROMPT B).**
+**Wave C — Produit public (MACRO-PROMPT C)**, à ne pas démarrer avant fusion
+de la Wave B.
 
 Le chantier est passé d'une exécution prompt par prompt (P00 à P18) à un
 regroupement en cinq vagues, décrit dans
@@ -15,8 +16,8 @@ regroupement en cinq vagues, décrit dans
   merge SHA `e36c97c`. Voir [`handoffs/WAVE_A_EU_CONNECTORS.md`](./handoffs/WAVE_A_EU_CONNECTORS.md).
 - Blueprint UX/UI Wave C : **fusionné** — PR #154, merge SHA `a56ab62`.
   Dossier [`ux/`](./ux/), documentaire uniquement.
-- Wave B (P07 hydrométrie/piézométrie + P08 prélèvements/qualité) : **en
-  cours**.
+- Wave B (P07 hydrométrie/piézométrie + P08 prélèvements/qualité) : **PR
+  ouverte, non fusionnée** — voir [`handoffs/WAVE_B_HUBEAU.md`](./handoffs/WAVE_B_HUBEAU.md).
 - Wave C : **à ne pas démarrer** avant revue humaine et fusion de Wave B.
 
 ## Frontière de routes (rappel)

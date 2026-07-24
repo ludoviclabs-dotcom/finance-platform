@@ -46,11 +46,16 @@ waves:
   wave_b:
     name: "Famille Hub'Eau (P07 hydrometrie/piezometrie + P08 prelevements/qualite)"
     branch: feat/water-intelligence-wave-b-hubeau
-    status: in_progress
+    status: open_pr
     merged: false
     base_sha: a56ab62442e01d4bf1591e7445c8989e994ca623
+    delivered:
+      - "Socle operateur borne (hubeau_transport.py) : allowlist d hotes, endpoints declares, URL composee jamais recue, champ `next` jamais suivi, filtre geographique et fenetre temporelle obligatoires, profondeur 20 000, budgets pages/octets, timeout, retry borne avec backoff, journal sans secret ni contenu. AUCUN client HTTP importe : le transport reel est injecte (Fetcher), donc aucun appel possible en test ni au runtime."
+      - "Hydrometrie et piezometrie : debit (l/s), hauteur (mm), niveau de nappe (m NGF), profondeur (m) restent quatre metriques distinctes ; aucune conversion d unite ; aucune interpolation ; couverture separee de la valeur."
+      - "Prelevements et qualite : absence de declaration != zero (usages exoneres de redevance inconnus, volumes < 10 000 m3 non declares) ; allowlist SANDRE sourcee obligatoire (1340 Nitrates, 1339 Nitrites) ; aucun classement sanitaire, aucune conclusion de conformite, aucun seuil reglementaire dans le connecteur."
+      - "PeriodResolver de la Wave A utilise par toutes les chroniques : annuel pour les prelevements, ponctuel pour hydro/piezo/qualite. Les metric_code restent stables et sans date."
   wave_c:
     name: "Produit public (P10 read model + P11 carte + P12 contenus)"
     branch: feat/water-intelligence-wave-c-public-data-product
     status: not_started
-    note: "Ne pas demarrer avant revue humaine et fusion de la Wave B."
+    note: "Ne pas demarrer avant revue humaine et fusion de la Wave B. Blueprint UX/UI deja fusionne (PR #154, dossier ux/)."

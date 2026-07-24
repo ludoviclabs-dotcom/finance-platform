@@ -30,6 +30,17 @@ regexes = [
   # generic-api-key pour la même raison que les deux cas ci-dessus (suffixe "_key"
   # + chaîne à tirets de longueur/entropie plausible).
   '''"copernicus-edo-cdi-v4\.1-202607d2"''',
+  # Socle Hub'Eau (Wave B, apps/api/services/water_intelligence/hubeau_transport.py) :
+  # `HubeauEndpoint.api_path` porte le SEGMENT DE ROUTE PUBLIC de l'API Hub'Eau
+  # ("v2/hydrometrie", "v1/niveaux_nappes", "v1/prelevements",
+  # "v2/qualite_rivieres"). Ce sont des chemins d'URL documentés publiquement,
+  # jamais des secrets — Hub'Eau n'exige d'ailleurs aucune authentification.
+  # Le nom de champ contient "api", mot-clé de la règle generic-api-key, et
+  # "v2/hydrometrie" (3.52) comme "v2/qualite_rivieres" (3.54) dépassent de peu
+  # le seuil d'entropie de 3.5 — d'où le faux positif. Motif volontairement
+  # étroit : seules les valeurs de la forme `v<1|2>/<nom_de_service>` affectées à
+  # `api_path` sont couvertes, rien d'autre.
+  '''api_path"?\s*[:=]\s*"v[12]/[a-z_]+"''',
 ]
 paths = [
   # Scénarios de démonstration produit : données entièrement fictives, jamais de

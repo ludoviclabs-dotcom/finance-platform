@@ -23,6 +23,7 @@ import {
   WiAbsentValue,
   WiBadge,
   WiCard,
+  WiPendingValue,
   WiPlaceholder,
   WiSection,
 } from "@/components/water-intelligence/WiPrimitives";
@@ -258,7 +259,11 @@ export default function WaterIntelligencePage() {
             </WiCard>
           </div>
 
-          {/* Unique valeur chiffrée de la page — issue de la fixture, marquée trois fois. */}
+          {/*
+            P04B — ce bloc montre la STRUCTURE d'une observation, plus aucune
+            valeur : la page publique n'affiche désormais aucun chiffre issu de
+            la fixture. Celle-ci reste la référence des contrats et des tests.
+          */}
           <div className="wi-card wi-accent-stress" style={{ marginTop: "1.25rem" }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
               <WiBadge tone="demo" label="Démonstration" />
@@ -266,9 +271,10 @@ export default function WaterIntelligencePage() {
             </div>
 
             <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
-              Ci-dessous, la <strong>seule valeur chiffrée</strong> de cette page. Elle provient du
-              manifest de fixture et ne mesure rien de réel&nbsp;: elle sert uniquement à montrer la
-              forme que prendra une observation sourcée.
+              Voici la <strong>structure</strong> d&apos;une observation publiée&nbsp;: les champs
+              qui l&apos;accompagneront toujours. <strong>Aucune valeur n&apos;est affichée</strong>{" "}
+              — aucune mesure réelle n&apos;existe encore, et un chiffre inventé, même étiqueté,
+              serait lu comme une mesure avant d&apos;être lu comme une démonstration.
             </p>
 
             <dl
@@ -276,7 +282,7 @@ export default function WaterIntelligencePage() {
               style={{
                 marginTop: "0.875rem",
                 display: "grid",
-                gap: "0.375rem 1.25rem",
+                gap: "0.5rem 1.25rem",
                 gridTemplateColumns: "auto 1fr",
                 color: "var(--wi-muted)",
               }}
@@ -285,9 +291,13 @@ export default function WaterIntelligencePage() {
               <dd style={{ margin: 0 }}>{demoObservation.metric_code}</dd>
 
               <dt>Valeur</dt>
-              <dd style={{ margin: 0, color: "var(--wi-fg)" }}>
-                {String(demoObservation.value)}
-                {demoObservation.unit ? ` (${demoObservation.unit})` : ""} — fixture
+              <dd style={{ margin: 0 }}>
+                <WiPendingValue detail="À venir avec la première release WRI Aqueduct" />
+              </dd>
+
+              <dt>Unité</dt>
+              <dd style={{ margin: 0 }}>
+                <WiPendingValue detail="Fixée par la source, jamais convertie en silence" />
               </dd>
 
               <dt>Statut</dt>

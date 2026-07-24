@@ -95,6 +95,29 @@ export function WiPlaceholder({
   );
 }
 
+/* ------------------------------------- Valeur en attente de branchement */
+
+/**
+ * Remplace, sur la surface PUBLIQUE, toute valeur qui serait fabriquée : une
+ * mesure, une date de récupération, une empreinte de release.
+ *
+ * P04B : la fixture P02 reste la référence des contrats et des tests, mais ses
+ * valeurs ne sont plus affichées ici. Montrer « 42 » ou une empreinte
+ * plausible, même sous un badge « Démonstration », donne à un chiffre inventé
+ * l'apparence d'une mesure — le badge est lu après le chiffre, quand il est lu.
+ * Le champ est donc rendu comme non communiqué, avec la raison et l'échéance.
+ */
+export function WiPendingValue({ detail }: { detail?: string }) {
+  return (
+    <span style={{ display: "inline-flex", flexWrap: "wrap", gap: "0.375rem", alignItems: "baseline" }}>
+      <span style={{ fontWeight: 600, color: "var(--wi-absent)" }}>n.c.</span>
+      <span className="wi-muted" style={{ fontSize: "0.8125rem" }}>
+        {detail ?? "Source non encore branchée"}
+      </span>
+    </span>
+  );
+}
+
 /* ------------------------------------------------------- Donnée absente */
 
 /**

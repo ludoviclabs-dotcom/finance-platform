@@ -41,25 +41,10 @@ import {
 export const FIXTURE_MANIFEST: WaterIntelligenceManifest =
   WaterIntelligenceManifestSchema.parse(rawFixtureManifest);
 
-/**
- * `true` tant que la surface publique n'affiche que de la donnée de
- * démonstration. Aucun connecteur réel n'existe avant P05 — cette page ne
- * doit jamais laisser croire qu'un chiffre affiché est une observation réelle.
+/*
+ * P04B — `formatIsoDate()`, `IS_DEMONSTRATION_ONLY` et `DEMONSTRATION_LABEL`
+ * ont été retirés : ils n'avaient plus (ou n'avaient jamais eu) de
+ * consommateur une fois les valeurs fabriquées ôtées de la surface publique.
+ * Un formateur de date reviendra quand une date de récupération RÉELLE sera
+ * affichée (P05+), pas avant — inutile de conserver du code mort en attendant.
  */
-export const IS_DEMONSTRATION_ONLY = FIXTURE_MANIFEST.fixture_label !== null &&
-  FIXTURE_MANIFEST.fixture_label !== undefined;
-
-/** Libellé français unique du marqueur de démonstration, réutilisé partout. */
-export const DEMONSTRATION_LABEL = "Démonstration";
-
-/**
- * Formate une date ISO `YYYY-MM-DD` en `JJ.MM.AAAA` par découpe de chaîne.
- *
- * Aucun `new Date()` : même discipline que `/materials` (page prérendue —
- * un formatage dépendant du fuseau horaire client provoquerait un écart
- * d'hydratation).
- */
-export function formatIsoDate(iso: string): string {
-  const [year, month, day] = iso.slice(0, 10).split("-");
-  return `${day}.${month}.${year}`;
-}

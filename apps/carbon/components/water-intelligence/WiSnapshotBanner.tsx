@@ -10,8 +10,7 @@
  * en prop depuis la page (elle-même rendue au build). Aucun appel réseau.
  */
 
-import { WiBadge } from "./WiPrimitives";
-import { formatIsoDate } from "@/lib/water-intelligence/fixture-manifest";
+import { WiBadge, WiPendingValue } from "./WiPrimitives";
 import type { WaterIntelligenceManifest } from "@/lib/water-intelligence/contracts";
 
 export function WiSnapshotBanner({ manifest }: { manifest: WaterIntelligenceManifest }) {
@@ -59,12 +58,21 @@ export function WiSnapshotBanner({ manifest }: { manifest: WaterIntelligenceMani
         <dt>Release</dt>
         <dd style={{ margin: 0 }}>{source.release_key}</dd>
 
+        {/*
+          P04B — ni date de récupération, ni empreinte ne sont affichées tant
+          qu'aucune release réelle n'existe : ces deux champs de la fixture sont
+          fabriqués, et une date ou un hash tronqué a l'apparence d'une preuve.
+          Les libellés restent visibles pour montrer ce que la provenance
+          contiendra une fois la première source branchée.
+        */}
         <dt>Récupéré le</dt>
-        <dd style={{ margin: 0 }}>{formatIsoDate(source.retrieved_at)}</dd>
+        <dd style={{ margin: 0 }}>
+          <WiPendingValue detail="Aucune récupération réelle à ce jour" />
+        </dd>
 
         <dt>Empreinte</dt>
-        <dd style={{ margin: 0, wordBreak: "break-all" }}>
-          {source.checksum_sha256.slice(0, 16)}…
+        <dd style={{ margin: 0 }}>
+          <WiPendingValue detail="Calculée à la première release publiée" />
         </dd>
       </dl>
 

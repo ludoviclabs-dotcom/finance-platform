@@ -84,12 +84,63 @@ describe("statut de démonstration explicite", () => {
   });
 });
 
-describe("aucun chiffre présenté comme réel", () => {
-  it("accompagne la seule valeur chiffrée d'un marqueur fixture", () => {
-    // La page ne rend qu'UNE valeur numérique (celle du manifest de fixture).
-    // Elle doit apparaître dans un bloc explicitement étiqueté.
-    expect(markup).toContain("seule valeur chiffrée");
-    expect(markup).toContain("ne mesure rien de réel");
+describe("aucune valeur fabriquée n'est visible (P04B)", () => {
+  /*
+   * P04B : la page n'affiche plus AUCUNE valeur issue de la fixture — ni la
+   * mesure, ni la date de récupération, ni l'empreinte. Un chiffre inventé,
+   * même sous un badge « Démonstration », est lu comme une mesure avant
+   * d'être lu comme une démonstration.
+   *
+   * Ces attentes sont dérivées de la fixture elle-même, pas codées en dur :
+   * si quelqu'un change la fixture ET la réaffiche, le test échoue quand même.
+   */
+  const fixture = JSON.parse(
+    read(resolve(CARBON_ROOT, "lib/water-intelligence/fixture-manifest.json")),
+  );
+
+  /** Texte réellement visible : sans balises, donc sans styles ni attributs. */
+  function visibleText(html: string): string {
+    return html
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&[a-z]+;/gi, " ")
+      .replace(/\s+/g, " ");
+  }
+
+  const visible = visibleText(markup);
+
+  it("n'affiche pas la valeur numérique de l'observation de fixture", () => {
+    const fixtureValue = fixture.observations[0].value;
+    expect(typeof fixtureValue).toBe("number");
+    // Recherche en texte visible (pas dans les styles) et sur un mot entier.
+    expect(visible).not.toMatch(new RegExp(`\\b${fixtureValue}\\b`));
+  });
+
+  it("n'affiche pas l'unité de fixture", () => {
+    expect(visible).not.toContain(fixture.observations[0].unit);
+  });
+
+  it("n'affiche ni date de récupération ni empreinte fabriquées", () => {
+    const source = fixture.sources[0];
+    const [y, m, d] = source.retrieved_at.slice(0, 10).split("-");
+    expect(visible).not.toContain(`${d}.${m}.${y}`);
+    expect(visible).not.toContain(source.checksum_sha256.slice(0, 16));
+  });
+
+  it("rend un libellé honnête à la place de chaque valeur retirée", () => {
+    expect(markup).toContain("n.c.");
+    expect(markup).toContain("Aucune valeur n&#x27;est affichée");
+    expect(markup).toContain("À venir avec la première release WRI Aqueduct");
+    expect(markup).toContain("Aucune récupération réelle à ce jour");
+  });
+
+  it("conserve la structure de l'observation (champs, sans valeurs)", () => {
+    // Les libellés de champ restent visibles : ils montrent ce que la
+    // provenance contiendra, sans rien fabriquer.
+    for (const label of ["Indicateur", "Valeur", "Unité", "Statut", "Méthode", "Territoire"]) {
+      expect(markup).toContain(label);
+    }
   });
 
   it("distingue donnée absente et zéro", () => {

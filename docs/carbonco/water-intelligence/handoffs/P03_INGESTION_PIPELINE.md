@@ -15,7 +15,7 @@ plan -> fetch -> parse -> normalize -> derive -> validate -> publish
 
 - **plan** — résout `source_code` dans le catalogue normalisé P01b ([`SOURCE_CATALOG_NORMALIZED_V1.csv`](../SOURCE_CATALOG_NORMALIZED_V1.csv)). Une source absente du catalogue est refusée, jamais devinée.
 - **fetch** — assemble les octets bruts, page par page, via un `Transport` injectable. Aucun décodage sémantique ici : une page peut arriver corrompue au sens du transport (timeout, HTTP 5xx, checksum invalide) sans que ce soit un échec de *parsing*.
-- **parse** — décode chaque page en JSON. Un JSON malformé échoue *ici*, distinctement d'une corruption détectée par le transport.
+- **parse** — décode chaque page via un `PageDecoder` injectable (`JsonPageDecoder` par défaut, rétrocompatible — voir §7, ajouté en P03B). Un contenu qui ne respecte pas le format attendu par ce décodeur échoue *ici*, distinctement d'une corruption détectée par le transport.
 - **normalize** — réutilise le contrat `SourceAdapter.normalize()` existant (PR-04) pour produire des `ObservationDraft`.
 - **derive** — traduit chaque `ObservationDraft` en candidat `WaterMetricObservation` (P02) : résout la géographie, la période, la méthode et la confiance de présentation. Un draft dont la géographie ou la date d'observation ne peut pas être résolue est écarté et nommé dans le rapport, jamais complété par une valeur inventée.
 - **validate** — applique le contrat `WaterMetricObservation` (validation Pydantic automatique) et la porte de licence : sans `license_decision` fournie, tout est retenu (`value_withheld`), jamais publié par défaut.
@@ -49,11 +49,12 @@ Un connecteur réel (Hub'Eau, WRI Aqueduct…) implique un appel réseau réel, 
 ## 5. Comment P05/P06/P07/P08/P09 devront brancher leurs connecteurs
 
 1. Implémenter un `Transport` réel (client HTTP véritable) respectant le contrat `fetch_page(page_token) -> FetchPage` — remplace `FakeTransport`, ne modifie pas `TransportAdapter` ni l'orchestrateur.
-2. Fournir un `normalizer` propre au format de la source (mapping JSON/CSV réel → `ObservationDraft`), injecté à `run_pipeline` — jamais un normalizer générique qui devinerait la structure.
-3. Fournir un `geography_resolver` réel (référentiel de codes officiels — bassins SANDRE, districts EEA…) au lieu du résolveur fixture ; il doit continuer à lever `PipelineDataUnavailableError` pour un code non résolu, jamais inventer une géographie par défaut.
-4. Obtenir une `WaterLicenseDecision` réelle via `services.intelligence.license_policy.evaluate()` sur la ligne `source_registry` correspondante (à créer dans la PR du connecteur, hors P03) avant d'appeler `validate_candidates` — jamais réutiliser le `None` par défaut de P03 en production.
-5. Ne changer `dry_run=False` qu'après avoir fourni un vrai graveur Evidence Kernel (P10, ou une extension explicite de `publish_dry_run`) — tant que ce graveur n'existe pas, `dry_run=False` continuera de lever une erreur, par construction.
-6. Respecter les bornes de `plan` (pages, octets) avec des valeurs adaptées à la source réelle, documentées et justifiées dans la PR du connecteur (budgets §3 du pack maître, `docs/carbonco/water-intelligence/contracts/P02_DATA_CONTRACTS.md` §7).
+2. Choisir un `PageDecoder` adapté au format réel de la release (§7) — `JsonPageDecoder` (défaut, à ne même pas préciser), `TextPageDecoder` pour du texte/tabulaire (CSV, TSV…), `RawBytesPageDecoder` pour du binaire déjà géré par le normalizer — et l'exposer comme constante ou fonction du connecteur, injectée à `run_pipeline(decoder=...)`.
+3. Fournir un `normalizer` propre au format de la source (mapping du contenu déjà décodé → `ObservationDraft`), injecté à `run_pipeline` — jamais un normalizer générique qui devinerait la structure.
+4. Fournir un `geography_resolver` réel (référentiel de codes officiels — bassins SANDRE, districts EEA…) au lieu du résolveur fixture ; il doit continuer à lever `PipelineDataUnavailableError` pour un code non résolu, jamais inventer une géographie par défaut.
+5. Obtenir une `WaterLicenseDecision` réelle via `services.intelligence.license_policy.evaluate()` sur la ligne `source_registry` correspondante (à créer dans la PR du connecteur, hors P03) avant d'appeler `validate_candidates` — jamais réutiliser le `None` par défaut de P03 en production.
+6. Ne changer `dry_run=False` qu'après avoir fourni un vrai graveur Evidence Kernel (P10, ou une extension explicite de `publish_dry_run`) — tant que ce graveur n'existe pas, `dry_run=False` continuera de lever une erreur, par construction.
+7. Respecter les bornes de `plan` (pages, octets) avec des valeurs adaptées à la source réelle, documentées et justifiées dans la PR du connecteur (budgets §3 du pack maître, `docs/carbonco/water-intelligence/contracts/P02_DATA_CONTRACTS.md` §7).
 
 ## 6. Garanties
 
@@ -66,3 +67,7 @@ Un connecteur réel (Hub'Eau, WRI Aqueduct…) implique un appel réseau réel, 
 | **Secrets** | `PipelineExecutionReport` ne contient jamais d'octet brut, de jeton de page ni de contenu de fixture — uniquement identités, checksums et compteurs. |
 | **Réseau/BDD réels** | Vérifié par analyse statique (AST) du code source dans les tests, pas seulement documenté : aucun import `requests`/`httpx`/`urllib`/`socket`/`db`/`psycopg` n'existe dans ce paquet. |
 | **Reproductibilité** | `input_checksum`/`output_checksum` déterministes (mêmes octets → mêmes checksums, testé). Seule exception horloge autorisée : `executed_at` du rapport, toujours injectée via un `clock` explicite, jamais `datetime.now()` en dur. |
+
+## 7. Décodage de page injectable (ajouté en P03B)
+
+Le stage `parse` décrit en §1 décodait initialement chaque page en JSON sans exception. P05 (connecteur WRI Aqueduct, tabulaire) a dû contourner cette contrainte en emballant sa CSV comme chaîne JSON. Avant le lancement de P06 (également une release téléchargée, potentiellement tabulaire), `refactor/water-intelligence-p03b-pluggable-page-decoder` a rendu ce décodage **injectable** : `PageDecoder` (Protocol structurel), avec trois implémentations fournies — `JsonPageDecoder` (défaut, rétrocompatible), `TextPageDecoder` (texte, encodage explicite), `RawBytesPageDecoder` (octets bruts). Détail complet : `handoffs/P03B_PLUGGABLE_PAGE_DECODER.md`.

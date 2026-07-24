@@ -9,6 +9,12 @@ réel (P05+) brancherait un client HTTP véritable — P03 ne fournit que
 notion d'URL dans ce contrat (`fetch_page` ne prend qu'un jeton opaque) : rien
 ici ne peut appeler un hôte arbitraire, par construction plutôt que par
 promesse.
+
+Ce module ne décode jamais le contenu d'une page : `FetchPage.content` reste
+des octets bruts sans sémantique imposée. Le décodage (JSON, texte, octets
+bruts) est un `PageDecoder` INJECTABLE, appliqué au stage `parse` du pipeline
+— voir `PageDecoder`/`JsonPageDecoder`/`TextPageDecoder`/`RawBytesPageDecoder`
+dans `pipeline.py` (P03B).
 """
 
 from __future__ import annotations

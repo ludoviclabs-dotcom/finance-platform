@@ -15,6 +15,16 @@ aucun artefact n'est persisté.
 Chaque exécution produit un `PipelineExecutionReport` unique, que l'étape
 ait réussi ou échoué — jamais une exception qui remonte nue sans rapport, et
 jamais un rapport qui masque un échec par un résultat partiel non signalé.
+
+Le stage `parse` décode chaque page via un `PageDecoder` INJECTABLE (P03B) —
+`JsonPageDecoder` par défaut (rétrocompatible avec le comportement P03
+initial), `TextPageDecoder`/`RawBytesPageDecoder` pour les sources
+tabulaires/binaires (cf. `docs/carbonco/water-intelligence/handoffs/
+P03B_PLUGGABLE_PAGE_DECODER.md`). Le transport (`pipeline_transport.py`) ne
+manipule que des octets sans sémantique ; le décodeur est le seul point où
+une page en reçoit une, et il est toujours choisi explicitement par
+l'appelant — jamais deviné par extension de fichier ni par inspection du
+contenu.
 """
 
 from __future__ import annotations
@@ -25,7 +35,7 @@ import struct
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -199,14 +209,81 @@ def _unframe_pages(blob: bytes) -> list[bytes]:
     return pages
 
 
+# ---------------------------------------------------------------------------
+# PageDecoder — décodage de page INJECTABLE (P03B). `_frame_pages`/
+# `_unframe_pages` ci-dessus ne manipulent que des octets sans sémantique ;
+# le décodeur est le SEUL point où une page en reçoit une (JSON, texte,
+# octets bruts). Toujours choisi explicitement par le connecteur/adaptateur
+# appelant, jamais deviné (ni par extension de fichier, ni par inspection du
+# contenu) — et jamais de repli automatique d'un format vers un autre.
+# ---------------------------------------------------------------------------
+
+
+class PageDecoder(Protocol):
+    """Contrat minimal de décodage d'une page en octets bruts.
+
+    Protocole structurel (PEP 544) : tout objet exposant `decode(page_bytes,
+    *, page_index)` convient, sans registre ni sous-classement obligatoire.
+    """
+
+    def decode(self, page_bytes: bytes, *, page_index: int) -> Any:
+        """Décode une page (`page_index` 1-indexé, pour situer un message
+        d'erreur). Lève `AdapterError` si les octets ne respectent pas le
+        format attendu par CE décodeur — un échec ici reste un échec du
+        stage `parse`, distinct d'une corruption de transport
+        (`TransportError`, stage `fetch`) et d'une erreur de parsing métier
+        propre au connecteur (stage `normalize`)."""
+        ...
+
+
+@dataclass(frozen=True)
+class JsonPageDecoder:
+    """Décodeur par défaut, rétrocompatible avec le comportement P03 initial :
+    chaque page est un document JSON encodé en UTF-8."""
+
+    def decode(self, page_bytes: bytes, *, page_index: int) -> Any:
+        try:
+            return json.loads(page_bytes.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise AdapterError(f"page {page_index} : JSON invalide ({exc})") from exc
+
+
+@dataclass(frozen=True)
+class TextPageDecoder:
+    """Décode chaque page comme du texte, dans un encodage EXPLICITE (UTF-8
+    par défaut — jamais deviné). Convient au CSV/TSV ou à tout format
+    tabulaire transporté tel quel, sans emballage JSON."""
+
+    encoding: str = "utf-8"
+
+    def decode(self, page_bytes: bytes, *, page_index: int) -> str:
+        try:
+            return page_bytes.decode(self.encoding)
+        except (UnicodeDecodeError, LookupError) as exc:
+            raise AdapterError(
+                f"page {page_index} : texte illisible en {self.encoding!r} ({exc})"
+            ) from exc
+
+
+@dataclass(frozen=True)
+class RawBytesPageDecoder:
+    """Ne décode rien : renvoie les octets de la page tels quels, pour un
+    normalizer qui sait interpréter des octets bruts directement."""
+
+    def decode(self, page_bytes: bytes, *, page_index: int) -> bytes:
+        return page_bytes
+
+
 class TransportAdapter:
     """Adapte un `Transport` paginé au contrat `SourceAdapter` existant.
 
     `detect_releases()` assemble TOUTES les pages (bornées par `max_pages`,
-    reprise possible via `resume_from_token`) en un contenu JSON canonique
-    unique avant de rendre la main à `fetch_release`/`parse`/`normalize`,
-    inchangés depuis PR-04. Jamais un connecteur réel : `transport` est
-    toujours `FakeTransport` en P03.
+    reprise possible via `resume_from_token`) en un contenu binaire canonique
+    unique (framing longueur-préfixée, `_frame_pages`) avant de rendre la
+    main à `fetch_release`/`parse`/`normalize`. `parse` délègue à un
+    `PageDecoder` injecté (JSON par défaut, rétrocompatible — P03B) ;
+    `fetch_release`/`normalize` restent inchangés depuis PR-04. Jamais un
+    connecteur réel : `transport` est toujours `FakeTransport` en P03.
     """
 
     def __init__(
@@ -216,6 +293,7 @@ class TransportAdapter:
         transport: Transport,
         max_pages: int,
         normalizer: Normalizer,
+        decoder: PageDecoder | None = None,
         filename: str = "paginated-release.json",
         resume_from_token: str | None = None,
     ) -> None:
@@ -223,16 +301,18 @@ class TransportAdapter:
         self._transport = transport
         self._max_pages = max_pages
         self._normalizer = normalizer
+        self._decoder = decoder or JsonPageDecoder()
         self._filename = filename
         self._resume_from_token = resume_from_token
         self._assembled: bytes | None = None
 
     def detect_releases(self) -> list[ReleaseCandidate]:
-        """Assemble les octets bruts de toutes les pages — AUCUN décodage JSON
-        ici : une page dont le *transport* signale la corruption
+        """Assemble les octets bruts de toutes les pages — AUCUN décodage ici :
+        une page dont le *transport* signale la corruption
         (`TransportCorrupted`) échoue à cette étape (fetch) ; une page dont
-        les octets sont simplement du JSON invalide n'échoue qu'à `parse`,
-        plus bas. Les deux échecs restent distincts et testables séparément.
+        les octets ne respectent pas le format attendu par le `PageDecoder`
+        n'échoue qu'à `parse`, plus bas. Les deux échecs restent distincts et
+        testables séparément.
         """
         raw_pages = self._fetch_all_raw_pages()
         assembled = _frame_pages(raw_pages)
@@ -264,15 +344,13 @@ class TransportAdapter:
         return candidate.content
 
     def parse(self, raw: bytes) -> Any:
-        """Décode CHAQUE page en JSON — un échec ici est un échec de
-        *parsing*, distinct d'une corruption détectée par le transport."""
-        pages: list[Any] = []
-        for index, page_bytes in enumerate(_unframe_pages(raw), start=1):
-            try:
-                pages.append(json.loads(page_bytes.decode("utf-8")))
-            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-                raise AdapterError(f"page {index} : JSON invalide ({exc})") from exc
-        return pages
+        """Décode CHAQUE page via le `PageDecoder` injecté (JSON par défaut)
+        — un échec ici est un échec de *parsing*, distinct d'une corruption
+        détectée par le transport."""
+        return [
+            self._decoder.decode(page_bytes, page_index=index)
+            for index, page_bytes in enumerate(_unframe_pages(raw), start=1)
+        ]
 
     def normalize(self, parsed: Any) -> list[ObservationDraft]:
         drafts = self._normalizer(parsed)
@@ -473,6 +551,7 @@ def run_pipeline(
     resume_from_token: str | None = None,
     default_methodology_version: str | None = None,
     license_decision: WaterLicenseDecision | None = None,
+    decoder: PageDecoder | None = None,
     clock: Callable[[], datetime] | None = None,
     catalog_path: Path = DEFAULT_CATALOG_PATH,
 ) -> PipelineExecutionReport:
@@ -480,6 +559,11 @@ def run_pipeline(
     publish`. Retourne TOUJOURS un rapport : un échec de stage l'arrête (les
     stages suivants ne s'exécutent pas) mais ne lève pas d'exception hors de
     cette fonction — le rapport est la seule sortie côté appelant.
+
+    `decoder` contrôle le décodage de chaque page au stage `parse` (P03B) :
+    `JsonPageDecoder` par défaut (rétrocompatible), `TextPageDecoder`/
+    `RawBytesPageDecoder` pour les sources tabulaires/binaires. Toujours
+    choisi explicitement par l'appelant, jamais deviné.
     """
     now = clock or datetime.now
     executed: list[PipelineStage] = []
@@ -532,6 +616,7 @@ def run_pipeline(
         transport=transport,
         max_pages=plan.max_pages,
         normalizer=normalizer,
+        decoder=decoder,
         resume_from_token=resume_from_token,
     )
 

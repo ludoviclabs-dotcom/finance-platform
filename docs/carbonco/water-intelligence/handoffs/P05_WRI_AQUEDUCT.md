@@ -124,12 +124,13 @@ report = run_pipeline(
     transport=<transport opérateur>,
     normalizer=wri_aqueduct.build_normalizer(config),
     geography_resolver=wri_aqueduct.build_geography_resolver(parsed.rows),
+    decoder=wri_aqueduct.PAGE_DECODER,                          # texte UTF-8, pas d'emballage JSON
     license_decision=<décision obtenue après revue humaine>,   # jamais None en production
     dry_run=True,
 )
 ```
 
-**Note d'intégration :** le pipeline P03 décode chaque page en JSON à l'étape `parse`. Une charge CSV est donc transportée comme **chaîne JSON**. C'est une friction du contrat de transport P03 (conçu autour de pages JSON), contournée sans modifier P03. Si d'autres sources tabulaires arrivent en P06-P08, il vaudra la peine d'introduire un décodeur de page enfichable dans P03 plutôt que de répéter cet emballage.
+**Note d'intégration (mise à jour P03B) :** la CSV voyage en texte UTF-8 direct, via le décodeur de page injectable `wri_aqueduct.PAGE_DECODER` (`TextPageDecoder`). La friction initiale — le pipeline P03 ne décodait chaque page qu'en JSON, obligeant à transporter la CSV comme chaîne JSON échappée — a été corrigée par `refactor/water-intelligence-p03b-pluggable-page-decoder` avant le lancement de P06 ; voir `handoffs/P03B_PLUGGABLE_PAGE_DECODER.md` pour le détail de l'abstraction (`PageDecoder`/`JsonPageDecoder`/`TextPageDecoder`/`RawBytesPageDecoder`).
 
 ## 5. Pourquoi rien n'est encore publié
 

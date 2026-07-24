@@ -14,13 +14,17 @@ parsing (JSON invalide) distinct d'une corruption détectée par le transport,
 échec de validation (contrat P02), licence bloquée vs licence inconnue
 (deux scénarios distincts), source inconnue refusée, pagination bornée,
 dépassement de limite de pages, reprise contrôlée (sans re-fetch des pages
-déjà obtenues), absence de réseau réel, absence d'écriture en base, et
-conservation de `null` sans conversion en `0` à travers tout le pipeline.
+déjà obtenues), absence de réseau réel, absence d'écriture en base,
+conservation de `null` sans conversion en `0` à travers tout le pipeline, et
+le décodage de page INJECTABLE (`PageDecoder` — P03B) : JSON par défaut
+inchangé, texte/octets bruts pour les sources tabulaires/binaires, sans
+repli automatique d'un format vers un autre.
 """
 
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -33,10 +37,14 @@ from models.water_intelligence import (
     WaterLicenseDecision,
     WaterSourceReference,
 )
-from services.intelligence.adapters.base import ObservationDraft
+from services.intelligence.adapters.base import AdapterError, ObservationDraft
 from services.water_intelligence.pipeline import (
+    JsonPageDecoder,
     PipelineDataUnavailableError,
     PipelineUnknownSourceError,
+    RawBytesPageDecoder,
+    TextPageDecoder,
+    _frame_pages,
     make_plan,
     publish_dry_run,
     run_pipeline,
@@ -524,3 +532,292 @@ class TestNullPreservation:
         assert result.records_publishable == 1  # seul "published" (value=0.0, PAS None) compte
         assert published.value == 0.0
         assert published.value is not None
+
+
+# ---------------------------------------------------------------------------
+# PageDecoder — décodage de page injectable (P03B)
+# ---------------------------------------------------------------------------
+
+
+class TestJsonPageDecoderUnchanged:
+    """Comportement par défaut : identique à l'ancien `parse()` figé (aucune
+    régression), que le décodeur soit implicite ou explicite."""
+
+    def test_valid_json_page_decodes_like_before(self) -> None:
+        decoder = JsonPageDecoder()
+
+        assert decoder.decode(b'{"a": 1}', page_index=1) == {"a": 1}
+
+    def test_invalid_json_page_raises_adapter_error(self) -> None:
+        decoder = JsonPageDecoder()
+
+        with pytest.raises(AdapterError, match="JSON invalide"):
+            decoder.decode(b"{not valid json", page_index=1)
+
+    def test_omitting_decoder_behaves_identically_to_explicit_json_decoder(self) -> None:
+        """Rétrocompatibilité explicite : ne pas préciser `decoder` (comme
+        avant P03B) produit EXACTEMENT le même rapport que
+        `decoder=JsonPageDecoder()`."""
+        transport_a = FakeTransport(
+            {None: ScriptedPage(content=_page_bytes(ONE_ROW), has_next_page=False)}
+        )
+        transport_b = FakeTransport(
+            {None: ScriptedPage(content=_page_bytes(ONE_ROW), has_next_page=False)}
+        )
+
+        implicit = _run(transport=transport_a, license_decision=_source().license)
+        explicit = _run(
+            transport=transport_b, license_decision=_source().license, decoder=JsonPageDecoder()
+        )
+
+        assert implicit.model_dump(exclude={"executed_at"}) == explicit.model_dump(
+            exclude={"executed_at"}
+        )
+
+
+class TestTextPageDecoder:
+    def test_decodes_bytes_to_exact_text_no_json_escaping(self) -> None:
+        csv_text = "id,value\nA,1\nB,\n"  # virgules, retour ligne, valeur vide
+        decoder = TextPageDecoder()
+
+        assert decoder.decode(csv_text.encode("utf-8"), page_index=1) == csv_text
+
+    def test_default_encoding_is_explicit_utf8(self) -> None:
+        assert TextPageDecoder().encoding == "utf-8"
+
+    def test_non_utf8_bytes_are_refused_not_mangled(self) -> None:
+        latin1_only = "café".encode("latin-1")  # invalide en UTF-8 strict
+        decoder = TextPageDecoder()  # UTF-8 explicite, pas de détection auto
+
+        with pytest.raises(AdapterError, match="illisible"):
+            decoder.decode(latin1_only, page_index=1)
+
+    def test_explicit_alternate_encoding_is_honoured_not_guessed(self) -> None:
+        latin1_only = "café".encode("latin-1")
+        decoder = TextPageDecoder(encoding="latin-1")
+
+        assert decoder.decode(latin1_only, page_index=1) == "café"
+
+
+class TestRawBytesPageDecoder:
+    def test_returns_bytes_unchanged_including_non_utf8(self) -> None:
+        raw = b"\x00\x01\xff\xfe\x02"  # invalide en UTF-8 et en JSON
+        decoder = RawBytesPageDecoder()
+
+        assert decoder.decode(raw, page_index=1) == raw
+        assert isinstance(decoder.decode(raw, page_index=1), bytes)
+
+
+class TestPageDecoderNoAutomaticFallback:
+    def test_json_decoder_never_falls_back_to_text_on_failure(self) -> None:
+        """Des octets CSV valides (texte) ne sont PAS silencieusement acceptés
+        par le décodeur JSON — aucun repli JSON -> texte -> bytes."""
+        csv_bytes = b"string_id,bws_raw\nFIXTURE-AREA-001,1.5\n"
+
+        with pytest.raises(AdapterError):
+            JsonPageDecoder().decode(csv_bytes, page_index=1)
+
+    def test_text_decoder_never_reinterprets_valid_json_as_an_object(self) -> None:
+        """Un décodeur texte explicite renvoie du texte, jamais un objet
+        JSON désérialisé, même si le contenu ressemble à du JSON valide."""
+        json_like = b'{"a": 1}'
+
+        decoded = TextPageDecoder().decode(json_like, page_index=1)
+
+        assert decoded == '{"a": 1}'
+        assert isinstance(decoded, str)
+        assert not isinstance(decoded, dict)
+
+
+class TestPageDecoderNullPreservation:
+    def test_text_decoder_preserves_empty_string_not_none_or_zero(self) -> None:
+        assert TextPageDecoder().decode(b"", page_index=1) == ""
+
+    def test_raw_bytes_decoder_preserves_empty_bytes_not_none(self) -> None:
+        result = RawBytesPageDecoder().decode(b"", page_index=1)
+
+        assert result == b""
+        assert result is not None
+
+
+class TestPageDecoderPipelineIntegration:
+    def test_text_pages_traverse_the_pipeline_without_json_wrapping(self) -> None:
+        csv_text = "string_id,name\nFIXTURE-A,Zone A (fixture)\n"
+        transport = FakeTransport(
+            {None: ScriptedPage(content=csv_text.encode("utf-8"), has_next_page=False)}
+        )
+        captured = []
+
+        def normalizer(pages):
+            captured.extend(pages)
+            return []
+
+        report = _run(
+            transport=transport,
+            normalizer=normalizer,
+            decoder=TextPageDecoder(),
+            license_decision=_source().license,
+        )
+
+        assert report.steps_executed[:3] == ["plan", "fetch", "parse"]
+        assert captured == [csv_text]  # texte préservé EXACTEMENT, pas de ré-échappement JSON
+
+    def test_checksum_is_computed_over_the_actually_decoded_bytes(self) -> None:
+        """P03B : le checksum d'entrée porte sur les octets RÉELLEMENT
+        transportés (et donc décodés à `parse`) — plus sur un emballage JSON
+        intermédiaire qui les aurait fait diverger."""
+        csv_text = "string_id,name\nFIXTURE-A,Zone A (fixture)\n"
+        page_bytes = csv_text.encode("utf-8")
+        transport = FakeTransport({None: ScriptedPage(content=page_bytes, has_next_page=False)})
+
+        report = _run(
+            transport=transport,
+            normalizer=lambda pages: [],
+            decoder=TextPageDecoder(),
+            license_decision=_source().license,
+        )
+
+        expected = hashlib.sha256(_frame_pages([page_bytes])).hexdigest()
+        assert report.input_checksum == expected
+
+    def test_raw_bytes_decoder_pagination_unchanged(self) -> None:
+        page1 = ScriptedPage(content=b"AAA", page_number=1, has_next_page=True, next_page_token="p2")
+        page2 = ScriptedPage(content=b"BBB", page_number=2, has_next_page=False)
+        transport = FakeTransport({None: page1, "p2": page2})
+        captured = []
+
+        def normalizer(pages):
+            captured.extend(pages)
+            return []
+
+        report = _run(
+            transport=transport,
+            normalizer=normalizer,
+            decoder=RawBytesPageDecoder(),
+            license_decision=_source().license,
+            max_pages=2,
+        )
+
+        assert report.succeeded
+        assert captured == [b"AAA", b"BBB"]
+        assert transport.call_count == 2
+
+    def test_page_limit_still_enforced_regardless_of_decoder(self) -> None:
+        page1 = ScriptedPage(content=b"AAA", page_number=1, has_next_page=True, next_page_token="p2")
+        transport = FakeTransport({None: page1})
+
+        report = _run(
+            transport=transport,
+            normalizer=lambda pages: [],
+            decoder=RawBytesPageDecoder(),
+            license_decision=_source().license,
+            max_pages=1,
+        )
+
+        assert not report.succeeded
+        assert report.steps_failed == ["fetch"]  # la limite est vérifiée avant tout décodage
+
+    def test_resume_with_a_non_json_decoder_does_not_refetch_earlier_pages(self) -> None:
+        page1 = ScriptedPage(content=b"AAA", page_number=1, has_next_page=True, next_page_token="p2")
+        page2 = ScriptedPage(content=b"BBB", page_number=2, has_next_page=False)
+        transport = FakeTransport({None: page1, "p2": page2})
+
+        first = _run(
+            transport=transport,
+            normalizer=lambda pages: [],
+            decoder=RawBytesPageDecoder(),
+            license_decision=_source().license,
+            max_pages=1,
+        )
+        assert not first.succeeded
+
+        resumed = _run(
+            transport=transport,
+            normalizer=lambda pages: [],
+            decoder=RawBytesPageDecoder(),
+            license_decision=_source().license,
+            max_pages=1,
+            resume_from_token="p2",
+        )
+
+        assert resumed.succeeded
+        assert transport.calls_for_token(None) == 1
+        assert transport.calls_for_token("p2") == 1
+
+    def test_transport_corruption_fails_at_fetch_even_with_text_decoder(self) -> None:
+        transport = FakeTransport(
+            {None: ScriptedPage(raise_error=TransportCorrupted("checksum HTTP invalide (simulé)"))}
+        )
+
+        report = _run(
+            transport=transport,
+            normalizer=lambda pages: [],
+            decoder=TextPageDecoder(),
+            license_decision=_source().license,
+        )
+
+        assert not report.succeeded
+        assert report.steps_failed == ["fetch"]  # jamais atteint le décodage
+
+    def test_decode_error_is_distinct_from_business_normalizer_error(self) -> None:
+        """Le stage `parse` (décodage) et le stage `normalize` (erreur métier
+        du connecteur) restent deux échecs distincts et non confondus."""
+        bad_transport = FakeTransport({None: ScriptedPage(content=b"\xff\xfe", has_next_page=False)})
+
+        decode_failure = _run(
+            transport=bad_transport,
+            normalizer=lambda pages: [],
+            decoder=TextPageDecoder(),
+            license_decision=_source().license,
+        )
+        assert decode_failure.steps_failed == ["parse"]
+
+        ok_transport = FakeTransport(
+            {None: ScriptedPage(content=b"donnee-inattendue", has_next_page=False)}
+        )
+
+        def business_rejecting_normalizer(pages):
+            raise AdapterError("schéma métier inconnu (simulé)")
+
+        normalize_failure = _run(
+            transport=ok_transport,
+            normalizer=business_rejecting_normalizer,
+            decoder=TextPageDecoder(),
+            license_decision=_source().license,
+        )
+        assert normalize_failure.steps_failed == ["normalize"]
+        assert decode_failure.steps_failed != normalize_failure.steps_failed
+
+
+class TestPageDecoderIsStructuralProtocol:
+    def test_any_object_with_a_decode_method_works_no_registry_needed(self) -> None:
+        """`PageDecoder` est un Protocol structurel (PEP 544) : un objet qui
+        expose `decode(page_bytes, *, page_index)` convient, sans registre ni
+        détection automatique — juste une injection explicite."""
+
+        class CountingUppercaseDecoder:
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def decode(self, page_bytes: bytes, *, page_index: int) -> str:
+                self.calls += 1
+                return page_bytes.decode("utf-8").upper()
+
+        custom = CountingUppercaseDecoder()
+        transport = FakeTransport({None: ScriptedPage(content=b"abc", has_next_page=False)})
+        captured = []
+
+        def normalizer(pages):
+            captured.extend(pages)
+            return []
+
+        report = _run(
+            transport=transport,
+            normalizer=normalizer,
+            decoder=custom,
+            license_decision=_source().license,
+        )
+
+        assert report.steps_executed[:3] == ["plan", "fetch", "parse"]
+        assert captured == ["ABC"]
+        assert custom.calls == 1

@@ -54,6 +54,11 @@ MODULE_PATH = (
 CHRONICLE_ENDPOINT = "piezometrie.chroniques"
 STATION_ENDPOINT = "piezometrie.stations"
 
+# Valeurs passées par variable (jamais `<champ>_key="<littéral>"`) : ce motif
+# déclenche le faux positif generic-api-key de gitleaks dès que la valeur
+# dépasse le seuil d'entropie, déjà rencontré en P03/P05 et en Wave A.
+UNDECLARED_ENDPOINT = "piezometrie.tout_telecharger"
+
 
 # ---------------------------------------------------------------------------
 # Fetchers scriptés — aucun réseau, jamais
@@ -148,7 +153,7 @@ class TestHostAndEndpointAllowlist:
 
     def test_unknown_endpoint_is_refused(self) -> None:
         with pytest.raises(HubeauEndpointRefused, match="non déclaré"):
-            chronicle_query(endpoint_key="piezometrie.tout_telecharger")
+            chronicle_query(endpoint_key=UNDECLARED_ENDPOINT)
 
     def test_composed_url_is_https_on_the_official_host(self) -> None:
         request = chronicle_query().build_request(page=1, timeout_seconds=5.0, attempt=1)

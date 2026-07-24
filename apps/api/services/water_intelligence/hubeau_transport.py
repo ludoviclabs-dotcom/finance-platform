@@ -245,84 +245,97 @@ class HubeauEndpoint:
 #: Paramètres de pagination et de projection communs à toutes les opérations.
 _COMMON_PARAMETERS = frozenset({"page", "size", "fields", "format", "sort"})
 
-#: Endpoints VÉRIFIÉS sur la documentation officielle (cf. docstring de module
-#: et handoff Wave B §2). Toute opération absente de ce dictionnaire est
-#: refusée : le socle ne compose que des URL qu'il connaît.
-ENDPOINTS: dict[str, HubeauEndpoint] = {
-    "hydrometrie.stations": HubeauEndpoint(
-        key="hydrometrie.stations",
-        api_path="v2/hydrometrie",
-        operation="referentiel/stations",
-        requires_geographic_filter=True,
-        requires_time_window=False,
-        geographic_parameters=frozenset({"code_commune_station", "code_departement"}),
-        time_window_parameters=None,
-        allowed_parameters=_COMMON_PARAMETERS
+#: Spécifications des endpoints VÉRIFIÉS sur la documentation officielle (cf.
+#: docstring de module et handoff Wave B §2). L'identifiant d'endpoint est la
+#: clé du dictionnaire : il est injecté dans `HubeauEndpoint` par
+#: `_build_endpoints()` plutôt que répété en littéral, pour rester une seule
+#: source de vérité (et pour ne pas écrire `key="…"`, motif que la règle
+#: generic-api-key de gitleaks signale à tort — cf. `.gitleaks.toml`).
+_ENDPOINT_SPECS: dict[str, dict[str, Any]] = {
+    "hydrometrie.stations": {
+        "api_path": "v2/hydrometrie",
+        "operation": "referentiel/stations",
+        "requires_geographic_filter": True,
+        "requires_time_window": False,
+        "geographic_parameters": frozenset({"code_commune_station", "code_departement"}),
+        "time_window_parameters": None,
+        "allowed_parameters": _COMMON_PARAMETERS
         | {"code_commune_station", "code_departement", "code_station", "en_service"},
-    ),
-    "hydrometrie.observations_elaborees": HubeauEndpoint(
-        key="hydrometrie.observations_elaborees",
-        api_path="v2/hydrometrie",
-        operation="obs_elab",
-        requires_geographic_filter=True,
-        requires_time_window=True,
-        geographic_parameters=frozenset({"code_entite"}),
-        time_window_parameters=("date_debut_obs_elab", "date_fin_obs_elab"),
-        allowed_parameters=_COMMON_PARAMETERS
+    },
+    "hydrometrie.observations_elaborees": {
+        "api_path": "v2/hydrometrie",
+        "operation": "obs_elab",
+        "requires_geographic_filter": True,
+        "requires_time_window": True,
+        "geographic_parameters": frozenset({"code_entite"}),
+        "time_window_parameters": ("date_debut_obs_elab", "date_fin_obs_elab"),
+        "allowed_parameters": _COMMON_PARAMETERS
         | {"code_entite", "grandeur_hydro_elab", "date_debut_obs_elab", "date_fin_obs_elab"},
-    ),
-    "piezometrie.stations": HubeauEndpoint(
-        key="piezometrie.stations",
-        api_path="v1/niveaux_nappes",
-        operation="stations",
-        requires_geographic_filter=True,
-        requires_time_window=False,
-        geographic_parameters=frozenset({"code_commune", "code_departement"}),
-        time_window_parameters=None,
-        allowed_parameters=_COMMON_PARAMETERS
+    },
+    "piezometrie.stations": {
+        "api_path": "v1/niveaux_nappes",
+        "operation": "stations",
+        "requires_geographic_filter": True,
+        "requires_time_window": False,
+        "geographic_parameters": frozenset({"code_commune", "code_departement"}),
+        "time_window_parameters": None,
+        "allowed_parameters": _COMMON_PARAMETERS
         | {"code_commune", "code_departement", "code_bss"},
-    ),
-    "piezometrie.chroniques": HubeauEndpoint(
-        key="piezometrie.chroniques",
-        api_path="v1/niveaux_nappes",
-        operation="chroniques",
-        requires_geographic_filter=True,
-        requires_time_window=True,
-        geographic_parameters=frozenset({"code_bss"}),
-        time_window_parameters=("date_debut_mesure", "date_fin_mesure"),
-        allowed_parameters=_COMMON_PARAMETERS
+    },
+    "piezometrie.chroniques": {
+        "api_path": "v1/niveaux_nappes",
+        "operation": "chroniques",
+        "requires_geographic_filter": True,
+        "requires_time_window": True,
+        "geographic_parameters": frozenset({"code_bss"}),
+        "time_window_parameters": ("date_debut_mesure", "date_fin_mesure"),
+        "allowed_parameters": _COMMON_PARAMETERS
         | {"code_bss", "date_debut_mesure", "date_fin_mesure"},
-    ),
-    "prelevements.chroniques": HubeauEndpoint(
-        key="prelevements.chroniques",
-        api_path="v1/prelevements",
-        operation="chroniques",
-        requires_geographic_filter=True,
-        requires_time_window=True,
-        geographic_parameters=frozenset({"code_commune_insee", "code_departement", "code_ouvrage"}),
-        time_window_parameters=("annee_min", "annee_max"),
-        allowed_parameters=_COMMON_PARAMETERS
+    },
+    "prelevements.chroniques": {
+        "api_path": "v1/prelevements",
+        "operation": "chroniques",
+        "requires_geographic_filter": True,
+        "requires_time_window": True,
+        "geographic_parameters": frozenset(
+            {"code_commune_insee", "code_departement", "code_ouvrage"}
+        ),
+        "time_window_parameters": ("annee_min", "annee_max"),
+        "allowed_parameters": _COMMON_PARAMETERS
         | {
             "code_commune_insee", "code_departement", "code_ouvrage",
             "annee_min", "annee_max", "code_usage", "code_type_milieu",
         },
-    ),
-    "qualite_rivieres.analyses": HubeauEndpoint(
-        key="qualite_rivieres.analyses",
-        api_path="v2/qualite_rivieres",
-        operation="analyse_pc",
-        requires_geographic_filter=True,
-        requires_time_window=True,
-        geographic_parameters=frozenset({"code_station", "code_commune", "code_departement"}),
-        time_window_parameters=("date_debut_prelevement", "date_fin_prelevement"),
-        allowed_parameters=_COMMON_PARAMETERS
+    },
+    "qualite_rivieres.analyses": {
+        "api_path": "v2/qualite_rivieres",
+        "operation": "analyse_pc",
+        "requires_geographic_filter": True,
+        "requires_time_window": True,
+        "geographic_parameters": frozenset(
+            {"code_station", "code_commune", "code_departement"}
+        ),
+        "time_window_parameters": ("date_debut_prelevement", "date_fin_prelevement"),
+        "allowed_parameters": _COMMON_PARAMETERS
         | {
             "code_station", "code_commune", "code_departement",
             "date_debut_prelevement", "date_fin_prelevement",
             "code_parametre", "code_qualification", "code_statut",
         },
-    ),
+    },
 }
+
+
+def _build_endpoints() -> dict[str, HubeauEndpoint]:
+    return {
+        endpoint_key: HubeauEndpoint(key=endpoint_key, **spec)
+        for endpoint_key, spec in _ENDPOINT_SPECS.items()
+    }
+
+
+#: Toute opération absente de ce dictionnaire est refusée : le socle ne
+#: compose que des URL qu'il connaît.
+ENDPOINTS: dict[str, HubeauEndpoint] = _build_endpoints()
 
 
 def _is_secret_parameter(name: str) -> bool:

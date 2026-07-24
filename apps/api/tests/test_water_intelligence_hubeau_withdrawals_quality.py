@@ -41,6 +41,11 @@ CONNECTOR_MODULE = (
 WITHDRAWALS_RELEASE = "hubeau-bnpe-2022-2023-fixture"
 QUALITY_RELEASE = "hubeau-naiades-2026-01-fixture"
 
+# Valeur passée par variable (jamais `<champ>_key == "<littéral>"`) : ce motif
+# déclenche le faux positif generic-api-key de gitleaks dès que la valeur
+# dépasse le seuil d'entropie, déjà rencontré en P03/P05 et en Wave A.
+UNDECLARED_OUVRAGE = "FIX-OUVRAGE-002"
+
 ALLOWED = WaterLicenseDecision(
     allow_ingest=True, allow_store=True, allow_display=True, allow_derived_use=True
 )
@@ -145,7 +150,7 @@ class TestAbsenceIsNotZero:
         parsed = wq.parse_withdrawals_pages(WITHDRAWALS_PAGES, config=withdrawals_config())
         drafts = wq.withdrawals_drafts(parsed.records, withdrawals_config())
 
-        assert not [d for d in drafts if d.subject_key == "FIX-OUVRAGE-002"]
+        assert not [d for d in drafts if d.subject_key == UNDECLARED_OUVRAGE]
 
     def test_official_coverage_limit_is_always_reported(self) -> None:
         """La source ne connaît pas les usages exonérés de redevance ni les

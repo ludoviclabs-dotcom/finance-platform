@@ -17,6 +17,12 @@ regexes = [
   # (identifiant sémantique kebab-case, ex. water-reduction-2030) matche la règle
   # generic-api-key, mais n'est PAS un secret — donnée inventée (synthetic=true).
   '''"key": "[a-z][a-z0-9-]+"''',
+  # Fixtures P03 (pipeline opérateur Water Intelligence, apps/api/tests/test_water_intelligence_pipeline.py) :
+  # `release_key` est le nom réel du champ WaterSourceReference/run_pipeline (P02) —
+  # renommer romprait ce contrat. La valeur "fixture-2026-01" est un placeholder de
+  # test à faible entropie, jamais un secret ; matche generic-api-key uniquement à
+  # cause du suffixe "_key". Même raisonnement que le cas BEGES ci-dessus.
+  '''release_key="fixture-2026-01"''',
 ]
 paths = [
   # Scénarios de démonstration produit : données entièrement fictives, jamais de

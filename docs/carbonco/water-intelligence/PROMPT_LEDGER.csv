@@ -5,10 +5,10 @@ P02,merged,feat/water-intelligence-p02-data-contracts,146,f0e220c3786de162dbddb3
 P03,merged,feat/water-intelligence-p03-ingestion-pipeline,147,04fe94ae787b9765ba00f6e96adbf531bbedac26,,
 P04,merged,feat/water-intelligence-p04-public-shell,148,87c2024fa7be185fce5dbd9f1ce1cc940f83dd99,,Correctif P04B (retrait des chiffres fictifs visibles) livre par la PR #149 / 74dafd2131993ca87873b87d545bc34689b8ca09
 P05,merged,feat/water-intelligence-p05-wri-aqueduct,150,48f6d3a5d371a11cd5ef0cff63bf4534340dcb65,,Licence CC BY 4.0 verifiee ; publication publique bloquee tant que l enregistrement WRI n est pas effectue (decision humaine)
-P06,open_pr,feat/water-intelligence-wave-a-eu-connectors,,,,Livre dans Wave A. Connecteur EEA WEI+ ; releases edition 01.00 epinglees ; licence CC BY 4.0 verifiee ; aucune moyenne inter-bassins (agregat = distribution de comptes) ; vocabulaire d en-tete officiel non verifie donc format canonique + geste operateur
-P07,blocked,feat/water-intelligence-wave-b-hubeau,,,,Wave B
-P08,blocked,feat/water-intelligence-wave-b-hubeau,,,,Wave B
-P09,open_pr,feat/water-intelligence-wave-a-eu-connectors,,,,Livre dans Wave A avec BLOCAGE assume : CDI v4.1 verifie mais seuls GeoTIFF et NetCDF sont distribues ; decodage raster refuse sans ADR ; gate + configuration + contrat + tests livres, aucune valeur produite ; arbitrage humain requis
+P06,merged,feat/water-intelligence-wave-a-eu-connectors,153,e36c97c5b3d1a5724a2288534915b4e8e0232692,,Livre dans Wave A. Connecteur EEA WEI+ ; releases edition 01.00 epinglees ; licence CC BY 4.0 verifiee ; aucune moyenne inter-bassins (agregat = distribution de comptes) ; vocabulaire d en-tete officiel non verifie donc format canonique + geste operateur. Commit de cloture : le trimestre n est PLUS dans metric_code, la periode passe par le PeriodResolver
+P07,in_progress,feat/water-intelligence-wave-b-hubeau,,,,Wave B en cours
+P08,in_progress,feat/water-intelligence-wave-b-hubeau,,,,Wave B en cours
+P09,merged,feat/water-intelligence-wave-a-eu-connectors,153,e36c97c5b3d1a5724a2288534915b4e8e0232692,,Livre dans Wave A avec BLOCAGE assume et formalise (source_verified_decoder_deferred) : CDI v4.1 verifie mais seuls GeoTIFF et NetCDF sont distribues ; decodage raster refuse sans ADR ; gate + configuration + contrat + tests livres, aucune valeur produite ; arbitrage humain requis
 P10,blocked,feat/water-intelligence-p10-snapshot-read-model,,,,
 P11,blocked,feat/water-intelligence-p11-map,,,,
 P12,blocked,feat/water-intelligence-p12-editorial,,,,

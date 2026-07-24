@@ -11,9 +11,13 @@ regroupement en cinq vagues, décrit dans
 [`ACCELERATED_CLOSEOUT_PACK_V2.md`](./ACCELERATED_CLOSEOUT_PACK_V2.md).
 
 - P00 à P05, P03B et P03C : **fusionnés**.
-- Wave A (P06 EEA/WISE/WEI+ + P09 Copernicus EDO) : **PR ouverte, non
-  fusionnée** — voir [`handoffs/WAVE_A_EU_CONNECTORS.md`](./handoffs/WAVE_A_EU_CONNECTORS.md).
-- Wave B : **à ne pas démarrer** avant revue humaine et fusion de Wave A.
+- Wave A (P06 EEA/WISE/WEI+ + P09 Copernicus EDO) : **fusionnée** — PR #153,
+  merge SHA `e36c97c`. Voir [`handoffs/WAVE_A_EU_CONNECTORS.md`](./handoffs/WAVE_A_EU_CONNECTORS.md).
+- Blueprint UX/UI Wave C : **fusionné** — PR #154, merge SHA `a56ab62`.
+  Dossier [`ux/`](./ux/), documentaire uniquement.
+- Wave B (P07 hydrométrie/piézométrie + P08 prélèvements/qualité) : **en
+  cours**.
+- Wave C : **à ne pas démarrer** avant revue humaine et fusion de Wave B.
 
 ## Frontière de routes (rappel)
 
@@ -36,4 +40,5 @@ regroupement en cinq vagues, décrit dans
 - [`RISK_REGISTER.md`](./RISK_REGISTER.md) — risques identifiés, résolus et ouverts.
 - [`handoffs/`](./handoffs/) — rapport de passation par prompt et par vague : ce qui est livré, ce qui ne l'est pas, les limites et les reliquats.
 - [`contracts/`](./contracts/) — contrats de données P02 et manifeste de fixtures.
+- [`ux/`](./ux/) — blueprint UX/UI de la Wave C (PR #154). **Documentaire : ne pas modifier hors d'une vague qui le prévoit explicitement.**
 - [`prompts/`](./prompts/) — chaque prompt P00 à P18 extrait sans altération du pack maître, un fichier par prompt.

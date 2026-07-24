@@ -1,12 +1,24 @@
 project: carbonco-water-intelligence
-active_prompt: P06
+active_prompt: WAVE_B
 status: ready
 default_branch: master
 private_cockpit_route: /water
 public_intelligence_route: /water-intelligence
 last_merged_prompt: P05
-next_prompt: P07
+next_prompt: WAVE_B
 migrations_expected: false
 blocking_issues: []
 open_decisions:
-  - "WRI Aqueduct : licence CC BY 4.0 verifiee, mais WRI demande en outre un enregistrement pour partager/adapter les donnees. Enregistrement NON effectue. Aucune valeur Aqueduct ne peut etre publiee publiquement tant qu un humain n a pas tranche (cf. handoffs/P05_WRI_AQUEDUCT.md section 1.3). N est pas bloquant pour P06."
+  - "WRI Aqueduct : licence CC BY 4.0 verifiee, mais WRI demande en outre un enregistrement pour partager/adapter les donnees. Enregistrement NON effectue. Aucune valeur Aqueduct ne peut etre publiee publiquement tant qu un humain n a pas tranche (cf. handoffs/P05_WRI_AQUEDUCT.md section 1.3). N a pas bloque Wave A."
+  - "Copernicus EDO : le portail officiel ne distribue que GeoTIFF et NetCDF, aucun export tabulaire. Decoder la grille exigerait GDAL/rasterio ou netCDF4, dependances lourdes sans ADR ; aucun parametrage WMS/WCS n a pu etre verifie. Wave A livre le gate, la configuration, le contrat et les tests, et refuse explicitement de produire une valeur. Trois voies ouvertes (ADR + dependance raster, verification WMS/WCS, ou renoncement documente) — arbitrage humain requis. COPERNICUS_EDO doit rester exclu du snapshot public P10 tant que la decision n est pas rendue (cf. handoffs/P09_COPERNICUS_EDO.md section 6)."
+  - "Periode aplatie par P03 : derive_observations fixe period_start == period_end et ne recopie pas les metadonnees du draft. Wave A encode donc le trimestre dans le metric_code. A arbitrer en P10 : propager period_start/period_end et les metadonnees dans derive, ou officialiser la convention metric_code (cf. handoffs/WAVE_A_EU_CONNECTORS.md section 5.1)."
+waves:
+  wave_a:
+    name: "Connecteurs europeens (P06 EEA/WISE/WEI+ + P09 Copernicus EDO)"
+    branch: feat/water-intelligence-wave-a-eu-connectors
+    status: open_pr
+    merged: false
+  wave_b:
+    name: "Famille Hub'Eau (P07 hydrometrie/piezometrie + P08 prelevements/qualite)"
+    branch: feat/water-intelligence-wave-b-hubeau
+    status: not_started

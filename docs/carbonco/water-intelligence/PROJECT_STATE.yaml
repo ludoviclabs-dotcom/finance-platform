@@ -1,10 +1,10 @@
 project: carbonco-water-intelligence
-active_prompt: P03
+active_prompt: P04
 status: review
 default_branch: master
 private_cockpit_route: /water
 public_intelligence_route: /water-intelligence
-last_merged_prompt: P01
-next_prompt: P04
+last_merged_prompt: P02
+next_prompt: P05
 migrations_expected: false
 blocking_issues: []

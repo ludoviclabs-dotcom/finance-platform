@@ -93,8 +93,8 @@ from typing import Any, Iterable, Literal
 
 from models.analytics import MethodRef
 from models.water_intelligence import (
-    WaterGeoLayerDescriptor,
     WaterGeographyRef,
+    WaterGeoLayerDescriptor,
     WaterSourceReference,
 )
 from services.intelligence.adapters.base import AdapterError, ObservationDraft

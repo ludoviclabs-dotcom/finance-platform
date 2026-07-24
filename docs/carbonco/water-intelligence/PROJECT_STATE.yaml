@@ -1,10 +1,12 @@
 project: carbonco-water-intelligence
-active_prompt: P05
+active_prompt: P06
 status: review
 default_branch: master
 private_cockpit_route: /water
 public_intelligence_route: /water-intelligence
-last_merged_prompt: P03
-next_prompt: P06
+last_merged_prompt: P04
+next_prompt: P07
 migrations_expected: false
 blocking_issues: []
+open_decisions:
+  - "WRI Aqueduct : licence CC BY 4.0 verifiee, mais WRI demande en outre un enregistrement pour partager/adapter les donnees. Enregistrement NON effectue. Aucune valeur Aqueduct ne peut etre publiee publiquement tant qu un humain n a pas tranche (cf. handoffs/P05_WRI_AQUEDUCT.md section 1.3). N est pas bloquant pour P06."

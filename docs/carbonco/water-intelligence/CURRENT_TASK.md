@@ -1,6 +1,6 @@
-> **Mission active — P05 uniquement. Ne pas lancer P06.**
+> **Mission active — P06 uniquement. Ne pas lancer P07.**
 
-# P05 — Connecteur WRI Aqueduct
+# P06 — Connecteur EEA / WISE / WEI+
 
 
 ## En-tête invariant à placer au début de chaque mission
@@ -25,41 +25,38 @@ Règles absolues :
 
 ## Mission spécifique
 
-**Branche :** `feat/water-intelligence-p05-aqueduct`
+**Branche :** `feat/water-intelligence-p06-eea-wei`
 
 ### Objectif
 
-Ajouter le premier connecteur réel, limité à WRI Aqueduct, pour le screening mondial structurel et les scénarios publiés.
+Ajouter la couche européenne de rareté hydrique par bassin/sous-unité et période.
 
 ### Tâches
 
-1. Vérifier la source officielle, la version, la licence et les obligations d’attribution au moment de l’exécution.
-2. Définir une configuration de release opérateur ; aucun téléchargement au runtime.
-3. Accepter un fichier officiel local ou un téléchargement explicite CLI.
-4. Conserver l’artefact brut avec checksum et métadonnées.
-5. Normaliser seulement les indicateurs approuvés par l’ADR :
-   - stress hydrique structurel ;
-   - variabilité/sécheresse si disponible dans la release ;
-   - scénarios/horizons explicitement publiés.
-6. Utiliser les identifiants HydroBASINS/PFAF_ID fournis, sans jointure par nom.
-7. Construire une couche monde simplifiée et un résumé par pays/région.
-8. Présenter Aqueduct comme outil de priorisation, pas comme preuve locale de conformité.
-9. Ajouter tests à partir d’un sous-échantillon officiel minimal figé.
-10. Documenter la taille brute, normalisée et publiée.
+1. Vérifier et pinner la release EEA/WISE officielle disponible.
+2. Enregistrer source, release, artefact, licence, date et méthodologie.
+3. Normaliser les identifiants officiels des districts et sous-unités.
+4. Conserver la saison/période ; ne pas aplatir une série saisonnière en une valeur annuelle sans méthode.
+5. Importer uniquement les périodes nécessaires au MVP.
+6. Construire :
+   - agrégat UE ;
+   - couche district/sous-unité simplifiée ;
+   - comparatif temporel borné.
+7. Stocker les seuils et définitions dans les métadonnées de méthode ; ne pas les dupliquer dans le JSX.
+8. Ajouter tests sur doublons, unités, période, géographie inconnue, absence de valeur et licence.
 
 ### Interdictions
 
-- ne pas committer le dataset complet ;
-- ne pas télécharger toutes les versions historiques ;
-- ne pas inventer de projection ;
-- ne pas appeler Aqueduct depuis le navigateur ;
-- ne pas convertir une classe en conclusion réglementaire.
+- aucune jointure par libellé ;
+- aucun remplissage spatial arbitraire ;
+- aucune moyenne inter-bassins sans pondération documentée ;
+- aucune requête live depuis la page ;
+- aucun historique complet non borné.
 
 ### Critères d’acceptation
 
-- release sourcée, licenciée et idempotente ;
-- crosswalk sans fuzzy matching ;
-- snapshot compact sous budget ou dépassement justifié ;
-- attribution visible ;
-- données manquantes conservées comme telles ;
-- tests réseau zéro.
+- release et période visibles ;
+- distinction structurel/saisonnier ;
+- couverture et confiance séparées ;
+- couche conforme au budget ;
+- tests purs et import idempotent.

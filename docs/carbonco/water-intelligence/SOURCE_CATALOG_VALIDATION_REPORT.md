@@ -23,8 +23,8 @@ Le schéma imposé par la mission P01 (`source_code`, `portal_name`, `theme`, `g
 | `source_role` | `primary_role` | renommage direct (même sémantique) |
 | `connector_candidate` | `initial_status` | renommage direct — les 3 valeurs du CSV brut (`catalog_only` / `connector_candidate` / `reference_priority`) sont préservées sans réduction à un booléen, pour ne perdre aucune information |
 | `access_mode` | `connector_mode` | renommage direct — décrit le mode d'accès technique (API bornée, téléchargement, service OGC, métadonnées seules…), distinct de `connector_candidate` qui décrit le statut d'intention |
-| `official_domain` | **absent du CSV brut** | rempli à `unknown` pour les 16 entrées — aucune URL n'est devinée (interdiction explicite de la mission) |
-| `license_status` | **absent du CSV brut, ajouté à la demande explicite de cette mission** | rempli à `unknown` pour les 16 entrées — aucun statut de licence n'est supposé (interdiction explicite de la mission et du CSV lui-même, qui ne documente aucune licence) |
+| `official_domain` | **absent du CSV brut** | initialement `unknown` pour les 16 entrées — aucune URL n'est devinée (interdiction explicite de la mission). Renseigné uniquement après vérification de la source (voir §8) |
+| `license_status` | **absent du CSV brut, ajouté à la demande explicite de cette mission** | initialement `unknown` pour les 16 entrées — aucun statut de licence n'est supposé. Renseigné uniquement après vérification de la source (voir §8) |
 | `priority` | `priority` | inchangé |
 | `planned_prompt` | `planned_prompt` | inchangé |
 | `notes` | `notes` | inchangé, aucune reformulation |
@@ -67,7 +67,7 @@ Classement dérivé de `access_mode`, croisé avec `connector_candidate` et `sou
 - `SIGES_NETWORK` est un réseau de services régionaux, pas un portail unique — sa note d'origine (« inventorier les services régionaux avant tout connecteur ») indique qu'il pourrait éclater en plusieurs sources distinctes plus tard ; représenté ici comme une seule entrée provisoire.
 - `HUBEAU_ADES` porte `planned_prompt=P07/P08` (deux prompts) plutôt qu'un seul — l'ambiguïté n'est pas résolue ici, à trancher avant l'exécution de P07 ou P08.
 - `geographic_scope` mélange des granularités différentes (`France`, `France/régions`, `France/littoral`, `Monde`, `Union européenne`, `Europe`, `États-Unis`) sans référentiel géographique commun — conservé tel quel, non normalisé (interdiction explicite de corriger silencieusement).
-- `official_domain` et `license_status` sont `unknown` pour les 16 entrées : le CSV brut ne documente ni domaine officiel ni licence — ce ne sont pas des oublis de cette passe, ces informations n'existent simplement pas encore dans l'entrée.
+- `official_domain` et `license_status` étaient `unknown` pour les 16 entrées à l'issue de P01 : le CSV brut ne documente ni domaine officiel ni licence — ce ne sont pas des oublis de cette passe, ces informations n'existaient simplement pas dans l'entrée. **15 entrées sur 16 le restent** ; seule `WRI_AQUEDUCT` a été renseignée depuis, après vérification (§8).
 - Caractères accentués et tirets cadratins dans les noms de portails (« InfoTerre — BRGM », « Ifremer — Sextant ») conservés sans altération.
 
 ## 7. Ce qui n'est pas fait dans cette passe (périmètre documentaire strict)
@@ -80,3 +80,20 @@ Cette exécution de P01 est volontairement limitée à `docs/carbonco/water-inte
 Conséquence sur les critères d'acceptation du prompt maître : « résultat stable byte pour byte » et « tests purs verts » ne peuvent pas être vérifiés mécaniquement tant que le parseur n'existe pas — ce rapport fournit la règle de transformation déterministe qu'un futur parseur devra reproduire à l'identique. Les critères réellement vérifiés dans cette passe sont listés en §2-§5 ci-dessus.
 
 Conformément à la tâche 6 du prompt, **aucune ligne n'a été créée dans `source_registry`** — ce catalogue est un artefact documentaire, pas une écriture en base.
+
+---
+
+## 8. Mises à jour post-P01 (sources vérifiées)
+
+Le catalogue est vivant : une ligne ne passe de `unknown` à une valeur qu'après vérification de la source officielle, mission par mission. Aucune valeur n'est renseignée par déduction.
+
+| Date | Ligne | Champ | Ancienne valeur | Nouvelle valeur | Vérifié depuis |
+|---|---|---|---|---|---|
+| 2026-07-24 (P05) | `WRI_AQUEDUCT` | `official_domain` | `unknown` | `wri.org` | Page de données WRI + dépôt officiel `wri/Aqueduct40` |
+| 2026-07-24 (P05) | `WRI_AQUEDUCT` | `license_status` | `unknown` | `CC-BY-4.0` | FAQ WRI (« Creative Commons Attribution International 4.0 License ») **et** `README.md` du dépôt officiel (« CC BY 4.0 ») |
+
+**Réserve importante attachée à `WRI_AQUEDUCT`.** La licence formelle est bien CC BY 4.0, mais WRI demande **en plus** un enregistrement pour partager ou adapter les données. Cet enregistrement n'a pas été effectué. `license_status: CC-BY-4.0` décrit donc la licence **constatée**, pas une autorisation de publier : la publication publique reste bloquée tant qu'un humain n'a pas tranché. Le détail figure dans [`handoffs/P05_WRI_AQUEDUCT.md`](./handoffs/P05_WRI_AQUEDUCT.md) §1.3.
+
+Conséquence technique : `make_plan()` calcule `license_known = license_status != "unknown"`, donc `WRI_AQUEDUCT` est désormais `license_known=True`. Ce drapeau n'ouvre **aucune** publication — la porte de licence du pipeline ne dépend que de la `license_decision` explicitement fournie par l'appelant (P03), jamais du catalogue.
+
+Les 15 autres entrées restent `unknown` sur les deux champs.

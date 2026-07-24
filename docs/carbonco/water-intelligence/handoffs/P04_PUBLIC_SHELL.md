@@ -4,6 +4,10 @@
 **Branche :** `feat/water-intelligence-p04-public-shell`
 **Route livrée :** `/water-intelligence` (publique).
 
+> **Correctif P04B** — P04B retire les valeurs numériques fictives visibles de la surface publique ; les fixtures restent réservées aux contrats/tests jusqu'au branchement de données réelles.
+>
+> Concrètement, trois valeurs fabriquées ont été retirées de la page (et non seulement la mesure `42`) : la **valeur d'observation** et son **unité**, la **date de récupération** et l'**empreinte SHA-256** du bandeau de provenance. Chacune est remplacée par `n.c.` et le motif de son absence. Les libellés de champ restent affichés — ils montrent ce que la provenance contiendra sans rien fabriquer. Un test dérivé de la fixture (et non codé en dur) échoue si l'une de ces valeurs réapparaît.
+
 ---
 
 ## 1. Ce qui est livré

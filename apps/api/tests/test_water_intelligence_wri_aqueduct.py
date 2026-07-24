@@ -26,7 +26,7 @@ import pytest
 
 from models.water_intelligence import WaterLicenseDecision, WaterSourceReference
 from services.water_intelligence.connectors import wri_aqueduct as wri
-from services.water_intelligence.pipeline import run_pipeline
+from services.water_intelligence.pipeline import TextPageDecoder, run_pipeline
 from services.water_intelligence.pipeline_transport import FakeTransport, ScriptedPage
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -446,24 +446,13 @@ def _source_reference(
     )
 
 
-def _csv_page(text: str) -> bytes:
-    """Encode un extrait CSV comme une PAGE du transport P03.
-
-    Le pipeline décode chaque page en JSON à l'étape `parse` (contrat P03) :
-    une charge CSV est donc transportée comme chaîne JSON, et le normalizer
-    du connecteur la reçoit telle quelle. C'est le geste opérateur documenté
-    dans le handoff P05 — aucune modification du pipeline P03 n'est requise.
-    """
-    return json.dumps(text).encode("utf-8")
-
-
 def _run_with_licence(decision: WaterLicenseDecision | None):
     config = make_config()
     text = read(VALID_FIXTURE)
     parsed = wri.parse_baseline_annual_csv(text, config=config)
 
     transport = FakeTransport(
-        {None: ScriptedPage(content=_csv_page(text), has_next_page=False)}
+        {None: ScriptedPage(content=text.encode("utf-8"), has_next_page=False)}
     )
 
     return run_pipeline(
@@ -475,6 +464,7 @@ def _run_with_licence(decision: WaterLicenseDecision | None):
         method=wri.METHOD,
         geography_resolver=wri.build_geography_resolver(parsed.rows),
         max_pages=1,
+        decoder=wri.PAGE_DECODER,
         license_decision=decision,
         clock=lambda: datetime(2026, 1, 3, tzinfo=timezone.utc),
     )
@@ -501,7 +491,7 @@ class TestPipelineIntegration:
         config = make_config()
         text = read(VALID_FIXTURE)
         transport = FakeTransport(
-            {None: ScriptedPage(content=_csv_page(text), has_next_page=False)}
+            {None: ScriptedPage(content=text.encode("utf-8"), has_next_page=False)}
         )
         parsed = wri.parse_baseline_annual_csv(text, config=config)
 
@@ -514,6 +504,7 @@ class TestPipelineIntegration:
             method=wri.METHOD,
             geography_resolver=wri.build_geography_resolver(parsed.rows),
             max_pages=1,
+            decoder=wri.PAGE_DECODER,
             clock=lambda: datetime(2026, 1, 3, tzinfo=timezone.utc),
         )
 
@@ -529,6 +520,41 @@ class TestPipelineIntegration:
         )
 
         assert report.dry_run is True
+
+
+# ---------------------------------------------------------------------------
+# Décodeur de page (P03B) — plus d'emballage JSON pour transporter la CSV
+# ---------------------------------------------------------------------------
+
+
+class TestPageDecoderIntegration:
+    def test_page_decoder_is_a_text_decoder_with_explicit_utf8(self) -> None:
+        assert isinstance(wri.PAGE_DECODER, TextPageDecoder)
+        assert wri.PAGE_DECODER.encoding == "utf-8"
+
+    def test_connector_transports_csv_as_plain_utf8_bytes_no_json_wrapper(self) -> None:
+        """P03B : la CSV voyage telle quelle (texte UTF-8) — plus d'emballage
+        JSON. Preuve directe : le décodeur du connecteur rend le texte EXACT
+        à partir des octets bruts, sans `json.loads` impliqué."""
+        text = read(VALID_FIXTURE)
+        assert not text.startswith('"')  # CSV brut, pas une chaîne JSON échappée
+
+        decoded = wri.PAGE_DECODER.decode(text.encode("utf-8"), page_index=1)
+
+        assert decoded == text
+
+    def test_full_pipeline_run_accepts_raw_csv_bytes_directly(self) -> None:
+        """Bout en bout : `FakeTransport` reçoit directement les octets CSV
+        (`text.encode("utf-8")`), sans passer par `json.dumps` au préalable."""
+        report = _run_with_licence(
+            WaterLicenseDecision(
+                allow_ingest=True, allow_store=True,
+                allow_display=True, allow_derived_use=True,
+            )
+        )
+
+        assert report.succeeded
+        assert report.records_read > 0
 
 
 # ---------------------------------------------------------------------------

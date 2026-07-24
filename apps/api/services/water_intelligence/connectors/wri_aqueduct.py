@@ -51,6 +51,7 @@ from typing import Any, Iterable
 from models.analytics import MethodRef
 from models.water_intelligence import WaterGeographyRef
 from services.intelligence.adapters.base import ObservationDraft
+from services.water_intelligence.pipeline import TextPageDecoder
 
 # ---------------------------------------------------------------------------
 # Identité de la source — valeurs VÉRIFIÉES (cf. rapport de source P05)
@@ -66,6 +67,11 @@ ATTRIBUTION_TEMPLATE = "Source: WRI Aqueduct, accessed on {accessed_on} — http
 #: Méthode de CE connecteur (recopie fidèle), distincte de la méthodologie
 #: Aqueduct elle-même : il ne recalcule aucun indicateur.
 METHOD = MethodRef(code="CC-WI-WRI-AQUEDUCT-PASSTHROUGH", version="1.0.0")
+
+#: Décodeur de page (P03B) : chaque page transportée est du texte CSV en
+#: UTF-8 explicite — plus d'emballage JSON. À passer tel quel à
+#: `run_pipeline(decoder=wri_aqueduct.PAGE_DECODER, ...)`.
+PAGE_DECODER = TextPageDecoder()
 
 #: Aqueduct publie des indicateurs MODÉLISÉS, pas des mesures directes.
 #: Classement conservateur : `modelled` (revendiquer `observed` serait faux).

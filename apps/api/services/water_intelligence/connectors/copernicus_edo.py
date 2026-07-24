@@ -8,6 +8,14 @@ JRC de la Commission européenne. **Aucun réseau** : ce module n'importe aucun
 client HTTP et ne télécharge rien ; l'opérateur fournit les octets. Aucune
 écriture en base, aucun frontend.
 
+**Statut formel (décision de clôture Wave A) : `CONNECTOR_STATUS =
+"source_verified_decoder_deferred"`.** Ce n'est PAS un échec de source :
+l'identité de la source est intégralement vérifiée (§ ci-dessous). Ce n'est
+PAS non plus une source vivante : le décodage de la grille raster est
+VOLONTAIREMENT REPORTÉ (§ « Blocage » ci-dessous), par décision MVP
+explicite — pas un oubli, pas une source cassée. Détail complet :
+`docs/carbonco/water-intelligence/handoffs/WAVE_A_EU_CONNECTORS.md` §6.
+
 ## Sécheresse courante ≠ stress structurel
 
 Le CDI décrit un ÉTAT à un instant donné (période de 10 jours), reconstruit à
@@ -95,6 +103,17 @@ PRODUCT_OPERATOR = (
 #: Espace de noms des métriques. Disjoint de celui du WEI+ (`eea_wei_plus.`) :
 #: sécheresse courante et stress structurel ne se mélangent jamais.
 METRIC_NAMESPACE = "copernicus_edo.cdi"
+
+#: Statut FORMEL du connecteur pour le MVP (décision de clôture Wave A,
+#: cf. `docs/carbonco/water-intelligence/handoffs/WAVE_A_EU_CONNECTORS.md`
+#: §6 et `PROJECT_STATE.yaml`). Ni un échec de source, ni une source
+#: vivante : l'identité est VÉRIFIÉE (§ ci-dessus, fiche officielle CDI
+#: v4.1) et le DÉCODAGE RASTER est VOLONTAIREMENT REPORTÉ — aucune
+#: dépendance GDAL/rasterio/netCDF4/xarray, aucun endpoint WMS/WCS deviné,
+#: aucune couche simulée, aucune valeur publiée. Distinct de
+#: `WaterDataStatus`/`license_status` (P02) : ce champ documente la
+#: DÉCISION MVP elle-même, pas la donnée. Réévaluation : ADR dédiée.
+CONNECTOR_STATUS = "source_verified_decoder_deferred"
 
 #: Accès « free, full and open » au titre du règlement (UE) 2021/696. Ce n'est
 #: PAS une licence Creative Commons : ne pas la présenter comme telle.

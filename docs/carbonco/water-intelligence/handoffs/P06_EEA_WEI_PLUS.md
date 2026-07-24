@@ -10,8 +10,8 @@
 
 | Fichier | Contenu |
 |---|---|
-| `apps/api/services/water_intelligence/connectors/eea_wei_plus.py` | Connecteur complet : identité de release vérifiée, schéma canonique, parsing, agrégat, comparatif borné, descripteur de couche, intégration P03 |
-| `apps/api/tests/test_water_intelligence_eea_wei_plus.py` | 79 tests |
+| `apps/api/services/water_intelligence/connectors/eea_wei_plus.py` | Connecteur complet : identité de release vérifiée, schéma canonique, parsing, agrégat, comparatif borné, descripteur de couche, `build_period_resolver()` (commit de clôture), intégration P03 |
+| `apps/api/tests/test_water_intelligence_eea_wei_plus.py` | 94 tests (dont 15 `TestPeriodResolver`, commit de clôture) |
 | `apps/api/tests/fixtures/eea_wei_plus_subunit_fixture.csv` | Extrait fixture (3 unités × 2 trimestres, dont une unité sans valeur) |
 | `apps/api/tests/fixtures/eea_wei_plus_unknown_column_fixture.csv` | Extrait au schéma refusé (colonne de libellé) |
 
@@ -33,8 +33,8 @@ Toute autre échelle est refusée : le module ne connaît que ce qu'il a vérifi
 
 | Critère | État |
 |---|---|
-| Release et période visibles | `DATASET_RELEASES` + `metric_code` portant le trimestre + métadonnées de draft |
-| Distinction structurel / saisonnier | Le WEI+ **est** l'indicateur structurel ; la saisonnalité est le trimestre, jamais aplatie (test dédié) |
+| Release et période visibles | `DATASET_RELEASES` + `period_start`/`period_end` réels (bornes du trimestre, via `build_period_resolver()`) + métadonnées de draft |
+| Distinction structurel / saisonnier | Le WEI+ **est** l'indicateur structurel ; la saisonnalité est le trimestre, portée par la période réelle du candidat, jamais aplatie (test dédié) |
 | Couverture et confiance séparées | `coverage_pct` sur l'agrégat, distinct du stress ; confiance documentaire jamais mélangée à la valeur |
 | Couche conforme au budget | `build_layer_descriptor` refuse au-delà de 1 000 entités |
 | Tests purs et import idempotent | Aucun réseau/BDD (AST), checksums stables, drafts idempotents |
@@ -61,16 +61,26 @@ Toute autre échelle est refusée : le module ne connaît que ce qu'il a vérifi
 1. **Vocabulaire d'en-tête officiel non vérifié** → format canonique défini
    par le connecteur, conversion = geste opérateur documenté (Wave A §2.4).
 2. **Libellés officiels non repris** → `label` = identifiant.
-3. **Période aplatie par P03** → trimestre encodé dans le `metric_code` ;
-   arbitrage P10 attendu (Wave A §5.1).
-4. **Incertitudes de source** : l'EEA signale de fortes incertitudes pour la
+3. **Incertitudes de source** : l'EEA signale de fortes incertitudes pour la
    Suisse et la France (données modélisées en baseline). À propager en P10.
+
+**Résolu (commit de clôture Wave A) : la période n'est plus aplatie par
+P03.** `derive_observations()`/`run_pipeline()` acceptent désormais un
+`PeriodResolver` injectable (audit d'identité temporelle complet, aucune
+migration nécessaire — cf. Wave A §5). `build_period_resolver()` lit
+`year`/`quarter` dans les métadonnées structurées du draft et retourne les
+bornes officielles du trimestre ; `metric_code` est redevenu stable et
+indépendant de la saison. Voir Wave A §5.1 pour le détail complet.
 
 ## 6. Reliquats pour la suite
 
-- Décider en P10 si `derive` doit propager `period_start`/`period_end` et les
-  métadonnées du draft, ou si la convention `metric_code` devient officielle.
 - Obtenir une `WaterLicenseDecision` réelle via `license_policy.evaluate()`
   sur une ligne `source_registry` (à créer hors P06) avant toute publication.
 - Produire la couche cartographique réelle (P11) à partir du SHP officiel,
   hors dépôt, en respectant le budget de 1 000 entités.
+- **P10 doit être averti** que `ObservationDraft.dedup_key()` (contrat PR-04
+  partagé, `services/intelligence/adapters/base.py`) ne porte pas la
+  période : un futur graveur Evidence Kernel ne doit jamais la réutiliser
+  telle quelle pour une métrique saisonnière comme le WEI+ (risque consigné
+  dans `RISK_REGISTER.md`, non corrigé volontairement dans cette PR — fichier
+  hors périmètre Water Intelligence).

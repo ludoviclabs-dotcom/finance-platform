@@ -9,13 +9,22 @@ standard, sans DATABASE_URL.
 Couvre : identité de release vérifiée et refus d'un « latest » implicite,
 schéma canonique valide/invalide, identifiant absent ou inconnu, doublons,
 période absente / hors étendue publiée, unité incompatible, `null` distinct
-de `0`, saison conservée, agrégat sans moyenne de ratios (pondération),
-comparatif temporel borné, licence autorisée / bloquée / inconnue,
-attribution, checksum et idempotence, descripteur de couche sans géométrie,
-intégration au pipeline P03 en dry-run, et les deux frontières d'erreur du
-connecteur (`WeiPlusError` → `AdapterError` en parse/normalize ;
+de `0`, agrégat sans moyenne de ratios (pondération), comparatif temporel
+borné, licence autorisée / bloquée / inconnue, attribution, checksum et
+idempotence, descripteur de couche sans géométrie, intégration au pipeline
+P03 en dry-run, et les deux frontières d'erreur du connecteur
+(`WeiPlusError` → `AdapterError` en parse/normalize ;
 `WeiPlusGeographyUnavailableError` → `PipelineDataUnavailableError` en
 derive).
+
+Depuis le commit de clôture Wave A (audit d'identité temporelle, cf.
+`docs/carbonco/water-intelligence/handoffs/WAVE_A_EU_CONNECTORS.md` §5), la
+saison n'est plus encodée dans `metric_code` : elle est portée par
+`period_start`/`period_end`, résolus au stage `derive` via
+`build_period_resolver()`. `TestPeriodResolver` couvre ce contrat
+spécifiquement (bornes des 4 trimestres, année bissextile, trimestre/année
+invalide ou absent, distinction stricte de deux trimestres d'une même
+métrique, absence de tout parsing de libellé).
 """
 
 from __future__ import annotations
@@ -27,10 +36,11 @@ from pathlib import Path
 import pytest
 
 from models.water_intelligence import WaterLicenseDecision, WaterSourceReference
-from services.intelligence.adapters.base import AdapterError
+from services.intelligence.adapters.base import AdapterError, ObservationDraft
 from services.water_intelligence.connectors import eea_wei_plus as eea
 from services.water_intelligence.pipeline import (
     PipelineDataUnavailableError,
+    derive_observations,
     run_pipeline,
 )
 from services.water_intelligence.pipeline_transport import FakeTransport, ScriptedPage
@@ -236,19 +246,25 @@ class TestPeriodAndSeason:
     ) -> None:
         assert eea.quarter_period(2023, quarter) == expected
 
-    def test_season_survives_into_the_metric_code(self) -> None:
-        """P03 aplatit la période sur la date d'observation : le trimestre est
-        donc porté par le code de métrique, jamais perdu."""
+    def test_season_is_carried_by_the_draft_metadata_not_the_metric_code(self) -> None:
+        """Depuis le commit de clôture Wave A, `metric_code` est STABLE :
+        deux trimestres de la même unité partagent le même code. La saison
+        vit dans les métadonnées structurées du draft (`year`/`quarter`),
+        lues par `build_period_resolver()` — voir `TestPeriodResolver`."""
         result = eea.parse_wei_plus_csv(read(VALID_FIXTURE), config=make_config())
         drafts = eea._drafts_from_rows(result.rows, make_config())
 
         codes = {d.metric_code for d in drafts}
-        assert "eea_wei_plus.subunit.q1.value_pct" in codes
-        assert "eea_wei_plus.subunit.q3.value_pct" in codes
+        assert "eea_wei_plus.subunit.value_pct" in codes
+        assert "eea_wei_plus.subunit.q1.value_pct" not in codes
+        assert "eea_wei_plus.subunit.q3.value_pct" not in codes
 
-        q3 = next(d for d in drafts if d.metric_code == "eea_wei_plus.subunit.q3.value_pct")
+        q3 = next(
+            d for d in drafts
+            if d.metric_code == "eea_wei_plus.subunit.value_pct" and d.metadata["quarter"] == "Q3"
+        )
         assert q3.observed_at == datetime(2023, 7, 1, tzinfo=timezone.utc)
-        assert q3.metadata["quarter"] == "Q3"
+        assert q3.metadata["year"] == 2023
         assert q3.metadata["period_start"] == "2023-07-01"
         assert q3.metadata["period_end"] == "2023-09-30"
 
@@ -258,6 +274,201 @@ class TestPeriodAndSeason:
         unit_001 = [r for r in result.rows if r.spatial_unit_id == "EEA-FIXTURE-SUBUNIT-001"]
         assert {r.quarter for r in unit_001} == {"Q1", "Q3"}
         assert {r.value_pct for r in unit_001} == {12.5, 44.75}
+
+
+# ---------------------------------------------------------------------------
+# PeriodResolver EEA (Wave A, commit de clôture) — `build_period_resolver()`.
+# Audit d'identité temporelle complet :
+# docs/carbonco/water-intelligence/handoffs/WAVE_A_EU_CONNECTORS.md §5.
+# ---------------------------------------------------------------------------
+
+
+def _draft(*, subject_key: str, metric_code: str, metadata: dict) -> ObservationDraft:
+    """Construit un draft minimal pour exercer le résolveur de période
+    directement, sans repasser par le parsing CSV."""
+    return ObservationDraft(
+        subject_type="eea_wei_plus_unit",
+        subject_key=subject_key,
+        metric_code=metric_code,
+        numeric_value=1.0,
+        geography_code=subject_key,
+        observed_at=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        data_status="fixture",
+        methodology_version=eea.METHOD.version,
+        metadata=metadata,
+    )
+
+
+class TestPeriodResolver:
+    @pytest.mark.parametrize(
+        ("quarter", "expected"),
+        [
+            ("Q1", (date(2023, 1, 1), date(2023, 3, 31))),
+            ("Q2", (date(2023, 4, 1), date(2023, 6, 30))),
+            ("Q3", (date(2023, 7, 1), date(2023, 9, 30))),
+            ("Q4", (date(2023, 10, 1), date(2023, 12, 31))),
+        ],
+    )
+    def test_each_quarter_resolves_to_its_official_bounds(
+        self, quarter: str, expected: tuple[date, date]
+    ) -> None:
+        resolver = eea.build_period_resolver()
+        draft = _draft(
+            subject_key="EEA-FIXTURE-SUBUNIT-001",
+            metric_code="eea_wei_plus.subunit.value_pct",
+            metadata={"year": 2023, "quarter": quarter},
+        )
+
+        assert resolver(draft) == expected
+
+    def test_q1_bounds_are_unaffected_by_a_non_leap_year(self) -> None:
+        resolver = eea.build_period_resolver()
+        draft = _draft(
+            subject_key="X", metric_code="m",
+            metadata={"year": 2023, "quarter": "Q1"},  # 2023 : non bissextile
+        )
+
+        assert resolver(draft) == (date(2023, 1, 1), date(2023, 3, 31))
+
+    def test_q1_bounds_are_unaffected_by_a_leap_year(self) -> None:
+        """Février (le seul mois sensible au bissextile) n'est jamais un mois
+        de fin de trimestre dans le vocabulaire WEI+ : les bornes Q1 restent
+        1er janvier → 31 mars, année bissextile ou non — aucune arithmétique
+        implicite sur les jours de février."""
+        resolver = eea.build_period_resolver()
+        draft = _draft(
+            subject_key="X", metric_code="m",
+            metadata={"year": 2024, "quarter": "Q1"},  # 2024 : bissextile
+        )
+
+        assert resolver(draft) == (date(2024, 1, 1), date(2024, 3, 31))
+
+    def test_invalid_quarter_is_refused_via_pipeline_data_unavailable(self) -> None:
+        resolver = eea.build_period_resolver()
+        draft = _draft(
+            subject_key="X", metric_code="m", metadata={"year": 2023, "quarter": "Q9"}
+        )
+
+        with pytest.raises(PipelineDataUnavailableError, match="trimestre"):
+            resolver(draft)
+
+    def test_period_start_never_exceeds_period_end(self) -> None:
+        """Invariant vérifié pour chaque trimestre officiel — jamais de bornes
+        inversées, quel que soit le résolveur branché."""
+        resolver = eea.build_period_resolver()
+        for quarter in eea.QUARTER_MONTHS:
+            start, end = resolver(
+                _draft(subject_key="X", metric_code="m", metadata={"year": 2023, "quarter": quarter})
+            )
+            assert start <= end
+
+    def test_missing_year_is_refused_via_pipeline_data_unavailable(self) -> None:
+        resolver = eea.build_period_resolver()
+        draft = _draft(subject_key="X", metric_code="m", metadata={"quarter": "Q1"})
+
+        with pytest.raises(PipelineDataUnavailableError, match="année"):
+            resolver(draft)
+
+    def test_missing_quarter_is_refused_via_pipeline_data_unavailable(self) -> None:
+        resolver = eea.build_period_resolver()
+        draft = _draft(subject_key="X", metric_code="m", metadata={"year": 2023})
+
+        with pytest.raises(PipelineDataUnavailableError, match="trimestre"):
+            resolver(draft)
+
+    def test_non_integer_year_is_refused(self) -> None:
+        """Une année textuelle (ex. `"2023"`) n'est jamais coercée en entier
+        implicitement — le type structuré est exigé tel quel."""
+        resolver = eea.build_period_resolver()
+        draft = _draft(subject_key="X", metric_code="m", metadata={"year": "2023", "quarter": "Q1"})
+
+        with pytest.raises(PipelineDataUnavailableError, match="année"):
+            resolver(draft)
+
+    def test_resolver_never_parses_the_subject_key_or_geography_code(self) -> None:
+        """Le résolveur lit UNIQUEMENT les métadonnées structurées — un
+        identifiant ou un code géographique qui ressemble à un trimestre ne
+        doit avoir aucune influence sur la période résolue."""
+        resolver = eea.build_period_resolver()
+        draft = ObservationDraft(
+            subject_type="eea_wei_plus_unit",
+            subject_key="Q1-LOOKALIKE-2023-EEA-FIXTURE",
+            metric_code="eea_wei_plus.subunit.value_pct",
+            numeric_value=1.0,
+            geography_code="Q4-2023-DOES-NOT-EXIST",
+            observed_at=datetime(2023, 1, 1, tzinfo=timezone.utc),
+            data_status="fixture",
+            methodology_version=eea.METHOD.version,
+            metadata={"year": 2023, "quarter": "Q3"},
+        )
+
+        assert resolver(draft) == (date(2023, 7, 1), date(2023, 9, 30))
+
+    def test_two_quarters_of_the_same_metric_remain_distinct_after_derive(self) -> None:
+        """Le cœur de la clôture Wave A : `metric_code` identique, périodes
+        distinctes, AUCUNE des deux observations n'écrase l'autre."""
+        config = make_config()
+        result = eea.parse_wei_plus_csv(read(VALID_FIXTURE), config=config)
+        unit_001_values = [
+            d for d in eea._drafts_from_rows(result.rows, config)
+            if d.subject_key == "EEA-FIXTURE-SUBUNIT-001" and d.metric_code.endswith("value_pct")
+        ]
+        assert len(unit_001_values) == 2
+        assert len({d.metric_code for d in unit_001_values}) == 1  # même metric_code
+
+        derive_result = derive_observations(
+            unit_001_values,
+            source=_source_reference(config, license_decision=ALLOWED),
+            method=eea.METHOD,
+            geography_resolver=eea.build_geography_resolver(result.rows),
+            period_resolver=eea.build_period_resolver(),
+        )
+
+        assert not derive_result.errors
+        assert len(derive_result.candidates) == 2
+        periods = {(c["period_start"], c["period_end"]) for c in derive_result.candidates}
+        assert periods == {
+            (date(2023, 1, 1), date(2023, 3, 31)),
+            (date(2023, 7, 1), date(2023, 9, 30)),
+        }
+        values = {c["value"] for c in derive_result.candidates}
+        assert values == {12.5, 44.75}
+
+    def test_derive_is_idempotent_across_periods(self) -> None:
+        """Rejouer `derive_observations` sur les mêmes drafts produit
+        exactement les mêmes candidats — aucun trimestre n'en écrase un
+        autre, aucun n'apparaît en double."""
+        config = make_config()
+        result = eea.parse_wei_plus_csv(read(VALID_FIXTURE), config=config)
+        drafts = eea._drafts_from_rows(result.rows, config)
+        kwargs = dict(
+            source=_source_reference(config, license_decision=ALLOWED),
+            method=eea.METHOD,
+            geography_resolver=eea.build_geography_resolver(result.rows),
+            period_resolver=eea.build_period_resolver(),
+        )
+
+        first = derive_observations(drafts, **kwargs)
+        second = derive_observations(drafts, **kwargs)
+
+        assert first.candidates == second.candidates
+        assert len(first.candidates) == len(drafts)
+
+    def test_period_error_at_derive_produces_a_named_report_not_a_raw_exception(self) -> None:
+        """Une erreur de résolution de période, propagée par `run_pipeline`,
+        échoue proprement au stage `derive` — jamais une exception nue."""
+        report = run_wei_pipeline(
+            license_decision=ALLOWED,
+            period_resolver=lambda draft: (_ for _ in ()).throw(
+                PipelineDataUnavailableError("période simulée non résolue")
+            ),
+        )
+
+        assert not report.succeeded
+        assert report.steps_failed == ["derive"]
+        assert any("période simulée non résolue" in e for e in report.errors)
+        assert "validate" not in report.steps_executed
+        assert "publish" not in report.steps_executed
 
 
 # ---------------------------------------------------------------------------
@@ -600,6 +811,7 @@ def run_wei_pipeline(
     license_decision: WaterLicenseDecision | None,
     csv_text: str | None = None,
     geography_resolver=None,
+    period_resolver=None,
     source_code: str | None = None,
 ):
     config = make_config()
@@ -626,6 +838,7 @@ def run_wei_pipeline(
         geography_resolver=geography_resolver or eea.build_geography_resolver(known_rows),
         max_pages=1,
         decoder=eea.PAGE_DECODER,
+        period_resolver=period_resolver or eea.build_period_resolver(),
         license_decision=license_decision,
         clock=lambda: datetime(2026, 2, 11, tzinfo=timezone.utc),
     )

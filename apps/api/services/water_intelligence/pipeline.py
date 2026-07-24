@@ -53,7 +53,7 @@ import hashlib
 import json
 import struct
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Callable, Literal, Protocol
 
@@ -389,6 +389,30 @@ class TransportAdapter:
 
 GeographyResolver = Callable[[str | None], WaterGeographyRef]
 
+#: Résolveur de période injectable (Wave A, commit de clôture — audit complet
+#: dans `docs/carbonco/water-intelligence/handoffs/WAVE_A_EU_CONNECTORS.md`
+#: §5). Reçoit le draft ENTIER (pas seulement `observed_at`) : un connecteur
+#: dont la période ne se réduit pas à une date unique — un trimestre EEA, une
+#: fenêtre Hub'Eau — la lit dans les métadonnées STRUCTURÉES du draft, jamais
+#: par un parsing implicite d'un libellé humain. Une erreur ATTENDUE (période
+#: absente, incohérente ou hors vocabulaire) doit lever
+#: `PipelineDataUnavailableError` — seul type capturé ici, même contrat que
+#: `geography_resolver`.
+PeriodResolver = Callable[[ObservationDraft], tuple[date, date]]
+
+
+def _default_period_resolver(draft: ObservationDraft) -> tuple[date, date]:
+    """Résolveur par défaut, RÉTROCOMPATIBLE avec le comportement P03 initial :
+    une observation ponctuelle, `period_start == period_end ==
+    observed_at.date()`. Utilisé par tout connecteur qui n'injecte pas son
+    propre résolveur (WRI aujourd'hui) — comportement strictement inchangé."""
+    if draft.observed_at is None:
+        raise PipelineDataUnavailableError(
+            "observed_at absent — période obligatoire, aucune date substituée."
+        )
+    day = draft.observed_at.date()
+    return day, day
+
 
 @dataclass
 class DeriveResult:
@@ -403,23 +427,33 @@ def derive_observations(
     method: MethodRef,
     geography_resolver: GeographyResolver,
     default_methodology_version: str | None = None,
+    period_resolver: PeriodResolver | None = None,
 ) -> DeriveResult:
     """Traduit chaque `ObservationDraft` en candidat `WaterMetricObservation`
     (dict non encore validé — la validation stricte est l'étape suivante).
 
     Aucune valeur par défaut métier inventée : une géographie non résolue ou
-    une date d'observation absente rejette le draft (erreur nommée dans le
-    rapport), jamais une valeur substituée en silence.
+    une période non résolue rejette le draft (erreur nommée dans le rapport),
+    jamais une valeur substituée en silence.
 
-    Portée de capture (P03C) : seule `PipelineDataUnavailableError` est
-    capturée autour de `geography_resolver`, conformément au contrat établi
-    en P03 (`docs/carbonco/water-intelligence/handoffs/
-    P03_INGESTION_PIPELINE.md` §5) — un `geography_resolver` de connecteur
-    doit lever CETTE exception pour un code non résolu, jamais une exception
-    propre au connecteur. Une exception d'un autre type (y compris
-    `AdapterError`) remonte nue depuis cette fonction, comme toute erreur
-    inattendue au sens du docstring de module.
+    Portée de capture (P03C, étendue Wave A au résolveur de période) : seule
+    `PipelineDataUnavailableError` est capturée autour de `geography_resolver`
+    ET de `period_resolver`, conformément au contrat établi en P03
+    (`docs/carbonco/water-intelligence/handoffs/P03_INGESTION_PIPELINE.md`
+    §5) — un résolveur de connecteur doit lever CETTE exception pour un cas
+    non résolu, jamais une exception propre au connecteur. Une exception d'un
+    autre type (y compris `AdapterError`) remonte nue depuis cette fonction,
+    comme toute erreur inattendue au sens du docstring de module.
+
+    `period_resolver` par défaut : `_default_period_resolver`
+    (rétrocompatible, période ponctuelle sur `observed_at`). Un connecteur
+    dont la période ne se réduit pas à un jour (trimestre EEA, fenêtre
+    Hub'Eau…) injecte le sien — voir `eea_wei_plus.build_period_resolver()`.
+    Indépendamment du résolveur branché, `period_start <= period_end` est
+    vérifié ICI, une fois pour toutes : un résolveur qui inverserait les
+    bornes est rejeté avec une erreur nommée, jamais silencieusement corrigé.
     """
+    resolve_period = period_resolver or _default_period_resolver
     result = DeriveResult()
     for draft in drafts:
         try:
@@ -430,13 +464,19 @@ def derive_observations(
             )
             continue
 
-        if draft.observed_at is None:
+        try:
+            period_start, period_end = resolve_period(draft)
+        except PipelineDataUnavailableError as exc:
+            result.errors.append(f"{draft.subject_key}/{draft.metric_code} : {exc}")
+            continue
+
+        if period_start > period_end:
             result.errors.append(
-                f"{draft.subject_key}/{draft.metric_code} : observed_at absent — "
-                "période obligatoire, aucune date substituée."
+                f"{draft.subject_key}/{draft.metric_code} : période invalide "
+                f"(period_start={period_start} > period_end={period_end}) — "
+                "refusée, jamais corrigée en silence."
             )
             continue
-        period = draft.observed_at.date()
 
         methodology_version = draft.methodology_version or default_methodology_version
         if not methodology_version:
@@ -460,8 +500,8 @@ def derive_observations(
             "value": value,
             "unit": draft.unit,
             "geography": geography.model_dump(),
-            "period_start": period,
-            "period_end": period,
+            "period_start": period_start,
+            "period_end": period_end,
             "method": method.model_dump(),
             "quality": WaterQualityMetadata(
                 data_status=draft.data_status,  # cf. docstring module : conversion explicite si besoin, jamais implicite
@@ -581,6 +621,7 @@ def run_pipeline(
     default_methodology_version: str | None = None,
     license_decision: WaterLicenseDecision | None = None,
     decoder: PageDecoder | None = None,
+    period_resolver: PeriodResolver | None = None,
     clock: Callable[[], datetime] | None = None,
     catalog_path: Path = DEFAULT_CATALOG_PATH,
 ) -> PipelineExecutionReport:
@@ -597,6 +638,13 @@ def run_pipeline(
     `JsonPageDecoder` par défaut (rétrocompatible), `TextPageDecoder`/
     `RawBytesPageDecoder` pour les sources tabulaires/binaires. Toujours
     choisi explicitement par l'appelant, jamais deviné.
+
+    `period_resolver` contrôle la résolution de `period_start`/`period_end`
+    au stage `derive` (Wave A) : résolveur ponctuel par défaut
+    (rétrocompatible), résolveur propre au connecteur pour une période qui
+    ne se réduit pas à une date unique (trimestre, fenêtre bornée…). Voir
+    `derive_observations` et `docs/carbonco/water-intelligence/handoffs/
+    WAVE_A_EU_CONNECTORS.md` §5.
     """
     now = clock or datetime.now
     executed: list[PipelineStage] = []
@@ -697,6 +745,7 @@ def run_pipeline(
         method=method,
         geography_resolver=geography_resolver,
         default_methodology_version=default_methodology_version,
+        period_resolver=period_resolver,
     )
     errors.extend(derive_result.errors)
     if not derive_result.candidates and drafts:

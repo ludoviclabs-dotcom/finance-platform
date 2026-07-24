@@ -37,6 +37,7 @@ from services.water_intelligence.connectors import wri_aqueduct as wri
 from services.water_intelligence.pipeline import (
     PipelineDataUnavailableError,
     TextPageDecoder,
+    derive_observations,
     run_pipeline,
 )
 from services.water_intelligence.pipeline_transport import FakeTransport, ScriptedPage
@@ -532,6 +533,30 @@ class TestPipelineIntegration:
         )
 
         assert report.dry_run is True
+
+    def test_wri_stays_backward_compatible_with_the_default_period_resolver(self) -> None:
+        """Item 14 de la clôture Wave A : WRI n'injecte aucun `period_resolver`
+        (`run_pipeline`/`_run_with_licence` ci-dessus ne le passent pas) — le
+        résolveur par défaut doit continuer à produire une observation
+        ponctuelle (`period_start == period_end == observed_at.date()`),
+        strictement comme avant l'introduction du `PeriodResolver` injectable."""
+        config = make_config()
+        parsed = wri.parse_baseline_annual_csv(read(VALID_FIXTURE), config=config)
+        drafts = wri._drafts_from_rows(parsed.rows, config)
+
+        result = derive_observations(
+            drafts,
+            source=_source_reference(config, allow_display=True),
+            method=wri.METHOD,
+            geography_resolver=wri.build_geography_resolver(parsed.rows),
+        )
+
+        assert not result.errors
+        assert result.candidates
+        expected_day = wri._observed_at(config).date()
+        assert all(
+            c["period_start"] == c["period_end"] == expected_day for c in result.candidates
+        )
 
 
 # ---------------------------------------------------------------------------

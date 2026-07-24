@@ -17,6 +17,7 @@ lancée.
 | `feat(carbon)` | A2 — connecteur EEA / WISE / WEI+ |
 | `feat(carbon)` | A3 — connecteur Copernicus EDO (avec blocage documenté) |
 | `docs(carbon)` | A4 — handoffs, catalogue, pilotage |
+| `fix(carbon)` | Commit de clôture — `PeriodResolver` injectable (audit d'identité temporelle, aucune migration nécessaire) + décision MVP Copernicus formalisée (`source_verified_decoder_deferred`) |
 
 **Aucune donnée n'est publiée.** Les deux connecteurs tournent en dry-run à
 travers le pipeline P03. Aucun frontend, aucune route, aucune migration,
@@ -132,6 +133,15 @@ Faits **vérifiés** et portés par le code :
 
 ### 3.2 Blocage — assumé, documenté, non contourné
 
+**Statut formel (commit de clôture Wave A) :
+`CONNECTOR_STATUS = "source_verified_decoder_deferred"`**
+(`connectors/copernicus_edo.py`, exposé comme constante testée). Ce statut
+est délibérément à mi-chemin entre deux catégories qui n'auraient pas dit la
+même chose : ce n'est **pas** un échec de source (l'identité est
+intégralement vérifiée, §3.1) et ce n'est **pas** non plus une source vivante
+(aucune valeur n'est produite). La décision MVP explicite est : décoder est
+reporté, pas abandonné, pas contourné.
+
 Le portail officiel ne propose que **deux formats : GeoTIFF (`tif`) et
 NetCDF (`nc`)** — vérifié directement sur son sélecteur de format. **Aucun
 export tabulaire ou CSV n'existe.**
@@ -173,7 +183,10 @@ identifiant). La docstring, elle, mentionne délibérément le WEI+ pour
 
 ### 3.4 Pour débloquer (décision humaine requise)
 
-Trois voies, à arbitrer hors de cette vague :
+Le statut `source_verified_decoder_deferred` (§3.2) EST la formalisation de
+cet arbitrage pour le MVP — il ne demande pas d'action immédiate, il
+documente une décision volontairement prise et testée. Trois voies restent
+ouvertes pour le débloquer, à arbitrer hors de cette vague :
 
 1. **ADR + dépendance raster** (rasterio ou netCDF4) avec justification,
    analyse de licence, impact de taille et tests — le chemin le plus direct,
@@ -183,6 +196,9 @@ Trois voies, à arbitrer hors de cette vague :
    Léger, mais exige une vérification de source qui n'a pas pu être faite ici.
 3. **Renoncer au CDI** pour la vague publique et documenter l'absence comme
    « indisponible », jamais comme « pas de sécheresse ».
+
+Consigné dans `PROJECT_STATE.yaml` (bloc `sources.COPERNICUS_EDO`) pour rester
+visible sans relire ce handoff.
 
 ---
 
@@ -212,18 +228,97 @@ Le même contrat est appliqué d'emblée au connecteur EEA
 
 ## 5. Limites connues et risques résiduels
 
-### 5.1 P03 aplatit la période sur une date unique
+### 5.0 Audit d'identité temporelle (commit de clôture Wave A)
 
-`derive_observations()` fixe `period_start == period_end ==
-draft.observed_at.date()` et **ne recopie pas** `ObservationDraft.metadata`
-dans le candidat `WaterMetricObservation`. Une période trimestrielle ne peut
-donc pas être portée telle quelle par le read model P02 aujourd'hui.
+Avant de retirer le trimestre du `metric_code`, l'identité temporelle a été
+auditée de bout en bout : `ObservationDraft`/`dedup_key()`, les services
+d'ingestion Intelligence (`snapshot_migration.py`, seul graveur réel existant
+dans le dépôt), le schéma SQL `observations` (migration 028),
+`WaterMetricObservation` (P02), `derive_observations()`, le connecteur EEA,
+et les tests d'idempotence/dédoublonnage existants. Quatre questions,
+réponses vérifiées :
 
-Contournement retenu, sans modifier P03 : le trimestre est encodé dans le
-`metric_code` (`…q3.value_pct`) et la date d'observation est le premier jour
-du trimestre — l'information reste complète et non ambiguë. **À arbitrer en
-P10** : soit `derive` propage `period_start`/`period_end` et les métadonnées
-du draft, soit la convention de `metric_code` devient la règle officielle.
+1. **Une même métrique et une même géographie peuvent-elles porter plusieurs
+   périodes dans une seule release sans collision ?**
+   Oui, structurellement — mais à deux niveaux différents avec des réponses
+   différentes (voir Q2/Q3).
+
+2. **La clé de déduplication contient-elle la période ?**
+   **Non.** `ObservationDraft.dedup_key()` (`services/intelligence/adapters/base.py:101-104`)
+   retourne exactement `(subject_type, subject_key, metric_code)` — aucun
+   composant temporel. C'est un choix délibéré du contrat PR-04 : il suppose
+   qu'un couple (sujet, métrique) porte une valeur COURANTE unique, hypothèse
+   vraie pour `/materials` (un seul point de prix par matière) mais **fausse**
+   pour une série saisonnière comme le WEI+.
+
+3. **La persistance actuelle peut-elle distinguer 2023-Q1, Q2, Q3 et Q4 ?**
+   - **Au niveau SQL** (table `observations`, migration 028) : **oui**. Aucune
+     contrainte `UNIQUE` ne porte sur `(subject_type, subject_key,
+     metric_code)` ni sur `observed_at` ; la table est conçue comme un
+     journal append-only (« jamais modifié après création »), et l'index
+     `idx_observations_subject(subject_type, subject_key, metric_code,
+     observed_at DESC)` existe précisément pour l'historique multi-période.
+     **La table n'est pas le goulot d'étranglement.**
+   - **Au niveau du seul graveur réel existant** (`snapshot_migration.py`,
+     fonction `_materialize_observations`) : **non**. Il précharge les
+     triplets `(subject_type, subject_key, metric_code)` déjà écrits pour une
+     release et saute tout draft dont `dedup_key()` y figure déjà — sans
+     jamais regarder la période. Ce graveur est HORS PÉRIMÈTRE Water
+     Intelligence (import `/materials`, PR-04), mais c'est le seul motif de
+     persistance idempotente que le dépôt connaisse aujourd'hui, et le
+     prompt P03 (§5.5) instruit explicitement les futurs connecteurs de
+     « réutiliser… l'Evidence Kernel… ne pas créer de registre parallèle ».
+     Un futur graveur P10 qui réutiliserait `dedup_key()` sans modification
+     **écraserait silencieusement 3 des 4 trimestres** d'une même unité EEA.
+   - **Dans le pipeline P03 tel que livré en Wave A** : la question ne se
+     posait pas encore — `publish_dry_run()` ne déduplique rien, il compte
+     seulement les `WaterMetricObservation` validées. Aucune collision
+     n'existe dans le code livré ; le risque est entièrement **prospectif**
+     (P10).
+
+4. **Une migration serait-elle nécessaire pour rendre cette identité
+   correcte ?**
+   **Non.** Le schéma SQL supporte déjà plusieurs lignes par
+   `(subject_type, subject_key, metric_code)` avec des `observed_at`
+   distincts — c'est un changement **Python pur**, pas un changement de
+   schéma. Deux évolutions, toutes deux livrées par ce commit :
+   - `derive_observations()`/`run_pipeline()` gagnent un `PeriodResolver`
+     injectable qui produit un vrai `period_start`/`period_end` par draft
+     (§5.1, ci-dessous — **résolu**) ;
+   - `ObservationDraft.dedup_key()` (fichier PR-04 partagé, hors périmètre
+     Water Intelligence) **n'est pas modifié** dans cette PR — c'est une
+     évolution volontairement laissée à la charge du futur graveur P10, avec
+     une consigne explicite consignée en `RISK_REGISTER.md` : **ne jamais
+     réutiliser `dedup_key()` tel quel pour une série temporelle** ; la clé
+     d'idempotence réelle doit inclure `(period_start, period_end)` ou
+     l'équivalent.
+
+### 5.1 Période portée explicitement — RÉSOLU (commit de clôture Wave A)
+
+**Anciennement** : `derive_observations()` fixait
+`period_start == period_end == draft.observed_at.date()` sans jamais
+recopier `ObservationDraft.metadata`. Le connecteur EEA contournait en
+encodant le trimestre dans le `metric_code` (`…q3.value_pct`).
+
+**Désormais** : `derive_observations()`/`run_pipeline()` acceptent un
+`PeriodResolver` injectable (`Callable[[ObservationDraft], tuple[date,
+date]]`), résolu au stage `derive`, avec la même discipline d'erreur que le
+`geography_resolver` (une erreur ATTENDUE devient un candidat écarté et
+nommé dans le rapport, jamais une exception nue, jamais les autres drafts
+entraînés dans l'échec). Le résolveur par défaut reste
+**rétrocompatible** : `period_start == period_end == observed_at.date()`,
+comportement inchangé pour WRI et tout connecteur qui n'en fournit pas.
+
+Le connecteur EEA fournit désormais `build_period_resolver()` : il lit
+`year`/`quarter` **depuis les métadonnées structurées du draft** (jamais un
+parsing de libellé humain) et retourne les bornes officielles du trimestre.
+Le `metric_code` EEA redevient **stable et indépendant du trimestre** — la
+saison vit exclusivement dans `period_start`/`period_end`. Voir
+`handoffs/P06_EEA_WEI_PLUS.md` §7 pour le détail.
+
+`derive_observations()` valide en outre `period_start <= period_end` de
+façon générique (indépendante du résolveur branché) — utile dès Wave B, où
+Hub'Eau aura besoin de son propre résolveur de fenêtre temporelle.
 
 ### 5.2 Incertitudes de source à propager
 
@@ -269,10 +364,11 @@ deux tests l'interdisent explicitement. Sans décision fournie, tout est
 
 | Contrôle | Résultat |
 |---|---|
-| Tests EEA WEI+ | 79 |
-| Tests Copernicus EDO | 48 |
-| Tests WRI (dont 4 nouveaux A1) | 68 |
-| Tests P03/P03B/P03C, contrats, catalogue | inchangés, verts |
+| Tests EEA WEI+ (dont 15 nouveaux, commit de clôture — `TestPeriodResolver`) | 94 |
+| Tests Copernicus EDO (dont 3 nouveaux, commit de clôture — `TestFormalizedMvpDecision`) | 51 |
+| Tests WRI (dont 4 A1 + 1 nouveau, commit de clôture — rétrocompatibilité) | 69 |
+| Tests pipeline P03 (dont 5 nouveaux, commit de clôture — `TestPeriodResolverContract`) | 52 |
+| Tests P03B/P03C, contrats, catalogue | inchangés, verts |
 | Suite Water Intelligence complète | verte |
 | Suite API complète | verte |
 | `ruff` | propre |

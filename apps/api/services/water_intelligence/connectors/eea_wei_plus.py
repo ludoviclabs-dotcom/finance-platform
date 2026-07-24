@@ -59,8 +59,13 @@ Deux releases sœurs, publiées le 29 janvier 2026, édition « 01.00 » :
   - release toujours nommée explicitement, aucun « latest » implicite ;
   - schéma clos : toute colonne hors `CANONICAL_COLUMNS` est refusée ;
   - jointure uniquement sur `spatialUnitIdentifier`, jamais sur un libellé ;
-  - saison conservée : le trimestre est porté par le `metric_code` ET par
-    la date d'observation (premier jour du trimestre) ;
+  - saison conservée : le trimestre est porté par `period_start`/
+    `period_end` via un `PeriodResolver` injectable (Wave A, commit de
+    clôture — `build_period_resolver` ci-dessous), résolu au stage `derive`
+    du pipeline P03. Le `metric_code` reste STABLE et indépendant du
+    trimestre : il décrit la métrique, la période décrit le moment. Détail
+    de l'audit d'identité temporelle qui a précédé ce choix :
+    `docs/carbonco/water-intelligence/handoffs/WAVE_A_EU_CONNECTORS.md` §5 ;
   - période bornée à l'étendue publiée de la release — une année hors
     2000-2023 est refusée, jamais extrapolée ;
   - unité vérifiée : une unité déclarée différente de `%` est refusée ;
@@ -744,15 +749,18 @@ def build_layer_descriptor(
 # ---------------------------------------------------------------------------
 
 
-def metric_code(scale: str, quarter: str, facet: str) -> str:
-    """Code de métrique namespacé, PORTANT LA SAISON.
+def metric_code(scale: str, facet: str) -> str:
+    """Code de métrique namespacé, STABLE et indépendant du trimestre.
 
-    Le stage `derive` de P03 aplatit la période sur la date d'observation
-    (`period_start == period_end`). Le trimestre est donc porté ici, dans le
-    code de métrique, en plus de la date d'observation (premier jour du
-    trimestre) : la saison reste lisible et non ambiguë côté read model.
+    Depuis le commit de clôture Wave A, la saison n'est plus encodée ici :
+    elle est portée par `period_start`/`period_end`, résolus au stage
+    `derive` via `build_period_resolver()` (un `PeriodResolver` injectable
+    dans `run_pipeline`/`derive_observations`, cf. `pipeline.py`). Deux
+    trimestres de la même métrique partagent donc désormais le même
+    `metric_code` — c'est voulu et testé (`TestPeriodResolver` du fichier de
+    tests) : `metric_code` décrit la MÉTRIQUE, la période décrit le MOMENT.
     """
-    return f"eea_wei_plus.{scale}.{quarter.lower()}.{facet}"
+    return f"eea_wei_plus.{scale}.{facet}"
 
 
 def _observed_at(year: int, quarter: str) -> datetime:
@@ -816,7 +824,7 @@ def _drafts_from_rows(
             ObservationDraft(
                 subject_type="eea_wei_plus_unit",
                 subject_key=row.spatial_unit_id,
-                metric_code=metric_code(config.scale, row.quarter, "value_pct"),
+                metric_code=metric_code(config.scale, "value_pct"),
                 numeric_value=row.value_pct,
                 unit=EXPECTED_UNIT,
                 geography_code=row.spatial_unit_id,
@@ -836,7 +844,7 @@ def _drafts_from_rows(
                 ObservationDraft(
                     subject_type="eea_wei_plus_unit",
                     subject_key=row.spatial_unit_id,
-                    metric_code=metric_code(config.scale, row.quarter, "stress_band"),
+                    metric_code=metric_code(config.scale, "stress_band"),
                     text_value=band,
                     geography_code=row.spatial_unit_id,
                     observed_at=_observed_at(row.year, row.quarter),
@@ -872,5 +880,48 @@ def build_geography_resolver(rows: Iterable[WeiPlusRow]):
                 "aucun appariement par libellé n'est autorisé."
             )
         return WaterGeographyRef(scope="europe", code=code, label=code)
+
+    return resolver
+
+
+# ---------------------------------------------------------------------------
+# PeriodResolver — saison portée par period_start/period_end (Wave A, commit
+# de clôture). Voir l'audit d'identité temporelle complet dans
+# docs/carbonco/water-intelligence/handoffs/WAVE_A_EU_CONNECTORS.md §5.
+# ---------------------------------------------------------------------------
+
+
+def build_period_resolver():
+    """Retourne un `PeriodResolver` (contrat `pipeline.py`) compatible
+    `run_pipeline`/`derive_observations`.
+
+    Lit `year`/`quarter` DEPUIS LES MÉTADONNÉES STRUCTURÉES du draft
+    (entiers/chaînes déjà validés par `parse_wei_plus_csv` — jamais un
+    parsing d'un libellé humain comme `subject_key` ou `geography_code`) et
+    retourne les bornes officielles du trimestre via `quarter_period()`.
+
+    Une année ou un trimestre absent, du mauvais type, ou hors du vocabulaire
+    officiel lève `PipelineDataUnavailableError` — le seul type que
+    `derive_observations()` capture autour du résolveur (même contrat que
+    `geography_resolver`, cf. `pipeline.py`) : le draft est écarté et nommé
+    dans le rapport, jamais une date inventée à sa place.
+    """
+
+    def resolver(draft: ObservationDraft) -> tuple[date, date]:
+        year = draft.metadata.get("year")
+        quarter = draft.metadata.get("quarter")
+        if not isinstance(year, int):
+            raise PipelineDataUnavailableError(
+                f"période non résolue pour {draft.subject_key!r}/"
+                f"{draft.metric_code!r} : année absente ou invalide dans les "
+                f"métadonnées structurées ({year!r})."
+            )
+        if not isinstance(quarter, str) or quarter not in QUARTER_MONTHS:
+            raise PipelineDataUnavailableError(
+                f"période non résolue pour {draft.subject_key!r}/"
+                f"{draft.metric_code!r} : trimestre absent ou hors vocabulaire "
+                f"officiel dans les métadonnées structurées ({quarter!r})."
+            )
+        return quarter_period(year, quarter)
 
     return resolver

@@ -4,9 +4,12 @@
 **Contexte de vague, gate complet et décisions :**
 [`WAVE_A_EU_CONNECTORS.md`](./WAVE_A_EU_CONNECTORS.md) §3.
 
-> **Statut : livré avec blocage assumé.** L'identité de la source est
-> vérifiée et outillée ; **aucune valeur de sécheresse n'est produite**, et
-> c'est délibéré — voir §3.
+> **Statut formel : `source_verified_decoder_deferred`**
+> (`connectors/copernicus_edo.py::CONNECTOR_STATUS`, constante testée). Ni un
+> échec de source, ni une source vivante : l'identité est **vérifiée et
+> outillée** ; le décodage raster est **volontairement reporté** par décision
+> MVP explicite — **aucune valeur de sécheresse n'est produite**. Voir §3 et
+> §6.
 
 ---
 
@@ -14,8 +17,8 @@
 
 | Fichier | Contenu |
 |---|---|
-| `apps/api/services/water_intelligence/connectors/copernicus_edo.py` | Identité vérifiée, configuration de snapshot décadaire, identification de conteneur, inspection d'artefact, intégration P03 |
-| `apps/api/tests/test_water_intelligence_copernicus_edo.py` | 48 tests |
+| `apps/api/services/water_intelligence/connectors/copernicus_edo.py` | Identité vérifiée, configuration de snapshot décadaire, identification de conteneur, inspection d'artefact, intégration P03, statut formel `CONNECTOR_STATUS` |
+| `apps/api/tests/test_water_intelligence_copernicus_edo.py` | 51 tests |
 
 Aucun raster versionné : les artefacts de test sont des en-têtes de
 conteneur minimaux construits en mémoire.
@@ -73,7 +76,31 @@ raison d'être de ce choix.
   aucun import ni identifiant `wei` dans le connecteur (AST).
 - **Aucune fausse précision locale** : aucune valeur n'est produite du tout.
 
-## 6. Pour débloquer — décision humaine requise
+## 6. Décision MVP formalisée — `source_verified_decoder_deferred`
+
+Cette décision a été explicitement demandée en revue de la PR #153 et
+formalisée dans le commit de clôture de Wave A :
+
+> Copernicus EDO est vérifié mais son décodage raster est reporté.
+
+Garanties tenues pour le MVP (vérifiées par tests, dont une analyse AST des
+imports/appels — pas une recherche de sous-chaîne, qui matcherait aussi la
+docstring expliquant le blocage) :
+
+- aucune dépendance GDAL/rasterio/netCDF4/xarray/h5py ajoutée ;
+- aucune tentative de deviner un endpoint WMS/WCS (aucun littéral d'URL dans
+  le module) ;
+- aucune couche simulée, aucune valeur Copernicus publiée
+  (`records_publishable == 0` systématiquement) ;
+- source exclue des snapshots P10 (`PROJECT_STATE.yaml`, bloc
+  `sources.COPERNICUS_EDO`) ;
+- connecteur, configuration, tests et blocage conservés intacts.
+
+Le statut est exposé comme une constante testée
+(`copernicus_edo.CONNECTOR_STATUS == "source_verified_decoder_deferred"`),
+délibérément distincte d'un statut d'échec : ni `"fail"` ni `"error"`
+n'apparaissent dans le nom, `"verified"` et `"deferred"` si. Réévaluation
+future réservée à une **ADR dédiée** — trois voies déjà documentées :
 
 1. **ADR + dépendance raster** (rasterio ou netCDF4) : justification, licence,
    impact de taille, tests. Direct mais coûteux.

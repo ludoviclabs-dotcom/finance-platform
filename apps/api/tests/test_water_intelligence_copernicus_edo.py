@@ -342,6 +342,72 @@ class TestDocumentedBlockage:
 
 
 # ---------------------------------------------------------------------------
+# Décision MVP formalisée (Wave A, commit de clôture) — source vérifiée,
+# décodeur reporté. Ni un échec de source, ni une source vivante.
+# ---------------------------------------------------------------------------
+
+
+class TestFormalizedMvpDecision:
+    def test_connector_status_is_formally_source_verified_decoder_deferred(self) -> None:
+        assert edo.CONNECTOR_STATUS == "source_verified_decoder_deferred"
+
+    def test_mvp_decision_guarantees_hold(self) -> None:
+        """Les cinq garanties de la décision MVP, vérifiées ensemble : aucune
+        dépendance géospatiale lourde, aucun endpoint WMS/WCS deviné, aucune
+        couche simulée, aucune valeur Copernicus publiée.
+
+        Vérifié sur l'AST (imports) pour les dépendances — pas par recherche
+        de sous-chaîne, qui matcherait aussi la docstring expliquant
+        pourquoi ces dépendances sont interdites (cf. §3.2 du module)."""
+        tree = ast.parse(CONNECTOR_MODULE.read_text(encoding="utf-8"))
+        imported = {
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        } | {
+            node.module
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module
+        }
+        forbidden = {"gdal", "osgeo", "rasterio", "fiona", "netCDF4", "netcdf4", "h5py", "xarray"}
+        assert not (imported & forbidden)
+
+        # Aucun endpoint WMS/WCS deviné : aucun littéral d'URL dans le code
+        # (au sens AST — une chaîne "http://…" en dur serait une valeur
+        # littérale, distincte du texte de docstring).
+        url_literals = [
+            node.value
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and (node.value.startswith("http://") or node.value.startswith("https://"))
+        ]
+        assert not url_literals
+
+        # Aucune couche simulée, aucune valeur publiée.
+        assert not [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "ObservationDraft"
+        ]
+
+        report = run_edo_pipeline()
+        assert report.records_publishable == 0
+
+    def test_mvp_decision_is_not_presented_as_a_source_failure(self) -> None:
+        """Le statut formel distingue explicitement « vérifié, décodage
+        reporté » d'un échec de source — les deux notions ne sont jamais
+        confondues dans le nom du statut lui-même."""
+        assert "fail" not in edo.CONNECTOR_STATUS
+        assert "error" not in edo.CONNECTOR_STATUS
+        assert "verified" in edo.CONNECTOR_STATUS
+        assert "deferred" in edo.CONNECTOR_STATUS
+
+
+# ---------------------------------------------------------------------------
 # Sécheresse courante ≠ stress structurel
 # ---------------------------------------------------------------------------
 
@@ -350,7 +416,7 @@ class TestDroughtIsNotStructuralStress:
     def test_metric_namespaces_are_disjoint(self) -> None:
         assert edo.METRIC_NAMESPACE.startswith("copernicus_edo.")
         assert not edo.metric_code("class").startswith("eea_wei_plus.")
-        assert not eea.metric_code("subunit", "Q1", "value_pct").startswith(
+        assert not eea.metric_code("subunit", "value_pct").startswith(
             edo.METRIC_NAMESPACE
         )
 

@@ -35,7 +35,12 @@ Invariants tenus ici :
     jamais sur `name_0`/`name_1` ;
   - valeur absente conservée absente — jamais convertie en `0` ;
   - release toujours nommée explicitement, aucun « latest » implicite ;
-  - risque (valeur/catégorie) et confiance documentaire restent séparés.
+  - risque (valeur/catégorie) et confiance documentaire restent séparés ;
+  - chaque erreur ATTENDUE est levée avec le type que le pipeline capture au
+    stage concerné : `AqueductError` (→ `AdapterError`) en `parse`/`normalize`,
+    `AqueductGeographyUnavailableError` (→ `PipelineDataUnavailableError`) en
+    `derive`. Aucune n'échappe donc à `run_pipeline()` sous forme d'exception
+    nue.
 """
 
 from __future__ import annotations
@@ -51,7 +56,10 @@ from typing import Any, Iterable
 from models.analytics import MethodRef
 from models.water_intelligence import WaterGeographyRef
 from services.intelligence.adapters.base import AdapterError, ObservationDraft
-from services.water_intelligence.pipeline import TextPageDecoder
+from services.water_intelligence.pipeline import (
+    PipelineDataUnavailableError,
+    TextPageDecoder,
+)
 
 # ---------------------------------------------------------------------------
 # Identité de la source — valeurs VÉRIFIÉES (cf. rapport de source P05)
@@ -144,6 +152,23 @@ class AqueductSchemaError(AqueductError):
 
 class AqueductReleaseError(AqueductError):
     """Release absente, vide ou non nommée — aucun « latest » implicite."""
+
+
+class AqueductGeographyUnavailableError(PipelineDataUnavailableError):
+    """Géographie non résolue au stage `derive`.
+
+    N'hérite VOLONTAIREMENT pas d'`AqueductError`/`AdapterError` mais de
+    `PipelineDataUnavailableError` : le contrat P03 (§5, point 4 de
+    `docs/carbonco/water-intelligence/handoffs/P03_INGESTION_PIPELINE.md`)
+    impose ce type précis pour un code non résolu, car `derive_observations()`
+    ne capture que celui-là autour du `geography_resolver`. Une erreur d'un
+    autre type y remonterait nue hors de `run_pipeline()`, cassant la garantie
+    « toujours un rapport » pour un cas pourtant ATTENDU.
+
+    Les deux familles restent donc distinctes et non mélangées : `parse`/
+    `normalize` lèvent des `AqueductError` (→ `AdapterError`), `derive` lève
+    cette exception-ci (→ `PipelineError`). Aucune héritage multiple, qui
+    rendrait un même échec capturable à deux stages différents."""
 
 
 # ---------------------------------------------------------------------------
@@ -572,15 +597,19 @@ def _drafts_from_rows(
 def build_geography_resolver(rows: Iterable[AqueductRow]):
     """Résolveur de géographie basé UNIQUEMENT sur les identifiants stables.
 
-    Un code inconnu lève une erreur — jamais un repli sur le nom, jamais une
-    géographie inventée. Aqueduct étant mondial, l'échelle publiée est
-    `world` (le niveau site reste réservé au cockpit authentifié).
+    Un code inconnu lève `AqueductGeographyUnavailableError` — jamais un repli
+    sur le nom, jamais une géographie inventée. Ce type précis est imposé par
+    le contrat P03 §5.4 : c'est le seul que `derive_observations()` capture
+    autour du résolveur, donc le seul qui transforme une géographie non
+    résolue en rapport d'exécution plutôt qu'en exception nue. Aqueduct étant
+    mondial, l'échelle publiée est `world` (le niveau site reste réservé au
+    cockpit authentifié).
     """
     labels = {row.stable_id: row.label for row in rows}
 
     def resolver(code: str | None) -> WaterGeographyRef:
         if code is None or code not in labels:
-            raise AqueductSchemaError(
+            raise AqueductGeographyUnavailableError(
                 f"géographie inconnue pour l'identifiant {code!r} — "
                 "aucun appariement par nom n'est autorisé."
             )

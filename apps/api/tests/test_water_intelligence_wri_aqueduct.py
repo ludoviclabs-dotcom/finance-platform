@@ -12,10 +12,14 @@ conversion en `0`, normalisation d'une valeur présente, absence conservée,
 séparation risque/confiance, statut de donnée (`modelled` vs `fixture`),
 scénario/horizon conservés, licence autorisée / bloquée / inconnue,
 attribution conservée, checksum stable, idempotence, dry-run sans écriture,
-intégration au pipeline P03, et la frontière d'erreur connecteur (P03C) :
-`AqueductError`/`AqueductSchemaError`/`AqueductReleaseError` sont désormais
-des `AdapterError`, donc capturées proprement par `run_pipeline()` au stage
-`normalize` plutôt que de remonter nues.
+intégration au pipeline P03, et les deux frontières d'erreur du connecteur :
+
+- P03C, stages `parse`/`normalize` : `AqueductError`/`AqueductSchemaError`/
+  `AqueductReleaseError` sont des `AdapterError`, donc capturées proprement
+  par `run_pipeline()` plutôt que de remonter nues ;
+- Wave A commit A1, stage `derive` : une géographie non résolue lève
+  `AqueductGeographyUnavailableError` (→ `PipelineDataUnavailableError`), le
+  seul type que `derive_observations()` capture (contrat P03 §5.4).
 """
 
 from __future__ import annotations
@@ -30,7 +34,11 @@ import pytest
 from models.water_intelligence import WaterLicenseDecision, WaterSourceReference
 from services.intelligence.adapters.base import AdapterError
 from services.water_intelligence.connectors import wri_aqueduct as wri
-from services.water_intelligence.pipeline import TextPageDecoder, run_pipeline
+from services.water_intelligence.pipeline import (
+    PipelineDataUnavailableError,
+    TextPageDecoder,
+    run_pipeline,
+)
 from services.water_intelligence.pipeline_transport import FakeTransport, ScriptedPage
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -416,14 +424,14 @@ class TestGeography:
         result = wri.parse_baseline_annual_csv(read(VALID_FIXTURE), config=make_config())
         resolver = wri.build_geography_resolver(result.rows)
 
-        with pytest.raises(wri.AqueductSchemaError, match="géographie inconnue"):
+        with pytest.raises(wri.AqueductGeographyUnavailableError, match="géographie inconnue"):
             resolver("IDENTIFIANT-ABSENT")
 
     def test_names_are_never_used_as_join_keys(self) -> None:
         result = wri.parse_baseline_annual_csv(read(VALID_FIXTURE), config=make_config())
         resolver = wri.build_geography_resolver(result.rows)
 
-        with pytest.raises(wri.AqueductSchemaError):
+        with pytest.raises(wri.AqueductGeographyUnavailableError):
             resolver("Zone fictive A (fixture)")
 
 
@@ -724,3 +732,96 @@ class TestConnectorErrorBoundary:
 
         with pytest.raises(wri.AqueductReleaseError, match="reproductible"):
             make_config(release_key="latest")
+
+
+# ---------------------------------------------------------------------------
+# Frontière d'erreur du résolveur géographique (Wave A, commit A1)
+#
+# Le contrat P03 §5.4 impose `PipelineDataUnavailableError` pour un code non
+# résolu — c'est le SEUL type que `derive_observations()` capture autour du
+# résolveur. Le connecteur levait auparavant `AqueductSchemaError`
+# (`AdapterError`), qui remontait donc nue hors de `run_pipeline()`.
+# ---------------------------------------------------------------------------
+
+
+#: Deux entités valuées, pour distinguer « tout non résolu » de
+#: « partiellement non résolu ». En-tête minimal accepté par le dictionnaire.
+TWO_AREAS_CSV = (
+    "string_id,bws_raw\n"
+    "FIXTURE-AREA-001,1.5\n"
+    "FIXTURE-AREA-003,2.5\n"
+)
+
+
+def _run_with_resolver(csv_text: str, resolver):
+    config = make_config()
+    transport = FakeTransport(
+        {None: ScriptedPage(content=csv_text.encode("utf-8"), has_next_page=False)}
+    )
+    return run_pipeline(
+        source_code=wri.SOURCE_CODE,
+        release_key=config.release_key,
+        transport=transport,
+        normalizer=wri.build_normalizer(config),
+        source=_source_reference(config, allow_display=True),
+        method=wri.METHOD,
+        geography_resolver=resolver,
+        max_pages=1,
+        decoder=wri.PAGE_DECODER,
+        license_decision=WaterLicenseDecision(
+            allow_ingest=True, allow_store=True, allow_display=True, allow_derived_use=True,
+        ),
+        clock=lambda: datetime(2026, 1, 3, tzinfo=timezone.utc),
+    )
+
+
+class TestGeographyResolverErrorBoundary:
+    def test_geography_error_matches_the_p03_derive_contract(self) -> None:
+        """Le type levé est celui que le stage `derive` capture, et PAS un
+        `AdapterError` : les deux familles restent distinctes, un même échec
+        n'est jamais capturable à deux stages différents."""
+        assert issubclass(wri.AqueductGeographyUnavailableError, PipelineDataUnavailableError)
+        assert not issubclass(wri.AqueductGeographyUnavailableError, AdapterError)
+        assert not issubclass(wri.AqueductGeographyUnavailableError, wri.AqueductError)
+
+    def test_fully_unresolved_geography_yields_a_derive_failed_report(self) -> None:
+        """Aucune exception brute : une géographie non résolue produit un
+        rapport marquant `derive` en échec, sans exécuter validate/publish."""
+        empty_referential = wri.build_geography_resolver([])
+
+        report = _run_with_resolver(TWO_AREAS_CSV, empty_referential)
+
+        assert report.succeeded is False
+        assert report.steps_failed == ["derive"]
+        assert len(report.errors) == 2
+        assert all("géographie non résolue" in e for e in report.errors)
+        assert "validate" not in report.steps_executed
+        assert "publish" not in report.steps_executed
+        assert report.records_publishable == 0
+
+    def test_partially_unresolved_geography_names_the_gap_without_dropping_it(self) -> None:
+        """Une entité résolue et une non résolue : la première est conservée,
+        la seconde est NOMMÉE dans le rapport — jamais écartée en silence,
+        jamais complétée par une géographie inventée."""
+        config = make_config()
+        parsed = wri.parse_baseline_annual_csv(TWO_AREAS_CSV, config=config)
+        partial_referential = wri.build_geography_resolver(parsed.rows[:1])
+
+        report = _run_with_resolver(TWO_AREAS_CSV, partial_referential)
+
+        assert report.succeeded is True
+        assert report.records_publishable == 1
+        assert [e for e in report.errors if "FIXTURE-AREA-003" in e]
+        assert any("écarté(s) en dérivation" in w for w in report.warnings)
+
+    def test_resolved_geography_is_unchanged_by_the_fix(self) -> None:
+        """Hors cas d'erreur, le résolveur est strictement inchangé : même
+        échelle, même code, même libellé, toujours issus de l'identifiant
+        stable."""
+        parsed = wri.parse_baseline_annual_csv(read(VALID_FIXTURE), config=make_config())
+
+        geography = wri.build_geography_resolver(parsed.rows)("FIXTURE-AREA-001")
+
+        assert geography.scope == "world"
+        assert geography.code == "FIXTURE-AREA-001"
+        assert geography.label == "Zone fictive A (fixture)"

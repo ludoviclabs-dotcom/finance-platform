@@ -1,0 +1,175 @@
+{
+  "manifest_version": "1.0.0",
+  "generated_at": "2026-01-03T09:00:00Z",
+  "fixture_label": "fixture",
+  "sources": [
+    {
+      "source_code": "FIXTURE_SOURCE",
+      "release_key": "fixture-release-v1",
+      "checksum_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "published_at": "2026-01-01",
+      "retrieved_at": "2026-01-02",
+      "observed_period_start": "2025-01-01",
+      "observed_period_end": "2025-12-31",
+      "methodology_version": "fixture-1.0.0",
+      "license": {
+        "allow_ingest": true,
+        "allow_store": true,
+        "allow_display": true,
+        "allow_derived_use": true,
+        "reasons": [],
+        "warnings": []
+      },
+      "attribution": "Source fictive de démonstration — jamais une source réelle.",
+      "warnings": []
+    }
+  ],
+  "observations": [
+    {
+      "metric_code": "fixture.stress_index",
+      "value": 42,
+      "unit": "index_0_100",
+      "geography": {
+        "scope": "world",
+        "code": null,
+        "label": "Monde (fixture)"
+      },
+      "period_start": "2025-01-01",
+      "period_end": "2025-12-31",
+      "method": {
+        "code": "FIXTURE-METHOD",
+        "version": "1.0.0"
+      },
+      "quality": {
+        "data_status": "fixture",
+        "confidence": 50,
+        "coverage_pct": 100,
+        "warnings": ["Donnée fixture, jamais une observation réelle."]
+      },
+      "source": {
+        "source_code": "FIXTURE_SOURCE",
+        "release_key": "fixture-release-v1",
+        "checksum_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "published_at": "2026-01-01",
+        "retrieved_at": "2026-01-02",
+        "observed_period_start": "2025-01-01",
+        "observed_period_end": "2025-12-31",
+        "methodology_version": "fixture-1.0.0",
+        "license": {
+          "allow_ingest": true,
+          "allow_store": true,
+          "allow_display": true,
+          "allow_derived_use": true,
+          "reasons": [],
+          "warnings": []
+        },
+        "attribution": "Source fictive de démonstration — jamais une source réelle.",
+        "warnings": []
+      },
+      "scenario": null,
+      "value_withheld": false
+    }
+  ],
+  "geo_layers": [
+    {
+      "layer_id": "fixture-layer-world",
+      "zoom_level": "world",
+      "geography": {
+        "scope": "world",
+        "code": null,
+        "label": "Monde (fixture)"
+      },
+      "feature_count": 1,
+      "boundary_format": "topojson",
+      "payload_bytes_gzip": 1024,
+      "source": {
+        "source_code": "FIXTURE_SOURCE",
+        "release_key": "fixture-release-v1",
+        "checksum_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "published_at": "2026-01-01",
+        "retrieved_at": "2026-01-02",
+        "observed_period_start": "2025-01-01",
+        "observed_period_end": "2025-12-31",
+        "methodology_version": "fixture-1.0.0",
+        "license": {
+          "allow_ingest": true,
+          "allow_store": true,
+          "allow_display": true,
+          "allow_derived_use": true,
+          "reasons": [],
+          "warnings": []
+        },
+        "attribution": "Source fictive de démonstration — jamais une source réelle.",
+        "warnings": []
+      }
+    }
+  ],
+  "scenarios": [],
+  "editorial_records": [
+    {
+      "record_id": "fixture-editorial-1",
+      "record_type": "industry",
+      "title": "Secteur fictif de démonstration",
+      "summary": "Enregistrement fictif utilisé uniquement pour valider le contrat WaterEditorialRecord — jamais un fait réel.",
+      "jurisdiction": null,
+      "valid_from": null,
+      "valid_to": null,
+      "source": {
+        "source_code": "FIXTURE_SOURCE",
+        "release_key": "fixture-release-v1",
+        "checksum_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "published_at": "2026-01-01",
+        "retrieved_at": "2026-01-02",
+        "observed_period_start": "2025-01-01",
+        "observed_period_end": "2025-12-31",
+        "methodology_version": "fixture-1.0.0",
+        "license": {
+          "allow_ingest": true,
+          "allow_store": true,
+          "allow_display": true,
+          "allow_derived_use": true,
+          "reasons": [],
+          "warnings": []
+        },
+        "attribution": "Source fictive de démonstration — jamais une source réelle.",
+        "warnings": []
+      },
+      "reviewed_on": "2026-01-03",
+      "reviewed_by": "fixture-reviewer"
+    }
+  ],
+  "legal_records": [
+    {
+      "record_id": "fixture-legal-1",
+      "jurisdiction": "Fixture",
+      "reference_text": "Texte réglementaire fictif de démonstration — jamais un texte réel.",
+      "version": "0.0.0-fixture",
+      "legal_status": "unknown",
+      "source": {
+        "source_code": "FIXTURE_SOURCE",
+        "release_key": "fixture-release-v1",
+        "checksum_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "published_at": "2026-01-01",
+        "retrieved_at": "2026-01-02",
+        "observed_period_start": "2025-01-01",
+        "observed_period_end": "2025-12-31",
+        "methodology_version": "fixture-1.0.0",
+        "license": {
+          "allow_ingest": true,
+          "allow_store": true,
+          "allow_display": true,
+          "allow_derived_use": true,
+          "reasons": [],
+          "warnings": []
+        },
+        "attribution": "Source fictive de démonstration — jamais une source réelle.",
+        "warnings": []
+      },
+      "reviewed_on": "2026-01-03",
+      "reviewed_by": "fixture-reviewer"
+    }
+  ],
+  "warnings": [
+    "Manifest de fixture — aucune donnée réelle, ne jamais présenter comme une observation réelle."
+  ]
+}

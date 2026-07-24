@@ -91,6 +91,8 @@ Extraites de la FAQ officielle du dépôt :
 
 **Un défaut réel a été trouvé grâce à la vérification de source** : la première version du parseur lisait `-9999` comme une mesure. La FAQ officielle documente cette valeur comme « insufficient data ». Elle est désormais convertie en absence, avec deux tests de non-régression — et `-1`, qui est une *catégorie* valide, reste distingué de la sentinelle.
 
+**Mise à jour P03C :** `AqueductError` (et ses sous-classes `AqueductSchemaError`/`AqueductReleaseError`) hérite désormais d'`AdapterError`, pour être proprement capturée par `run_pipeline()` au stage `normalize` plutôt que de remonter nue. Aucune règle métier, aucun message ni comportement du connecteur n'a changé — voir `handoffs/P03C_CONNECTOR_ERROR_BOUNDARY.md`.
+
 ## 3. Ce qui n'est pas livré
 
 - **Aucun téléchargement.** Le module n'importe aucun client HTTP (vérifié par analyse AST dans les tests) ; l'opérateur fournit les octets.

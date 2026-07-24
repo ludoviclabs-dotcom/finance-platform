@@ -51,6 +51,7 @@ from services.water_intelligence.pipeline import (
     RawBytesPageDecoder,
     TextPageDecoder,
     _frame_pages,
+    derive_observations,
     make_plan,
     publish_dry_run,
     run_pipeline,
@@ -951,4 +952,113 @@ class TestGeographyResolverErrorBoundaryIsUnchanged:
                 transport=transport,
                 geography_resolver=resolver_raising_adapter_error,
                 license_decision=_source().license,
+            )
+
+
+# ---------------------------------------------------------------------------
+# PeriodResolver — contrat générique injectable (Wave A, commit de clôture).
+# Audit d'identité temporelle complet :
+# docs/carbonco/water-intelligence/handoffs/WAVE_A_EU_CONNECTORS.md §5. Ces
+# tests portent sur le CONTRAT lui-même (indépendant de tout connecteur) ;
+# le résolveur trimestriel EEA est testé séparément dans
+# `test_water_intelligence_eea_wei_plus.py::TestPeriodResolver`.
+# ---------------------------------------------------------------------------
+
+
+class TestPeriodResolverContract:
+    def test_default_resolver_produces_a_single_day_period(self) -> None:
+        """Rétrocompatibilité (item 1) : sans `period_resolver` injecté,
+        `period_start == period_end == observed_at.date()` — comportement
+        strictement inchangé depuis avant Wave A."""
+        drafts = _normalizer([{"rows": ONE_ROW}])
+
+        result = derive_observations(
+            drafts,
+            source=_source(),
+            method=_method(),
+            geography_resolver=_geography_resolver,
+        )
+
+        assert not result.errors
+        candidate = result.candidates[0]
+        assert candidate["period_start"] == candidate["period_end"] == date(2025, 6, 1)
+
+    def test_period_resolver_reversing_bounds_is_refused(self) -> None:
+        """`période invalide` (item 8) : un résolveur qui inverse les bornes
+        est rejeté par `derive_observations()` elle-même, indépendamment du
+        résolveur branché — jamais corrigé en silence."""
+
+        def backwards_resolver(draft: ObservationDraft) -> tuple[date, date]:
+            return date(2025, 6, 2), date(2025, 6, 1)
+
+        drafts = _normalizer([{"rows": ONE_ROW}])
+
+        result = derive_observations(
+            drafts,
+            source=_source(),
+            method=_method(),
+            geography_resolver=_geography_resolver,
+            period_resolver=backwards_resolver,
+        )
+
+        assert not result.candidates
+        assert any("période invalide" in e for e in result.errors)
+
+    def test_observed_at_absent_is_still_reported_by_the_default_resolver(self) -> None:
+        """Non-régression (item 9) : `observed_at` absent reste une période
+        absente refusée par le résolveur par défaut — même message qu'avant
+        l'introduction du `PeriodResolver` injectable."""
+        rows = [{"station": "X1", "value": 12.5}]  # pas de "date"
+
+        result = derive_observations(
+            _normalizer([{"rows": rows}]),
+            source=_source(),
+            method=_method(),
+            geography_resolver=_geography_resolver,
+        )
+
+        assert not result.candidates
+        assert any("observed_at absent" in e for e in result.errors)
+
+    def test_period_resolver_error_fails_the_derive_stage_cleanly(self) -> None:
+        """Erreur de période → rapport `derive failed` (item 13), à travers
+        le pipeline complet — jamais une exception qui remonte nue."""
+
+        def failing_resolver(draft: ObservationDraft) -> tuple[date, date]:
+            raise PipelineDataUnavailableError("période simulée non résolue (test générique)")
+
+        transport = FakeTransport(
+            {None: ScriptedPage(content=_page_bytes(ONE_ROW), has_next_page=False)}
+        )
+
+        report = _run(
+            transport=transport,
+            license_decision=_source().license,
+            period_resolver=failing_resolver,
+        )
+
+        assert not report.succeeded
+        assert "derive" in report.steps_failed
+        assert any("période simulée non résolue" in e for e in report.errors)
+        assert "validate" not in report.steps_executed
+        assert "publish" not in report.steps_executed
+
+    def test_period_resolver_error_is_not_an_adapter_error(self) -> None:
+        """Même discipline que `geography_resolver` (P03C §6) : le résolveur
+        de période doit lever `PipelineDataUnavailableError`, jamais un
+        `AdapterError` propre à un connecteur — sinon l'exception remonte
+        nue, hors de `run_pipeline()`."""
+
+        def resolver_raising_adapter_error(draft: ObservationDraft) -> tuple[date, date]:
+            raise AdapterError("période refusée par un connecteur non conforme (simulé)")
+
+        transport = FakeTransport(
+            {None: ScriptedPage(content=_page_bytes(ONE_ROW), has_next_page=False)}
+        )
+
+        with pytest.raises(AdapterError, match="période refusée"):
+            _run(
+                transport=transport,
+                license_decision=_source().license,
+                period_resolver=resolver_raising_adapter_error,
             )

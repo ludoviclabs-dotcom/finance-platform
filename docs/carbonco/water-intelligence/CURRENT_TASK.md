@@ -1,62 +1,57 @@
-> **Mission active — P06 uniquement. Ne pas lancer P07.**
+> **Mission suivante — Wave B (MACRO-PROMPT B) uniquement.**
+> **Ne pas démarrer avant revue humaine et fusion de la PR Wave A.**
 
-# P06 — Connecteur EEA / WISE / WEI+
+# Wave B — Famille Hub'Eau (P07 hydrométrie/piézométrie + P08 prélèvements/qualité)
 
+**Branche :** `feat/water-intelligence-wave-b-hubeau`
+**Prompt de référence :** `ACCELERATED_CLOSEOUT_PACK_V2.md` → MACRO-PROMPT B.
 
-## En-tête invariant à placer au début de chaque mission
+---
 
-Tu travailles dans le dépôt `ludoviclabs-dotcom/finance-platform`, application principale `apps/carbon` et API `apps/api`.
+## État à l'entrée
 
-Règles absolues :
+- Wave A (`feat/water-intelligence-wave-a-eu-connectors`) : **PR ouverte, non
+  fusionnée**. Connecteurs EEA WEI+ et Copernicus EDO livrés, aucune donnée
+  publiée. Voir [`handoffs/WAVE_A_EU_CONNECTORS.md`](./handoffs/WAVE_A_EU_CONNECTORS.md).
+- P00 à P05, P03B et P03C : fusionnés.
+- `/water` reste le cockpit authentifié ; `/water-intelligence` reste un shell
+  public sans données.
+- Dernière migration en base : `043`. Wave B n'en attend aucune.
 
-1. Commence par synchroniser et inspecter `master`, afficher `git status`, `git rev-parse HEAD`, les versions Node/Python et l’état des migrations. Ne suppose jamais que le SHA observé dans un document ancien est encore la base courante.
-2. Utilise une branche dédiée à cette seule mission. Une mission = une préoccupation = une PR. Ne mélange jamais une migration, un connecteur de données, une refonte UI et une modification réglementaire dans la même PR.
-3. Ne fusionne rien et ne déploie jamais en production. Une Preview Vercel est autorisée seulement lorsque le prompt la demande.
-4. Préserve le module authentifié existant `app/(app)/water/page.tsx`, donc la route `/water`. N’ajoute pas une seconde page résolue sur la même URL.
-5. Aucun fait, chiffre, acteur, événement, seuil, statut juridique, donnée géographique ou série temporelle ne peut être inventé. Une fixture doit être explicitement étiquetée `fixture` ou `demo` et ne doit jamais être présentée comme une observation réelle.
-6. Aucune source externe n’est appelée pendant le rendu d’une page ou une requête utilisateur. Les téléchargements externes sont des gestes opérateur ou des jobs protégés. Le frontend ne consomme que des releases publiées et des snapshots compacts.
-7. Réutilise le noyau existant `source_registry` / `source_releases` / `evidence_artifacts` / `observations`, les règles de licence, les badges de statut, les composants de provenance et le contrat `SourceAdapter`. Ne crée pas de registre parallèle.
-8. Conserve les invariants existants : risque ≠ confiance ; donnée manquante ≠ zéro ; aucune zone appariée ≠ risque faible ; géocodage utilisable uniquement après revue humaine ; méthode géométrique réellement exécutée toujours affichée.
-9. Toute donnée externe doit porter au minimum : `source_code`, `release_key`, checksum SHA-256, date de publication si connue, date de récupération, période observée, version de méthode, statut de donnée, licence, attribution, autorisations d’affichage/stockage/usage dérivé et avertissements.
-10. Aucun nouveau package sans preuve qu’une dépendance existante ne suffit pas. Toute nouvelle dépendance exige justification, analyse de licence, impact bundle et test.
-11. Les tests n’effectuent aucun appel réseau. Ils utilisent des fixtures minimales figées et vérifient les cas d’erreur, les données absentes, l’idempotence, la provenance et les licences.
-12. À la fin : exécute les commandes de validation pertinentes, fournis les sorties exactes, la liste des fichiers modifiés, les décisions, les limites, les risques résiduels et les étapes opérateur. Arrête-toi avant merge.
+## Décisions ouvertes qui pèsent sur Wave B
 
+1. **Période aplatie par P03** — `derive_observations()` fixe
+   `period_start == period_end` et ne recopie pas les métadonnées du draft.
+   Wave A a contourné en encodant le trimestre dans le `metric_code`. Hub'Eau
+   expose de vraies chroniques : cet arbitrage (P10) devra être rendu, ou la
+   convention `metric_code` reprise à l'identique et documentée comme telle.
+2. **Copernicus EDO bloqué** — décodage raster refusé sans ADR ; à exclure du
+   snapshot public tant que l'arbitrage n'est pas rendu.
+3. **Enregistrement WRI** — toujours non effectué ; aucune valeur Aqueduct
+   publiable. Sans effet sur Wave B.
 
-## Mission spécifique
+## Contrats à respecter d'emblée
 
-**Branche :** `feat/water-intelligence-p06-eea-wei`
+- **Erreurs** : `AdapterError` (et sous-classes) pour toute erreur métier
+  attendue levée en `parse`/`normalize` ; `PipelineDataUnavailableError` pour
+  une géographie non résolue au stage `derive` ; `TransportError` pour le
+  transport ; `PipelineError` pour les bornes et le plan. Aucun
+  `except Exception` général.
+- **Décodeur de page** : toujours choisi explicitement
+  (`JsonPageDecoder`/`TextPageDecoder`/`RawBytesPageDecoder`), jamais deviné.
+- **Licence** : aucun connecteur ne construit de `WaterLicenseDecision` ; la
+  porte reste pilotée par l'appelant. Sans décision, tout est `value_withheld`.
+- **Catalogue** : `source_code` inconnu du catalogue P01b = refusé au stage
+  `plan`. Les codes Hub'Eau (`HUBEAU_HYDROMETRIE`, `HUBEAU_ADES`,
+  `HUBEAU_BNPE_PRELEVEMENTS`, `HUBEAU_QUALITE_SURFACE`) y figurent déjà, avec
+  `license_status: unknown` — à vérifier avant toute publication.
 
-### Objectif
+## Point d'attention majeur
 
-Ajouter la couche européenne de rareté hydrique par bassin/sous-unité et période.
-
-### Tâches
-
-1. Vérifier et pinner la release EEA/WISE officielle disponible.
-2. Enregistrer source, release, artefact, licence, date et méthodologie.
-3. Normaliser les identifiants officiels des districts et sous-unités.
-4. Conserver la saison/période ; ne pas aplatir une série saisonnière en une valeur annuelle sans méthode.
-5. Importer uniquement les périodes nécessaires au MVP.
-6. Construire :
-   - agrégat UE ;
-   - couche district/sous-unité simplifiée ;
-   - comparatif temporel borné.
-7. Stocker les seuils et définitions dans les métadonnées de méthode ; ne pas les dupliquer dans le JSX.
-8. Ajouter tests sur doublons, unités, période, géographie inconnue, absence de valeur et licence.
-
-### Interdictions
-
-- aucune jointure par libellé ;
-- aucun remplissage spatial arbitraire ;
-- aucune moyenne inter-bassins sans pondération documentée ;
-- aucune requête live depuis la page ;
-- aucun historique complet non borné.
-
-### Critères d’acceptation
-
-- release et période visibles ;
-- distinction structurel/saisonnier ;
-- couverture et confiance séparées ;
-- couche conforme au budget ;
-- tests purs et import idempotent.
+Le socle Hub'Eau sera le **premier transport réellement réseau** du chantier.
+`Transport.fetch_page()` est le seul point d'insertion prévu. Le
+MACRO-PROMPT B impose : allowlist d'hôtes officiels, endpoint explicite,
+pagination, timeout, retry borné, backoff, limites de pages et d'octets,
+filtre géographique obligatoire, fenêtre temporelle obligatoire pour les
+chroniques, logs sans secret, et **aucun appel pendant les tests ou le
+runtime**.

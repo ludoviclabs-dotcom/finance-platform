@@ -23,6 +23,13 @@ regexes = [
   # test à faible entropie, jamais un secret ; matche generic-api-key uniquement à
   # cause du suffixe "_key". Même raisonnement que le cas BEGES ci-dessus.
   '''release_key="fixture-2026-01"''',
+  # Connecteur Copernicus EDO (Wave A, apps/api/tests/test_water_intelligence_copernicus_edo.py) :
+  # `EdoSnapshotConfig.release_key` compose déterministiquement
+  # "copernicus-edo-cdi-{version}-{YYYYMM}d{décade}" (cf. copernicus_edo.py) — ce
+  # n'est pas un secret, c'est une clé de release lisible et reproductible. Matche
+  # generic-api-key pour la même raison que les deux cas ci-dessus (suffixe "_key"
+  # + chaîne à tirets de longueur/entropie plausible).
+  '''"copernicus-edo-cdi-v4\.1-202607d2"''',
 ]
 paths = [
   # Scénarios de démonstration produit : données entièrement fictives, jamais de

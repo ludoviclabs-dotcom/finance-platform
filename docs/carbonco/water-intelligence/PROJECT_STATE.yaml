@@ -1,12 +1,31 @@
 project: carbonco-water-intelligence
-active_prompt: P06
+active_prompt: WAVE_B
 status: ready
 default_branch: master
 private_cockpit_route: /water
 public_intelligence_route: /water-intelligence
 last_merged_prompt: P05
-next_prompt: P07
+next_prompt: WAVE_B
 migrations_expected: false
 blocking_issues: []
+sources:
+  COPERNICUS_EDO:
+    connector_status: source_verified_decoder_deferred
+    note: "Identite de source VERIFIEE (CDI v4.1, decade, EPSG:4326, classes 0-6, licence CEMS). Decodage raster VOLONTAIREMENT REPORTE pour le MVP : aucune dependance GDAL/rasterio/netCDF4/xarray, aucun endpoint WMS/WCS devine, aucune couche simulee, aucune valeur publiee. Ni un echec de source, ni une source vivante — decision MVP explicite, formalisee par la constante connectors/copernicus_edo.py::CONNECTOR_STATUS. Exclu du snapshot public P10 tant qu une ADR dediee n a pas tranche. Voir handoffs/P09_COPERNICUS_EDO.md section 6 et handoffs/WAVE_A_EU_CONNECTORS.md section 6."
 open_decisions:
-  - "WRI Aqueduct : licence CC BY 4.0 verifiee, mais WRI demande en outre un enregistrement pour partager/adapter les donnees. Enregistrement NON effectue. Aucune valeur Aqueduct ne peut etre publiee publiquement tant qu un humain n a pas tranche (cf. handoffs/P05_WRI_AQUEDUCT.md section 1.3). N est pas bloquant pour P06."
+  - "WRI Aqueduct : licence CC BY 4.0 verifiee, mais WRI demande en outre un enregistrement pour partager/adapter les donnees. Enregistrement NON effectue. Aucune valeur Aqueduct ne peut etre publiee publiquement tant qu un humain n a pas tranche (cf. handoffs/P05_WRI_AQUEDUCT.md section 1.3). N a pas bloque Wave A."
+  - "Copernicus EDO (statut formel source_verified_decoder_deferred, cf. bloc sources ci-dessus) : trois voies ouvertes pour debloquer le decodage — ADR + dependance raster (GDAL/rasterio ou netCDF4/h5py/xarray) avec justification/licence/impact ; verification d un service WMS/WCS officiel (endpoint, couche, parametres, format) puis artefacts operateur enregistres ; ou renoncement documente au CDI pour le produit public. Arbitrage humain requis, aucune echeance forcee."
+waves:
+  wave_a:
+    name: "Connecteurs europeens (P06 EEA/WISE/WEI+ + P09 Copernicus EDO)"
+    branch: feat/water-intelligence-wave-a-eu-connectors
+    status: open_pr
+    merged: false
+    resolved_in_closing_commit:
+      - "Audit d identite temporelle complet (ObservationDraft.dedup_key, schema SQL observations, WaterMetricObservation, derive_observations, connecteur EEA) : aucune migration necessaire, la table observations supporte deja plusieurs periodes par (subject_type, subject_key, metric_code) via observed_at. Voir handoffs/WAVE_A_EU_CONNECTORS.md section 5.0."
+      - "PeriodResolver injectable ajoute a derive_observations()/run_pipeline() (resolveur par defaut retrocompatible, period_start<=period_end verifie de facon generique). Connecteur EEA fournit build_period_resolver() (bornes officielles de trimestre, lues depuis les metadonnees structurees du draft) ; metric_code EEA redevient stable et independant du trimestre. Voir handoffs/WAVE_A_EU_CONNECTORS.md section 5.1 et handoffs/P06_EEA_WEI_PLUS.md section 7."
+      - "Risque signale (non corrige, hors perimetre) : ObservationDraft.dedup_key() (services/intelligence/adapters/base.py, contrat PR-04 partage avec l import /materials) ne porte pas la periode. Un futur graveur P10 qui le reutiliserait tel quel pour une serie temporelle ecraserait silencieusement les periodes autres que la premiere. Consigne dans RISK_REGISTER.md : ne jamais reutiliser dedup_key() tel quel pour une metrique saisonniere/temporelle."
+  wave_b:
+    name: "Famille Hub'Eau (P07 hydrometrie/piezometrie + P08 prelevements/qualite)"
+    branch: feat/water-intelligence-wave-b-hubeau
+    status: not_started

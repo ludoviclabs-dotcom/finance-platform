@@ -3,8 +3,9 @@
 **Branche :** `feat/water-intelligence-wave-a-eu-connectors`
 **Base :** `master` @ `43136be` (PR #152 fusionnée, Vercel `carbon` et
 `carbonco-api` en production `READY` sur ce SHA).
-**Périmètre :** MACRO-PROMPT A du pack accéléré v2 uniquement. Wave B non
-lancée.
+**Périmètre :** MACRO-PROMPT A du pack accéléré v2 uniquement.
+**Statut : FUSIONNÉE** — [PR #153](https://github.com/ludoviclabs-dotcom/finance-platform/pull/153),
+merge SHA `e36c97c5b3d1a5724a2288534915b4e8e0232692`.
 
 ---
 
@@ -388,9 +389,12 @@ pagination, bornes et référentiels Hub'Eau. Points d'attention hérités :
 2. Le contrat d'erreur est désormais établi et outillé des deux côtés :
    `AdapterError` en `parse`/`normalize`, `PipelineDataUnavailableError` en
    `derive`. Les sous-connecteurs Hub'Eau doivent le respecter d'emblée.
-3. La limite §5.1 (période aplatie) touchera aussi les chroniques Hub'Eau :
-   l'arbitrage P10 devra être rendu avant, ou la convention `metric_code`
-   reprise à l'identique.
+3. La limite §5.1 (période aplatie) est **résolue** : le `PeriodResolver`
+   injectable est livré et doit être utilisé par toutes les chroniques
+   Hub'Eau. Le contournement par `metric_code` est **caduc** et ne doit pas
+   être repris. Reste ouvert, distinct : l'identité PERSISTÉE d'une série
+   (`dedup_key()` ne porte pas la période) — voir §5.0 point 4 et
+   `RISK_REGISTER.md`.
 4. Hub'Eau expose de vraies séries temporelles : la règle « aucun historique
    complet non borné » sera bien plus contraignante qu'ici — prévoir fenêtre
    temporelle et filtre géographique **obligatoires**, comme le prescrit le

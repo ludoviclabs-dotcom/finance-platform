@@ -19,6 +19,12 @@ conservation de `null` sans conversion en `0` à travers tout le pipeline, et
 le décodage de page INJECTABLE (`PageDecoder` — P03B) : JSON par défaut
 inchangé, texte/octets bruts pour les sources tabulaires/binaires, sans
 repli automatique d'un format vers un autre.
+
+P03C : la frontière d'erreur entre erreurs ATTENDUES (`PipelineError`/
+`TransportError`/`AdapterError`, toujours capturées en un rapport) et
+erreurs INATTENDUES (bug de programmation, volontairement non capturées et
+remontées nues) — voir `TestUnexpectedErrorsPropagateRaw` ci-dessous et
+`docs/carbonco/water-intelligence/handoffs/P03C_CONNECTOR_ERROR_BOUNDARY.md`.
 """
 
 from __future__ import annotations
@@ -821,3 +827,128 @@ class TestPageDecoderIsStructuralProtocol:
         assert report.steps_executed[:3] == ["plan", "fetch", "parse"]
         assert captured == ["ABC"]
         assert custom.calls == 1
+
+
+# ---------------------------------------------------------------------------
+# Frontière d'erreur connecteur (P03C) : attendue vs inattendue
+# ---------------------------------------------------------------------------
+
+
+class TestConnectorAdapterErrorIsAlwaysCaught:
+    """Toute erreur métier attendue d'un connecteur, levée depuis `normalize`,
+    est capturée dès lors qu'elle hérite d'`AdapterError` — quelle que soit
+    sa sous-classe exacte (contrat imposé aux connecteurs, P03C)."""
+
+    def test_custom_adapter_error_subclass_from_normalizer_is_caught_at_normalize(self) -> None:
+        class CustomConnectorSchemaError(AdapterError):
+            """Simule une erreur métier propre à un connecteur (ex. WRI)."""
+
+        def failing_normalizer(pages):
+            raise CustomConnectorSchemaError("schéma refusé (simulé) : colonne inconnue")
+
+        transport = FakeTransport({None: ScriptedPage(content=b"donnee", has_next_page=False)})
+
+        report = _run(
+            transport=transport,
+            normalizer=failing_normalizer,
+            decoder=RawBytesPageDecoder(),
+            license_decision=_source().license,
+        )
+
+        assert report.succeeded is False
+        assert report.steps_failed == ["normalize"]
+        assert any("schéma refusé (simulé)" in e for e in report.errors)
+        assert "derive" not in report.steps_executed
+        assert "validate" not in report.steps_executed
+        assert "publish" not in report.steps_executed
+
+
+class TestUnexpectedErrorsPropagateRaw:
+    """P03C : la garantie « toujours un rapport » couvre uniquement les
+    erreurs ATTENDUES (`PipelineError`/`TransportError`/`AdapterError`). Un
+    bug de programmation (`ValueError`, `TypeError`, ou toute autre
+    exception hors de ces trois familles) n'est PAS intercepté — il remonte
+    nu, volontairement, pour ne jamais masquer un défaut de code."""
+
+    def test_unexpected_valueerror_from_normalizer_propagates_raw(self) -> None:
+        def buggy_normalizer(pages):
+            raise ValueError("bug de programmation (simulé), pas une erreur métier")
+
+        transport = FakeTransport({None: ScriptedPage(content=b"donnee", has_next_page=False)})
+
+        with pytest.raises(ValueError, match="bug de programmation"):
+            _run(
+                transport=transport,
+                normalizer=buggy_normalizer,
+                decoder=RawBytesPageDecoder(),
+                license_decision=_source().license,
+            )
+
+    def test_unexpected_typeerror_from_normalizer_propagates_raw(self) -> None:
+        def buggy_normalizer(pages):
+            raise TypeError("bug de programmation (simulé)")
+
+        transport = FakeTransport({None: ScriptedPage(content=b"donnee", has_next_page=False)})
+
+        with pytest.raises(TypeError, match="bug de programmation"):
+            _run(
+                transport=transport,
+                normalizer=buggy_normalizer,
+                decoder=RawBytesPageDecoder(),
+                license_decision=_source().license,
+            )
+
+    def test_unexpected_error_from_page_decoder_propagates_raw(self) -> None:
+        """Même logique côté décodeur : un `PageDecoder` custom qui lève un
+        bug de programmation (pas `AdapterError`) n'est pas non plus
+        intercepté au stage `parse`."""
+
+        class BuggyDecoder:
+            def decode(self, page_bytes: bytes, *, page_index: int):
+                raise KeyError("bug de programmation (simulé) dans un décodeur custom")
+
+        transport = FakeTransport({None: ScriptedPage(content=b"donnee", has_next_page=False)})
+
+        with pytest.raises(KeyError):
+            _run(
+                transport=transport,
+                normalizer=lambda pages: [],
+                decoder=BuggyDecoder(),
+                license_decision=_source().license,
+            )
+
+
+class TestGeographyResolverErrorBoundaryIsUnchanged:
+    """P03C n'étend PAS la capture du stage `derive` : le contrat P03
+    existant (`geography_resolver` doit lever `PipelineDataUnavailableError`
+    pour un code non résolu) reste inchangé et est le SEUL type intercepté
+    autour de `geography_resolver`. Documenté comme une limite de portée
+    délibérée de P03C (cf. handoff), pas un oubli."""
+
+    def test_pipeline_data_unavailable_error_is_still_caught_at_derive(self) -> None:
+        rows = [{"station": "X1", "value": 12.5, "date": "2025-06-01", "geography_code": "UNKNOWN"}]
+        transport = FakeTransport({None: ScriptedPage(content=_page_bytes(rows), has_next_page=False)})
+
+        report = _run(transport=transport, license_decision=_source().license)
+
+        assert not report.succeeded
+        assert "derive" in report.steps_failed
+
+    def test_adapter_error_from_geography_resolver_is_not_caught_at_derive(self) -> None:
+        """Un `geography_resolver` qui lève `AdapterError` (au lieu du
+        `PipelineDataUnavailableError` attendu par le contrat P03 §5) n'est
+        PAS capturé par `derive_observations` — comportement inchangé par
+        P03C, qui ne porte que sur `parse`/`normalize`."""
+
+        def resolver_raising_adapter_error(code):
+            raise AdapterError("géographie refusée par un connecteur non conforme (simulé)")
+
+        rows = [{"station": "X1", "value": 12.5, "date": "2025-06-01"}]
+        transport = FakeTransport({None: ScriptedPage(content=_page_bytes(rows), has_next_page=False)})
+
+        with pytest.raises(AdapterError, match="géographie refusée"):
+            _run(
+                transport=transport,
+                geography_resolver=resolver_raising_adapter_error,
+                license_decision=_source().license,
+            )

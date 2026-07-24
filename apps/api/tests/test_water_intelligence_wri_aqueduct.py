@@ -12,7 +12,10 @@ conversion en `0`, normalisation d'une valeur présente, absence conservée,
 séparation risque/confiance, statut de donnée (`modelled` vs `fixture`),
 scénario/horizon conservés, licence autorisée / bloquée / inconnue,
 attribution conservée, checksum stable, idempotence, dry-run sans écriture,
-et intégration au pipeline P03.
+intégration au pipeline P03, et la frontière d'erreur connecteur (P03C) :
+`AqueductError`/`AqueductSchemaError`/`AqueductReleaseError` sont désormais
+des `AdapterError`, donc capturées proprement par `run_pipeline()` au stage
+`normalize` plutôt que de remonter nues.
 """
 
 from __future__ import annotations
@@ -25,6 +28,7 @@ from pathlib import Path
 import pytest
 
 from models.water_intelligence import WaterLicenseDecision, WaterSourceReference
+from services.intelligence.adapters.base import AdapterError
 from services.water_intelligence.connectors import wri_aqueduct as wri
 from services.water_intelligence.pipeline import TextPageDecoder, run_pipeline
 from services.water_intelligence.pipeline_transport import FakeTransport, ScriptedPage
@@ -628,3 +632,95 @@ class TestSourceIdentity:
         assert metadata["stable_id_column"] == "string_id"
         # Sérialisable tel quel pour un journal machine-readable.
         assert json.loads(json.dumps(metadata, default=str))
+
+
+# ---------------------------------------------------------------------------
+# Frontière d'erreur connecteur (P03C) — AqueductError hérite d'AdapterError
+# ---------------------------------------------------------------------------
+
+
+def _unreachable_geography_resolver(code):
+    """Utilisé pour prouver que `normalize` échoue AVANT `derive` : si ce
+    résolveur est appelé, `derive` a été atteint à tort."""
+    raise AssertionError("géographie ne devrait jamais être résolue : normalize a échoué avant")
+
+
+class TestConnectorErrorBoundary:
+    def test_aqueduct_error_hierarchy_is_compatible_with_adapter_error(self) -> None:
+        assert issubclass(wri.AqueductError, AdapterError)
+        assert issubclass(wri.AqueductSchemaError, AdapterError)
+        assert issubclass(wri.AqueductReleaseError, AdapterError)
+
+    def test_invalid_schema_csv_through_pipeline_fails_cleanly_at_normalize(self) -> None:
+        """Un CSV WRI au schéma invalide, passé par `run_pipeline()`, ne lève
+        plus d'exception brute : il produit un rapport marquant `normalize`
+        en échec, avec un message explicite, sans exécuter derive/validate/
+        publish (P03C)."""
+        config = make_config()
+        text = read(UNKNOWN_COLUMN_FIXTURE)
+        transport = FakeTransport(
+            {None: ScriptedPage(content=text.encode("utf-8"), has_next_page=False)}
+        )
+
+        report = run_pipeline(
+            source_code=wri.SOURCE_CODE,
+            release_key=config.release_key,
+            transport=transport,
+            normalizer=wri.build_normalizer(config),
+            source=_source_reference(config, allow_display=True),
+            method=wri.METHOD,
+            geography_resolver=_unreachable_geography_resolver,
+            max_pages=1,
+            decoder=wri.PAGE_DECODER,
+            license_decision=WaterLicenseDecision(
+                allow_ingest=True, allow_store=True, allow_display=True, allow_derived_use=True,
+            ),
+            clock=lambda: datetime(2026, 1, 3, tzinfo=timezone.utc),
+        )
+
+        assert report.succeeded is False
+        assert report.steps_failed == ["normalize"]
+        assert any("hors dictionnaire" in e for e in report.errors)
+        assert "derive" not in report.steps_executed
+        assert "validate" not in report.steps_executed
+        assert "publish" not in report.steps_executed
+
+    def test_empty_extract_through_pipeline_also_fails_cleanly_at_normalize(self) -> None:
+        """Un extrait vide (`AqueductReleaseError`, une AUTRE sous-classe
+        d'`AqueductError`) est capturé de la même façon — la correction
+        P03C n'est pas spécifique à `AqueductSchemaError`."""
+        config = make_config()
+        empty_csv = "string_id,bws_raw\n"  # en-tête seul, aucune ligne
+        transport = FakeTransport(
+            {None: ScriptedPage(content=empty_csv.encode("utf-8"), has_next_page=False)}
+        )
+
+        report = run_pipeline(
+            source_code=wri.SOURCE_CODE,
+            release_key=config.release_key,
+            transport=transport,
+            normalizer=wri.build_normalizer(config),
+            source=_source_reference(config, allow_display=True),
+            method=wri.METHOD,
+            geography_resolver=_unreachable_geography_resolver,
+            max_pages=1,
+            decoder=wri.PAGE_DECODER,
+            license_decision=WaterLicenseDecision(
+                allow_ingest=True, allow_store=True, allow_display=True, allow_derived_use=True,
+            ),
+            clock=lambda: datetime(2026, 1, 3, tzinfo=timezone.utc),
+        )
+
+        assert report.succeeded is False
+        assert report.steps_failed == ["normalize"]
+        assert any("extrait vide" in e for e in report.errors)
+
+    def test_release_error_outside_pipeline_keeps_its_own_behaviour(self) -> None:
+        """Hors pipeline (construction directe de la config), le
+        comportement d'`AqueductReleaseError` est strictement inchangé par
+        P03C : même type, même message, aucun rapport impliqué."""
+        with pytest.raises(wri.AqueductReleaseError, match="obligatoire"):
+            make_config(release_key="   ")
+
+        with pytest.raises(wri.AqueductReleaseError, match="reproductible"):
+            make_config(release_key="latest")

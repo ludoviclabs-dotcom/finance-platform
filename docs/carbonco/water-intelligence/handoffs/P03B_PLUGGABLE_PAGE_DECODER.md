@@ -72,11 +72,11 @@ Le transport ne fait toujours aucune hypothèse sur le contenu (`FetchPage.conte
 - **La décision de licence WRI Aqueduct n'est pas modifiée** (voir `handoffs/P05_WRI_AQUEDUCT.md` §1.3 — enregistrement WRI toujours non effectué, publication publique toujours bloquée).
 - **P06 n'est pas lancé.** `PROJECT_STATE.yaml`/`CURRENT_TASK.md` restent sur P06 comme mission active après cette PR.
 
-### Observation hors périmètre (non corrigée ici)
+### Observation hors périmètre — **corrigée depuis par P03C**
 
-En vérifiant le trajet d'erreur du stage `normalize`, `TransportAdapter.normalize()` appelle le `normalizer` du connecteur sans capturer d'exception ; seul `run_pipeline()` capture `AdapterError` autour de `adapter.normalize(parsed)`. Si un connecteur lève une exception **qui n'hérite pas** d'`AdapterError` depuis son normalizer (c'est le cas de `AqueductSchemaError` du connecteur WRI, qui hérite d'`AqueductError(Exception)` et non d'`AdapterError`), cette exception remonterait **nue** hors de `run_pipeline()` — violation de l'invariant « toujours un rapport, jamais une exception qui remonte nue » documenté dans `pipeline.py`.
+En vérifiant le trajet d'erreur du stage `normalize`, `TransportAdapter.normalize()` appelle le `normalizer` du connecteur sans capturer d'exception ; seul `run_pipeline()` capture `AdapterError` autour de `adapter.normalize(parsed)`. Un connecteur qui lève une exception **n'héritant pas** d'`AdapterError` depuis son normalizer (c'était le cas de `AqueductSchemaError` du connecteur WRI, qui héritait d'`AqueductError(Exception)`) voyait cette exception remonter **nue** hors de `run_pipeline()` — violation de l'invariant « toujours un rapport » documenté dans `pipeline.py`.
 
-Ce comportement est **antérieur à P03B** (présent dès P03/P05, inchangé par cette PR) et **non exercé par aucun test existant** : aucun test actuel ne fait échouer le normalizer WRI via `run_pipeline()` avec un CSV dont le schéma est invalide (les tests de schéma invalide appellent `parse_baseline_annual_csv` directement, hors pipeline). Corriger ce point impliquerait soit de changer le contrat `normalize()`/`run_pipeline()` (hors périmètre P03B : « aucun changement de contrat P02/P03 sans bug démontré sur CETTE mission »), soit de faire hériter `AqueductError` d'`AdapterError` (changement du connecteur P05, hors périmètre de cette PR ciblée sur le décodeur). Signalé ici pour arbitrage humain avant P06 ou une future PR dédiée — pas corrigé silencieusement, pas ignoré.
+Ce comportement, antérieur à P03B (présent dès P03/P05, non corrigé par cette PR à l'époque), a été corrigé par `fix/water-intelligence-p03c-connector-error-boundary` (P03C) : `AqueductError` hérite désormais d'`AdapterError`, et le contrat « toute erreur métier attendue d'un connecteur doit hériter d'`AdapterError` » est désormais documenté pour P06-P09. Détail complet : `handoffs/P03C_CONNECTOR_ERROR_BOUNDARY.md`.
 
 ## 6. Comment P06–P09 choisiront leur décodeur
 

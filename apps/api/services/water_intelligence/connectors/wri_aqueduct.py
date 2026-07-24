@@ -50,7 +50,7 @@ from typing import Any, Iterable
 
 from models.analytics import MethodRef
 from models.water_intelligence import WaterGeographyRef
-from services.intelligence.adapters.base import ObservationDraft
+from services.intelligence.adapters.base import AdapterError, ObservationDraft
 from services.water_intelligence.pipeline import TextPageDecoder
 
 # ---------------------------------------------------------------------------
@@ -126,8 +126,16 @@ _PROJECTION_COLUMN_RE = re.compile(
 )
 
 
-class AqueductError(Exception):
-    """Erreur du connecteur — jamais un échec silencieux."""
+class AqueductError(AdapterError):
+    """Erreur du connecteur — jamais un échec silencieux.
+
+    Hérite d'`AdapterError` (P03C) : une erreur de format/schéma/contenu
+    levée par CE connecteur pendant `parse` ou `normalize` (via le
+    `PageDecoder` ou le normalizer) est ainsi capturée par `run_pipeline()`
+    et transformée en `PipelineExecutionReport` — jamais une exception nue.
+    Voir `docs/carbonco/water-intelligence/handoffs/
+    P03C_CONNECTOR_ERROR_BOUNDARY.md` pour le contrat complet imposé aux
+    futurs connecteurs (P06-P09)."""
 
 
 class AqueductSchemaError(AqueductError):

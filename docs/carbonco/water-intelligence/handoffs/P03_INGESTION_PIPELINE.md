@@ -16,12 +16,12 @@ plan -> fetch -> parse -> normalize -> derive -> validate -> publish
 - **plan** — résout `source_code` dans le catalogue normalisé P01b ([`SOURCE_CATALOG_NORMALIZED_V1.csv`](../SOURCE_CATALOG_NORMALIZED_V1.csv)). Une source absente du catalogue est refusée, jamais devinée.
 - **fetch** — assemble les octets bruts, page par page, via un `Transport` injectable. Aucun décodage sémantique ici : une page peut arriver corrompue au sens du transport (timeout, HTTP 5xx, checksum invalide) sans que ce soit un échec de *parsing*.
 - **parse** — décode chaque page via un `PageDecoder` injectable (`JsonPageDecoder` par défaut, rétrocompatible — voir §7, ajouté en P03B). Un contenu qui ne respecte pas le format attendu par ce décodeur échoue *ici*, distinctement d'une corruption détectée par le transport.
-- **normalize** — réutilise le contrat `SourceAdapter.normalize()` existant (PR-04) pour produire des `ObservationDraft`.
+- **normalize** — réutilise le contrat `SourceAdapter.normalize()` existant (PR-04) pour produire des `ObservationDraft`. Toute erreur métier attendue (format/schéma/contenu refusé) levée ici par le normalizer d'un connecteur doit hériter d'`AdapterError` (contrat imposé en P03C, voir §8) pour être capturée proprement.
 - **derive** — traduit chaque `ObservationDraft` en candidat `WaterMetricObservation` (P02) : résout la géographie, la période, la méthode et la confiance de présentation. Un draft dont la géographie ou la date d'observation ne peut pas être résolue est écarté et nommé dans le rapport, jamais complété par une valeur inventée.
 - **validate** — applique le contrat `WaterMetricObservation` (validation Pydantic automatique) et la porte de licence : sans `license_decision` fournie, tout est retenu (`value_withheld`), jamais publié par défaut.
 - **publish** — strictement **dry-run** dans cette PR (voir §3).
 
-Chaque exécution produit un `PipelineExecutionReport` unique, qu'elle réussisse ou échoue — un échec de stage arrête les stages suivants mais renvoie toujours un rapport complet, jamais une exception nue.
+Chaque exécution produit un `PipelineExecutionReport` unique pour toute erreur ATTENDUE (`PipelineError`/`TransportError`/`AdapterError`) — un échec de stage arrête les stages suivants mais renvoie un rapport complet, jamais une exception nue, dans ce cas. Une erreur INATTENDUE (bug de programmation) n'est volontairement pas interceptée : portée précisée en P03C, voir §8.
 
 ## 2. Ce qui est livré
 
@@ -50,7 +50,7 @@ Un connecteur réel (Hub'Eau, WRI Aqueduct…) implique un appel réseau réel, 
 
 1. Implémenter un `Transport` réel (client HTTP véritable) respectant le contrat `fetch_page(page_token) -> FetchPage` — remplace `FakeTransport`, ne modifie pas `TransportAdapter` ni l'orchestrateur.
 2. Choisir un `PageDecoder` adapté au format réel de la release (§7) — `JsonPageDecoder` (défaut, à ne même pas préciser), `TextPageDecoder` pour du texte/tabulaire (CSV, TSV…), `RawBytesPageDecoder` pour du binaire déjà géré par le normalizer — et l'exposer comme constante ou fonction du connecteur, injectée à `run_pipeline(decoder=...)`.
-3. Fournir un `normalizer` propre au format de la source (mapping du contenu déjà décodé → `ObservationDraft`), injecté à `run_pipeline` — jamais un normalizer générique qui devinerait la structure.
+3. Fournir un `normalizer` propre au format de la source (mapping du contenu déjà décodé → `ObservationDraft`), injecté à `run_pipeline` — jamais un normalizer générique qui devinerait la structure. Toute erreur métier attendue levée par ce normalizer doit hériter d'`AdapterError` (§8).
 4. Fournir un `geography_resolver` réel (référentiel de codes officiels — bassins SANDRE, districts EEA…) au lieu du résolveur fixture ; il doit continuer à lever `PipelineDataUnavailableError` pour un code non résolu, jamais inventer une géographie par défaut.
 5. Obtenir une `WaterLicenseDecision` réelle via `services.intelligence.license_policy.evaluate()` sur la ligne `source_registry` correspondante (à créer dans la PR du connecteur, hors P03) avant d'appeler `validate_candidates` — jamais réutiliser le `None` par défaut de P03 en production.
 6. Ne changer `dry_run=False` qu'après avoir fourni un vrai graveur Evidence Kernel (P10, ou une extension explicite de `publish_dry_run`) — tant que ce graveur n'existe pas, `dry_run=False` continuera de lever une erreur, par construction.
@@ -61,7 +61,7 @@ Un connecteur réel (Hub'Eau, WRI Aqueduct…) implique un appel réseau réel, 
 | Risque | Garantie apportée par P03 |
 |---|---|
 | **Volume** | Pages bornées (`max_pages`, `PipelineLimitExceeded` explicite) ; volume brut borné (`max_raw_bytes`) ; aucun appel sans borne. |
-| **Erreurs** | Chaque stage est isolé : un échec s'arrête et se documente (`steps_failed`, `errors`) sans corrompre les stages précédents ni propager une exception nue. Reprise contrôlée (`resume_from_token`) sans re-fetch des pages déjà obtenues. |
+| **Erreurs** | Chaque stage est isolé : un échec ATTENDU s'arrête et se documente (`steps_failed`, `errors`) sans corrompre les stages précédents ni propager une exception nue ; un bug de programmation, lui, remonte nu volontairement (P03C, §8). Reprise contrôlée (`resume_from_token`) sans re-fetch des pages déjà obtenues. |
 | **Hallucinations** | `derive` refuse une géographie ou une date non résolues plutôt que d'inventer une valeur ; `normalize` (hérité de PR-04) refuse un draft sans valeur ; aucune donnée métier par défaut. |
 | **Licences** | `validate_candidates` ne suppose jamais une licence permissive : sans décision explicite, tout est `value_withheld`. Une licence bloquée et une licence inconnue produisent des rapports distincts (raisons documentées vs avertissement générique), jamais confondues. |
 | **Secrets** | `PipelineExecutionReport` ne contient jamais d'octet brut, de jeton de page ni de contenu de fixture — uniquement identités, checksums et compteurs. |
@@ -71,3 +71,7 @@ Un connecteur réel (Hub'Eau, WRI Aqueduct…) implique un appel réseau réel, 
 ## 7. Décodage de page injectable (ajouté en P03B)
 
 Le stage `parse` décrit en §1 décodait initialement chaque page en JSON sans exception. P05 (connecteur WRI Aqueduct, tabulaire) a dû contourner cette contrainte en emballant sa CSV comme chaîne JSON. Avant le lancement de P06 (également une release téléchargée, potentiellement tabulaire), `refactor/water-intelligence-p03b-pluggable-page-decoder` a rendu ce décodage **injectable** : `PageDecoder` (Protocol structurel), avec trois implémentations fournies — `JsonPageDecoder` (défaut, rétrocompatible), `TextPageDecoder` (texte, encodage explicite), `RawBytesPageDecoder` (octets bruts). Détail complet : `handoffs/P03B_PLUGGABLE_PAGE_DECODER.md`.
+
+## 8. Frontière d'erreur connecteur (corrigée en P03C)
+
+L'inspection menée en P03B a révélé qu'une erreur métier attendue levée par le normalizer d'un connecteur (ex. `AqueductSchemaError` du connecteur WRI) pouvait remonter **nue** hors de `run_pipeline()`, car sa hiérarchie d'exception n'héritait pas d'`AdapterError` — le seul type capturé au stage `normalize`. `fix/water-intelligence-p03c-connector-error-boundary` a corrigé ce point : **toute erreur métier attendue d'un connecteur, levée dans `parse`/`normalize`, doit désormais hériter d'`AdapterError`** — c'est le contrat imposé aux connecteurs P06-P09 (§5, points 2-3). La garantie « toujours un rapport » du §1 est en outre précisée : elle ne couvre que les erreurs ATTENDUES (`PipelineError`/`TransportError`/`AdapterError`) — un bug de programmation remonte nu, volontairement, pour ne jamais être masqué. Détail complet, y compris une limite de portée délibérée non corrigée (le `geography_resolver` du stage `derive`) : `handoffs/P03C_CONNECTOR_ERROR_BOUNDARY.md`.

@@ -12,9 +12,29 @@ absente. `publish` reste strictement dry-run dans cette PR : aucun
 connecteur réel n'existe encore, aucune ligne `source_registry` n'est créée,
 aucun artefact n'est persisté.
 
-Chaque exécution produit un `PipelineExecutionReport` unique, que l'étape
-ait réussi ou échoué — jamais une exception qui remonte nue sans rapport, et
-jamais un rapport qui masque un échec par un résultat partiel non signalé.
+Chaque exécution produit un `PipelineExecutionReport` unique pour toute
+erreur ATTENDUE du pipeline ou d'un connecteur — jamais une exception nue
+pour ces cas, et jamais un rapport qui masque un échec par un résultat
+partiel non signalé. Trois catégories d'erreurs attendues, chacune capturée
+au stage où elle survient (P03C) :
+
+- `PipelineError` (et sous-classes) — échec de plan ou de limite (`plan`,
+  `fetch`) ;
+- `TransportError` (et sous-classes) — échec du transport (`fetch`) ;
+- `AdapterError` (et sous-classes) — page illisible par le `PageDecoder`
+  (`parse`) ou contenu/schéma refusé par le normalizer d'un connecteur
+  (`normalize`). **Toute erreur métier attendue d'un connecteur, levée
+  pendant `parse` ou `normalize`, doit hériter d'`AdapterError`** — c'est le
+  contrat imposé aux connecteurs P06-P09 (cf. `docs/carbonco/
+  water-intelligence/handoffs/P03C_CONNECTOR_ERROR_BOUNDARY.md`).
+
+Une erreur INATTENDUE (bug de programmation : `ValueError`, `TypeError`,
+`KeyError`, `AttributeError`, ou toute exception hors de ces trois
+familles) N'EST PAS interceptée par construction — elle remonte nue,
+volontairement, pour ne jamais masquer un défaut de code derrière un
+rapport d'exécution qui aurait l'air normal. Cette limite de garantie est
+délibérée (P03C), pas un oubli : voir le handoff ci-dessus pour la
+justification complète.
 
 Le stage `parse` décode chaque page via un `PageDecoder` INJECTABLE (P03B) —
 `JsonPageDecoder` par défaut (rétrocompatible avec le comportement P03
@@ -390,6 +410,15 @@ def derive_observations(
     Aucune valeur par défaut métier inventée : une géographie non résolue ou
     une date d'observation absente rejette le draft (erreur nommée dans le
     rapport), jamais une valeur substituée en silence.
+
+    Portée de capture (P03C) : seule `PipelineDataUnavailableError` est
+    capturée autour de `geography_resolver`, conformément au contrat établi
+    en P03 (`docs/carbonco/water-intelligence/handoffs/
+    P03_INGESTION_PIPELINE.md` §5) — un `geography_resolver` de connecteur
+    doit lever CETTE exception pour un code non résolu, jamais une exception
+    propre au connecteur. Une exception d'un autre type (y compris
+    `AdapterError`) remonte nue depuis cette fonction, comme toute erreur
+    inattendue au sens du docstring de module.
     """
     result = DeriveResult()
     for draft in drafts:
@@ -556,9 +585,13 @@ def run_pipeline(
     catalog_path: Path = DEFAULT_CATALOG_PATH,
 ) -> PipelineExecutionReport:
     """Exécute `plan -> fetch -> parse -> normalize -> derive -> validate ->
-    publish`. Retourne TOUJOURS un rapport : un échec de stage l'arrête (les
+    publish`. Retourne un rapport pour toute erreur ATTENDUE (`PipelineError`,
+    `TransportError`, `AdapterError`) : un échec de stage l'arrête (les
     stages suivants ne s'exécutent pas) mais ne lève pas d'exception hors de
-    cette fonction — le rapport est la seule sortie côté appelant.
+    cette fonction dans ce cas — le rapport est la seule sortie côté
+    appelant. Une erreur INATTENDUE (bug de programmation, hors de ces trois
+    familles) remonte nue volontairement — voir le docstring de module
+    (P03C) et `handoffs/P03C_CONNECTOR_ERROR_BOUNDARY.md`.
 
     `decoder` contrôle le décodage de chaque page au stage `parse` (P03B) :
     `JsonPageDecoder` par défaut (rétrocompatible), `TextPageDecoder`/

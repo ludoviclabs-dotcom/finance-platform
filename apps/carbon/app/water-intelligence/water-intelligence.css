@@ -1,0 +1,326 @@
+/*
+ * water-intelligence.css — thème visuel du module public Water Intelligence (P04).
+ *
+ * Scopé à `[data-wi]` : n'affecte aucune autre surface du site. Préfixe `--wi-*`
+ * délibérément distinct de `--mx-*` (propre à /materials, matières premières).
+ *
+ * Clair/sombre via `prefers-color-scheme` UNIQUEMENT — aucun JavaScript, aucun
+ * localStorage, donc aucun composant client et aucun écart d'hydratation
+ * possible. Le clair est la valeur par défaut ; le sombre est appliqué quand le
+ * système le demande.
+ *
+ * Sémantique des couleurs (jamais porteuse d'information à elle seule : chaque
+ * usage est doublé d'un libellé texte explicite) :
+ *   --wi-water    bleu profond  → ressource / eau
+ *   --wi-data     cyan          → donnée / qualité
+ *   --wi-stress   ambre         → stress / attention
+ *   --wi-alert    rouge         → alerte critique ou indisponibilité UNIQUEMENT
+ *   --wi-compliance violet      → conformité / reporting
+ *   --wi-adapt    vert          → adaptation
+ *   --wi-absent   gris + hachures → donnée absente (jamais un zéro)
+ */
+
+[data-wi] {
+  /* Clair par défaut */
+  --wi-bg: #f4f8fc;
+  --wi-surface: #ffffff;
+  --wi-card: #ffffff;
+  --wi-card-2: #eaf1f9;
+  --wi-border: rgba(11, 27, 43, 0.12);
+  --wi-border-2: rgba(11, 27, 43, 0.24);
+  --wi-fg: #0b1b2b;
+  --wi-muted: #4a5c70;
+  --wi-subtle: #667a90;
+
+  --wi-water: #0b4f82;
+  --wi-data: #0e6e7d;
+  --wi-stress: #8a5200;
+  --wi-alert: #a32015;
+  --wi-compliance: #5b3a9e;
+  --wi-adapt: #1e6b45;
+  --wi-absent: #5c6b7a;
+
+  --wi-focus: #0b4f82;
+  --wi-hatch: rgba(92, 107, 122, 0.18);
+
+  --wi-font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --wi-font-mono: var(--font-jetbrains-mono), ui-monospace, Menlo, Consolas, monospace;
+
+  background: var(--wi-bg);
+  color: var(--wi-fg);
+  min-height: 100vh;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-wi] {
+    --wi-bg: #05101c;
+    --wi-surface: #0a1a2a;
+    --wi-card: #0e2233;
+    --wi-card-2: #13293c;
+    --wi-border: rgba(255, 255, 255, 0.1);
+    --wi-border-2: rgba(255, 255, 255, 0.2);
+    --wi-fg: #e6eef7;
+    --wi-muted: #9baec2;
+    --wi-subtle: #7b8fa5;
+
+    --wi-water: #6fb6f2;
+    --wi-data: #47d6e8;
+    --wi-stress: #f5b942;
+    --wi-alert: #ff8a7a;
+    --wi-compliance: #b79cf5;
+    --wi-adapt: #57d89a;
+    --wi-absent: #8595a6;
+
+    --wi-focus: #6fb6f2;
+    --wi-hatch: rgba(133, 149, 166, 0.22);
+  }
+}
+
+/* ---------------------------------------------------------------- Structure */
+
+[data-wi] .wi-shell {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.25rem 5rem;
+}
+
+[data-wi] .wi-section {
+  padding-top: 3.5rem;
+  /* Compense la navigation ancrée collante lors d'un saut d'ancre. */
+  scroll-margin-top: 5rem;
+}
+
+[data-wi] .wi-card {
+  background: var(--wi-card);
+  border: 1px solid var(--wi-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+[data-wi] .wi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 48rem) {
+  [data-wi] .wi-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-wi] .wi-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* --------------------------------------------------------------- Typographie */
+
+[data-wi] .wi-h1,
+[data-wi] .wi-h2,
+[data-wi] .wi-h3 {
+  font-family: var(--wi-font-display);
+  color: var(--wi-fg);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+[data-wi] .wi-h1 {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+[data-wi] .wi-h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+[data-wi] .wi-h3 {
+  font-size: 1.0625rem;
+  font-weight: 650;
+}
+
+[data-wi] .wi-lede {
+  color: var(--wi-muted);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  max-width: 60ch;
+}
+
+[data-wi] .wi-muted {
+  color: var(--wi-muted);
+  line-height: 1.6;
+}
+
+[data-wi] .wi-mono {
+  font-family: var(--wi-font-mono);
+  font-size: 0.8125rem;
+}
+
+/* -------------------------------------------------------------------- Liens */
+
+[data-wi] .wi-link {
+  color: var(--wi-water);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+[data-wi] .wi-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Focus visible homogène sur toute la surface — jamais supprimé. */
+[data-wi] a:focus-visible,
+[data-wi] button:focus-visible {
+  outline: 3px solid var(--wi-focus);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* ------------------------------------------------------- Navigation ancrée */
+
+[data-wi] .wi-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--wi-bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-nav-inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.625rem 1.25rem;
+  display: flex;
+  gap: 0.375rem;
+  overflow-x: auto;
+  align-items: center;
+}
+
+[data-wi] .wi-nav-link {
+  white-space: nowrap;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--wi-muted);
+  text-decoration: none;
+}
+
+[data-wi] .wi-nav-link:hover {
+  color: var(--wi-fg);
+  background: var(--wi-card-2);
+}
+
+/* ------------------------------------------------------------------ Badges */
+
+[data-wi] .wi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+[data-wi] .wi-badge-demo {
+  color: var(--wi-stress);
+}
+[data-wi] .wi-badge-absent {
+  color: var(--wi-absent);
+}
+[data-wi] .wi-badge-pending {
+  color: var(--wi-data);
+}
+[data-wi] .wi-badge-alert {
+  color: var(--wi-alert);
+}
+
+/* ------------------------------------------------- Donnée absente (hachures) */
+
+/*
+ * La hachure est un renfort VISUEL : chaque zone qui l'emploie porte aussi un
+ * libellé texte explicite (« Donnée absente », « Non branché »). La couleur et
+ * la texture ne portent donc jamais seules l'information.
+ */
+[data-wi] .wi-absent-fill {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--wi-hatch) 0,
+    var(--wi-hatch) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  border: 1px dashed var(--wi-border-2);
+  border-radius: 0.5rem;
+}
+
+/* --------------------------------------------------------- Bandeau bordure */
+
+[data-wi] .wi-accent-water {
+  border-left: 3px solid var(--wi-water);
+}
+[data-wi] .wi-accent-data {
+  border-left: 3px solid var(--wi-data);
+}
+[data-wi] .wi-accent-stress {
+  border-left: 3px solid var(--wi-stress);
+}
+[data-wi] .wi-accent-compliance {
+  border-left: 3px solid var(--wi-compliance);
+}
+[data-wi] .wi-accent-adapt {
+  border-left: 3px solid var(--wi-adapt);
+}
+[data-wi] .wi-accent-absent {
+  border-left: 3px dashed var(--wi-absent);
+}
+
+/* ------------------------------------------------------------- Mouvement */
+
+/*
+ * Aucune animation n'est nécessaire à la compréhension de cette page : la
+ * seule transition est décorative et neutralisée sous prefers-reduced-motion.
+ */
+[data-wi] .wi-nav-link,
+[data-wi] .wi-link {
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-wi] *,
+  [data-wi] *::before,
+  [data-wi] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* -------------------------------------------------------- Lien d'évitement */
+
+[data-wi] .wi-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+
+[data-wi] .wi-skip:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 50;
+  padding: 0.625rem 1rem;
+  background: var(--wi-surface);
+  border: 2px solid var(--wi-focus);
+  border-radius: 0.375rem;
+  color: var(--wi-fg);
+  font-weight: 600;
+}

@@ -1,6 +1,6 @@
-> **Mission active — P04 uniquement. Ne pas lancer P05.**
+> **Mission active — P05 uniquement. Ne pas lancer P06.**
 
-# P04 — Shell public Water Intelligence
+# P05 — Connecteur WRI Aqueduct
 
 
 ## En-tête invariant à placer au début de chaque mission
@@ -25,46 +25,41 @@ Règles absolues :
 
 ## Mission spécifique
 
-**Branche :** `feat/water-intelligence-p04-public-shell`
+**Branche :** `feat/water-intelligence-p05-aqueduct`
 
 ### Objectif
 
-Créer la route publique sans toucher au cockpit `/water`.
-
-### Route
-
-Créer `apps/carbon/app/water-intelligence/page.tsx`, en dehors du groupe authentifié `(app)`.
+Ajouter le premier connecteur réel, limité à WRI Aqueduct, pour le screening mondial structurel et les scénarios publiés.
 
 ### Tâches
 
-1. Créer metadata, canonical, Open Graph et contenu sémantique français.
-2. Créer un thème `Water Intelligence` cohérent avec `/materials`, sans réutiliser des noms `Mx*` propres aux matières.
-3. Extraire seulement les primitives réellement communes si cela réduit la duplication sans régression.
-4. Créer :
-   - navigation ancrée ;
-   - hero ;
-   - bandeau snapshot/provenance ;
-   - sections vides structurées ;
-   - pied de page ;
-   - états erreur, indisponible, stale et fixture.
-5. Utiliser uniquement le mini manifest de fixture P02, clairement marqué « démonstration ».
-6. Ajouter un lien vers le cockpit `/water` avec libellé explicite.
-7. Préserver le rendu serveur et charger les composants clients uniquement quand nécessaire.
-8. Ajouter tests de route, metadata, accessibilité de base et absence de conflit avec `/water`.
+1. Vérifier la source officielle, la version, la licence et les obligations d’attribution au moment de l’exécution.
+2. Définir une configuration de release opérateur ; aucun téléchargement au runtime.
+3. Accepter un fichier officiel local ou un téléchargement explicite CLI.
+4. Conserver l’artefact brut avec checksum et métadonnées.
+5. Normaliser seulement les indicateurs approuvés par l’ADR :
+   - stress hydrique structurel ;
+   - variabilité/sécheresse si disponible dans la release ;
+   - scénarios/horizons explicitement publiés.
+6. Utiliser les identifiants HydroBASINS/PFAF_ID fournis, sans jointure par nom.
+7. Construire une couche monde simplifiée et un résumé par pays/région.
+8. Présenter Aqueduct comme outil de priorisation, pas comme preuve locale de conformité.
+9. Ajouter tests à partir d’un sous-échantillon officiel minimal figé.
+10. Documenter la taille brute, normalisée et publiée.
 
 ### Interdictions
 
-- pas de vraie carte ;
-- pas de chiffres réels ;
-- pas de fetch externe ;
-- pas de copie intégrale du code `/materials` ;
-- pas de migration ;
-- pas de modification du cockpit.
+- ne pas committer le dataset complet ;
+- ne pas télécharger toutes les versions historiques ;
+- ne pas inventer de projection ;
+- ne pas appeler Aqueduct depuis le navigateur ;
+- ne pas convertir une classe en conclusion réglementaire.
 
 ### Critères d’acceptation
 
-- `/water` continue de résoudre vers le cockpit authentifié ;
-- `/water-intelligence` est publique ;
-- aucun bailout CSR global ;
-- thème clair/sombre accessible ;
-- build, lint et tests verts.
+- release sourcée, licenciée et idempotente ;
+- crosswalk sans fuzzy matching ;
+- snapshot compact sous budget ou dépassement justifié ;
+- attribution visible ;
+- données manquantes conservées comme telles ;
+- tests réseau zéro.

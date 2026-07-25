@@ -4,7 +4,7 @@ Point d'entrée court du chantier CarbonCo Water Intelligence.
 
 ## Mission active
 
-**Wave E — Finalisation (MACRO-PROMPT E)**, à ne pas démarrer avant revue humaine et fusion de la Wave D.
+**Wave E — Finalisation, activation fonctionnelle contrôlée, QA et dossier final.** Dernière vague du chantier : la suite n'est pas une vague, c'est une **décision humaine de production**.
 
 Le chantier est passé d'une exécution prompt par prompt (P00 à P18) à un
 regroupement en cinq vagues, décrit dans
@@ -20,11 +20,14 @@ regroupement en cinq vagues, décrit dans
   [`handoffs/WAVE_B_HUBEAU.md`](./handoffs/WAVE_B_HUBEAU.md).
 - Wave C (P10 read model + P11 carte + P12 contenus) : **fusionnée** — PR #156,
   merge SHA `eb2a898`. Voir [`handoffs/WAVE_C_PUBLIC_DATA_PRODUCT.md`](./handoffs/WAVE_C_PUBLIC_DATA_PRODUCT.md).
-- Wave D (P13 conformité + P14 synergies + P15 finance) : **PR ouverte, en revue** —
-  voir [`handoffs/WAVE_D_DECISION_LAYER.md`](./handoffs/WAVE_D_DECISION_LAYER.md).
-  Trois moteurs livrés, purs et testés, **aucun branché sur une route HTTP** ;
-  le registre juridique nomme neuf textes et n'en instruit aucun.
-- Wave E : **prête**, à ne pas démarrer avant revue humaine et fusion de Wave D.
+- Wave D (P13 conformité + P14 synergies + P15 finance) : **fusionnée** — PR #157,
+  merge SHA `618a222`. Voir [`handoffs/WAVE_D_DECISION_LAYER.md`](./handoffs/WAVE_D_DECISION_LAYER.md).
+  Trois moteurs livrés, purs et testés ; le registre juridique nomme neuf textes
+  et n'en instruit aucun.
+- Wave E (P16 QA + P17 preview ; P18 documentaire) : **en cours** — branche
+  `feat/water-intelligence-wave-e-finalisation`. Elle branche les moteurs de la
+  Wave D sur des surfaces HTTP contrôlées, aligne la page publique sur l'état
+  réel du produit et produit le dossier de décision.
 
 ## Frontière de routes (rappel)
 

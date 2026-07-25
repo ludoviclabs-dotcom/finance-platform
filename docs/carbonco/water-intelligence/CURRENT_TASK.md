@@ -1,10 +1,14 @@
-> **Mission suivante — Wave E (MACRO-PROMPT E) uniquement.**
-> **Ne pas démarrer avant revue humaine et fusion de la PR Wave D.**
+> **Mission en cours — Wave E (MACRO-PROMPT E), dernière vague du chantier.**
+> **Gate d'entrée levé** : la PR Wave D (#157) est fusionnée dans `master`
+> (merge `618a222`, 2026-07-25).
+> **Aucune vague ne suit.** Après la Wave E, le chantier attend une décision
+> humaine de production, pas un prompt suivant.
 
-# Wave E — Finalisation (P16 QA + P17 preview ; P18 optionnel)
+# Wave E — Finalisation, activation fonctionnelle contrôlée, QA et dossier final
 
 **Branche :** `feat/water-intelligence-wave-e-finalisation`
-**Prompt de référence :** `ACCELERATED_CLOSEOUT_PACK_V2.md` → MACRO-PROMPT E.
+**Prompt de référence :** `ACCELERATED_CLOSEOUT_PACK_V2.md` → MACRO-PROMPT E
+(P16 QA + P17 preview ; P18 documentaire uniquement).
 
 ---
 
@@ -16,70 +20,47 @@
 | Blueprint UX/UI | **fusionné** | #154 | `a56ab62` |
 | Wave B — famille Hub'Eau | **fusionnée** | #155 | `daaf8f0` |
 | Wave C — produit public | **fusionnée** | #156 | `eb2a898` |
-| Wave D — couche décisionnelle | **en revue** | — | — |
+| Wave D — couche décisionnelle | **fusionnée** | #157 | `618a222` |
 
-- `/water` reste le cockpit authentifié, inchangé par les Waves A à D.
-- `/water-intelligence` publie toujours **zéro donnée** : aucune source n'a de
-  décision humaine de publication active.
-- Dernière migration en base : `043`. Aucune vague n'en a créé.
+- Vercel `carbon` production sur `618a222` : **READY**, aucune erreur runtime
+  sur 24 h (vérifié au préflight de la Wave E).
+- Dernière migration en base : `043`. Aucune vague n'en a créé, et la Wave E
+  n'en créera aucune.
 
-## Le fait central à comprendre avant Wave E
+## Les deux dettes que la Wave E doit solder
 
-**Les trois moteurs décisionnels existent et ne sont branchés sur aucune
-route.** `water_intelligence` n'a jamais eu de surface HTTP : la Wave D a livré
-le registre juridique, la carte des ponts, la synthèse tenant et le moteur
-financier — tous purs, tous testés, aucun exposé.
+1. **Les moteurs de la Wave D n'étaient branchés sur rien.** Registre juridique,
+   synthèse tenant et moteur financier existaient, purs et testés, sans aucune
+   surface HTTP — `water_intelligence` n'en avait jamais eu.
+2. **La page publique mentait par obsolescence.** Elle décrivait encore un
+   « squelette » aux « connecteurs non branchés », affichait un manifest de
+   fixture et annonçait comme futures des étapes P05 à P13 déjà livrées. Aucun
+   de ces énoncés n'était vrai après la Wave D.
 
-C'est le manque le plus visible du chantier, et c'est le premier candidat de
-Wave E. Détail complet : `handoffs/WAVE_D_DECISION_LAYER.md` §9 et §10.
+## Contraintes constantes, inchangées depuis la Wave A
 
-## Acquis à réutiliser
+- aucune donnée tenant sur `/water-intelligence` ;
+- aucune source approuvée par le modèle ;
+- aucun texte juridique instruit de mémoire ou par supposition ;
+- aucune probabilité ni taux d'actualisation par défaut ;
+- aucun score hydrique ou ESG composite ;
+- aucune migration ;
+- aucune dépendance lourde ;
+- aucun appel aux portails externes au runtime ni dans les tests ;
+- aucune fixture présentée comme une donnée réelle.
 
-1. **Trois documents canoniques** (`contracts/REGULATORY_REGISTRY.json`,
-   `MODULE_BRIDGES.json`, `FINANCIAL_ENGINE.json`), chacun émis par son module
-   backend et miroité à l'octet près dans `apps/carbon`. Ne jamais les éditer à
-   la main — les régénérer (recette dans le handoff Wave D §6).
-2. **Frontière publique/tenant vérifiée mécaniquement** : le paquet
-   `services/water_intelligence/` est pur (test AST), le lecteur tenant vit dans
-   `services/water/`. Ne pas déplacer un lecteur DB dans le paquet pur.
-3. **Dégradation par facette** plutôt que 503 global (synthèse P14) : les tables
-   036-043 ne sont pas garanties en production.
-4. Acquis des vagues précédentes : `WaterObservationIdentity`,
-   `WaterPublicSnapshot`, `PublicationDecisionRegistry`, `PeriodResolver`,
-   fondations UI `Wi*` et décideur d'état pur.
+## Pièges d'infrastructure relevés au préflight
 
-## Interdictions structurantes pour Wave E
+- **Un test DB-gated ne tourne que s'il est ajouté nommément** à la liste
+  `pytest` du job `migration-tests` (`.github/workflows/api.yml`). Un fichier
+  oublié est skippé partout, silencieusement.
+- **Le workflow E2E ne se déclenche pas sur `pull_request`**
+  (`.github/workflows/e2e.yml`) : `push` sur `master` ou `workflow_dispatch`.
+  Un test Playwright ajouté sans corriger ce déclencheur ne tourne pas dans la
+  CI de la PR.
 
-- **Ne pas instruire le droit à la place d'un humain.** Les neuf règles du
-  registre restent `unknown` tant qu'un réviseur juridique désigné n'a pas
-  renseigné source officielle et revue signée. Remplir ces champs depuis la
-  connaissance d'un modèle est explicitement interdit.
-- **Ne pas approuver une source de publication.** Le gate licence de la Wave C
-  reste intact : aucune source n'est `approved`, et l'approuver est une décision
-  humaine par jeu de données.
-- **Ne pas fournir de probabilité de scénario** ni de taux d'actualisation par
-  défaut : ce sont des hypothèses humaines.
-- **Aucun score ESG global, aucun score hydrique composite** — règle constante
-  du chantier depuis la Wave C.
-- **Aucune donnée tenant sur `/water-intelligence`.**
-- **Si une migration devient nécessaire : arrêter, documenter, proposer une PR
-  dédiée — ne pas la créer dans la vague.**
+## Décisions à ne jamais prendre à la place d'un humain
 
-## Reliquat non tranché, hérité de la Wave D
-
-- `WaterLegalStatus` (contrat P02) ne sait pas exprimer `repealed` : la
-  conversion depuis le registre perd de l'information. Étendre l'énumération
-  toucherait le miroir TS et la fixture gelée. Arbitrage humain requis
-  (handoff Wave D §3.4).
-- `WaterLegalRecord` exige un `WaterSourceReference` conçu pour un jeu de
-  données (release, checksum, licence), pas pour un texte de loi (§3.5).
-
-## Contrats à respecter
-
-- **Erreurs** : `AdapterError` en `parse`/`normalize` ;
-  `PipelineDataUnavailableError` pour géographie ou période non résolue en
-  `derive` ; `TransportError` pour le transport ; `PipelineError` pour les
-  bornes et le plan.
-- **Licence** : sans décision explicite et signée, rien n'est publié.
-- **UI** : thème `--wi-*`, Server Components par défaut, aucune dépendance
-  nouvelle.
+Désigner un réviseur juridique · approuver une source de publication ·
+fournir une probabilité de scénario ou un taux d'actualisation · valider un
+contenu éditorial · promouvoir en production.

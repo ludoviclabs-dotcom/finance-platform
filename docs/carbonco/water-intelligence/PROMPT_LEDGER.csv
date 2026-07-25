@@ -6,12 +6,12 @@ P03,merged,feat/water-intelligence-p03-ingestion-pipeline,147,04fe94ae787b9765ba
 P04,merged,feat/water-intelligence-p04-public-shell,148,87c2024fa7be185fce5dbd9f1ce1cc940f83dd99,,Correctif P04B (retrait des chiffres fictifs visibles) livre par la PR #149 / 74dafd2131993ca87873b87d545bc34689b8ca09
 P05,merged,feat/water-intelligence-p05-wri-aqueduct,150,48f6d3a5d371a11cd5ef0cff63bf4534340dcb65,,Licence CC BY 4.0 verifiee ; publication publique bloquee tant que l enregistrement WRI n est pas effectue (decision humaine)
 P06,merged,feat/water-intelligence-wave-a-eu-connectors,153,e36c97c5b3d1a5724a2288534915b4e8e0232692,,Livre dans Wave A. Connecteur EEA WEI+ ; releases edition 01.00 epinglees ; licence CC BY 4.0 verifiee ; aucune moyenne inter-bassins (agregat = distribution de comptes) ; vocabulaire d en-tete officiel non verifie donc format canonique + geste operateur. Commit de cloture : le trimestre n est PLUS dans metric_code, la periode passe par le PeriodResolver
-P07,open_pr,feat/water-intelligence-wave-b-hubeau,,,,Livre dans Wave B. Socle operateur borne + hydrometrie et piezometrie ; unites natives conservees (l/s, mm, m NGF, m) ; aucune interpolation ; PeriodResolver Wave A utilise
-P08,open_pr,feat/water-intelligence-wave-b-hubeau,,,,Livre dans Wave B. Prelevements (absence de declaration != zero) et qualite des cours d eau (allowlist SANDRE sourcee, aucun classement sanitaire). Qualite des NAPPES hors perimetre : gate non concluant
+P07,merged,feat/water-intelligence-wave-b-hubeau,155,daaf8f0ab533460c1d50a0d4dbc62194f2d1e205,,Livre dans Wave B. Socle operateur borne + hydrometrie et piezometrie ; unites natives conservees (l/s, mm, m NGF, m) ; aucune interpolation ; PeriodResolver Wave A utilise
+P08,merged,feat/water-intelligence-wave-b-hubeau,155,daaf8f0ab533460c1d50a0d4dbc62194f2d1e205,,Livre dans Wave B. Prelevements (absence de declaration != zero) et qualite des cours d eau (allowlist SANDRE sourcee, aucun classement sanitaire). Qualite des NAPPES hors perimetre : gate non concluant
 P09,merged,feat/water-intelligence-wave-a-eu-connectors,153,e36c97c5b3d1a5724a2288534915b4e8e0232692,,Livre dans Wave A avec BLOCAGE assume et formalise (source_verified_decoder_deferred) : CDI v4.1 verifie mais seuls GeoTIFF et NetCDF sont distribues ; decodage raster refuse sans ADR ; gate + configuration + contrat + tests livres, aucune valeur produite ; arbitrage humain requis
-P10,blocked,feat/water-intelligence-p10-snapshot-read-model,,,,
-P11,blocked,feat/water-intelligence-p11-map,,,,
-P12,blocked,feat/water-intelligence-p12-editorial,,,,
+P10,review,feat/water-intelligence-wave-c-public-data-product,,,,Livre dans Wave C. Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
+P11,review,feat/water-intelligence-wave-c-public-data-product,,,,Livre dans Wave C. Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
+P12,review,feat/water-intelligence-wave-c-public-data-product,,,,Livre dans Wave C. Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
 P13,blocked,feat/water-intelligence-p13-legal-registry,,,,
 P14,blocked,feat/water-intelligence-p14-carbonco-bridges,,,,
 P15,blocked,feat/water-intelligence-p15-financial-bridge,,,,

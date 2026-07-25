@@ -72,12 +72,21 @@ jobs:
       #    Analyse détaillée + date de réévaluation :
       #    docs/carbonco/security/NPM_ADVISORY_GHSA-f88m-g3jw-g9cj.md
       #    À retirer dès que next embarque un sharp>=0.35.0 patché.
+      #  - GHSA-mh99-v99m-4gvg : brace-expansion <=5.0.7 (CVE-2026-14257, DoS par
+      #    épuisement mémoire). Dev-only (eslint/typescript-eslint/vitest coverage)
+      #    sauf un chemin transitif via inngest→OpenTelemetry gcp-metadata, non
+      #    atteignable avec une entrée utilisateur (motifs internes fixes). Testé
+      #    sur PR #156 : overrides.brace-expansion=5.0.8 casse ESLint (rupture
+      #    d'API entre branches majeures — `expand is not a function`). Aucun
+      #    correctif non cassant disponible (seule remédiation npm : eslint@10.8.0,
+      #    majeur). Analyse détaillée + réévaluation (2026-08-08) :
+      #    docs/carbonco/security/NPM_ADVISORY_GHSA-mh99-v99m-4gvg.md
       - name: npm audit (high+critical bloquant, allowlist documentée)
         run: |
           node <<'NODE'
           const { execSync } = require('node:child_process');
           // GHSA explicitement tolérés — voir la justification ci-dessus.
-          const ALLOW = new Set(['GHSA-f88m-g3jw-g9cj']);
+          const ALLOW = new Set(['GHSA-f88m-g3jw-g9cj', 'GHSA-mh99-v99m-4gvg']);
           let out = '{}';
           try { out = execSync('npm audit --json', { encoding: 'utf8' }); }
           catch (e) { out = (e.stdout && e.stdout.toString()) || out; } // npm audit exit!=0 si vulns

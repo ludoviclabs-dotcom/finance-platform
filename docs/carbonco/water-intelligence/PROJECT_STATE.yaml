@@ -1,11 +1,11 @@
 project: carbonco-water-intelligence
-active_prompt: WAVE_B
+active_prompt: WAVE_D
 status: in_progress
 default_branch: master
 private_cockpit_route: /water
 public_intelligence_route: /water-intelligence
-last_merged_prompt: WAVE_A
-next_prompt: WAVE_C
+last_merged_prompt: WAVE_B
+next_prompt: WAVE_E
 migrations_expected: false
 blocking_issues: []
 sources:
@@ -20,6 +20,14 @@ delivered_contracts:
     status: delivered
     delivered_by: WAVE_A
     note: "PeriodResolver injectable (Callable[[ObservationDraft], tuple[date, date]]) sur derive_observations()/run_pipeline(). Resolveur par defaut retrocompatible (period_start == period_end == observed_at.date()). period_start <= period_end verifie de facon generique dans derive_observations(), independamment du resolveur branche. Une erreur ATTENDUE de resolveur leve PipelineDataUnavailableError, capturee et nommee dans le rapport. TOUTE chronique (Hub Eau incluse) doit desormais l utiliser plutot que d encoder la periode dans le metric_code."
+  water_observation_identity:
+    status: delivered
+    delivered_by: WAVE_C
+    note: "WaterObservationIdentity + WaterObservationLedger (services/water_intelligence/observation_identity.py) : identite versionnee incluant la periode, la geographie et le scenario. Methode/version EXCLUES de l identite (decision documentee : une release est immuable, un recalcul de methode y est une incoherence a signaler, pas un fait nouveau). Detection de collision explicite, jamais de premiere valeur gagnante. ObservationDraft.dedup_key() (contrat PR-04 partage avec /materials) N EST PAS modifiee : tout graveur Evidence Kernel doit utiliser cette identite-ci pour une chronique."
+  public_snapshot:
+    status: delivered
+    delivered_by: WAVE_C
+    note: "WaterPublicSnapshot + assemble_public_snapshot + PublicSnapshotLoader. Snapshot VIDE valide et informatif (porte exclusions, decisions, budgets) car aucune source n a de decision humaine active. ETag sur le hash du snapshot. Double barriere licence. Garde-fou anti-tenant sur model_dump, __dict__ et model_extra."
   eea_metric_code:
     status: stable
     note: "Le trimestre EEA n est PLUS stocke dans metric_code : metric_code(scale, facet) est stable et independant de la saison ; la periode vit exclusivement dans period_start/period_end via eea_wei_plus.build_period_resolver(). Le contournement par metric_code est CADUC et ne doit pas etre repris."
@@ -42,13 +50,14 @@ waves:
     merged: true
     pull_request: 154
     merge_sha: a56ab62442e01d4bf1591e7445c8989e994ca623
-    note: "Dossier docs/carbonco/water-intelligence/ux/. NE PAS modifier pendant la Wave B."
+    note: "Dossier docs/carbonco/water-intelligence/ux/. Source de conception de la Wave C ; NE PAS le modifier."
   wave_b:
     name: "Famille Hub'Eau (P07 hydrometrie/piezometrie + P08 prelevements/qualite)"
     branch: feat/water-intelligence-wave-b-hubeau
-    status: open_pr
-    merged: false
-    base_sha: a56ab62442e01d4bf1591e7445c8989e994ca623
+    status: merged
+    merged: true
+    pull_request: 155
+    merge_sha: daaf8f0ab533460c1d50a0d4dbc62194f2d1e205
     delivered:
       - "Socle operateur borne (hubeau_transport.py) : allowlist d hotes, endpoints declares, URL composee jamais recue, champ `next` jamais suivi, filtre geographique et fenetre temporelle obligatoires, profondeur 20 000, budgets pages/octets, timeout, retry borne avec backoff, journal sans secret ni contenu. AUCUN client HTTP importe : le transport reel est injecte (Fetcher), donc aucun appel possible en test ni au runtime."
       - "Hydrometrie et piezometrie : debit (l/s), hauteur (mm), niveau de nappe (m NGF), profondeur (m) restent quatre metriques distinctes ; aucune conversion d unite ; aucune interpolation ; couverture separee de la valeur."
@@ -57,5 +66,12 @@ waves:
   wave_c:
     name: "Produit public (P10 read model + P11 carte + P12 contenus)"
     branch: feat/water-intelligence-wave-c-public-data-product
-    status: not_started
-    note: "Ne pas demarrer avant revue humaine et fusion de la Wave B. Blueprint UX/UI deja fusionne (PR #154, dossier ux/)."
+    status: review
+    merged: false
+    base_sha: daaf8f0ab533460c1d50a0d4dbc62194f2d1e205
+    note: "Blueprint UX/UI fusionne (PR #154, dossier ux/) : source de conception, NE PAS le modifier pendant la Wave C."
+  wave_d:
+    name: "Couche decisionnelle (P13 conformite + P14 synergies + P15 finance)"
+    branch: feat/water-intelligence-wave-d-decision-layer
+    status: ready
+    note: "Ne pas demarrer avant revue humaine et fusion de la Wave C."

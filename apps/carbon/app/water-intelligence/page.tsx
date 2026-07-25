@@ -17,6 +17,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { WiEditorialEmpty } from "@/components/water-intelligence/WiEditorial";
+import {
+  WiCompliancePreview,
+  WiExclusionList,
+  WiFinancialBridgePreview,
+  WiWaterPulse,
+} from "@/components/water-intelligence/WiFoundations";
+import { WiMapFrame } from "@/components/water-intelligence/WiMapFrame";
 import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
 import { WiSnapshotBanner } from "@/components/water-intelligence/WiSnapshotBanner";
 import {
@@ -28,6 +36,8 @@ import {
   WiSection,
 } from "@/components/water-intelligence/WiPrimitives";
 import { FIXTURE_MANIFEST } from "@/lib/water-intelligence/fixture-manifest";
+import { PUBLISHED_EDITORIAL_RECORDS } from "@/lib/water-intelligence/editorial";
+import { EMPTY_SNAPSHOT } from "@/lib/water-intelligence/public-snapshot";
 
 import "./water-intelligence.css";
 
@@ -45,12 +55,20 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Les huit ancres historiques sont GELÉES : elles existent déjà en production
+ * publique et Wave C ne les renomme, ne les réordonne ni n'en supprime aucune.
+ * `#evenements` et `#innovations` sont ajoutées entre `#secteurs` et
+ * `#reglementation` — ajouter une ancre ne casse aucun lien existant.
+ */
 const NAV_ITEMS: readonly WiNavItem[] = [
   { id: "vue-ensemble", label: "Vue d'ensemble" },
   { id: "risques", label: "Comprendre les risques" },
   { id: "carte", label: "Carte et territoires" },
   { id: "sources", label: "Sources et preuves" },
   { id: "secteurs", label: "Secteurs et dépendances" },
+  { id: "evenements", label: "Climat et événements" },
+  { id: "innovations", label: "Innovations et adaptation" },
   { id: "reglementation", label: "Réglementation" },
   { id: "synergies", label: "Synergies Carbon&Co" },
   { id: "limites", label: "Limites et suite" },
@@ -113,6 +131,15 @@ export default function WaterIntelligencePage() {
   const manifest = FIXTURE_MANIFEST;
   const demoObservation = manifest.observations[0];
 
+  /*
+    Snapshot public réel (P10). Il est VIDE : le gate licence exige une
+    décision humaine explicite et revue par source, et aucune n'est active.
+    Cet état est valide — il porte les exclusions et leurs motifs, qui sont de
+    l'information réelle et vérifiable même quand zéro valeur est publiée.
+  */
+  const snapshot = EMPTY_SNAPSHOT;
+  const editorialRecords = PUBLISHED_EDITORIAL_RECORDS;
+
   return (
     <div data-wi>
       <a href="#contenu" className="wi-skip">
@@ -150,6 +177,15 @@ export default function WaterIntelligencePage() {
           </p>
 
           <WiSnapshotBanner manifest={manifest} />
+
+          {/*
+            Water Pulse — état des COUCHES PUBLIÉES, jamais de l'état de l'eau.
+            N'agrège aucune dimension et ne produit aucun score : il compte ce
+            qui est publié et ce qui est écarté, rien d'autre.
+          */}
+          <div style={{ marginTop: "1.25rem" }}>
+            <WiWaterPulse snapshot={snapshot} />
+          </div>
         </header>
 
         {/* --------------------------------------------------- Vue d'ensemble */}
@@ -222,19 +258,34 @@ export default function WaterIntelligencePage() {
             alternative accessible offrant strictement la même information que la carte.
           </p>
 
+          {/*
+            L'explorateur est livré (P11) mais ne monte la carte QUE si des
+            couches sont publiées. Aucune ne l'est : `WiMapFrame` rend alors
+            l'état « aucune couche publiée » plutôt qu'un fond de carte, qui
+            laisserait croire à une couverture nulle au lieu d'une absence de
+            publication.
+          */}
           <div style={{ marginTop: "1.25rem" }}>
-            <WiPlaceholder
-              what="Aucune carte n'est affichée à ce stade. Publier un fond de carte sans données sourcées derrière donnerait une impression de couverture qui n'existe pas encore."
-              plannedIn="P11 — explorateur cartographique, alimenté par le read model P10"
-            >
-              <p className="wi-muted" style={{ fontSize: "0.875rem" }}>
-                Trois échelles sont prévues, chacune avec ses identifiants officiels&nbsp;: monde
-                (géométries très simplifiées), Europe (districts et sous-unités), France (bassins et
-                sous-bassins). La localisation précise d&apos;un site d&apos;entreprise reste
-                réservée au cockpit authentifié et n&apos;apparaîtra jamais ici.
-              </p>
-            </WiPlaceholder>
+            <WiMapFrame
+              snapshot={snapshot}
+              tableColumns={[
+                { key: "territoire", header: "Territoire" },
+                { key: "valeur", header: "Valeur", numeric: true },
+                { key: "periode", header: "Période" },
+                { key: "statut", header: "Statut" },
+                { key: "couverture", header: "Couverture", numeric: true },
+                { key: "source", header: "Source" },
+              ]}
+              tableRows={[]}
+            />
           </div>
+
+          <p className="wi-muted" style={{ marginTop: "1.25rem", fontSize: "0.875rem", maxWidth: "62ch" }}>
+            Trois échelles sont prévues, chacune avec ses identifiants officiels&nbsp;: monde
+            (géométries très simplifiées), Europe (districts et sous-unités), France (bassins et
+            sous-bassins). La localisation précise d&apos;un site d&apos;entreprise reste
+            réservée au cockpit authentifié et n&apos;apparaîtra jamais ici.
+          </p>
         </WiSection>
 
         {/* ------------------------------------------------- Sources et preuves */}
@@ -317,6 +368,23 @@ export default function WaterIntelligencePage() {
               la solidité de la preuve, jamais l&apos;intensité du risque.
             </p>
           </div>
+
+          {/*
+            Sources écartées par le gate licence. Une source écartée sans
+            mention donnerait une fausse impression d'exhaustivité — c'est de
+            l'information réelle, pas un aveu de faiblesse.
+          */}
+          <div style={{ marginTop: "1.5rem" }}>
+            <h3 className="wi-h3">Sources écartées</h3>
+            <p className="wi-muted" style={{ marginTop: "0.375rem", maxWidth: "62ch", fontSize: "0.9375rem" }}>
+              Une source n&apos;est publiable qu&apos;après une décision humaine explicite et
+              revue. Identifier une licence permissive ne suffit pas&nbsp;: c&apos;est une
+              condition, pas une autorisation.
+            </p>
+            <div style={{ marginTop: "0.75rem" }}>
+              <WiExclusionList exclusions={snapshot.exclusions} />
+            </div>
+          </div>
         </WiSection>
 
         {/* ------------------------------------------------ Secteurs (absent) */}
@@ -342,10 +410,36 @@ export default function WaterIntelligencePage() {
           </div>
         </WiSection>
 
+        {/* ------------------------------------ Climat et événements (NOUVEAU) */}
+        <WiSection id="evenements" kicker="06 — Observations" title="Climat et événements">
+          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
+            Un événement porte sa propre date, distincte de la date de publication de sa source,
+            ainsi que son territoire. Aucune causalité climatique n&apos;est déduite&nbsp;: un
+            événement est rapporté, jamais expliqué par cette page.
+          </p>
+
+          <div style={{ marginTop: "1.25rem" }}>
+            <WiEditorialEmpty type="event" />
+          </div>
+        </WiSection>
+
+        {/* ------------------------- Innovations et adaptation (NOUVEAU) */}
+        <WiSection id="innovations" kicker="07 — Adaptation" title="Innovations et adaptation">
+          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
+            Chaque innovation affichera sa maturité, ses arbitrages (énergie, carbone, coût) et ses
+            limites au même niveau que son bénéfice&nbsp;: jamais un gain net sans contrepartie, et
+            aucun volume d&apos;eau économisé sans source.
+          </p>
+
+          <div style={{ marginTop: "1.25rem" }}>
+            <WiEditorialEmpty type="innovation" />
+          </div>
+        </WiSection>
+
         {/* ------------------------------------------ Réglementation (absent) */}
         <WiSection
           id="reglementation"
-          kicker="06 — Conformité"
+          kicker="08 — Conformité"
           title="Réglementation et reporting"
         >
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
@@ -367,10 +461,15 @@ export default function WaterIntelligencePage() {
               </p>
             </WiPlaceholder>
           </div>
+
+          {/* Aperçu non fonctionnel : aucune valeur, aucune date, aucun statut. */}
+          <div style={{ marginTop: "1.25rem" }}>
+            <WiCompliancePreview />
+          </div>
         </WiSection>
 
         {/* --------------------------------------------------------- Synergies */}
-        <WiSection id="synergies" kicker="07 — Articulation" title="Synergies Carbon&amp;Co">
+        <WiSection id="synergies" kicker="09 — Articulation" title="Synergies Carbon&amp;Co">
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
             Cette page publique explique le contexte. Le travail sur vos propres données se fait
             dans les modules authentifiés, qui restent la seule surface où apparaissent des
@@ -400,12 +499,17 @@ export default function WaterIntelligencePage() {
             prévues côté authentifié (P14). Aucune donnée d&apos;entreprise ne remontera jamais dans
             cette page publique.
           </p>
+
+          {/* Aperçu non fonctionnel : aucun montant, aucune probabilité. */}
+          <div style={{ marginTop: "1.25rem" }}>
+            <WiFinancialBridgePreview />
+          </div>
         </WiSection>
 
         {/* ----------------------------------------------------------- Limites */}
         <WiSection
           id="limites"
-          kicker="08 — Honnêteté"
+          kicker="10 — Honnêteté"
           title="Limites, données absentes et prochaines étapes"
         >
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>

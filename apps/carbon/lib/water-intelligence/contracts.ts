@@ -28,6 +28,15 @@ export type WaterDataStatus = z.infer<typeof WaterDataStatusEnum>;
 export const WaterGeographyScopeEnum = z.enum(["world", "europe", "france"]);
 export type WaterGeographyScope = z.infer<typeof WaterGeographyScopeEnum>;
 
+/**
+ * Vocabulaire juridique partagé avec `apps/api/models/water_intelligence.py`.
+ *
+ * `repealed` a été AJOUTÉ en Wave E. Son absence forçait une conversion
+ * destructive : un texte abrogé était publié comme `out_of_scope`, c'est-à-dire
+ * comme un texte en vigueur mais hors du champ du lecteur. Un texte abrogé, lui,
+ * ne redeviendra jamais applicable. La conversion est désormais interdite côté
+ * Python et un test de parité verrouille les deux vocabulaires ensemble.
+ */
 export const WaterLegalStatusEnum = z.enum([
   "in_force",
   "adopted_not_applicable",
@@ -35,10 +44,21 @@ export const WaterLegalStatusEnum = z.enum([
   "transposition_pending",
   "materiality_dependent",
   "voluntary",
+  "repealed",
   "out_of_scope",
   "unknown",
 ]);
 export type WaterLegalStatus = z.infer<typeof WaterLegalStatusEnum>;
+
+/** Nature de la source officielle d'un texte — jamais un portail open data. */
+export const OfficialSourceKindEnum = z.enum([
+  "official_journal",
+  "consolidated_register",
+  "regulator_publication",
+  "standard_setter",
+  "unknown",
+]);
+export type OfficialSourceKind = z.infer<typeof OfficialSourceKindEnum>;
 
 /** Miroir de `models.analytics.MethodRef` — même forme, pas réinventée. */
 export const MethodRefSchema = z.object({
@@ -168,13 +188,36 @@ export const WaterEditorialRecordSchema = z.object({
 });
 export type WaterEditorialRecord = z.infer<typeof WaterEditorialRecordSchema>;
 
+/**
+ * Référence officielle d'un TEXTE DE LOI.
+ *
+ * Distincte de `WaterSourceReferenceSchema`, qui décrit une release de jeu de
+ * données et exige une clé de release, une empreinte SHA-256 de 64 caractères
+ * et une décision de licence. Forcer un article de directive dans cette forme
+ * obligeait à fabriquer trois valeurs pour satisfaire un schéma.
+ *
+ * Tous les champs sont optionnels : un réviseur juridique les renseigne au fil
+ * de son instruction. Une référence incomplète est un état légitime — c'est
+ * l'état de toutes les entrées aujourd'hui.
+ */
+export const OfficialLegalReferenceSchema = z.object({
+  official_url: z.string().url().startsWith("https://").nullable().optional(),
+  publisher: z.string().min(1).nullable().optional(),
+  instrument_identifier: z.string().min(1).nullable().optional(),
+  version_or_consolidation_date: z.string().min(1).nullable().optional(),
+  retrieved_on: z.string().nullable().optional(),
+  jurisdiction: z.string().min(1).nullable().optional(),
+  official_source_kind: OfficialSourceKindEnum.default("unknown"),
+});
+export type OfficialLegalReference = z.infer<typeof OfficialLegalReferenceSchema>;
+
 export const WaterLegalRecordSchema = z.object({
   record_id: z.string().min(1),
   jurisdiction: z.string().min(1),
   reference_text: z.string().min(1),
   version: z.string().min(1),
   legal_status: WaterLegalStatusEnum,
-  source: WaterSourceReferenceSchema,
+  source: OfficialLegalReferenceSchema,
   reviewed_on: z.string(),
   reviewed_by: z.string().min(1),
 });

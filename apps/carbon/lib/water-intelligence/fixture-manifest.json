@@ -1,5 +1,5 @@
 {
-  "manifest_version": "1.0.0",
+  "manifest_version": "1.1.0",
   "generated_at": "2026-01-03T09:00:00Z",
   "fixture_label": "fixture",
   "sources": [
@@ -44,7 +44,9 @@
         "data_status": "fixture",
         "confidence": 50,
         "coverage_pct": 100,
-        "warnings": ["Donnée fixture, jamais une observation réelle."]
+        "warnings": [
+          "Donnée fixture, jamais une observation réelle."
+        ]
       },
       "source": {
         "source_code": "FIXTURE_SOURCE",
@@ -146,24 +148,13 @@
       "version": "0.0.0-fixture",
       "legal_status": "unknown",
       "source": {
-        "source_code": "FIXTURE_SOURCE",
-        "release_key": "fixture-release-v1",
-        "checksum_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-        "published_at": "2026-01-01",
-        "retrieved_at": "2026-01-02",
-        "observed_period_start": "2025-01-01",
-        "observed_period_end": "2025-12-31",
-        "methodology_version": "fixture-1.0.0",
-        "license": {
-          "allow_ingest": true,
-          "allow_store": true,
-          "allow_display": true,
-          "allow_derived_use": true,
-          "reasons": [],
-          "warnings": []
-        },
-        "attribution": "Source fictive de démonstration — jamais une source réelle.",
-        "warnings": []
+        "official_url": null,
+        "publisher": null,
+        "instrument_identifier": null,
+        "version_or_consolidation_date": null,
+        "retrieved_on": null,
+        "jurisdiction": null,
+        "official_source_kind": "unknown"
       },
       "reviewed_on": "2026-01-03",
       "reviewed_by": "fixture-reviewer"

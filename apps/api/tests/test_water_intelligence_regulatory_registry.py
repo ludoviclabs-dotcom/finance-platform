@@ -475,9 +475,20 @@ class TestPublicLegalStatusBridge:
         )
         assert to_public_legal_status(rule) == "voluntary"
 
-    def test_repealed_maps_to_out_of_scope_because_public_vocabulary_lacks_it(self) -> None:
+    def test_repealed_is_preserved_and_never_downgraded(self) -> None:
+        """Corrigé en Wave E (commit E2).
+
+        Ce test assertait auparavant `repealed -> out_of_scope`, faute de
+        `repealed` dans le vocabulaire public. C'était une conversion
+        DESTRUCTIVE : « hors de votre champ » suggère qu'un changement de
+        périmètre pourrait rendre le texte applicable, alors qu'un texte abrogé
+        ne le redeviendra jamais. La valeur a été ajoutée au contrat partagé et
+        la conversion est désormais interdite — couverture détaillée dans
+        `test_water_intelligence_legal_contracts.py`.
+        """
         rule = _verified_rule(legal_status="repealed")
-        assert to_public_legal_status(rule) == "out_of_scope"
+        assert to_public_legal_status(rule) == "repealed"
+        assert to_public_legal_status(rule) != "out_of_scope"
 
     def test_directive_pending_transposition_is_reported_as_such(self) -> None:
         rule = _verified_rule(

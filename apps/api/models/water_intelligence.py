@@ -33,6 +33,7 @@ from typing import Literal
 
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     StrictBool,
     StrictFloat,
@@ -50,9 +51,21 @@ WaterDataStatus = Literal["observed", "modelled", "estimated", "manual", "fixtur
 
 WaterGeographyScope = Literal["world", "europe", "france"]
 
-# Vocabulaire juridique — identique à celui du prompt P13 du pack maître
-# (`docs/carbonco/water-intelligence/prompts/P13_LEGAL_REGISTRY.md`), fixé
-# ici pour que WaterLegalRecord soit prêt sans attendre P13.
+# Vocabulaire juridique — issu du prompt P13 du pack maître
+# (`docs/carbonco/water-intelligence/prompts/P13_LEGAL_REGISTRY.md`), fixé ici
+# pour que WaterLegalRecord soit prêt sans attendre son implémentation.
+#
+# `repealed` a été AJOUTÉ en Wave E. Son absence forçait une conversion
+# destructive : un texte abrogé était publié comme `out_of_scope`, c'est-à-dire
+# comme un texte en vigueur mais hors du champ du lecteur. Les deux situations
+# n'ont ni la même cause ni les mêmes conséquences — un texte abrogé ne
+# redeviendra pas applicable si l'entreprise change de taille. La conversion
+# est désormais interdite et un test l'impose (voir
+# `regulatory_registry.to_public_legal_status`).
+#
+# Ajouter une valeur à ce Literal est un changement de contrat : le miroir
+# TypeScript (`apps/carbon/lib/water-intelligence/contracts.ts`) et les tests
+# de parité doivent être mis à jour dans le MÊME commit.
 WaterLegalStatus = Literal[
     "in_force",
     "adopted_not_applicable",
@@ -60,7 +73,19 @@ WaterLegalStatus = Literal[
     "transposition_pending",
     "materiality_dependent",
     "voluntary",
+    "repealed",
     "out_of_scope",
+    "unknown",
+]
+
+# Nature de la source officielle d'un texte. Volontairement distincte du
+# vocabulaire des jeux de données : un journal officiel n'est pas un portail
+# open data.
+OfficialSourceKind = Literal[
+    "official_journal",  # Journal officiel (UE, national)
+    "consolidated_register",  # Version consolidée (EUR-Lex, Légifrance…)
+    "regulator_publication",  # Publication d'une autorité de régulation
+    "standard_setter",  # Référentiel volontaire (GSSB, CDP, TNFD, SBTN…)
     "unknown",
 ]
 
@@ -228,13 +253,80 @@ class WaterEditorialRecord(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class OfficialLegalReference(BaseModel):
+    """Référence officielle d'un TEXTE DE LOI.
+
+    ## Pourquoi ce contrat existe séparément
+
+    `WaterSourceReference` décrit une release de **jeu de données** : elle exige
+    une `release_key`, un `checksum_sha256` de 64 caractères et une décision de
+    licence. Forcer un texte de loi dans cette forme obligeait à fabriquer une
+    empreinte, une clé de release et une licence de données pour un article de
+    directive — trois inventions pour satisfaire un schéma.
+
+    La Wave D avait signalé cette impédance sans la corriger. Elle l'est ici :
+    un texte de loi a sa propre référence, et rien n'y est fabriqué.
+
+    ## Aucun champ n'est rempli par supposition
+
+    Tous les champs sauf `official_source_kind` sont **optionnels**. Un réviseur
+    juridique les renseigne au fur et à mesure de son instruction ; tant qu'il
+    ne l'a pas fait, ils restent `None` et `official_source_kind` vaut
+    `unknown`. Une référence incomplète est un état légitime — c'est même
+    l'état de toutes les entrées aujourd'hui.
+    """
+
+    #: `extra="forbid"` est délibéré : sans lui, passer une référence de JEU DE
+    #: DONNÉES (clé de release, empreinte, licence) serait silencieusement
+    #: accepté et vidé de tous ses champs. Le contrat doit refuser une forme
+    #: étrangère bruyamment, pas la transformer en référence vide.
+    model_config = ConfigDict(extra="forbid")
+
+    #: URL officielle. `https://` obligatoire quand elle est renseignée.
+    official_url: str | None = None
+    #: Éditeur officiel (Office des publications de l'UE, Légifrance, GSSB…).
+    publisher: str | None = None
+    #: Identifiant de l'instrument (CELEX, NOR, numéro de directive…).
+    instrument_identifier: str | None = None
+    #: Version ou date de consolidation, telle qu'imprimée par l'éditeur.
+    version_or_consolidation_date: str | None = None
+    #: Date à laquelle un humain a effectivement relevé la référence.
+    retrieved_on: date | None = None
+    jurisdiction: str | None = None
+    official_source_kind: OfficialSourceKind = "unknown"
+
+    @model_validator(mode="after")
+    def _url_must_be_https(self) -> "OfficialLegalReference":
+        if self.official_url is not None and not self.official_url.startswith("https://"):
+            raise ValueError(
+                "official_url doit être en https:// — une référence juridique "
+                "servie en clair n'est pas vérifiable."
+            )
+        return self
+
+    @property
+    def is_verified(self) -> bool:
+        """Vrai seulement si un humain a relevé la référence ET l'a datée.
+
+        Une URL sans date de relevé ne dit pas de quand date la lecture ; le
+        droit change, la référence non datée ne prouve rien.
+        """
+        return bool(self.official_url and self.retrieved_on)
+
+
 class WaterLegalRecord(BaseModel):
+    """Enregistrement juridique publiable.
+
+    `source` porte une référence de TEXTE (`OfficialLegalReference`), plus une
+    référence de jeu de données : voir la note de `OfficialLegalReference`.
+    """
+
     record_id: str = Field(min_length=1)
     jurisdiction: str = Field(min_length=1)
     reference_text: str = Field(min_length=1)
     version: str = Field(min_length=1)
     legal_status: WaterLegalStatus
-    source: WaterSourceReference
+    source: OfficialLegalReference
     reviewed_on: date
     reviewed_by: str = Field(min_length=1)
 

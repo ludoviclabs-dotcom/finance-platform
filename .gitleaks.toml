@@ -41,6 +41,18 @@ regexes = [
   # étroit : seules les valeurs de la forme `v<1|2>/<nom_de_service>` affectées à
   # `api_path` sont couvertes, rien d'autre.
   '''api_path"?\s*[:=]\s*"v[12]/[a-z_]+"''',
+  # Tests Water Intelligence (Wave C, apps/api/tests/test_water_intelligence_*.py) :
+  # `release_key` est le nom réel du champ `WaterSourceReference` (contrat P02) —
+  # le renommer romprait ce contrat. Les valeurs sont des clés de release de
+  # FIXTURE, lisibles et sans secret ("eea-wei-plus-2023-fixture",
+  # "hubeau-hydro-2026-01", "aqueduct-4-0-fixture"…), qui matchent
+  # generic-api-key uniquement à cause du suffixe "_key" et d'une entropie de
+  # 3.6-3.9, juste au-dessus du seuil de 3.5. Les occurrences de HEAD passent
+  # déjà par des constantes nommées ; cette entrée couvre les commits antérieurs
+  # de la PR, que gitleaks scanne aussi et qu'un correctif en avant ne peut pas
+  # nettoyer. Motif volontairement étroit : seules les clés de release des
+  # fixtures Water Intelligence sont couvertes.
+  '''release_key="(?:eea-wei-plus|hubeau-|aqueduct-|bnpe-)[A-Za-z0-9._-]*"''',
 ]
 paths = [
   # Scénarios de démonstration produit : données entièrement fictives, jamais de

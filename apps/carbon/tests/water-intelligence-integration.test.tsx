@@ -92,15 +92,28 @@ describe("contenus éditoriaux", () => {
   });
 });
 
-describe("previews Wave D", () => {
-  it("rend les deux aperçus", () => {
-    expect(visible).toContain("Cockpit de conformité");
-    expect(visible).toContain("Passerelle financière");
+describe("Wave D — registre livré, passerelle financière encore en aperçu", () => {
+  /*
+   * Commit D1 : l'aperçu « Cockpit de conformité » a été REMPLACÉ par le
+   * registre juridique réel, conformément à la consigne « remplacer, pas
+   * compléter ». L'assertion correspondante a donc été retirée en connaissance
+   * de cause et remplacée par celle du registre. L'aperçu P15 reste un aperçu
+   * jusqu'à ce que le commit D3 le remplace à son tour.
+   */
+  it("rend le registre juridique réel en section Réglementation", () => {
+    expect(visible).toContain("Registre juridique");
+    expect(visible).toContain("Aucun texte instruit");
+    expect(visible).toContain("Droit contraignant");
+    expect(visible).toContain("Référentiels volontaires");
   });
 
-  it("les étiquette comme aperçus non fonctionnels", () => {
+  it("ne présente plus la conformité comme un aperçu", () => {
+    expect(visible).not.toContain("Cockpit de conformité");
+  });
+
+  it("conserve l'aperçu financier étiqueté comme tel", () => {
+    expect(visible).toContain("Passerelle financière");
     expect(visible).toContain("Aperçu");
-    expect(visible).toContain("P13");
     expect(visible).toContain("P15");
   });
 });

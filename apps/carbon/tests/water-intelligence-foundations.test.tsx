@@ -18,7 +18,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   WiAccessibleDataTable,
-  WiCompliancePreview,
   WiExclusionList,
   WiFinancialBridgePreview,
   WiLegend,
@@ -321,10 +320,16 @@ describe("WiExclusionList", () => {
 
 /* --------------------------------------------------------- Previews */
 
-describe("previews Wave D", () => {
-  const html = `${renderToStaticMarkup(<WiCompliancePreview />)}${renderToStaticMarkup(
-    <WiFinancialBridgePreview />,
-  )}`;
+/*
+ * Wave D, commit D1 : `WiCompliancePreview` a été SUPPRIMÉE et remplacée par le
+ * registre juridique réel (`WiRegulatory.tsx`), couvert par
+ * `tests/water-intelligence-regulatory.test.tsx`. Les assertions « aucun
+ * chiffre / aucune date » ne s'appliquent donc plus qu'à l'aperçu financier,
+ * qui reste un aperçu jusqu'à ce que P15 le remplace à son tour. Retrait
+ * assumé, conformément à la consigne « remplacer, pas compléter ».
+ */
+describe("aperçu Wave D restant (P15)", () => {
+  const html = renderToStaticMarkup(<WiFinancialBridgePreview />);
 
   it("ne rend aucun chiffre", () => {
     const text = html.replace(/<[^>]+>/g, " ");

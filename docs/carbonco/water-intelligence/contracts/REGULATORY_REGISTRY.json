@@ -1,0 +1,207 @@
+{
+  "registry_version": "2026.07-D1",
+  "rules": [
+    {
+      "criteria": [
+        "framework_voluntarily_adopted"
+      ],
+      "instrument_kind": "voluntary_framework",
+      "is_binding": false,
+      "jurisdiction": "INTERNATIONAL",
+      "legal_status": "unknown",
+      "missing_fields": [
+        "source",
+        "human_review",
+        "legal_status",
+        "application"
+      ],
+      "notes": "Référentiel volontaire, souvent demandé par un donneur d'ordre ou un investisseur. Une demande contractuelle n'est pas une obligation légale : la distinction est portée par `instrument_kind`.",
+      "public_legal_status": "unknown",
+      "rule_id": "CDP_WATER",
+      "text_reference": "Questionnaire CDP — millésime à vérifier auprès du CDP",
+      "text_version": "to-verify",
+      "title": "CDP — questionnaire sécurité de l'eau",
+      "transposition_status": "not_applicable"
+    },
+    {
+      "criteria": [
+        "undertaking_in_reporting_scope"
+      ],
+      "instrument_kind": "directive",
+      "is_binding": true,
+      "jurisdiction": "EU",
+      "legal_status": "unknown",
+      "missing_fields": [
+        "source",
+        "human_review",
+        "legal_status",
+        "application",
+        "transposition"
+      ],
+      "notes": "Directive : l'échéance de transposition et l'état de transposition nationale doivent être vérifiés pays par pays. Le calendrier d'application a fait l'objet de modifications successives — aucune date n'est reprise ici sans relevé officiel daté.",
+      "public_legal_status": "unknown",
+      "rule_id": "EU_CSRD",
+      "text_reference": "À vérifier auprès d'EUR-Lex (numéro et version consolidée)",
+      "text_version": "to-verify",
+      "title": "Directive sur la publication d'informations en matière de durabilité (CSRD)",
+      "transposition_status": "unknown"
+    },
+    {
+      "criteria": [
+        "undertaking_in_reporting_scope",
+        "water_topic_material"
+      ],
+      "instrument_kind": "delegated_act",
+      "is_binding": true,
+      "jurisdiction": "EU",
+      "legal_status": "unknown",
+      "missing_fields": [
+        "source",
+        "human_review",
+        "legal_status",
+        "application"
+      ],
+      "notes": "ESRS E3 (eau et ressources marines) est le point d'ancrage du chantier ; E2 (pollution) et E4 (biodiversité) lui sont liés. L'obligation de publier E3 dépend de l'évaluation de double matérialité de l'entité : le moteur rend `conditional` tant que cette évaluation n'est pas tranchée, jamais `in_scope` par défaut.",
+      "public_legal_status": "unknown",
+      "rule_id": "EU_ESRS_SET",
+      "text_reference": "Acte délégué ESRS — référence et version à vérifier auprès d'EUR-Lex",
+      "text_version": "to-verify",
+      "title": "Normes européennes d'information en durabilité (ESRS 2, E1-E5 dont E2, E3, E4)",
+      "transposition_status": "unknown"
+    },
+    {
+      "criteria": [
+        "undertaking_in_reporting_scope"
+      ],
+      "instrument_kind": "regulation",
+      "is_binding": true,
+      "jurisdiction": "EU",
+      "legal_status": "unknown",
+      "missing_fields": [
+        "source",
+        "human_review",
+        "legal_status",
+        "application"
+      ],
+      "notes": "Règlement : directement applicable, aucune transposition. Le critère « utilisation durable et protection des ressources aquatiques et marines » et les critères DNSH associés sont à instruire par un réviseur — aucun seuil n'est encodé ici.",
+      "public_legal_status": "unknown",
+      "rule_id": "EU_TAXONOMY",
+      "text_reference": "À vérifier auprès d'EUR-Lex (règlement et actes délégués)",
+      "text_version": "to-verify",
+      "title": "Règlement Taxonomie et actes délégués associés",
+      "transposition_status": "not_applicable"
+    },
+    {
+      "criteria": [
+        "undertaking_in_reporting_scope"
+      ],
+      "instrument_kind": "directive",
+      "is_binding": true,
+      "jurisdiction": "EU",
+      "legal_status": "unknown",
+      "missing_fields": [
+        "source",
+        "human_review",
+        "legal_status",
+        "application",
+        "transposition"
+      ],
+      "notes": "Famille de textes, pas un texte unique : la directive-cadre, les directives filles et les listes de substances doivent être instruites séparément et versionnées séparément dès qu'un réviseur est désigné. Aucune conclusion de conformité n'est produite ailleurs que sur cette surface P13 — les connecteurs Hub'Eau n'en portent aucune, et un test AST le vérifie côté qualité.",
+      "public_legal_status": "unknown",
+      "rule_id": "EU_WATER_LAW",
+      "text_reference": "À vérifier auprès d'EUR-Lex (directive-cadre et directives filles)",
+      "text_version": "to-verify",
+      "title": "Droit européen de l'eau et des polluants (cadre, eaux souterraines, substances)",
+      "transposition_status": "unknown"
+    },
+    {
+      "criteria": [
+        "undertaking_in_reporting_scope"
+      ],
+      "instrument_kind": "national_law",
+      "is_binding": true,
+      "jurisdiction": "FR",
+      "legal_status": "unknown",
+      "missing_fields": [
+        "source",
+        "human_review",
+        "legal_status",
+        "application"
+      ],
+      "notes": "Entrée volontairement vide de contenu normatif : la consigne du MACRO-PROMPT D limite la France aux textes officiels vérifiés. Aucun n'a été relevé. Cette entrée existe pour que l'absence soit visible dans la matrice, pas pour suggérer une obligation.",
+      "public_legal_status": "unknown",
+      "rule_id": "FR_NATIONAL",
+      "text_reference": "À vérifier auprès de Légifrance",
+      "text_version": "to-verify",
+      "title": "Textes nationaux français applicables (à instruire)",
+      "transposition_status": "unknown"
+    },
+    {
+      "criteria": [
+        "framework_voluntarily_adopted"
+      ],
+      "instrument_kind": "voluntary_framework",
+      "is_binding": false,
+      "jurisdiction": "INTERNATIONAL",
+      "legal_status": "unknown",
+      "missing_fields": [
+        "source",
+        "human_review",
+        "legal_status",
+        "application"
+      ],
+      "notes": "Référentiel volontaire : n'oblige personne, ne se transpose pas.",
+      "public_legal_status": "unknown",
+      "rule_id": "GRI_303",
+      "text_reference": "Référentiel GRI — version à vérifier auprès du GSSB",
+      "text_version": "to-verify",
+      "title": "GRI 303 — Eau et effluents",
+      "transposition_status": "not_applicable"
+    },
+    {
+      "criteria": [
+        "framework_voluntarily_adopted"
+      ],
+      "instrument_kind": "voluntary_framework",
+      "is_binding": false,
+      "jurisdiction": "INTERNATIONAL",
+      "legal_status": "unknown",
+      "missing_fields": [
+        "source",
+        "human_review",
+        "legal_status",
+        "application"
+      ],
+      "notes": "Référentiel volontaire, méthodologie en évolution.",
+      "public_legal_status": "unknown",
+      "rule_id": "SBTN",
+      "text_reference": "Méthodes SBTN — version à vérifier auprès du SBTN",
+      "text_version": "to-verify",
+      "title": "SBTN — objectifs fondés sur la science pour la nature (eau douce)",
+      "transposition_status": "not_applicable"
+    },
+    {
+      "criteria": [
+        "framework_voluntarily_adopted"
+      ],
+      "instrument_kind": "voluntary_framework",
+      "is_binding": false,
+      "jurisdiction": "INTERNATIONAL",
+      "legal_status": "unknown",
+      "missing_fields": [
+        "source",
+        "human_review",
+        "legal_status",
+        "application"
+      ],
+      "notes": "Le module `/nature` du dépôt implémente déjà une approche LEAP : toute articulation avec cette entrée doit passer par la matrice du handoff, jamais par une conclusion de conformité rendue dans `/nature`.",
+      "public_legal_status": "unknown",
+      "rule_id": "TNFD_LEAP",
+      "text_reference": "Recommandations TNFD — version à vérifier auprès de la TNFD",
+      "text_version": "to-verify",
+      "title": "TNFD — recommandations et approche LEAP",
+      "transposition_status": "not_applicable"
+    }
+  ],
+  "verified_rule_count": 0
+}

@@ -326,21 +326,16 @@ export function WiPreviewCard({
   );
 }
 
-export function WiCompliancePreview() {
-  return (
-    <WiPreviewCard
-      kicker="Aperçu"
-      title="Cockpit de conformité"
-      deliveredBy="P13 (Wave D)"
-      describes={[
-        "Registre juridique versionné, chaque règle portant sa juridiction et sa source",
-        "Statuts limités à in_scope / out_of_scope / conditional / unknown",
-        "Un champ manquant produit unknown, jamais une conclusion",
-        "Aucun conseil juridique, aucune date figée dans l’interface",
-      ]}
-    />
-  );
-}
+/*
+ * `WiCompliancePreview` a été SUPPRIMÉE par la Wave D (commit D1), pas
+ * complétée : la consigne du MACRO-PROMPT D est explicite — les previews
+ * C15/C16 doivent être remplacées. Le registre juridique réel est rendu par
+ * `WiRegulatory.tsx::WiRegulatoryRegistry`, alimenté par le registre versionné
+ * du backend. Les tests qui interdisaient à cet aperçu de rendre un chiffre ou
+ * une date ont été retirés en connaissance de cause : ils décrivaient un
+ * composant qui n'existe plus, et le composant qui le remplace affiche
+ * légitimement une version de registre.
+ */
 
 export function WiFinancialBridgePreview() {
   return (

@@ -86,10 +86,16 @@ export default function WaterDecisionPage() {
   return (
     <div className="mx-auto max-w-6xl p-4 sm:p-6" data-testid="wd-page">
       {/* ------------------------------------------------------------- Hero */}
+      {/*
+        `h2` et non `h1` : l'en-tête du groupe `(app)` rend déjà un `h1` portant
+        le titre de la page (`components/layout/header.tsx`). Un second `h1`
+        dans le corps annoncerait deux titres de premier niveau au lecteur
+        d'écran, pour un seul document — et ici, avec le même texte.
+      */}
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--color-foreground)]">
+        <h2 className="text-2xl font-bold text-[var(--color-foreground)]">
           Cockpit décisionnel hydrique
-        </h1>
+        </h2>
         <p className="mt-2 max-w-[62ch] text-sm text-[var(--color-foreground-muted)]">
           Rassembler, sur un même écran, ce que les modules savent déjà de votre exposition à l’eau,
           puis chiffrer un scénario financier à partir d’hypothèses que vous déclarez. Les six
@@ -100,10 +106,17 @@ export default function WaterDecisionPage() {
           <WdAvailabilityLine states={states} />
         </div>
 
+        {/*
+          Lien en couleur de texte courante, souligné. `--color-success` sur le
+          fond clair donne 3,77:1 — sous le seuil AA de 4,5:1 pour du texte
+          normal, et le lien serait le seul élément à en pâtir. Le soulignement
+          porte déjà la nature du lien : la couleur n'ajoutait rien qu'elle ne
+          dise, et lui coûtait sa lisibilité.
+        */}
         <p className="mt-3 text-sm">
           <Link
             href="/water"
-            className="text-[var(--color-success)] underline underline-offset-2"
+            className="text-[var(--color-foreground)] underline underline-offset-2"
             data-testid="wd-back-to-water"
           >
             Retour au cockpit Eau &amp; stress hydrique
@@ -113,12 +126,12 @@ export default function WaterDecisionPage() {
 
       {/* -------------------------------------------------- Synthèse facettes */}
       <section aria-labelledby="wd-synthese-titre" className="mb-8">
-        <h2
+        <h3
           id="wd-synthese-titre"
           className="text-lg font-semibold text-[var(--color-foreground)]"
         >
           Synthèse à six facettes
-        </h2>
+        </h3>
         <p className="mb-4 mt-1 max-w-[62ch] text-sm text-[var(--color-foreground-muted)]">
           Chaque facette affiche son propre état. Une facette sans donnée n’est pas un risque nul,
           et une facette qui n’a pas pu être interrogée n’est pas une facette vide.

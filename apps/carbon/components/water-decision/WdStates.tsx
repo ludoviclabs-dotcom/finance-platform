@@ -41,9 +41,9 @@ function StateNotice({
     neutral:
       "border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-foreground-muted)]",
     warning:
-      "border-[var(--color-warning)]/40 bg-[var(--color-warning-bg)] text-[var(--color-warning)]",
+      "border-[var(--color-warning)]/40 bg-[var(--color-warning-bg)] text-[var(--color-warning-strong)]",
     danger:
-      "border-[var(--color-danger)]/40 bg-[var(--color-danger-bg)] text-[var(--color-danger)]",
+      "border-[var(--color-danger)]/40 bg-[var(--color-danger-bg)] text-[var(--color-danger-strong)]",
   }[tone];
 
   return (
@@ -139,7 +139,7 @@ function WdFacetEntries({
     <div data-testid={`wd-facet-${summary.facet}-available`}>
       {warning && (
         <p
-          className="mb-3 rounded-[var(--radius)] border border-[var(--color-warning)]/40 bg-[var(--color-warning-bg)] p-2 text-[0.8125rem] text-[var(--color-warning)]"
+          className="mb-3 rounded-[var(--radius)] border border-[var(--color-warning)]/40 bg-[var(--color-warning-bg)] p-2 text-[0.8125rem] text-[var(--color-warning-strong)]"
           data-testid={`wd-facet-${summary.facet}-mixed-vocabularies`}
         >
           {warning}
@@ -201,9 +201,9 @@ export function WdFacetCard({ facet, state }: { facet: WiFacetKind; state: WdFac
       data-facet-state={state.kind}
       className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
     >
-      <h3 id={headingId} className="text-base font-semibold text-[var(--color-foreground)]">
+      <h4 id={headingId} className="text-base font-semibold text-[var(--color-foreground)]">
         {FACET_LABELS[facet]}
-      </h3>
+      </h4>
       <p className="mb-3 mt-1 text-xs leading-relaxed text-[var(--color-foreground-muted)]">
         {FACET_HINTS[facet]}
       </p>

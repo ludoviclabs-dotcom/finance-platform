@@ -244,6 +244,27 @@ export const PROVENANCE_LABELS: Record<WiInputProvenance, string> = {
 const DECIMAL = /^-?\d+(?:[.,]\d+)?$/;
 const YEAR = /^\d{4}$/;
 
+/*
+  Bornes ALIGNÉES sur le contrat serveur (`models/water_intelligence_api.py`) :
+  `base_year`/`horizon_year` sont `ge=1900, le=2200`, et
+  `sensitivity_variation_pct` est `gt=0, le=100`.
+
+  F5 : la validation locale acceptait « 150 % » ou l'an 0042 et laissait le
+  serveur répondre 422. Or l'intérêt de valider ici est précisément d'éviter
+  l'aller-retour — une borne côté client plus large que celle du serveur
+  transforme une erreur de saisie en erreur réseau.
+*/
+const MIN_YEAR = 1900;
+const MAX_YEAR = 2200;
+const MAX_VARIATION_PCT = 100;
+const YEAR_MESSAGE = `Année sur quatre chiffres, entre ${MIN_YEAR} et ${MAX_YEAR}.`;
+
+function isYearInRange(raw: string): boolean {
+  if (!YEAR.test(raw)) return false;
+  const year = Number(raw);
+  return year >= MIN_YEAR && year <= MAX_YEAR;
+}
+
 /**
  * Normalise le séparateur décimal sans rien recalculer.
  *
@@ -404,12 +425,12 @@ export function validateScenarioDraft(draft: ScenarioDraft): ValidationResult {
 
   const baseYear = draft.base_year.trim();
   if (baseYear === "") errors.base_year = "L’année de référence est obligatoire.";
-  else if (!YEAR.test(baseYear)) errors.base_year = "Année sur quatre chiffres attendue.";
+  else if (!isYearInRange(baseYear)) errors.base_year = YEAR_MESSAGE;
 
   const horizonYear = draft.horizon_year.trim();
   if (horizonYear === "") errors.horizon_year = "L’horizon est obligatoire.";
-  else if (!YEAR.test(horizonYear)) errors.horizon_year = "Année sur quatre chiffres attendue.";
-  else if (YEAR.test(baseYear) && Number(horizonYear) < Number(baseYear)) {
+  else if (!isYearInRange(horizonYear)) errors.horizon_year = YEAR_MESSAGE;
+  else if (isYearInRange(baseYear) && Number(horizonYear) < Number(baseYear)) {
     errors.horizon_year = "L’horizon ne peut pas précéder l’année de référence.";
   }
 
@@ -419,8 +440,11 @@ export function validateScenarioDraft(draft: ScenarioDraft): ValidationResult {
       "L’amplitude de sensibilité est obligatoire — aucune amplitude n’est suggérée.";
   } else if (!isDecimalString(variation)) {
     errors.sensitivity_variation_pct = "Amplitude décimale attendue (point ou virgule).";
-  } else if (Number(normalizeDecimal(variation)) <= 0) {
-    errors.sensitivity_variation_pct = "L’amplitude doit être strictement positive.";
+  } else {
+    const amplitude = Number(normalizeDecimal(variation));
+    if (amplitude <= 0 || amplitude > MAX_VARIATION_PCT) {
+      errors.sensitivity_variation_pct = `L’amplitude doit être strictement positive et au plus ${MAX_VARIATION_PCT} %.`;
+    }
   }
 
   const signals = parseSignals(draft.signals);

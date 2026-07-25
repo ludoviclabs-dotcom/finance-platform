@@ -108,7 +108,7 @@ export function WdStepper({ current }: { current: number }) {
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <p id={id} className="mt-1 text-xs text-[var(--color-danger)]" data-testid={`wd-error-${id}`}>
+    <p id={id} className="mt-1 text-xs text-[var(--color-danger-strong)]" data-testid={`wd-error-${id}`}>
       {message}
     </p>
   );
@@ -219,8 +219,10 @@ export function WdQuantityField({
     >
       <legend className="px-1 text-sm font-medium text-[var(--color-foreground)]">
         {meta.label} <span className="font-normal text-[var(--color-foreground-muted)]">({meta.unitLabel})</span>
+        {/* Le mot porte l'information ; la teinte rouge ne faisait que la
+            répéter, et à 3,03:1 sur la surface sombre elle la répétait mal. */}
         {meta.required ? (
-          <span className="text-[var(--color-danger)]"> — obligatoire</span>
+          <span className="font-semibold text-[var(--color-foreground)]"> — obligatoire</span>
         ) : (
           <span className="text-[var(--color-foreground-muted)]"> — facultatif</span>
         )}
@@ -352,9 +354,9 @@ export function WdResultPanel({
       data-result-state={state.kind}
       className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
     >
-      <h3 id="wd-resultat-titre" className="text-base font-semibold text-[var(--color-foreground)]">
+      <h4 id="wd-resultat-titre" className="text-base font-semibold text-[var(--color-foreground)]">
         Résultat
-      </h3>
+      </h4>
 
       {state.kind === "idle" && (
         <p className="mt-2 text-sm text-[var(--color-foreground-muted)]">
@@ -368,7 +370,7 @@ export function WdResultPanel({
       )}
 
       {state.kind === "access_denied" && (
-        <p className="mt-2 text-sm text-[var(--color-warning)]">
+        <p className="mt-2 text-sm text-[var(--color-warning-strong)]">
           {state.status === 401
             ? "Session expirée — reconnectez-vous avant de relancer le calcul."
             : "Ce compte n’est pas autorisé à évaluer un scénario."}
@@ -376,14 +378,14 @@ export function WdResultPanel({
       )}
 
       {state.kind === "schema_unavailable" && (
-        <p className="mt-2 text-sm text-[var(--color-warning)]">
+        <p className="mt-2 text-sm text-[var(--color-warning-strong)]">
           Schéma non disponible sur cet environnement&nbsp;: le moteur n’a pas pu être interrogé.
           Ce n’est pas un résultat nul.
         </p>
       )}
 
       {state.kind === "unexpected_error" && (
-        <p className="mt-2 text-sm text-[var(--color-danger)]">
+        <p className="mt-2 text-sm text-[var(--color-danger-strong)]">
           Erreur inattendue&nbsp;: {state.message}. Aucun résultat n’est affiché — une erreur n’est
           pas une absence de risque.
         </p>
@@ -433,9 +435,9 @@ function WdResultBody({
       </div>
 
       <div>
-        <h4 className="text-sm font-semibold text-[var(--color-foreground)]">
+        <h5 className="text-sm font-semibold text-[var(--color-foreground)]">
           Sensibilités — la valeur centrale ne se lit pas seule
-        </h4>
+        </h5>
         {response.sensitivities.length === 0 ? (
           <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
             Le moteur n’a renvoyé aucune bande de sensibilité.
@@ -473,7 +475,7 @@ function WdResultBody({
       </div>
 
       <div>
-        <h4 className="text-sm font-semibold text-[var(--color-foreground)]">Composantes</h4>
+        <h5 className="text-sm font-semibold text-[var(--color-foreground)]">Composantes</h5>
         <ul className="mt-1 space-y-1 text-sm">
           {Object.entries(response.components).map(([key, component]) => (
             <li key={key} className="text-[var(--color-foreground-muted)]">
@@ -491,9 +493,9 @@ function WdResultBody({
       {/* Les hypothèses restent SOUS le résultat : un chiffre séparé de ses
           hypothèses circule tout seul, et c'est ainsi qu'il devient un fait. */}
       <div>
-        <h4 className="text-sm font-semibold text-[var(--color-foreground)]">
+        <h5 className="text-sm font-semibold text-[var(--color-foreground)]">
           Hypothèses de ce résultat
-        </h4>
+        </h5>
         <div className="mt-2">
           <WdReviewTable rows={rows} />
         </div>
@@ -501,9 +503,9 @@ function WdResultBody({
 
       {response.signals.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-[var(--color-foreground)]">
+          <h5 className="text-sm font-semibold text-[var(--color-foreground)]">
             Signaux déclarés (repris tels quels)
-          </h4>
+          </h5>
           <ul className="mt-1 list-disc pl-5 text-sm text-[var(--color-foreground-muted)]">
             {response.signals.map((signal, index) => (
               <li key={`${signal}-${index}`}>{signal}</li>
@@ -521,9 +523,9 @@ function WdResultBody({
 export function WdAccountingQuestions() {
   return (
     <div data-testid="wd-accounting-questions">
-      <h4 className="text-sm font-semibold text-[var(--color-foreground)]">
+      <h5 className="text-sm font-semibold text-[var(--color-foreground)]">
         Questions comptables à examiner
-      </h4>
+      </h5>
       <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
         Le moteur signale des questions&nbsp;; il ne tranche rien et n’écrit aucune écriture
         comptable. Chaque point ci-dessous relève d’un acte humain.
@@ -608,14 +610,14 @@ export function WdScenarioCalculator() {
 
   return (
     <section aria-labelledby="wd-calculateur-titre" data-testid="wd-calculator">
-      <h2
+      <h3
         id="wd-calculateur-titre"
         ref={headingRef}
         tabIndex={-1}
         className="text-lg font-semibold text-[var(--color-foreground)]"
       >
         Calculateur de scénario financier
-      </h2>
+      </h3>
       <p className="mt-1 max-w-[62ch] text-sm text-[var(--color-foreground-muted)]">
         Formulaire vierge&nbsp;: aucune valeur, aucun taux et aucune probabilité ne sont proposés.
         Rien n’est enregistré, et le calcul ne part qu’au clic.
@@ -633,10 +635,10 @@ export function WdScenarioCalculator() {
             aria-labelledby="wd-erreurs-titre"
             className="mt-4 rounded-[var(--radius)] border border-[var(--color-danger)]/40 bg-[var(--color-danger-bg)] p-3"
           >
-            <p id="wd-erreurs-titre" className="text-sm font-semibold text-[var(--color-danger)]">
+            <p id="wd-erreurs-titre" className="text-sm font-semibold text-[var(--color-danger-strong)]">
               {errorList.length} point(s) à corriger avant de calculer
             </p>
-            <ul className="mt-1 list-disc pl-5 text-xs text-[var(--color-danger)]">
+            <ul className="mt-1 list-disc pl-5 text-xs text-[var(--color-danger-strong)]">
               {errorList.map(([key, message]) => (
                 <li key={key}>{message}</li>
               ))}
@@ -744,9 +746,9 @@ export function WdScenarioCalculator() {
                 <WdReviewTable rows={rows} />
 
                 <div data-testid="wd-review-warnings">
-                  <h3 className="text-sm font-semibold text-[var(--color-foreground)]">
+                  <h5 className="text-sm font-semibold text-[var(--color-foreground)]">
                     Avertissements
-                  </h3>
+                  </h5>
                   <ul className="mt-1 list-disc pl-5 text-sm text-[var(--color-foreground-muted)]">
                     {warnings.map((warning) => (
                       <li key={warning}>{warning}</li>
@@ -782,7 +784,7 @@ export function WdScenarioCalculator() {
             ) : (
               <button
                 type="submit"
-                className="rounded-[var(--radius)] border border-[var(--color-ring)] bg-[var(--color-success-bg)] px-3 py-2 text-sm font-semibold text-[var(--color-success)] transition-colors duration-150 motion-reduce:transition-none"
+                className="rounded-[var(--radius)] border border-[var(--color-ring)] bg-[var(--color-success-bg)] px-3 py-2 text-sm font-semibold text-[var(--color-success-strong)] transition-colors duration-150 motion-reduce:transition-none"
                 data-testid="wd-submit"
               >
                 Calculer

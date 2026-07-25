@@ -121,9 +121,11 @@ describe("validation des réponses", () => {
 
   it("valide le registre juridique public", async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse(REGULATORY_REGISTRY));
-    const registry = await fetchPublicRegulatoryRegistry();
-    expect(registry.verified_rule_count).toBe(0);
-    expect(registry.rules.length).toBe(9);
+    const result = await fetchPublicRegulatoryRegistry();
+    expect(result.kind).toBe("fresh");
+    if (result.kind !== "fresh") throw new Error("lecture fraîche attendue");
+    expect(result.registry.verified_rule_count).toBe(0);
+    expect(result.registry.rules.length).toBe(9);
   });
 
   it("lève si le registre est hors contrat", async () => {

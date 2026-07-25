@@ -28,10 +28,17 @@
  *
  * ## ETag et 304
  *
- * Le snapshot public est le seul endpoint du produit à servir un validateur.
- * Le client le mémorise et le renvoie en `If-None-Match` : sur 304, le corps
- * est vide, et c'est la charge PRÉCÉDENTE qui reste valide. Retourner `null`
- * sur un 304 serait un contresens — 304 signifie « inchangé », pas « absent ».
+ * Les DEUX endpoints publics servent un validateur faible et honorent
+ * `If-None-Match` (`routers/water_intelligence.py`). Le client les mémorise et
+ * les renvoie : sur 304, le corps est vide, et c'est la charge PRÉCÉDENTE qui
+ * reste valide. Retourner `null` sur un 304 serait un contresens — 304 signifie
+ * « inchangé », pas « absent ».
+ *
+ * Corrigé en F5 : ce module affirmait que le snapshot était « le seul endpoint
+ * du produit à servir un validateur », et le client du registre juridique
+ * traitait donc un 304 comme n'importe quel statut non-2xx — c'est-à-dire en
+ * levant `API 304 on /water-intelligence/regulatory-registry`. Une réponse
+ * parfaitement valide devenait une erreur.
  */
 
 import { z } from "zod";
@@ -306,17 +313,40 @@ export async function fetchPublicSnapshot(
   return { kind: "fresh", envelope, etag: res.headers.get("etag") };
 }
 
-/** Lit le registre juridique public. **Aucune authentification.** */
+/** Résultat d'une lecture conditionnelle du registre juridique. */
+export type RegistryFetchResult =
+  | { readonly kind: "fresh"; readonly registry: WiPublicRegistry; readonly etag: string | null }
+  | { readonly kind: "not-modified"; readonly etag: string | null };
+
+/**
+ * Lit le registre juridique public. **Aucune authentification.**
+ *
+ * Même lecture conditionnelle que le snapshot : l'endpoint sert un ETag et
+ * répond 304 sur `If-None-Match`. Sans `knownEtag`, la lecture est
+ * inconditionnelle et rend toujours `kind: "fresh"`.
+ */
 export async function fetchPublicRegulatoryRegistry(
-  signal?: AbortSignal,
-): Promise<WiPublicRegistry> {
+  options: { knownEtag?: string | null; signal?: AbortSignal } = {},
+): Promise<RegistryFetchResult> {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (options.knownEtag) headers["If-None-Match"] = options.knownEtag;
+
   const res = await fetch(`${API_BASE_URL}${PUBLIC_REGISTRY_PATH}`, {
     method: "GET",
-    headers: { Accept: "application/json" },
-    signal,
+    headers,
+    signal: options.signal,
   });
+
+  if (res.status === 304) {
+    return { kind: "not-modified", etag: res.headers.get("etag") ?? options.knownEtag ?? null };
+  }
   await assertOk(res, PUBLIC_REGISTRY_PATH);
-  return parseOrThrow(WiPublicRegistrySchema, await res.json(), PUBLIC_REGISTRY_PATH);
+  const registry = parseOrThrow(
+    WiPublicRegistrySchema,
+    await res.json(),
+    PUBLIC_REGISTRY_PATH,
+  );
+  return { kind: "fresh", registry, etag: res.headers.get("etag") };
 }
 
 /* ---------------------------------------------------- Surfaces authentifiées */

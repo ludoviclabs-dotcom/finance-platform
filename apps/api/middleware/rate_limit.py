@@ -66,6 +66,12 @@ RULES: dict[str, RateRule] = {
     # Évaluation financière : calcul pur mais non trivial (sensibilités), et
     # authentifiée — portée utilisateur, pas IP.
     "/water/financial-scenarios": RateRule(limit=20, window_seconds=60, scope="user"),
+    # Synthèse décisionnelle : trois des quatre surfaces Water Intelligence
+    # étaient bornées, celle-ci ne l'était pas (audit F5). Elle interroge
+    # pourtant plusieurs modules et touche la base à chaque appel — c'est la
+    # plus coûteuse des quatre. Portée utilisateur : elle est authentifiée, et
+    # le périmètre vient du jeton.
+    "/water/decision-synthesis": RateRule(limit=30, window_seconds=60, scope="user"),
 }
 
 # ---------------------------------------------------------------------------

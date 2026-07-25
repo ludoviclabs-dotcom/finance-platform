@@ -55,11 +55,20 @@ BLOCKED = WaterLicenseDecision(
 
 FIXTURE_CHECKSUM = "a" * 64
 
+# Valeurs passées par variable (jamais `<champ>_key="<littéral>"`) : ce motif
+# déclenche le faux positif generic-api-key de gitleaks dès que la valeur
+# dépasse le seuil d'entropie (~3.5), déjà rencontré en Waves A et B.
+EEA_RELEASE_2023 = "eea-wei-plus-subunit-2023-fixture"
+EEA_RELEASE_2024 = "eea-wei-plus-subunit-2024-fixture"
+HUBEAU_RELEASE = "hubeau-hydro-2026-01"
+WRI_RELEASE = "aqueduct-4-0-fixture"
+BNPE_OUVRAGE = "FIX-OUVRAGE-1"
+
 
 def source(**overrides) -> WaterSourceReference:
     params = dict(
         source_code="EEA_WEI_PLUS",
-        release_key="eea-wei-plus-subunit-2023-fixture",
+        release_key=EEA_RELEASE_2023,
         checksum_sha256=FIXTURE_CHECKSUM,
         retrieved_at=date(2026, 2, 10),
         methodology_version="1.0.0",
@@ -114,7 +123,7 @@ class TestDistinctPeriods:
             metric_code="hubeau.hydrometrie.debit",
             unit="l/s",
             geography=WaterGeographyRef(scope="france", code="FIX-STATION-001", label="FIX-STATION-001"),
-            source=source(source_code="HUBEAU_HYDROMETRIE", release_key="hubeau-hydro-2026-01"),
+            source=source(source_code="HUBEAU_HYDROMETRIE", release_key=HUBEAU_RELEASE),
         )
         day1 = observation(**common, period_start=date(2026, 1, 1), period_end=date(2026, 1, 1))
         day2 = observation(**common, period_start=date(2026, 1, 2), period_end=date(2026, 1, 2))
@@ -130,13 +139,13 @@ class TestDistinctPeriods:
             metric_code="hubeau.prelevements.volume",
             unit="m3",
             value=125000.0,
-            geography=WaterGeographyRef(scope="france", code="FIX-OUVRAGE-1", label="FIX-OUVRAGE-1"),
+            geography=WaterGeographyRef(scope="france", code=BNPE_OUVRAGE, label=BNPE_OUVRAGE),
             period_start=date(2023, 1, 1),
             period_end=date(2023, 12, 31),
             source=source(source_code="HUBEAU_BNPE_PRELEVEMENTS", release_key="bnpe-2023"),
         )
 
-        built = identity_of(annual, subject_key="FIX-OUVRAGE-1")
+        built = identity_of(annual, subject_key=BNPE_OUVRAGE)
 
         assert built.period_start == date(2023, 1, 1)
         assert built.period_end == date(2023, 12, 31)
@@ -216,7 +225,7 @@ class TestReplayAndCollision:
         ledger = WaterObservationLedger()
         ledger.add_observation(observation(), subject_type="u", subject_key="k")
         next_release = observation(
-            source=source(release_key="eea-wei-plus-subunit-2024-fixture"),
+            source=source(release_key=EEA_RELEASE_2024),
             method=MethodRef(code="CC-WI-EEA-WEI-PLUS-PASSTHROUGH", version="2.0.0"),
         )
 
@@ -367,7 +376,7 @@ class TestCompatibilityAndNonRegression:
         wri = observation(
             metric_code="wri_aqueduct.bws.raw",
             geography=WaterGeographyRef(scope="world", code="FIXTURE-AREA-001", label="Zone (fixture)"),
-            source=source(source_code="WRI_AQUEDUCT", release_key="aqueduct-4-0-fixture"),
+            source=source(source_code="WRI_AQUEDUCT", release_key=WRI_RELEASE),
         )
 
         built = identity_of(wri, subject_key="FIXTURE-AREA-001")

@@ -56,6 +56,9 @@ SNAPSHOT_MODULE = (
 GENERATED_AT = datetime(2026, 7, 25, 12, 0, tzinfo=timezone.utc)
 CHECKSUM = "b" * 64
 
+# Valeur passée par variable — cf. note identique dans le test d'identité.
+EEA_RELEASE = "eea-wei-plus-2023-fixture"
+
 ALLOWED = WaterLicenseDecision(
     allow_ingest=True, allow_store=True, allow_display=True, allow_derived_use=True
 )
@@ -67,7 +70,7 @@ BLOCKED = WaterLicenseDecision(
 def source(**overrides) -> WaterSourceReference:
     params = dict(
         source_code="EEA_WEI_PLUS",
-        release_key="eea-wei-plus-2023-fixture",
+        release_key=EEA_RELEASE,
         checksum_sha256=CHECKSUM,
         retrieved_at=date(2026, 2, 10),
         methodology_version="1.0.0",

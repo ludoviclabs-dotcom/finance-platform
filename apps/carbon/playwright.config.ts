@@ -10,7 +10,17 @@ import { defineConfig, devices } from "@playwright/test";
  *   E2E_API_URL       — URL du backend API (défaut : http://localhost:8000)
  */
 export default defineConfig({
-  testDir: "./e2e",
+  /*
+    `./e2e/tests` et non `./e2e` : deux jeux voisins vivent désormais sous
+    `e2e/` — `e2e/public` (sans secret, joué sur PR) et `e2e/authenticated`
+    (Preview, environnement protégé). Un `testDir` à la racine les aspirerait
+    tous les trois, et `npm run e2e` exécuterait ici des scénarios écrits pour
+    une autre cible et un autre déclencheur.
+
+    Le périmètre de cette configuration est donc inchangé : tous les specs
+    historiques sont déjà dans `e2e/tests`.
+  */
+  testDir: "./e2e/tests",
   fullyParallel: false, // séquentiel : partage de session auth, 1 compte de test
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

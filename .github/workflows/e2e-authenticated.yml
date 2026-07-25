@@ -1,0 +1,127 @@
+# E2E authentifiés — PRÉPARÉS, non exécutés (Wave E-Interface, commit F4).
+#
+# STATUT : prepared_not_executed_environment_not_configured
+#
+# Ce workflow n'a jamais tourné. L'environnement `e2e-preview` n'existe pas,
+# ses secrets n'existent pas, et le modèle qui a écrit ce fichier n'a créé ni
+# l'un ni les autres — délibérément. Créer un environnement de secrets et y
+# déposer des identifiants est un geste d'exploitation, pas un geste de code :
+# il engage un compte réel sur une Preview réelle, et il appartient à un humain
+# qui sait quel compte, quelle Preview et quelle durée de vie.
+#
+# `docs/carbonco/water-intelligence/E2E_AUTHENTICATED_RUNBOOK.md` décrit ce
+# geste. Tant qu'il n'a pas été fait, ce fichier est un plan, pas une preuve.
+#
+# Ce qui le rend sûr le jour où il tournera :
+#
+#   * `workflow_dispatch` seulement. Aucun déclenchement sur `push` ni sur
+#     `pull_request`, et surtout aucun `pull_request_target` : ce dernier
+#     s'exécute dans le contexte du dépôt de base, avec accès aux secrets, tout
+#     en ayant checké out du code proposé par un tiers.
+#   * `environment: e2e-preview`. Les secrets ne sont lisibles QUE depuis cet
+#     environnement ; s'il n'existe pas, le job échoue à l'accès plutôt que de
+#     tourner à vide avec des variables absentes. Les reviewers exigés par
+#     l'environnement s'interposent avant l'exécution.
+#   * L'URL de Preview est un INPUT, jamais une valeur en dur : une URL de
+#     Preview change à chaque déploiement, et une valeur figée finirait par
+#     pointer sur autre chose que ce qu'on croit tester.
+#   * Aucune impression de secret : pas de `echo`, pas de `env` intégral, pas
+#     de `--debug`. Les traces Playwright sont produites mais leur rétention
+#     est bornée.
+#   * `permissions: contents: read` et concurrence non annulable en cours de
+#     route, pour ne pas laisser une session de test à moitié ouverte.
+
+name: E2E authentifiés (environnement protégé)
+
+on:
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: >-
+          URL complète de la Preview à tester (https://…). Elle change à chaque
+          déploiement : à relire avant chaque lancement.
+        required: true
+        type: string
+      project:
+        description: Projet Playwright à exécuter.
+        required: false
+        default: chromium
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  # Une seule exécution à la fois : deux sessions simultanées sur le même compte
+  # de test se déconnecteraient mutuellement.
+  group: e2e-authenticated
+  cancel-in-progress: false
+
+jobs:
+  authenticated:
+    name: Cockpit décisionnel sur Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # Sans cet environnement, le job ne démarre pas — c'est voulu.
+    environment: e2e-preview
+
+    defaults:
+      run:
+        working-directory: apps/carbon
+
+    env:
+      # Toutes ces valeurs viennent de l'environnement protégé. Aucune n'a de
+      # repli : un secret manquant doit faire échouer le job, pas le faire
+      # tourner sur une cible par défaut.
+      E2E_BASE_URL: ${{ inputs.preview_url }}
+      E2E_API_URL: ${{ secrets.E2E_API_URL }}
+      E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+      E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/carbon/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright (chromium seulement)
+        run: npx playwright install chromium --with-deps
+
+      - name: Vérifier la présence des entrées attendues
+        # Vérifie la PRÉSENCE, jamais la valeur : aucune de ces variables n'est
+        # affichée, ni tronquée, ni hachée dans les traces.
+        run: |
+          missing=""
+          for name in E2E_BASE_URL E2E_API_URL E2E_USER_EMAIL E2E_USER_PASSWORD; do
+            if [ -z "${!name}" ]; then missing="$missing $name"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "Entrées manquantes :$missing"
+            echo "Configurer l'environnement e2e-preview — voir E2E_AUTHENTICATED_RUNBOOK.md"
+            exit 1
+          fi
+          case "$E2E_BASE_URL" in
+            https://*) ;;
+            *) echo "preview_url doit être une URL https complète."; exit 1 ;;
+          esac
+          echo "Toutes les entrées attendues sont présentes."
+
+      - name: E2E authentifiés
+        run: npx playwright test --config playwright.authenticated.config.ts --project "${{ inputs.project }}"
+
+      - name: Rapport Playwright
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-authenticated-report
+          path: apps/carbon/playwright-report/
+          # Rétention courte : ces traces portent des captures d'une session
+          # authentifiée sur un compte réel.
+          retention-days: 3

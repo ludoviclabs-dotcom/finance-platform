@@ -324,3 +324,59 @@
   color: var(--wi-fg);
   font-weight: 600;
 }
+
+/* ==========================================================================
+   Wave C — ajouts strictement limités à ce qu'autorise le blueprint §8.3/§9.1
+   ==========================================================================
+
+   Aucune couleur brute n'est introduite : les rampes et surfaces de carte
+   dérivent des tokens `--wi-*` existants. Aucune police n'est ajoutée, donc
+   aucune ouverture CSP. Deux classes typographiques seulement (`.wi-h4`,
+   `.wi-num`), toutes deux nécessaires à des composants réellement livrés.
+   -------------------------------------------------------------------------- */
+
+[data-wi] {
+  /* Rampe cartographique — extrémité basse = le fond, jamais une teinte.
+     `--wi-ramp-to` est réaffecté par la dimension active, ce qui évite
+     d'écrire une rampe en dur par dimension. */
+  --wi-ramp-from: var(--wi-card-2);
+  --wi-ramp-to: var(--wi-stress);
+
+  /* Surfaces de carte */
+  --wi-map-land: var(--wi-card-2);
+  --wi-map-stroke: var(--wi-border);
+  --wi-map-select: var(--wi-fg);
+
+  /* Élévation — le CSS d'origine n'a aucune ombre ; le panneau et le tiroir
+     en ont besoin pour se détacher du fond. */
+  --wi-shadow-panel: 0 10px 30px rgb(0 0 0 / 0.22);
+  --wi-shadow-tip: 0 4px 14px rgb(0 0 0 / 0.18);
+}
+
+/* Sous-titre du panneau : une profondeur de plus que le shell P04. */
+[data-wi] .wi-h4 {
+  font-family: var(--wi-font-display);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* Chiffres alignés en colonne — obligatoire dans la table alternative. */
+[data-wi] .wi-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grille carte + légende. Le point de rupture 64rem est le SEUL ajout à
+   l'échelle de points de rupture, et sert uniquement à cette disposition. */
+[data-wi] .wi-map-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 64rem) {
+  [data-wi] .wi-map-grid {
+    grid-template-columns: 1fr 22rem;
+  }
+}

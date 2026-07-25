@@ -1,11 +1,11 @@
 project: carbonco-water-intelligence
-active_prompt: WAVE_E
+active_prompt: WAVE_E_UI_CLOSEOUT
 status: in_progress
 default_branch: master
 private_cockpit_route: /water
 public_intelligence_route: /water-intelligence
-last_merged_prompt: WAVE_D
-next_prompt: CLOSEOUT
+last_merged_prompt: WAVE_E_CORE
+next_prompt: HUMAN_REVIEW
 migrations_expected: false
 blocking_issues: []
 sources:
@@ -81,9 +81,22 @@ waves:
     merge_sha: 618a222183e8eeecc7d1cab7e92f64b78d3ae968
     base_sha: eb2a89840f14a738211215ef294556203a761f15
     note: "Trois moteurs livres, purs et testes. Registre juridique : 9 textes nommes, 0 instruit (aucun reviseur juridique designe) donc le moteur repond unknown partout. Synthese tenant : 6 facettes, aucun score global, degradation par facette. Moteur financier : aucun montant sur la surface publique. Trois documents canoniques emis et miroites a l octet pres. Aucune migration. AUCUN moteur n etait branche sur une route HTTP a la fusion — c est le point de depart de la Wave E. Detail : handoffs/WAVE_D_DECISION_LAYER.md."
-  wave_e:
-    name: "Finalisation, activation fonctionnelle controlee, QA et dossier final (P16 + P17 ; P18 documentaire)"
+  wave_e_core:
+    name: "Wave E-Core — finalisation fonctionnelle (E0 pilotage, E1 verite de la page publique, E2 contrats juridiques, E3 endpoints, E5 isolation tenant)"
     branch: feat/water-intelligence-wave-e-finalisation
-    status: in_progress
+    status: merged
+    merged: true
+    pull_request: 158
+    merge_sha: 7ea677235365f2e1a3f4440840d0338025400503
     base_sha: 618a222183e8eeecc7d1cab7e92f64b78d3ae968
-    note: "Demarree apres fusion de la Wave D (PR #157). Aucune vague ulterieure n est prevue : la suite est une decision humaine de production."
+    delivered:
+      - "E1 : la page publique ne rend plus AUCUNE fixture. Tout vient de documents emis par le backend — snapshot vide assemble par le meme assembleur que la production, et etat des sept sources. Deux axes tenus separes : 7 licences verifiees, 0 source publiable."
+      - "E2 : `repealed` ajoute au contrat partage (Python, Zod, fixture 1.0.0 -> 1.1.0, documents canoniques, parite) et conversion `repealed -> out_of_scope` INTERDITE. `OfficialLegalReference` remplace la reference de dataset : un texte de loi n a ni release ni checksum."
+      - "E3 : quatre endpoints. PREMIER ETag du depot (validateur faible, format reutilise de WaterPublicSnapshot.etag). `company_id` verrouille par trois mecanismes distincts. Aucune valeur par defaut financiere."
+      - "E5 : le premier test tenant A/B contre un VRAI PostgreSQL a trouve un defaut reel — la troisieme barriere anti-IDOR estampillait chaque entree avec le tenant DEMANDE et non celui de la ligne lue, donc elle ne pouvait jamais se declencher. Corrige. Job migration-tests : 822 passed, 0 skipped."
+  wave_e_ui_closeout:
+    name: "Wave E-Interface & Closeout (E4 cockpit authentifie + E6 QA/E2E/securite + E7 Preview et dossier final)"
+    branch: feat/water-intelligence-wave-e-ui-closeout
+    status: in_progress
+    base_sha: 7ea677235365f2e1a3f4440840d0338025400503
+    note: "Derniere etape du chantier. Apres elle, aucune vague ne suit : le chantier attend une REVUE HUMAINE puis une decision de production. Le modele ne signe aucune decision de publication, ne designe aucun reviseur juridique et ne coche aucune verification visuelle qu il ne peut pas effectuer."

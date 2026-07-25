@@ -4,7 +4,7 @@ Point d'entrée court du chantier CarbonCo Water Intelligence.
 
 ## Mission active
 
-**Wave E — Finalisation, activation fonctionnelle contrôlée, QA et dossier final.** Dernière vague du chantier : la suite n'est pas une vague, c'est une **décision humaine de production**.
+**Wave E-Interface & Closeout — dernière étape du chantier.** La suite n'est pas une vague : c'est une **revue humaine**, puis une décision de production.
 
 Le chantier est passé d'une exécution prompt par prompt (P00 à P18) à un
 regroupement en cinq vagues, décrit dans
@@ -24,10 +24,13 @@ regroupement en cinq vagues, décrit dans
   merge SHA `618a222`. Voir [`handoffs/WAVE_D_DECISION_LAYER.md`](./handoffs/WAVE_D_DECISION_LAYER.md).
   Trois moteurs livrés, purs et testés ; le registre juridique nomme neuf textes
   et n'en instruit aucun.
-- Wave E (P16 QA + P17 preview ; P18 documentaire) : **en cours** — branche
-  `feat/water-intelligence-wave-e-finalisation`. Elle branche les moteurs de la
-  Wave D sur des surfaces HTTP contrôlées, aligne la page publique sur l'état
-  réel du produit et produit le dossier de décision.
+- Wave E-Core (E0 pilotage, E1 vérité de la page publique, E2 contrats
+  juridiques, E3 endpoints, E5 isolation tenant) : **fusionnée** — PR #158,
+  merge SHA `7ea6772`. Le test tenant A/B contre un vrai PostgreSQL y
+  a trouvé un défaut d'isolation réel, corrigé dans la même PR.
+- Wave E-Interface & Closeout (E4 cockpit authentifié, E6 QA/E2E/sécurité,
+  E7 Preview et dossier final) : **en cours** — branche
+  `feat/water-intelligence-wave-e-ui-closeout`.
 
 ## Frontière de routes (rappel)
 

@@ -1,14 +1,11 @@
-> **Mission en cours — Wave E (MACRO-PROMPT E), dernière vague du chantier.**
-> **Gate d'entrée levé** : la PR Wave D (#157) est fusionnée dans `master`
-> (merge `618a222`, 2026-07-25).
-> **Aucune vague ne suit.** Après la Wave E, le chantier attend une décision
-> humaine de production, pas un prompt suivant.
+> **Mission en cours — Wave E-Interface & Closeout.**
+> **Dernière étape du chantier.** Après elle, aucune vague ne suit : le chantier
+> attend une **revue humaine**, puis une décision de production.
 
-# Wave E — Finalisation, activation fonctionnelle contrôlée, QA et dossier final
+# Wave E-Interface & Closeout (E4 cockpit + E6 QA/E2E/sécurité + E7 clôture)
 
-**Branche :** `feat/water-intelligence-wave-e-finalisation`
-**Prompt de référence :** `ACCELERATED_CLOSEOUT_PACK_V2.md` → MACRO-PROMPT E
-(P16 QA + P17 preview ; P18 documentaire uniquement).
+**Branche :** `feat/water-intelligence-wave-e-ui-closeout`
+**Base :** `master` @ `7ea6772` (PR #158 Wave E-Core fusionnée).
 
 ---
 
@@ -21,46 +18,46 @@
 | Wave B — famille Hub'Eau | **fusionnée** | #155 | `daaf8f0` |
 | Wave C — produit public | **fusionnée** | #156 | `eb2a898` |
 | Wave D — couche décisionnelle | **fusionnée** | #157 | `618a222` |
+| Wave E-Core — E0/E1/E2/E3/E5 | **fusionnée** | #158 | `7ea6772` |
 
-- Vercel `carbon` production sur `618a222` : **READY**, aucune erreur runtime
-  sur 24 h (vérifié au préflight de la Wave E).
-- Dernière migration en base : `043`. Aucune vague n'en a créé, et la Wave E
-  n'en créera aucune.
+- Vercel `carbon` et `carbonco-api` production **READY** sur ce merge, aucune
+  erreur runtime sur 24 h (vérifié au préflight).
+- Dernière migration : `043`. Cette vague n'en créera aucune.
+- Les quatre endpoints de la Wave E-Core sont en production ; aucune interface
+  ne les consomme encore.
 
-## Les deux dettes que la Wave E doit solder
+## Ce que la Wave E-Core a laissé
 
-1. **Les moteurs de la Wave D n'étaient branchés sur rien.** Registre juridique,
-   synthèse tenant et moteur financier existaient, purs et testés, sans aucune
-   surface HTTP — `water_intelligence` n'en avait jamais eu.
-2. **La page publique mentait par obsolescence.** Elle décrivait encore un
-   « squelette » aux « connecteurs non branchés », affichait un manifest de
-   fixture et annonçait comme futures des étapes P05 à P13 déjà livrées. Aucun
-   de ces énoncés n'était vrai après la Wave D.
+1. **Quatre endpoints sans consommateur.** Snapshot public, registre juridique
+   public, synthèse authentifiée et évaluation financière existent et sont
+   testés ; aucune page ne les appelle.
+2. **Aucun test E2E.** Le workflow existant ne se déclenche pas sur
+   `pull_request` — décision de politique documentée dans
+   `E2E_SECRETS_POLICY_PROPOSAL.md`, à appliquer ici.
+3. **Aucune vérification visuelle humaine.** Les surfaces publiques n'ont jamais
+   été regardées dans un navigateur par un humain.
 
-## Contraintes constantes, inchangées depuis la Wave A
+## Contraintes constantes
 
 - aucune donnée tenant sur `/water-intelligence` ;
 - aucune source approuvée par le modèle ;
-- aucun texte juridique instruit de mémoire ou par supposition ;
+- aucun texte juridique instruit ;
 - aucune probabilité ni taux d'actualisation par défaut ;
-- aucun score hydrique ou ESG composite ;
+- aucun score composite ;
 - aucune migration ;
-- aucune dépendance lourde ;
-- aucun appel aux portails externes au runtime ni dans les tests ;
-- aucune fixture présentée comme une donnée réelle.
+- **aucune dépendance ajoutée** ;
+- aucun appel externe au runtime ni en test ;
+- aucune fixture présentée comme donnée réelle.
 
-## Pièges d'infrastructure relevés au préflight
+## Ce que le modèle ne peut pas faire, et ne doit pas prétendre faire
 
-- **Un test DB-gated ne tourne que s'il est ajouté nommément** à la liste
-  `pytest` du job `migration-tests` (`.github/workflows/api.yml`). Un fichier
-  oublié est skippé partout, silencieusement.
-- **Le workflow E2E ne se déclenche pas sur `pull_request`**
-  (`.github/workflows/e2e.yml`) : `push` sur `master` ou `workflow_dispatch`.
-  Un test Playwright ajouté sans corriger ce déclencheur ne tourne pas dans la
-  CI de la PR.
+- **Cocher une vérification visuelle.** La Preview Vercel est derrière le SSO de
+  l'équipe : l'état des déploiements et les erreurs runtime sont vérifiables par
+  API, le rendu ne l'est pas.
+- **Exécuter les E2E authentifiés** tant que l'environnement GitHub et ses
+  secrets n'existent pas — les créer est une décision humaine.
+- **Signer une décision de publication**, désigner un réviseur juridique, ou
+  fournir une hypothèse financière.
 
-## Décisions à ne jamais prendre à la place d'un humain
-
-Désigner un réviseur juridique · approuver une source de publication ·
-fournir une probabilité de scénario ou un taux d'actualisation · valider un
-contenu éditorial · promouvoir en production.
+Un rapport qui prétendrait le contraire serait faux, et c'est le seul défaut
+que ce chantier n'a jamais toléré.

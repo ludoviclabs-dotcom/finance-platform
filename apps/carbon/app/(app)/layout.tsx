@@ -39,6 +39,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/pricing":     { title: "Offres",           subtitle: "Plans & tarification" },
   "/securite":    { title: "Sécurité",         subtitle: "Double authentification (2FA)" },
   "/crma":        { title: "Matières critiques", subtitle: "CRMA · aimants permanents · Article 24" },
+  "/water/decision": { title: "Cockpit décisionnel hydrique", subtitle: "Six facettes séparées · scénarios financiers sans valeur par défaut" },
   "/nature":      { title: "Nature & biodiversité", subtitle: "TNFD LEAP · risques & opportunités" },
   "/iro":         { title: "Registre IRO", subtitle: "Impacts, risques, opportunités · double matérialité" },
   "/resources":   { title: "Ressources stratégiques", subtitle: "Dépendances industrielles · concentration · risque ≠ confiance" },

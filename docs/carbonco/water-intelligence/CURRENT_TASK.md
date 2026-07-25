@@ -1,13 +1,10 @@
-> **Mission active — Wave C (MACRO-PROMPT C) uniquement.**
-> **Ne pas lancer la Wave D.**
+> **Mission suivante — Wave D (MACRO-PROMPT D) uniquement.**
+> **Ne pas démarrer avant revue humaine et fusion de la PR Wave C.**
 
-# Wave C — Produit public (P10 read model + P11 carte + P12 contenus)
+# Wave D — Couche décisionnelle (P13 conformité + P14 synergies + P15 finance)
 
-**Branche :** `feat/water-intelligence-wave-c-public-data-product`
-**Base :** `master` @ `daaf8f0`
-**Prompt de référence :** `ACCELERATED_CLOSEOUT_PACK_V2.md` → MACRO-PROMPT C.
-**Conception :** [`ux/`](./ux/) — blueprint fusionné (PR #154). **Source de
-vérité de l'UI ; ne pas le modifier.**
+**Branche :** `feat/water-intelligence-wave-d-decision-layer`
+**Prompt de référence :** `ACCELERATED_CLOSEOUT_PACK_V2.md` → MACRO-PROMPT D.
 
 ---
 
@@ -15,66 +12,59 @@ vérité de l'UI ; ne pas le modifier.**
 
 | Vague | Statut | PR | Merge SHA |
 |---|---|---|---|
-| Wave A — connecteurs européens (P06 + P09) | **fusionnée** | #153 | `e36c97c` |
-| Blueprint UX/UI Wave C | **fusionné** | #154 | `a56ab62` |
-| Wave B — famille Hub'Eau (P07 + P08) | **fusionnée** | #155 | `daaf8f0` |
+| Wave A — connecteurs européens | **fusionnée** | #153 | `e36c97c` |
+| Blueprint UX/UI | **fusionné** | #154 | `a56ab62` |
+| Wave B — famille Hub'Eau | **fusionnée** | #155 | `daaf8f0` |
+| Wave C — produit public | **en revue** | — | — |
 
-- P00 à P05, P03B et P03C : fusionnés.
-- `/water` reste le cockpit authentifié, **inchangé par la Wave C**.
-- `/water-intelligence` est la surface publique à intégrer.
-- Dernière migration en base : `043`. Wave C n'en attend aucune.
+- `/water` reste le cockpit authentifié, inchangé par les Waves A, B et C.
+- `/water-intelligence` est intégré et **ne publie rien** (voir ci-dessous).
+- Dernière migration en base : `043`. Aucune vague n'en a créé.
+
+## Le fait central à comprendre avant Wave D
+
+**Aucune source n'est publiable.** Le gate licence exige une décision humaine
+explicite et signée par source ; aucune n'est active :
+
+- `WRI_AQUEDUCT` — refusée (enregistrement WRI non effectué) ;
+- `COPERNICUS_EDO` — refusée (`source_verified_decoder_deferred`) ;
+- `EEA_WEI_PLUS` et les quatre sources Hub'Eau — `proposed`, donc inactives.
+
+Le snapshot public est donc **vide, valide et rendu honnêtement**. Wave D
+travaillera sur un produit qui ne publie rien tant qu'une décision humaine
+n'est pas rendue — ce n'est pas un blocage à contourner, c'est l'état correct.
 
 ## Acquis à réutiliser
 
-1. **`PeriodResolver`** (Wave A) — livré et utilisé par toutes les chroniques.
-   Les `metric_code` sont stables et ne portent jamais de date. Le
-   contournement par `metric_code` est **caduc**.
-2. **Connecteurs en dry-run** : EEA WEI+ (Wave A), hydrométrie, piézométrie,
-   prélèvements BNPE, qualité des cours d'eau (Wave B). Aucun n'a encore
-   publié quoi que ce soit.
-3. **Socle Hub'Eau borné** — allowlist d'hôtes, URL composée, `next` jamais
-   suivi, budgets, journal sans secret, aucun client HTTP importé.
-4. **Contrats P02** (`models/water_intelligence.py` ↔
-   `lib/water-intelligence/contracts.ts`) et **primitives `Wi*`** du shell P04.
+1. **`WaterObservationIdentity`** (Wave C) — identité incluant période,
+   géographie, scénario et horizon, avec détection de collision explicite.
+   **Tout graveur doit l'utiliser**, jamais `ObservationDraft.dedup_key()`
+   (contrat PR-04 partagé avec `/materials`, inchangé).
+2. **`WaterPublicSnapshot`** — enveloppe publique, ETag sur hash, double
+   barrière licence, garde-fou anti-tenant.
+3. **`PublicationDecisionRegistry`** — le seul endroit qui autorise une
+   publication.
+4. **`PeriodResolver`** (Wave A) — utilisé par toutes les chroniques.
+5. **Fondations UI `Wi*`** et décideur d'état pur (huit états, priorité).
 
-## Gate licence — à appliquer AVANT tout code de snapshot
+## Interdictions structurantes pour Wave D
 
-1. Inventorier les sources disponibles.
-2. Vérifier stockage, affichage, dérivation, attribution.
-3. **Exclure toute source sans décision humaine explicite.**
-4. **Exclure WRI** tant que l'enregistrement n'est pas tranché.
-5. Inscrire chaque exclusion **dans le manifest**, avec son motif.
-
-`unknown` ne devient **jamais** autorisé. Identifier la licence générale
-d'une plateforme (Etalab pour Hub'Eau, CC BY pour l'EEA) **ne rend pas** ses
-jeux publiables : il faut une décision humaine explicite et revue.
-
-**Conséquence attendue du MVP :** il est probable qu'aucune couche ne soit
-publiable. Cet état vide doit être **valide, testé et correctement rendu** —
-c'est le comportement honnête, pas une régression.
-
-## Décisions ouvertes qui pèsent sur Wave C
-
-1. **Identité persistée d'une série temporelle.** `ObservationDraft.dedup_key()`
-   retourne `(subject_type, subject_key, metric_code)` — **sans période**. La
-   Wave B produit de vraies chroniques : réutiliser cette clé telle quelle
-   écraserait silencieusement toutes les périodes sauf la première. **C1 doit
-   créer une identité propre à Water Intelligence**, sans modifier le contrat
-   PR-04 partagé avec `/materials` sans démonstration de non-régression.
-2. **WRI Aqueduct** — enregistrement non effectué ⇒ **exclu du snapshot**.
-3. **Copernicus EDO** — `source_verified_decoder_deferred` ⇒ **exclu du
-   snapshot**, aucune valeur décodée.
-
-## Interdictions structurantes (héritées, non négociables)
-
-- aucun **score composite**, aucune fusion de dimensions ;
-- **risque ≠ confiance**, **absence ≠ zéro**, **non apparié ≠ risque faible** ;
-- aucune **donnée tenant** sur la surface publique ;
-- aucun **appel externe au runtime** ;
-- **aucune fixture affichée** comme une donnée (décision P04B) ;
-- aucune **conclusion de conformité** (registre juridique = P13, Wave D) ;
-- aucune **conversion silencieuse d'unité** (l/s, mm, m NGF, m, m³) ;
-- aucun **prélèvement manquant rendu à zéro**.
+- **P13 est la seule surface autorisée à parler de conformité.** Ni les
+  connecteurs, ni le read model, ni l'UI publique ne portent de seuil
+  réglementaire — c'est vérifié par AST côté qualité Hub'Eau. Aucune
+  conclusion de conformité ne doit remonter ailleurs.
+- **Les previews C15/C16 doivent être remplacées, pas complétées.** Elles ne
+  rendent aujourd'hui aucun chiffre ni date, et deux tests l'imposent : les
+  remplacer par du réel exige de retirer ces tests en connaissance de cause.
+- **P14 touche au tenant.** Frontière stricte : aucune donnée d'entreprise sur
+  `/water-intelligence`. Les ponts sont unidirectionnels, du public vers le
+  cockpit, et ne transportent aucun paramètre dérivé du contexte utilisateur.
+- **P15 : aucune écriture comptable, aucun taux fiscal inventé, aucune
+  probabilité produite par un modèle de langage.** Séparer observé, hypothèse
+  et dérivé ; afficher la sensibilité, pas la certitude.
+- **Si une migration devient nécessaire (P14) : arrêter, documenter, proposer
+  une PR dédiée — ne pas la créer dans la vague.**
+- Aucun score ESG global, aucun score hydrique composite.
 
 ## Contrats à respecter
 
@@ -82,8 +72,6 @@ c'est le comportement honnête, pas une régression.
   `PipelineDataUnavailableError` pour géographie **ou période** non résolue en
   `derive` ; `TransportError` pour le transport ; `PipelineError` pour les
   bornes et le plan.
-- **Licence** : aucun connecteur ne construit de `WaterLicenseDecision` ; sans
-  décision explicite, tout est `value_withheld`.
-- **UI** : thème `--wi-*` uniquement, jamais `--mx-*` ni palette Tailwind
-  brute ; Server Components par défaut ; `use client` seulement pour une
-  interaction réelle ; aucune nouvelle dépendance.
+- **Licence** : sans décision explicite et signée, rien n'est publié.
+- **UI** : thème `--wi-*`, Server Components par défaut, aucune dépendance
+  nouvelle.

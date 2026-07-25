@@ -9,9 +9,9 @@ P06,merged,feat/water-intelligence-wave-a-eu-connectors,153,e36c97c5b3d1a5724a22
 P07,merged,feat/water-intelligence-wave-b-hubeau,155,daaf8f0ab533460c1d50a0d4dbc62194f2d1e205,,Livre dans Wave B. Socle operateur borne + hydrometrie et piezometrie ; unites natives conservees (l/s, mm, m NGF, m) ; aucune interpolation ; PeriodResolver Wave A utilise
 P08,merged,feat/water-intelligence-wave-b-hubeau,155,daaf8f0ab533460c1d50a0d4dbc62194f2d1e205,,Livre dans Wave B. Prelevements (absence de declaration != zero) et qualite des cours d eau (allowlist SANDRE sourcee, aucun classement sanitaire). Qualite des NAPPES hors perimetre : gate non concluant
 P09,merged,feat/water-intelligence-wave-a-eu-connectors,153,e36c97c5b3d1a5724a2288534915b4e8e0232692,,Livre dans Wave A avec BLOCAGE assume et formalise (source_verified_decoder_deferred) : CDI v4.1 verifie mais seuls GeoTIFF et NetCDF sont distribues ; decodage raster refuse sans ADR ; gate + configuration + contrat + tests livres, aucune valeur produite ; arbitrage humain requis
-P10,in_progress,feat/water-intelligence-wave-c-public-data-product,,,,Wave C en cours
-P11,in_progress,feat/water-intelligence-wave-c-public-data-product,,,,Wave C en cours
-P12,in_progress,feat/water-intelligence-wave-c-public-data-product,,,,Wave C en cours
+P10,review,feat/water-intelligence-wave-c-public-data-product,,,,Livre dans Wave C. Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
+P11,review,feat/water-intelligence-wave-c-public-data-product,,,,Livre dans Wave C. Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
+P12,review,feat/water-intelligence-wave-c-public-data-product,,,,Livre dans Wave C. Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
 P13,blocked,feat/water-intelligence-p13-legal-registry,,,,
 P14,blocked,feat/water-intelligence-p14-carbonco-bridges,,,,
 P15,blocked,feat/water-intelligence-p15-financial-bridge,,,,

@@ -4,7 +4,7 @@ Point d'entrée court du chantier CarbonCo Water Intelligence.
 
 ## Mission active
 
-**Wave C — Produit public (MACRO-PROMPT C).**
+**Wave D — Couche décisionnelle (MACRO-PROMPT D)**, à ne pas démarrer avant fusion de la Wave C.
 
 Le chantier est passé d'une exécution prompt par prompt (P00 à P18) à un
 regroupement en cinq vagues, décrit dans
@@ -18,8 +18,8 @@ regroupement en cinq vagues, décrit dans
 - Wave B (P07 hydrométrie/piézométrie + P08 prélèvements/qualité) :
   **fusionnée** — PR #155, merge SHA `daaf8f0`. Voir
   [`handoffs/WAVE_B_HUBEAU.md`](./handoffs/WAVE_B_HUBEAU.md).
-- Wave C (P10 read model + P11 carte + P12 contenus) : **en cours**.
-- Wave D : **à ne pas démarrer** avant revue humaine et fusion de Wave C.
+- Wave C (P10 read model + P11 carte + P12 contenus) : **PR ouverte, en revue** — voir [`handoffs/WAVE_C_PUBLIC_DATA_PRODUCT.md`](./handoffs/WAVE_C_PUBLIC_DATA_PRODUCT.md).
+- Wave D : **prête**, à ne pas démarrer avant revue humaine et fusion de Wave C.
 
 ## Frontière de routes (rappel)
 

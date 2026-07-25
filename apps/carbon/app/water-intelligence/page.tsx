@@ -23,6 +23,7 @@ import {
   WiFinancialBridgePreview,
   WiWaterPulse,
 } from "@/components/water-intelligence/WiFoundations";
+import { WiModuleBridges } from "@/components/water-intelligence/WiBridges";
 import { WiMapFrame } from "@/components/water-intelligence/WiMapFrame";
 import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
 import { WiRegulatoryRegistry } from "@/components/water-intelligence/WiRegulatory";
@@ -465,29 +466,9 @@ export default function WaterIntelligencePage() {
             informations d&apos;entreprise.
           </p>
 
-          <div className="wi-grid wi-grid-2" style={{ marginTop: "1.25rem" }}>
-            <WiCard title="Cockpit Eau & stress hydrique" accent="water">
-              Sites géocodés après revue humaine, prélèvements, consommations, rejets, permis,
-              screening déterministe, cibles et actions.{" "}
-              <Link href="/water" className="wi-link">
-                Ouvrir le cockpit (authentifié)
-              </Link>
-              .
-            </WiCard>
-            <WiCard title="Matières premières critiques" accent="data">
-              Le contexte hydrique éclaire aussi les dépendances matières.{" "}
-              <Link href="/materials" className="wi-link">
-                Voir le module Métaux critiques
-              </Link>
-              .
-            </WiCard>
-          </div>
-
-          <p className="wi-muted" style={{ marginTop: "1.25rem", maxWidth: "62ch" }}>
-            Les passerelles vers les ressources stratégiques, les IRO et la double matérialité sont
-            prévues côté authentifié (P14). Aucune donnée d&apos;entreprise ne remontera jamais dans
-            cette page publique.
-          </p>
+          {/* P14 (Wave D) : les ponts viennent du registre backend, qui refuse
+              toute cible paramétrée ou porteuse d'un champ tenant. */}
+          <WiModuleBridges />
 
           {/* Aperçu non fonctionnel : aucun montant, aucune probabilité. */}
           <div style={{ marginTop: "1.25rem" }}>

@@ -1,0 +1,95 @@
+{
+  "bridge_count": 9,
+  "bridges": [
+    {
+      "bridge_id": "actions",
+      "carries_tenant_context": false,
+      "direction": "public_to_cockpit",
+      "label": "Plan d'actions",
+      "reads": "Actions engagées et leur suivi : une capacité d'adaptation n'est affirmée que si une action la documente.",
+      "requires_authentication": true,
+      "target_path": "/actions",
+      "water_signal": "capacité d'adaptation documentée"
+    },
+    {
+      "bridge_id": "energy_scope2",
+      "carries_tenant_context": false,
+      "direction": "public_to_cockpit",
+      "label": "Énergie et Scope 2",
+      "reads": "Périmètres d'émissions, dont le Scope 2 : la disponibilité de l'eau conditionne le refroidissement et l'hydroélectricité.",
+      "requires_authentication": true,
+      "target_path": "/scopes",
+      "water_signal": "dépendance hydrique de la production électrique consommée"
+    },
+    {
+      "bridge_id": "iro_register",
+      "carries_tenant_context": false,
+      "direction": "public_to_cockpit",
+      "label": "Registre IRO",
+      "reads": "Registre des IRO, où un screening hydrique peut être promu en candidat — la promotion reste un geste humain.",
+      "requires_authentication": true,
+      "target_path": "/iro",
+      "water_signal": "promotion d'un screening hydrique en impact, risque ou opportunité"
+    },
+    {
+      "bridge_id": "materialite",
+      "carries_tenant_context": false,
+      "direction": "public_to_cockpit",
+      "label": "Double matérialité",
+      "reads": "Matrice de double matérialité : matérialité d'impact et matérialité financière restent deux panneaux distincts, jamais un score fusionné.",
+      "requires_authentication": true,
+      "target_path": "/materialite",
+      "water_signal": "matérialité du thème eau (ESRS E3), condition de portée P13"
+    },
+    {
+      "bridge_id": "materials_public",
+      "carries_tenant_context": false,
+      "direction": "public_to_public",
+      "label": "Métaux et matières premières critiques",
+      "reads": "Module public des matières critiques : contexte de dépendance matière, sans aucune donnée d'entreprise.",
+      "requires_authentication": false,
+      "target_path": "/materials",
+      "water_signal": "intensité hydrique des filières d'extraction et de raffinage"
+    },
+    {
+      "bridge_id": "procurement_scope3",
+      "carries_tenant_context": false,
+      "direction": "public_to_cockpit",
+      "label": "Achats et Scope 3",
+      "reads": "Campagnes fournisseurs et Scope 3 amont : l'exposition d'un fournisseur situé en zone de stress remonte ici, jamais sur la surface publique.",
+      "requires_authentication": true,
+      "target_path": "/fournisseurs/scope3",
+      "water_signal": "exposition hydrique des fournisseurs amont"
+    },
+    {
+      "bridge_id": "resources_exposures",
+      "carries_tenant_context": false,
+      "direction": "public_to_cockpit",
+      "label": "Expositions ressources stratégiques",
+      "reads": "Ponts achats et énergie vers les ressources stratégiques, avec la provenance de chaque exposition.",
+      "requires_authentication": true,
+      "target_path": "/resources/exposures",
+      "water_signal": "dépendance opérationnelle à l'eau d'une chaîne d'approvisionnement"
+    },
+    {
+      "bridge_id": "sites_geo",
+      "carries_tenant_context": false,
+      "direction": "public_to_cockpit",
+      "label": "Géocodage des sites",
+      "reads": "Candidats de géocodage soumis à revue humaine explicite : une coordonnée non acceptée n'est jamais utilisée pour un screening.",
+      "requires_authentication": true,
+      "target_path": "/sites-geo",
+      "water_signal": "rattachement d'un site à un bassin ou une zone de stress"
+    },
+    {
+      "bridge_id": "water_cockpit",
+      "carries_tenant_context": false,
+      "direction": "public_to_cockpit",
+      "label": "Cockpit Eau & stress hydrique",
+      "reads": "Activités eau, permis, zones de stress enregistrées, screening déterministe versionné, cibles et actions — risque et confiance restant deux colonnes distinctes.",
+      "requires_authentication": true,
+      "target_path": "/water",
+      "water_signal": "stress structurel, sécheresse, eaux souterraines, qualité"
+    }
+  ]
+}

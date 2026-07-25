@@ -65,7 +65,9 @@ function WiRuleRow({ rule }: { rule: WiRegulatoryRule }) {
           justifyContent: "space-between",
         }}
       >
-        <h4 className="wi-h4">{rule.title}</h4>
+        {/* Sous le h4 du groupe (« Droit contraignant » / « Référentiels
+            volontaires ») : le niveau suit la structure, la classe la taille. */}
+        <h5 className="wi-h4">{rule.title}</h5>
         <WiBadge
           tone={rule.is_binding ? "pending" : "absent"}
           label={

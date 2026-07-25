@@ -4,7 +4,7 @@ Point d'entrée court du chantier CarbonCo Water Intelligence.
 
 ## Mission active
 
-**Wave D — Couche décisionnelle (MACRO-PROMPT D)**, à ne pas démarrer avant fusion de la Wave C.
+**Wave E — Finalisation (MACRO-PROMPT E)**, à ne pas démarrer avant revue humaine et fusion de la Wave D.
 
 Le chantier est passé d'une exécution prompt par prompt (P00 à P18) à un
 regroupement en cinq vagues, décrit dans
@@ -18,8 +18,13 @@ regroupement en cinq vagues, décrit dans
 - Wave B (P07 hydrométrie/piézométrie + P08 prélèvements/qualité) :
   **fusionnée** — PR #155, merge SHA `daaf8f0`. Voir
   [`handoffs/WAVE_B_HUBEAU.md`](./handoffs/WAVE_B_HUBEAU.md).
-- Wave C (P10 read model + P11 carte + P12 contenus) : **PR ouverte, en revue** — voir [`handoffs/WAVE_C_PUBLIC_DATA_PRODUCT.md`](./handoffs/WAVE_C_PUBLIC_DATA_PRODUCT.md).
-- Wave D : **prête**, à ne pas démarrer avant revue humaine et fusion de Wave C.
+- Wave C (P10 read model + P11 carte + P12 contenus) : **fusionnée** — PR #156,
+  merge SHA `eb2a898`. Voir [`handoffs/WAVE_C_PUBLIC_DATA_PRODUCT.md`](./handoffs/WAVE_C_PUBLIC_DATA_PRODUCT.md).
+- Wave D (P13 conformité + P14 synergies + P15 finance) : **PR ouverte, en revue** —
+  voir [`handoffs/WAVE_D_DECISION_LAYER.md`](./handoffs/WAVE_D_DECISION_LAYER.md).
+  Trois moteurs livrés, purs et testés, **aucun branché sur une route HTTP** ;
+  le registre juridique nomme neuf textes et n'en instruit aucun.
+- Wave E : **prête**, à ne pas démarrer avant revue humaine et fusion de Wave D.
 
 ## Frontière de routes (rappel)
 
@@ -41,6 +46,6 @@ regroupement en cinq vagues, décrit dans
 - [`DECISION_LOG.md`](./DECISION_LOG.md) — décisions actées, du démarrage à la vague en cours.
 - [`RISK_REGISTER.md`](./RISK_REGISTER.md) — risques identifiés, résolus et ouverts.
 - [`handoffs/`](./handoffs/) — rapport de passation par prompt et par vague : ce qui est livré, ce qui ne l'est pas, les limites et les reliquats.
-- [`contracts/`](./contracts/) — contrats de données P02 et manifeste de fixtures.
+- [`contracts/`](./contracts/) — contrats de données P02, manifeste de fixtures, et les trois documents canoniques de la Wave D (`REGULATORY_REGISTRY.json`, `MODULE_BRIDGES.json`, `FINANCIAL_ENGINE.json`). Ces trois-là sont **émis par le backend** et miroités à l'octet près dans `apps/carbon` : les régénérer, jamais les éditer à la main.
 - [`ux/`](./ux/) — blueprint UX/UI de la Wave C (PR #154). **Documentaire : ne pas modifier hors d'une vague qui le prévoit explicitement.**
 - [`prompts/`](./prompts/) — chaque prompt P00 à P18 extrait sans altération du pack maître, un fichier par prompt.

@@ -1,5 +1,5 @@
 project: carbonco-water-intelligence
-active_prompt: WAVE_D
+active_prompt: WAVE_E
 status: in_progress
 default_branch: master
 private_cockpit_route: /water
@@ -75,6 +75,12 @@ waves:
   wave_d:
     name: "Couche decisionnelle (P13 conformite + P14 synergies + P15 finance)"
     branch: feat/water-intelligence-wave-d-decision-layer
-    status: in_progress
+    status: review
+    merged: false
     base_sha: eb2a89840f14a738211215ef294556203a761f15
-    note: "Demarree apres fusion de la Wave C (PR #156). Gate d entree leve."
+    note: "Trois moteurs livres, purs et testes, AUCUN branche sur une route HTTP. Registre juridique : 9 textes nommes, 0 instruit (aucun reviseur juridique designe) donc le moteur repond unknown partout. Synthese tenant : 6 facettes, aucun score global, degradation par facette. Moteur financier : aucun montant sur la surface publique. Trois documents canoniques emis et miroites a l octet pres. Aucune migration. Detail : handoffs/WAVE_D_DECISION_LAYER.md."
+  wave_e:
+    name: "Finalisation (P16 QA + P17 preview ; P18 optionnel)"
+    branch: feat/water-intelligence-wave-e-finalisation
+    status: ready
+    note: "Ne pas demarrer avant revue humaine et fusion de la Wave D."

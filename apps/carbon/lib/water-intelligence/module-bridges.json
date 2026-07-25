@@ -39,7 +39,7 @@
       "reads": "Matrice de double matérialité : matérialité d'impact et matérialité financière restent deux panneaux distincts, jamais un score fusionné.",
       "requires_authentication": true,
       "target_path": "/materialite",
-      "water_signal": "matérialité du thème eau (ESRS E3), condition de portée P13"
+      "water_signal": "matérialité du thème eau (ESRS E3), condition de portée réglementaire"
     },
     {
       "bridge_id": "materials_public",

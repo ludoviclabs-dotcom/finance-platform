@@ -1,5 +1,6 @@
 /**
- * app/water-intelligence/page.tsx — shell public du module Water Intelligence (P04).
+ * app/water-intelligence/page.tsx — surface publique du module Water
+ * Intelligence (P04, réalignée en Wave E).
  *
  * Route PUBLIQUE, hors du groupe authentifié `(app)` : elle ne partage ni le
  * layout, ni la garde d'authentification du cockpit. Le cockpit entreprise
@@ -10,24 +11,36 @@
  * `useSearchParams`, donc aucun bailout CSR. Le seul JavaScript embarqué est
  * celui du framework.
  *
- * Aucune donnée réelle : la seule source affichée est le mini manifest de
- * fixture P02, marqué « Démonstration » partout où il apparaît.
+ * ## Ce que la Wave E a corrigé ici
+ *
+ * Cette page décrivait un produit qui n'existait plus. Elle annonçait un
+ * « squelette » aux « connecteurs non branchés », affichait le manifest de
+ * FIXTURE P02 avec ses identifiants (`FIXTURE_SOURCE`, `fixture-release-v1`,
+ * `fixture.stress_index`) et listait comme futures des étapes P05 à P13 déjà
+ * livrées. Chacun de ces énoncés était faux après les Waves A à D.
+ *
+ * Le correctif ne consiste pas à retoucher des phrases : tout ce que la page
+ * affiche vient désormais de documents ÉMIS PAR LE BACKEND — le snapshot vide
+ * canonique (assemblé par le même assembleur que la production), l'état des
+ * sources, le registre juridique, la carte des ponts et le contrat du moteur
+ * financier. Aucune fixture n'atteint le rendu public ; elles restent dans les
+ * contrats et les tests, où elles ont leur place.
+ *
+ * L'état affiché est donc exact : l'infrastructure fonctionne, et rien n'est
+ * publié parce qu'aucune décision humaine de publication n'a été signée.
  */
 
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { WiEditorialEmpty } from "@/components/water-intelligence/WiEditorial";
-import {
-  WiExclusionList,
-  WiWaterPulse,
-} from "@/components/water-intelligence/WiFoundations";
+import { WiWaterPulse } from "@/components/water-intelligence/WiFoundations";
+import { WiSourceStatusList } from "@/components/water-intelligence/WiSources";
 import { WiFinancialEngineContract } from "@/components/water-intelligence/WiFinancialEngine";
 import { WiModuleBridges } from "@/components/water-intelligence/WiBridges";
 import { WiMapFrame } from "@/components/water-intelligence/WiMapFrame";
 import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
 import { WiRegulatoryRegistry } from "@/components/water-intelligence/WiRegulatory";
-import { WiSnapshotBanner } from "@/components/water-intelligence/WiSnapshotBanner";
 import {
   WiAbsentValue,
   WiBadge,
@@ -36,21 +49,23 @@ import {
   WiPlaceholder,
   WiSection,
 } from "@/components/water-intelligence/WiPrimitives";
-import { FIXTURE_MANIFEST } from "@/lib/water-intelligence/fixture-manifest";
-import { PUBLISHED_EDITORIAL_RECORDS } from "@/lib/water-intelligence/editorial";
-import { EMPTY_SNAPSHOT } from "@/lib/water-intelligence/public-snapshot";
+import {
+  CANONICAL_EMPTY_SNAPSHOT,
+  SOURCE_STATUS,
+  nothingIsPublishable,
+} from "@/lib/water-intelligence/canonical-snapshot";
 
 import "./water-intelligence.css";
 
 export const metadata: Metadata = {
   title: "Water Intelligence — contexte hydrique sourcé | Carbon&Co",
   description:
-    "Module public de contexte hydrique de Carbon&Co : méthode, sources officielles et provenance. Module en construction — aucune donnée réelle publiée à ce stade.",
+    "Module public de contexte hydrique de Carbon&Co : méthode, sources officielles et provenance. Infrastructure opérationnelle ; aucune observation publiée tant qu'une décision humaine de publication n'est pas signée.",
   alternates: { canonical: "/water-intelligence" },
   openGraph: {
     title: "Water Intelligence — Carbon&Co",
     description:
-      "Comprendre le risque hydrique à partir de sources officielles traçables. Module en construction : aucune donnée réelle publiée à ce stade.",
+      "Comprendre le risque hydrique à partir de sources officielles traçables. Infrastructure opérationnelle ; données publiques en attente de validation humaine.",
     type: "website",
     url: "/water-intelligence",
   },
@@ -129,17 +144,15 @@ const DIMENSIONS: readonly { label: string; accent: "water" | "data" | "stress" 
 ];
 
 export default function WaterIntelligencePage() {
-  const manifest = FIXTURE_MANIFEST;
-  const demoObservation = manifest.observations[0];
-
   /*
-    Snapshot public réel (P10). Il est VIDE : le gate licence exige une
-    décision humaine explicite et revue par source, et aucune n'est active.
-    Cet état est valide — il porte les exclusions et leurs motifs, qui sont de
-    l'information réelle et vérifiable même quand zéro valeur est publiée.
+    Snapshot public canonique, assemblé par le backend depuis le registre de
+    décisions de publication. Il est VIDE — aucune décision humaine signée —
+    mais il n'est pas creux : il porte les sept exclusions, leurs motifs, les
+    décisions rendues et une couverture à zéro. C'est de l'information réelle
+    et vérifiable, même quand zéro valeur est publiée.
   */
-  const snapshot = EMPTY_SNAPSHOT;
-  const editorialRecords = PUBLISHED_EDITORIAL_RECORDS;
+  const snapshot = CANONICAL_EMPTY_SNAPSHOT;
+  const nothingPublished = nothingIsPublishable(SOURCE_STATUS);
 
   return (
     <div data-wi>
@@ -153,8 +166,8 @@ export default function WaterIntelligencePage() {
         {/* ------------------------------------------------------------ Hero */}
         <header style={{ paddingTop: "3.5rem" }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
-            <WiBadge tone="demo" label="Module en construction" />
-            <WiBadge tone="pending" label="Sources non branchées" />
+            <WiBadge tone="demo" label="Infrastructure opérationnelle" />
+            <WiBadge tone="pending" label="Données publiques en attente de validation" />
           </div>
 
           <h1 className="wi-h1" style={{ marginTop: "1rem" }}>
@@ -162,10 +175,9 @@ export default function WaterIntelligencePage() {
           </h1>
 
           <p className="wi-lede" style={{ marginTop: "1rem" }}>
-            Le contexte hydrique — mondial, européen et français — reconstitué à partir de sources
-            officielles, avec leur provenance, leur licence et leurs limites affichées. Cette page
-            est la surface publique du module. Elle est aujourd&apos;hui un <strong>squelette</strong>{" "}
-            : la structure et les garde-fous sont en place, les données ne le sont pas encore.
+            Les connecteurs, les contrats, le registre de provenance et les moteurs de décision
+            sont <strong>opérationnels</strong>. Aucune observation n&apos;est rendue publique tant
+            qu&apos;une décision humaine de publication n&apos;a pas été signée, source par source.
           </p>
 
           <p className="wi-muted" style={{ marginTop: "1rem", maxWidth: "60ch" }}>
@@ -176,8 +188,6 @@ export default function WaterIntelligencePage() {
             </Link>
             .
           </p>
-
-          <WiSnapshotBanner manifest={manifest} />
 
           {/*
             Water Pulse — état des COUCHES PUBLIÉES, jamais de l'état de l'eau.
@@ -247,16 +257,18 @@ export default function WaterIntelligencePage() {
 
           <p className="wi-muted" style={{ marginTop: "1.25rem", maxWidth: "62ch" }}>
             Aucune de ces dimensions n&apos;est encore alimentée par une source réelle. Leur
-            définition est fixée d&apos;abord, précisément pour qu&apos;aucun connecteur ne vienne
-            ensuite les réinterpréter à sa façon.
+            définition a été fixée AVANT les connecteurs, précisément pour qu&apos;aucune source
+            ne vienne ensuite les réinterpréter à sa façon.
           </p>
         </WiSection>
 
         {/* -------------------------------------------------- Carte (absente) */}
         <WiSection id="carte" kicker="03 — Territoires" title="Carte et territoires">
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            La cartographie multi-échelle (monde, Europe, France) est prévue, avec une table
-            alternative accessible offrant strictement la même information que la carte.
+            L&apos;explorateur cartographique multi-échelle (monde, Europe, France) est livré, avec
+            une table alternative accessible offrant strictement la même information que la carte.
+            Il ne monte la carte que si une couche est autorisée à la publication&nbsp;: aucune ne
+            l&apos;est aujourd&apos;hui.
           </p>
 
           {/*
@@ -292,10 +304,10 @@ export default function WaterIntelligencePage() {
         {/* ------------------------------------------------- Sources et preuves */}
         <WiSection id="sources" kicker="04 — Provenance" title="Sources et preuves">
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Le catalogue des portails candidats est versionné dans le dépôt. Aucun n&apos;est
-            branché à ce stade, et aucune licence n&apos;y est vérifiée&nbsp;: toutes sont
-            enregistrées comme <span className="wi-mono">unknown</span> tant qu&apos;un examen
-            humain n&apos;a pas tranché. Une licence inconnue n&apos;autorise rien.
+            Sept sources officielles sont instrumentées et leurs licences ont été vérifiées.
+            Aucune n&apos;est publiée. Ce n&apos;est pas un défaut d&apos;avancement&nbsp;: c&apos;est
+            le résultat du gate de publication, qui exige une décision humaine explicite et
+            signée pour chaque source.
           </p>
 
           <div className="wi-grid wi-grid-2" style={{ marginTop: "1.25rem" }}>
@@ -311,80 +323,11 @@ export default function WaterIntelligencePage() {
             </WiCard>
           </div>
 
-          {/*
-            P04B — ce bloc montre la STRUCTURE d'une observation, plus aucune
-            valeur : la page publique n'affiche désormais aucun chiffre issu de
-            la fixture. Celle-ci reste la référence des contrats et des tests.
-          */}
-          <div className="wi-card wi-accent-stress" style={{ marginTop: "1.25rem" }}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
-              <WiBadge tone="demo" label="Démonstration" />
-              <h3 className="wi-h3">Exemple de rendu d&apos;une observation</h3>
-            </div>
-
-            <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
-              Voici la <strong>structure</strong> d&apos;une observation publiée&nbsp;: les champs
-              qui l&apos;accompagneront toujours. <strong>Aucune valeur n&apos;est affichée</strong>{" "}
-              — aucune mesure réelle n&apos;existe encore, et un chiffre inventé, même étiqueté,
-              serait lu comme une mesure avant d&apos;être lu comme une démonstration.
-            </p>
-
-            <dl
-              className="wi-mono"
-              style={{
-                marginTop: "0.875rem",
-                display: "grid",
-                gap: "0.5rem 1.25rem",
-                gridTemplateColumns: "auto 1fr",
-                color: "var(--wi-muted)",
-              }}
-            >
-              <dt>Indicateur</dt>
-              <dd style={{ margin: 0 }}>{demoObservation.metric_code}</dd>
-
-              <dt>Valeur</dt>
-              <dd style={{ margin: 0 }}>
-                <WiPendingValue detail="À venir avec la première release WRI Aqueduct" />
-              </dd>
-
-              <dt>Unité</dt>
-              <dd style={{ margin: 0 }}>
-                <WiPendingValue detail="Fixée par la source, jamais convertie en silence" />
-              </dd>
-
-              <dt>Statut</dt>
-              <dd style={{ margin: 0 }}>{demoObservation.quality.data_status}</dd>
-
-              <dt>Méthode</dt>
-              <dd style={{ margin: 0 }}>
-                {demoObservation.method.code} v{demoObservation.method.version}
-              </dd>
-
-              <dt>Territoire</dt>
-              <dd style={{ margin: 0 }}>{demoObservation.geography.label}</dd>
-            </dl>
-
-            <p className="wi-muted" style={{ marginTop: "0.75rem", fontSize: "0.8125rem" }}>
-              Confiance et valeur sont deux champs distincts&nbsp;: la confiance affichée qualifie
-              la solidité de la preuve, jamais l&apos;intensité du risque.
-            </p>
-          </div>
-
-          {/*
-            Sources écartées par le gate licence. Une source écartée sans
-            mention donnerait une fausse impression d'exhaustivité — c'est de
-            l'information réelle, pas un aveu de faiblesse.
-          */}
+          {/* État réel des sources, dérivé du document canonique émis par le
+              backend. Licence vérifiée et publication autorisée restent deux
+              axes distincts — les fusionner effacerait la leçon du gate. */}
           <div style={{ marginTop: "1.5rem" }}>
-            <h3 className="wi-h3">Sources écartées</h3>
-            <p className="wi-muted" style={{ marginTop: "0.375rem", maxWidth: "62ch", fontSize: "0.9375rem" }}>
-              Une source n&apos;est publiable qu&apos;après une décision humaine explicite et
-              revue. Identifier une licence permissive ne suffit pas&nbsp;: c&apos;est une
-              condition, pas une autorisation.
-            </p>
-            <div style={{ marginTop: "0.75rem" }}>
-              <WiExclusionList exclusions={snapshot.exclusions} />
-            </div>
+            <WiSourceStatusList />
           </div>
         </WiSection>
 
@@ -399,7 +342,7 @@ export default function WaterIntelligencePage() {
           <div style={{ marginTop: "1.25rem" }}>
             <WiPlaceholder
               what="Aucun secteur, acteur ou événement n'est présenté ici. Publier un classement sans méthode objective et sourcée reviendrait à présenter une intuition comme un fait."
-              plannedIn="P12 — contenus secteurs, acteurs, événements et innovations"
+              plannedIn="rédaction et revue humaine des contenus sourcés"
             >
               <p className="wi-muted" style={{ fontSize: "0.875rem" }}>
                 Les classements ne seront publiés que si une méthode objective et sourcée les
@@ -489,35 +432,46 @@ export default function WaterIntelligencePage() {
 
           <div className="wi-grid wi-grid-2" style={{ marginTop: "1.25rem" }}>
             <WiCard title="Ce qui est en place" accent="adapt">
-              La structure de la page, le vocabulaire des dimensions, les contrats de données, le
-              pipeline d&apos;ingestion opérateur et ses garde-fous (licence, bornes, refus
-              explicites).
+              Sept connecteurs officiels instrumentés et bornés, les contrats de données, le
+              registre de provenance et de décisions de publication, le registre juridique
+              versionné, les ponts vers les modules authentifiés et le moteur de scénarios
+              financiers. Les licences des sept sources sont vérifiées.
             </WiCard>
             <WiCard title="Ce qui ne l'est pas" accent="absent">
-              <WiAbsentValue reason="Aucun connecteur vers une source officielle n'est branché, donc aucune observation réelle n'existe encore." />
+              Aucune décision humaine de publication n&apos;a été signée, donc aucune observation
+              n&apos;est rendue publique. Aucun texte juridique n&apos;est instruit&nbsp;: le
+              registre nomme les textes à examiner, il n&apos;énonce pas le droit. Aucun contenu
+              éditorial n&apos;a été rédigé ni revu.
             </WiCard>
           </div>
 
           <div className="wi-card wi-accent-absent" style={{ marginTop: "1.25rem" }}>
-            <h3 className="wi-h3">Prochaines étapes</h3>
+            <h3 className="wi-h3">Ce qui débloquerait une publication</h3>
+            <p className="wi-muted" style={{ marginTop: "0.5rem", maxWidth: "62ch", fontSize: "0.9375rem" }}>
+              Aucune de ces étapes n&apos;est technique&nbsp;: ce sont des décisions et des
+              démarches humaines.
+            </p>
             <ol className="wi-muted" style={{ marginTop: "0.625rem", paddingLeft: "1.25rem" }}>
               <li>
-                Brancher les premiers connecteurs réels, une famille de source par livraison, avec
-                vérification de licence avant toute publication (P05 à P09).
+                Rendre et signer une décision de publication, source par source — la licence
+                vérifiée en est la condition, jamais l&apos;autorisation.
               </li>
               <li>
-                Assembler un read model public compact, reproductible et mis en cache, sans jamais
-                appeler une source externe au moment du rendu (P10).
+                Effectuer l&apos;enregistrement exigé par WRI, seul obstacle restant pour Aqueduct.
               </li>
               <li>
-                Ouvrir la cartographie interactive et les contenus éditoriaux et juridiques, chacun
-                avec ses sources et sa revue humaine (P11 à P13).
+                Trancher le décodage raster Copernicus&nbsp;: dépendance géospatiale assumée,
+                service officiel vérifié, ou renoncement documenté.
+              </li>
+              <li>
+                Désigner un réviseur juridique, sans lequel chaque règle du registre reste{" "}
+                <span className="wi-mono">unknown</span>.
               </li>
             </ol>
             <p className="wi-muted" style={{ marginTop: "0.75rem", fontSize: "0.875rem" }}>
-              Chaque étape passe par une revue humaine avant publication. Aucune donnée n&apos;est
-              mise en ligne parce qu&apos;elle est disponible&nbsp;: elle l&apos;est parce
-              qu&apos;elle est sourcée, licenciée et vérifiée.
+              Aucune donnée n&apos;est mise en ligne parce qu&apos;elle est disponible&nbsp;: elle
+              l&apos;est parce qu&apos;elle est sourcée, licenciée, et qu&apos;un humain a signé sa
+              publication.
             </p>
           </div>
         </WiSection>
@@ -536,9 +490,8 @@ export default function WaterIntelligencePage() {
         >
           <p style={{ fontWeight: 600 }}>Water Intelligence — Carbon&amp;Co</p>
           <p className="wi-muted" style={{ marginTop: "0.5rem", maxWidth: "62ch", fontSize: "0.9375rem" }}>
-            Module public en construction. Les valeurs affichées proviennent d&apos;un manifest de
-            démonstration et ne doivent pas être utilisées comme base de décision, de reporting ou
-            de conformité.
+            Module opérationnel en mode contrôlé. Les données publiques restent retenues tant que
+            leurs décisions de publication ne sont pas signées.
           </p>
           <p className="wi-muted" style={{ marginTop: "0.875rem", fontSize: "0.875rem" }}>
             <Link href="/water" className="wi-link">

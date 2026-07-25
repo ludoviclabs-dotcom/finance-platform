@@ -218,7 +218,8 @@ CURRENT_DECISIONS: tuple[PublicationDecision, ...] = (
         reason=(
             "Licence Ouverte Etalab vérifiée en Wave B. Décision NON rendue. Une "
             "publication exigerait en outre une allowlist de paramètres SANDRE revue "
-            "et l'absence de toute conclusion de conformité (registre juridique = P13)."
+            "et l'absence de toute conclusion de conformité, qui relève exclusivement "
+            "du registre juridique."
         ),
     ),
 )

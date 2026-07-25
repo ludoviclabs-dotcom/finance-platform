@@ -228,7 +228,7 @@ CURRENT_BRIDGES: tuple[ModuleBridge, ...] = (
         bridge_id="materialite",
         target_path="/materialite",
         label="Double matérialité",
-        water_signal="matérialité du thème eau (ESRS E3), condition de portée P13",
+        water_signal="matérialité du thème eau (ESRS E3), condition de portée réglementaire",
         direction="public_to_cockpit",
         reads=(
             "Matrice de double matérialité : matérialité d'impact et matérialité "

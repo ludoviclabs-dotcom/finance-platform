@@ -849,8 +849,8 @@ CURRENT_RULES: tuple[RegulatoryRule, ...] = (
             "directives filles et les listes de substances doivent être "
             "instruites séparément et versionnées séparément dès qu'un réviseur "
             "est désigné. Aucune conclusion de conformité n'est produite ailleurs "
-            "que sur cette surface P13 — les connecteurs Hub'Eau n'en portent "
-            "aucune, et un test AST le vérifie côté qualité."
+            "que dans ce registre — les connecteurs Hub'Eau n'en portent aucune, "
+            "et un test le vérifie."
         ),
     ),
     RegulatoryRule(

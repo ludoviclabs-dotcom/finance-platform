@@ -193,7 +193,13 @@ export function WiWaterPulse({ snapshot }: { snapshot: WaterPublicSnapshot }) {
 
   return (
     <div className="wi-card wi-accent-data" aria-label="État de la donnée publiée">
-      <h3 className="wi-h3">État de la donnée</h3>
+      {/*
+        `h2` et non `h3` : ce bloc vit dans le hero, avant la première section.
+        Le niveau suit la structure du document, la classe `wi-h3` n'en règle
+        que la taille — un titre visuellement petit ne doit pas creuser un saut
+        de niveau dans la hiérarchie.
+      */}
+      <h2 className="wi-h3">État de la donnée</h2>
       <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
         Cet indicateur décrit l’état des <strong>couches publiées</strong>, pas l’état de la
         ressource en eau. Il n’agrège aucune dimension et ne produit aucun score.

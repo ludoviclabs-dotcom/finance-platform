@@ -1,5 +1,7 @@
-> **Mission suivante — Wave D (MACRO-PROMPT D) uniquement.**
-> **Ne pas démarrer avant revue humaine et fusion de la PR Wave C.**
+> **Mission en cours — Wave D (MACRO-PROMPT D) uniquement.**
+> **Gate d'entrée levé** : la PR Wave C (#156) est fusionnée dans `master`
+> (merge `eb2a898`, 2026-07-25). Wave E ne doit pas démarrer avant la fusion
+> de la Wave D.
 
 # Wave D — Couche décisionnelle (P13 conformité + P14 synergies + P15 finance)
 
@@ -15,7 +17,7 @@
 | Wave A — connecteurs européens | **fusionnée** | #153 | `e36c97c` |
 | Blueprint UX/UI | **fusionné** | #154 | `a56ab62` |
 | Wave B — famille Hub'Eau | **fusionnée** | #155 | `daaf8f0` |
-| Wave C — produit public | **en revue** | — | — |
+| Wave C — produit public | **fusionnée** | #156 | `eb2a898` |
 
 - `/water` reste le cockpit authentifié, inchangé par les Waves A, B et C.
 - `/water-intelligence` est intégré et **ne publie rien** (voir ci-dessous).

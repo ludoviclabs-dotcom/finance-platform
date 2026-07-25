@@ -133,6 +133,13 @@ jobs:
       # ET après `test_nature_assess_prepare.py` (qui suppose 039 posée) — même
       # contrainte d'ordre, les resets ne se gênent pas tant qu'ils restent
       # groupés en DERNIER.
+      # Wave E (P16) : `test_water_decision_tenant_isolation.py` prouve
+      # l'isolation tenant de la synthèse décisionnelle contre un VRAI
+      # PostgreSQL — la Wave D ne l'avait testée qu'avec des doubles, et un
+      # double ne peut pas échouer sur une clause `WHERE company_id` manquante.
+      # Module DB-gated NORMAL (borne 043, montage idempotent, aucun reset) :
+      # placé après les modules IRO et AVANT les `*_schema_not_ready.py`, qui
+      # restent groupés en tout dernier.
       # PR-10 (IRO / double matérialité) : les 5 fichiers `test_iro*.py` sont
       # des tests DB-gated NORMAUX (chacun construit son propre schéma de façon
       # idempotente jusqu'à 040, aucun reset) — ajoutés APRÈS
@@ -188,6 +195,7 @@ jobs:
           tests/test_impact_assessments.py
           tests/test_financial_assessments.py
           tests/test_materiality_decisions.py
+          tests/test_water_decision_tenant_isolation.py
           tests/test_iro_actions.py
           tests/test_ai_review_ledger.py
           tests/test_demo_seed.py

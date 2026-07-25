@@ -110,3 +110,51 @@ Détail complet : `handoffs/WAVE_D_DECISION_LAYER.md`.
 - **Aucun test à doubles ne pouvait le voir**, et c'est la justification rétrospective de l'exigence « pas de preuve d'isolation sans PostgreSQL réel » : un double de lecture ne peut pas omettre une clause `WHERE`, donc il ne peut pas produire la fuite qu'on prétend détecter. Le défaut est apparu à la PREMIÈRE exécution du test A/B en CI.
 - **Correctif** : `_entry_company_id()` lit le tenant sur la ligne et **refuse** un enregistrement qui n'en déclare pas — prêter le tenant courant à un enregistrement anonyme serait exactement le défaut d'origine sous une autre forme. Les doubles des tests purs portent désormais un `company_id`, comme les objets réels.
 - **Conséquence pour les tests d'isolation à venir** : vérifier qu'une entrée « appartient au bon tenant » n'a de valeur que si le tenant vient de la donnée, jamais du contexte d'appel.
+
+## 2026-07-25 — Wave E-Interface & Closeout (PR #159, Draft)
+
+Détail complet : `FINAL_TRACEABILITY.md`.
+
+- **Le cockpit vit dans le groupe `(app)`, sans seconde garde.** `/water/decision`
+  s'appuie sur la garde d'authentification du layout de groupe. Une garde locale
+  supplémentaire aurait divergé de celle du groupe à la première évolution, et
+  c'est cette divergence qui produit les pages accessibles par accident.
+- **Le `company_id` renvoyé par la synthèse n'est pas affiché.** Le contrat
+  serveur le porte ; la page ne le rend pas. Un identifiant de tenant rendu dans
+  le DOM finit dans une capture d'écran ou une trace de support.
+- **Le calculateur ne propose aucune valeur, y compris aucun `placeholder`
+  chiffré.** Un « 0,08 » sous un taux d'actualisation est un taux recommandé
+  quoi qu'en dise l'étiquette, et personne ne saurait dire ensuite qui l'a
+  choisi. L'origine (observée / hypothèse) n'est pas non plus pré-cochée :
+  la pré-cocher signerait une origine à la place de l'humain.
+- **Deux jeux E2E physiquement séparés.** `e2e/public` (sans secret, joué sur
+  `pull_request`) et `e2e/authenticated` (Preview, environnement protégé). Le
+  `testDir` de la configuration historique est resserré sur `e2e/tests` pour que
+  `npm run e2e` conserve exactement son périmètre — 137 tests, vérifié par
+  `--list`. La politique de secrets de `e2e.yml` n'est pas modifiée.
+- **L'environnement `e2e-preview` et ses secrets n'ont PAS été créés.** Déposer
+  des identifiants dans un environnement de CI engage un compte réel, une
+  Preview réelle et une durée de vie à surveiller : c'est un geste
+  d'exploitation, pas un geste de code. Statut retenu et écrit partout :
+  `prepared_not_executed_environment_not_configured`.
+- **Un défaut trouvé par un test, pas par une relecture.** `reducedMotion`
+  n'est pas une option de `use` en Playwright 1.59 — elle passe par
+  `contextOptions`. Playwright l'ignorait en silence : la suite était verte et le
+  projet « mouvement réduit » n'émulait rien. Deux tests comparent désormais
+  l'état émulé au nom du projet, pour que la matrice ne puisse plus mentir.
+- **Sept défauts corrigés en F5, tous mesurés.** Trois couleurs de texte sous le
+  seuil AA (3,07 / 3,58 / 4,41), un lien à 3,77, un marqueur à 3,03 en thème
+  sombre, un second `h1` alors que l'en-tête du groupe en rendait déjà un avec le
+  même texte, un 304 du registre juridique traité comme une erreur, une limite de
+  débit absente sur `decision-synthesis`, une validation client plus laxiste que
+  le serveur.
+- **Deux constats NON corrigés, et c'est délibéré.** `--color-muted-foreground`
+  déclarée nulle part (correctif d'une ligne, mais 36 pages hors périmètre
+  changeraient d'apparence sans qu'aucun humain les ait regardées) ; et les
+  265 kB de zod sur `/water/decision` (arbitrage de contrat, pas défaut).
+  Consignés plutôt que tranchés en douce.
+- **Pilotage.** `active_prompt: HUMAN_REVIEW`, `status: review`,
+  `last_merged_prompt: WAVE_E_CORE`, `next_prompt: PRODUCTION_DECISION`.
+- **P18 inchangé.** `/water-intelligence`, `/water` et `/water/decision` sont
+  conservées ; `/eau` n'est pas créée ; aucun redirect. Réévaluation seulement
+  avec des analytics et des retours utilisateurs réels.

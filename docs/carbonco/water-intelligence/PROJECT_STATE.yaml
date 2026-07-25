@@ -1,11 +1,12 @@
 project: carbonco-water-intelligence
-active_prompt: WAVE_E_UI_CLOSEOUT
-status: in_progress
+active_prompt: HUMAN_REVIEW
+status: review
 default_branch: master
 private_cockpit_route: /water
+private_decision_route: /water/decision
 public_intelligence_route: /water-intelligence
 last_merged_prompt: WAVE_E_CORE
-next_prompt: HUMAN_REVIEW
+next_prompt: PRODUCTION_DECISION
 migrations_expected: false
 blocking_issues: []
 sources:
@@ -97,6 +98,20 @@ waves:
   wave_e_ui_closeout:
     name: "Wave E-Interface & Closeout (E4 cockpit authentifie + E6 QA/E2E/securite + E7 Preview et dossier final)"
     branch: feat/water-intelligence-wave-e-ui-closeout
-    status: in_progress
+    status: awaiting_human_review
+    pull_request: 159
+    pull_request_state: draft_not_merged
     base_sha: 7ea677235365f2e1a3f4440840d0338025400503
+    delivered:
+      - "F2 : route authentifiee /water/decision dans le groupe (app), aucune seconde garde. Six facettes, six etats explicites, aucun score agregat. Calculateur en quatre etapes : formulaire vierge, aucun placeholder chiffre, aucune origine pre-cochee, aucun calcul pendant la saisie, aucune persistance. Montants en chaines decimales de bout en bout."
+      - "F3 : job Playwright sur pull_request SANS AUCUN SECRET (configuration separee, e2e/public). 108 tests sur six projets. Deux tests verifient que la matrice emule reellement : reducedMotion n etait pas une option de `use` en Playwright 1.59 et Playwright l ignorait en silence."
+      - "F4 : workflow authentifie PREPARE ET NON EXECUTE (workflow_dispatch + environment e2e-preview). Le modele n a cree ni l environnement, ni les secrets, ni les reviewers. Runbook E2E_AUTHENTICATED_RUNBOOK.md, journal d executions VIDE."
+      - "F5 : sept defauts reellement observes et corriges — trois couleurs de texte sous 4,5:1 (mesurees 3,07 / 3,58 / 4,41), un lien a 3,77 et un marqueur a 3,03 en sombre, un second h1 alors que l en-tete du groupe en rendait deja un, un 304 du registre juridique traite comme une erreur, une limite de debit absente sur decision-synthesis, une validation client plus laxiste que le serveur, une transition de theme non neutralisee sous reduced motion."
+      - "F6 : quatre endpoints verifies sur la Preview carbonco-api (ETag, 304 sur les DEUX endpoints publics, 401 sans jeton, aucun champ tenant). FINAL_TRACEABILITY.md et HUMAN_DECISION_PACKET.md."
+    not_delivered:
+      - "AUCUNE verification visuelle humaine. Aucune page n a ete regardee, aucune capture n existe. La checklist visuelle est livree NON COCHEE."
+      - "AUCUN E2E authentifie execute : prepared_not_executed_environment_not_configured."
+      - "Previews frontales non lues (SSO d equipe Vercel) ; leurs journaux runtime non inspectes. Aucune tentative d authentification."
+      - "Constat non corrige : --color-muted-foreground employee dans 37 fichiers et declaree nulle part. Correctif d une ligne, mais il change l apparence de 36 pages hors perimetre audite. Decision visuelle humaine."
+      - "Arbitrage consigne, non tranche : /water/decision embarque 265 kB de zod pour la validation de contrat a l execution. Mesure, pas corrige en douce."
     note: "Derniere etape du chantier. Apres elle, aucune vague ne suit : le chantier attend une REVUE HUMAINE puis une decision de production. Le modele ne signe aucune decision de publication, ne designe aucun reviseur juridique et ne coche aucune verification visuelle qu il ne peut pas effectuer."

@@ -1,0 +1,91 @@
+{
+  "license_verified_count": 7,
+  "publishable_count": 0,
+  "source_count": 7,
+  "sources": [
+    {
+      "blocking_reason": "L'identité de la source est vérifiée, mais le portail ne distribue que du GeoTIFF et du NetCDF. Le décodage raster a été volontairement reporté plutôt que simulé : il n'existe aucune valeur à publier.",
+      "connector_status": "source_verified_decoder_deferred",
+      "label": "Copernicus EDO — indice combiné de sécheresse",
+      "license_code": "COPERNICUS-EMS-FREE-FULL-OPEN",
+      "license_scope": "dataset",
+      "license_verified": true,
+      "license_verified_in": "Wave A",
+      "source_code": "COPERNICUS_EDO",
+      "state": "decoder_deferred",
+      "state_label": "Décodage reporté"
+    },
+    {
+      "blocking_reason": "Licence et attribution vérifiées. La décision humaine de publication n'a pas été rendue — identifier une licence permissive ne vaut pas autorisation éditoriale.",
+      "connector_status": "source_verified",
+      "label": "EEA / WISE — Water Exploitation Index Plus",
+      "license_code": "CC-BY-4.0",
+      "license_scope": "dataset",
+      "license_verified": true,
+      "license_verified_in": "Wave A",
+      "source_code": "EEA_WEI_PLUS",
+      "state": "decision_pending",
+      "state_label": "Décision humaine non rendue"
+    },
+    {
+      "blocking_reason": "Licence Ouverte vérifiée au niveau de la PLATEFORME, pas jeu par jeu. La décision de publication n'a pas été rendue, et le connecteur n'a jamais publié (exécution à blanc uniquement).",
+      "connector_status": "source_verified",
+      "label": "Hub'Eau — piézométrie (niveaux de nappe)",
+      "license_code": "ETALAB-2.0",
+      "license_scope": "platform",
+      "license_verified": true,
+      "license_verified_in": "Wave B",
+      "source_code": "HUBEAU_ADES",
+      "state": "decision_pending",
+      "state_label": "Décision humaine non rendue"
+    },
+    {
+      "blocking_reason": "Licence Ouverte vérifiée au niveau de la plateforme. Décision non rendue. La couverture est en outre partielle par construction : les usages exonérés de redevance sont inconnus et les volumes inférieurs à 10 000 m³ ne sont pas déclarés — une publication devra rendre l'absence, jamais un zéro.",
+      "connector_status": "source_verified",
+      "label": "Hub'Eau — prélèvements (BNPE)",
+      "license_code": "ETALAB-2.0",
+      "license_scope": "platform",
+      "license_verified": true,
+      "license_verified_in": "Wave B",
+      "source_code": "HUBEAU_BNPE_PRELEVEMENTS",
+      "state": "decision_pending",
+      "state_label": "Décision humaine non rendue"
+    },
+    {
+      "blocking_reason": "Licence Ouverte vérifiée au niveau de la PLATEFORME, pas jeu par jeu. La décision de publication n'a pas été rendue, et le connecteur n'a jamais publié (exécution à blanc uniquement).",
+      "connector_status": "source_verified",
+      "label": "Hub'Eau — hydrométrie (débits et hauteurs)",
+      "license_code": "ETALAB-2.0",
+      "license_scope": "platform",
+      "license_verified": true,
+      "license_verified_in": "Wave B",
+      "source_code": "HUBEAU_HYDROMETRIE",
+      "state": "decision_pending",
+      "state_label": "Décision humaine non rendue"
+    },
+    {
+      "blocking_reason": "Licence Ouverte vérifiée au niveau de la plateforme. Décision non rendue. Une publication exigerait en outre une liste de paramètres SANDRE revue et l'absence de toute conclusion de conformité — la conformité relève exclusivement du registre juridique.",
+      "connector_status": "source_verified",
+      "label": "Hub'Eau — qualité des cours d'eau (Naïades)",
+      "license_code": "ETALAB-2.0",
+      "license_scope": "platform",
+      "license_verified": true,
+      "license_verified_in": "Wave B",
+      "source_code": "HUBEAU_QUALITE_SURFACE",
+      "state": "decision_pending",
+      "state_label": "Décision humaine non rendue"
+    },
+    {
+      "blocking_reason": "La licence est vérifiée, mais WRI exige EN OUTRE un enregistrement pour partager ou adapter les données. Cet enregistrement n'a pas été effectué : c'est une démarche humaine, pas un réglage technique.",
+      "connector_status": "source_verified_publication_blocked",
+      "label": "WRI Aqueduct 4.0",
+      "license_code": "CC-BY-4.0",
+      "license_scope": "dataset",
+      "license_verified": true,
+      "license_verified_in": "Wave A",
+      "source_code": "WRI_AQUEDUCT",
+      "state": "publication_blocked",
+      "state_label": "Publication bloquée"
+    }
+  ]
+}

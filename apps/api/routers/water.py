@@ -36,7 +36,7 @@ production par ce code.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from models.analytics import AnalyticalEnvelope
 from models.water import (
@@ -63,6 +63,12 @@ from models.water import (
     WaterTargetListResponse,
     WaterTargetResponse,
 )
+from models.water_intelligence_api import (
+    DecisionSynthesisResponse,
+    FinancialScenarioRequest,
+    FinancialScenarioResponse,
+    ScenarioQuantityInput,
+)
 from routers._errors import http_error, require_db, schema_ready_guard
 from routers.auth import get_current_user, require_analyst
 from services.auth_service import AuthUser
@@ -72,6 +78,17 @@ from services.water import (
     risk_areas_service,
     screening_service,
     targets_actions_service,
+    water_synthesis_service,
+)
+from services.water_intelligence.financial_scenarios import (
+    UNIT_CURRENCY,
+    UNIT_CURRENCY_PER_DAY,
+    UNIT_DAY,
+    UNIT_RATIO,
+    FinancialScenarioError,
+    Quantity,
+    WaterDisruptionScenario,
+    build_exposure,
 )
 
 router = APIRouter()
@@ -83,6 +100,65 @@ _WATER_ERRORS = (
     screening_service.WaterScreeningError,
     targets_actions_service.WaterPlanError,
 )
+
+#: Unité imposée PAR CHAMP pour le moteur financier.
+#:
+#: L'appelant ne choisit pas l'unité d'une grandeur : laisser `outage_days`
+#: arriver en euros ouvrirait à la frontière exactement la confusion que le
+#: moteur refuse en interne. La table est donc fermée et vérifiée par test.
+_SCENARIO_UNITS: dict[str, str] = {
+    "outage_days": UNIT_DAY,
+    "affected_capacity_share": UNIT_RATIO,
+    "revenue_per_day": UNIT_CURRENCY_PER_DAY,
+    "margin_rate": UNIT_RATIO,
+    "additional_opex_per_day": UNIT_CURRENCY_PER_DAY,
+    "adaptation_capex": UNIT_CURRENCY,
+    "discount_rate": UNIT_RATIO,
+    "probability": UNIT_RATIO,
+}
+
+
+def _quantity(field: str, supplied: ScenarioQuantityInput) -> Quantity:
+    """Convertit une grandeur d'API en grandeur du moteur.
+
+    L'unité vient de la table, jamais de l'appelant ; la provenance et la base
+    viennent de l'appelant, qui est seul à savoir d'où sort son hypothèse.
+    """
+    return Quantity(
+        value=supplied.value,
+        unit=_SCENARIO_UNITS[field],
+        provenance=supplied.provenance,
+        basis=supplied.basis,
+    )
+
+
+def build_scenario_from_request(body: FinancialScenarioRequest) -> WaterDisruptionScenario:
+    """Adapte une requête HTTP en scénario du moteur pur.
+
+    Le moteur reste ignorant de HTTP ; le routeur reste ignorant de
+    l'arithmétique. Toute hypothèse mal formée est refusée par le moteur, qui
+    est le seul endroit où cette règle vit.
+    """
+    return WaterDisruptionScenario(
+        scenario_code=body.scenario_code,
+        label=body.label,
+        base_year=body.base_year,
+        horizon_year=body.horizon_year,
+        outage_days=_quantity("outage_days", body.outage_days),
+        affected_capacity_share=_quantity(
+            "affected_capacity_share", body.affected_capacity_share
+        ),
+        revenue_per_day=_quantity("revenue_per_day", body.revenue_per_day),
+        margin_rate=_quantity("margin_rate", body.margin_rate),
+        additional_opex_per_day=_quantity(
+            "additional_opex_per_day", body.additional_opex_per_day
+        ),
+        adaptation_capex=_quantity("adaptation_capex", body.adaptation_capex),
+        discount_rate=_quantity("discount_rate", body.discount_rate),
+        probability=(
+            _quantity("probability", body.probability) if body.probability else None
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -451,3 +527,99 @@ async def review_water_action_endpoint(
             )
     except _WATER_ERRORS as exc:
         raise http_error(exc) from exc
+
+
+# ---------------------------------------------------------------------------
+# Couche décisionnelle (Wave E) — synthèse tenant et moteur financier
+# ---------------------------------------------------------------------------
+#
+# Deux endpoints AUTHENTIFIÉS, ajoutés au domaine `/water` plutôt qu'au router
+# public : ils lisent ou calculent sur des données d'entreprise, qui n'ont
+# jamais leur place sur `/water-intelligence`.
+#
+# `company_id` provient EXCLUSIVEMENT du contexte d'authentification
+# (`user.company_id`). Il n'est accepté ni en query, ni en body, ni en header —
+# ce n'est pas un oubli mais l'invariant : un identifiant de tenant fourni par
+# l'appelant serait un contournement d'isolation, pas un paramètre.
+
+@router.get(
+    "/decision-synthesis",
+    response_model=DecisionSynthesisResponse,
+    summary="Synthèse hydrique à six facettes (authentifiée)",
+)
+async def get_decision_synthesis_endpoint(
+    user: AuthUser = Depends(get_current_user),
+) -> DecisionSynthesisResponse:
+    """Compose la synthèse hydrique de l'entreprise authentifiée.
+
+    Six facettes — risque, confiance, dépendance, ressource/matière, IRO,
+    actions — toujours présentes, même vides : une facette absente de la
+    réponse serait indiscernable d'une facette non calculée.
+
+    **Aucun score global.** Les facettes ne s'additionnent pas et le service ne
+    propose aucune fonction pour les comparer.
+
+    **Dégradation par facette** : une source dont le schéma n'est pas encore
+    migré produit une absence motivée pour SA facette ; les autres restent
+    rendues. Une erreur qui n'est pas un schéma manquant remonte telle quelle
+    plutôt que d'être déguisée en absence.
+    """
+    require_db()
+    try:
+        synthesis = water_synthesis_service.build_synthesis(company_id=user.company_id)
+    except _WATER_ERRORS as exc:
+        raise http_error(exc) from exc
+    payload = synthesis.as_mapping()
+    return DecisionSynthesisResponse(
+        company_id=int(payload["company_id"]),  # type: ignore[arg-type]
+        is_empty=bool(payload["is_empty"]),
+        facets=list(payload["facets"]),  # type: ignore[arg-type]
+    )
+
+
+@router.post(
+    "/financial-scenarios/evaluate",
+    response_model=FinancialScenarioResponse,
+    summary="Évalue un scénario financier hydrique (sans persistance)",
+)
+async def evaluate_financial_scenario_endpoint(
+    body: FinancialScenarioRequest,
+    user: AuthUser = Depends(get_current_user),
+) -> FinancialScenarioResponse:
+    """Évalue un scénario d'interruption hydrique.
+
+    **Sans état et sans écriture.** Rien n'est persisté : ni le scénario, ni le
+    résultat. L'endpoint ne touche pas la base — c'est vérifiable, il n'ouvre
+    aucune connexion.
+
+    **Aucune valeur par défaut.** Le taux d'actualisation, le revenu, la marge
+    et la probabilité sont fournis par l'appelant ou la requête est refusée en
+    422. Fournir un défaut poserait une hypothèse invisible en son nom.
+
+    Rend toujours la valeur centrale **et** ses bandes de sensibilité : une
+    valeur seule se lit comme une prévision.
+    """
+    try:
+        scenario = build_scenario_from_request(body)
+        exposure = build_exposure(
+            scenario,
+            sensitivity_variation_pct=body.sensitivity_variation_pct,
+            signals=body.signals,
+        )
+    except FinancialScenarioError as exc:
+        # Hypothèse mal formée : c'est une erreur de l'appelant, pas du moteur.
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+
+    payload = exposure.as_mapping()
+    return FinancialScenarioResponse(
+        scenario_code=str(payload["scenario_code"]),
+        label=str(payload["label"]),
+        horizon_year=int(payload["horizon_year"]),  # type: ignore[arg-type]
+        is_absent=bool(payload["is_absent"]),
+        absence_reason=payload["absence_reason"],  # type: ignore[arg-type]
+        components=dict(payload["components"]),  # type: ignore[arg-type]
+        present_value=payload["present_value"],  # type: ignore[arg-type]
+        probability_weighted=payload["probability_weighted"],  # type: ignore[arg-type]
+        sensitivities=list(payload["sensitivities"]),  # type: ignore[arg-type]
+        signals=list(payload["signals"]),  # type: ignore[arg-type]
+    )

@@ -67,6 +67,7 @@ from routers import (
     vsme_mapping,
     vsme_wizard,
     water,
+    water_intelligence,
 )
 from utils.env import is_production
 
@@ -257,6 +258,14 @@ app.include_router(products.router, prefix="/products", tags=["products (PR-05A)
 app.include_router(energy.router, prefix="/energy", tags=["energy (PR-06A)"])
 app.include_router(crma.router, prefix="/crma", tags=["crma (PR-07)"])
 app.include_router(water.router, prefix="/water", tags=["water (PR-08)"])
+# Surfaces PUBLIQUES de Water Intelligence (Wave E) : montées sans dépendance
+# d'authentification, comme `verify`. Rien de ce qui en sort ne dépend d'un
+# tenant — le snapshot servi est celui qu'autorise le registre de décisions.
+app.include_router(
+    water_intelligence.router,
+    prefix="/water-intelligence",
+    tags=["water-intelligence (public)"],
+)
 app.include_router(nature.router, prefix="/nature", tags=["nature (PR-09)"])
 app.include_router(iro.router, prefix="/iro", tags=["iro (PR-10)"])
 app.include_router(ai_review.router, prefix="/ai", tags=["ai-review (PR-11)"])

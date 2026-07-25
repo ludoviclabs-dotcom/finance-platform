@@ -53,7 +53,7 @@ import gzip
 import hashlib
 import json
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Iterable, Mapping, Sequence
 
 from models.water_intelligence import (
@@ -477,3 +477,47 @@ class PublicSnapshotLoader:
                     f"champ tenant {tenant_field!r} détecté dans un snapshot public."
                 )
         return payload
+
+
+# ---------------------------------------------------------------------------
+# Document canonique du snapshot vide (P16, Wave E)
+# ---------------------------------------------------------------------------
+
+#: Horodatage sentinelle du document canonique.
+#:
+#: `assemble_public_snapshot` exige `generated_at` en entrée — jamais
+#: `datetime.now()` — précisément pour rester déterministe. Mais un document
+#: canonique versionné dans le dépôt ne peut porter aucune date réelle : elle
+#: serait fausse dès le lendemain, et une date plausible se lit comme une date
+#: d'assemblage effective. Le document exporte donc une chaîne VIDE, que la
+#: surface rend « n.c. » — même discipline que les valeurs de fixture retirées
+#: en P04B.
+_CANONICAL_GENERATED_AT = datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+
+def canonical_empty_document(
+    *, registry: PublicationDecisionRegistry | None = None
+) -> dict[str, Any]:
+    """Snapshot public canonique, assemblé depuis le registre de décisions.
+
+    C'est un snapshot **réel**, pas une constante écrite à la main : il est
+    produit par le même assembleur que la production, avec zéro observation,
+    et porte donc les vraies exclusions, les vraies décisions, les vrais
+    avertissements et une couverture à zéro.
+
+    Sert de source unique au miroir TypeScript de la page publique, qui
+    n'affiche ainsi plus aucune fixture.
+    """
+    from services.water_intelligence.publication_decisions import (
+        current_registry as _current_registry,
+    )
+
+    snapshot = assemble_public_snapshot(
+        observations=(),
+        generated_at=_CANONICAL_GENERATED_AT,
+        registry=registry or _current_registry(),
+    )
+    payload = dict(snapshot.as_public_mapping())
+    # Aucune date d'assemblage : voir `_CANONICAL_GENERATED_AT`.
+    payload["generated_at"] = ""
+    return payload

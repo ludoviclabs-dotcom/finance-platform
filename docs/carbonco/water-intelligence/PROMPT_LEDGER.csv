@@ -9,12 +9,12 @@ P06,merged,feat/water-intelligence-wave-a-eu-connectors,153,e36c97c5b3d1a5724a22
 P07,merged,feat/water-intelligence-wave-b-hubeau,155,daaf8f0ab533460c1d50a0d4dbc62194f2d1e205,,Livre dans Wave B. Socle operateur borne + hydrometrie et piezometrie ; unites natives conservees (l/s, mm, m NGF, m) ; aucune interpolation ; PeriodResolver Wave A utilise
 P08,merged,feat/water-intelligence-wave-b-hubeau,155,daaf8f0ab533460c1d50a0d4dbc62194f2d1e205,,Livre dans Wave B. Prelevements (absence de declaration != zero) et qualite des cours d eau (allowlist SANDRE sourcee, aucun classement sanitaire). Qualite des NAPPES hors perimetre : gate non concluant
 P09,merged,feat/water-intelligence-wave-a-eu-connectors,153,e36c97c5b3d1a5724a2288534915b4e8e0232692,,Livre dans Wave A avec BLOCAGE assume et formalise (source_verified_decoder_deferred) : CDI v4.1 verifie mais seuls GeoTIFF et NetCDF sont distribues ; decodage raster refuse sans ADR ; gate + configuration + contrat + tests livres, aucune valeur produite ; arbitrage humain requis
-P10,review,feat/water-intelligence-wave-c-public-data-product,,,,Livre dans Wave C. Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
-P11,review,feat/water-intelligence-wave-c-public-data-product,,,,Livre dans Wave C. Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
-P12,review,feat/water-intelligence-wave-c-public-data-product,,,,Livre dans Wave C. Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
-P13,blocked,feat/water-intelligence-p13-legal-registry,,,,
-P14,blocked,feat/water-intelligence-p14-carbonco-bridges,,,,
-P15,blocked,feat/water-intelligence-p15-financial-bridge,,,,
-P16,blocked,chore/water-intelligence-p16-quality-gates,,,,
-P17,blocked,release/water-intelligence-p17-preview,,,,
-P18,blocked,feat/water-intelligence-p18-route-rationalization,,,,
+P10,merged,feat/water-intelligence-wave-c-public-data-product,156,eb2a89840f14a738211215ef294556203a761f15,,Livre dans Wave C (PR #156). Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
+P11,merged,feat/water-intelligence-wave-c-public-data-product,156,eb2a89840f14a738211215ef294556203a761f15,,Livre dans Wave C (PR #156). Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
+P12,merged,feat/water-intelligence-wave-c-public-data-product,156,eb2a89840f14a738211215ef294556203a761f15,,Livre dans Wave C (PR #156). Aucune source publiable : le gate licence exige une decision humaine explicite et signee, aucune n est active. Snapshot vide valide et rendu honnetement
+P13,merged,feat/water-intelligence-wave-d-decision-layer,157,618a222183e8eeecc7d1cab7e92f64b78d3ae968,,Livre dans Wave D. Registre juridique versionne + moteur de portee a quatre verdicts. AUCUNE regle instruite : ni source officielle relevee ni reviseur juridique designe, donc unknown partout. Aucun seuil reglementaire encode
+P14,merged,feat/water-intelligence-wave-d-decision-layer,157,618a222183e8eeecc7d1cab7e92f64b78d3ae968,,Livre dans Wave D. Neuf ponts a chemin nu (aucun parametre, aucun champ tenant) + synthese authentifiee a six facettes sans score global, degradation par facette
+P15,merged,feat/water-intelligence-wave-d-decision-layer,157,618a222183e8eeecc7d1cab7e92f64b78d3ae968,,Livre dans Wave D. Moteur pur d hypotheses explicites : aucune ecriture comptable, aucun taux inventé, aucune probabilite produite par un modele
+P16,in_progress,feat/water-intelligence-wave-e-finalisation,,,,Wave E en cours
+P17,in_progress,feat/water-intelligence-wave-e-finalisation,,,,Wave E en cours
+P18,decided_documentary,,,,,Decision documentaire uniquement : conserver /water-intelligence et /water, aucun redirect /eau dans cette vague, reevaluation de l URL seulement avec analytics et retours utilisateurs

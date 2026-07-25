@@ -59,6 +59,13 @@ RULES: dict[str, RateRule] = {
     "/copilot": RateRule(limit=20, window_seconds=60, scope="user"),
     "/export": RateRule(limit=5, window_seconds=60, scope="user"),   # génération ZIP coûteuse
     "/verify": RateRule(limit=30, window_seconds=60, scope="ip"),    # public, anti-scraping
+    # Wave E — surfaces Water Intelligence.
+    # Publique : même posture que /verify (anti-scraping, portée IP), le
+    # contenu étant statique entre deux déploiements.
+    "/water-intelligence": RateRule(limit=30, window_seconds=60, scope="ip"),
+    # Évaluation financière : calcul pur mais non trivial (sensibilités), et
+    # authentifiée — portée utilisateur, pas IP.
+    "/water/financial-scenarios": RateRule(limit=20, window_seconds=60, scope="user"),
 }
 
 # ---------------------------------------------------------------------------

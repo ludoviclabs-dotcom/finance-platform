@@ -60,98 +60,44 @@ describe("route publique /water-intelligence", () => {
     expect(metadata.alternates?.canonical).toBe("/water-intelligence");
     expect(metadata.openGraph).toBeTruthy();
     // La metadata ne doit rien promettre que la page ne livre pas.
+    // Wave E : la page ne se décrit plus comme « en construction » — elle
+    // décrit une infrastructure opérationnelle dont les données sont retenues.
     const meta = `${metadata.title} ${metadata.description}`.toLowerCase();
-    expect(meta).toContain("construction");
+    expect(meta).not.toContain("construction");
+    expect(meta).toContain("infrastructure opérationnelle");
   });
 });
 
-describe("statut de démonstration explicite", () => {
-  it("annonce en toutes lettres qu'aucune donnée réelle n'est affichée", () => {
-    expect(markup).toContain("Aucune donnée réelle");
-    expect(markup).toContain("Démonstration");
-    expect(markup).toContain("Module en construction");
-  });
-
-  it("marque la fixture par du TEXTE, pas seulement par une couleur", () => {
-    // Chaque marqueur visuel est doublé d'un libellé lisible et vocalisable.
-    expect(markup).toContain("Sources non branchées");
-    expect(markup).toContain("Non branché");
-    expect(markup).toContain("Donnée absente");
-  });
-
-  it("affiche l'étiquette fixture du manifest et son statut de donnée", () => {
-    expect(markup).toContain("fixture");
-  });
-});
-
-describe("aucune valeur fabriquée n'est visible (P04B)", () => {
-  /*
-   * P04B : la page n'affiche plus AUCUNE valeur issue de la fixture — ni la
-   * mesure, ni la date de récupération, ni l'empreinte. Un chiffre inventé,
-   * même sous un badge « Démonstration », est lu comme une mesure avant
-   * d'être lu comme une démonstration.
-   *
-   * Ces attentes sont dérivées de la fixture elle-même, pas codées en dur :
-   * si quelqu'un change la fixture ET la réaffiche, le test échoue quand même.
-   */
-  const fixture = JSON.parse(
-    read(resolve(CARBON_ROOT, "lib/water-intelligence/fixture-manifest.json")),
-  );
-
-  /** Texte réellement visible : sans balises, donc sans styles ni attributs. */
-  function visibleText(html: string): string {
-    return html
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;/g, " ")
-      .replace(/&[a-z]+;/gi, " ")
-      .replace(/\s+/g, " ");
-  }
-
-  const visible = visibleText(markup);
-
-  it("n'affiche pas la valeur numérique de l'observation de fixture", () => {
-    const fixtureValue = fixture.observations[0].value;
-    expect(typeof fixtureValue).toBe("number");
-    // Recherche en texte visible (pas dans les styles) et sur un mot entier.
-    expect(visible).not.toMatch(new RegExp(`\\b${fixtureValue}\\b`));
-  });
-
-  it("n'affiche pas l'unité de fixture", () => {
-    expect(visible).not.toContain(fixture.observations[0].unit);
-  });
-
-  it("n'affiche ni date de récupération ni empreinte fabriquées", () => {
-    const source = fixture.sources[0];
-    const [y, m, d] = source.retrieved_at.slice(0, 10).split("-");
-    expect(visible).not.toContain(`${d}.${m}.${y}`);
-    expect(visible).not.toContain(source.checksum_sha256.slice(0, 16));
-  });
-
-  it("rend un libellé honnête à la place de chaque valeur retirée", () => {
-    expect(markup).toContain("n.c.");
-    expect(markup).toContain("Aucune valeur n&#x27;est affichée");
-    expect(markup).toContain("À venir avec la première release WRI Aqueduct");
-    expect(markup).toContain("Aucune récupération réelle à ce jour");
-  });
-
-  it("conserve la structure de l'observation (champs, sans valeurs)", () => {
-    // Les libellés de champ restent visibles : ils montrent ce que la
-    // provenance contiendra, sans rien fabriquer.
-    for (const label of ["Indicateur", "Valeur", "Unité", "Statut", "Méthode", "Territoire"]) {
-      expect(markup).toContain(label);
+/*
+ * Wave E, commit E1 — les deux blocs qui vivaient ici (« statut de
+ * démonstration explicite » et « aucune valeur fabriquée n'est visible ») ont
+ * été REMPLACÉS, pas supprimés par confort.
+ *
+ * Ils assertaient que la page affiche le manifest de FIXTURE, son étiquette
+ * `fixture`, la structure d'une observation et les libellés « n.c. » /
+ * « Donnée absente ». C'était la bonne exigence tant que la page montrait une
+ * fixture. Elle n'en montre plus aucune : la surface publique est désormais
+ * dérivée du snapshot canonique et de l'état des sources, tous deux émis par
+ * le backend.
+ *
+ * La couverture correspondante — et bien plus large — vit dans
+ * `water-intelligence-truth.test.tsx`, qui vérifie les dix contrôles de
+ * véracité de la Wave E. Ce qui suit ne garde ici que ce qui reste vrai et
+ * n'a pas de meilleur foyer.
+ */
+describe("aucune valeur fabriquée n'atteint le lecteur", () => {
+  it("ne rend aucun identifiant de fixture", () => {
+    for (const marker of ["FIXTURE_SOURCE", "fixture-release-v1", "fixture.stress_index"]) {
+      expect(markup).not.toContain(marker);
     }
-  });
-
-  it("distingue donnée absente et zéro", () => {
-    expect(markup).toContain("Donnée absente");
-    // Aucun « 0 » ne doit servir de substitut à une donnée manquante : le
-    // libellé d'absence est textuel, jamais numérique.
-    expect(markup).not.toContain("Donnée absente</span>0");
   });
 
   it("ne revendique aucun score hydrique composite", () => {
     expect(markup).toContain("Aucun score unique opaque");
+  });
+
+  it("ne rend jamais une absence comme un zéro", () => {
+    expect(markup).not.toContain("Donnée absente</span>0");
   });
 });
 
@@ -223,7 +169,6 @@ describe("aucun appel réseau ni bailout CSR", () => {
     pageSource,
     read(resolve(WI_COMPONENTS_DIR, "WiNav.tsx")),
     read(resolve(WI_COMPONENTS_DIR, "WiPrimitives.tsx")),
-    read(resolve(WI_COMPONENTS_DIR, "WiSnapshotBanner.tsx")),
   ].map(stripCommentsAndStrings);
 
   it("n'effectue aucun fetch au rendu", () => {

@@ -31,11 +31,22 @@ absence muette se lit comme un zéro.
 Une erreur qui n'est PAS un schéma manquant remonte nue : on ne masque jamais
 un vrai défaut derrière une absence plausible.
 
-## Anti-IDOR
+## Anti-IDOR — et le piège que la Wave E a révélé
 
 Chaque lecture passe par un service existant déjà scopé (`company_id = %s` en
 plus de la RLS). La composition ajoute une troisième barrière : toute entrée
 portant un autre `company_id` fait échouer `build_tenant_synthesis`.
+
+**Cette troisième barrière était inopérante jusqu'à la Wave E.** Les entrées
+étaient estampillées avec le `company_id` DEMANDÉ, pas avec celui de la ligne
+effectivement lue. Une ligne fuitée était donc réétiquetée au nom du
+demandeur, et le garde-fou ne pouvait structurellement jamais se déclencher —
+il vérifiait une valeur qu'il venait lui-même de poser.
+
+Le défaut a été trouvé par le premier test tenant A/B contre un vrai
+PostgreSQL (commit E5), et pas avant : un double de lecture ne peut pas
+oublier une clause `WHERE`. Chaque entrée porte désormais le `company_id` de
+SA ligne — `_entry_company_id()` refuse une ligne qui n'en déclare pas.
 """
 
 from __future__ import annotations
@@ -85,6 +96,21 @@ def _degrade_on_missing_schema(collected: list[FacetEntry], entry: FacetEntry) -
         if not _is_schema_not_ready(exc):
             raise
         collected.append(entry)
+
+
+def _entry_company_id(record: object, *, source: str) -> int:
+    """Tenant de la LIGNE LUE, jamais celui demandé.
+
+    Un objet de domaine sans `company_id` ne peut pas être rattaché avec
+    certitude : le refuser est plus sûr que de lui prêter le tenant courant.
+    """
+    company_id = getattr(record, "company_id", None)
+    if company_id is None:
+        raise ValueError(
+            f"{source} : enregistrement sans company_id — impossible d'en vérifier "
+            "le périmètre, la synthèse refuse de le rattacher au tenant courant."
+        )
+    return int(company_id)
 
 
 def _absence(
@@ -140,9 +166,10 @@ def _collect_water_screenings(company_id: int, collected: list[FacetEntry]) -> N
             return
         for screening in listing.items:
             reference = f"site_water_screening:{screening.id}"
+            row_company_id = _entry_company_id(screening, source="screening")
             collected.append(
                 FacetEntry(
-                    company_id=company_id,
+                    company_id=row_company_id,
                     facet="risk",
                     source_module="/water",
                     label=f"Site {screening.site_id} — {screening.methodology_code}",
@@ -158,7 +185,7 @@ def _collect_water_screenings(company_id: int, collected: list[FacetEntry]) -> N
             )
             collected.append(
                 FacetEntry(
-                    company_id=company_id,
+                    company_id=row_company_id,
                     facet="confidence",
                     source_module="/water",
                     label=f"Site {screening.site_id} — solidité documentaire",
@@ -204,7 +231,7 @@ def _collect_dependency(company_id: int, collected: list[FacetEntry]) -> None:
         for activity in listing.items:
             collected.append(
                 FacetEntry(
-                    company_id=company_id,
+                    company_id=_entry_company_id(activity, source="activité eau"),
                     facet="dependency",
                     source_module="/water",
                     label=f"Site {activity.site_id} — {activity.activity_type}",
@@ -253,7 +280,7 @@ def _collect_resource_links(company_id: int, collected: list[FacetEntry]) -> Non
             resource_label = link.resource_slug or f"ressource #{link.resource_id}"
             collected.append(
                 FacetEntry(
-                    company_id=company_id,
+                    company_id=_entry_company_id(link, source="exposition ressource"),
                     facet="resource_material",
                     source_module="/resources",
                     label=f"{resource_label} — {link.role}",
@@ -297,7 +324,7 @@ def _collect_iros(company_id: int, collected: list[FacetEntry]) -> None:
         for iro in listing.items:
             collected.append(
                 FacetEntry(
-                    company_id=company_id,
+                    company_id=_entry_company_id(iro, source="IRO"),
                     facet="iro",
                     source_module="/iro",
                     label=iro.title,
@@ -336,7 +363,7 @@ def _collect_actions(company_id: int, collected: list[FacetEntry]) -> None:
         for action in listing.items:
             collected.append(
                 FacetEntry(
-                    company_id=company_id,
+                    company_id=_entry_company_id(action, source="action hydrique"),
                     facet="action",
                     source_module="/water",
                     label=action.title,

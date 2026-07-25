@@ -79,7 +79,7 @@ function WiMapUnavailable({ snapshot }: { snapshot: WaterPublicSnapshot }) {
   return (
     <div className="wi-absent-fill" style={{ padding: "1.25rem" }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
-        <WiBadge tone="absent" label="Aucune couche publiée" />
+        <WiBadge tone="absent" label="Carte prête — aucune couche autorisée à la publication" />
         <span className="wi-mono wi-muted" style={{ fontSize: "0.75rem" }}>
           {snapshot.coverage.excluded_source_count} source
           {snapshot.coverage.excluded_source_count > 1 ? "s" : ""} écartée
@@ -87,7 +87,7 @@ function WiMapUnavailable({ snapshot }: { snapshot: WaterPublicSnapshot }) {
         </span>
       </div>
       <p className="wi-muted" style={{ marginTop: "0.75rem" }}>
-        La carte n’est pas affichée : aucune couche géographique n’est publiée. Un fond de
+        La carte est prête, mais aucune couche géographique n’est autorisée à la publication. Un fond de
         carte sans données laisserait croire à une couverture nulle, alors qu’il s’agit
         d’une absence de publication.
       </p>

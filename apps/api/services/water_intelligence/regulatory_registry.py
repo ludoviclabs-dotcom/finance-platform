@@ -70,18 +70,20 @@ est produit par `RegulatoryRule.missing_verification_fields()`, et le handoff
 
 ## Deux vocabulaires de statut, et pourquoi ils ne sont pas fusionnés
 
-Le contrat P02 (`models/water_intelligence.py`) déclare depuis la Wave A un
-`WaterLegalStatus` à huit valeurs, mirroré côté TypeScript. Il mélange
-volontairement l'état d'un **texte** (`in_force`, `proposed`,
-`transposition_pending`…) et le résultat d'une **portée** pour une entité
-(`out_of_scope`, `materiality_dependent`). C'est le vocabulaire du *record
-public*, et il ne comporte pas `repealed`.
+Le contrat P02 (`models/water_intelligence.py`) déclare un `WaterLegalStatus`
+mirroré côté TypeScript. Il mélange volontairement l'état d'un **texte**
+(`in_force`, `proposed`, `transposition_pending`…) et le résultat d'une
+**portée** pour une entité (`out_of_scope`, `materiality_dependent`) : c'est le
+vocabulaire du *record public*.
 
-Le registre a besoin d'un statut de texte pur, abrogation comprise. Les deux
-vocabulaires coexistent donc, avec une conversion explicite et testée
-(`to_public_legal_status`) plutôt qu'un alignement forcé qui obligerait soit à
-perdre `repealed`, soit à modifier un contrat public gelé et son miroir TS.
-L'écart est signalé dans le handoff pour arbitrage, pas masqué.
+Le registre a besoin d'un statut de texte pur. Les deux vocabulaires coexistent
+donc, avec une conversion explicite et testée (`to_public_legal_status`).
+
+**Wave E — la conversion n'est plus destructive.** `repealed` manquait au
+vocabulaire public, si bien qu'un texte abrogé était publié comme
+`out_of_scope`. La valeur a été ajoutée au contrat partagé (Python, miroir Zod,
+fixture, documents canoniques, tests de parité, dans le même commit) et la
+conversion `repealed → out_of_scope` est désormais **interdite**.
 """
 
 from __future__ import annotations
@@ -731,16 +733,26 @@ def to_public_legal_status(rule: RegulatoryRule) -> WaterLegalStatus:
     - règle non vérifiée (source ou revue manquante) → `unknown`, **quel que
       soit** le statut interne : un statut non sourcé ne se publie pas ;
     - référentiel volontaire → `voluntary` ;
-    - `repealed` → `out_of_scope` : le vocabulaire public ne sait pas dire
-      « abrogé », et le rendre `in_force` serait faux. La perte d'information
-      est signalée dans le handoff, jamais silencieuse.
+    - `repealed` → `repealed`, **sans conversion**.
+
+    ## La conversion destructive corrigée en Wave E
+
+    Tant que le vocabulaire public ne comportait pas `repealed`, un texte abrogé
+    était publié comme `out_of_scope`. Les deux énoncés n'ont ni la même cause
+    ni les mêmes conséquences : « hors de votre champ » suggère qu'un
+    changement de taille ou de périmètre pourrait rendre le texte applicable,
+    alors qu'un texte abrogé ne redeviendra jamais applicable.
+
+    `repealed` a donc été ajouté au contrat partagé, et la conversion est
+    **interdite** — un test la surveille explicitement.
     """
     if not rule.is_verified:
         return "unknown"
     if rule.instrument_kind == "voluntary_framework":
         return "voluntary"
     if rule.legal_status == "repealed":
-        return "out_of_scope"
+        # Jamais `out_of_scope` : voir la note ci-dessus.
+        return "repealed"
     if rule.legal_status in ("in_force", "amended"):
         if rule.instrument_kind == "directive" and rule.transposition.status == "pending":
             return "transposition_pending"
@@ -849,8 +861,8 @@ CURRENT_RULES: tuple[RegulatoryRule, ...] = (
             "directives filles et les listes de substances doivent être "
             "instruites séparément et versionnées séparément dès qu'un réviseur "
             "est désigné. Aucune conclusion de conformité n'est produite ailleurs "
-            "que sur cette surface P13 — les connecteurs Hub'Eau n'en portent "
-            "aucune, et un test AST le vérifie côté qualité."
+            "que dans ce registre — les connecteurs Hub'Eau n'en portent aucune, "
+            "et un test le vérifie."
         ),
     ),
     RegulatoryRule(

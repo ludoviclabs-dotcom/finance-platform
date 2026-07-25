@@ -92,16 +92,35 @@ describe("contenus éditoriaux", () => {
   });
 });
 
-describe("previews Wave D", () => {
-  it("rend les deux aperçus", () => {
-    expect(visible).toContain("Cockpit de conformité");
-    expect(visible).toContain("Passerelle financière");
+describe("Wave D — les deux previews sont remplacées", () => {
+  /*
+   * Commits D1 et D3 : les aperçus « Cockpit de conformité » et « Passerelle
+   * financière » ont été REMPLACÉS par le registre juridique réel et le contrat
+   * réel du moteur financier, conformément à la consigne « remplacer, pas
+   * compléter ». Les assertions qui vérifiaient leur présence ont donc été
+   * retirées en connaissance de cause et remplacées par celles du contenu réel.
+   */
+  it("rend le registre juridique réel en section Réglementation", () => {
+    expect(visible).toContain("Registre juridique");
+    expect(visible).toContain("Aucun texte instruit");
+    expect(visible).toContain("Droit contraignant");
+    expect(visible).toContain("Référentiels volontaires");
   });
 
-  it("les étiquette comme aperçus non fonctionnels", () => {
-    expect(visible).toContain("Aperçu");
-    expect(visible).toContain("P13");
-    expect(visible).toContain("P15");
+  it("rend le contrat réel du moteur financier en section Synergies", () => {
+    expect(visible).toContain("Passerelle financière");
+    expect(visible).toContain("Aucun montant sur cette page");
+    expect(visible).toContain("Sensibilité plutôt que certitude");
+  });
+
+  it("ne présente plus aucun de ces deux blocs comme un aperçu", () => {
+    expect(visible).not.toContain("Cockpit de conformité");
+    expect(visible).not.toContain("Aperçu — livré par");
+  });
+
+  it("rend les ponts vers les modules CarbonCo", () => {
+    expect(visible).toContain("Cockpit Eau");
+    expect(visible).toContain("chemins nus");
   });
 });
 

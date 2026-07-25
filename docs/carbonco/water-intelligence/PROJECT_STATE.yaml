@@ -1,10 +1,10 @@
 project: carbonco-water-intelligence
-active_prompt: WAVE_D
+active_prompt: WAVE_E
 status: in_progress
 default_branch: master
 private_cockpit_route: /water
 public_intelligence_route: /water-intelligence
-last_merged_prompt: WAVE_B
+last_merged_prompt: WAVE_C
 next_prompt: WAVE_E
 migrations_expected: false
 blocking_issues: []
@@ -66,12 +66,21 @@ waves:
   wave_c:
     name: "Produit public (P10 read model + P11 carte + P12 contenus)"
     branch: feat/water-intelligence-wave-c-public-data-product
-    status: review
-    merged: false
+    status: merged
+    merged: true
+    pull_request: 156
+    merge_sha: eb2a89840f14a738211215ef294556203a761f15
     base_sha: daaf8f0ab533460c1d50a0d4dbc62194f2d1e205
-    note: "Blueprint UX/UI fusionne (PR #154, dossier ux/) : source de conception, NE PAS le modifier pendant la Wave C."
+    note: "Blueprint UX/UI fusionne (PR #154, dossier ux/) : source de conception, NE PAS le modifier. Un commit de cloture (aba3fc5) a corrige le gate security-audit : override postcss ^8.5.10 -> ^8.5.18 (correctif reel) et tolerance documentee GHSA-mh99-v99m-4gvg (brace-expansion, override 5.0.8 rejete car il casse ESLint), reevaluation 2026-08-08."
   wave_d:
     name: "Couche decisionnelle (P13 conformite + P14 synergies + P15 finance)"
     branch: feat/water-intelligence-wave-d-decision-layer
+    status: review
+    merged: false
+    base_sha: eb2a89840f14a738211215ef294556203a761f15
+    note: "Trois moteurs livres, purs et testes, AUCUN branche sur une route HTTP. Registre juridique : 9 textes nommes, 0 instruit (aucun reviseur juridique designe) donc le moteur repond unknown partout. Synthese tenant : 6 facettes, aucun score global, degradation par facette. Moteur financier : aucun montant sur la surface publique. Trois documents canoniques emis et miroites a l octet pres. Aucune migration. Detail : handoffs/WAVE_D_DECISION_LAYER.md."
+  wave_e:
+    name: "Finalisation (P16 QA + P17 preview ; P18 optionnel)"
+    branch: feat/water-intelligence-wave-e-finalisation
     status: ready
-    note: "Ne pas demarrer avant revue humaine et fusion de la Wave C."
+    note: "Ne pas demarrer avant revue humaine et fusion de la Wave D."

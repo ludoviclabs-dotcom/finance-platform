@@ -282,78 +282,21 @@ export function WiExclusionList({ exclusions }: { exclusions: readonly WiSourceE
   );
 }
 
-/* ------------------------------------------------------------ Previews */
-
-/**
- * Previews non fonctionnelles de la Wave D.
+/*
+ * PREVIEWS SUPPRIMÉES PAR LA WAVE D — remplacées, pas complétées.
  *
- * Ne rendent AUCUN chiffre, AUCUNE date, AUCUN statut juridique et AUCUN
- * montant — un test l'impose. Elles décrivent la forme de ce que P13 et P15
- * livreront, sans en préempter le contenu.
+ * La consigne du MACRO-PROMPT D est explicite : les previews C15/C16 doivent
+ * être REMPLACÉES. Les deux l'ont été, et `WiPreviewCard` disparaît avec elles
+ * plutôt que de rester du code mort :
+ *
+ *  - `WiCompliancePreview` (P13, commit D1) → `WiRegulatory.tsx`, alimenté par
+ *    le registre juridique versionné du backend ;
+ *  - `WiFinancialBridgePreview` (P15, commit D3) → `WiFinancialEngine.tsx`,
+ *    alimenté par le contrat du moteur de scénarios émis depuis le code.
+ *
+ * Les tests qui interdisaient à ces aperçus de rendre un chiffre ou une date
+ * ont été retirés EN CONNAISSANCE DE CAUSE : ils décrivaient des composants qui
+ * n'existent plus. Les composants qui les remplacent affichent légitimement une
+ * version de registre et des unités, et sont couverts par leurs propres tests
+ * (`water-intelligence-regulatory.test.tsx`, `water-intelligence-financial.test.tsx`).
  */
-export function WiPreviewCard({
-  title,
-  kicker,
-  describes,
-  deliveredBy,
-}: {
-  title: string;
-  kicker: string;
-  describes: readonly string[];
-  deliveredBy: string;
-}) {
-  return (
-    <div className="wi-card wi-accent-compliance">
-      <p className="wi-mono" style={{ color: "var(--wi-compliance)", fontSize: "0.75rem" }}>
-        {kicker}
-      </p>
-      <h3 className="wi-h3" style={{ marginTop: "0.25rem" }}>
-        {title}
-      </h3>
-      <div style={{ marginTop: "0.5rem" }}>
-        <WiBadge tone="pending" label={`Aperçu — livré par ${deliveredBy}`} />
-      </div>
-      <p className="wi-muted" style={{ marginTop: "0.75rem", fontSize: "0.875rem" }}>
-        Cet aperçu décrit la <strong>forme</strong> de ce qui sera livré. Il n’affiche
-        volontairement aucune valeur, aucune date et aucun statut juridique.
-      </p>
-      <ul className="wi-muted" style={{ marginTop: "0.5rem", paddingLeft: "1.1rem", fontSize: "0.875rem" }}>
-        {describes.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export function WiCompliancePreview() {
-  return (
-    <WiPreviewCard
-      kicker="Aperçu"
-      title="Cockpit de conformité"
-      deliveredBy="P13 (Wave D)"
-      describes={[
-        "Registre juridique versionné, chaque règle portant sa juridiction et sa source",
-        "Statuts limités à in_scope / out_of_scope / conditional / unknown",
-        "Un champ manquant produit unknown, jamais une conclusion",
-        "Aucun conseil juridique, aucune date figée dans l’interface",
-      ]}
-    />
-  );
-}
-
-export function WiFinancialBridgePreview() {
-  return (
-    <WiPreviewCard
-      kicker="Aperçu"
-      title="Passerelle financière"
-      deliveredBy="P15 (Wave D)"
-      describes={[
-        "Moteur d’hypothèses explicites, séparant observé, hypothèse et dérivé",
-        "Sensibilité affichée plutôt que certitude",
-        "Aucune écriture comptable, aucun taux fiscal supposé",
-        "Aucune probabilité produite par un modèle de langage",
-      ]}
-    />
-  );
-}

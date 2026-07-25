@@ -19,13 +19,14 @@ import Link from "next/link";
 
 import { WiEditorialEmpty } from "@/components/water-intelligence/WiEditorial";
 import {
-  WiCompliancePreview,
   WiExclusionList,
-  WiFinancialBridgePreview,
   WiWaterPulse,
 } from "@/components/water-intelligence/WiFoundations";
+import { WiFinancialEngineContract } from "@/components/water-intelligence/WiFinancialEngine";
+import { WiModuleBridges } from "@/components/water-intelligence/WiBridges";
 import { WiMapFrame } from "@/components/water-intelligence/WiMapFrame";
 import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
+import { WiRegulatoryRegistry } from "@/components/water-intelligence/WiRegulatory";
 import { WiSnapshotBanner } from "@/components/water-intelligence/WiSnapshotBanner";
 import {
   WiAbsentValue,
@@ -443,28 +444,17 @@ export default function WaterIntelligencePage() {
           title="Réglementation et reporting"
         >
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Le registre juridique distinguera les statuts réellement différents — en vigueur, adopté
+            Le registre juridique distingue les statuts réellement différents — en vigueur, adopté
             mais non applicable, en attente de transposition, dépendant de la matérialité,
             volontaire, hors périmètre, ou inconnu — plutôt que de réduire une règle à
-            «&nbsp;obligatoire&nbsp;».
+            «&nbsp;obligatoire&nbsp;». Il distingue aussi le droit contraignant des référentiels
+            volontaires, qui n&apos;obligent personne.
           </p>
 
+          {/* P13 (Wave D) : registre RÉEL, plus un aperçu. Il ne conclut rien
+              tant qu'aucun texte n'est instruit — c'est l'état correct. */}
           <div style={{ marginTop: "1.25rem" }}>
-            <WiPlaceholder
-              what="Aucun texte, aucune date d'entrée en vigueur et aucun statut juridique ne sont affichés. Une règle sans source officielle et sans date de revue humaine ne peut pas être publiée."
-              plannedIn="P13 — registre juridique versionné"
-            >
-              <p className="wi-muted" style={{ fontSize: "0.875rem" }}>
-                Ce module publiera de l&apos;information, jamais du conseil juridique. Tout champ
-                manquant conduira au statut <span className="wi-mono">unknown</span>, jamais à une
-                conclusion favorable par défaut.
-              </p>
-            </WiPlaceholder>
-          </div>
-
-          {/* Aperçu non fonctionnel : aucune valeur, aucune date, aucun statut. */}
-          <div style={{ marginTop: "1.25rem" }}>
-            <WiCompliancePreview />
+            <WiRegulatoryRegistry />
           </div>
         </WiSection>
 
@@ -476,33 +466,14 @@ export default function WaterIntelligencePage() {
             informations d&apos;entreprise.
           </p>
 
-          <div className="wi-grid wi-grid-2" style={{ marginTop: "1.25rem" }}>
-            <WiCard title="Cockpit Eau & stress hydrique" accent="water">
-              Sites géocodés après revue humaine, prélèvements, consommations, rejets, permis,
-              screening déterministe, cibles et actions.{" "}
-              <Link href="/water" className="wi-link">
-                Ouvrir le cockpit (authentifié)
-              </Link>
-              .
-            </WiCard>
-            <WiCard title="Matières premières critiques" accent="data">
-              Le contexte hydrique éclaire aussi les dépendances matières.{" "}
-              <Link href="/materials" className="wi-link">
-                Voir le module Métaux critiques
-              </Link>
-              .
-            </WiCard>
-          </div>
+          {/* P14 (Wave D) : les ponts viennent du registre backend, qui refuse
+              toute cible paramétrée ou porteuse d'un champ tenant. */}
+          <WiModuleBridges />
 
-          <p className="wi-muted" style={{ marginTop: "1.25rem", maxWidth: "62ch" }}>
-            Les passerelles vers les ressources stratégiques, les IRO et la double matérialité sont
-            prévues côté authentifié (P14). Aucune donnée d&apos;entreprise ne remontera jamais dans
-            cette page publique.
-          </p>
-
-          {/* Aperçu non fonctionnel : aucun montant, aucune probabilité. */}
+          {/* P15 (Wave D) : contrat RÉEL du moteur, plus un aperçu. Aucun
+              montant — le calcul se fait côté authentifié. */}
           <div style={{ marginTop: "1.25rem" }}>
-            <WiFinancialBridgePreview />
+            <WiFinancialEngineContract />
           </div>
         </WiSection>
 

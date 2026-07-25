@@ -18,9 +18,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   WiAccessibleDataTable,
-  WiCompliancePreview,
   WiExclusionList,
-  WiFinancialBridgePreview,
   WiLegend,
   WiWaterPulse,
 } from "@/components/water-intelligence/WiFoundations";
@@ -321,28 +319,13 @@ describe("WiExclusionList", () => {
 
 /* --------------------------------------------------------- Previews */
 
-describe("previews Wave D", () => {
-  const html = `${renderToStaticMarkup(<WiCompliancePreview />)}${renderToStaticMarkup(
-    <WiFinancialBridgePreview />,
-  )}`;
-
-  it("ne rend aucun chiffre", () => {
-    const text = html.replace(/<[^>]+>/g, " ");
-    const withoutMissionCodes = text.replace(/P1[35]/g, " ");
-
-    expect(withoutMissionCodes).not.toMatch(/\d/);
-  });
-
-  it("ne rend aucune date", () => {
-    expect(html).not.toMatch(/\d{4}-\d{2}-\d{2}/);
-    expect(html).not.toMatch(/20\d{2}/);
-  });
-
-  it("se déclare explicitement comme aperçu", () => {
-    expect(html).toContain("Aperçu");
-    expect(html).toContain("aucune valeur");
-  });
-});
+/*
+ * Les deux previews Wave D ont été REMPLACÉES (commits D1 et D3) : le bloc de
+ * tests « aucun chiffre / aucune date » qui les couvrait a donc été retiré en
+ * connaissance de cause. Les composants qui les remplacent ont leurs propres
+ * suites : `water-intelligence-regulatory.test.tsx` (P13) et
+ * `water-intelligence-financial.test.tsx` (P15).
+ */
 
 /* ----------------------------------------- Discipline de thème et fixture */
 

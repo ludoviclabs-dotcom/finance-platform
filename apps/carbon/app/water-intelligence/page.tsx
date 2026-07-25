@@ -20,9 +20,9 @@ import Link from "next/link";
 import { WiEditorialEmpty } from "@/components/water-intelligence/WiEditorial";
 import {
   WiExclusionList,
-  WiFinancialBridgePreview,
   WiWaterPulse,
 } from "@/components/water-intelligence/WiFoundations";
+import { WiFinancialEngineContract } from "@/components/water-intelligence/WiFinancialEngine";
 import { WiModuleBridges } from "@/components/water-intelligence/WiBridges";
 import { WiMapFrame } from "@/components/water-intelligence/WiMapFrame";
 import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
@@ -470,9 +470,10 @@ export default function WaterIntelligencePage() {
               toute cible paramétrée ou porteuse d'un champ tenant. */}
           <WiModuleBridges />
 
-          {/* Aperçu non fonctionnel : aucun montant, aucune probabilité. */}
+          {/* P15 (Wave D) : contrat RÉEL du moteur, plus un aperçu. Aucun
+              montant — le calcul se fait côté authentifié. */}
           <div style={{ marginTop: "1.25rem" }}>
-            <WiFinancialBridgePreview />
+            <WiFinancialEngineContract />
           </div>
         </WiSection>
 

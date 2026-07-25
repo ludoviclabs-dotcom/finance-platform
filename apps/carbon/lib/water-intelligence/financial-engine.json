@@ -1,0 +1,92 @@
+{
+  "accounting_signals": [
+    {
+      "question": "Une exposition hydrique durable sur un actif peut constituer un indice de perte de valeur à examiner. Le test de dépréciation reste un acte comptable humain.",
+      "reference": "IAS 36"
+    },
+    {
+      "question": "Une obligation actuelle résultant d'un événement passé peut appeler une provision ou un passif éventuel à examiner.",
+      "reference": "IAS 37"
+    },
+    {
+      "question": "Le fait générateur d'une redevance ou taxe liée au prélèvement peut être distinct de l'exercice de consommation : à examiner au regard du texte applicable.",
+      "reference": "IFRIC 21"
+    },
+    {
+      "question": "Une interruption longue peut affecter la continuité d'exploitation : hypothèse à examiner avec la direction et les commissaires aux comptes.",
+      "reference": "going_concern"
+    },
+    {
+      "question": "La couverture assurantielle du risque hydrique et ses exclusions sont à vérifier — aucune indemnisation n'est supposée ici.",
+      "reference": "insurance"
+    },
+    {
+      "question": "Les redevances et taxes applicables dépendent du bassin et de l'usage ; aucun taux n'est encodé dans ce moteur.",
+      "reference": "levies"
+    }
+  ],
+  "money_rounding": "ROUND_HALF_EVEN, 2 décimales",
+  "parameters": [
+    {
+      "description": "Durée d'interruption retenue pour le scénario.",
+      "name": "outage_days",
+      "required": true,
+      "unit": "day"
+    },
+    {
+      "description": "Part de la capacité réellement affectée — un arrêt total n'est pas supposé.",
+      "name": "affected_capacity_share",
+      "required": true,
+      "unit": "ratio"
+    },
+    {
+      "description": "Revenu journalier de l'activité exposée.",
+      "name": "revenue_per_day",
+      "required": true,
+      "unit": "currency/day"
+    },
+    {
+      "description": "Taux de marge appliqué au revenu à risque.",
+      "name": "margin_rate",
+      "required": true,
+      "unit": "ratio"
+    },
+    {
+      "description": "Surcoût opératoire journalier (approvisionnement de substitution, transport…).",
+      "name": "additional_opex_per_day",
+      "required": true,
+      "unit": "currency/day"
+    },
+    {
+      "description": "Investissement d'adaptation envisagé.",
+      "name": "adaptation_capex",
+      "required": true,
+      "unit": "currency"
+    },
+    {
+      "description": "Taux d'actualisation FOURNI — aucun taux par défaut n'existe dans le moteur.",
+      "name": "discount_rate",
+      "required": true,
+      "unit": "ratio"
+    },
+    {
+      "description": "Probabilité fournie par un humain, avec sa base. Jamais calculée ici, jamais produite par un modèle de langage.",
+      "name": "probability",
+      "required": false,
+      "unit": "ratio"
+    }
+  ],
+  "refusals": [
+    "Aucune écriture comptable : le moteur signale des questions, jamais des conclusions.",
+    "Aucun taux inventé : le taux d'actualisation est obligatoire, aucun taux fiscal n'est encodé.",
+    "Aucune probabilité produite par un modèle de langage.",
+    "Une entrée absente rend un résultat absent et motivé, jamais zéro.",
+    "Une valeur centrale n'est jamais rendue seule : ses bandes de sensibilité l'accompagnent."
+  ],
+  "sensitivity_drivers": [
+    "outage_days",
+    "revenue_per_day",
+    "margin_rate",
+    "discount_rate"
+  ]
+}

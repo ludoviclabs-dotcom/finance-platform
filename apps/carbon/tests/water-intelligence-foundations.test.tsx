@@ -19,7 +19,6 @@ import { describe, expect, it } from "vitest";
 import {
   WiAccessibleDataTable,
   WiExclusionList,
-  WiFinancialBridgePreview,
   WiLegend,
   WiWaterPulse,
 } from "@/components/water-intelligence/WiFoundations";
@@ -321,33 +320,12 @@ describe("WiExclusionList", () => {
 /* --------------------------------------------------------- Previews */
 
 /*
- * Wave D, commit D1 : `WiCompliancePreview` a été SUPPRIMÉE et remplacée par le
- * registre juridique réel (`WiRegulatory.tsx`), couvert par
- * `tests/water-intelligence-regulatory.test.tsx`. Les assertions « aucun
- * chiffre / aucune date » ne s'appliquent donc plus qu'à l'aperçu financier,
- * qui reste un aperçu jusqu'à ce que P15 le remplace à son tour. Retrait
- * assumé, conformément à la consigne « remplacer, pas compléter ».
+ * Les deux previews Wave D ont été REMPLACÉES (commits D1 et D3) : le bloc de
+ * tests « aucun chiffre / aucune date » qui les couvrait a donc été retiré en
+ * connaissance de cause. Les composants qui les remplacent ont leurs propres
+ * suites : `water-intelligence-regulatory.test.tsx` (P13) et
+ * `water-intelligence-financial.test.tsx` (P15).
  */
-describe("aperçu Wave D restant (P15)", () => {
-  const html = renderToStaticMarkup(<WiFinancialBridgePreview />);
-
-  it("ne rend aucun chiffre", () => {
-    const text = html.replace(/<[^>]+>/g, " ");
-    const withoutMissionCodes = text.replace(/P1[35]/g, " ");
-
-    expect(withoutMissionCodes).not.toMatch(/\d/);
-  });
-
-  it("ne rend aucune date", () => {
-    expect(html).not.toMatch(/\d{4}-\d{2}-\d{2}/);
-    expect(html).not.toMatch(/20\d{2}/);
-  });
-
-  it("se déclare explicitement comme aperçu", () => {
-    expect(html).toContain("Aperçu");
-    expect(html).toContain("aucune valeur");
-  });
-});
 
 /* ----------------------------------------- Discipline de thème et fixture */
 

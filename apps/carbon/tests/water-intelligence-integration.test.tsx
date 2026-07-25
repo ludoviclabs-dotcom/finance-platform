@@ -92,13 +92,13 @@ describe("contenus éditoriaux", () => {
   });
 });
 
-describe("Wave D — registre livré, passerelle financière encore en aperçu", () => {
+describe("Wave D — les deux previews sont remplacées", () => {
   /*
-   * Commit D1 : l'aperçu « Cockpit de conformité » a été REMPLACÉ par le
-   * registre juridique réel, conformément à la consigne « remplacer, pas
-   * compléter ». L'assertion correspondante a donc été retirée en connaissance
-   * de cause et remplacée par celle du registre. L'aperçu P15 reste un aperçu
-   * jusqu'à ce que le commit D3 le remplace à son tour.
+   * Commits D1 et D3 : les aperçus « Cockpit de conformité » et « Passerelle
+   * financière » ont été REMPLACÉS par le registre juridique réel et le contrat
+   * réel du moteur financier, conformément à la consigne « remplacer, pas
+   * compléter ». Les assertions qui vérifiaient leur présence ont donc été
+   * retirées en connaissance de cause et remplacées par celles du contenu réel.
    */
   it("rend le registre juridique réel en section Réglementation", () => {
     expect(visible).toContain("Registre juridique");
@@ -107,14 +107,20 @@ describe("Wave D — registre livré, passerelle financière encore en aperçu",
     expect(visible).toContain("Référentiels volontaires");
   });
 
-  it("ne présente plus la conformité comme un aperçu", () => {
-    expect(visible).not.toContain("Cockpit de conformité");
+  it("rend le contrat réel du moteur financier en section Synergies", () => {
+    expect(visible).toContain("Passerelle financière");
+    expect(visible).toContain("Aucun montant sur cette page");
+    expect(visible).toContain("Sensibilité plutôt que certitude");
   });
 
-  it("conserve l'aperçu financier étiqueté comme tel", () => {
-    expect(visible).toContain("Passerelle financière");
-    expect(visible).toContain("Aperçu");
-    expect(visible).toContain("P15");
+  it("ne présente plus aucun de ces deux blocs comme un aperçu", () => {
+    expect(visible).not.toContain("Cockpit de conformité");
+    expect(visible).not.toContain("Aperçu — livré par");
+  });
+
+  it("rend les ponts vers les modules CarbonCo", () => {
+    expect(visible).toContain("Cockpit Eau");
+    expect(visible).toContain("chemins nus");
   });
 });
 

@@ -103,3 +103,10 @@ Détail complet : `handoffs/WAVE_D_DECISION_LAYER.md`.
 - **`extra="forbid"` sur `OfficialLegalReference`, et c'est un choix.** Sans lui, passer une référence de jeu de données était silencieusement accepté et vidé de tous ses champs — le contrat aurait transformé une erreur de forme en référence vide plausible. Le refus doit être bruyant. Ce comportement a été révélé par un test, pas supposé.
 - **Migration de fixture explicitement versionnée** : `manifest_version` passe de `1.0.0` à `1.1.0`. Un changement incompatible de schéma se versionne, il ne s'applique pas en silence.
 - **E2 ne crée aucun fait juridique.** Aucune source officielle réelle n'a été renseignée, aucun verdict n'a changé : les neuf règles restent `unknown`, sans source ni réviseur. Trois tests le verrouillent.
+
+## 2026-07-25 — Wave E, commit E5 : le test contre une vraie base a trouvé un vrai défaut
+
+- **La troisième barrière anti-IDOR de la Wave D était inopérante.** Le lecteur de synthèse estampillait chaque entrée avec le `company_id` demandé plutôt qu'avec celui de la ligne lue : une ligne fuitée était réétiquetée au nom du demandeur, si bien que `CrossTenantEntryError` ne pouvait jamais se déclencher. Le garde-fou vérifiait une valeur qu'il venait lui-même de poser.
+- **Aucun test à doubles ne pouvait le voir**, et c'est la justification rétrospective de l'exigence « pas de preuve d'isolation sans PostgreSQL réel » : un double de lecture ne peut pas omettre une clause `WHERE`, donc il ne peut pas produire la fuite qu'on prétend détecter. Le défaut est apparu à la PREMIÈRE exécution du test A/B en CI.
+- **Correctif** : `_entry_company_id()` lit le tenant sur la ligne et **refuse** un enregistrement qui n'en déclare pas — prêter le tenant courant à un enregistrement anonyme serait exactement le défaut d'origine sous une autre forme. Les doubles des tests purs portent désormais un `company_id`, comme les objets réels.
+- **Conséquence pour les tests d'isolation à venir** : vérifier qu'une entrée « appartient au bon tenant » n'a de valeur que si le tenant vient de la donnée, jamais du contexte d'appel.

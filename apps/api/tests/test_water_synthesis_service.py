@@ -48,10 +48,19 @@ def _screening(
     site_id: int = 7,
     risk_category: str | None = "high",
     confidence: float | None = 80.0,
+    company_id: int = COMPANY_A,
 ) -> SimpleNamespace:
+    """Double d'un `WaterScreeningSummary`.
+
+    `company_id` est présent parce que l'objet réel le porte : c'est lui que le
+    lecteur estampille sur l'entrée, jamais le tenant demandé. Un double qui
+    l'omettrait rendrait le garde-fou anti-fuite intestable — c'est exactement
+    l'angle mort qu'a révélé le premier test contre un vrai PostgreSQL.
+    """
     return SimpleNamespace(
         id=screening_id,
         site_id=site_id,
+        company_id=company_id,
         methodology_code="CC-WATER-SCREENING",
         risk_category=risk_category,
         confidence=confidence,
@@ -129,6 +138,7 @@ class TestSchemaDegradation:
                 [
                     SimpleNamespace(
                         id=3,
+                        company_id=COMPANY_A,
                         title="Tension hydrique amont",
                         iro_type="risk",
                         origin_reference="site_water_screening:1",
@@ -313,29 +323,38 @@ class TestTenantIsolation:
     def test_a_reader_leaking_another_tenant_fails_loudly(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Si une lecture ramenait une ligne d'un autre tenant, la composition
-        doit échouer — jamais filtrer en silence."""
-        from services.water_intelligence import tenant_synthesis
+        """Une lecture qui ramène la ligne d'un autre tenant fait ÉCHOUER.
 
-        original = tenant_synthesis.FacetEntry
-
+        Le double rend maintenant une ligne réellement estampillée `COMPANY_B`
+        — c'est la forme exacte du défaut : ce n'est pas la synthèse qui se
+        trompe de tenant, c'est la requête en amont qui a fuité.
+        """
         from services.water import screening_service
 
         monkeypatch.setattr(
             screening_service,
             "list_screenings",
-            lambda **_: _listing([_screening()]),
-            raising=True,
-        )
-        # Force les entrées produites à porter le mauvais tenant.
-        monkeypatch.setattr(
-            svc,
-            "FacetEntry",
-            lambda **kwargs: original(**{**kwargs, "company_id": COMPANY_B}),
+            lambda **_: _listing([_screening(company_id=COMPANY_B)]),
             raising=True,
         )
 
         with pytest.raises(CrossTenantEntryError):
+            svc.build_synthesis(company_id=COMPANY_A)
+
+    def test_a_record_without_company_id_is_refused(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Un enregistrement sans tenant déclaré ne se rattache pas par défaut."""
+        from services.water import screening_service
+
+        orphan = SimpleNamespace(
+            id=1, site_id=1, methodology_code="X", risk_category="high", confidence=1.0
+        )
+        monkeypatch.setattr(
+            screening_service, "list_screenings", lambda **_: _listing([orphan]), raising=True
+        )
+
+        with pytest.raises(ValueError, match="sans company_id"):
             svc.build_synthesis(company_id=COMPANY_A)
 
     def test_two_tenants_produce_independent_syntheses(
@@ -346,8 +365,8 @@ class TestTenantIsolation:
         def _by_tenant(**kwargs: object) -> SimpleNamespace:
             company_id = int(kwargs["company_id"])  # type: ignore[arg-type]
             if company_id == COMPANY_A:
-                return _listing([_screening(screening_id=1, site_id=11)])
-            return _listing([_screening(screening_id=2, site_id=22)])
+                return _listing([_screening(screening_id=1, site_id=11, company_id=COMPANY_A)])
+            return _listing([_screening(screening_id=2, site_id=22, company_id=COMPANY_B)])
 
         monkeypatch.setattr(screening_service, "list_screenings", _by_tenant, raising=True)
 

@@ -4,7 +4,22 @@ Point d'entrée court du chantier CarbonCo Water Intelligence.
 
 ## Mission active
 
-**Wave E — Finalisation, activation fonctionnelle contrôlée, QA et dossier final.** Dernière vague du chantier : la suite n'est pas une vague, c'est une **décision humaine de production**.
+**Aucune. Le chantier attend une REVUE HUMAINE.**
+
+La dernière vague — Wave E-Interface & Closeout — est livrée dans la **PR #159,
+ouverte en Draft et non fusionnée**. La suite n'est pas une vague : c'est une
+revue humaine, puis une décision de production.
+
+Deux choses qu'aucun outil ne peut faire à la place d'un humain, et qui restent
+donc à faire :
+
+- **regarder les pages** — aucune vérification visuelle n'a été réalisée, et la
+  checklist est livrée non cochée ;
+- **signer** — dix décisions restent ouvertes.
+
+À lire en premier : [`FINAL_TRACEABILITY.md`](./FINAL_TRACEABILITY.md) pour
+l'état vérifié, puis [`HUMAN_DECISION_PACKET.md`](./HUMAN_DECISION_PACKET.md)
+pour ce qui reste à décider.
 
 Le chantier est passé d'une exécution prompt par prompt (P00 à P18) à un
 regroupement en cinq vagues, décrit dans
@@ -24,15 +39,23 @@ regroupement en cinq vagues, décrit dans
   merge SHA `618a222`. Voir [`handoffs/WAVE_D_DECISION_LAYER.md`](./handoffs/WAVE_D_DECISION_LAYER.md).
   Trois moteurs livrés, purs et testés ; le registre juridique nomme neuf textes
   et n'en instruit aucun.
-- Wave E (P16 QA + P17 preview ; P18 documentaire) : **en cours** — branche
-  `feat/water-intelligence-wave-e-finalisation`. Elle branche les moteurs de la
-  Wave D sur des surfaces HTTP contrôlées, aligne la page publique sur l'état
-  réel du produit et produit le dossier de décision.
+- Wave E-Core (E0 pilotage, E1 vérité de la page publique, E2 contrats
+  juridiques, E3 endpoints, E5 isolation tenant) : **fusionnée** — PR #158,
+  merge SHA `7ea6772`. Le test tenant A/B contre un vrai PostgreSQL y
+  a trouvé un défaut d'isolation réel, corrigé dans la même PR.
+- Wave E-Interface & Closeout (E4 cockpit authentifié, E6 QA/E2E/sécurité,
+  E7 Preview et dossier final) : **en attente de revue humaine** — PR #159,
+  Draft, branche `feat/water-intelligence-wave-e-ui-closeout`. Ajoute la route
+  authentifiée `/water/decision`, un job E2E public sans secret, un workflow
+  E2E authentifié *préparé et jamais exécuté*, et sept corrections de qualité
+  mesurées.
 
 ## Frontière de routes (rappel)
 
 - `/water` reste le cockpit entreprise authentifié **existant**, inchangé.
-- `/water-intelligence` est la route **publique** cible du nouveau module.
+- `/water-intelligence` est la route **publique** du module.
+- `/water/decision` est le cockpit décisionnel authentifié ajouté par la PR #159.
+- `/eau` n'existe pas et n'est pas créée (P18) ; aucun redirect non plus.
 
 ## Documents à lire, dans l'ordre
 
@@ -42,6 +65,17 @@ regroupement en cinq vagues, décrit dans
 4. [`CURRENT_TASK.md`](./CURRENT_TASK.md) — mission suivante isolée, prête à l'emploi.
 5. [`PROJECT_STATE.yaml`](./PROJECT_STATE.yaml) — état machine-readable du chantier.
 6. [`ACCEPTANCE_GATES.md`](./ACCEPTANCE_GATES.md) — checklist à valider avant de passer à la mission suivante.
+
+## Dossier de clôture
+
+- [`FINAL_TRACEABILITY.md`](./FINAL_TRACEABILITY.md) — état vérifié du chantier :
+  PR #141 à #159, architecture, endpoints relevés sur la Preview, tests, sécurité,
+  performances mesurées, rollback, et **les limites de ce qui a été vérifié**.
+- [`HUMAN_DECISION_PACKET.md`](./HUMAN_DECISION_PACKET.md) — dix formulaires
+  **non signés** et une checklist visuelle **non cochée**.
+- [`E2E_AUTHENTICATED_RUNBOOK.md`](./E2E_AUTHENTICATED_RUNBOOK.md) — création de
+  l'environnement `e2e-preview`, lancement, rotation, révocation. Statut :
+  `prepared_not_executed_environment_not_configured`.
 
 ## Autres documents de pilotage
 

@@ -55,6 +55,7 @@ backups/
 # Runtime logs / test artifacts
 apps/*/logs/
 apps/*/test-results/
+apps/*/playwright-report/
 
 # Claude Code local settings (per-machine, per-user)
 .claude/settings.local.json

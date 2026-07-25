@@ -42,6 +42,21 @@
   --color-danger:      #DC2626;
   --color-danger-bg:   #FEF2F2;
 
+  /* ── Statut : TEXTE posé sur le fond teinté correspondant ───────────────── */
+  /* Les trois teintes ci-dessus sont calibrées pour des bordures, des points
+     et des icônes. Employées comme couleur de TEXTE sur leur propre fond
+     teinté, elles échouent au seuil WCAG AA de 4,5:1 pour du texte normal :
+     #D97706 sur #FFFBEB donne 3,07 ; #059669 sur #ECFDF5 donne 3,58 ;
+     #DC2626 sur #FEF2F2 donne 4,41 — le plus proche, et pourtant en dessous.
+
+     Ces trois variantes « strong » sont destinées au texte, et à lui seul.
+     Elles ne remplacent pas les précédentes : les fonds teintés ne changent
+     pas selon le thème, donc une seule valeur suffit pour le clair et le
+     sombre. Ratios mesurés : 6,84 · 7,60 · 7,29. */
+  --color-warning-strong: #92400E;
+  --color-danger-strong:  #991B1B;
+  --color-success-strong: #065F46;
+
   /* ── Radius ─────────────────────────────────────────────────────────────── */
   --radius-sm:   0.25rem;
   --radius:      0.375rem;
@@ -379,6 +394,12 @@ h1, h2, h3 {
   .carbon-check-draw { stroke-dashoffset: 0; }
   /* Le faisceau de scan reste invisible (pas de balayage) en mouvement réduit. */
   .carbon-scan-beam { opacity: 0; }
+
+  /* La transition de thème posée sur `html` échappait à ce bloc : elle est
+     décorative, et un utilisateur qui demande moins de mouvement demande aussi
+     que le fond ne se fonde pas pendant un quart de seconde. Ne concerne que
+     les personnes ayant exprimé la préférence. */
+  html { transition: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,81 @@
+# E2E publics — exécutables sur pull request parce qu'ils n'ont besoin d'aucun
+# secret (Wave E-Interface, commit F3).
+#
+# Ce qui rend ce job sûr sur une PR, y compris venant d'un dépôt forké :
+#
+#   * `pull_request` et JAMAIS `pull_request_target`. Le second s'exécute dans
+#     le contexte du dépôt de base, avec accès aux secrets, tout en ayant checké
+#     out du code proposé par un tiers : c'est le vecteur d'exfiltration
+#     classique. Ce job n'en a pas besoin, donc il ne l'utilise pas.
+#   * `secrets:` n'apparaît nulle part. Aucune variable d'environnement de ce
+#     workflow n'est lue depuis le magasin de secrets, et il n'y a rien à
+#     exfiltrer même si le code testé était hostile.
+#   * `permissions: contents: read` — le jeton du job ne peut rien écrire.
+#   * Aucune base de données, aucun backend, aucune Preview. La surface publique
+#     est un Server Component qui lit des documents locaux ; elle se rend sans
+#     API. `AUTH_JWT_SECRET` n'est pas fourni : `lib/verify-jwt` retombe sur sa
+#     valeur de développement, qu'aucune route publique ne sollicite.
+#
+# Ce job ne remplace pas `e2e.yml`, qui garde ses secrets et son déclenchement
+# sur `master` : la politique existante n'est pas modifiée, elle est complétée.
+# Les scénarios authentifiés restent hors de portée d'une PR.
+
+name: E2E publics (sans secret)
+
+on:
+  pull_request:
+    paths:
+      - "apps/carbon/**"
+      - ".github/workflows/e2e-public.yml"
+  push:
+    branches: [master]
+    paths:
+      - "apps/carbon/**"
+      - ".github/workflows/e2e-public.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-public-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public:
+    name: Surface publique Water Intelligence
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/carbon
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/carbon/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright (chromium seulement)
+        run: npx playwright install chromium --with-deps
+
+      - name: Build
+        run: npm run build
+
+      # Playwright démarre lui-même `npm run start` sur le port 3010
+      # (voir playwright.public.config.ts) : rien à orchestrer ici.
+      - name: E2E publics
+        run: npm run e2e:public
+
+      - name: Rapport Playwright
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-public-report
+          path: apps/carbon/playwright-report/
+          retention-days: 7

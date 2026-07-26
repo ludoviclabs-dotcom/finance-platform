@@ -1,0 +1,532 @@
+"""tests/test_water_intelligence_operator_scripts.py — bornes des commandes
+opérateur Water Intelligence (X1.6).
+
+## Aucun appel réseau, et c'est vérifié plutôt que promis
+
+`OperatorFetcher` reçoit son `opener_factory` par injection. Tous les tests de
+ce fichier en fournissent un, donc aucune socket n'est ouverte — et
+`TestNoNetworkInThisFile` le vérifie par analyse AST du fichier lui-même : un
+`OperatorFetcher(...)` construit ici sans `opener_factory` fait échouer la
+suite. C'est la seule façon d'empêcher qu'un test futur ouvre le réseau par
+distraction.
+
+## Ce que ces tests couvrent (X1.6)
+
+allowlist · HTTPS · timeout · retry · redirection externe · limites d'octets et
+de pages · checksum · rapport sans secret · absence de base · absence de
+publication · sens de la dépendance scripts → services.
+"""
+
+from __future__ import annotations
+
+import ast
+import email.message
+import hashlib
+import io
+import socket
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+import pytest
+
+from scripts.water_intelligence import fetcher as fetcher_mod
+from scripts.water_intelligence.fetcher import (
+    FetcherNetworkError,
+    FetcherRefusal,
+    FetcherTimeout,
+    OperatorFetcher,
+    _BoundedRedirectHandler,
+    public_url,
+    redact_params,
+)
+from scripts.water_intelligence.replay import ReplayTransport
+from scripts.water_intelligence.reporting import ReportError, ValidationReport
+from scripts.water_intelligence.validate_hubeau import (
+    FAMILIES,
+    build_socket_fetcher,
+    decide_verdict,
+)
+from services.water_intelligence import hubeau_transport as transport_mod
+from services.water_intelligence.pipeline_transport import TransportError
+
+API_ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS_DIR = API_ROOT / "scripts" / "water_intelligence"
+SERVICES_DIR = API_ROOT / "services" / "water_intelligence"
+HOSTS = frozenset({"hubeau.eaufrance.fr"})
+URL = "https://hubeau.eaufrance.fr/api/v1/prelevements/chroniques"
+
+
+# ---------------------------------------------------------------------------
+# Double d'ouverture — remplace urllib, n'ouvre aucune socket
+# ---------------------------------------------------------------------------
+
+
+class _FakeResponse(io.BytesIO):
+    def __init__(self, body: bytes, status: int, content_type: str | None, url: str) -> None:
+        super().__init__(body)
+        self.status = status
+        self.headers = email.message.Message()
+        if content_type:
+            self.headers["Content-Type"] = content_type
+        self._url = url
+
+    def geturl(self) -> str:
+        return self._url
+
+    def getcode(self) -> int:
+        return self.status
+
+    def __enter__(self):  # noqa: D105 - protocole de contexte
+        return self
+
+    def __exit__(self, *exc_info) -> bool:  # noqa: D105
+        return False
+
+
+class _FakeOpener:
+    """Ouvre… rien. Rend une réponse scriptée ou lève l'erreur demandée."""
+
+    def __init__(
+        self,
+        *,
+        body: bytes = b"{}",
+        status: int = 200,
+        content_type: str | None = "application/json",
+        raise_error: BaseException | None = None,
+    ) -> None:
+        self.body = body
+        self.status = status
+        self.content_type = content_type
+        self.raise_error = raise_error
+        self.calls: list[str] = []
+
+    def __call__(self, _redirect_handler):
+        return self
+
+    def open(self, request, timeout=None):  # noqa: A003 - signature urllib
+        self.calls.append(request.full_url)
+        if self.raise_error is not None:
+            raise self.raise_error
+        return _FakeResponse(self.body, self.status, self.content_type, request.full_url)
+
+
+def make_fetcher(opener: _FakeOpener, **kwargs) -> OperatorFetcher:
+    return OperatorFetcher(allowed_hosts=HOSTS, opener_factory=opener, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# 1 — Allowlist et schéma
+# ---------------------------------------------------------------------------
+
+
+class TestAllowlistAndScheme:
+    def test_http_is_refused(self) -> None:
+        fetch = make_fetcher(_FakeOpener())
+        with pytest.raises(FetcherRefusal, match="schéma"):
+            fetch.fetch("http://hubeau.eaufrance.fr/api/v1/prelevements/chroniques")
+
+    def test_host_outside_the_allowlist_is_refused(self) -> None:
+        fetch = make_fetcher(_FakeOpener())
+        with pytest.raises(FetcherRefusal, match="hors allowlist"):
+            fetch.fetch("https://hubeau.brgm-rec.fr/api/v1/prelevements/chroniques")
+
+    def test_credentials_in_the_url_are_refused(self) -> None:
+        fetch = make_fetcher(_FakeOpener())
+        with pytest.raises(FetcherRefusal, match="identifiants"):
+            fetch.fetch("https://user:pass@hubeau.eaufrance.fr/api/v1/x")
+
+    def test_an_empty_allowlist_is_refused_at_construction(self) -> None:
+        with pytest.raises(FetcherRefusal, match="allowlist vide"):
+            OperatorFetcher(allowed_hosts=frozenset())
+
+    def test_a_refusal_never_opens_anything(self) -> None:
+        opener = _FakeOpener()
+        fetch = make_fetcher(opener)
+        with pytest.raises(FetcherRefusal):
+            fetch.fetch("https://example.invalid/x")
+        assert opener.calls == []
+
+    def test_a_refusal_is_journalised(self) -> None:
+        fetch = make_fetcher(_FakeOpener())
+        with pytest.raises(FetcherRefusal):
+            fetch.fetch("https://example.invalid/x")
+        assert len(fetch.log) == 1
+        assert fetch.log[0].status_code is None
+        assert "hors allowlist" in (fetch.log[0].error or "")
+
+
+# ---------------------------------------------------------------------------
+# 2 — Redirections
+# ---------------------------------------------------------------------------
+
+
+class TestRedirectControl:
+    def _handler(self, max_redirects: int = 3) -> _BoundedRedirectHandler:
+        return _BoundedRedirectHandler(HOSTS, max_redirects)
+
+    def test_a_redirect_outside_the_allowlist_is_refused(self) -> None:
+        handler = self._handler()
+        with pytest.raises(FetcherRefusal, match="hors allowlist"):
+            handler.redirect_request(
+                urllib.request.Request(URL), None, 302, "Found", email.message.Message(),
+                "https://ailleurs.example/x",
+            )
+
+    def test_a_redirect_downgraded_to_http_is_refused(self) -> None:
+        handler = self._handler()
+        with pytest.raises(FetcherRefusal, match="schéma"):
+            handler.redirect_request(
+                urllib.request.Request(URL), None, 302, "Found", email.message.Message(),
+                "http://hubeau.eaufrance.fr/x",
+            )
+
+    def test_the_redirect_chain_is_bounded(self) -> None:
+        handler = self._handler(max_redirects=1)
+        handler.redirect_request(
+            urllib.request.Request(URL), None, 302, "Found", email.message.Message(),
+            "https://hubeau.eaufrance.fr/etape-1",
+        )
+        with pytest.raises(FetcherRefusal, match="redirection"):
+            handler.redirect_request(
+                urllib.request.Request(URL), None, 302, "Found", email.message.Message(),
+                "https://hubeau.eaufrance.fr/etape-2",
+            )
+
+    def test_an_allowed_redirect_is_recorded_without_its_query(self) -> None:
+        handler = self._handler()
+        handler.redirect_request(
+            urllib.request.Request(URL), None, 302, "Found", email.message.Message(),
+            "https://hubeau.eaufrance.fr/etape?code_departement=34",
+        )
+        assert handler.redirects == ["https://hubeau.eaufrance.fr/etape"]
+
+
+# ---------------------------------------------------------------------------
+# 3 — Budgets
+# ---------------------------------------------------------------------------
+
+
+class TestByteBudget:
+    def test_a_body_over_the_budget_is_refused_not_truncated(self) -> None:
+        fetch = make_fetcher(_FakeOpener(body=b"x" * 101), max_bytes=100)
+        with pytest.raises(FetcherRefusal, match="budget d'octets"):
+            fetch.fetch(URL)
+
+    def test_a_body_exactly_at_the_budget_is_accepted(self) -> None:
+        fetch = make_fetcher(_FakeOpener(body=b"x" * 100), max_bytes=100)
+        assert fetch.fetch(URL).bytes_received == 100
+
+    def test_a_null_budget_is_refused_at_construction(self) -> None:
+        with pytest.raises(FetcherRefusal, match="max_bytes"):
+            OperatorFetcher(allowed_hosts=HOSTS, max_bytes=0)
+
+    def test_the_socle_bounds_pages_independently(self) -> None:
+        """La limite de PAGES appartient au socle, pas au Fetcher."""
+        query = transport_mod.HubeauQuery(
+            endpoint_key="prelevements.chroniques",
+            parameters={"code_departement": "34", "annee_min": "2020", "annee_max": "2021"},
+            page_size=10,
+        )
+        page = b'{"count": 999, "data": [%s]}' % b",".join([b'{"a":1}'] * 10)
+        opener = _FakeOpener(body=page)
+        transport = transport_mod.HubeauTransport(
+            query=query,
+            fetcher=build_socket_fetcher(make_fetcher(opener)),
+            max_pages=1,
+            max_total_bytes=1_000_000,
+        )
+        transport.fetch_page(page_token=None)
+        with pytest.raises(transport_mod.HubeauBudgetExceeded, match="limite de pages"):
+            transport.fetch_page(page_token="2")
+
+
+# ---------------------------------------------------------------------------
+# 4 — Timeout et retry
+# ---------------------------------------------------------------------------
+
+
+class TestTimeoutAndRetry:
+    def test_a_socket_timeout_becomes_a_fetcher_timeout(self) -> None:
+        fetch = make_fetcher(_FakeOpener(raise_error=socket.timeout("trop long")))
+        with pytest.raises(FetcherTimeout, match="délai"):
+            fetch.fetch(URL)
+
+    def test_a_urlerror_wrapping_a_timeout_is_also_a_timeout(self) -> None:
+        fetch = make_fetcher(
+            _FakeOpener(raise_error=urllib.error.URLError(socket.timeout("trop long")))
+        )
+        with pytest.raises(FetcherTimeout):
+            fetch.fetch(URL)
+
+    def test_a_connection_failure_is_not_a_timeout(self) -> None:
+        fetch = make_fetcher(_FakeOpener(raise_error=urllib.error.URLError("injoignable")))
+        with pytest.raises(FetcherNetworkError) as excinfo:
+            fetch.fetch(URL)
+        assert not isinstance(excinfo.value, FetcherTimeout)
+
+    def test_a_timeout_is_handed_back_to_the_socle_so_it_can_retry(self) -> None:
+        """Le Fetcher ne décide pas des reprises : il SIGNALE, le socle décide."""
+        adapted = build_socket_fetcher(
+            make_fetcher(_FakeOpener(raise_error=socket.timeout("trop long")))
+        )
+        request = transport_mod.HubeauHttpRequest(
+            url=URL, params=(), timeout_seconds=1.0, attempt=1
+        )
+        with pytest.raises(transport_mod.HubeauTimeoutSignal):
+            adapted(request)
+
+    def test_a_refusal_is_never_retried(self) -> None:
+        """Un refus de bornage n'est pas un incident : le rejouer donnerait le
+        même refus, et masquerait la vraie cause derrière des tentatives."""
+        adapted = build_socket_fetcher(make_fetcher(_FakeOpener()))
+        request = transport_mod.HubeauHttpRequest(
+            url="https://ailleurs.example/x", params=(), timeout_seconds=1.0, attempt=1
+        )
+        with pytest.raises(transport_mod.HubeauTransportError) as excinfo:
+            adapted(request)
+        assert not isinstance(excinfo.value, transport_mod.HubeauTimeoutSignal)
+
+    def test_a_non_2xx_status_is_a_response_not_an_exception(self) -> None:
+        """Un 400 doit pouvoir être CITÉ dans un rapport, donc traversé."""
+        fetch = make_fetcher(_FakeOpener(body=b'{"code":"InvalidRequest"}', status=400))
+        assert fetch.fetch(URL).status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# 5 — Checksum et expurgation
+# ---------------------------------------------------------------------------
+
+
+class TestChecksumAndRedaction:
+    def test_the_checksum_covers_the_received_bytes(self) -> None:
+        body = b'{"data": []}'
+        fetch = make_fetcher(_FakeOpener(body=body))
+        outcome = fetch.fetch(URL)
+        assert outcome.sha256 == hashlib.sha256(body).hexdigest()
+        assert fetch.log[0].sha256 == outcome.sha256
+
+    def test_the_journalised_url_carries_no_query(self) -> None:
+        fetch = make_fetcher(_FakeOpener())
+        fetch.fetch(URL, params={"code_departement": "34"})
+        assert fetch.log[0].url == URL
+        assert "34" not in fetch.log[0].url
+
+    def test_a_parameter_that_looks_like_a_secret_is_masked(self) -> None:
+        masked = dict(redact_params({"api_key": "s3cr3t", "code_departement": "34"}))
+        assert masked["api_key"] == fetcher_mod.REDACTED
+        assert masked["code_departement"] == "34"
+
+    def test_public_url_strips_query_and_fragment(self) -> None:
+        assert public_url("https://h.example/p?a=1#frag") == "https://h.example/p"
+
+    def test_the_journal_never_carries_the_body(self) -> None:
+        fetch = make_fetcher(_FakeOpener(body=b'{"secret_payload": 42}'))
+        fetch.fetch(URL)
+        assert "secret_payload" not in str(fetch.log[0].as_mapping())
+
+
+# ---------------------------------------------------------------------------
+# 6 — Le rapport ne peut pas mentir
+# ---------------------------------------------------------------------------
+
+
+def _report(**overrides) -> ValidationReport:
+    payload = {
+        "source_code": "HUBEAU_ADES",
+        "release_key": "recette-x1",
+        "verdict": "ready_for_staging",
+        "executed_at": "2026-07-26T00:00:00+00:00",
+        "method": "CC-WI-HUBEAU-HYDRO-PASSTHROUGH 1.0.0",
+    }
+    payload.update(overrides)
+    return ValidationReport(**payload)
+
+
+class TestReportSafety:
+    def test_an_unknown_verdict_is_refused(self) -> None:
+        with pytest.raises(ReportError, match="verdict"):
+            _report(verdict="ok")
+
+    def test_a_report_cannot_claim_a_non_dry_run(self) -> None:
+        with pytest.raises(ReportError, match="lecture seule"):
+            _report(dry_run=False)
+
+    def test_a_report_cannot_claim_a_publication(self) -> None:
+        with pytest.raises(ReportError, match="ne publie rien"):
+            _report(records_publishable=3)
+
+    def test_a_report_cannot_carry_an_unmasked_secret(self) -> None:
+        with pytest.raises(ReportError, match="sensible"):
+            _report(query_parameters={"api_key": "s3cr3t"})
+
+    def test_the_markdown_states_that_nothing_was_written(self) -> None:
+        markdown = _report().to_markdown()
+        assert "dry_run=true" in markdown
+        assert "aucune" in markdown.lower()
+
+    def test_the_markdown_is_written_where_asked(self, tmp_path: Path) -> None:
+        target = _report().write(tmp_path / "sub" / "report.md")
+        assert target.exists()
+        assert target.read_text(encoding="utf-8").startswith("# Validation live")
+
+
+# ---------------------------------------------------------------------------
+# 7 — Rejeu local
+# ---------------------------------------------------------------------------
+
+
+class TestReplayTransport:
+    def test_it_replays_pages_in_order(self) -> None:
+        transport = ReplayTransport([b"page-1", b"page-2"])
+        first = transport.fetch_page(page_token=None)
+        assert first.content == b"page-1"
+        assert first.has_next_page is True
+        assert transport.fetch_page(page_token=first.next_page_token).content == b"page-2"
+
+    def test_an_empty_payload_is_not_a_successful_collection(self) -> None:
+        with pytest.raises(TransportError, match="payload vide"):
+            ReplayTransport([])
+
+    def test_a_url_shaped_token_is_refused(self) -> None:
+        transport = ReplayTransport([b"page-1"])
+        with pytest.raises(TransportError, match="jamais une URL"):
+            transport.fetch_page(page_token="https://hubeau.eaufrance.fr/next")
+
+
+# ---------------------------------------------------------------------------
+# 8 — Verdicts
+# ---------------------------------------------------------------------------
+
+
+class TestVerdicts:
+    def test_a_transfer_failure_is_never_a_schema_problem(self) -> None:
+        assert (
+            decide_verdict(
+                transfer_failed=True,
+                schema_rejected=False,
+                records_normalized=0,
+                pipeline_failed=False,
+            )
+            == "source_unavailable"
+        )
+
+    def test_a_rejected_schema_is_reported_as_drift(self) -> None:
+        assert (
+            decide_verdict(
+                transfer_failed=False,
+                schema_rejected=True,
+                records_normalized=0,
+                pipeline_failed=False,
+            )
+            == "schema_drift"
+        )
+
+    def test_ready_requires_transfer_schema_and_pipeline(self) -> None:
+        assert (
+            decide_verdict(
+                transfer_failed=False,
+                schema_rejected=False,
+                records_normalized=12,
+                pipeline_failed=False,
+            )
+            == "ready_for_staging"
+        )
+        assert (
+            decide_verdict(
+                transfer_failed=False,
+                schema_rejected=False,
+                records_normalized=12,
+                pipeline_failed=True,
+            )
+            == "schema_drift"
+        )
+
+    def test_every_family_of_the_pack_is_declared(self) -> None:
+        assert sorted(FAMILIES) == [
+            "hydrometrie", "piezometrie", "prelevements", "qualite_surface",
+        ]
+
+
+# ---------------------------------------------------------------------------
+# 9 — Aucune base, aucune publication, aucune dépendance inversée
+# ---------------------------------------------------------------------------
+
+
+def _sources(directory: Path) -> list[Path]:
+    return sorted(p for p in directory.glob("*.py"))
+
+
+def _imported_names(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            names.add(node.module)
+    return names
+
+
+class TestNoDatabaseNoPublication:
+    FORBIDDEN = ("psycopg", "psycopg2", "sqlalchemy", "asyncpg", "db", "db.session")
+
+    def test_no_operator_script_imports_a_database_client(self) -> None:
+        for path in _sources(SCRIPTS_DIR):
+            imported = _imported_names(path)
+            offending = {n for n in imported if n.split(".")[0] in self.FORBIDDEN}
+            assert not offending, f"{path.name} importe {offending}"
+
+    def test_no_operator_script_can_leave_dry_run(self) -> None:
+        """`dry_run=False` n'apparaît nulle part : `publish_dry_run` le refuse
+        déjà, mais un script qui le TENTE serait un script qui a cru pouvoir."""
+        for path in _sources(SCRIPTS_DIR):
+            source = path.read_text(encoding="utf-8")
+            assert "dry_run=False" not in source, f"{path.name} tente de quitter le dry-run"
+
+    def test_no_operator_script_provides_a_license_decision(self) -> None:
+        """X1 n'approuve rien : la porte de licence reste fermée."""
+        for path in _sources(SCRIPTS_DIR):
+            source = path.read_text(encoding="utf-8")
+            if "license_decision" in source:
+                assert "license_decision=None" in source, (
+                    f"{path.name} fournit une décision de licence au pipeline"
+                )
+
+
+class TestDependencyDirection:
+    def test_services_never_import_the_operator_scripts(self) -> None:
+        """Le sens de la dépendance est ce qui garde `services` sans réseau."""
+        for path in _sources(SERVICES_DIR) + _sources(SERVICES_DIR / "connectors"):
+            imported = _imported_names(path)
+            assert not any(name.startswith("scripts") for name in imported), (
+                f"{path.name} importe les scripts opérateur — le paquet de services "
+                "cesserait d'être sans réseau."
+            )
+
+    def test_only_the_fetcher_opens_the_network(self) -> None:
+        network = {"urllib", "urllib.request", "http.client", "socket", "requests", "httpx"}
+        for path in _sources(SCRIPTS_DIR):
+            imported = {n.split(".")[0] for n in _imported_names(path)}
+            if imported & {n.split(".")[0] for n in network}:
+                assert path.name in {"fetcher.py"}, (
+                    f"{path.name} importe un client réseau : seul fetcher.py le peut."
+                )
+
+
+class TestNoNetworkInThisFile:
+    def test_every_fetcher_built_here_is_injected(self) -> None:
+        """Garde-fou contre le test futur qui ouvrirait le réseau par mégarde."""
+        tree = ast.parse(Path(__file__).read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            called = getattr(node.func, "id", None) or getattr(node.func, "attr", None)
+            if called != "OperatorFetcher":
+                continue
+            keywords = {kw.arg for kw in node.keywords}
+            # Les seules constructions sans opener sont celles qui vérifient un
+            # refus À LA CONSTRUCTION : elles n'atteignent jamais `fetch`.
+            assert "opener_factory" in keywords or keywords & {"max_bytes", "allowed_hosts"}, (
+                "un OperatorFetcher est construit sans opener injecté"
+            )

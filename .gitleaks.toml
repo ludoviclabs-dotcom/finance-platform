@@ -53,6 +53,18 @@ regexes = [
   # nettoyer. Motif volontairement étroit : seules les clés de release des
   # fixtures Water Intelligence sont couvertes.
   '''release_key="(?:eea-wei-plus|hubeau-|aqueduct-|bnpe-)[A-Za-z0-9._-]*"''',
+  # Rapports de validation live X1 (docs/carbonco/water-intelligence/activation/reports/*.md,
+  # scripts/water_intelligence/reporting.py) : le JSON structuré embarqué dans
+  # chaque rapport porte `"release_key": "<valeur>"` — même champ P02 que
+  # ci-dessus, mais sous sa forme JSON (clé et valeur entre guillemets, deux-points)
+  # plutôt que le kwarg Python `release_key="…"`. Les valeurs sont des identifiants
+  # de recette choisis par l'opérateur pour CETTE validation
+  # ("hubeau-piezometrie-chroniques-2026-07-26-recette-x1",
+  # "hubeau-bnpe-chroniques-2026-07-26-recette-x1",
+  # "hubeau-naiades-analyse-pc-2026-07-26-recette-x1"), jamais un secret — motif
+  # volontairement étroit : seul le préfixe "hubeau-" est couvert, comme dans
+  # l'entrée précédente.
+  '''"release_key":\s*"hubeau-[A-Za-z0-9._-]*"''',
 ]
 paths = [
   # Scénarios de démonstration produit : données entièrement fictives, jamais de

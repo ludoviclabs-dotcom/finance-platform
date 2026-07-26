@@ -59,3 +59,10 @@ apps/*/playwright-report/
 
 # Claude Code local settings (per-machine, per-user)
 .claude/settings.local.json
+
+# Artefacts de collecte Water Intelligence (X1+) — les octets acquis d'une
+# source officielle ne rentrent JAMAIS dans Git : le pack l'interdit
+# ("aucun dataset brut ou volumineux dans Git"), et seuls les rapports
+# expurgés de activation/reports/ sont versionnés.
+apps/api/.water-artifacts/
+**/water-artifacts/

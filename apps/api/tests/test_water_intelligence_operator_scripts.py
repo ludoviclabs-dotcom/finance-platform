@@ -860,11 +860,32 @@ def _imported_names(path: Path) -> set[str]:
 class TestNoDatabaseNoPublication:
     FORBIDDEN = ("psycopg", "psycopg2", "sqlalchemy", "asyncpg", "db", "db.session")
 
+    #: SEUL script opérateur autorisé à ouvrir la base (X2B — graveur Evidence
+    #: Kernel). Exemption NOMMÉE, même idiome que `fetcher.py` pour le réseau :
+    #: la règle reste vraie pour tous les autres, et un nouveau script qui
+    #: écrirait en base ferait échouer ce test tant qu'il n'est pas listé ici
+    #: — c'est-à-dire tant qu'un humain ne l'a pas décidé.
+    DATABASE_EXEMPT = frozenset({"ingest_release.py"})
+
     def test_no_operator_script_imports_a_database_client(self) -> None:
         for path in _sources(SCRIPTS_DIR):
+            if path.name in self.DATABASE_EXEMPT:
+                continue
             imported = _imported_names(path)
             offending = {n for n in imported if n.split(".")[0] in self.FORBIDDEN}
             assert not offending, f"{path.name} importe {offending}"
+
+    def test_the_database_exemption_is_a_single_named_file(self) -> None:
+        """L'exemption ne doit jamais devenir une catégorie. Un seul fichier
+        écrit en base ; tous les autres restent en lecture seule."""
+        assert self.DATABASE_EXEMPT == {"ingest_release.py"}
+        assert (SCRIPTS_DIR / "ingest_release.py").is_file()
+
+    def test_the_exempt_script_still_opens_no_network(self) -> None:
+        """Écrire en base ne donne pas le droit de retélécharger : le graveur
+        ingère un artefact DÉJÀ acquis, jamais une source qu'il irait relire."""
+        imported = {n.split(".")[0] for n in _imported_names(SCRIPTS_DIR / "ingest_release.py")}
+        assert not (imported & {"urllib", "requests", "httpx", "socket", "aiohttp"})
 
     def test_no_operator_script_can_leave_dry_run(self) -> None:
         """`dry_run=False` n'apparaît nulle part : `publish_dry_run` le refuse

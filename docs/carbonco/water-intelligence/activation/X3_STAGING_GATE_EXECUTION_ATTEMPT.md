@@ -97,7 +97,74 @@ production dans un arbre de travail mérite une décision explicite (le
 déplacer hors du dépôt, ou le supprimer une fois son usage terminé) plutôt
 que d'être découvert par hasard plus tard.
 
-## 6. Ce que cette tentative n'a pas fait
+---
+
+# Reprise — 2026-07-26, seconde tentative
+
+**Verdict inchangé : `staging_credential_not_reachable`.**
+**Appels Hub'Eau : 0. Écritures : 0. Repli : 0.**
+
+La branche et le rapport du premier arrêt sont conservés ; cette section les
+complète.
+
+## 7. Ce qui a été vérifié cette fois
+
+La variable a été annoncée configurée en portée utilisateur Windows, avec un
+redémarrage complet de Claude Code. La vérification est donc allée plus loin
+que la précédente : au lieu de se fier à l'environnement du processus (qui
+peut ne pas hériter d'une variable posée après le démarrage), elle a lu le
+**registre**, source de vérité des variables persistantes.
+
+| Vérification | Résultat |
+|---|---|
+| `WATER_STAGING_DATABASE_URL` — environnement du processus | **absente** |
+| `WATER_STAGING_DATABASE_URL` — portée Windows `User` | **absente** |
+| `WATER_STAGING_DATABASE_URL` — portée Windows `Machine` | **absente** |
+| `HKCU:\Environment` — inventaire complet des noms | **`OneDrive`, `Path`, `TEMP`, `TMP`** et rien d'autre |
+| Nom approchant (`WATER`/`STAGING`/`DATABASE`/`POSTGRES`) dans le registre | **aucun** |
+| `APP_ENV` (exigé à `staging` par le gate) | **absente**, toutes portées |
+
+Aucune valeur n'a été lue ni affichée : seuls les **noms** de variables ont
+été énumérés depuis le registre.
+
+## 8. Diagnostic
+
+`[Environment]::GetEnvironmentVariable(nom, 'User')` lit `HKCU:\Environment`
+directement — indépendamment de la date de démarrage du processus appelant.
+Une variable réellement persistée y apparaîtrait, restart ou pas. Le registre
+ne contient aucune trace de la variable, ni sous ce nom ni sous un nom voisin.
+
+**Ce n'est donc pas un problème d'héritage de session, et un nouveau
+redémarrage n'y changera rien.** La variable n'a jamais été persistée.
+
+Cause la plus probable : l'affectation a été faite sous la forme
+`$env:WATER_STAGING_DATABASE_URL = '…'`, qui ne vaut **que pour le shell
+courant** et disparaît avec lui. Seul
+`[Environment]::SetEnvironmentVariable(nom, valeur, 'User')` écrit dans le
+registre.
+
+## 9. Reprise : deux variables, pas une
+
+Le gate de la reprise exige désormais **`APP_ENV=staging`** en plus de l'URL.
+Les deux manquent.
+
+```
+[Environment]::SetEnvironmentVariable('WATER_STAGING_DATABASE_URL','<URL>','User')
+[Environment]::SetEnvironmentVariable('APP_ENV','staging','User')
+```
+
+Contrôle à faire **avant** de relancer Claude Code — il affiche `True/True`
+sans révéler l'URL :
+
+```
+[bool][Environment]::GetEnvironmentVariable('WATER_STAGING_DATABASE_URL','User')
+[Environment]::GetEnvironmentVariable('APP_ENV','User')
+```
+
+Si la première ligne rend `False`, l'écriture n'a pas eu lieu : inutile de
+redémarrer.
+
+## 10. Ce que cette tentative n'a pas fait
 
 - aucune écriture, aucune lecture de base ;
 - aucun appel réseau ;

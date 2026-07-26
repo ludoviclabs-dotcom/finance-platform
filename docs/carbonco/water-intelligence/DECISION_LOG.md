@@ -205,3 +205,54 @@ Détail complet : `FINAL_TRACEABILITY.md`.
   [X2A_SCHEMA_REMEDIATION_HANDOFF.md](activation/X2A_SCHEMA_REMEDIATION_HANDOFF.md).
   Prochaine étape possible : X2B (graveur Evidence Kernel), sur décision
   explicite — non commencée par X2A.
+
+## 2026-07-26 — X2B : graveur Evidence Kernel et releases staging
+
+- **Aucun second Evidence Kernel, aucun registre Water parallèle.** L'audit
+  préalable (`activation/X2B_EVIDENCE_KERNEL_AUDIT.md`, dix questions
+  répondues avant toute ligne de code) a établi que les six tables de la
+  migration 028 suffisent. X2B ajoute un *graveur*, pas un *noyau*.
+- **« staging » n'est pas un statut de base, et n'en deviendra pas un.**
+  `source_releases_status_check` est fermé à six valeurs. Une release Eau en
+  staging est écrite `status='validated'`, `published_at IS NULL`,
+  `company_id IS NULL`. `validated` est la précondition exacte de
+  `publish_release()` : X4 promouvra sans code nouveau. Aucune clé de statut
+  n'est logée dans `metadata` — deux tests le vérifient sur la ligne
+  réellement écrite. Aucune migration n'est donc proposée.
+- **Les services intelligence ne sont pas appelés tels quels.** Chacun ouvre
+  sa PROPRE `get_db()`, donc sa propre transaction : les enchaîner donnerait
+  quatre à six transactions et un état partiel en cas d'échec au milieu. Le
+  graveur reprend le motif de `snapshot_migration.import_snapshot` (helpers
+  recevant un `cur` nu) tout en réutilisant les mêmes tables, le même
+  vocabulaire, la même `license_policy` et les mêmes modèles.
+- **« Rollback complet » = transaction avortée avant commit.**
+  `evidence_kernel_guard` interdit toute UPDATE/DELETE sur `observations` et
+  toute DELETE sur `source_releases` : rien n'est défaisable après commit.
+  Le `--dry-run` exécute donc le VRAI chemin d'écriture puis avorte — un
+  dry-run qui simulerait au lieu d'écrire ne prouverait ni les contraintes ni
+  les triggers.
+- **Le graveur ne crée aucune source.** Une source absente du Source Registry
+  est refusée. Déclarer une source et ses booléens de licence est un geste
+  humain, jamais un effet de bord d'ingestion.
+- **Trois refus structurels plutôt que trois contournements.** Observation
+  porteuse d'un scénario (identité irrécupérable après écriture) ; valeur
+  retenue (`observations_value_presence_check` exige une valeur — une licence
+  sans affichage rend les observations non insérables) ; statut de donnée non
+  cartographié, `fixture` en tête (une donnée de fixture n'entre jamais dans
+  le noyau de preuve).
+- **`ObservationDraft.dedup_key()` n'est jamais utilisée.** Sa clé
+  `(subject_type, subject_key, metric_code)` ignore la période : elle
+  écraserait silencieusement toutes les périodes sauf la première. C'est le
+  défaut que `WaterObservationIdentity` avait été écrit pour empêcher.
+- **`ingest_release.py` est le seul script opérateur Eau autorisé à ouvrir la
+  base.** Exemption NOMMÉE et testée dans le garde-fou X1, même idiome que
+  `fetcher.py` pour le réseau : la règle reste vraie pour tous les autres, et
+  un futur script qui écrirait en base ferait échouer le test tant qu'un
+  humain ne l'a pas listé. Ce script n'ouvre lui-même aucun réseau.
+- **Aucune publication, aucune décision de licence modifiée.** Les sept
+  sources restent `proposed`/`refused` ; aucune release ne passe à
+  `published` ; aucun `published_at` n'est posé.
+- **Pilotage.** `status: X2B_INGESTION_WRITER_COMPLETE`. Détail dans
+  [X2_EVIDENCE_INGESTION_HANDOFF.md](activation/X2_EVIDENCE_INGESTION_HANDOFF.md).
+  Prochaine étape possible : X3 (répétition staging avec des artefacts réels),
+  sur décision explicite — non commencée par X2B.

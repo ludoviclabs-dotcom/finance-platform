@@ -3,15 +3,26 @@
 Geste OPÉRATEUR explicite et borné. Rien ici n'est déclenché par une requête
 utilisateur, un cron ou le démarrage de l'API.
 
-Usage :
+Usage (hydrometrie / piezometrie / qualite_surface) :
 
     python -m scripts.water_intelligence.validate_hubeau \\
-      --source hydrometrie|piezometrie|prelevements|qualite_surface \\
+      --source hydrometrie|piezometrie|qualite_surface \\
       --release <release_key> \\
       --geography-type <nom_de_parametre_officiel> \\
       --geography-code <code> \\
       --date-from <AAAA-MM-JJ> --date-to <AAAA-MM-JJ> \\
       --max-pages <n> --max-bytes <n> \\
+      --dry-run --report <chemin.md>
+
+Usage (prelevements — une requête par année, jamais une plage, cf. X2A) :
+
+    python -m scripts.water_intelligence.validate_hubeau \\
+      --source prelevements \\
+      --release <release_key> \\
+      --geography-type <nom_de_parametre_officiel> \\
+      --geography-code <code> \\
+      --date-from <AAAA> --date-to <AAAA> --max-years <n> \\
+      --max-pages <n> --max-bytes <n> [--max-total-bytes <n>] \\
       --dry-run --report <chemin.md>
 
 ## Aucun territoire, aucune fenêtre, aucun paramètre codés en dur
@@ -22,13 +33,31 @@ contre la liste déclarée par le socle pour l'endpoint concerné. Le script ne
 propose aucune valeur par défaut : une recette technique doit dire quel
 territoire elle a interrogé, et pourquoi.
 
-## Deux passages, une seule collecte
+## Deux passages, une seule collecte (hydrometrie / piezometrie / qualite_surface)
 
 L'acquisition est faite UNE fois par `HubeauTransport` (bornage, pagination,
 retries) alimenté par le `OperatorFetcher`. Les octets obtenus sont ensuite
 REJOUÉS localement dans `run_pipeline` (`ReplayTransport`) : le checksum du
 rapport porte donc exactement sur ce que le pipeline a vu, et l'API publique
 n'est interrogée qu'une fois.
+
+## Prélèvements — une requête PAR ANNÉE, jamais une plage (X2A)
+
+La validation live X1 a montré que `annee_min`/`annee_max` n'existent pas côté
+plateforme : Hub'Eau les ignore silencieusement, et une requête prétendument
+bornée par un couple début/fin renvoyait en réalité tout l'historique. Le seul
+paramètre réel est `annee=<AAAA>`, et il ne porte qu'UNE SEULE année.
+
+`run_prelevements_multi_year` orchestre donc une requête `HubeauQuery`
+distincte PAR ANNÉE demandée — jamais un couple `annee_min`/`annee_max`
+envoyé tel quel, jamais une plage transformée en requête non bornée.
+`--max-years` est OBLIGATOIRE : la plage demandée doit rester sous cette borne
+explicite, refusée avant tout appel réseau sinon. Chaque année est validée
+avec un `WithdrawalsReleaseConfig(year_min=année, year_max=année)` — une
+fenêtre DÉGÉNÉRÉE à une seule valeur, qui fait qu'une ligne dont l'année
+réelle diffère de celle demandée lève `HubeauUsageSchemaError` immédiatement,
+pour CETTE requête, sans attendre qu'elle sorte d'une plage large qui
+l'aurait masquée.
 
 ## Ce que cette commande ne fait jamais
 
@@ -41,6 +70,7 @@ fournie, donc toutes les valeurs sont retenues (`value_withheld`) et
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from dataclasses import dataclass
@@ -77,21 +107,26 @@ class HubeauFamily:
     source_code: str
     method_version: str
     method_code: str
-    #: Nom des deux paramètres de fenêtre, tels que la plateforme les nomme.
-    window_parameters: tuple[str, str]
-    #: `date` pour une fenêtre en jours, `year` pour une fenêtre en années.
-    window_kind: str
+    #: Noms des paramètres de fenêtre, tels que la plateforme les nomme.
+    #: VIDE pour `prelevements` : cette famille n'utilise pas ce champ —
+    #: Hub'Eau n'accepte qu'une seule année (`annee`) par requête, orchestrée
+    #: par `run_prelevements_multi_year`, jamais un couple envoyé tel quel
+    #: (X2A). Un tuple de longueur quelconque, comme au socle
+    #: (`HubeauEndpoint.time_window_parameters`), pour ne privilégier ni un
+    #: couple ni une valeur unique.
+    window_parameters: tuple[str, ...]
 
 
 FAMILIES: dict[str, HubeauFamily] = {
     "hydrometrie": HubeauFamily(
         name="hydrometrie",
-        endpoint_key="hydrometrie.observations_elaborees",
+        # X2A : `observations_tr`, pas `observations_elaborees` — cf.
+        # `hubeau_hydro.py` §"X2A — bascule obs_elab → observations_tr".
+        endpoint_key="hydrometrie.observations_tr",
         source_code=hydro.HYDROMETRIE_SOURCE_CODE,
         method_version=hydro.METHOD.version,
         method_code=hydro.METHOD.code,
-        window_parameters=("date_debut_obs_elab", "date_fin_obs_elab"),
-        window_kind="date",
+        window_parameters=("date_debut_obs", "date_fin_obs"),
     ),
     "piezometrie": HubeauFamily(
         name="piezometrie",
@@ -100,7 +135,6 @@ FAMILIES: dict[str, HubeauFamily] = {
         method_version=hydro.METHOD.version,
         method_code=hydro.METHOD.code,
         window_parameters=("date_debut_mesure", "date_fin_mesure"),
-        window_kind="date",
     ),
     "prelevements": HubeauFamily(
         name="prelevements",
@@ -108,8 +142,8 @@ FAMILIES: dict[str, HubeauFamily] = {
         source_code=usage.WITHDRAWALS_SOURCE_CODE,
         method_version=usage.WITHDRAWALS_METHOD.version,
         method_code=usage.WITHDRAWALS_METHOD.code,
-        window_parameters=("annee_min", "annee_max"),
-        window_kind="year",
+        # Non utilisé (X2A) : voir le commentaire du champ ci-dessus.
+        window_parameters=(),
     ),
     "qualite_surface": HubeauFamily(
         name="qualite_surface",
@@ -118,7 +152,6 @@ FAMILIES: dict[str, HubeauFamily] = {
         method_version=usage.QUALITY_METHOD.version,
         method_code=usage.QUALITY_METHOD.code,
         window_parameters=("date_debut_prelevement", "date_fin_prelevement"),
-        window_kind="date",
     ),
 }
 
@@ -271,7 +304,15 @@ def analyse(
 
     Une erreur de schéma n'est PAS rattrapée : elle est le résultat de la
     validation, et elle est reportée telle quelle.
+
+    N'est jamais appelée pour `prelevements` (X2A) : cette famille est
+    orchestrée par `run_prelevements_multi_year`, qui parse chaque année
+    séparément avec une fenêtre dégénérée (`year_min == year_max`) — jamais
+    une plage large qui masquerait une ligne d'une autre année.
     """
+    assert family.name != "prelevements", (
+        "prelevements ne passe jamais par analyse() — cf. run_prelevements_multi_year (X2A)."
+    )
     analysis = Analysis()
 
     if family.name in ("hydrometrie", "piezometrie"):
@@ -305,34 +346,6 @@ def analyse(
         analysis.normalizer = hydro.build_normalizer(config)
         analysis.geography_resolver = hydro.build_geography_resolver(parsed.station_ids)
         analysis.period_resolver = hydro.build_period_resolver()
-        return analysis
-
-    if family.name == "prelevements":
-        config = usage.WithdrawalsReleaseConfig(
-            release_key=release_key,
-            retrieved_at=retrieved_at,
-            year_min=int(window[0]),
-            year_max=int(window[1]),
-        )
-        analysis.release_config = config
-        try:
-            parsed = usage.parse_withdrawals_pages(decoded, config=config)
-        except usage.HubeauUsageError as exc:
-            analysis.rejection_causes.append(f"{type(exc).__name__} : {exc}")
-            analysis.records_rejected = _count_records(decoded)
-            return analysis
-
-        analysis.records_received = parsed.records_total
-        analysis.records_absent_value = parsed.values_absent
-        analysis.records_normalized = parsed.values_present
-        analysis.warnings.extend(parsed.warnings)
-        analysis.units = [usage.VOLUME_UNIT] if parsed.records_total else []
-        years = sorted({r.year for r in parsed.records})
-        analysis.periods = [f"{years[0]} → {years[-1]}"] if years else []
-        analysis.geographies = _sample(parsed.ouvrage_ids)
-        analysis.normalizer = usage.build_withdrawals_normalizer(config)
-        analysis.geography_resolver = usage.build_geography_resolver(parsed.ouvrage_ids)
-        analysis.period_resolver = usage.build_withdrawals_period_resolver()
         return analysis
 
     allowlist = {
@@ -462,6 +475,27 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--max-pages", type=int, default=1)
     parser.add_argument("--max-bytes", type=int, default=1_000_000)
+    parser.add_argument(
+        "--max-years",
+        type=int,
+        default=None,
+        help=(
+            "OBLIGATOIRE pour --source prelevements. Borne EXPLICITE du nombre d'années "
+            "orchestrées : Hub'Eau n'accepte qu'une seule année par requête (`annee=<AAAA>`), "
+            "--date-from/--date-to sont donc traduits en autant de requêtes distinctes que "
+            "d'années, jamais une plage envoyée telle quelle (X2A)."
+        ),
+    )
+    parser.add_argument(
+        "--max-total-bytes",
+        type=int,
+        default=None,
+        help=(
+            "prelevements uniquement : budget d'octets CUMULÉ sur toutes les années "
+            "orchestrées. Défaut : identique à --max-bytes (une seule année de marge) — "
+            "une plage réellement multi-années doit l'élever explicitement."
+        ),
+    )
     parser.add_argument("--page-size", type=int, default=100)
     parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument(
@@ -493,6 +527,53 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"{sorted(endpoint.geographic_parameters)}."
         )
 
+    fetcher = OperatorFetcher(
+        allowed_hosts=transport_mod.ALLOWED_HOSTS,
+        timeout_seconds=args.timeout,
+        max_bytes=args.max_bytes,
+    )
+
+    if family.name == "prelevements":
+        # Hub'Eau n'accepte qu'une seule année par requête (X2A) : cette
+        # famille est orchestrée à part, jamais par le chemin fenêtre unique
+        # ci-dessous, qui enverrait un couple annee_min/annee_max inopérant.
+        if args.max_years is None:
+            raise SystemExit(
+                "--max-years est obligatoire pour --source prelevements : Hub'Eau n'accepte "
+                "qu'une année par requête, et une plage doit déclarer explicitement combien "
+                "d'années elle orchestre — jamais un historique non borné."
+            )
+        try:
+            year_from = int(args.date_from)
+            year_to = int(args.date_to)
+        except ValueError as exc:
+            raise SystemExit(
+                f"--date-from/--date-to doivent être des années AAAA pour prelevements : {exc}"
+            ) from exc
+
+        validation = run_prelevements_multi_year(
+            geography_type=args.geography_type,
+            geography_code=args.geography_code,
+            year_from=year_from,
+            year_to=year_to,
+            max_years=args.max_years,
+            release_key=args.release,
+            retrieved_at=started.date(),
+            fetcher=fetcher,
+            max_pages_per_year=args.max_pages,
+            max_bytes_per_year=args.max_bytes,
+            max_total_bytes=(
+                args.max_total_bytes if args.max_total_bytes is not None else args.max_bytes
+            ),
+            timeout_seconds=args.timeout,
+            page_size=args.page_size,
+            clock=lambda: started,
+            artifact_dir=args.artifact_dir,
+        )
+        validation.write(args.report)
+        print(f"{family.source_code} : {validation.verdict} — rapport {args.report}")
+        return 0
+
     parameters: dict[str, str] = {args.geography_type: args.geography_code}
     parameters[family.window_parameters[0]] = args.date_from
     parameters[family.window_parameters[1]] = args.date_to
@@ -521,11 +602,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     except transport_mod.HubeauTransportError as exc:
         raise SystemExit(f"requête refusée par le socle avant tout appel : {exc}") from exc
 
-    fetcher = OperatorFetcher(
-        allowed_hosts=transport_mod.ALLOWED_HOSTS,
-        timeout_seconds=args.timeout,
-        max_bytes=args.max_bytes,
-    )
     acquisition = acquire(
         query=query,
         fetcher=fetcher,
@@ -638,32 +714,28 @@ def _decoder_of(family: HubeauFamily):
 
 
 def _method_of(family: HubeauFamily):
+    """Méthode du connecteur — `prelevements` ne passe plus par ici (X2A) :
+    `run_prelevements_multi_year` cite `usage.WITHDRAWALS_METHOD` directement."""
     if family.name in ("hydrometrie", "piezometrie"):
         return hydro.METHOD
-    if family.name == "prelevements":
-        return usage.WITHDRAWALS_METHOD
     return usage.QUALITY_METHOD
 
 
 def _source_reference(
     family: HubeauFamily, args: argparse.Namespace, acquisition: Acquisition, started: datetime
 ) -> WaterSourceReference:
-    import hashlib
-
+    """Référence de provenance pour hydrometrie/piezometrie/qualite_surface —
+    toutes à fenêtre `date` continue. `prelevements` ne passe plus par ici
+    (X2A) : `run_prelevements_multi_year` construit sa propre référence par
+    année, sur une fenêtre annuelle dégénérée."""
     digest = hashlib.sha256(b"".join(acquisition.pages)).hexdigest()
-    if family.window_kind == "year":
-        window_start = date(int(args.date_from), 1, 1)
-        window_end = date(int(args.date_to), 12, 31)
-    else:
-        window_start = date.fromisoformat(args.date_from)
-        window_end = date.fromisoformat(args.date_to)
     return WaterSourceReference(
         source_code=family.source_code,
         release_key=args.release,
         checksum_sha256=digest,
         retrieved_at=started.date(),
-        observed_period_start=window_start,
-        observed_period_end=window_end,
+        observed_period_start=date.fromisoformat(args.date_from),
+        observed_period_end=date.fromisoformat(args.date_to),
         methodology_version=family.method_version,
         # Licence NON évaluée : X1 ne décide rien. La porte du pipeline reste
         # fermée (`license_decision=None`), ce qui retient toutes les valeurs.
@@ -690,8 +762,6 @@ def _payload_checksum(fetcher: OperatorFetcher) -> str | None:
         return None
     if len(digests) == 1:
         return digests[0]
-    import hashlib
-
     return hashlib.sha256("".join(digests).encode("ascii")).hexdigest()
 
 
@@ -702,20 +772,240 @@ def _content_type(fetcher: OperatorFetcher) -> str | None:
     return None
 
 
-def _write_artifact(directory: Path, family: HubeauFamily, pages: list[bytes]) -> None:
+def _write_artifact(
+    directory: Path, family: HubeauFamily, pages: list[bytes], *, year: int | None = None
+) -> None:
     """Dépose les octets acquis HORS du dépôt.
 
     Aucun garde-fou ne peut empêcher un opérateur de viser un chemin suivi par
     Git ; ce qui est possible, c'est de le lui dire. Le répertoire est absent
     par défaut : ne rien écrire est le comportement normal.
+
+    `year`, quand fourni (prélèvements, X2A), distingue les pages de chaque
+    requête annuelle — sans lui, les fichiers de deux années s'écraseraient
+    silencieusement les uns les autres sous le même nom.
     """
     directory.mkdir(parents=True, exist_ok=True)
+    prefix = f"{family.source_code}_{year}" if year is not None else family.source_code
     for index, payload in enumerate(pages, start=1):
-        (directory / f"{family.source_code}_p{index:03d}.json").write_bytes(payload)
+        (directory / f"{prefix}_p{index:03d}.json").write_bytes(payload)
     print(
         f"  artefact : {len(pages)} page(s) écrite(s) dans {directory} — "
         "ne jamais committer ce répertoire.",
         file=sys.stderr,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Prélèvements — orchestration multi-année (X2A)
+# ---------------------------------------------------------------------------
+
+
+def run_prelevements_multi_year(
+    *,
+    geography_type: str,
+    geography_code: str,
+    year_from: int,
+    year_to: int,
+    max_years: int,
+    release_key: str,
+    retrieved_at: date,
+    fetcher: OperatorFetcher,
+    max_pages_per_year: int,
+    max_bytes_per_year: int,
+    max_total_bytes: int,
+    timeout_seconds: float,
+    page_size: int,
+    clock: Callable[[], datetime],
+    artifact_dir: Path | None = None,
+) -> ValidationReport:
+    """Valide les prélèvements (BNPE) sur une plage d'années, UNE requête
+    Hub'Eau par année (X2A) — jamais `annee_min`/`annee_max`, que la
+    plateforme ignore silencieusement (cf. docstring de module).
+
+    Chaque année est acquise, puis parsée séparément avec
+    `WithdrawalsReleaseConfig(year_min=année, year_max=année)` : une fenêtre
+    DÉGÉNÉRÉE à une seule valeur. Une ligne dont l'année réelle diffère lève
+    `HubeauUsageSchemaError` pour CETTE requête — jamais masquée par une plage
+    large qui l'aurait laissée passer parce qu'elle restait dans l'intervalle
+    global. Chaque année exécute ensuite son propre `run_pipeline` (dry-run) ;
+    les rapports sont agrégés en un `ValidationReport` unique.
+    """
+    family = FAMILIES["prelevements"]
+    started = clock()
+
+    if year_from > year_to:
+        raise SystemExit(f"--date-from ({year_from}) > --date-to ({year_to}) : plage invalide.")
+    years = list(range(year_from, year_to + 1))
+    if len(years) > max_years:
+        raise SystemExit(
+            f"{len(years)} année(s) demandée(s) ({year_from}-{year_to}) dépasse(nt) la borne "
+            f"explicite --max-years={max_years} — refusé avant tout appel réseau. Hub'Eau "
+            "n'accepte qu'une année par requête ; une plage large exige une borne assumée, "
+            "jamais une orchestration silencieusement non plafonnée."
+        )
+
+    warnings: list[str] = []
+    errors: list[str] = []
+    rejection_causes: list[str] = []
+    units: set[str] = set()
+    ouvrage_ids: set[str] = set()
+    steps_executed: set[str] = set()
+    steps_failed: set[str] = set()
+    records_received = 0
+    records_normalized = 0
+    records_absent_value = 0
+    records_rejected = 0
+    total_pages_fetched = 0
+
+    for year in years:
+        try:
+            query = transport_mod.HubeauQuery(
+                endpoint_key=family.endpoint_key,
+                parameters={geography_type: geography_code, "annee": str(year)},
+                page_size=page_size,
+            )
+        except transport_mod.HubeauTransportError as exc:
+            raise SystemExit(
+                f"requête refusée par le socle avant tout appel (année {year}) : {exc}"
+            ) from exc
+
+        remaining_budget = max_total_bytes - fetcher.total_bytes
+        if remaining_budget <= 0:
+            warnings.append(
+                f"budget global ({max_total_bytes} octets) atteint avant l'année {year} — "
+                "collecte arrêtée, années restantes non interrogées."
+            )
+            break
+
+        year_acquisition = acquire(
+            query=query,
+            fetcher=fetcher,
+            max_pages=max_pages_per_year,
+            max_bytes=min(max_bytes_per_year, remaining_budget),
+            timeout_seconds=timeout_seconds,
+        )
+        total_pages_fetched += len(year_acquisition.pages)
+
+        if year_acquisition.errors:
+            errors.extend(f"année {year} : {e}" for e in year_acquisition.errors)
+            continue
+        warnings.extend(f"année {year} : {w}" for w in year_acquisition.warnings)
+
+        if artifact_dir is not None and year_acquisition.pages:
+            _write_artifact(artifact_dir, family, year_acquisition.pages, year=year)
+
+        if not year_acquisition.decoded:
+            continue
+
+        year_config = usage.WithdrawalsReleaseConfig(
+            release_key=release_key,
+            retrieved_at=retrieved_at,
+            year_min=year,
+            year_max=year,
+        )
+        try:
+            parsed = usage.parse_withdrawals_pages(year_acquisition.decoded, config=year_config)
+        except usage.HubeauUsageError as exc:
+            rejection_causes.append(f"année {year} : {type(exc).__name__} : {exc}")
+            records_rejected += _count_records(year_acquisition.decoded)
+            continue
+
+        records_received += parsed.records_total
+        records_absent_value += parsed.values_absent
+        records_normalized += parsed.values_present
+        warnings.extend(f"année {year} : {w}" for w in parsed.warnings)
+        units.add(usage.VOLUME_UNIT)
+        ouvrage_ids.update(parsed.ouvrage_ids)
+
+        digest_source = hashlib.sha256(b"".join(year_acquisition.pages)).hexdigest()
+        report = run_pipeline(
+            source_code=family.source_code,
+            release_key=release_key,
+            transport=ReplayTransport(year_acquisition.pages),
+            normalizer=usage.build_withdrawals_normalizer(year_config),
+            source=WaterSourceReference(
+                source_code=family.source_code,
+                release_key=release_key,
+                checksum_sha256=digest_source,
+                retrieved_at=retrieved_at,
+                observed_period_start=date(year, 1, 1),
+                observed_period_end=date(year, 12, 31),
+                methodology_version=usage.WITHDRAWALS_METHOD.version,
+                # Licence NON évaluée : X2A ne décide rien, comme X1.
+                license=_unknown_license(),
+                attribution=transport_mod.attribution(
+                    accessed_on=retrieved_at.isoformat()
+                ),
+            ),
+            method=usage.WITHDRAWALS_METHOD,
+            geography_resolver=usage.build_geography_resolver(parsed.ouvrage_ids),
+            period_resolver=usage.build_withdrawals_period_resolver(),
+            max_pages=max_pages_per_year,
+            decoder=usage.PAGE_DECODER,
+            license_decision=None,
+            dry_run=True,
+            clock=clock,
+        )
+        steps_executed.update(report.steps_executed)
+        steps_failed.update(report.steps_failed)
+        if not report.succeeded:
+            errors.extend(f"année {year} : {e}" for e in report.errors)
+        warnings.extend(f"année {year} : {w}" for w in report.warnings)
+
+    return ValidationReport(
+        source_code=family.source_code,
+        release_key=release_key,
+        verdict=decide_verdict(
+            transfer_failed=(records_received == 0 and total_pages_fetched == 0),
+            schema_rejected=bool(rejection_causes),
+            records_normalized=records_normalized,
+            pipeline_failed=bool(steps_failed) or bool(errors),
+        ),
+        executed_at=started.isoformat(),
+        method=f"{family.method_code} {family.method_version}",
+        limits={
+            "max_pages_per_year": max_pages_per_year,
+            "max_bytes_per_year": max_bytes_per_year,
+            "max_total_bytes": max_total_bytes,
+            "max_years": max_years,
+            "page_size": page_size,
+            "timeout_seconds": timeout_seconds,
+        },
+        query_parameters={
+            geography_type: geography_code,
+            "annee_from": str(year_from),
+            "annee_to": str(year_to),
+            "orchestration": "une requête distincte par année (annee=<AAAA>)",
+        },
+        transfers=tuple(fetcher.log),
+        pages_fetched=total_pages_fetched,
+        bytes_received=fetcher.total_bytes,
+        payload_sha256=_payload_checksum(fetcher),
+        payload_format=_content_type(fetcher),
+        records_received=records_received,
+        records_normalized=records_normalized,
+        records_rejected=records_rejected,
+        rejection_causes=tuple(rejection_causes),
+        records_absent_value=records_absent_value,
+        units=tuple(sorted(units)),
+        periods=(f"{year_from} → {year_to} ({len(years)} requête(s) distincte(s))",),
+        geographies=tuple(_sample(ouvrage_ids)),
+        pipeline_steps_executed=tuple(sorted(steps_executed)),
+        pipeline_steps_failed=tuple(sorted(steps_failed)),
+        warnings=tuple(dict.fromkeys(warnings)),
+        errors=tuple(dict.fromkeys(errors)),
+        duration_seconds=(clock() - started).total_seconds(),
+        notes=(
+            "Échantillon TECHNIQUE de recette : les bornes géographiques et "
+            "temporelles ont été choisies pour valider le connecteur, pas pour "
+            "documenter un territoire.",
+            "Une requête HTTP distincte par année (`annee=<AAAA>`) — jamais "
+            "`annee_min`/`annee_max`, ignorés en silence par la plateforme "
+            "(cf. X1_LIVE_VALIDATION_HANDOFF.md §2.2).",
+            "Aucune décision de licence fournie : toutes les valeurs sont retenues "
+            "(`value_withheld`), `records_publishable` reste à 0.",
+        ),
     )
 
 

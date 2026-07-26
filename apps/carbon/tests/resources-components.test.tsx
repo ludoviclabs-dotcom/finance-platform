@@ -208,7 +208,7 @@ describe("ModuleLinks — ponts vers CRMA / Eau / Énergie / Achats (D-4)", () =
   const html = renderToStaticMarkup(<ModuleLinks />);
   it("lie les quatre modules qui portent l'empreinte réelle", () => {
     expect(html).toContain('href="/crma"');
-    expect(html).toContain('href="/water"');
+    expect(html).toContain('href="/water/cockpit"');
     expect(html).toContain('href="/scopes"');
     expect(html).toContain('href="/fournisseurs/scope3"');
   });

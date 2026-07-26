@@ -1,8 +1,21 @@
 "use client";
 
 /**
- * Eau — ledger d'activités, permis, zones de stress et screening hydrique
- * (PR-08, BETA).
+ * app/water/(authenticated)/cockpit/page.tsx — Eau, ledger d'activités,
+ * permis, zones de stress et screening hydrique (PR-08, BETA).
+ *
+ * ## Où vit cette page depuis la Phase A
+ *
+ * Elle répondait sur `/water` dans le dashboard général. `/water` sert
+ * désormais la vitrine publique du domaine, et ce cockpit descend d'un cran
+ * sur `/water/cockpit`, sous le shell hydrique dédié
+ * (`app/water/(authenticated)/layout.tsx`). L'accès est inchangé : la garde
+ * montée par ce shell est la MÊME que celle du groupe `(app)`, extraite pour
+ * être partagée plutôt que recopiée.
+ *
+ * Les endpoints consommés ne bougent pas : le préfixe HTTP `/water` du backend
+ * (`apps/api/routers/water.py`) n'a aucun rapport avec le chemin de cette page,
+ * et aucun appel n'a été touché.
  *
  * Consomme `/water/*` + `/sites/geo`. États loading / schema_not_ready /
  * error / empty / data explicites — aucun fallback silencieux.
@@ -109,7 +122,13 @@ function Section({
 }) {
   return (
     <section className="mb-8" data-testid={testId}>
-      <h2 className="text-lg font-semibold text-[var(--color-foreground)] mb-1">{title}</h2>
+      {/*
+        `h3` : le shell porte le `h1`, l'en-tête de page le `h2`. Ces sections
+        sont les enfants du second, pas ses pairs — un `h2` ici remettrait le
+        titre de la page et ses sections au même niveau dans le plan du
+        document.
+      */}
+      <h3 className="text-lg font-semibold text-[var(--color-foreground)] mb-1">{title}</h3>
       {subtitle && (
         <p className="text-sm text-[var(--color-muted-foreground)] mb-3">{subtitle}</p>
       )}
@@ -190,9 +209,17 @@ export default function WaterPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <header className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl font-bold text-[var(--color-foreground)]">
+          {/*
+            `h2` et non `h1` : le shell hydrique rend le `h1` de la page, comme
+            le faisait l'en-tête du groupe `(app)` avant le déménagement. Cette
+            page en portait un SECOND, avec le même texte — deux titres de
+            premier niveau annoncés au lecteur d'écran pour un seul document.
+            La page décisionnelle documentait déjà la règle et s'y tenait ;
+            celle-ci s'y aligne.
+          */}
+          <h2 className="text-2xl font-bold text-[var(--color-foreground)]">
             Eau &amp; stress hydrique
-          </h1>
+          </h2>
           <FeatureStatusBadge status="beta" />
         </div>
         <p className="text-sm text-[var(--color-muted-foreground)]">

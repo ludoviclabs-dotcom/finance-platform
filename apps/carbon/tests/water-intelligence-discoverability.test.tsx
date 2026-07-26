@@ -2,11 +2,15 @@
  * tests/water-intelligence-discoverability.test.tsx — découvrabilité du module
  * Water Intelligence (feat/water-intelligence-discoverability).
  *
- * Le module existait en production — `/water-intelligence`, `/water` et
- * `/water/decision` répondaient — sans figurer nulle part dans la navigation :
- * on ne pouvait y arriver qu'en connaissant l'URL. Ces tests vérifient les
- * points d'entrée ajoutés, et surtout ce que la page d'accueil A LE DROIT de
- * promettre.
+ * Le module existait en production — trois routes hydriques répondaient — sans
+ * figurer nulle part dans la navigation : on ne pouvait y arriver qu'en
+ * connaissant l'URL. Ces tests vérifient les points d'entrée ajoutés, et
+ * surtout ce que la page d'accueil A LE DROIT de promettre.
+ *
+ * Les cibles ont changé en Phase A — `/water` est la vitrine publique,
+ * `/water/cockpit` et `/water/decision` les deux surfaces authentifiées — mais
+ * les affirmations, elles, sont inchangées : ce sont les mêmes garanties de
+ * découvrabilité, aux nouvelles URL.
  *
  * Le menu est réellement MONTÉ (React 19 `act` + `createRoot`) : « ouvre au
  * clavier », « ferme avec Échap » et « rend le focus au déclencheur » sont des
@@ -88,9 +92,9 @@ beforeEach(() => {
 /* ================================================= 1 · 2 — Liens présents */
 
 describe("menu Ressources — cibles", () => {
-  it("porte les deux modules, /materials conservé et /water-intelligence ajouté", () => {
+  it("porte les deux modules, /materials conservé et /water ajouté", () => {
     const hrefs = RESOURCE_MENU_ENTRIES.map((e) => e.href);
-    expect(hrefs).toEqual(["/materials", "/water-intelligence"]);
+    expect(hrefs).toEqual(["/materials", "/water"]);
     expect(RESOURCE_MENU_LABEL).toBe("Ressources");
   });
 
@@ -138,7 +142,7 @@ describe("menu Ressources — comportement", () => {
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     const panel = pick<HTMLElement>(m.container, '[data-testid="nav-resources-panel"]');
     expect(panel.querySelectorAll("a").length).toBe(2);
-    expect(panel.querySelector('a[href="/water-intelligence"]')).toBeTruthy();
+    expect(panel.querySelector('a[href="/water"]')).toBeTruthy();
     expect(panel.querySelector('a[href="/materials"]')).toBeTruthy();
     await unmount(m);
   });
@@ -207,7 +211,7 @@ describe("menu Ressources — mobile", () => {
   it("expose les deux mêmes cibles, à plat", () => {
     expect(html).toContain('data-testid="nav-resources-mobile"');
     expect(html).toContain('href="/materials"');
-    expect(html).toContain('href="/water-intelligence"');
+    expect(html).toContain('href="/water"');
     expect(html).toContain("Eau &amp; risques hydriques");
   });
 
@@ -231,7 +235,7 @@ describe("section Intelligence environnementale", () => {
     expect(html).toContain('data-testid="env-card-materials"');
     expect(html).toContain('data-testid="env-card-water"');
     expect(html).toContain('href="/materials"');
-    expect(html).toContain('href="/water-intelligence"');
+    expect(html).toContain('href="/water"');
     expect(html).toContain("Explorer Water Intelligence");
   });
 
@@ -271,7 +275,7 @@ describe("section Intelligence environnementale", () => {
 
   it("distingue la surface publique des deux cockpits authentifiés", () => {
     expect(html).toContain('data-testid="env-water-private"');
-    expect(html).toContain('href="/water"');
+    expect(html).toContain('href="/water/cockpit"');
     expect(html).toContain('href="/water/decision"');
     expect(html).toContain("Accéder au cockpit entreprise");
     expect(html).toContain("Connexion requise");
@@ -297,12 +301,12 @@ describe("section Intelligence environnementale", () => {
 describe("navigation authentifiée", () => {
   const pilotage = NAV_GROUPS.find((g) => g.group === "Pilotage");
 
-  it("expose /water et /water/decision avec les libellés attendus", () => {
+  it("expose /water/cockpit et /water/decision avec les libellés attendus", () => {
     expect(pilotage).toBeTruthy();
     const water = pilotage!.items.find((i) => i.id === "water");
     const decision = pilotage!.items.find((i) => i.id === "water-decision");
 
-    expect(water?.href).toBe("/water");
+    expect(water?.href).toBe("/water/cockpit");
     expect(water?.label).toBe("Eau & stress hydrique");
     expect(decision?.href).toBe("/water/decision");
     expect(decision?.label).toBe("Décision hydrique");
@@ -313,15 +317,30 @@ describe("navigation authentifiée", () => {
     expect(new Set(hrefs).size).toBe(hrefs.length);
   });
 
-  it("n’allume qu’une seule entrée sur /water/decision", () => {
+  it("n’allume qu’une seule entrée sur chaque cockpit hydrique", () => {
     const water = pilotage!.items.find((i) => i.id === "water")!;
     const decision = pilotage!.items.find((i) => i.id === "water-decision")!;
 
     expect(isNavItemActive("/water/decision", water.href, water.exact)).toBe(false);
     expect(isNavItemActive("/water/decision", decision.href, decision.exact)).toBe(true);
-    // Et sur /water, c'est bien l'entrée parente qui s'allume.
-    expect(isNavItemActive("/water", water.href, water.exact)).toBe(true);
-    expect(isNavItemActive("/water", decision.href, decision.exact)).toBe(false);
+    expect(isNavItemActive("/water/cockpit", water.href, water.exact)).toBe(true);
+    expect(isNavItemActive("/water/cockpit", decision.href, decision.exact)).toBe(false);
+  });
+
+  it("n’allume aucune entrée sur la vitrine publique /water", () => {
+    /*
+      `/water` est une page PUBLIQUE : elle n'est pas rendue sous la barre
+      latérale et ne doit correspondre à aucune de ses entrées. Avant la
+      Phase A, `/water` ÉTAIT l'entrée cockpit ; sans ce test, une entrée
+      laissée sur l'ancien chemin s'allumerait encore, ou pire, ramènerait un
+      utilisateur authentifié vers une page sans ses données.
+    */
+    for (const item of pilotage!.items) {
+      expect(
+        isNavItemActive("/water", item.href, item.exact),
+        `entrée allumée sur la vitrine publique : ${item.href}`,
+      ).toBe(false);
+    }
   });
 
   it("conserve le comportement de préfixe des autres entrées", () => {
@@ -335,23 +354,30 @@ describe("navigation authentifiée", () => {
 describe("sitemap et non-régression", () => {
   it("déclare les deux surfaces publiques thématiques", () => {
     const sitemap = read(SITEMAP);
-    expect(sitemap).toContain("/water-intelligence");
+    expect(sitemap).toContain("/water");
     expect(sitemap).toContain("/materials");
   });
 
   it("n’expose JAMAIS les cockpits authentifiés au sitemap", () => {
     /*
       On cherche des ENTRÉES, pas des occurrences de texte : le fichier explique
-      en commentaire pourquoi `/water` et `/water/decision` en sont absents, et
-      une recherche naïve trouverait cette explication.
+      en commentaire pourquoi les cockpits en sont absents, et une recherche
+      naïve trouverait cette explication.
     */
     const entries = [...read(SITEMAP).matchAll(/url:\s*`\$\{baseUrl\}([^`]*)`/g)].map(
       (m) => m[1],
     );
-    expect(entries).toContain("/water-intelligence");
+    expect(entries).toContain("/water");
     expect(entries).toContain("/materials");
-    expect(entries).not.toContain("/water");
+    expect(entries).not.toContain("/water/cockpit");
     expect(entries).not.toContain("/water/decision");
+    /*
+      L'ancienne URL publique n'est pas déclarée EN PLUS de la nouvelle : elle
+      redirige en 308 vers `/water`, et lister les deux demanderait aux moteurs
+      d'indexer une URL dont on affirme par ailleurs qu'elle n'est plus la
+      bonne.
+    */
+    expect(entries).not.toContain("/water-intelligence");
   });
 
   it("conserve les liens de navigation existants", () => {
@@ -368,7 +394,7 @@ describe("sitemap et non-régression", () => {
   });
 
   it("ajoute Water Intelligence au pied de page", () => {
-    expect(read(LANDING)).toContain('href="/water-intelligence"');
+    expect(read(LANDING)).toContain('href="/water"');
   });
 });
 

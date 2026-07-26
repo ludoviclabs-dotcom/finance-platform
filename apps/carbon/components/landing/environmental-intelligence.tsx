@@ -24,7 +24,7 @@
  *
  * ## Trois surfaces distinctes, dites comme telles
  *
- * `/water-intelligence` est publique. `/water` est le cockpit d'entreprise et
+ * `/water` est publique. `/water/cockpit` est le cockpit d'entreprise et
  * `/water/decision` le cockpit décisionnel : les deux exigent une session, et
  * la section le mentionne au lieu de laisser un visiteur buter sur une
  * redirection de connexion.
@@ -201,7 +201,7 @@ export function EnvironmentalIntelligence() {
                 "Stress, sécheresse, nappes, prélèvements, qualité et réglementation",
               ]}
               cta="Explorer Water Intelligence"
-              href="/water-intelligence"
+              href="/water"
               testId="env-card-water"
             >
               {/*
@@ -215,7 +215,7 @@ export function EnvironmentalIntelligence() {
                 </p>
                 <p className="mt-2 text-sm">
                   <Link
-                    href="/water"
+                    href="/water/cockpit"
                     className="font-semibold text-black underline underline-offset-2"
                     data-testid="env-water-cockpit-link"
                   >

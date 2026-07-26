@@ -53,7 +53,7 @@
       "index": 6,
       "title": "Eau & nature",
       "narration": "72 000 m³ prélevés. Le site siège est en stress hydrique élevé (confiance 0,81). Le risque et la confiance sont deux dimensions séparées.",
-      "explore_href": "/water",
+      "explore_href": "/water/cockpit",
       "metric_focus": "water_m3"
     },
     {

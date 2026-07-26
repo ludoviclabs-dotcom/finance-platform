@@ -26,10 +26,11 @@ export type NavItem = {
   /**
    * N'est actif que sur le chemin EXACT.
    *
-   * Nécessaire dès qu'une entrée est le préfixe d'une autre : `/water` et
-   * `/water/decision` sont deux entrées distinctes, et sans cette option les
-   * deux s'allumeraient sur `/water/decision` — l'utilisateur verrait deux
-   * pages courantes à la fois.
+   * Nécessaire dès qu'une entrée est le préfixe d'une autre. Aucune entrée
+   * n'est dans ce cas depuis que `/water` est devenu la vitrine publique et
+   * que les deux cockpits hydriques sont descendus sur `/water/cockpit` et
+   * `/water/decision` — deux chemins frères, dont aucun ne préfixe l'autre.
+   * L'option reste offerte : la prochaine paire parent/enfant en aura besoin.
    */
   exact?: boolean;
 };
@@ -51,17 +52,19 @@ export const NAV_GROUPS: NavGroup[] = [
         Les deux surfaces hydriques existaient en production sans figurer dans
         la navigation : on ne pouvait y arriver qu'en connaissant l'URL.
 
-        Elles restent DEUX entrées distinctes. `/water` est le ledger
+        Elles restent DEUX entrées distinctes. `/water/cockpit` est le ledger
         opérationnel (sites, prélèvements, permis, screening) ; `/water/decision`
         rassemble six facettes et un calculateur de scénarios. Les fondre en une
         seule entrée obligerait à choisir laquelle des deux disparaît.
+
+        Les deux cibles ont changé d'URL en Phase A : `/water` sert désormais la
+        vitrine PUBLIQUE du domaine, et n'a donc rien à faire dans une barre
+        latérale qui n'existe que pour une session authentifiée. `exact` n'est
+        plus nécessaire sur la première — aucune des deux ne préfixe l'autre.
       */
       {
-        id: "water", href: "/water", label: "Eau & stress hydrique", icon: <Droplets className="w-5 h-5" />,
+        id: "water", href: "/water/cockpit", label: "Eau & stress hydrique", icon: <Droplets className="w-5 h-5" />,
         badge: { text: "BETA", color: "bg-amber-500/15 text-amber-600" },
-        // `/water/decision` est une entrée à part : sans `exact`, les deux
-        // s'allumeraient ensemble sur la route décisionnelle.
-        exact: true,
       },
       {
         id: "water-decision", href: "/water/decision", label: "Décision hydrique", icon: <Waves className="w-5 h-5" />,

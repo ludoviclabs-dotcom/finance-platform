@@ -1,11 +1,21 @@
 /**
- * app/water-intelligence/page.tsx — surface publique du module Water
- * Intelligence (P04, réalignée en Wave E).
+ * app/water/page.tsx — vitrine PUBLIQUE du domaine hydrique (P04, réalignée en
+ * Wave E, promue sur `/water` par la refonte des routes — Phase A).
  *
- * Route PUBLIQUE, hors du groupe authentifié `(app)` : elle ne partage ni le
- * layout, ni la garde d'authentification du cockpit. Le cockpit entreprise
- * reste `app/(app)/water/page.tsx` (URL `/water`), inchangé — les deux URL
- * sont distinctes et aucune ne masque l'autre.
+ * ## Où cette page vit, et pourquoi elle a changé d'URL
+ *
+ * Elle répondait sur `/water-intelligence` pendant que `/water` servait le
+ * cockpit d'entreprise : l'URL la plus courte et la plus mémorisable du
+ * domaine était réservée à une page que seuls les clients authentifiés
+ * pouvaient voir, et la surface publique portait un nom de projet interne.
+ *
+ * `/water` est désormais cette vitrine, `/water-intelligence` y redirige
+ * définitivement (`next.config.ts`), et les deux cockpits sont descendus d'un
+ * cran sous `/water/cockpit` et `/water/decision`.
+ *
+ * Cette page reste hors du groupe authentifié : elle est le VOISIN du groupe
+ * `app/water/(authenticated)`, pas son enfant, et ne traverse donc ni son
+ * layout ni sa garde. Aucune donnée d'entreprise n'atteint ce fichier.
  *
  * Server Component intégral : aucun `"use client"`, aucun hook, aucun
  * `useSearchParams`, donc aucun bailout CSR. Le seul JavaScript embarqué est
@@ -61,13 +71,13 @@ export const metadata: Metadata = {
   title: "Water Intelligence — contexte hydrique sourcé | Carbon&Co",
   description:
     "Module public de contexte hydrique de Carbon&Co : méthode, sources officielles et provenance. Infrastructure opérationnelle ; aucune observation publiée tant qu'une décision humaine de publication n'est pas signée.",
-  alternates: { canonical: "/water-intelligence" },
+  alternates: { canonical: "/water" },
   openGraph: {
     title: "Water Intelligence — Carbon&Co",
     description:
       "Comprendre le risque hydrique à partir de sources officielles traçables. Infrastructure opérationnelle ; données publiques en attente de validation humaine.",
     type: "website",
-    url: "/water-intelligence",
+    url: "/water",
   },
 };
 
@@ -183,7 +193,7 @@ export default function WaterIntelligencePage() {
           <p className="wi-muted" style={{ marginTop: "1rem", maxWidth: "60ch" }}>
             Vous cherchez le suivi hydrique de votre entreprise (sites, prélèvements, permis,
             screening) ?{" "}
-            <Link href="/water" className="wi-link">
+            <Link href="/water/cockpit" className="wi-link">
               Accéder au cockpit Eau &amp; stress hydrique (accès authentifié)
             </Link>
             .
@@ -494,7 +504,7 @@ export default function WaterIntelligencePage() {
             leurs décisions de publication ne sont pas signées.
           </p>
           <p className="wi-muted" style={{ marginTop: "0.875rem", fontSize: "0.875rem" }}>
-            <Link href="/water" className="wi-link">
+            <Link href="/water/cockpit" className="wi-link">
               Cockpit Eau (authentifié)
             </Link>
             {" · "}

@@ -4,7 +4,7 @@
  * Nature — biodiversité, TNFD LEAP, risques et opportunités nature (PR-09, BETA).
  *
  * Consomme `/nature/*`. États loading / schema_not_ready / error / ready
- * explicites — aucun fallback silencieux (même discipline que `/water`, PR-08).
+ * explicites — aucun fallback silencieux (même discipline que `/water/cockpit`, PR-08).
  *
  * Règles de présentation non négociables :
  *

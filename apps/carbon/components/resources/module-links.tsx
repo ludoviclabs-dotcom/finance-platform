@@ -28,7 +28,7 @@ const LINKS: ModuleLink[] = [
     testId: "module-link-crma",
   },
   {
-    href: "/water",
+    href: "/water/cockpit",
     label: "Eau — stress hydrique",
     description: "Prélèvements, permis et screening de stress hydrique par site.",
     testId: "module-link-water",

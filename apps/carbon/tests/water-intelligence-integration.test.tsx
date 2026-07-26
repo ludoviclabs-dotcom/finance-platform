@@ -16,13 +16,13 @@ import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import WaterIntelligencePage from "@/app/water-intelligence/page";
+import WaterIntelligencePage from "@/app/water/page";
 
 const markup = renderToStaticMarkup(<WaterIntelligencePage />);
 const visible = markup.replace(/<[^>]+>/g, " ");
 
 const PAGE_SOURCE = readFileSync(
-  join(process.cwd(), "app", "water-intelligence", "page.tsx"),
+  join(process.cwd(), "app", "water", "page.tsx"),
   "utf8",
 );
 
@@ -137,7 +137,7 @@ describe("garde-fous de la surface publique", () => {
   });
 
   it("reste distincte du cockpit et y renvoie explicitement", () => {
-    expect(markup).toContain('href="/water"');
+    expect(markup).toContain('href="/water/cockpit"');
     expect(visible).toContain("authentifié");
   });
 

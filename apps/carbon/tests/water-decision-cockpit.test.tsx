@@ -7,7 +7,7 @@
  * |  # | Exigence | describe |
  * |---|---|---|
  * |  1 | garde d'authentification | « route et garde » |
- * |  2 | route distincte de `/water-intelligence` | « route et garde » |
+ * |  2 | route distincte de la vitrine publique | « route et garde » |
  * |  3 | formulaire initial vide | « formulaire initial » |
  * |  4 | champs obligatoires | « validation » |
  * |  5 | probabilité facultative | « validation » |
@@ -41,7 +41,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import WaterDecisionPage from "@/app/(app)/water/decision/page";
+import WaterDecisionPage from "@/app/water/(authenticated)/decision/page";
 import { WdScenarioCalculator } from "@/components/water-decision/WdCalculator";
 import { WdSynthesisPanel } from "@/components/water-decision/WdSynthesis";
 import { fetchPublicSnapshot } from "@/lib/api/water-decision";
@@ -64,9 +64,11 @@ import {
 /* ------------------------------------------------------------- Emplacements */
 
 const CARBON_ROOT = resolve(__dirname, "..");
-const PAGE = resolve(CARBON_ROOT, "app/(app)/water/decision/page.tsx");
-const GROUP_LAYOUT = resolve(CARBON_ROOT, "app/(app)/layout.tsx");
-const PUBLIC_PAGE = resolve(CARBON_ROOT, "app/water-intelligence/page.tsx");
+const PAGE = resolve(CARBON_ROOT, "app/water/(authenticated)/decision/page.tsx");
+const WATER_LAYOUT = resolve(CARBON_ROOT, "app/water/(authenticated)/layout.tsx");
+const AUTH_BOUNDARY = resolve(CARBON_ROOT, "components/layout/authenticated-boundary.tsx");
+const APP_LAYOUT = resolve(CARBON_ROOT, "app/(app)/layout.tsx");
+const PUBLIC_PAGE = resolve(CARBON_ROOT, "app/water/page.tsx");
 const CALCULATOR = resolve(CARBON_ROOT, "components/water-decision/WdCalculator.tsx");
 const STATES = resolve(CARBON_ROOT, "components/water-decision/WdStates.tsx");
 const SYNTHESIS = resolve(CARBON_ROOT, "components/water-decision/WdSynthesis.tsx");
@@ -343,18 +345,40 @@ describe("route et garde", () => {
     expect(source).not.toContain("localStorage");
   });
 
-  it("s’appuie sur la garde du groupe `(app)`, qui redirige vers /login", () => {
-    const layout = read(GROUP_LAYOUT);
-    expect(layout).toContain("auth.status !== \"authenticated\"");
-    expect(layout).toContain("/login?next=");
+  it("s’appuie sur la garde PARTAGÉE, qui redirige vers /login", () => {
+    /*
+      La page a quitté le groupe `(app)` pour le shell hydrique dédié. La règle
+      d'accès, elle, n'a pas été recopiée : le layout du shell monte
+      `AuthenticatedBoundary`, et c'est ce composant — un seul fichier — qui
+      porte la condition et la redirection.
+
+      Le test vérifie les deux moitiés de cette affirmation, sans quoi
+      « partagée » ne serait qu'un mot dans un commentaire : la garde contient
+      bien la règle, et le layout hydrique la monte réellement.
+    */
+    const boundary = read(AUTH_BOUNDARY);
+    expect(boundary).toContain("auth.status !== \"authenticated\"");
+    expect(boundary).toContain("/login?next=");
+
+    expect(read(WATER_LAYOUT)).toContain("AuthenticatedBoundary");
+
+    // Et c'est la MÊME garde des deux côtés : le groupe `(app)` ne conserve
+    // aucune règle d'accès en propre.
+    const appLayout = read(APP_LAYOUT);
+    expect(appLayout).toContain("AuthenticatedBoundary");
+    expect(appLayout).not.toContain("auth.status !== \"authenticated\"");
+    expect(appLayout).not.toContain("/login?next=");
   });
 
-  it("est une route distincte de /water-intelligence et de /water", () => {
+  it("est une route distincte de la vitrine publique et du cockpit opérationnel", () => {
     expect(() => read(PUBLIC_PAGE)).not.toThrow();
-    expect(PAGE).not.toContain("water-intelligence");
-    expect(PAGE.replace(/\\/g, "/")).toContain("app/(app)/water/decision/page.tsx");
-    // La page publique reste hors du groupe authentifié.
-    expect(PUBLIC_PAGE.replace(/\\/g, "/")).toContain("app/water-intelligence/page.tsx");
+    expect(PAGE.replace(/\\/g, "/")).toContain(
+      "app/water/(authenticated)/decision/page.tsx",
+    );
+    // La page publique reste hors de tout groupe authentifié.
+    const publicPage = PUBLIC_PAGE.replace(/\\/g, "/");
+    expect(publicPage).toContain("app/water/page.tsx");
+    expect(publicPage).not.toContain("(authenticated)");
   });
 });
 

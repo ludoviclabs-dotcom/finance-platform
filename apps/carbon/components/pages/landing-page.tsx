@@ -1257,7 +1257,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                 <li><a href="/couverture" className="text-sm text-neutral-500 hover:text-black transition-colors">Couverture ESRS</a></li>
                 <li><a href="/integrations" className="text-sm text-neutral-500 hover:text-black transition-colors">Sources &amp; intégrations</a></li>
                 <li><Link href="/materials" className="text-sm text-neutral-500 hover:text-black transition-colors">Métaux critiques</Link></li>
-                <li><Link href="/water-intelligence" className="text-sm text-neutral-500 hover:text-black transition-colors">Eau &amp; risques hydriques</Link></li>
+                <li><Link href="/water" className="text-sm text-neutral-500 hover:text-black transition-colors">Eau &amp; risques hydriques</Link></li>
                 <li><a href="/etat-du-produit" className="text-sm text-neutral-500 hover:text-black transition-colors">État du produit</a></li>
               </ul>
             </div>

@@ -16,12 +16,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       Les deux surfaces publiques thématiques manquaient au sitemap : elles
       existaient, étaient indexables, et n'étaient déclarées nulle part.
 
-      `/water` et `/water/decision` n'y figurent PAS, et ne doivent pas y
-      figurer : ce sont des cockpits authentifiés, dont l'indexation n'aurait
+      La surface hydrique publique est déclarée sur `/water` depuis la Phase A.
+      `/water-intelligence` n'est PAS listée en plus : elle redirige en 308 vers
+      `/water` (`next.config.ts`), et déclarer les deux demanderait aux moteurs
+      d'indexer une URL dont on affirme par ailleurs qu'elle n'est plus la
+      bonne.
+
+      `/water/cockpit` et `/water/decision` n'y figurent PAS, et ne doivent pas
+      y figurer : ce sont des cockpits authentifiés, dont l'indexation n'aurait
       aucun sens et dont l'URL n'a rien à faire dans un plan de site public.
     */
     { url: `${baseUrl}/materials`, changeFrequency: "weekly", priority: 0.85 },
-    { url: `${baseUrl}/water-intelligence`, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${baseUrl}/water`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/integrations`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${baseUrl}/blog`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/aide`, changeFrequency: "monthly", priority: 0.8 },

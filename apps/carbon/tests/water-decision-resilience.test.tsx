@@ -36,7 +36,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import WaterDecisionPage from "@/app/(app)/water/decision/page";
+import WaterDecisionPage from "@/app/water/(authenticated)/decision/page";
 import { WdScenarioCalculator } from "@/components/water-decision/WdCalculator";
 import { WdSynthesisPanel } from "@/components/water-decision/WdSynthesis";
 import {
@@ -54,8 +54,8 @@ import {
 
 const CARBON_ROOT = resolve(__dirname, "..");
 const GLOBALS = resolve(CARBON_ROOT, "app/globals.css");
-const PAGE = resolve(CARBON_ROOT, "app/(app)/water/decision/page.tsx");
-const HEADER = resolve(CARBON_ROOT, "components/layout/header.tsx");
+const PAGE = resolve(CARBON_ROOT, "app/water/(authenticated)/decision/page.tsx");
+const WATER_SHELL = resolve(CARBON_ROOT, "app/water/(authenticated)/water-shell.tsx");
 const CALCULATOR = resolve(CARBON_ROOT, "components/water-decision/WdCalculator.tsx");
 const STATES = resolve(CARBON_ROOT, "components/water-decision/WdStates.tsx");
 
@@ -349,8 +349,9 @@ describe("accessibilité mesurée", () => {
   });
 
   it("ne pose qu’un seul titre de premier niveau sur la page", () => {
-    // L'en-tête du groupe `(app)` porte déjà le `h1`.
-    expect(read(HEADER)).toContain("<h1");
+    // Le shell hydrique porte le `h1` — rôle repris de l'en-tête du groupe
+    // `(app)` quand la page en est sortie.
+    expect(read(WATER_SHELL)).toContain("<h1");
     expect(read(PAGE)).not.toContain("<h1");
     expect(read(CALCULATOR)).not.toContain("<h1");
     expect(read(STATES)).not.toContain("<h1");

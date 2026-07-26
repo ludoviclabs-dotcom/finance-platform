@@ -11,7 +11,7 @@
  * Pack (ZIP signé).
  *
  * États loading / schema_not_ready / error / ready explicites — motif
- * `/water`, `/nature`.
+ * `/water/cockpit`, `/nature`.
  */
 
 import Link from "next/link";

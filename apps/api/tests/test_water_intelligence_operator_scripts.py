@@ -865,7 +865,7 @@ class TestNoDatabaseNoPublication:
     #: la règle reste vraie pour tous les autres, et un nouveau script qui
     #: écrirait en base ferait échouer ce test tant qu'il n'est pas listé ici
     #: — c'est-à-dire tant qu'un humain ne l'a pas décidé.
-    DATABASE_EXEMPT = frozenset({"ingest_release.py"})
+    DATABASE_EXEMPT = frozenset({"ingest_release.py", "staging_rehearsal.py"})
 
     def test_no_operator_script_imports_a_database_client(self) -> None:
         for path in _sources(SCRIPTS_DIR):
@@ -875,11 +875,23 @@ class TestNoDatabaseNoPublication:
             offending = {n for n in imported if n.split(".")[0] in self.FORBIDDEN}
             assert not offending, f"{path.name} importe {offending}"
 
-    def test_the_database_exemption_is_a_single_named_file(self) -> None:
-        """L'exemption ne doit jamais devenir une catégorie. Un seul fichier
-        écrit en base ; tous les autres restent en lecture seule."""
-        assert self.DATABASE_EXEMPT == {"ingest_release.py"}
-        assert (SCRIPTS_DIR / "ingest_release.py").is_file()
+    def test_the_database_exemption_stays_an_explicit_short_list(self) -> None:
+        """L'exemption ne doit jamais devenir une catégorie : chaque fichier
+        qui touche la base est nommé, et il n'y en a que deux — le graveur
+        (X2B) et les outils de répétition staging (X3)."""
+        assert self.DATABASE_EXEMPT == {"ingest_release.py", "staging_rehearsal.py"}
+        for name in self.DATABASE_EXEMPT:
+            assert (SCRIPTS_DIR / name).is_file()
+
+    def test_every_exempt_script_goes_through_the_environment_gate(self) -> None:
+        """Toucher la base ne suffit pas : il faut prouver la destination.
+        Un script exempté qui n'importerait pas la porte pourrait écrire
+        n'importe où."""
+        for name in self.DATABASE_EXEMPT:
+            imported = _imported_names(SCRIPTS_DIR / name)
+            assert any(
+                n.startswith("services.water.staging_environment") for n in imported
+            ), f"{name} n'importe pas la porte d'environnement"
 
     #: Modules de service constituant le SEUL chemin d'écriture Eau. Depuis X3,
     #: `ingest_release.py` n'importe plus `db` directement : il passe par la

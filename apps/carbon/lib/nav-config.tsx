@@ -13,6 +13,7 @@ import {
   ClipboardCheck, FileBarChart, Factory, Upload, Receipt, FolderInput, Database,
   ShieldCheck, FileText, TrendingDown, CalendarClock, GitCompare, GitBranch, Building2, Bot,
   Inbox, ClipboardList, History, Bell, Settings, CreditCard, FlaskConical,
+  Droplets, Waves,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
 
@@ -22,6 +23,15 @@ export type NavItem = {
   label: string;
   icon: React.ReactNode;
   badge?: { text: string; color: string };
+  /**
+   * N'est actif que sur le chemin EXACT.
+   *
+   * Nécessaire dès qu'une entrée est le préfixe d'une autre : `/water` et
+   * `/water/decision` sont deux entrées distinctes, et sans cette option les
+   * deux s'allumeraient sur `/water/decision` — l'utilisateur verrait deux
+   * pages courantes à la fois.
+   */
+  exact?: boolean;
 };
 
 export type NavGroup = { group: string; items: NavItem[] };
@@ -35,6 +45,26 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: "materialite", href: "/materialite", label: "Matérialité",   icon: <Scale className="w-5 h-5" /> },
       {
         id: "resources", href: "/resources", label: "Ressources stratégiques", icon: <Boxes className="w-5 h-5" />,
+        badge: { text: "BETA", color: "bg-amber-500/15 text-amber-600" },
+      },
+      /*
+        Les deux surfaces hydriques existaient en production sans figurer dans
+        la navigation : on ne pouvait y arriver qu'en connaissant l'URL.
+
+        Elles restent DEUX entrées distinctes. `/water` est le ledger
+        opérationnel (sites, prélèvements, permis, screening) ; `/water/decision`
+        rassemble six facettes et un calculateur de scénarios. Les fondre en une
+        seule entrée obligerait à choisir laquelle des deux disparaît.
+      */
+      {
+        id: "water", href: "/water", label: "Eau & stress hydrique", icon: <Droplets className="w-5 h-5" />,
+        badge: { text: "BETA", color: "bg-amber-500/15 text-amber-600" },
+        // `/water/decision` est une entrée à part : sans `exact`, les deux
+        // s'allumeraient ensemble sur la route décisionnelle.
+        exact: true,
+      },
+      {
+        id: "water-decision", href: "/water/decision", label: "Décision hydrique", icon: <Waves className="w-5 h-5" />,
         badge: { text: "BETA", color: "bg-amber-500/15 text-amber-600" },
       },
     ],
@@ -135,7 +165,12 @@ export const NAV_GROUPS: NavGroup[] = [
  * sous-route (`/resources` reste actif sur `/resources/exposures`). Fonction
  * pure — testée sans monter la Sidebar.
  */
-export function isNavItemActive(pathname: string | null | undefined, href: string): boolean {
+export function isNavItemActive(
+  pathname: string | null | undefined,
+  href: string,
+  exact = false,
+): boolean {
   if (!pathname) return false;
+  if (exact) return pathname === href;
   return pathname === href || pathname.startsWith(href + "/");
 }

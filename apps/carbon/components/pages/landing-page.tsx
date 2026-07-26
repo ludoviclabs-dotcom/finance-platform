@@ -22,6 +22,11 @@ import { DemoDisclaimer } from "../landing/demo-disclaimer";
 import { useAnalytics } from "@/lib/hooks/use-analytics";
 import { Reveal } from "@/components/ui/reveal";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { EnvironmentalIntelligence } from "../landing/environmental-intelligence";
+import {
+  NavResourcesMenu,
+  NavResourcesMobileGroup,
+} from "../landing/nav-resources-menu";
 
 /** Chiffres réels du module Matières critiques (chargés au build, côté serveur). */
 export interface MaterialsStats {
@@ -37,12 +42,23 @@ interface LandingPageProps {
   materialsStats?: MaterialsStats;
 }
 
+/**
+ * Emplacement du menu « Ressources » dans l'ordre de la barre.
+ *
+ * Un marqueur plutôt qu'une insertion codée en dur dans le rendu : l'ordre des
+ * entrées reste décrit à un seul endroit, et desktop comme mobile le suivent.
+ */
+const RESOURCES_MENU_SLOT = "__resources_menu__";
+
 const NAV_LINKS = [
   { href: "#hero", label: "Accueil" },
   { href: "#about", label: "Pourquoi CarbonCo" },
   { href: "#features", label: "Fonctionnalités" },
   { href: "/produit", label: "Produit" },
-  { href: "/materials", label: "Métaux critiques" },
+  // « Métaux critiques » n'est plus un lien de premier niveau : il rejoint
+  // « Eau & risques hydriques » sous « Ressources ». La barre perd une entrée
+  // au lieu d'en gagner une — elle débordait déjà à neuf.
+  { href: RESOURCES_MENU_SLOT, label: "Ressources" },
   { href: "/proof", label: "Preuve" },
   { href: "#how", label: "Comment ça marche" },
   { href: "#pricing", label: "Tarifs" },
@@ -521,7 +537,9 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
 
           <div className="hidden lg:flex items-center gap-5 2xl:gap-7">
             {NAV_LINKS.filter(({ href }) => href !== "#hero").map(({ href, label }) => (
-              href.startsWith("/") ? (
+              href === RESOURCES_MENU_SLOT ? (
+                <NavResourcesMenu key={href} />
+              ) : href.startsWith("/") ? (
                 <Link key={href} href={href} className="whitespace-nowrap text-xs 2xl:text-sm font-semibold text-neutral-500 hover:text-black transition-colors tracking-wide">
                   {label}
                 </Link>
@@ -558,7 +576,9 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
         <div className="lg:hidden overflow-hidden transition-all duration-300 ease-in-out" style={{ maxHeight: mobileMenuOpen ? 620 : 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)" }}>
           <div className="flex flex-col px-8 pb-6 pt-2 border-t border-neutral-100">
             {NAV_LINKS.map(({ href, label }) => (
-              href.startsWith("/") ? (
+              href === RESOURCES_MENU_SLOT ? (
+                <NavResourcesMobileGroup key={href} onNavigate={() => setMobileMenuOpen(false)} />
+              ) : href.startsWith("/") ? (
                 <Link key={href} href={href} className="text-sm font-semibold text-neutral-600 py-3 border-b border-neutral-100 hover:text-black transition-colors" onClick={() => setMobileMenuOpen(false)}>{label}</Link>
               ) : (
                 <a key={href} href={href} className="text-sm font-semibold text-neutral-600 py-3 border-b border-neutral-100 hover:text-black transition-colors" onClick={() => setMobileMenuOpen(false)}>{label}</a>
@@ -1032,6 +1052,9 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
           </div>
         </section>
 
+        {/* ══ 7bis. INTELLIGENCE ENVIRONNEMENTALE ══ */}
+        <EnvironmentalIntelligence />
+
         {/* ══ 8. TARIFS ══ */}
         <section id="pricing" className="py-32 px-8 md:px-12 bg-white">
           <div className="max-w-[1440px] mx-auto">
@@ -1233,6 +1256,8 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                 <li><a href="/tarifs" className="text-sm text-neutral-500 hover:text-black transition-colors">Tarifs</a></li>
                 <li><a href="/couverture" className="text-sm text-neutral-500 hover:text-black transition-colors">Couverture ESRS</a></li>
                 <li><a href="/integrations" className="text-sm text-neutral-500 hover:text-black transition-colors">Sources &amp; intégrations</a></li>
+                <li><Link href="/materials" className="text-sm text-neutral-500 hover:text-black transition-colors">Métaux critiques</Link></li>
+                <li><Link href="/water-intelligence" className="text-sm text-neutral-500 hover:text-black transition-colors">Eau &amp; risques hydriques</Link></li>
                 <li><a href="/etat-du-produit" className="text-sm text-neutral-500 hover:text-black transition-colors">État du produit</a></li>
               </ul>
             </div>

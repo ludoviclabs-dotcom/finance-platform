@@ -145,7 +145,7 @@ export function Sidebar({
               {!collapsed && <div className="cc-nav-grp-t">{grp.group}</div>}
               <div className="space-y-0.5">
                 {grp.items.map((item) => {
-                  const active = isNavItemActive(pathname, item.href);
+                  const active = isNavItemActive(pathname, item.href, item.exact);
                   return (
                     <Link
                       key={item.id}

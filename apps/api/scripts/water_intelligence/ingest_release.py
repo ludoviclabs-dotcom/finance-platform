@@ -34,8 +34,12 @@ import json
 import sys
 from pathlib import Path
 
-from db.database import get_admin_db
 from services.storage import get_storage
+from services.water.staging_environment import (
+    STAGING_URL_VARIABLE,
+    StagingEnvironmentRefused,
+    staging_connection_factory,
+)
 from services.water.staging_ingestion import (
     StagingIngestionRefused,
     WaterStagingIngestionRequest,
@@ -67,6 +71,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--operator", default=None, help="identité de l'opérateur")
     parser.add_argument(
+        "--expect-database", required=True,
+        help=(
+            "nom de la base de staging visée, confronté à current_database() "
+            "AVANT toute écriture — l'URL, elle, vient de "
+            f"{STAGING_URL_VARIABLE} et n'est jamais passée en argument"
+        ),
+    )
+    parser.add_argument(
+        "--ephemeral", action="store_true",
+        help="staging jetable (option B) : les releases ne survivront pas à la répétition",
+    )
+    parser.add_argument(
         "--output", type=Path, default=None,
         help="chemin du rapport d'ingestion JSON (facultatif)",
     )
@@ -85,6 +101,19 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+
+    # Porte d'environnement EN PREMIER, avant même de regarder les fichiers :
+    # sur une machine portant les identifiants de production, le premier
+    # message doit être le refus, pas une remarque sur un chemin de rapport.
+    # `--environment staging` n'est qu'une déclaration ; c'est ici que la
+    # destination est prouvée. Le dry-run passe par la même porte, puisqu'il
+    # ouvre lui aussi une vraie transaction.
+    try:
+        connection_factory, target = staging_connection_factory(
+            expect_database=args.expect_database, ephemeral=args.ephemeral
+        )
+    except StagingEnvironmentRefused as exc:
+        raise SystemExit(f"ENVIRONNEMENT REFUSÉ — {exc}") from exc
 
     report_path: Path = args.report
     if not report_path.is_file():
@@ -121,16 +150,20 @@ def main(argv: list[str] | None = None) -> int:
             pages=pages,
             decoded_pages=decoded,
             report=report,
-            connection_factory=get_admin_db,
+            connection_factory=connection_factory,
             storage=get_storage(),
             commit=args.commit,
         )
+    except StagingEnvironmentRefused as exc:
+        raise SystemExit(f"ENVIRONNEMENT REFUSÉ — {exc} (transaction avortée)") from exc
     except StagingIngestionRefused as exc:
         raise SystemExit(f"REFUSÉ — {exc}") from exc
     except StagingWriteError as exc:
         raise SystemExit(f"ÉCHEC D'ÉCRITURE — {exc} (transaction avortée)") from exc
 
     payload = result.as_mapping()
+    # La cible est recopiée par son NOM et son verdict ; jamais son URL.
+    payload["staging_target"] = target.as_mapping()
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(

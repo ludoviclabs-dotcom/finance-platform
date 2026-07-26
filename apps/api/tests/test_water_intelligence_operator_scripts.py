@@ -881,6 +881,35 @@ class TestNoDatabaseNoPublication:
         assert self.DATABASE_EXEMPT == {"ingest_release.py"}
         assert (SCRIPTS_DIR / "ingest_release.py").is_file()
 
+    #: Modules de service constituant le SEUL chemin d'écriture Eau. Depuis X3,
+    #: `ingest_release.py` n'importe plus `db` directement : il passe par la
+    #: porte d'environnement. Sans le test ci-dessous, le garde-fou
+    #: d'import ne prouverait donc plus rien — il passerait pour tous les
+    #: scripts, y compris un futur script qui écrirait via ces services.
+    WRITE_PATH_MODULES = (
+        "services.water.staging_writer",
+        "services.water.staging_environment",
+    )
+
+    def test_no_other_operator_script_reaches_the_write_path(self) -> None:
+        for path in _sources(SCRIPTS_DIR):
+            if path.name in self.DATABASE_EXEMPT:
+                continue
+            imported = _imported_names(path)
+            offending = {n for n in imported if n.startswith(self.WRITE_PATH_MODULES)}
+            assert not offending, (
+                f"{path.name} atteint le chemin d'écriture via {offending} — "
+                "seul ingest_release.py le peut."
+            )
+
+    def test_the_exempt_script_actually_uses_the_gated_write_path(self) -> None:
+        """Symétrique du précédent : si `ingest_release.py` cessait d'utiliser
+        la porte, l'exemption survivrait à sa raison d'être."""
+        imported = _imported_names(SCRIPTS_DIR / "ingest_release.py")
+
+        assert any(n.startswith("services.water.staging_environment") for n in imported)
+        assert any(n.startswith("services.water.staging_writer") for n in imported)
+
     def test_the_exempt_script_still_opens_no_network(self) -> None:
         """Écrire en base ne donne pas le droit de retélécharger : le graveur
         ingère un artefact DÉJÀ acquis, jamais une source qu'il irait relire."""

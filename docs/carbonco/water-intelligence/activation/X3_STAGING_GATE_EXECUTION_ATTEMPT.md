@@ -249,3 +249,32 @@ tout en artefacts GitHub Actions.
 - aucune décision de licence ou de publication ;
 - aucune donnée synthétique produite en remplacement ;
 - **X4, Phase B, WRI, EEA et Copernicus non commencés.**
+
+---
+
+# Clôture — X3 exécutée avec succès, 2026-07-26
+
+**Verdict final : X3 exécutée.** Le blocage §12-14 (workflow non enregistré
+sur la branche par défaut) a été levé par la fusion de
+[PR #167](https://github.com/ludoviclabs-dotcom/finance-platform/pull/167),
+qui a placé le workflow sur `master`. Cinq exécutions réelles ont suivi,
+chacune diagnostiquée et corrigée sans jamais recommencer « en boucle » ni
+maquiller un échec :
+
+| # | Run | Résultat | Cause |
+|---|---|---|---|
+| 1 | [`30214920815`](https://github.com/ludoviclabs-dotcom/finance-platform/actions/runs/30214920815) | échec | `schema_migrations` absent du mécanisme réutilisé |
+| 2 | [`30215246453`](https://github.com/ludoviclabs-dotcom/finance-platform/actions/runs/30215246453) | échec | Collision d'identité réelle, HUBEAU_HYDROMETRIE |
+| 3 | [`30215738738`](https://github.com/ludoviclabs-dotcom/finance-platform/actions/runs/30215738738) | échec | `ruff` non installé dans le workflow |
+| 4 | [`30215857755`](https://github.com/ludoviclabs-dotcom/finance-platform/actions/runs/30215857755) | échec | Faux positif du scanner de secrets |
+| 5 | [`30215981981`](https://github.com/ludoviclabs-dotcom/finance-platform/actions/runs/30215981981) | **succès, 30/30 étapes** | — |
+
+Détail complet du parcours, des trois sources ingérées et de la décision de
+différer HUBEAU_HYDROMETRIE : `X3_EPHEMERAL_STAGING_REHEARSAL.md`. Manifeste
+candidat privé : `X3_PUBLICATION_CANDIDATE_SUMMARY.md`.
+
+Toutes les corrections (ledger, décision de différer, installation de ruff,
+faux positif du scanner) vivaient sur `fix/water-x3-migrate-relies-on-absent-ledger`
+et sont désormais **fusionnées sur `master`** via
+[PR #169](https://github.com/ludoviclabs-dotcom/finance-platform/pull/169)
+(merge `da6d0b1d47430456a78b4b80af9c137f34f05ea8`, 2026-07-26T19:16:45Z).

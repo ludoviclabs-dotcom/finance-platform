@@ -289,3 +289,49 @@ Détail complet : `FINAL_TRACEABILITY.md`.
   [X3_STAGING_REHEARSAL_GATE.md](activation/X3_STAGING_REHEARSAL_GATE.md) §5.
   X4 reste bloqué tant qu'aucune release `validated` n'existe sur un staging
   persistant.
+
+## 2026-07-26 — X3 : répétition staging éphémère exécutée avec succès
+
+- **Piste du staging persistant local abandonnée**, remplacée par un
+  PostgreSQL éphémère GitHub Actions (`postgres:16`, service Docker d'un
+  workflow `workflow_dispatch` dédié). Aucune ressource Neon, aucune variable
+  Vercel, aucune variable Carbon&Co (`DATABASE_URL*`) touchée ni lue —
+  `staging_environment.py` refuse tout repli sur elles.
+- **Cinq exécutions réelles, chaque échec diagnostiqué puis corrigé, jamais
+  maquillé.** `schema_migrations` supposé présent par un mécanisme qui ne le
+  peuple jamais (corrigé par une vérité structurelle) ; collision d'identité
+  réelle sur l'hydrométrie (traitée ci-dessous) ; `ruff` non installé dans le
+  workflow ; faux positif du scanner de secrets sur son propre nom de
+  variable. Le cinquième run (`30215981981`) a réussi ses 30 étapes.
+- **HUBEAU_HYDROMETRIE différée, décision humaine.** Le premier run réel du
+  graveur a révélé une collision d'identité authentique :
+  `observations_tr` sert plusieurs lectures par jour, incompatibles avec le
+  grain jour du contrat d'identité partagé par tout Water Intelligence. Ce
+  n'est pas un bug — c'est un désaccord entre deux décisions architecturales
+  antérieures et volontaires. Plutôt que de choisir unilatéralement entre
+  étendre le contrat partagé au sous-journalier ou perdre délibérément la
+  granularité intra-journalière (deux décisions de fond), la décision a été
+  de différer l'ingestion : statut nommé `subdaily_identity_collision`, même
+  discipline que les statuts EEA/WRI/Copernicus. `HUBEAU_ADES` et
+  `HUBEAU_QUALITE_SURFACE`, ingérées sans collision dans le même run,
+  confirment que le grain jour convient aux relevés véritablement quotidiens.
+- **Trois releases `validated` produites et rejouées avec succès** :
+  `HUBEAU_ADES` (182 observations), `HUBEAU_QUALITE_SURFACE` (50),
+  `HUBEAU_BNPE_PRELEVEMENTS` (50). Idempotence prouvée : rejeu = 0 écriture,
+  toutes déjà présentes, même `release_id`. Aucune ligne de tenant, aucune
+  publication, aucun `published_at`.
+- **Manifeste candidat privé produit** (`candidate_not_published`,
+  `promotable_to_x4: false`) — jamais servi publiquement, jamais copié dans
+  un Blob public, jamais committé avec ses observations.
+- **X4 reste bloqué, sur deux plans distincts.** Techniquement : les releases
+  de ce run ont disparu avec le job éphémère, donc non promouvables — X4
+  exigera une ingestion sur un staging PERSISTANT. Humainement : aucune des
+  sept sources n'est `approved` au registre des décisions de publication.
+- **Pilotage.** `status: X3_EPHEMERAL_REHEARSAL_SUCCEEDED_3_OF_4_SOURCES`.
+  Détail complet dans
+  [X3_EPHEMERAL_STAGING_REHEARSAL.md](activation/X3_EPHEMERAL_STAGING_REHEARSAL.md)
+  et [X3_PUBLICATION_CANDIDATE_SUMMARY.md](activation/X3_PUBLICATION_CANDIDATE_SUMMARY.md).
+  Corrections de code fusionnées sur `master` via
+  [PR #169](https://github.com/ludoviclabs-dotcom/finance-platform/pull/169)
+  (merge `da6d0b1d47430456a78b4b80af9c137f34f05ea8`, 2026-07-26T19:16:45Z).
+  X4 et la Phase B ne sont pas commencés.

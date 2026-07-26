@@ -8,6 +8,13 @@ Couvre les dix cas exigés par le MACRO-PROMPT B — station inconnue, valeur
 absente, unité, date, pagination, fraîcheur, couverture, licence, checksum,
 idempotence — plus la séparation stricte des grandeurs, l'absence de toute
 interpolation, et l'usage du `PeriodResolver` livré en Wave A.
+
+Fixtures alignées sur `observations_tr` (X2A) : la validation live X1 a montré
+que ce connecteur ciblait `obs_elab` en acceptant un vocabulaire (`H`/`Q`) que
+cet endpoint rejette en HTTP 400. `hydro_record()` reflète désormais les
+champs réels d'`observations_tr`, vérifiés en direct — voir le docstring de
+`hubeau_hydro.py` et
+`docs/carbonco/water-intelligence/activation/X2A_SCHEMA_REMEDIATION_HANDOFF.md`.
 """
 
 from __future__ import annotations
@@ -75,12 +82,20 @@ def hydro_page(*records) -> dict:
     return {"count": len(records), "data": list(records)}
 
 
-def hydro_record(*, station="FIX-STATION-001", grandeur="Q", day="2026-01-01", value=1200.0):
+def hydro_record(
+    *, station="FIX-STATION-001", grandeur="Q", day="2026-01-01", value=1200.0,
+    statut="Donnée brute",
+):
+    """Forme réelle d'un enregistrement `observations_tr` (X2A) — VÉRIFIÉE EN
+    DIRECT le 2026-07-26 (cf. docstring de module) : `code_station`,
+    `grandeur_hydro`, `date_obs`, `resultat_obs`, `libelle_statut`. Les noms
+    `_elab` (`obs_elab`) ne sont plus ceux que ce connecteur lit."""
     return {
         "code_station": station,
-        "grandeur_hydro_elab": grandeur,
-        "date_obs_elab": day,
-        "resultat_obs_elab": value,
+        "grandeur_hydro": grandeur,
+        "date_obs": day,
+        "resultat_obs": value,
+        "libelle_statut": statut,
     }
 
 
@@ -187,6 +202,32 @@ class TestUnits:
 
     def test_unknown_hydro_quantity_is_refused(self) -> None:
         page = hydro_page(hydro_record(grandeur="X"))
+
+        with pytest.raises(hydro.HubeauSchemaError, match="hors vocabulaire"):
+            hydro.parse_hydrometrie_pages([page], config=hydro_config())
+
+    @pytest.mark.parametrize("elaborated", ["HIXM", "HIXnJ", "QINM", "QmM", "QmJ"])
+    def test_elaborated_vocabulary_is_no_longer_accepted(self, elaborated: str) -> None:
+        """X2A : ce parseur cible `observations_tr`, pas `obs_elab`. Les
+        grandeurs élaborées (`HIXM`, `QINM`, `QmM`…) n'ont pas de mapping
+        d'unité vérifié et restent hors vocabulaire — REFUSÉES, jamais
+        acceptées en mélange avec `H`/`Q` (cf.
+        `docs/carbonco/water-intelligence/activation/X1_LIVE_VALIDATION_HANDOFF.md`
+        §2.1 : ce sont précisément les valeurs que `obs_elab` sert et que
+        `observations_tr` rejette en 400 — et réciproquement)."""
+        page = hydro_page(hydro_record(grandeur=elaborated))
+
+        with pytest.raises(hydro.HubeauSchemaError, match="hors vocabulaire"):
+            hydro.parse_hydrometrie_pages([page], config=hydro_config())
+
+    def test_no_h_q_mixing_with_elaborated_codes_in_the_same_page(self) -> None:
+        """Une page qui mélangerait un code temps réel valide et un code
+        élaboré doit échouer sur la ligne élaborée — jamais un tri silencieux
+        qui ne garderait que les lignes valides."""
+        page = hydro_page(
+            hydro_record(grandeur="H", day="2026-01-01"),
+            hydro_record(grandeur="HIXM", day="2026-01-02"),
+        )
 
         with pytest.raises(hydro.HubeauSchemaError, match="hors vocabulaire"):
             hydro.parse_hydrometrie_pages([page], config=hydro_config())
@@ -298,7 +339,7 @@ class TestMissingValues:
 
 class TestSchemaAndDates:
     def test_missing_station_identifier_is_refused(self) -> None:
-        page = hydro_page({"grandeur_hydro_elab": "Q", "date_obs_elab": "2026-01-01", "resultat_obs_elab": 1.0})
+        page = hydro_page({"grandeur_hydro": "Q", "date_obs": "2026-01-01", "resultat_obs": 1.0})
 
         with pytest.raises(hydro.HubeauSchemaError, match="code_station"):
             hydro.parse_hydrometrie_pages([page], config=hydro_config())
@@ -347,6 +388,42 @@ class TestSchemaAndDates:
 
         with pytest.raises(hydro.HubeauSchemaError, match="aucune grandeur"):
             hydro.parse_piezometrie_pages([page], config=piezo_config())
+
+
+# ---------------------------------------------------------------------------
+# Statut éventuel — recopié verbatim, jamais interprété (X2A)
+# ---------------------------------------------------------------------------
+
+
+class TestStatusLabel:
+    def test_status_label_is_captured_from_the_real_field(self) -> None:
+        page = hydro_page(hydro_record(statut="Donnée contrôlée niveau 2"))
+
+        parsed = hydro.parse_hydrometrie_pages([page], config=hydro_config())
+
+        assert parsed.measurements[0].status_label == "Donnée contrôlée niveau 2"
+
+    def test_status_label_travels_into_the_draft_metadata(self) -> None:
+        parsed = hydro.parse_hydrometrie_pages(
+            [hydro_page(hydro_record(statut="Brute"))], config=hydro_config()
+        )
+        drafts = hydro.drafts_from_measurements(parsed.measurements, hydro_config())
+
+        assert drafts[0].metadata["status_label"] == "Brute"
+
+    def test_absent_status_is_none_not_a_placeholder(self) -> None:
+        record = hydro_record()
+        del record["libelle_statut"]
+        parsed = hydro.parse_hydrometrie_pages([hydro_page(record)], config=hydro_config())
+
+        assert parsed.measurements[0].status_label is None
+
+    def test_piezometric_measurements_carry_no_status_by_default(self) -> None:
+        """La piézométrie n'a pas été revue par X2A : son statut reste absent,
+        jamais une valeur inventée pour homogénéiser les deux familles."""
+        parsed = hydro.parse_piezometrie_pages(PIEZO_PAGES, config=piezo_config())
+
+        assert all(m.status_label is None for m in parsed.measurements)
 
 
 # ---------------------------------------------------------------------------
@@ -625,7 +702,7 @@ class TestPipelineIntegration:
         assert report.steps_failed == ["plan"]
 
     def test_invalid_schema_fails_cleanly_at_normalize(self) -> None:
-        broken = [hydro_page({"grandeur_hydro_elab": "Q", "date_obs_elab": "2026-01-01"})]
+        broken = [hydro_page({"grandeur_hydro": "Q", "date_obs": "2026-01-01"})]
 
         report = run_hydro_pipeline(license_decision=ALLOWED, pages=broken)
 

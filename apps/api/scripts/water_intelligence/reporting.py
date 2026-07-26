@@ -24,12 +24,20 @@ from scripts.water_intelligence.fetcher import FetchLogEntry, is_secret_paramete
 
 #: Verdicts autorisés. Toute autre valeur est refusée à la construction : un
 #: verdict libre finirait par dire « ok », qui ne veut rien dire.
+#:
+#: `manual_artifact_required` (X2A) : un artefact officiel a été fourni (ou
+#: son absence constatée), mais aucun profil de correspondance colonnes/
+#: feuille VÉRIFIÉ n'existe encore pour la release demandée — distinct de
+#: `decoder_deferred` (Copernicus), qui reste réservé à un décodeur RASTER non
+#: livré. EEA dispose de l'outillage (openpyxl) ; ce qui manque est une
+#: vérification humaine contre un artefact réel, pas une bibliothèque.
 VERDICTS: tuple[str, ...] = (
     "ready_for_staging",
     "schema_drift",
     "source_unavailable",
     "blocked",
     "decoder_deferred",
+    "manual_artifact_required",
 )
 
 

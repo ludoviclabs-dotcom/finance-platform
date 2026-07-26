@@ -33,7 +33,9 @@ from pathlib import Path
 
 import pytest
 
+from scripts.water_intelligence import eea_artifact_inspector as eea_inspector
 from scripts.water_intelligence import fetcher as fetcher_mod
+from scripts.water_intelligence import validate_eea
 from scripts.water_intelligence.fetcher import (
     FetcherNetworkError,
     FetcherRefusal,
@@ -679,6 +681,160 @@ class TestPrelevementsMultiYearOrchestration:
         report, _ = run_multi_year({2020: withdrawal_page(withdrawal_record(year=2020))})
 
         assert report.records_publishable == 0
+
+
+# ---------------------------------------------------------------------------
+# 11 — EEA : conversion d'artefact local cadrée, sans deviner (X2A)
+# ---------------------------------------------------------------------------
+
+
+class TestEeaManualArtifactRequired:
+    def test_no_input_is_manual_artifact_required_not_decoder_deferred(self) -> None:
+        """X2A remplace l'ancien verdict X1 pour EEA : `decoder_deferred`
+        reste réservé à Copernicus (décodeur RASTER non livré). EEA a
+        l'outillage ; ce qui manque est un profil vérifié par un humain."""
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=False, payload=None, payload_format=None,
+                records_normalized=0, pipeline_failed=False, rejected=False,
+            )
+            == "manual_artifact_required"
+        )
+
+    def test_binary_payload_without_profile_is_manual_artifact_required(self) -> None:
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=True, payload=b"PK\x03\x04...",
+                payload_format="zip/ooxml (xlsx, shapefile compressé)",
+                records_normalized=0, pipeline_failed=False, rejected=False,
+            )
+            == "manual_artifact_required"
+        )
+
+    def test_payload_lost_to_a_checksum_mismatch_is_source_unavailable(self) -> None:
+        """`payload=None` avec `has_input=True` : le contrôle de checksum de
+        `main()` a rejeté l'extrait — ni un succès, ni un défaut de schéma."""
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=True, payload=None, payload_format=None,
+                records_normalized=0, pipeline_failed=False, rejected=False,
+            )
+            == "source_unavailable"
+        )
+
+    def test_other_verdicts_are_unaffected(self) -> None:
+        assert (
+            validate_eea._decide(
+                identity_ok=False, has_input=False, payload=None, payload_format=None,
+                records_normalized=0, pipeline_failed=False, rejected=False,
+            )
+            == "source_unavailable"
+        )
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=True, payload=b"x", payload_format="texte utf-8",
+                records_normalized=0, pipeline_failed=False, rejected=True,
+            )
+            == "schema_drift"
+        )
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=True, payload=b"x", payload_format="texte utf-8",
+                records_normalized=3, pipeline_failed=False, rejected=False,
+            )
+            == "ready_for_staging"
+        )
+
+
+class TestEeaExtensionConsistency:
+    def test_matching_extension_is_silent(self) -> None:
+        warnings: list[str] = []
+        validate_eea._check_extension_consistency(
+            Path("release.xlsx"), "zip/ooxml (xlsx, shapefile compressé)", warnings,
+        )
+        assert warnings == []
+
+    def test_mismatched_extension_is_flagged_not_refused(self) -> None:
+        warnings: list[str] = []
+        validate_eea._check_extension_consistency(
+            Path("release.csv"), "zip/ooxml (xlsx, shapefile compressé)", warnings,
+        )
+        assert any("inattendue" in w for w in warnings)
+
+    def test_unknown_container_is_silent(self) -> None:
+        warnings: list[str] = []
+        validate_eea._check_extension_consistency(Path("release.bin"), "binaire non identifié", warnings)
+        assert warnings == []
+
+
+class TestEeaInspectAndConvert:
+    def test_non_xlsx_binary_is_left_untouched(self) -> None:
+        notes: list[str] = []
+        payload, fmt = validate_eea._inspect_and_convert(
+            b"\xd0\xcf\x11\xe0old-xls", "ole2 (xls)", "any-release", notes, [], [],
+        )
+
+        assert payload == b"\xd0\xcf\x11\xe0old-xls"
+        assert fmt == "ole2 (xls)"
+        assert any("non inspectable" in n for n in notes)
+
+    def test_xlsx_without_a_profile_surfaces_sheets_and_stays_binary(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        import io as _io
+
+        import openpyxl as _openpyxl
+
+        workbook = _openpyxl.Workbook()
+        workbook.active.title = "Data"
+        workbook.active.append(["spatialUnitIdentifier", "year"])
+        buffer = _io.BytesIO()
+        workbook.save(buffer)
+        raw = buffer.getvalue()
+
+        notes: list[str] = []
+        payload, fmt = validate_eea._inspect_and_convert(
+            raw, "zip/ooxml (xlsx, shapefile compressé)", "release-without-profile", notes, [], [],
+        )
+
+        assert payload == raw
+        assert fmt == "zip/ooxml (xlsx, shapefile compressé)"
+        assert any("Data" in n for n in notes)
+        assert any(eea_inspector.MAPPING_PROFILE_STATUS in n for n in notes)
+
+    def test_xlsx_with_a_verified_profile_is_converted(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        import io as _io
+
+        import openpyxl as _openpyxl
+
+        release_key = "release-with-profile"
+        profile = eea_inspector.ColumnMappingProfile(
+            release_key=release_key, sheet_name="Data",
+            identifier_column="spatialUnitIdentifier", year_column="year",
+            quarter_column="quarter", value_column="wei_plus_pct", unit_column="unit",
+            verified_by="test", verified_on="2026-07-26",
+        )
+        monkeypatch.setitem(eea_inspector.MAPPING_PROFILES, release_key, profile)
+
+        workbook = _openpyxl.Workbook()
+        workbook.active.title = "Data"
+        workbook.active.append(["spatialUnitIdentifier", "year", "quarter", "wei_plus_pct", "unit"])
+        workbook.active.append(["FR001", 2020, "Q1", 12.3, "%"])
+        buffer = _io.BytesIO()
+        workbook.save(buffer)
+
+        notes: list[str] = []
+        warnings: list[str] = []
+        payload, fmt = validate_eea._inspect_and_convert(
+            buffer.getvalue(), "zip/ooxml (xlsx, shapefile compressé)", release_key,
+            notes, warnings, [],
+        )
+
+        assert fmt == "texte utf-8"
+        assert b"FR001,2020,Q1,12.3,%" in payload
+        assert any("converti" in w for w in warnings)
 
 
 # ---------------------------------------------------------------------------

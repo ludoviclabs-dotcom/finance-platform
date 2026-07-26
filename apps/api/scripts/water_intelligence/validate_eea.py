@@ -1,30 +1,37 @@
-"""scripts/water_intelligence/validate_eea.py — validation live EEA WEI+ (X1.3).
+"""scripts/water_intelligence/validate_eea.py — validation live EEA WEI+
+(X1.3 ; conversion d'artefact local cadrée en X2A).
 
 Geste OPÉRATEUR explicite et borné.
 
     python -m scripts.water_intelligence.validate_eea \\
       --release subunit|riverbasin \\
-      [--input <fichier_canonique_ou_url_officielle>] \\
+      [--input <fichier_local_ou_url_officielle>] \\
       [--expected-sha256 <hex>] \\
       --dry-run --report <chemin.md>
 
-## Deux gestes distincts, dans le même rapport
+## Trois gestes distincts, dans le même rapport
 
 **Vérifier la release** ne demande aucune donnée : la fiche de métadonnées de
 l'EEA suffit à établir que le code de jeu, le titre et la licence sont bien
 ceux que le connecteur a épinglés. C'est fait à chaque exécution, et c'est ce
 qui rend une dérive de release visible AVANT toute ingestion.
 
-**Valider un extrait** demande un conteneur. L'EEA publie le WEI+ en Excel et
-en SHP — sa propre fiche le dit : « Spatial data in SHP format. WEI+ data in
-Excel format ». Le connecteur ne décode ni l'un ni l'autre, et il documente
-pourquoi : les noms de colonnes du classeur officiel ne sont pas publiés, donc
-il refuse de les deviner et définit à la place un format canonique explicite
-(`CANONICAL_COLUMNS`). La conversion reste un geste opérateur.
+**Inspecter un artefact local** (X2A) : quand `--input` désigne un fichier
+xlsx/zip, cette commande l'ouvre EN LECTURE SEULE via
+`eea_artifact_inspector` — feuilles réelles, en-têtes réels, présence d'un
+projet VBA — et le consigne dans le rapport. Elle ne décide JAMAIS laquelle
+de ces feuilles ou colonnes correspond aux champs canoniques WEI+ : c'est un
+constat, pas une interprétation.
 
-Cette commande ne comble pas ce trou. Devant un conteneur binaire elle rend
-`decoder_deferred` et le dit — un décodeur inventé produirait des colonnes
-plausibles et fausses, ce qui est pire qu'une absence assumée.
+**Convertir et valider un extrait** exige un `ColumnMappingProfile` VÉRIFIÉ
+pour la release demandée (`eea_artifact_inspector.MAPPING_PROFILES`) —
+actuellement VIDE, aucun artefact officiel réel n'ayant été obtenu (le lien
+de téléchargement conduit à une interface Nextcloud, cf.
+`X1_LIVE_VALIDATION_HANDOFF.md` §3.1). Sans profil, le verdict est
+`manual_artifact_required` : ni une panne, ni un échec de schéma — un geste
+humain restant à faire, nommé comme tel plutôt que déguisé en autre chose.
+Un décodeur qui devinerait les colonnes produirait des valeurs plausibles et
+fausses, pire qu'une absence assumée.
 
 ## Ce qu'elle ne fait jamais
 
@@ -43,6 +50,7 @@ from typing import Sequence
 
 from models.intelligence import LicenseDecision
 from models.water_intelligence import WaterSourceReference
+from scripts.water_intelligence import eea_artifact_inspector as inspector
 from scripts.water_intelligence.fetcher import (
     FetcherNetworkError,
     FetcherRefusal,
@@ -155,6 +163,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             payload = None
 
+    # X2A : un conteneur binaire local est INSPECTÉ (feuilles, en-têtes réels,
+    # macro) puis, seulement si un profil de correspondance VÉRIFIÉ existe
+    # pour cette release, converti vers le CSV canonique. Sans profil,
+    # `payload`/`payload_format` restent binaires — `_decide` en fera
+    # `manual_artifact_required`, jamais une conversion devinée.
+    if payload is not None and payload_format != "texte utf-8":
+        payload, payload_format = _inspect_and_convert(
+            payload, payload_format, release_key, notes, warnings, errors
+        )
+
     analysis = _analyse(payload, payload_format, dataset, release_key, started, warnings, errors)
 
     verdict = _decide(
@@ -167,20 +185,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         rejected=bool(analysis["rejection_causes"]),
     )
 
-    if verdict == "decoder_deferred":
-        notes.append(
-            "Le conteneur officiel n'est ni CSV ni texte : la fiche EEA annonce "
-            "« Spatial data in SHP format » et « WEI+ data in Excel format ». Le "
-            "connecteur ne décode aucun des deux et refuse de deviner les noms de "
-            "colonnes du classeur — la conversion vers le format canonique "
-            f"({', '.join(wei.CANONICAL_COLUMNS)}) reste un geste opérateur, à livrer "
-            "avant X2."
-        )
-    if not args.input:
-        notes.append(
-            "Aucun extrait fourni : cette exécution vérifie l'IDENTITÉ de la release, "
-            "pas son contenu. Elle ne peut donc pas conclure `ready_for_staging`."
-        )
+    if verdict == "manual_artifact_required":
+        if not args.input:
+            notes.append(
+                "Aucun extrait fourni : cette exécution vérifie l'IDENTITÉ de la release, "
+                "pas son contenu. Elle ne peut donc pas conclure `ready_for_staging`."
+            )
+        else:
+            notes.append(
+                f"Aucun ColumnMappingProfile VÉRIFIÉ n'existe pour {release_key!r} "
+                "(eea_artifact_inspector.MAPPING_PROFILES). La conversion vers le format "
+                f"canonique ({', '.join(wei.CANONICAL_COLUMNS)}) reste un geste humain : "
+                "inspecter l'artefact réel, puis déclarer un profil signé — jamais une "
+                "feuille ou une colonne devinée."
+            )
     notes.append(
         "Aucune décision de licence fournie au pipeline : la licence CC-BY 4.0 est "
         "LUE sur la fiche officielle et citée, jamais transformée en autorisation de "
@@ -302,8 +320,84 @@ def _acquire(
             "refusé plutôt que tronqué."
         )
         return None, sniff_container(raw)
+    container = sniff_container(raw)
+    _check_extension_consistency(path, container, warnings)
     warnings.append(f"extrait LOCAL fourni par l'opérateur : {path.name}")
-    return raw, sniff_container(raw)
+    return raw, container
+
+
+#: Extensions plausibles par famille de conteneur détectée (X2A). Un simple
+#: signal de cohérence, pas une vérification cryptographique : un fichier
+#: renommé passe toujours le test des octets, jamais celui-ci.
+_EXPECTED_EXTENSIONS: dict[str, tuple[str, ...]] = {
+    "zip/ooxml (xlsx, shapefile compressé)": (".xlsx", ".xlsm"),
+    "ole2 (xls)": (".xls",),
+    "shapefile (.shp)": (".shp",),
+    "pdf": (".pdf",),
+    "texte utf-8": (".csv", ".txt"),
+}
+
+
+def _check_extension_consistency(path: Path, container: str, warnings: list[str]) -> None:
+    """Signale — sans jamais refuser — une extension qui ne correspond pas au
+    conteneur RÉELLEMENT observé (X2A, pack §2 « extension »). Un fichier
+    renommé ou mal exporté produit exactement ce genre d'écart."""
+    expected = _EXPECTED_EXTENSIONS.get(container)
+    if expected and path.suffix.lower() not in expected:
+        warnings.append(
+            f"extension {path.suffix!r} inattendue pour un conteneur {container!r} "
+            f"(attendues : {expected}) — vérifier que le fichier n'a pas été renommé."
+        )
+
+
+def _inspect_and_convert(
+    payload: bytes,
+    payload_format: str,
+    release_key: str,
+    notes: list[str],
+    warnings: list[str],
+    errors: list[str],
+) -> tuple[bytes | None, str | None]:
+    """Inspecte un conteneur binaire local et tente sa conversion vers le CSV
+    canonique (X2A). Ne devine jamais : sans `ColumnMappingProfile` vérifié
+    pour `release_key`, le payload binaire est rendu TEL QUEL — `_decide` en
+    fera `manual_artifact_required`, jamais une valeur inventée."""
+    if "zip/ooxml" not in payload_format:
+        notes.append(
+            f"conteneur {payload_format!r} non inspectable par cet outillage (seul "
+            "xlsx/zip est pris en charge à ce jour) — reste `manual_artifact_required`."
+        )
+        return payload, payload_format
+
+    try:
+        inspection = inspector.inspect_workbook(payload)
+    except inspector.ArtifactError as exc:
+        errors.append(f"inspection du classeur : {exc}")
+        return payload, payload_format
+
+    notes.append(
+        f"classeur inspecté : {len(inspection.sheet_names)} feuille(s) — "
+        f"{', '.join(inspection.sheet_names)}."
+    )
+    for sheet_name, headers in inspection.headers_by_sheet.items():
+        notes.append(f"en-têtes réels de {sheet_name!r} : {list(headers)}")
+    if inspection.has_macro_indicators:
+        warnings.append(
+            "le classeur contient un projet VBA (macro) — signalé, jamais exécuté ni "
+            "ignoré silencieusement."
+        )
+
+    try:
+        csv_text = inspector.convert_to_canonical_csv(payload, release_key=release_key)
+    except inspector.ArtifactError as exc:
+        notes.append(str(exc))
+        return payload, payload_format
+
+    warnings.append(
+        f"conteneur converti vers le CSV canonique via le profil vérifié de "
+        f"{release_key!r}."
+    )
+    return csv_text.encode("utf-8"), "texte utf-8"
 
 
 def _analyse(
@@ -405,14 +499,20 @@ def _decide(
     pipeline_failed: bool,
     rejected: bool,
 ) -> str:
+    """`manual_artifact_required` (X2A) remplace l'ancien `decoder_deferred`
+    de X1 pour EEA : ce dernier reste réservé à Copernicus (décodeur RASTER
+    non livré). EEA dispose désormais de l'outillage (`eea_artifact_inspector`,
+    openpyxl) — ce qui manque est un profil de correspondance VÉRIFIÉ contre
+    un artefact réel, pas une bibliothèque : un geste humain, nommé comme tel.
+    """
     if not identity_ok:
         return "source_unavailable"
     if not has_input:
-        return "decoder_deferred"
+        return "manual_artifact_required"
     if payload is None:
         return "source_unavailable"
     if payload_format != "texte utf-8":
-        return "decoder_deferred"
+        return "manual_artifact_required"
     if rejected or pipeline_failed or records_normalized == 0:
         return "schema_drift"
     return "ready_for_staging"

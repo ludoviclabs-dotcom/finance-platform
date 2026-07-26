@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -90,6 +91,66 @@ def _connect(args):
 
 
 # ---------------------------------------------------------------------------
+# Vérité structurelle du schéma — PAS de ledger `schema_migrations`.
+#
+# `apply_ddl_inline`/`apply_upto` (tests/_migration_fixtures.py) exécutent les
+# fichiers .sql RÉELS directement, en contournant délibérément
+# `migration_runner.py` et son ledger (« N'utilise jamais run_migrations()… —
+# exécution directe et ordonnée pour un contrôle exact du sous-ensemble
+# simulé »). C'est exactement le mécanisme que le job `migration-tests`
+# réutilise pour construire ses schémas de test, et c'est pour cela qu'on le
+# reprend ici tel quel — mais la table `schema_migrations` n'existe alors sous
+# AUCUNE forme : elle est bootstrappée et peuplée uniquement par
+# `migration_runner.py`, jamais par ce chemin. La lire ferait planter
+# `migrate` et rendrait `gate` aveugle (un `COUNT` sur une table absente est
+# silencieusement 0, jamais une erreur : le gate serait passé vert sans avoir
+# rien prouvé).
+#
+# La vérité disponible ici est STRUCTURELLE : soit les fichiers appliqués par
+# `apply_upto` n'ont levé aucune exception (chaque fichier committe ou
+# interrompt tout, cf. `_apply_file`), soit les tables qu'un fichier de
+# migration donné crée existent réellement dans `information_schema`.
+# ---------------------------------------------------------------------------
+
+
+def _migrations_dir() -> Path:
+    from tests._migration_fixtures import MIGRATIONS_DIR
+
+    return MIGRATIONS_DIR
+
+
+def _highest_applied_version(upto: str) -> str | None:
+    """Le plus haut numéro de fichier RÉELLEMENT sélectionné par `apply_upto`
+    pour cette borne — même critère de sélection, jamais un ledger."""
+    limit = int(upto[:3])
+    numbers = [int(p.name[:3]) for p in _migrations_dir().glob("*.sql") if int(p.name[:3]) <= limit]
+    return f"{max(numbers):03d}" if numbers else None
+
+
+_CREATE_TABLE_RE = re.compile(r"CREATE TABLE IF NOT EXISTS\s+(\w+)", re.IGNORECASE)
+
+
+def _sentinel_tables_for(version: str) -> list[str]:
+    """Tables que LE fichier de migration `version` crée réellement — lues
+    dans le fichier lui-même, jamais devinées. Prouve que ce fichier précis a
+    été appliqué, sans dépendre d'un ledger absent de ce mécanisme."""
+    matches = [p for p in _migrations_dir().glob("*.sql") if p.name[:3] == version.zfill(3)]
+    if not matches:
+        raise SystemExit(
+            f"ARRÊT — aucun fichier de migration {version!r} dans {_migrations_dir()} : "
+            "le gate ne peut pas prouver ce qu'il ne trouve pas."
+        )
+    text = matches[0].read_text(encoding="utf-8")
+    tables = sorted(set(_CREATE_TABLE_RE.findall(text)))
+    if not tables:
+        raise SystemExit(
+            f"ARRÊT — {matches[0].name} ne déclare aucune table CREATE TABLE IF NOT EXISTS : "
+            "aucune preuve structurelle possible pour cette version."
+        )
+    return tables
+
+
+# ---------------------------------------------------------------------------
 # gate — preuve de destination, avant tout appel réseau
 # ---------------------------------------------------------------------------
 
@@ -107,29 +168,23 @@ def gate(args) -> int:
     if (os.environ.get("APP_ENV") or "").strip().lower() != "staging":
         failures.append("APP_ENV ≠ 'staging'")
 
+    sentinel_tables = _sentinel_tables_for(args.expect_migration) if args.expect_migration else []
+
     with factory() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT current_database() AS db, current_user AS usr, version() AS ver")
             row = dict(cur.fetchone())
 
-            cur.execute(
-                "SELECT COUNT(*) AS c FROM information_schema.tables "
-                "WHERE table_schema = 'public' AND table_name = 'schema_migrations'"
-            )
-            ledger_present = bool(cur.fetchone()["c"])
-            applied = None
-            if ledger_present:
-                cur.execute("SELECT MAX(version) AS v FROM schema_migrations")
-                applied = cur.fetchone()["v"]
+            table_status: dict[str, bool] = {}
+            for table in sentinel_tables:
+                cur.execute("SELECT to_regclass(%s) AS t", (f"public.{table}",))
+                table_status[table] = cur.fetchone()["t"] is not None
 
             tenant_rows = 0
             for table in ("source_registry", "source_releases", "observations",
                           "evidence_artifacts", "ingestion_runs"):
-                cur.execute(
-                    "SELECT COUNT(*) AS c FROM information_schema.tables "
-                    "WHERE table_schema='public' AND table_name=%s", (table,)
-                )
-                if not cur.fetchone()["c"]:
+                cur.execute("SELECT to_regclass(%s) AS t", (f"public.{table}",))
+                if cur.fetchone()["t"] is None:
                     continue
                 cur.execute(f"SELECT COUNT(*) AS c FROM {table} WHERE company_id IS NOT NULL")
                 tenant_rows += cur.fetchone()["c"]
@@ -139,9 +194,8 @@ def gate(args) -> int:
         "current_database": row["db"],
         "current_user": row["usr"],
         "postgres_version": row["ver"].split(" on ")[0],
-        "migration_ledger_present": ledger_present,
-        "migration_applied_max": applied,
-        "expected_migration_min": args.expect_migration,
+        "expected_migration": args.expect_migration,
+        "sentinel_tables": table_status,
         "tenant_rows": tenant_rows,
         "ephemeral": target.ephemeral,
     }
@@ -150,14 +204,18 @@ def gate(args) -> int:
         failures.append(f"current_database()={row['db']!r} ≠ {args.expect_database!r}")
     if tenant_rows:
         failures.append(f"{tenant_rows} ligne(s) de tenant présente(s)")
-    if args.expect_migration and applied is not None and applied < args.expect_migration:
-        failures.append(f"migrations à {applied}, {args.expect_migration} attendue au minimum")
+    missing = [t for t, present in table_status.items() if not present]
+    if missing:
+        failures.append(
+            f"table(s) de la migration {args.expect_migration} absente(s) : {missing}"
+        )
 
     report["failures"] = failures
     _emit(args, report)
     print(f"  base={report['current_database']} user={report['current_user']} "
           f"pg={report['postgres_version']}")
-    print(f"  migrations appliquées : {applied or 'aucune'} | lignes tenant : {tenant_rows}")
+    print(f"  tables de la migration {args.expect_migration} : {table_status} | "
+          f"lignes tenant : {tenant_rows}")
     if failures:
         for f in failures:
             print(f"  ✗ {f}")
@@ -177,22 +235,29 @@ def migrate(args) -> int:
     `apply_ddl_inline` et `apply_upto` acceptent une connexion : on leur passe
     celle de la porte de staging. Le moteur de migration n'est donc ni
     dupliqué, ni contourné — et `DATABASE_URL` n'est jamais consulté.
+
+    `applied_max` est calculé par le MÊME critère de sélection que
+    `apply_upto` (numéro de fichier <= borne), jamais lu dans un ledger : ce
+    mécanisme n'en peuple aucun (cf. le commentaire au-dessus de `gate`).
     """
     from tests._migration_fixtures import apply_ddl_inline, apply_upto
 
     factory, _target = _connect(args)
+    applied = _highest_applied_version(args.upto)
+
     with factory() as conn:
         apply_ddl_inline(conn)
         apply_upto(conn, args.upto)
         with conn.cursor() as cur:
             cur.execute("SELECT current_database() AS db")
             actual = cur.fetchone()["db"]
-            cur.execute("SELECT MAX(version) AS v FROM schema_migrations")
-            applied = cur.fetchone()["v"]
 
     _emit(args, {"operation": "migrate", "current_database": actual,
                  "requested_upto": args.upto, "applied_max": applied})
-    print(f"  schéma appliqué jusqu'à {applied} sur {actual}")
+    if applied is None:
+        print(f"  aucun fichier de migration <= {args.upto} trouvé sur {actual}")
+    else:
+        print(f"  schéma appliqué jusqu'à {applied} sur {actual}")
     return 0
 
 

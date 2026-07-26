@@ -15,6 +15,25 @@
 # Conséquence assumée : les releases produites ne survivent pas au job. X4 ne
 # peut donc PAS promouvoir depuis cette exécution — il exigera une ingestion
 # sur un staging persistant.
+#
+# HUBEAU_HYDROMETRIE est ACQUISE et VALIDÉE ici (elle atteint bien
+# ready_for_staging), mais délibérément EXCLUE des étapes de graveur
+# (dry-run/ingestion/rejeu). Constat du premier run réel (30215246453,
+# 2026-07-26) : `observations_tr` sert plusieurs lectures par jour et par
+# station, alors que le contrat P02 modélise une période au grain JOUR
+# (`period_start == period_end`) — deux lectures du même jour, valeurs
+# différentes, se projettent donc sur la même identité et le graveur refuse
+# la collision, comme il est censé le faire. Ce n'est pas un bug : c'est un
+# désaccord entre deux décisions architecturales antérieures et volontaires
+# (observations_tr choisi en X2A ; grain jour du contrat P02, partagé par
+# tout Water Intelligence). Décision humaine (2026-07-26) : différer
+# l'ingestion d'hydrométrie plutôt que de deviner une résolution — étendre le
+# modèle d'identité au sous-journalier, ou choisir une lecture canonique par
+# jour, sont deux voies possibles qui changent soit un contrat partagé, soit
+# la sémantique de la donnée ; aucune n'est tranchée ici. `HUBEAU_ADES` et
+# `HUBEAU_QUALITE_SURFACE` (dry-run réel : 182 et 50 observations, aucune
+# collision) prouvent que ce grain convient à des relevés véritablement
+# quotidiens — le problème est spécifique au temps réel.
 
 name: Water X3 — répétition staging éphémère
 
@@ -70,6 +89,11 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      # Même mécanisme que le job `validate` de api.yml (ruff n'est pas dans
+      # requirements.txt) — jamais dupliqué, juste réutilisé.
+      - name: Install dev tools
+        run: pip install ruff
 
       - name: Préparer les répertoires hors dépôt
         run: mkdir -p "$ARTIFACTS" "$REPORTS"
@@ -213,22 +237,56 @@ jobs:
               raise SystemExit(f"ARRÊT — verdict(s) non conforme(s) : {bad}")
           PY
 
+      # Traçabilité de la décision humaine (2026-07-26) : hydrométrie atteint
+      # bien ready_for_staging, mais reste HORS du graveur pour cette
+      # répétition. Écrit AVANT les étapes de graveur, jamais après coup.
+      - name: Consigner l'exclusion d'HUBEAU_HYDROMETRIE du graveur
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          pathlib.Path(os.environ["REPORTS"] + "/14_deferred_sources.json").write_text(
+              json.dumps({
+                  "operation": "deferred_sources",
+                  "deferred": [{
+                      "source_code": "HUBEAU_HYDROMETRIE",
+                      "status": "subdaily_identity_collision",
+                      "acquisition_verdict": "ready_for_staging",
+                      "graveur_status": "excluded_from_ingestion",
+                      "reason": (
+                          "observations_tr sert plusieurs lectures par jour et par "
+                          "station ; le contrat P02 modelise une periode au grain "
+                          "jour (period_start == period_end). Deux lectures du meme "
+                          "jour, valeurs differentes, se projettent sur la meme "
+                          "identite -- collision refusee par le graveur, comme concu."
+                      ),
+                      "decision": (
+                          "Differer l'ingestion plutot que deviner une resolution "
+                          "(etendre l'identite au sous-journalier, ou choisir une "
+                          "lecture canonique par jour) -- decision humaine, 2026-07-26."
+                      ),
+                  }],
+              }, indent=2, ensure_ascii=False)
+          )
+          print("  HUBEAU_HYDROMETRIE : ready_for_staging (acquisition) mais exclue du graveur — subdaily_identity_collision")
+          PY
+
       # ── 5. Dry-run transactionnel, puis preuve qu'il n'a rien laissé ──────
-      - name: Dry-run des quatre ingestions
+      # HUBEAU_HYDROMETRIE délibérément absente de cette liste et des deux
+      # suivantes (ingestion, rejeu) — cf. le commentaire de tête du fichier.
+      - name: Dry-run des trois ingestions retenues
         run: |
           set -e
           declare -A REPORT=( [HUBEAU_ADES]=10_piezometrie.md [HUBEAU_QUALITE_SURFACE]=11_qualite_surface.md \
-                              [HUBEAU_HYDROMETRIE]=12_hydrometrie.md [HUBEAU_BNPE_PRELEVEMENTS]=13_prelevements.md )
+                              [HUBEAU_BNPE_PRELEVEMENTS]=13_prelevements.md )
           declare -A RELEASE=( [HUBEAU_ADES]=hubeau-piezometrie-chroniques-x3-ephemeral \
                                [HUBEAU_QUALITE_SURFACE]=hubeau-naiades-analyse-pc-x3-ephemeral \
-                               [HUBEAU_HYDROMETRIE]=hubeau-hydrometrie-observations-tr-x3-ephemeral \
                                [HUBEAU_BNPE_PRELEVEMENTS]=hubeau-bnpe-chroniques-x3-ephemeral )
-          for CODE in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_HYDROMETRIE HUBEAU_BNPE_PRELEVEMENTS; do
+          for CODE in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_BNPE_PRELEVEMENTS; do
             echo "── dry-run $CODE"
             python -m scripts.water_intelligence.ingest_release \
               --source-code "$CODE" --release "${RELEASE[$CODE]}" \
               --artifact "$ARTIFACTS/$CODE" --report "$REPORTS/${REPORT[$CODE]}" \
-              --environment staging --expect-database "$EXPECT_DB" \
+              --environment staging --expect-database "$EXPECT_DB" --ephemeral \
               --operator ci-x3-ephemeral \
               --output "$REPORTS/20_dryrun_$CODE.json" --dry-run
           done
@@ -254,22 +312,21 @@ jobs:
           print("  ✓ rollback complet prouvé : 0 ligne dans les 4 tables")
           PY
 
-      # ── 6. Ingestion réelle, dans l'ordre prescrit ────────────────────────
+      # ── 6. Ingestion réelle, dans l'ordre prescrit (3 des 4 sources) ──────
       - name: Ingestion staging + contrôle après chaque source
         run: |
           set -e
           declare -A REPORT=( [HUBEAU_ADES]=10_piezometrie.md [HUBEAU_QUALITE_SURFACE]=11_qualite_surface.md \
-                              [HUBEAU_HYDROMETRIE]=12_hydrometrie.md [HUBEAU_BNPE_PRELEVEMENTS]=13_prelevements.md )
+                              [HUBEAU_BNPE_PRELEVEMENTS]=13_prelevements.md )
           declare -A RELEASE=( [HUBEAU_ADES]=hubeau-piezometrie-chroniques-x3-ephemeral \
                                [HUBEAU_QUALITE_SURFACE]=hubeau-naiades-analyse-pc-x3-ephemeral \
-                               [HUBEAU_HYDROMETRIE]=hubeau-hydrometrie-observations-tr-x3-ephemeral \
                                [HUBEAU_BNPE_PRELEVEMENTS]=hubeau-bnpe-chroniques-x3-ephemeral )
-          for CODE in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_HYDROMETRIE HUBEAU_BNPE_PRELEVEMENTS; do
+          for CODE in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_BNPE_PRELEVEMENTS; do
             echo "── ingestion $CODE"
             python -m scripts.water_intelligence.ingest_release \
               --source-code "$CODE" --release "${RELEASE[$CODE]}" \
               --artifact "$ARTIFACTS/$CODE" --report "$REPORTS/${REPORT[$CODE]}" \
-              --environment staging --expect-database "$EXPECT_DB" \
+              --environment staging --expect-database "$EXPECT_DB" --ephemeral \
               --operator ci-x3-ephemeral \
               --output "$REPORTS/30_commit_$CODE.json" --commit
             WRITTEN=$(python -c "import json,sys;print(json.load(open(sys.argv[1]))['observations_written'])" "$REPORTS/30_commit_$CODE.json")
@@ -281,21 +338,20 @@ jobs:
           done
 
       # ── 7. Rejeu : idempotence prouvée sur la base réelle ─────────────────
-      - name: Rejeu idempotent des quatre ingestions
+      - name: Rejeu idempotent des trois ingestions
         run: |
           set -e
           declare -A REPORT=( [HUBEAU_ADES]=10_piezometrie.md [HUBEAU_QUALITE_SURFACE]=11_qualite_surface.md \
-                              [HUBEAU_HYDROMETRIE]=12_hydrometrie.md [HUBEAU_BNPE_PRELEVEMENTS]=13_prelevements.md )
+                              [HUBEAU_BNPE_PRELEVEMENTS]=13_prelevements.md )
           declare -A RELEASE=( [HUBEAU_ADES]=hubeau-piezometrie-chroniques-x3-ephemeral \
                                [HUBEAU_QUALITE_SURFACE]=hubeau-naiades-analyse-pc-x3-ephemeral \
-                               [HUBEAU_HYDROMETRIE]=hubeau-hydrometrie-observations-tr-x3-ephemeral \
                                [HUBEAU_BNPE_PRELEVEMENTS]=hubeau-bnpe-chroniques-x3-ephemeral )
-          for CODE in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_HYDROMETRIE HUBEAU_BNPE_PRELEVEMENTS; do
+          for CODE in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_BNPE_PRELEVEMENTS; do
             echo "── rejeu $CODE"
             python -m scripts.water_intelligence.ingest_release \
               --source-code "$CODE" --release "${RELEASE[$CODE]}" \
               --artifact "$ARTIFACTS/$CODE" --report "$REPORTS/${REPORT[$CODE]}" \
-              --environment staging --expect-database "$EXPECT_DB" \
+              --environment staging --expect-database "$EXPECT_DB" --ephemeral \
               --operator ci-x3-ephemeral \
               --output "$REPORTS/40_replay_$CODE.json" --commit
             python - "$REPORTS/30_commit_$CODE.json" "$REPORTS/40_replay_$CODE.json" <<'PY'
@@ -352,9 +408,15 @@ jobs:
         run: |
           python - <<'PY'
           import os, pathlib, re
+          # `(?<!WATER_STAGING_)DATABASE_URL` : le rapport d'ingestion expose
+          # délibérément le NOM de la variable de staging (`url_variable`,
+          # jamais sa valeur) pour la traçabilité — sans cette exception, le
+          # scanner se déclenchait sur son propre nom de variable plutôt que
+          # sur une fuite réelle. Toute autre occurrence de `DATABASE_URL`
+          # (nue, ou dans `DATABASE_ADMIN_URL`/`POSTGRES_URL`) reste interdite.
           forbidden = re.compile(
               r"postgresql://|water_x3_ephemeral|Authorization:|Set-Cookie|"
-              r"DATABASE_URL|DATABASE_ADMIN_URL|POSTGRES_URL",
+              r"(?<!WATER_STAGING_)DATABASE_URL|DATABASE_ADMIN_URL|POSTGRES_URL",
               re.IGNORECASE,
           )
           hits = []

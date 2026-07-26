@@ -274,6 +274,7 @@ différer HUBEAU_HYDROMETRIE : `X3_EPHEMERAL_STAGING_REHEARSAL.md`. Manifeste
 candidat privé : `X3_PUBLICATION_CANDIDATE_SUMMARY.md`.
 
 Toutes les corrections (ledger, décision de différer, installation de ruff,
-faux positif du scanner) vivent sur `fix/water-x3-migrate-relies-on-absent-ledger`
-([PR #169](https://github.com/ludoviclabs-dotcom/finance-platform/pull/169)),
-**non fusionnée à ce stade**.
+faux positif du scanner) vivaient sur `fix/water-x3-migrate-relies-on-absent-ledger`
+et sont désormais **fusionnées sur `master`** via
+[PR #169](https://github.com/ludoviclabs-dotcom/finance-platform/pull/169)
+(merge `da6d0b1d47430456a78b4b80af9c137f34f05ea8`, 2026-07-26T19:16:45Z).

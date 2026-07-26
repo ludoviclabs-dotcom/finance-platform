@@ -3,7 +3,7 @@
 **Phase :** X3 — répétition complète du pipeline avec artefacts réels
 **Environnement :** PostgreSQL **éphémère** GitHub Actions (`postgres:16`, service Docker du job)
 **Workflow :** `.github/workflows/water-x3-staging-rehearsal.yml` (`workflow_dispatch` uniquement)
-**Branche de code :** `fix/water-x3-migrate-relies-on-absent-ledger` ([PR #169](https://github.com/ludoviclabs-dotcom/finance-platform/pull/169), non fusionnée)
+**Branche de code :** `fix/water-x3-migrate-relies-on-absent-ledger` — [PR #169](https://github.com/ludoviclabs-dotcom/finance-platform/pull/169), **fusionnée sur `master`** (merge `da6d0b1d47430456a78b4b80af9c137f34f05ea8`, 2026-07-26T19:16:45Z)
 **Run final vert :** [`30215981981`](https://github.com/ludoviclabs-dotcom/finance-platform/actions/runs/30215981981) — 30/30 étapes réussies
 **Exécuté le :** 2026-07-26
 
@@ -47,9 +47,9 @@ exécution réelle plutôt que supposée correcte :
 
 Détail complet des 3 premières causes et de leurs corrections dans
 [X3_STAGING_GATE_EXECUTION_ATTEMPT.md](X3_STAGING_GATE_EXECUTION_ATTEMPT.md)
-et l'historique de commits de la PR #169. Aucun de ces échecs n'a été
-recommencé « en boucle » sans diagnostic : chacun a été analysé, corrigé
-ponctuellement, revérifié.
+et l'historique de commits de la PR #169, **fusionnée sur `master`**. Aucun
+de ces échecs n'a été recommencé « en boucle » sans diagnostic : chacun a été
+analysé, corrigé ponctuellement, revérifié.
 
 ## 3. Gate de base — vert avant et après toute écriture
 

@@ -331,6 +331,7 @@ Détail complet : `FINAL_TRACEABILITY.md`.
   Détail complet dans
   [X3_EPHEMERAL_STAGING_REHEARSAL.md](activation/X3_EPHEMERAL_STAGING_REHEARSAL.md)
   et [X3_PUBLICATION_CANDIDATE_SUMMARY.md](activation/X3_PUBLICATION_CANDIDATE_SUMMARY.md).
-  Corrections de code sur `fix/water-x3-migrate-relies-on-absent-ledger`
-  (PR #169), non fusionnée à ce stade. X4 et la Phase B ne sont pas
-  commencés.
+  Corrections de code fusionnées sur `master` via
+  [PR #169](https://github.com/ludoviclabs-dotcom/finance-platform/pull/169)
+  (merge `da6d0b1d47430456a78b4b80af9c137f34f05ea8`, 2026-07-26T19:16:45Z).
+  X4 et la Phase B ne sont pas commencés.

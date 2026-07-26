@@ -256,3 +256,36 @@ Détail complet : `FINAL_TRACEABILITY.md`.
   [X2_EVIDENCE_INGESTION_HANDOFF.md](activation/X2_EVIDENCE_INGESTION_HANDOFF.md).
   Prochaine étape possible : X3 (répétition staging avec des artefacts réels),
   sur décision explicite — non commencée par X2B.
+
+## 2026-07-26 — X3 : porte d'environnement staging (arrêt au gate)
+
+- **Verdict `staging_environment_missing`, arrêt avant toute écriture.** Aucune
+  base de staging n'existe : ni variable d'environnement, ni fichier `.env`,
+  ni convention dans le dépôt, ni PostgreSQL local, ni runtime de conteneurs.
+  Le seul environnement de base connu du dépôt est `production-db`, protégé
+  par approbation humaine — et hors de question par construction.
+- **Aucun repli sur la production, aucune donnée synthétique de compensation.**
+  Une répétition sur des données inventées ne prouverait pas le parcours ;
+  elle prouverait qu'on sait fabriquer un rapport. L'acquisition réseau n'a
+  pas non plus été lancée : rejouer les recettes X2A sur des services publics
+  officiels sans cible d'écriture n'aurait rien établi de neuf.
+- **Défaut réel trouvé en ouvrant la porte, et corrigé.** En X2B,
+  `--environment staging` ne contrôlait qu'une CHAÎNE ; la connexion venait de
+  `get_admin_db()`, qui retombe silencieusement sur `DATABASE_URL`. Sur une
+  machine portant les identifiants de production, `ingest_release --commit
+  --environment staging` aurait écrit EN PRODUCTION. Le drapeau était une
+  déclaration d'intention, pas une garde.
+- **La destination est désormais prouvée, pas déclarée.**
+  `WATER_STAGING_DATABASE_URL` obligatoire sous un nom réservé, aucun repli ;
+  refus inconditionnel sur tout indicateur de production ; `--expect-database`
+  confronté à `current_database()` DANS la transaction, avant toute écriture ;
+  URL jamais journalisée ni passée en argument ; porte franchie en premier,
+  dry-run non exempté.
+- **Ce que la porte ne prouve pas, et c'est écrit.** Elle ne peut pas garantir
+  qu'une base déclarée « staging » n'est pas la production : seul l'opérateur
+  le sait. Ce qu'elle supprime, c'est l'accident silencieux.
+- **Pilotage.** `status: X3_BLOCKED_STAGING_ENVIRONMENT_MISSING`. Prérequis
+  exacts listés dans
+  [X3_STAGING_REHEARSAL_GATE.md](activation/X3_STAGING_REHEARSAL_GATE.md) §5.
+  X4 reste bloqué tant qu'aucune release `validated` n'existe sur un staging
+  persistant.

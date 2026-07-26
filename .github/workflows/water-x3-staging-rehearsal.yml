@@ -1,0 +1,387 @@
+# X3 — Répétition Water Intelligence sur un PostgreSQL de staging ÉPHÉMÈRE.
+#
+# Déclenchement MANUEL uniquement. Aucun push, aucune pull_request, aucun cron :
+# ce workflow appelle des services publics officiels (Hub'Eau) et écrit dans une
+# base — deux gestes qui ne doivent jamais partir tout seuls.
+#
+# La base vit dans le réseau du runner et disparaît avec lui. Son URL n'est donc
+# PAS un secret permanent : elle est composée dans le job à partir du service
+# `postgres` local. Aucune variable Carbon&Co n'est lue ni modifiée —
+# DATABASE_URL, DATABASE_URL_DIRECT, DATABASE_URL_UNPOOLED et DATABASE_ADMIN_URL
+# restent hors de portée de ce workflow, par construction : rien ne les
+# référence ici, et la porte `staging_environment.py` refuse tout repli sur
+# elles.
+#
+# Conséquence assumée : les releases produites ne survivent pas au job. X4 ne
+# peut donc PAS promouvoir depuis cette exécution — il exigera une ingestion
+# sur un staging persistant.
+
+name: Water X3 — répétition staging éphémère
+
+on:
+  workflow_dispatch:
+    inputs:
+      hydro_window_days:
+        description: "Largeur de la fenêtre hydrométrie temps réel (jours)"
+        required: false
+        default: "6"
+
+permissions:
+  contents: read
+
+jobs:
+  rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: apps/api
+
+    services:
+      postgres:
+        # Même version que le job `migration-tests` : le schéma est validé là.
+        image: postgres:16
+        env:
+          POSTGRES_DB: carbonco_water_staging
+          POSTGRES_USER: water_x3
+          # Mot de passe LOCAL au job, jamais un secret de dépôt : la base
+          # n'est jointe que depuis ce runner et meurt avec lui.
+          POSTGRES_PASSWORD: water_x3_ephemeral
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U water_x3 -d carbonco_water_staging"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+
+    env:
+      # URL éphémère du service local. N'existe que dans ce job.
+      WATER_STAGING_DATABASE_URL: postgresql://water_x3:water_x3_ephemeral@localhost:5432/carbonco_water_staging
+      APP_ENV: staging
+      EXPECT_DB: carbonco_water_staging
+      ARTIFACTS: /tmp/water-x3/artifacts
+      REPORTS: /tmp/water-x3/reports
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Préparer les répertoires hors dépôt
+        run: mkdir -p "$ARTIFACTS" "$REPORTS"
+
+      # ── 1. Schéma : mécanisme du job migration-tests, jamais dupliqué ──────
+      - name: Appliquer les migrations jusqu'à 043
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/00_migrate.json" \
+            migrate --upto 043
+
+      # Les tests DB-gated du graveur tournent ICI, avant la répétition, et
+      # PAS après : leur teardown supprime les lignes globales des sources
+      # Hub'Eau (`clean_kernel`), ce qui effacerait les releases de la
+      # répétition si l'ordre était inverse. Ils nettoient derrière eux, donc
+      # le gate qui suit part d'une base vierge.
+      - name: Tests graveur contre PostgreSQL réel (zéro skip toléré)
+        env:
+          # Posée UNIQUEMENT pour ce pas, et vers le service éphémère du
+          # runner : c'est le gate `db_available()` de la suite existante, pas
+          # une destination d'écriture X3 — le graveur, lui, n'ouvre que
+          # WATER_STAGING_DATABASE_URL.
+          DATABASE_URL: postgresql://water_x3:water_x3_ephemeral@localhost:5432/carbonco_water_staging
+        run: |
+          pytest -q tests/test_water_staging_writer.py | tee /tmp/water-x3/writer-tests.txt
+          grep -qE "[0-9]+ passed" /tmp/water-x3/writer-tests.txt
+          if grep -qE "[0-9]+ skipped" /tmp/water-x3/writer-tests.txt; then
+            echo "ARRÊT — des tests X3 ont été skippés alors qu'une base est disponible"
+            exit 1
+          fi
+
+      # ── 2. Gate : destination prouvée AVANT tout appel réseau ─────────────
+      - name: Gate de base (destination prouvée, aucune donnée tenant)
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/01_gate.json" \
+            gate --expect-migration 043
+
+      # ── 3. Source Registry éphémère, idempotent ───────────────────────────
+      - name: Déclarer les quatre sources Hub'Eau
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/02_seed_sources.json" \
+            seed-sources
+
+      - name: Prouver l'idempotence de la déclaration
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/03_seed_sources_replay.json" \
+            seed-sources
+          python - <<'PY'
+          import json, os, pathlib
+          data = json.loads(pathlib.Path(os.environ["REPORTS"] + "/03_seed_sources_replay.json").read_text())
+          actions = {s["action"] for s in data["sources"]}
+          assert actions == {"already_present"}, f"rejeu non idempotent : {actions}"
+          print("  ✓ rejeu du registre : 4 sources already_present")
+          PY
+
+      # ── 4. Acquisitions réelles, périmètres techniques de X2A ─────────────
+      # Piézométrie, prélèvements et qualité portent des fenêtres HISTORIQUES
+      # fixes, identiques à X2A. L'hydrométrie interroge `observations_tr`, un
+      # endpoint TEMPS RÉEL dont la rétention est courte : la fenêtre glisse
+      # donc sur les N derniers jours, en conservant la même station, la même
+      # grandeur et la même largeur qu'en X2A. C'est le seul écart, et il est
+      # imposé par la source.
+      - name: Acquisition — piézométrie (ADES)
+        run: |
+          python -m scripts.water_intelligence.validate_hubeau \
+            --source piezometrie \
+            --release hubeau-piezometrie-chroniques-x3-ephemeral \
+            --geography-type code_bss --geography-code "09892X0679/EXH70" \
+            --date-from 2024-01-01 --date-to 2024-03-31 \
+            --max-pages 2 --max-bytes 2000000 --page-size 200 \
+            --report "$REPORTS/10_piezometrie.md" \
+            --artifact-dir "$ARTIFACTS/HUBEAU_ADES"
+
+      - name: Acquisition — qualité de surface (Naïades)
+        run: |
+          python -m scripts.water_intelligence.validate_hubeau \
+            --source qualite_surface \
+            --release hubeau-naiades-analyse-pc-x3-ephemeral \
+            --geography-type code_departement --geography-code 34 \
+            --date-from 2024-01-01 --date-to 2024-03-31 \
+            --parameter-code 1340 --parameter-code 1339 \
+            --max-pages 1 --max-bytes 2000000 --page-size 50 \
+            --report "$REPORTS/11_qualite_surface.md" \
+            --artifact-dir "$ARTIFACTS/HUBEAU_QUALITE_SURFACE"
+
+      - name: Acquisition — hydrométrie (observations temps réel)
+        run: |
+          DATE_TO=$(date -u +%Y-%m-%d)
+          DATE_FROM=$(date -u -d "-${{ inputs.hydro_window_days || '6' }} days" +%Y-%m-%d)
+          echo "fenêtre temps réel : $DATE_FROM → $DATE_TO (station et grandeur identiques à X2A)"
+          python -m scripts.water_intelligence.validate_hubeau \
+            --source hydrometrie \
+            --release hubeau-hydrometrie-observations-tr-x3-ephemeral \
+            --geography-type code_entite --geography-code O400101101 \
+            --date-from "$DATE_FROM" --date-to "$DATE_TO" \
+            --extra-param grandeur_hydro=H \
+            --max-pages 2 --max-bytes 2000000 --page-size 100 \
+            --report "$REPORTS/12_hydrometrie.md" \
+            --artifact-dir "$ARTIFACTS/HUBEAU_HYDROMETRIE"
+
+      - name: Acquisition — prélèvements (BNPE)
+        run: |
+          python -m scripts.water_intelligence.validate_hubeau \
+            --source prelevements \
+            --release hubeau-bnpe-chroniques-x3-ephemeral \
+            --geography-type code_departement --geography-code 34 \
+            --date-from 2020 --date-to 2020 --max-years 1 \
+            --max-pages 1 --max-bytes 2000000 --page-size 50 \
+            --report "$REPORTS/13_prelevements.md" \
+            --artifact-dir "$ARTIFACTS/HUBEAU_BNPE_PRELEVEMENTS"
+
+      - name: Exiger quatre verdicts ready_for_staging
+        run: |
+          python - <<'PY'
+          import json, os, pathlib, re
+          reports = {
+              "HUBEAU_ADES": "10_piezometrie.md",
+              "HUBEAU_QUALITE_SURFACE": "11_qualite_surface.md",
+              "HUBEAU_HYDROMETRIE": "12_hydrometrie.md",
+              "HUBEAU_BNPE_PRELEVEMENTS": "13_prelevements.md",
+          }
+          base = pathlib.Path(os.environ["REPORTS"])
+          bad = []
+          for code, name in reports.items():
+              payload = json.loads(
+                  re.search(r"```json\s*\n(.*?)\n```", (base / name).read_text(encoding="utf-8"), re.S).group(1)
+              )
+              print(f"  {code:26} {payload['verdict']:22} "
+                    f"reçus={payload['records_received']} normalisés={payload['records_normalized']} "
+                    f"rejetés={payload['records_rejected']}")
+              if payload["verdict"] != "ready_for_staging":
+                  bad.append((code, payload["verdict"]))
+          if bad:
+              raise SystemExit(f"ARRÊT — verdict(s) non conforme(s) : {bad}")
+          PY
+
+      # ── 5. Dry-run transactionnel, puis preuve qu'il n'a rien laissé ──────
+      - name: Dry-run des quatre ingestions
+        run: |
+          set -e
+          declare -A REPORT=( [HUBEAU_ADES]=10_piezometrie.md [HUBEAU_QUALITE_SURFACE]=11_qualite_surface.md \
+                              [HUBEAU_HYDROMETRIE]=12_hydrometrie.md [HUBEAU_BNPE_PRELEVEMENTS]=13_prelevements.md )
+          declare -A RELEASE=( [HUBEAU_ADES]=hubeau-piezometrie-chroniques-x3-ephemeral \
+                               [HUBEAU_QUALITE_SURFACE]=hubeau-naiades-analyse-pc-x3-ephemeral \
+                               [HUBEAU_HYDROMETRIE]=hubeau-hydrometrie-observations-tr-x3-ephemeral \
+                               [HUBEAU_BNPE_PRELEVEMENTS]=hubeau-bnpe-chroniques-x3-ephemeral )
+          for CODE in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_HYDROMETRIE HUBEAU_BNPE_PRELEVEMENTS; do
+            echo "── dry-run $CODE"
+            python -m scripts.water_intelligence.ingest_release \
+              --source-code "$CODE" --release "${RELEASE[$CODE]}" \
+              --artifact "$ARTIFACTS/$CODE" --report "$REPORTS/${REPORT[$CODE]}" \
+              --environment staging --expect-database "$EXPECT_DB" \
+              --operator ci-x3-ephemeral \
+              --output "$REPORTS/20_dryrun_$CODE.json" --dry-run
+          done
+
+      - name: Prouver que le dry-run n'a laissé aucune ligne
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          from services.water.staging_environment import staging_connection_factory
+          factory, _ = staging_connection_factory(expect_database=os.environ["EXPECT_DB"], ephemeral=True)
+          with factory() as conn:
+              with conn.cursor() as cur:
+                  cur.execute("SET LOCAL app.rls_bypass = 'on'")
+                  counts = {}
+                  for table in ("source_releases", "evidence_artifacts", "observations", "ingestion_runs"):
+                      cur.execute(f"SELECT COUNT(*) AS c FROM {table}")
+                      counts[table] = cur.fetchone()["c"]
+          print("  après dry-run :", counts)
+          pathlib.Path(os.environ["REPORTS"] + "/21_dryrun_rollback.json").write_text(
+              json.dumps({"operation": "dry_run_rollback_proof", "row_counts": counts}, indent=2)
+          )
+          assert all(v == 0 for v in counts.values()), f"le dry-run a laissé des lignes : {counts}"
+          print("  ✓ rollback complet prouvé : 0 ligne dans les 4 tables")
+          PY
+
+      # ── 6. Ingestion réelle, dans l'ordre prescrit ────────────────────────
+      - name: Ingestion staging + contrôle après chaque source
+        run: |
+          set -e
+          declare -A REPORT=( [HUBEAU_ADES]=10_piezometrie.md [HUBEAU_QUALITE_SURFACE]=11_qualite_surface.md \
+                              [HUBEAU_HYDROMETRIE]=12_hydrometrie.md [HUBEAU_BNPE_PRELEVEMENTS]=13_prelevements.md )
+          declare -A RELEASE=( [HUBEAU_ADES]=hubeau-piezometrie-chroniques-x3-ephemeral \
+                               [HUBEAU_QUALITE_SURFACE]=hubeau-naiades-analyse-pc-x3-ephemeral \
+                               [HUBEAU_HYDROMETRIE]=hubeau-hydrometrie-observations-tr-x3-ephemeral \
+                               [HUBEAU_BNPE_PRELEVEMENTS]=hubeau-bnpe-chroniques-x3-ephemeral )
+          for CODE in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_HYDROMETRIE HUBEAU_BNPE_PRELEVEMENTS; do
+            echo "── ingestion $CODE"
+            python -m scripts.water_intelligence.ingest_release \
+              --source-code "$CODE" --release "${RELEASE[$CODE]}" \
+              --artifact "$ARTIFACTS/$CODE" --report "$REPORTS/${REPORT[$CODE]}" \
+              --environment staging --expect-database "$EXPECT_DB" \
+              --operator ci-x3-ephemeral \
+              --output "$REPORTS/30_commit_$CODE.json" --commit
+            WRITTEN=$(python -c "import json,sys;print(json.load(open(sys.argv[1]))['observations_written'])" "$REPORTS/30_commit_$CODE.json")
+            REUSED=$(python -c "import json,sys;print(json.load(open(sys.argv[1]))['observations_reused'])" "$REPORTS/30_commit_$CODE.json")
+            python -m scripts.water_intelligence.staging_rehearsal \
+              --expect-database "$EXPECT_DB" \
+              --output "$REPORTS/31_verify_$CODE.json" \
+              verify --source-code "$CODE" --expect-written "$WRITTEN" --expect-reused "$REUSED"
+          done
+
+      # ── 7. Rejeu : idempotence prouvée sur la base réelle ─────────────────
+      - name: Rejeu idempotent des quatre ingestions
+        run: |
+          set -e
+          declare -A REPORT=( [HUBEAU_ADES]=10_piezometrie.md [HUBEAU_QUALITE_SURFACE]=11_qualite_surface.md \
+                              [HUBEAU_HYDROMETRIE]=12_hydrometrie.md [HUBEAU_BNPE_PRELEVEMENTS]=13_prelevements.md )
+          declare -A RELEASE=( [HUBEAU_ADES]=hubeau-piezometrie-chroniques-x3-ephemeral \
+                               [HUBEAU_QUALITE_SURFACE]=hubeau-naiades-analyse-pc-x3-ephemeral \
+                               [HUBEAU_HYDROMETRIE]=hubeau-hydrometrie-observations-tr-x3-ephemeral \
+                               [HUBEAU_BNPE_PRELEVEMENTS]=hubeau-bnpe-chroniques-x3-ephemeral )
+          for CODE in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_HYDROMETRIE HUBEAU_BNPE_PRELEVEMENTS; do
+            echo "── rejeu $CODE"
+            python -m scripts.water_intelligence.ingest_release \
+              --source-code "$CODE" --release "${RELEASE[$CODE]}" \
+              --artifact "$ARTIFACTS/$CODE" --report "$REPORTS/${REPORT[$CODE]}" \
+              --environment staging --expect-database "$EXPECT_DB" \
+              --operator ci-x3-ephemeral \
+              --output "$REPORTS/40_replay_$CODE.json" --commit
+            python - "$REPORTS/30_commit_$CODE.json" "$REPORTS/40_replay_$CODE.json" <<'PY'
+          import json, sys
+          first, replay = (json.load(open(p)) for p in sys.argv[1:3])
+          assert replay["observations_written"] == 0, f"rejeu non idempotent : {replay['observations_written']} écriture(s)"
+          assert replay["observations_reused"] == first["observations_written"] + first["observations_reused"], \
+              "le rejeu ne retrouve pas toutes les observations déjà présentes"
+          assert replay["release_reused"] is True, "le rejeu a créé une nouvelle release"
+          assert replay["release_id"] == first["release_id"], "release_id différent au rejeu"
+          print(f"  ✓ idempotent : 0 écriture, {replay['observations_reused']} déjà présentes, release réutilisée")
+          PY
+          done
+
+      - name: Contrôle global après rejeu
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/41_gate_after_replay.json" \
+            gate --expect-migration 043
+
+      # ── 8. Snapshot candidat PRIVÉ ────────────────────────────────────────
+      - name: Manifeste candidat privé (candidate_not_published)
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/50_candidate_manifest.json" \
+            snapshot
+
+      # ── 9. Tests ──────────────────────────────────────────────────────────
+      - name: Tests opérateur, connecteurs, contrat et graveur
+        run: |
+          pytest -q \
+            tests/test_water_intelligence_operator_scripts.py \
+            tests/test_water_intelligence_hubeau_hydro.py \
+            tests/test_water_intelligence_hubeau_withdrawals_quality.py \
+            tests/test_water_intelligence_eea_artifact_inspector.py \
+            tests/test_water_staging_environment.py \
+            tests/test_water_staging_ingestion_contract.py
+
+      # Suite complète SANS DATABASE_URL, exactement comme le job `tests` :
+      # avec une base visible, `test_water_schema_not_ready.py` réinitialise le
+      # schéma à un état pré-036 pour prouver son 503 — ce qui détruirait la
+      # répétition qu'on vient de mener. Les tests DB-gated ont déjà tourné
+      # plus haut, contre le vrai PostgreSQL.
+      - name: Suite API complète (DB-gated skippés, comme le job `tests`)
+        run: pytest -q
+
+      - name: Ruff (invocation exacte de la CI)
+        run: ruff check . --select=E,F,I --ignore=E501
+
+      # ── 10. Artefacts expurgés ────────────────────────────────────────────
+      - name: Vérifier l'absence de secret dans les rapports
+        run: |
+          python - <<'PY'
+          import os, pathlib, re
+          forbidden = re.compile(
+              r"postgresql://|water_x3_ephemeral|Authorization:|Set-Cookie|"
+              r"DATABASE_URL|DATABASE_ADMIN_URL|POSTGRES_URL",
+              re.IGNORECASE,
+          )
+          hits = []
+          for path in pathlib.Path(os.environ["REPORTS"]).rglob("*"):
+              if path.is_file():
+                  text = path.read_text(encoding="utf-8", errors="replace")
+                  for line_no, line in enumerate(text.splitlines(), 1):
+                      if forbidden.search(line):
+                          hits.append(f"{path.name}:{line_no}")
+          if hits:
+              raise SystemExit(f"ARRÊT — motif interdit dans les rapports : {hits}")
+          print("  ✓ aucun secret, aucune URL PostgreSQL dans les rapports")
+          PY
+
+      - name: Uploader les rapports et le manifeste candidat
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: water-x3-reports
+          path: /tmp/water-x3/reports
+          retention-days: 7
+
+      # Les octets bruts Hub'Eau ne quittent PAS le runner : ils ne sont ni
+      # committés, ni uploadés. Seuls leurs checksums, déjà portés par les
+      # rapports, font foi.
+      - name: Rappel — artefacts bruts non exportés
+        if: always()
+        run: |
+          echo "Artefacts Hub'Eau conservés dans $ARTIFACTS (runner uniquement)."
+          du -sh "$ARTIFACTS" 2>/dev/null || true

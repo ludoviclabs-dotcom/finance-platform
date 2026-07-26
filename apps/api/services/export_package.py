@@ -424,8 +424,8 @@ def build_package(
     )
 
 
-def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
-    """Retrouve les métadonnées publiques d'un package par son hash.
+def lookup_by_hash(hash_value: str) -> dict[str, Any] | None:
+    """Retrouve les métadonnées publiques d'un package par manifest/package hash.
 
     **IMPORTANT** : retourne uniquement des métadonnées non-sensibles pour
     l'endpoint public `/verify/{hash}`. Pas de PII, pas de company_id exact
@@ -433,7 +433,7 @@ def lookup_by_hash(package_hash: str) -> dict[str, Any] | None:
     """
     if not db_available():
         return None
-    h = package_hash.lower()
+    h = hash_value.lower()
     with get_db() as conn:
         with conn.cursor() as cur:
             # On résout par package_hash (hash du ZIP) OU manifest_hash (ancre stable

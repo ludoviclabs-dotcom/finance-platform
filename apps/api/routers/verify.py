@@ -2,7 +2,7 @@
 routers/verify.py — Phase 3.B : vérification PUBLIQUE de packages d'export.
 
 Endpoint :
-  GET /verify/{package_hash}  (PUBLIC, aucune auth requise)
+  GET /verify/{hash_value}  (PUBLIC, aucune auth requise)
 
 Permet à un auditeur externe de valider qu'un ZIP reçu correspond à un export
 officiel enregistré par CarbonCo. N'expose QUE des métadonnées non-sensibles
@@ -59,31 +59,31 @@ class RecomputeResponse(BaseModel):
     message: str
 
 
-@router.get("/{package_hash}", response_model=VerifyPublicResponse)
-async def verify_package(package_hash: str) -> VerifyPublicResponse:
+@router.get("/{hash_value}", response_model=VerifyPublicResponse)
+async def verify_package(hash_value: str) -> VerifyPublicResponse:
     """Endpoint PUBLIC — vérifie qu'un hash correspond à un export officiel.
 
     Réponse :
       - verified=True + metadata  si le hash est enregistré
       - verified=False sinon (404 pour retourner aussi un message structuré)
 
-    Le package_hash est un SHA-256 hex (64 chars). Tout autre format → 400.
+    Le hash peut être un manifest_hash ou un package_hash SHA-256 hex (64 chars).
     """
-    if not package_hash or len(package_hash) != 64:
+    if not hash_value or len(hash_value) != 64:
         raise HTTPException(
             400,
-            detail="package_hash invalide — attendu : SHA-256 hex (64 caractères)",
+            detail="hash invalide — attendu : SHA-256 hex (64 caractères)",
         )
-    if not all(c in "0123456789abcdef" for c in package_hash.lower()):
-        raise HTTPException(400, detail="package_hash invalide — caractères non-hex")
+    if not all(c in "0123456789abcdef" for c in hash_value.lower()):
+        raise HTTPException(400, detail="hash invalide — caractères non-hex")
 
-    metadata = export_package.lookup_by_hash(package_hash.lower())
+    metadata = export_package.lookup_by_hash(hash_value.lower())
     if not metadata:
         # 404 avec structure plutôt que throw — permet au client de différencier
         # "mauvais hash" de "erreur serveur"
         return VerifyPublicResponse(
             verified=False,
-            package_hash=package_hash.lower(),
+            package_hash=hash_value.lower(),
             message="Aucun package officiel ne correspond à ce hash.",
         )
 

@@ -408,9 +408,15 @@ jobs:
         run: |
           python - <<'PY'
           import os, pathlib, re
+          # `(?<!WATER_STAGING_)DATABASE_URL` : le rapport d'ingestion expose
+          # délibérément le NOM de la variable de staging (`url_variable`,
+          # jamais sa valeur) pour la traçabilité — sans cette exception, le
+          # scanner se déclenchait sur son propre nom de variable plutôt que
+          # sur une fuite réelle. Toute autre occurrence de `DATABASE_URL`
+          # (nue, ou dans `DATABASE_ADMIN_URL`/`POSTGRES_URL`) reste interdite.
           forbidden = re.compile(
               r"postgresql://|water_x3_ephemeral|Authorization:|Set-Cookie|"
-              r"DATABASE_URL|DATABASE_ADMIN_URL|POSTGRES_URL",
+              r"(?<!WATER_STAGING_)DATABASE_URL|DATABASE_ADMIN_URL|POSTGRES_URL",
               re.IGNORECASE,
           )
           hits = []

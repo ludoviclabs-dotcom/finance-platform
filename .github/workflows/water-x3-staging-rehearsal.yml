@@ -90,6 +90,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Même mécanisme que le job `validate` de api.yml (ruff n'est pas dans
+      # requirements.txt) — jamais dupliqué, juste réutilisé.
+      - name: Install dev tools
+        run: pip install ruff
+
       - name: Préparer les répertoires hors dépôt
         run: mkdir -p "$ARTIFACTS" "$REPORTS"
 

@@ -2,7 +2,7 @@
 
 **Verdict :** `blocked`  
 **Release :** `aqueduct-4.0`  
-**Exécuté le :** 2026-07-26T09:21:53.786669+00:00  
+**Exécuté le :** 2026-07-26T11:23:39.419759+00:00  
 **Méthode :** `CC-WI-WRI-AQUEDUCT-PASSTHROUGH 1.0.0`  
 **Écriture en base :** aucune (`dry_run=true`)  
 **Durée :** 0.000 s
@@ -74,7 +74,7 @@
   "dry_run": true,
   "duration_seconds": 0.0,
   "errors": [],
-  "executed_at": "2026-07-26T09:21:53.786669+00:00",
+  "executed_at": "2026-07-26T11:23:39.419759+00:00",
   "geographies": [],
   "limits": {
     "network_calls_allowed": 0

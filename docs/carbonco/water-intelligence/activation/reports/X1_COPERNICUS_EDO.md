@@ -2,16 +2,16 @@
 
 **Verdict :** `decoder_deferred`  
 **Release :** `Combined Drought Indicator (CDI) v4.1`  
-**Exécuté le :** 2026-07-26T09:21:53.786669+00:00  
+**Exécuté le :** 2026-07-26T11:23:39.419759+00:00  
 **Méthode :** `CC-WI-COPERNICUS-EDO-SNAPSHOT 1.0.0`  
 **Écriture en base :** aucune (`dry_run=true`)  
-**Durée :** 0.397 s
+**Durée :** 0.716 s
 
 ## Transferts
 
 | # | URL (sans query) | HTTP | Content-Type | Octets | SHA-256 | Durée |
 |---|---|---|---|---|---|---|
-| 1 | `https://edo.jrc.ec.europa.eu/edov2/php/index.php` | 200 | text/html; charset=utf-8 | 4115 | `83d3ddd771d48063…` | 0.396 s |
+| 1 | `https://edo.jrc.ec.europa.eu/edov2/php/index.php` | 200 | text/html; charset=utf-8 | 4115 | `83d3ddd771d48063…` | 0.715 s |
 |  | ↳ redirections : `https://drought.emergency.copernicus.eu/edov2/php/index.php`, `https://drought.emergency.copernicus.eu/tumbo/edo/map`, `https://drought.emergency.copernicus.eu/tumbo/edo/map/` | | | | | |
 
 ## Acquisition
@@ -78,9 +78,9 @@
 {
   "bytes_received": 0,
   "dry_run": true,
-  "duration_seconds": 0.397,
+  "duration_seconds": 0.716,
   "errors": [],
-  "executed_at": "2026-07-26T09:21:53.786669+00:00",
+  "executed_at": "2026-07-26T11:23:39.419759+00:00",
   "geographies": [],
   "limits": {
     "decoding": "aucun",
@@ -118,7 +118,7 @@
     {
       "bytes_received": 4115,
       "content_type": "text/html; charset=utf-8",
-      "elapsed_seconds": 0.396,
+      "elapsed_seconds": 0.715,
       "error": null,
       "params": [],
       "redirects": [

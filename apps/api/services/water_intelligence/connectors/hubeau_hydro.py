@@ -25,7 +25,33 @@ récupérées par le socle (lui-même sans client HTTP — voir son docstring).
     obtenir mètres et m³/s). Ce module **conserve l'unité native** et ne
     convertit rien : une conversion silencieuse est exactement le genre
     d'erreur d'échelle que le chantier interdit ;
-  - fenêtre temporelle : `date_debut_obs_elab` / `date_fin_obs_elab` (ISO 8601).
+  - fenêtre temporelle : `date_debut_obs` / `date_fin_obs` (ISO 8601).
+
+  ### X2A — bascule `obs_elab` → `observations_tr`
+
+  La validation live X1 a montré que ce parseur ciblait `obs_elab` (grandeurs
+  ÉLABORÉES : `HIXM`, `QINM`, `QmM`…) tout en validant contre `{H, Q}` — le
+  vocabulaire du TEMPS RÉEL, que `obs_elab` rejette en HTTP 400
+  (`docs/carbonco/water-intelligence/activation/X1_LIVE_VALIDATION_HANDOFF.md`
+  §2.1). Les deux seules valeurs acceptées par ce module étaient donc
+  précisément celles que l'endpoint interrogé refusait.
+
+  Le MVP retenu (X2A) bascule sur `observations_tr`, VÉRIFIÉ EN DIRECT le
+  2026-07-26 sur la station `O400101101` : `grandeur_hydro=H` et `=Q`
+  répondent 200 ; tout autre code (essayé : `HIXM`) répond 400 avec
+  « Wrong value(s), possibles values are H or Q or H,Q » — la plateforme
+  elle-même impose l'exclusivité du vocabulaire déjà déclaré ici. Champs de
+  réponse réels : `code_station`, `grandeur_hydro`, `date_obs`,
+  `resultat_obs`, `libelle_statut` — aucun champ d'unité (`unite`/
+  `libelle_unite` valent `null`), confirmant que `HYDRO_QUANTITIES` reste la
+  SEULE source d'unité, comme pour `obs_elab`.
+
+  `obs_elab` reste un endpoint réel et déclaré dans le socle
+  (`hubeau_transport.ENDPOINTS`), mais aucune `HubeauFamily` de
+  `scripts/water_intelligence/validate_hubeau.py` n'y pointe plus : son statut
+  est `OBS_ELAB_STATUS = "derived_metrics_mapping_deferred"` ci-dessous, et
+  aucun fallback automatique entre les deux endpoints n'existe — le choix est
+  toujours explicite, jamais une bascule silencieuse en cas d'échec.
 
 ### Piézométrie — `https://hubeau.eaufrance.fr/api/v1/niveaux_nappes`
 
@@ -95,6 +121,14 @@ HYDRO_QUANTITIES: dict[str, tuple[str, str]] = {
     "Q": ("debit", "l/s"),
     "H": ("hauteur", "mm"),
 }
+
+#: Statut MVP de l'endpoint élaboré (X2A) — jamais branché par
+#: `scripts/water_intelligence/validate_hubeau.py`. Son vocabulaire
+#: (`HIXM`, `QINM`, `QmM`…) exigerait un mapping d'unité vérifié par
+#: grandeur, qu'aucune documentation officielle consultée ne publie :
+#: l'inventer romprait l'invariant « aucune dimension devinée ». Cité par
+#: `docs/carbonco/water-intelligence/activation/X1_CONNECTOR_READINESS_MATRIX.md`.
+OBS_ELAB_STATUS = "derived_metrics_mapping_deferred"
 
 #: Grandeurs piézométriques et leur unité. `niveau_nappe_eau` et
 #: `profondeur_nappe` varient en sens OPPOSÉ — jamais confondues.
@@ -206,6 +240,9 @@ class HubeauMeasurement:
     unit: str
     value: float | None
     observed_on: date
+    #: `libelle_statut` recopié verbatim (ex. « Donnée brute »), absent pour
+    #: la piézométrie. Statut éventuel, jamais interprété par ce module.
+    status_label: str | None = None
 
     def has_value(self) -> bool:
         return self.value is not None
@@ -296,7 +333,15 @@ def _records_of(page: Any, *, page_index: int) -> list[Mapping[str, Any]]:
 def parse_hydrometrie_pages(
     pages: Iterable[Any], *, config: HubeauHydroReleaseConfig
 ) -> HubeauParseResult:
-    """Parse des pages `obs_elab`. Débit et hauteur restent SÉPARÉS."""
+    """Parse des pages `observations_tr` (X2A). Débit et hauteur restent
+    SÉPARÉS.
+
+    Champs réels VÉRIFIÉS EN DIRECT (cf. docstring de module) :
+    `code_station`, `grandeur_hydro`, `date_obs`, `resultat_obs`,
+    `libelle_statut`. Aucun fallback vers les noms `_elab` : ce parseur cible
+    exclusivement `observations_tr`, jamais `obs_elab` (MVP, X2A) — un champ
+    absent est une erreur de schéma, jamais une bascule silencieuse d'endpoint.
+    """
     if config.kind != "hydrometrie":
         raise HubeauSchemaError("config hydrométrie attendue.")
     result = HubeauParseResult()
@@ -312,21 +357,20 @@ def parse_hydrometrie_pages(
                     f"{context} : `code_station` absent — aucune jointure par "
                     "libellé de station n'est autorisée en repli."
                 )
-            grandeur = _parse_text(record.get("grandeur_hydro_elab")) or _parse_text(
-                record.get("grandeur_hydro")
-            )
+            grandeur = _parse_text(record.get("grandeur_hydro"))
             if grandeur not in HYDRO_QUANTITIES:
                 raise HubeauSchemaError(
                     f"{context} : grandeur {grandeur!r} hors vocabulaire officiel "
                     f"{sorted(HYDRO_QUANTITIES)}."
                 )
             quantity, unit = HYDRO_QUANTITIES[grandeur]
-            observed_on = _parse_day(record.get("date_obs_elab"), context=context)
-            value = _parse_float(record.get("resultat_obs_elab"), context=context)
+            observed_on = _parse_day(record.get("date_obs"), context=context)
+            value = _parse_float(record.get("resultat_obs"), context=context)
+            status_label = _parse_text(record.get("libelle_statut"))
 
             _accumulate(result, HubeauMeasurement(
                 station_id=station, quantity=quantity, unit=unit,
-                value=value, observed_on=observed_on,
+                value=value, observed_on=observed_on, status_label=status_label,
             ))
 
     return _finalise(result, checksum)
@@ -552,6 +596,7 @@ def drafts_from_measurements(
                     "observed_on": measurement.observed_on.isoformat(),
                     "window_start": config.window_start.isoformat(),
                     "window_end": config.window_end.isoformat(),
+                    "status_label": measurement.status_label,
                 },
             )
         )

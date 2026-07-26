@@ -4,6 +4,13 @@
 **Établie le :** 2026-07-26, sur `master` à `5c189e9`
 **Méthode :** lecture du code livré, pas des fixtures.
 
+> **Mise à jour X2A (2026-07-26)** — les sections 3.1 (hydrométrie) et 3.3
+> (prélèvements) sont corrigées pour refléter l'état RÉEL après remédiation :
+> le tableau ci-dessous, lui, reste tel qu'établi par X1 et documente
+> l'analyse qui a conduit aux deux correctifs. Détail complet, y compris les
+> résultats live après correction :
+> `docs/carbonco/water-intelligence/activation/X2A_SCHEMA_REMEDIATION_HANDOFF.md`.
+
 > Le pack l'exige explicitement : « Ne pas conclure "live" sur la seule base
 > des fixtures ». Chaque colonne ci-dessous a donc été renseignée en ouvrant
 > le module concerné. La colonne **acquisition réelle** distingue ce qui existe
@@ -49,8 +56,9 @@ que la validation live a **révélés**, pas ceux qu'on anticipait.
 | Attribution | `WeiPlusReleaseConfig.attribution()`, composée (l'EEA ne publie pas de gabarit imposé) |
 | Budgets | `MAX_LAYER_FEATURES = 1000`, `MAX_COMPARISON_PERIODS = 8` |
 | Paramètres obligatoires | `release_key` explicite ; `scale` ∈ {`subunit`, `riverbasin`} ; unité déclarée = `%` |
-| Blocage | Les noms de colonnes du classeur officiel ne sont pas publiés. Le connecteur refuse de les deviner et impose un format canonique ; la conversion reste un geste opérateur, **non livré à ce jour**. |
-| Commande X1 | `python -m scripts.water_intelligence.validate_eea --release subunit --dry-run --report <chemin>` |
+| Blocage | Les noms de colonnes du classeur officiel ne sont pas publiés. Le connecteur refuse de les deviner et impose un format canonique. |
+| Outillage opérateur (X2A) | `scripts/water_intelligence/eea_artifact_inspector.py` — inspecte un classeur local RÉEL (feuilles, en-têtes, macro) et convertit vers le CSV canonique UNE FOIS qu'un `ColumnMappingProfile` vérifié existe. `MAPPING_PROFILES` reste **VIDE** : aucun artefact officiel réel n'a été obtenu (lien de téléchargement → interface Nextcloud). Verdict tant qu'aucun profil n'existe : `manual_artifact_required` (remplace `decoder_deferred`, réservé depuis X2A à Copernicus). |
+| Commande | `python -m scripts.water_intelligence.validate_eea --release subunit [--input <fichier_local_ou_url>] --dry-run --report <chemin>` |
 
 ---
 
@@ -71,6 +79,8 @@ que la validation live a **révélés**, pas ceux qu'on anticipait.
 
 ### 3.1 Hydrométrie
 
+**État X1 (avant correction), pour mémoire :**
+
 | Rubrique | Valeur |
 |---|---|
 | Code source | `HUBEAU_HYDROMETRIE` |
@@ -81,7 +91,19 @@ que la validation live a **révélés**, pas ceux qu'on anticipait.
 | Vocabulaire attendu | `HYDRO_QUANTITIES = {Q → débit l/s, H → hauteur mm}` |
 | **Vocabulaire réellement servi** | `HIXM`, `HIXnJ`, `QINM`, `QmM` — et `H`/`Q` sont **rejetés en HTTP 400** par la plateforme |
 | Blocage | Le connecteur valide contre le vocabulaire du temps réel (`observations_tr`), alors que son parseur cible les observations **élaborées**. Aucune unité n'est servie par la source : la table du connecteur est la seule origine de l'unité, et elle n'a pas d'entrée pour ces grandeurs. |
-| Commande X1 | `validate_hubeau --source hydrometrie --geography-type code_entite --geography-code <code>` |
+
+**État X2A (après correction, VÉRIFIÉ EN DIRECT le 2026-07-26) :**
+
+| Rubrique | Valeur |
+|---|---|
+| Endpoint | `hydrometrie.observations_tr` → `/api/v2/hydrometrie/observations_tr` (nouvel endpoint déclaré au socle) |
+| Fenêtre | `date_debut_obs` / `date_fin_obs` |
+| Vocabulaire | `grandeur_hydro` ∈ {`H`, `Q`} — VÉRIFIÉ accepté (HTTP 200), tout autre code (essayé : `HIXM`) refusé en HTTP 400 par la plateforme elle-même |
+| Champs réels | `code_station`, `grandeur_hydro`, `date_obs`, `resultat_obs`, `libelle_statut` — aucun champ d'unité, `HYDRO_QUANTITIES` reste la seule source d'unité |
+| `obs_elab` | Reste déclaré au socle (endpoint réel), statut `hubeau_hydro.OBS_ELAB_STATUS = "derived_metrics_mapping_deferred"` — aucune `HubeauFamily` n'y pointe plus, aucun fallback automatique |
+| Blocage | Aucun. |
+| Résultat live (X2A) | 200/200 lignes reçues, normalisées, 0 rejet |
+| Commande | `validate_hubeau --source hydrometrie --geography-type code_entite --geography-code <code>` |
 
 ### 3.2 Piézométrie
 
@@ -98,6 +120,8 @@ que la validation live a **révélés**, pas ceux qu'on anticipait.
 
 ### 3.3 Prélèvements (BNPE)
 
+**État X1 (avant correction), pour mémoire :**
+
 | Rubrique | Valeur |
 |---|---|
 | Code source | `HUBEAU_BNPE_PRELEVEMENTS` |
@@ -105,9 +129,19 @@ que la validation live a **révélés**, pas ceux qu'on anticipait.
 | Filtre géographique obligatoire | `code_commune_insee`, `code_departement` ou `code_ouvrage` |
 | Fenêtre déclarée par le socle | `annee_min` / `annee_max` |
 | **Fenêtre réellement implémentée** | `annee` — `annee_min`/`annee_max` sont **ignorés en silence** |
-| Parser | `parse_withdrawals_pages` ; unité `m3` ; volume absent ≠ volume nul |
 | Blocage | La borne temporelle n'existe pas côté plateforme. Hub'Eau ignore les paramètres inconnus au lieu de les rejeter : l'opérateur croit sa collecte bornée à deux années et reçoit tout l'historique. |
-| Commande X1 | `validate_hubeau --source prelevements --geography-type code_departement --geography-code <code> --date-from <AAAA> --date-to <AAAA>` |
+
+**État X2A (après correction, VÉRIFIÉ EN DIRECT le 2026-07-26) :**
+
+| Rubrique | Valeur |
+|---|---|
+| Fenêtre | `annee` — une SEULE valeur par requête, refusée si `annee_min`/`annee_max` sont fournis (`HubeauQueryRefused`, paramètre non déclaré) |
+| Orchestration | `scripts.water_intelligence.validate_hubeau.run_prelevements_multi_year` — une requête Hub'Eau PAR ANNÉE demandée, `--max-years` obligatoire (refus avant tout appel réseau si dépassé), budget d'octets borné par année ET cumulé (`--max-total-bytes`) |
+| Contrat par ligne | Chaque année parsée avec `WithdrawalsReleaseConfig(year_min=année, year_max=année)` — une ligne d'une autre année lève `HubeauUsageSchemaError` pour CETTE requête, jamais masquée par une plage large |
+| Parser | `parse_withdrawals_pages` (inchangé) ; unité `m3` ; volume absent ≠ volume nul |
+| Blocage | Aucun. |
+| Résultat live (X2A) | Année unique (2020) : 50/50. Plage réelle 2019-2020 (`--max-years 2`) : **2 transferts HTTP distincts**, un par année, 100/100 normalisés. |
+| Commande | `validate_hubeau --source prelevements --geography-type code_departement --geography-code <code> --date-from <AAAA> --date-to <AAAA> --max-years <n>` |
 
 ### 3.4 Qualité des rivières (Naïades)
 

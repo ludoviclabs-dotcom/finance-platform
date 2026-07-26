@@ -55,6 +55,31 @@ décide ce qui a le droit d'être demandé, jamais le `Fetcher` :
 - pagination : paramètres `page` et `size` ; **profondeur d'accès aux
   résultats (page × size) limitée à 20 000 enregistrements** ;
 - taille de page : 5 000 par défaut, 20 000 au maximum.
+
+## Corrections X2A — deux dérives trouvées par la validation live X1
+
+`docs/carbonco/water-intelligence/activation/X1_LIVE_VALIDATION_HANDOFF.md` a
+mesuré deux défauts, chacun corrigé ici plutôt que rafistolé côté opérateur :
+
+1. **Prélèvements (`prelevements.chroniques`)** — `annee_min`/`annee_max`
+   n'existent PAS côté plateforme : Hub'Eau ignore silencieusement les
+   paramètres inconnus, et une requête prétendument bornée par un couple
+   début/fin renvoyait en réalité TOUT l'historique (`count` identique avec ou
+   sans le couple, sur un jeu réel : 9 724 dans les deux cas). Le seul
+   paramètre réel est `annee=<AAAA>`, et il ne porte qu'**une seule année par
+   requête** — vérifié en direct (`annee=2020` → 782, cohérent avec un
+   sous-ensemble borné). `time_window_parameters` accepte donc désormais un
+   nombre QUELCONQUE de paramètres (1 pour cet endpoint), pas exactement deux.
+2. **Hydrométrie** — l'endpoint déclaré ici (`observations_elaborees`,
+   opération `obs_elab`) reste inchangé et VALIDE, mais n'est plus celui que
+   l'opérateur interroge pour le MVP : son vocabulaire de grandeurs élaborées
+   (`HIXM`, `QINM`, `QmM`…) n'a pas de mapping d'unité vérifié, et l'inventer
+   romprait l'invariant « aucune dimension devinée ». L'endpoint
+   `hydrometrie.observations_tr` (temps réel), ajouté ci-dessous, est
+   VÉRIFIÉ EN DIRECT le 2026-07-26 : `code_entite`, `grandeur_hydro` (valeurs
+   strictement `H`/`Q`/`H,Q` — un autre code est refusé en HTTP 400 par la
+   plateforme elle-même), `date_debut_obs`/`date_fin_obs`. Voir
+   `docs/carbonco/water-intelligence/activation/X2A_SCHEMA_REMEDIATION_HANDOFF.md`.
 """
 
 from __future__ import annotations
@@ -231,7 +256,14 @@ class HubeauEndpoint:
     requires_geographic_filter: bool
     requires_time_window: bool
     geographic_parameters: frozenset[str]
-    time_window_parameters: tuple[str, str] | None
+    #: Un ou plusieurs noms de paramètre portant la fenêtre temporelle.
+    #: La plupart des chroniques Hub'Eau acceptent un COUPLE début/fin ; les
+    #: prélèvements (BNPE) n'acceptent qu'une SEULE valeur (`annee`) par
+    #: requête — vérifié en direct (X2A) : `annee_min`/`annee_max` n'existent
+    #: pas côté plateforme, qui les ignore silencieusement plutôt que de les
+    #: refuser. Un tuple de longueur quelconque couvre les deux cas sans
+    #: supposer un couple.
+    time_window_parameters: tuple[str, ...] | None
     allowed_parameters: frozenset[str]
 
     @property
@@ -263,6 +295,14 @@ _ENDPOINT_SPECS: dict[str, dict[str, Any]] = {
         | {"code_commune_station", "code_departement", "code_station", "en_service"},
     },
     "hydrometrie.observations_elaborees": {
+        # Endpoint réel et VALIDE, mais MVP : le vocabulaire élaboré
+        # (HIXM, QINM, QmM…) n'a pas de mapping d'unité vérifié auprès de la
+        # documentation officielle — l'inventer romprait l'invariant "aucune
+        # dimension devinée" (cf. hubeau_hydro.OBS_ELAB_STATUS =
+        # "derived_metrics_mapping_deferred"). Aucune `HubeauFamily` de
+        # scripts/water_intelligence/validate_hubeau.py ne pointe plus dessus
+        # depuis X2A — déclaré ici pour rester une source de vérité honnête
+        # sur ce que la plateforme expose, pas parce que l'opérateur l'utilise.
         "api_path": "v2/hydrometrie",
         "operation": "obs_elab",
         "requires_geographic_filter": True,
@@ -271,6 +311,26 @@ _ENDPOINT_SPECS: dict[str, dict[str, Any]] = {
         "time_window_parameters": ("date_debut_obs_elab", "date_fin_obs_elab"),
         "allowed_parameters": _COMMON_PARAMETERS
         | {"code_entite", "grandeur_hydro_elab", "date_debut_obs_elab", "date_fin_obs_elab"},
+    },
+    "hydrometrie.observations_tr": {
+        # Endpoint MVP retenu pour l'hydrométrie (X2A). Paramètres et champs
+        # VÉRIFIÉS EN DIRECT le 2026-07-26 sur une station réelle
+        # (O400101101) : `grandeur_hydro=H` et `=Q` répondent 200 ; toute
+        # autre valeur (essayé : `HIXM`) répond 400 avec
+        # `{"field_errors":[{"message":"Wrong value(s), possibles values are
+        # H or Q or H,Q.","field":"grandeur_hydro[0]"}]}` — la plateforme
+        # elle-même impose l'exclusivité du vocabulaire temps réel. Aucun
+        # champ d'unité dans la réponse (`unite`/`libelle_unite` valent
+        # `null`) : l'unité continue de venir de la table vérifiée du
+        # connecteur (`HYDRO_QUANTITIES`), jamais de la source.
+        "api_path": "v2/hydrometrie",
+        "operation": "observations_tr",
+        "requires_geographic_filter": True,
+        "requires_time_window": True,
+        "geographic_parameters": frozenset({"code_entite"}),
+        "time_window_parameters": ("date_debut_obs", "date_fin_obs"),
+        "allowed_parameters": _COMMON_PARAMETERS
+        | {"code_entite", "grandeur_hydro", "date_debut_obs", "date_fin_obs"},
     },
     "piezometrie.stations": {
         "api_path": "v1/niveaux_nappes",
@@ -293,6 +353,16 @@ _ENDPOINT_SPECS: dict[str, dict[str, Any]] = {
         | {"code_bss", "date_debut_mesure", "date_fin_mesure"},
     },
     "prelevements.chroniques": {
+        # `annee_min`/`annee_max` n'existent PAS côté plateforme (X2A) : ils
+        # sont ignorés en silence plutôt que refusés, ce qui rendait une
+        # requête prétendument bornée non bornée en réalité — vérifié en
+        # direct, `count` identique avec ou sans le couple (9 724 les deux
+        # fois sur un département réel). Le seul paramètre réel est `annee`,
+        # et il ne porte qu'UNE SEULE année : `annee=2020` répond 782, un
+        # sous-ensemble cohérent. Une plage de plusieurs années exige donc
+        # une requête PAR année, orchestrée côté opérateur
+        # (`scripts/water_intelligence/validate_hubeau.py`), jamais un couple
+        # min/max envoyé tel quel.
         "api_path": "v1/prelevements",
         "operation": "chroniques",
         "requires_geographic_filter": True,
@@ -300,11 +370,11 @@ _ENDPOINT_SPECS: dict[str, dict[str, Any]] = {
         "geographic_parameters": frozenset(
             {"code_commune_insee", "code_departement", "code_ouvrage"}
         ),
-        "time_window_parameters": ("annee_min", "annee_max"),
+        "time_window_parameters": ("annee",),
         "allowed_parameters": _COMMON_PARAMETERS
         | {
             "code_commune_insee", "code_departement", "code_ouvrage",
-            "annee_min", "annee_max", "code_usage", "code_type_milieu",
+            "annee", "code_usage", "code_type_milieu",
         },
     },
     "qualite_rivieres.analyses": {
@@ -429,8 +499,13 @@ class HubeauQuery:
             )
         if endpoint.requires_time_window:
             assert endpoint.time_window_parameters is not None
-            start, end = endpoint.time_window_parameters
-            missing = [p for p in (start, end) if not self.parameters.get(p)]
+            # Boucle générique plutôt qu'un déballage à 2 (X2A) : certaines
+            # chroniques portent un couple début/fin, d'autres (prélèvements)
+            # une seule valeur (`annee`) — aucune des deux formes n'est
+            # privilégiée par ce module.
+            missing = [
+                p for p in endpoint.time_window_parameters if not self.parameters.get(p)
+            ]
             if missing:
                 raise HubeauQueryRefused(
                     f"fenêtre temporelle obligatoire pour la chronique {endpoint.key!r} : "

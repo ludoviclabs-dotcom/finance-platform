@@ -158,3 +158,50 @@ Détail complet : `FINAL_TRACEABILITY.md`.
 - **P18 inchangé.** `/water-intelligence`, `/water` et `/water/decision` sont
   conservées ; `/eau` n'est pas créée ; aucun redirect. Réévaluation seulement
   avec des analytics et des retours utilisateurs réels.
+
+## 2026-07-26 — X2A : correction des dérives de schéma détectées en X1
+
+- **BNPE prélèvements : `annee_min`/`annee_max` abandonnés au profit d'`annee`.**
+  X1 avait établi la preuve (compte identique à 9724 lignes, borné ou non) que
+  l'API Hub'Eau ignore silencieusement les paramètres de plage. Plutôt que de
+  continuer à envoyer des paramètres inopérants, le connecteur n'expose plus
+  que `annee` (valeur exacte). L'orchestration multi-année reste possible côté
+  opérateur, mais devient explicite : une requête par année, une borne
+  `--max-years` obligatoire refusant toute plage non bornée avant le premier
+  appel réseau, et une vérification a posteriori que chaque ligne reçue porte
+  bien l'année demandée — un écart est une erreur de contrat explicite, jamais
+  un filtrage silencieux.
+- **Hydrométrie : bascule du MVP d'`observations_elaborees` vers
+  `observations_tr`.** Vérifié en direct le 2026-07-26 : `observations_tr`
+  accepte H/Q (200) et refuse les codes élaborés (HIXM → 400) ;
+  `observations_elaborees` fait l'inverse. Le MVP porte donc sur le temps
+  réel. `obs_elab` n'est pas supprimé — il reste déclaré dans le socle
+  Hub'Eau, marqué `derived_metrics_mapping_deferred`, en attente d'une
+  décision humaine sur le mapping des grandeurs élaborées. Aucun repli
+  automatique entre les deux endpoints : un connecteur qui interroge
+  `observations_tr` n'essaiera jamais `obs_elab` en silence, et
+  réciproquement.
+- **EEA WEI+ : `manual_artifact_required` remplace `decoder_deferred`.** Aucun
+  classeur EEA officiel n'a jamais été obtenu ni inspecté — inventer un
+  mapping colonnes→schéma serait une invention, pas une vérification.
+  `eea_artifact_inspector.py` cadre le mécanisme d'acceptation (extension,
+  conteneur, release attendue, somme de contrôle, absence de macro si
+  vérifiable, feuilles et en-têtes réels), mais `MAPPING_PROFILES` reste vide
+  par construction : aucun profil n'est pré-rempli par supposition. Le statut
+  `manual_artifact_required` nomme honnêtement ce qui manque (un artefact réel
+  à obtenir et faire vérifier par un opérateur humain), distinct de
+  `decoder_deferred` qui reste réservé à Copernicus (décodeur GeoTIFF non
+  écrit, source elle-même déjà obtenue).
+- **WRI Aqueduct et Copernicus EDO : aucun changement.**
+  `blocked_registration_required` et `source_verified_decoder_deferred`
+  restent inchangés — X2A ne visait que les dérives de schéma détectées en X1
+  (BNPE, hydrométrie), pas ces deux sources dont le blocage est d'une autre
+  nature (inscription non documentée / décodeur non écrit).
+- **Aucune décision de publication modifiée.** X2A ne change aucun statut de
+  licence, n'approuve aucune source, ne fait avancer aucun
+  `WaterLicenseDecision`. Les corrections sont des corrections de connecteur
+  (schéma réellement servi par l'API), pas des décisions humaines.
+- **Pilotage.** `status: X2A_SCHEMA_REMEDIATION_COMPLETE`. Détail complet dans
+  [X2A_SCHEMA_REMEDIATION_HANDOFF.md](activation/X2A_SCHEMA_REMEDIATION_HANDOFF.md).
+  Prochaine étape possible : X2B (graveur Evidence Kernel), sur décision
+  explicite — non commencée par X2A.

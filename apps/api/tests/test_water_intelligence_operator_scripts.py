@@ -23,14 +23,19 @@ import ast
 import email.message
 import hashlib
 import io
+import json
 import socket
 import urllib.error
+import urllib.parse
 import urllib.request
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import pytest
 
+from scripts.water_intelligence import eea_artifact_inspector as eea_inspector
 from scripts.water_intelligence import fetcher as fetcher_mod
+from scripts.water_intelligence import validate_eea
 from scripts.water_intelligence.fetcher import (
     FetcherNetworkError,
     FetcherRefusal,
@@ -46,6 +51,7 @@ from scripts.water_intelligence.validate_hubeau import (
     FAMILIES,
     build_socket_fetcher,
     decide_verdict,
+    run_prelevements_multi_year,
 )
 from services.water_intelligence import hubeau_transport as transport_mod
 from services.water_intelligence.pipeline_transport import TransportError
@@ -113,6 +119,30 @@ class _FakeOpener:
 
 def make_fetcher(opener: _FakeOpener, **kwargs) -> OperatorFetcher:
     return OperatorFetcher(allowed_hosts=HOSTS, opener_factory=opener, **kwargs)
+
+
+class _YearRoutedOpener:
+    """Renvoie une page différente selon la valeur du paramètre `annee` de
+    l'URL demandée. Nécessaire pour scripter plusieurs requêtes annuelles
+    distinctes (X2A, prélèvements) sans jamais ouvrir de socket : une seule
+    réponse fixe, comme `_FakeOpener`, ne peut pas distinguer deux années."""
+
+    def __init__(self, pages_by_year: dict[int, bytes], *, status: int = 200) -> None:
+        self.pages_by_year = pages_by_year
+        self.status = status
+        self.calls: list[str] = []
+
+    def __call__(self, _redirect_handler):
+        return self
+
+    def open(self, request, timeout=None):  # noqa: A003 - signature urllib
+        self.calls.append(request.full_url)
+        query = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(request.full_url).query))
+        year = int(query["annee"])
+        if year not in self.pages_by_year:
+            raise AssertionError(f"aucune page scriptée pour l'année {year}")
+        return _FakeResponse(self.pages_by_year[year], self.status, "application/json",
+                              request.full_url)
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +255,10 @@ class TestByteBudget:
         """La limite de PAGES appartient au socle, pas au Fetcher."""
         query = transport_mod.HubeauQuery(
             endpoint_key="prelevements.chroniques",
-            parameters={"code_departement": "34", "annee_min": "2020", "annee_max": "2021"},
+            # `annee` (X2A) — `annee_min`/`annee_max` sont refusés depuis que
+            # la validation live X1 a montré qu'ils n'existent pas côté
+            # plateforme, qui les ignorait en silence.
+            parameters={"code_departement": "34", "annee": "2020"},
             page_size=10,
         )
         page = b'{"count": 999, "data": [%s]}' % b",".join([b'{"a":1}'] * 10)
@@ -446,6 +479,362 @@ class TestVerdicts:
         assert sorted(FAMILIES) == [
             "hydrometrie", "piezometrie", "prelevements", "qualite_surface",
         ]
+
+
+# ---------------------------------------------------------------------------
+# 10 — Prélèvements : orchestration multi-année (X2A)
+# ---------------------------------------------------------------------------
+
+
+def withdrawal_record(*, ouvrage="OUV-0001", year=2020, volume=1000.0):
+    return {
+        "code_ouvrage": ouvrage,
+        "annee": year,
+        "volume": volume,
+        "code_usage": "IRR",
+        "libelle_usage": "Irrigation",
+        "code_type_milieu": "SOUT",
+        "libelle_type_milieu": "Souterrain",
+        "code_departement": "34",
+    }
+
+
+def withdrawal_page(*records) -> bytes:
+    return json.dumps({"count": len(records), "data": list(records)}).encode("utf-8")
+
+
+def run_multi_year(pages_by_year, **overrides):
+    opener = _YearRoutedOpener(pages_by_year)
+    fetcher = make_fetcher(opener, max_bytes=overrides.pop("max_bytes", 1_000_000))
+    kwargs = dict(
+        geography_type="code_departement",
+        geography_code="34",
+        year_from=min(pages_by_year),
+        year_to=max(pages_by_year),
+        max_years=overrides.pop("max_years", len(pages_by_year)),
+        release_key="hubeau-bnpe-chroniques-test",
+        retrieved_at=date(2026, 2, 1),
+        fetcher=fetcher,
+        max_pages_per_year=overrides.pop("max_pages_per_year", 1),
+        max_bytes_per_year=overrides.pop("max_bytes_per_year", 1_000_000),
+        max_total_bytes=overrides.pop("max_total_bytes", 10_000_000),
+        timeout_seconds=20.0,
+        page_size=100,
+        clock=lambda: datetime(2026, 2, 2, tzinfo=timezone.utc),
+    )
+    kwargs.update(overrides)
+    report = run_prelevements_multi_year(**kwargs)
+    return report, opener
+
+
+class TestPrelevementsMultiYearOrchestration:
+    def test_annee_min_and_annee_max_are_refused(self) -> None:
+        """X2A, règle 4 : ni `annee_min`, ni `annee_max`, ni aucune
+        combinaison ambiguë — le socle les refuse depuis que la validation
+        live X1 a montré qu'ils n'existent pas côté plateforme."""
+        with pytest.raises(transport_mod.HubeauQueryRefused, match="non déclaré"):
+            transport_mod.HubeauQuery(
+                endpoint_key="prelevements.chroniques",
+                parameters={
+                    "code_departement": "34", "annee_min": "2020", "annee_max": "2021",
+                },
+            )
+
+    def test_a_single_year_is_a_single_request(self) -> None:
+        report, opener = run_multi_year({2020: withdrawal_page(withdrawal_record(year=2020))})
+
+        assert len(opener.calls) == 1
+        assert "annee=2020" in opener.calls[0]
+        assert report.verdict == "ready_for_staging"
+        assert report.records_normalized == 1
+
+    def test_a_year_range_issues_one_request_per_year(self) -> None:
+        report, opener = run_multi_year({
+            2020: withdrawal_page(withdrawal_record(year=2020, ouvrage="OUV-A")),
+            2021: withdrawal_page(withdrawal_record(year=2021, ouvrage="OUV-B")),
+        })
+
+        assert len(opener.calls) == 2
+        assert {"annee=2020" in c for c in opener.calls} == {False, True}
+        assert any("annee=2021" in c for c in opener.calls)
+        assert report.records_normalized == 2
+        assert report.verdict == "ready_for_staging"
+        assert set(report.geographies) == {"OUV-A", "OUV-B"}
+
+    def test_period_carries_the_year_of_each_observation(self) -> None:
+        """X2A, règle 3 : l'année reste portée par la période de chaque
+        observation, orchestration multi-requêtes ou non — inchangé côté
+        connecteur (`build_withdrawals_period_resolver`)."""
+        report, _ = run_multi_year({
+            2020: withdrawal_page(withdrawal_record(year=2020)),
+            2021: withdrawal_page(withdrawal_record(year=2021)),
+        })
+
+        assert report.pipeline_steps_failed == ()
+        assert "derive" in report.pipeline_steps_executed
+
+    def test_a_row_from_another_year_is_an_explicit_contract_error(self) -> None:
+        """X2A, règles 5 et 6 : une ligne d'une autre année n'est jamais
+        filtrée en silence — elle échoue explicitement, ET elle apparaît dans
+        le rapport, sans empêcher les autres années de rester visibles."""
+        report, _ = run_multi_year({
+            # La requête annee=2020 « devrait » ne renvoyer que 2020 ; ce
+            # scénario simule une anomalie de plateforme où une ligne 2019
+            # se glisse dans la réponse.
+            2020: withdrawal_page(withdrawal_record(year=2019, ouvrage="OUV-CONTAMINEE")),
+            2021: withdrawal_page(withdrawal_record(year=2021, ouvrage="OUV-B")),
+        })
+
+        assert report.verdict == "schema_drift"
+        assert any("année 2020" in cause for cause in report.rejection_causes)
+        assert any("hors de la fenêtre demandée" in cause for cause in report.rejection_causes)
+        # 2021 reste traité et compté : la contamination de 2020 n'efface pas
+        # ce qui a été validé ailleurs.
+        assert report.records_normalized == 1
+        assert "OUV-B" in report.geographies
+
+    def test_max_years_is_enforced_before_any_network_call(self) -> None:
+        """X2A, règle 3 : une plage doit déclarer une borne maximale
+        explicite, refusée AVANT tout appel réseau si dépassée."""
+        opener = _YearRoutedOpener({y: withdrawal_page(withdrawal_record(year=y))
+                                     for y in (2018, 2019, 2020, 2021)})
+        fetcher = make_fetcher(opener)
+
+        with pytest.raises(SystemExit, match="max-years"):
+            run_prelevements_multi_year(
+                geography_type="code_departement",
+                geography_code="34",
+                year_from=2018,
+                year_to=2021,
+                max_years=2,
+                release_key="hubeau-bnpe-chroniques-test",
+                retrieved_at=date(2026, 2, 1),
+                fetcher=fetcher,
+                max_pages_per_year=1,
+                max_bytes_per_year=1_000_000,
+                max_total_bytes=10_000_000,
+                timeout_seconds=20.0,
+                page_size=100,
+                clock=lambda: datetime(2026, 2, 2, tzinfo=timezone.utc),
+            )
+        assert opener.calls == []
+
+    def test_pagination_is_bounded_independently_per_year(self) -> None:
+        """X2A : `max_pages_per_year` borne CHAQUE année séparément — une
+        année ne consomme pas le budget de pages d'une autre."""
+        report, opener = run_multi_year(
+            {
+                2020: withdrawal_page(withdrawal_record(year=2020)),
+                2021: withdrawal_page(withdrawal_record(year=2021)),
+            },
+            max_pages_per_year=1,
+        )
+
+        assert len(opener.calls) == 2  # une page par année, pas plus
+        assert report.limits["max_pages_per_year"] == 1
+
+    def test_global_byte_budget_stops_before_the_last_year(self) -> None:
+        """X2A : le budget CUMULÉ across années, pas seulement par année —
+        une plage large peut être arrêtée avant sa dernière année. Le budget
+        global est fixé à EXACTEMENT le poids d'une année : le reliquat tombe
+        à zéro après la première, ce qui arrête la collecte avant tout appel
+        pour la seconde — pas un appel tenté puis tronqué."""
+        big_page = withdrawal_page(withdrawal_record(year=2020, ouvrage="OUV-" + "X" * 500))
+        report, opener = run_multi_year(
+            {2020: big_page, 2021: big_page, 2022: big_page},
+            max_bytes_per_year=len(big_page) + 10,
+            max_total_bytes=len(big_page),  # exactement une année, aucune marge
+        )
+
+        assert len(opener.calls) == 1
+        assert any("budget global" in w for w in report.warnings)
+
+    def test_undeclared_volume_is_absent_not_zero(self) -> None:
+        """X2A, règle 7 : absence de déclaration ≠ zéro, y compris agrégée
+        sur plusieurs années."""
+        record = withdrawal_record(year=2020)
+        record["volume"] = None
+        report, _ = run_multi_year({2020: withdrawal_page(record)})
+
+        assert report.records_absent_value == 1
+        assert report.records_normalized == 0
+
+    def test_orchestration_is_idempotent(self) -> None:
+        """Deux exécutions indépendantes, mêmes pages scriptées, même
+        résultat structurel — hors horodatage."""
+        pages = {
+            2020: withdrawal_page(withdrawal_record(year=2020)),
+            2021: withdrawal_page(withdrawal_record(year=2021)),
+        }
+
+        first, _ = run_multi_year(pages)
+        second, _ = run_multi_year(pages)
+
+        assert first.verdict == second.verdict
+        assert first.records_received == second.records_received
+        assert first.records_normalized == second.records_normalized
+        assert first.rejection_causes == second.rejection_causes
+        assert first.units == second.units
+        assert first.geographies == second.geographies
+
+    def test_no_license_decision_is_ever_provided(self) -> None:
+        report, _ = run_multi_year({2020: withdrawal_page(withdrawal_record(year=2020))})
+
+        assert report.records_publishable == 0
+
+
+# ---------------------------------------------------------------------------
+# 11 — EEA : conversion d'artefact local cadrée, sans deviner (X2A)
+# ---------------------------------------------------------------------------
+
+
+class TestEeaManualArtifactRequired:
+    def test_no_input_is_manual_artifact_required_not_decoder_deferred(self) -> None:
+        """X2A remplace l'ancien verdict X1 pour EEA : `decoder_deferred`
+        reste réservé à Copernicus (décodeur RASTER non livré). EEA a
+        l'outillage ; ce qui manque est un profil vérifié par un humain."""
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=False, payload=None, payload_format=None,
+                records_normalized=0, pipeline_failed=False, rejected=False,
+            )
+            == "manual_artifact_required"
+        )
+
+    def test_binary_payload_without_profile_is_manual_artifact_required(self) -> None:
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=True, payload=b"PK\x03\x04...",
+                payload_format="zip/ooxml (xlsx, shapefile compressé)",
+                records_normalized=0, pipeline_failed=False, rejected=False,
+            )
+            == "manual_artifact_required"
+        )
+
+    def test_payload_lost_to_a_checksum_mismatch_is_source_unavailable(self) -> None:
+        """`payload=None` avec `has_input=True` : le contrôle de checksum de
+        `main()` a rejeté l'extrait — ni un succès, ni un défaut de schéma."""
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=True, payload=None, payload_format=None,
+                records_normalized=0, pipeline_failed=False, rejected=False,
+            )
+            == "source_unavailable"
+        )
+
+    def test_other_verdicts_are_unaffected(self) -> None:
+        assert (
+            validate_eea._decide(
+                identity_ok=False, has_input=False, payload=None, payload_format=None,
+                records_normalized=0, pipeline_failed=False, rejected=False,
+            )
+            == "source_unavailable"
+        )
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=True, payload=b"x", payload_format="texte utf-8",
+                records_normalized=0, pipeline_failed=False, rejected=True,
+            )
+            == "schema_drift"
+        )
+        assert (
+            validate_eea._decide(
+                identity_ok=True, has_input=True, payload=b"x", payload_format="texte utf-8",
+                records_normalized=3, pipeline_failed=False, rejected=False,
+            )
+            == "ready_for_staging"
+        )
+
+
+class TestEeaExtensionConsistency:
+    def test_matching_extension_is_silent(self) -> None:
+        warnings: list[str] = []
+        validate_eea._check_extension_consistency(
+            Path("release.xlsx"), "zip/ooxml (xlsx, shapefile compressé)", warnings,
+        )
+        assert warnings == []
+
+    def test_mismatched_extension_is_flagged_not_refused(self) -> None:
+        warnings: list[str] = []
+        validate_eea._check_extension_consistency(
+            Path("release.csv"), "zip/ooxml (xlsx, shapefile compressé)", warnings,
+        )
+        assert any("inattendue" in w for w in warnings)
+
+    def test_unknown_container_is_silent(self) -> None:
+        warnings: list[str] = []
+        validate_eea._check_extension_consistency(Path("release.bin"), "binaire non identifié", warnings)
+        assert warnings == []
+
+
+class TestEeaInspectAndConvert:
+    def test_non_xlsx_binary_is_left_untouched(self) -> None:
+        notes: list[str] = []
+        payload, fmt = validate_eea._inspect_and_convert(
+            b"\xd0\xcf\x11\xe0old-xls", "ole2 (xls)", "any-release", notes, [], [],
+        )
+
+        assert payload == b"\xd0\xcf\x11\xe0old-xls"
+        assert fmt == "ole2 (xls)"
+        assert any("non inspectable" in n for n in notes)
+
+    def test_xlsx_without_a_profile_surfaces_sheets_and_stays_binary(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        import io as _io
+
+        import openpyxl as _openpyxl
+
+        workbook = _openpyxl.Workbook()
+        workbook.active.title = "Data"
+        workbook.active.append(["spatialUnitIdentifier", "year"])
+        buffer = _io.BytesIO()
+        workbook.save(buffer)
+        raw = buffer.getvalue()
+
+        notes: list[str] = []
+        payload, fmt = validate_eea._inspect_and_convert(
+            raw, "zip/ooxml (xlsx, shapefile compressé)", "release-without-profile", notes, [], [],
+        )
+
+        assert payload == raw
+        assert fmt == "zip/ooxml (xlsx, shapefile compressé)"
+        assert any("Data" in n for n in notes)
+        assert any(eea_inspector.MAPPING_PROFILE_STATUS in n for n in notes)
+
+    def test_xlsx_with_a_verified_profile_is_converted(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        import io as _io
+
+        import openpyxl as _openpyxl
+
+        release_key = "release-with-profile"
+        profile = eea_inspector.ColumnMappingProfile(
+            release_key=release_key, sheet_name="Data",
+            identifier_column="spatialUnitIdentifier", year_column="year",
+            quarter_column="quarter", value_column="wei_plus_pct", unit_column="unit",
+            verified_by="test", verified_on="2026-07-26",
+        )
+        monkeypatch.setitem(eea_inspector.MAPPING_PROFILES, release_key, profile)
+
+        workbook = _openpyxl.Workbook()
+        workbook.active.title = "Data"
+        workbook.active.append(["spatialUnitIdentifier", "year", "quarter", "wei_plus_pct", "unit"])
+        workbook.active.append(["FR001", 2020, "Q1", 12.3, "%"])
+        buffer = _io.BytesIO()
+        workbook.save(buffer)
+
+        notes: list[str] = []
+        warnings: list[str] = []
+        payload, fmt = validate_eea._inspect_and_convert(
+            buffer.getvalue(), "zip/ooxml (xlsx, shapefile compressé)", release_key,
+            notes, warnings, [],
+        )
+
+        assert fmt == "texte utf-8"
+        assert b"FR001,2020,Q1,12.3,%" in payload
+        assert any("converti" in w for w in warnings)
 
 
 # ---------------------------------------------------------------------------

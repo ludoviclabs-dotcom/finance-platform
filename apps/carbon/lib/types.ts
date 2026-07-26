@@ -4,6 +4,7 @@ export type Page =
   | "esrs"
   | "vsme"
   | "materialite"
+  | "proof-twin"
   | "fournisseurs"
   | "qc"
   | "revue"

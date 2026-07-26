@@ -11,7 +11,7 @@
 import {
   LayoutDashboard, Target, Scale, Boxes, BookOpen, Sparkles, ListChecks,
   ClipboardCheck, FileBarChart, Factory, Upload, Receipt, FolderInput, Database,
-  ShieldCheck, FileText, TrendingDown, CalendarClock, GitCompare, Building2, Bot,
+  ShieldCheck, FileText, TrendingDown, CalendarClock, GitCompare, GitBranch, Building2, Bot,
   Inbox, ClipboardList, History, Bell, Settings, CreditCard, FlaskConical,
 } from "lucide-react";
 import type { Page } from "@/lib/types";
@@ -49,6 +49,10 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         id: "vsme", href: "/vsme", label: "VSME", icon: <Sparkles className="w-5 h-5" />,
         badge: { text: "Nouveau", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
+      },
+      {
+        id: "proof-twin", href: "/proof-twin", label: "ProofTwin", icon: <GitBranch className="w-5 h-5" />,
+        badge: { text: "Preuve", color: "bg-carbon-emerald/15 text-carbon-emerald-light" },
       },
       {
         id: "datapoints", href: "/datapoints", label: "Datapoints CSRD", icon: <ListChecks className="w-5 h-5" />,

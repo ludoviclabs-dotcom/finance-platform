@@ -616,8 +616,8 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
 
               <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-400">
                 <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Aucune carte bancaire</span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Standards ESRS — voir <Link href="/couverture" className="underline hover:text-neutral-600">couverture</Link></span>
-                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Données métier en zone UE (Neon Postgres)</span>
+                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>ESRS Set 2 + iXBRL ESEF beta</span>
+                <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>Infrastructure EU (Vercel/Neon)</span>
               </div>
             </Reveal>
 
@@ -644,9 +644,9 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
             {/* Indicateurs réglementaires */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-neutral-100 pt-10">
               {[
-                { value: "127", label: "Datapoints ESRS prioritaires", note: "Sous-ensemble outillé · post-Omnibus" },
-                { value: "iXBRL", label: "Export ESEF conforme", note: "Taxonomie EFRAG 2024" },
-                { value: "GHG", label: "Protocol Scope 1, 2 & 3", note: "Méthodologie GHG Protocol" },
+                { value: "127", label: "Datapoints ESRS Set 2", note: "E1-E5, S1-S4, G1" },
+                { value: "iXBRL", label: "Export ESEF beta", note: "Taxonomie EFRAG 2024" },
+                { value: "GHG", label: "Protocol Scope 1, 2 & 3", note: "Méthodologie bilan carbone" },
                 { value: "ADEME", label: "Base Empreinte® intégrée", note: "Facteurs d'émission FR" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
@@ -717,7 +717,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                     ["Données centralisées via import Excel structuré", "Modèle téléchargeable, named ranges contrôlés, validation stricte"],
                     ["Collecte assistée par copilote NEURAL", "Réduction du temps de reporting estimée — résultats variables selon taille"],
                     ["Audit trail append-only signé SHA-256", "Chaque donnée tracée avec sa source, méthode et hash de chaîne"],
-                    ["ESRS — 10 standards référencés (E1-E5, S1-S4, G1) + export iXBRL ESEF planifié", "127 datapoints prioritaires couverts (sous-ensemble outillé du référentiel ESRS, aligné sur la réduction d'environ 60 % des datapoints actée par l'Omnibus). Couverture par paliers — voir /couverture. Validator 30+ règles."],
+                    ["ESRS Set 2 (E1-E5, S1-S4, G1) + export iXBRL ESEF beta", "127 datapoints référencés, validator audit-grade 30+ règles, export en cours de stabilisation"],
                     ["Rapports PDF + Evidence Pack ZIP signé", "Vérifiable publiquement via /verify/{hash} — sans aucun outil tiers"],
                     ["Scope 3 fournisseurs via questionnaire public", "Liens partagés sans compte requis — réponses intégrées au bilan"],
                     ["Facteurs d'émission ADEME Base Empreinte® 2025", "502 facteurs versionnés, traçabilité par fact_id"],
@@ -803,9 +803,9 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                   color: "green", icon: (
                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
                   ),
-                  title: "Référentiel ESRS — datapoints prioritaires",
-                  desc: "10 standards référencés (E1-E5, S1-S4, G1), 127 datapoints prioritaires couverts (sous-ensemble outillé aligné sur la réduction d'environ 60 % des datapoints actée par l'Omnibus). Couverture Live / Beta / Planifié par standard — voir /couverture. Validator 30+ règles ; export iXBRL ESEF planifié.",
-                  highlights: ["127 datapoints prioritaires", "Validator 30+ règles", "iXBRL ESEF (planifié)"],
+                  title: "Couverture ESRS Set 2",
+                  desc: "10 standards ESRS (E1-E5, S1-S4, G1) avec 127 datapoints référencés, validator audit-grade 30+ règles et export iXBRL ESEF en beta.",
+                  highlights: ["127 datapoints Set 2", "Validator audit-grade", "iXBRL ESEF beta"],
                 },
               ].map((card, i) => {
                 const bgMap: Record<string,string> = { blue: "bg-blue-50", purple: "bg-purple-50", orange: "bg-orange-50", green: "bg-green-50" };
@@ -939,7 +939,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                   icon: "🏭",
                   context: "ETI industrielle (~800 salariés, 3 sites de production). Fournisseur de donneurs d'ordre soumis à la CSRD.",
                   challenge: "Collecter les émissions Scope 3 amont (achats matières premières, transport) et répondre aux questionnaires ESG de ses clients grands comptes.",
-                  fit: ["Import Excel des factures énergie", "Calcul Scope 3 fournisseurs", "Export iXBRL ESEF planifié pour pré-tagging auditeur"],
+                  fit: ["Import Excel des factures énergie", "Calcul Scope 3 fournisseurs", "Evidence Pack + iXBRL beta pour auditeur"],
                   tag: "Scénario illustratif",
                 },
                 {
@@ -947,7 +947,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                   icon: "🏢",
                   context: "PME de services (~120 salariés, siège unique). Reporting CSRD volontaire pour répondre aux appels d'offres publics.",
                   challenge: "Structurer un premier bilan carbone fiable sans expertise interne, avec un budget limité.",
-                  fit: ["Bilan carbone Scope 1 & 2 guidé", "Copilote IA sourcé sur le corpus ESRS", "Export PDF audit-grade + iXBRL ESEF planifié"],
+                  fit: ["Bilan carbone Scope 1 & 2 guidé", "Copilote IA pour les 10 standards ESRS", "Export PDF + Evidence Pack avec score audit"],
                   tag: "Scénario illustratif",
                 },
                 {
@@ -1054,7 +1054,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-black mb-1">490 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
                 <p className="text-neutral-500 text-sm mb-8">Pour PME en standard <strong>VSME</strong> volontaire ou préparation CSRD post-Omnibus</p>
                 <ul className="space-y-3 mb-8">
-                  {["Rapport VSME (modules Basic)", "Bilan GES Scopes 1 & 2", "Audit trail + Evidence Pack vérifiable", "1 utilisateur", "Support email (lun–ven, 9h–18h)"].map((f) => (
+                  {["Scope 1 & 2", "ESRS Set 2 référencé (10 standards)", "1 utilisateur", "Export PDF + Evidence Pack", "Support email (lun–ven, 9h–18h)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1075,7 +1075,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-black mb-1">1 290 €<span className="text-base font-medium text-neutral-400">/mois</span></div>
                 <p className="text-neutral-500 text-sm mb-8">Pour ETI fournisseurs de grands comptes soumis à la CSRD</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1, 2 & 3", "ESRS — validator 30+ règles · couverture par paliers (voir /couverture)", "5 utilisateurs", "Copilote IA avec citations ESRS sourcées", "Export PDF audit-grade · iXBRL ESEF (planifié) · audit trail SHA-256", "API REST (beta) + import Excel structuré · connecteurs ERP en roadmap", "Support email prioritaire (lun–ven)"].map((f) => (
+                  {["Scope 1, 2 & 3", "ESRS Set 2 + validator audit-grade", "5 utilisateurs", "Copilote IA avec citations ESRS sourcées", "Evidence Pack + iXBRL beta", "API REST + import Excel structuré", "Support email prioritaire (lun–ven)"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-700">
                       <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}
@@ -1093,7 +1093,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                 <div className="text-4xl font-extrabold text-white mb-1">À partir de 35&nbsp;k€<span className="text-base font-medium text-neutral-400">/an</span></div>
                 <p className="text-neutral-400 text-sm mb-8">Pour grands groupes multi-sites — fourchette indicative 35–120 k€/an selon périmètre, nombre de filiales et SLA.</p>
                 <ul className="space-y-3 mb-8">
-                  {["Scope 1, 2, 3 + CBAM", "ESRS — couverture étendue par paliers · iXBRL ESEF (planifié)", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "Validator 30+ règles + review datapoint par datapoint", "Multi-sites & filiales (planifié)", "SSO & RBAC (planifié)", "Onboarding accompagné"].map((f) => (
+                  {["Scope 1, 2, 3 + CBAM", "ESRS Set 2 + Evidence Pack audit-grade", "Utilisateurs illimités", "Copilote IA avec citations ESRS sourcées", "Validator 30+ règles + review datapoints", "Multi-sites & filiales", "SSO & RBAC", "Onboarding accompagné"].map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm text-neutral-300">
                       <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                       {f}

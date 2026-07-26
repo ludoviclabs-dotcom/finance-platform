@@ -178,3 +178,11 @@ class TestLookupByHashDb:
         meta = export_package.lookup_by_hash(pkg.package_hash)
         assert meta is not None
         assert meta["package_hash"] == pkg.package_hash
+
+    def test_lookup_after_build_accepts_manifest_hash(self):
+        with patch.object(export_package, "_fetch_audit_trail", return_value={"facts_events": [], "datapoint_reviews": []}), \
+             patch.object(export_package, "_fetch_snapshot", return_value={}):
+            pkg = export_package.build_package(company_id=1, company_name="Test DB Manifest")
+        meta = export_package.lookup_by_hash(pkg.manifest_hash)
+        assert meta is not None
+        assert meta["manifest_hash"] == pkg.manifest_hash

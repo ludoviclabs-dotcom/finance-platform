@@ -434,7 +434,7 @@
         "ESRS E3"
       ],
       "tag": "Eau",
-      "href": "/water",
+      "href": "/water/cockpit",
       "preuve": "apps/api/services/calculations/water_screening.py"
     },
     {

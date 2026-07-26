@@ -63,7 +63,7 @@ export const ASTERION_TOUR: TourStep[] = [
   {
     id: "eau-nature", index: 6, title: "Eau & nature",
     narration: "72 000 m³ prélevés. Le site siège est en stress hydrique élevé (confiance 0,81). Le risque et la confiance sont deux dimensions séparées.",
-    exploreHref: "/water", metric: ASTERION_METRICS.water, durationMs: 12000,
+    exploreHref: "/water/cockpit", metric: ASTERION_METRICS.water, durationMs: 12000,
   },
   {
     id: "iro", index: 7, title: "IRO — double matérialité",

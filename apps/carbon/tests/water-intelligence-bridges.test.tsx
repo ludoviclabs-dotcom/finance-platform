@@ -59,7 +59,7 @@ describe("miroir des ponts", () => {
   it("déclare tous les modules attendus par le MACRO-PROMPT D", () => {
     const targets = MODULE_BRIDGES.bridges.map((bridge) => bridge.target_path);
     for (const expected of [
-      "/water",
+      "/water/cockpit",
       "/sites-geo",
       "/resources/exposures",
       "/materials",

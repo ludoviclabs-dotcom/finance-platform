@@ -88,7 +88,7 @@
       "label": "Cockpit Eau & stress hydrique",
       "reads": "Activités eau, permis, zones de stress enregistrées, screening déterministe versionné, cibles et actions — risque et confiance restant deux colonnes distinctes.",
       "requires_authentication": true,
-      "target_path": "/water",
+      "target_path": "/water/cockpit",
       "water_signal": "stress structurel, sécheresse, eaux souterraines, qualité"
     }
   ]

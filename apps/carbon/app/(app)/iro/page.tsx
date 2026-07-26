@@ -10,7 +10,7 @@
  * domaine (eau, nature, CRMA) passe par `IroCandidateButton`.
  *
  * États loading / schema_not_ready / error / ready explicites — motif
- * `/water`, `/nature` (PR-08/PR-09).
+ * `/water/cockpit`, `/nature` (PR-08/PR-09).
  */
 
 import Link from "next/link";

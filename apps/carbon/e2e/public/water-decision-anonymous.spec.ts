@@ -15,7 +15,7 @@ import { expect, test } from "@playwright/test";
  * lequel n'a pas été exécuté.
  */
 
-const PROTECTED_ROUTES = ["/water/decision", "/water"];
+const PROTECTED_ROUTES = ["/water/decision", "/water/cockpit"];
 
 /** Aucun de ces marqueurs ne doit apparaître pour un visiteur anonyme. */
 const TENANT_MARKERS = ["company_id", "tenant_id", "decision-synthesis"];
@@ -24,7 +24,8 @@ test.describe("accès anonyme aux surfaces protégées", () => {
   for (const route of PROTECTED_ROUTES) {
     test(`refuse ou redirige ${route}`, async ({ page }) => {
       await page.goto(route);
-      // La garde du groupe `(app)` s'exécute côté client après hydratation.
+      // La garde partagée (`AuthenticatedBoundary`, montée par le shell
+      // hydrique) s'exécute côté client après hydratation.
       await page.waitForURL(/\/login/, { timeout: 15_000 });
 
       expect(page.url()).toContain("/login");
@@ -65,8 +66,25 @@ test.describe("accès anonyme aux surfaces protégées", () => {
   test("la page publique reste accessible sans authentification", async ({ page }) => {
     // Contre-épreuve : le refus ci-dessus vient bien de la garde, pas d'une
     // application inaccessible.
+    const response = await page.goto("/water");
+    expect(response?.status()).toBe(200);
+    expect(page.url()).toMatch(/\/water$/);
+  });
+
+  test("l’ancienne URL publique redirige vers /water au lieu de disparaître", async ({ page }) => {
+    /*
+      `/water-intelligence` était indexée, déclarée au sitemap et liée depuis
+      la navigation publique. La Phase A l'a remplacée par `/water` : la
+      redirection est ce qui empêche des liens réellement publiés de tomber en
+      404.
+
+      Le test suit la redirection au lieu d'asserter un code : Playwright ne
+      rend visible que la réponse finale, et c'est bien l'arrivée sur la
+      vitrine qui compte pour un visiteur.
+    */
     const response = await page.goto("/water-intelligence");
     expect(response?.status()).toBe(200);
-    expect(page.url()).toContain("/water-intelligence");
+    expect(page.url()).toMatch(/\/water$/);
+    await expect(page.locator("h1")).toHaveCount(1);
   });
 });

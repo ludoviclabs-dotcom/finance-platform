@@ -1,11 +1,15 @@
 /**
  * water-intelligence-public-shell.test.tsx — shell public Water Intelligence (P04).
  *
- * Vérifie les garanties structurelles de la route publique `/water-intelligence` :
- * elle existe, elle est rendue côté serveur, elle annonce explicitement son
- * statut de démonstration, elle ne présente aucun chiffre comme réel, elle
- * n'appelle aucune source externe, et elle n'altère pas le cockpit authentifié
- * `/water`.
+ * Vérifie les garanties structurelles de la route publique `/water` : elle
+ * existe, elle est rendue côté serveur, elle annonce explicitement son statut
+ * de démonstration, elle ne présente aucun chiffre comme réel, elle n'appelle
+ * aucune source externe, et elle n'altère pas le cockpit authentifié
+ * `/water/cockpit`.
+ *
+ * La page répondait sur `/water-intelligence` avant la Phase A. Le
+ * déplacement ne relâche aucune de ces garanties : ce sont les mêmes
+ * assertions, sur la même page, à sa nouvelle URL.
  *
  * Rendu par `renderToStaticMarkup` (pas de @testing-library dans ce dépôt) :
  * la page est un Server Component synchrone, sans hook ni état.
@@ -16,11 +20,11 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import WaterIntelligencePage, { metadata } from "@/app/water-intelligence/page";
+import WaterIntelligencePage, { metadata } from "@/app/water/page";
 
 const CARBON_ROOT = resolve(__dirname, "..");
-const PUBLIC_PAGE = resolve(CARBON_ROOT, "app/water-intelligence/page.tsx");
-const COCKPIT_PAGE = resolve(CARBON_ROOT, "app/(app)/water/page.tsx");
+const PUBLIC_PAGE = resolve(CARBON_ROOT, "app/water/page.tsx");
+const COCKPIT_PAGE = resolve(CARBON_ROOT, "app/water/(authenticated)/cockpit/page.tsx");
 const WI_COMPONENTS_DIR = resolve(CARBON_ROOT, "components/water-intelligence");
 
 const read = (path: string) => readFileSync(path, "utf-8");
@@ -42,22 +46,30 @@ function stripCommentsAndStrings(source: string): string {
 const markup = renderToStaticMarkup(<WaterIntelligencePage />);
 const pageSource = read(PUBLIC_PAGE);
 
-describe("route publique /water-intelligence", () => {
+describe("route publique /water", () => {
   it("existe et rend un document non vide", () => {
     expect(markup.length).toBeGreaterThan(1000);
     expect(markup).toContain("Water Intelligence");
   });
 
-  it("est hors du groupe authentifié (app)", () => {
-    // Le chemin du fichier détermine l'URL : app/water-intelligence/ est
-    // public, app/(app)/... est protégé par la garde du layout de groupe.
-    expect(PUBLIC_PAGE).not.toContain(`${"("}app${")"}`);
+  it("est hors de tout groupe authentifié", () => {
+    /*
+      Le chemin du fichier détermine l'URL ET la garde. `app/water/page.tsx`
+      est le VOISIN du groupe `app/water/(authenticated)`, pas son enfant : il
+      ne traverse donc ni son layout ni sa garde. Un jour où quelqu'un
+      déplacerait ce fichier d'un cran, dans le groupe, la page publique
+      deviendrait silencieusement authentifiée — c'est ce que ce test refuse.
+    */
+    const path = PUBLIC_PAGE.replace(/\\/g, "/");
+    expect(path).toContain("app/water/page.tsx");
+    expect(path).not.toContain(`${"("}app${")"}`);
+    expect(path).not.toContain(`${"("}authenticated${")"}`);
   });
 
   it("expose une metadata complète et honnête", () => {
     expect(metadata.title).toBeTruthy();
     expect(metadata.description).toBeTruthy();
-    expect(metadata.alternates?.canonical).toBe("/water-intelligence");
+    expect(metadata.alternates?.canonical).toBe("/water");
     expect(metadata.openGraph).toBeTruthy();
     // La metadata ne doit rien promettre que la page ne livre pas.
     // Wave E : la page ne se décrit plus comme « en construction » — elle
@@ -125,9 +137,19 @@ describe("ancres et navigation", () => {
     }
   });
 
-  it("lie explicitement vers le cockpit authentifié /water", () => {
-    expect(markup).toContain('href="/water"');
+  it("lie explicitement vers le cockpit authentifié /water/cockpit", () => {
+    expect(markup).toContain('href="/water/cockpit"');
     expect(markup).toContain("authentifié");
+  });
+
+  it("ne se lie jamais à elle-même en croyant viser le cockpit", () => {
+    /*
+      `/water` est désormais CETTE page. Un lien nu vers `/water` présenté
+      comme « le cockpit » renverrait le lecteur sur la vitrine qu'il est déjà
+      en train de lire, sans erreur visible — exactement le genre de lien mort
+      qu'un déplacement d'URL produit.
+    */
+    expect(markup).not.toMatch(/href="\/water"/);
   });
 });
 
@@ -180,7 +202,7 @@ describe("aucun appel réseau ni bailout CSR", () => {
   });
 
   it("ne référence aucune URL externe dans le markup rendu", () => {
-    // Seules des URL internes (/water, /materials, /, #ancre) sont permises.
+    // Seules des URL internes (/water/cockpit, /materials, /, #ancre) sont permises.
     const externalHrefs = [...markup.matchAll(/href="(https?:)?\/\/[^"]*"/g)];
     expect(externalHrefs).toEqual([]);
     const externalSrcs = [...markup.matchAll(/src="(https?:)?\/\/[^"]*"/g)];
@@ -223,8 +245,8 @@ describe("la fixture locale ne diverge pas du manifest canonique", () => {
   });
 });
 
-describe("le cockpit authentifié /water reste intact", () => {
-  it("conserve sa page dans le groupe (app)", () => {
+describe("le cockpit authentifié /water/cockpit reste intact", () => {
+  it("conserve sa page dans le groupe authentifié du domaine hydrique", () => {
     const cockpit = read(COCKPIT_PAGE);
     expect(cockpit.length).toBeGreaterThan(0);
     // Marqueurs historiques du cockpit — leur disparition signalerait un

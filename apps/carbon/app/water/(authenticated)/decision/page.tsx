@@ -1,19 +1,22 @@
 "use client";
 
 /**
- * app/(app)/water/decision/page.tsx — cockpit décisionnel hydrique
- * (Wave E-Interface, commit F2).
+ * app/water/(authenticated)/decision/page.tsx — cockpit décisionnel hydrique
+ * (Wave E-Interface, commit F2 ; sorti du dashboard général en Phase A).
  *
  * ## Où vit cette page, et pourquoi
  *
- * Dans le groupe `(app)`, donc **derrière la garde d'authentification déjà en
- * place** (`app/(app)/layout.tsx`) : aucune seconde logique d'authentification
- * n'est écrite ici. Une garde locale supplémentaire divergerait tôt ou tard de
- * celle du groupe, et c'est la divergence qui produit les pages accessibles par
- * accident.
+ * Dans le groupe `(authenticated)` du domaine hydrique, donc **derrière la
+ * garde d'authentification partagée** (`AuthenticatedBoundary`, montée par
+ * `app/water/(authenticated)/layout.tsx`) : aucune seconde logique
+ * d'authentification n'est écrite ici. Une garde locale supplémentaire
+ * divergerait tôt ou tard de celle qui fait foi, et c'est la divergence qui
+ * produit les pages accessibles par accident. La page a changé de shell, pas
+ * de règle d'accès : la garde est la MÊME instance que celle du groupe
+ * `(app)`, extraite pour être montée des deux côtés.
  *
- * L'URL est `/water/decision`. Elle est distincte de `/water-intelligence`
- * (surface publique, hors groupe) et de `/water` (cockpit opérationnel) —
+ * L'URL reste `/water/decision`. Elle est distincte de `/water` (vitrine
+ * publique, hors groupe) et de `/water/cockpit` (cockpit opérationnel) —
  * aucune des trois n'en masque une autre.
  *
  * ## Ce que le client n'envoie jamais
@@ -87,10 +90,11 @@ export default function WaterDecisionPage() {
     <div className="mx-auto max-w-6xl p-4 sm:p-6" data-testid="wd-page">
       {/* ------------------------------------------------------------- Hero */}
       {/*
-        `h2` et non `h1` : l'en-tête du groupe `(app)` rend déjà un `h1` portant
-        le titre de la page (`components/layout/header.tsx`). Un second `h1`
-        dans le corps annoncerait deux titres de premier niveau au lecteur
-        d'écran, pour un seul document — et ici, avec le même texte.
+        `h2` et non `h1` : le shell hydrique rend déjà un `h1` portant le titre
+        de la page (`app/water/(authenticated)/water-shell.tsx`, qui a repris ce
+        rôle de l'en-tête du groupe `(app)`). Un second `h1` dans le corps
+        annoncerait deux titres de premier niveau au lecteur d'écran, pour un
+        seul document — et ici, avec le même texte.
       */}
       <header className="mb-6">
         <h2 className="text-2xl font-bold text-[var(--color-foreground)]">
@@ -115,7 +119,7 @@ export default function WaterDecisionPage() {
         */}
         <p className="mt-3 text-sm">
           <Link
-            href="/water"
+            href="/water/cockpit"
             className="text-[var(--color-foreground)] underline underline-offset-2"
             data-testid="wd-back-to-water"
           >

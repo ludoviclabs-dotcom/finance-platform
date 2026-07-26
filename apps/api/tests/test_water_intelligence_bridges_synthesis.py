@@ -109,7 +109,11 @@ class TestBridgeCoverage:
     def test_expected_targets_are_declared(self) -> None:
         targets = {bridge.target_path for bridge in CURRENT_BRIDGES}
         for expected in (
-            "/water",
+            # Le cockpit hydrique répondait sur `/water` ; cette URL sert
+            # désormais la vitrine PUBLIQUE du domaine. Un pont
+            # `public_to_cockpit` qui y pointerait encore renverrait le lecteur
+            # sur la page qu'il vient de quitter, sans erreur visible.
+            "/water/cockpit",
             "/sites-geo",
             "/resources/exposures",
             "/materials",

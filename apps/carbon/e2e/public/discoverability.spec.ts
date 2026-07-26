@@ -26,15 +26,15 @@ test.describe("découvrabilité depuis la page d’accueil", () => {
     await expect(section.getByRole("heading", { level: 2 })).toContainText(/environnementale/i);
   });
 
-  test("la carte Eau mène à /water-intelligence", async ({ page }) => {
+  test("la carte Eau mène à /water", async ({ page }) => {
     await page.goto("/");
     const cta = page.locator('[data-testid="env-card-water-cta"]');
     await expect(cta).toBeVisible();
-    await expect(cta).toHaveAttribute("href", "/water-intelligence");
+    await expect(cta).toHaveAttribute("href", "/water");
     await expect(cta).toContainText("Explorer Water Intelligence");
 
     await cta.click();
-    await page.waitForURL(/\/water-intelligence/);
+    await page.waitForURL(/\/water$/);
     await expect(page.getByRole("heading", { level: 1, name: "Water Intelligence" })).toBeVisible();
   });
 
@@ -75,7 +75,7 @@ test.describe("découvrabilité depuis la page d’accueil", () => {
     await expect(priv).toContainText("Connexion requise");
     await expect(page.locator('[data-testid="env-water-cockpit-link"]')).toHaveAttribute(
       "href",
-      "/water",
+      "/water/cockpit",
     );
     await expect(page.locator('[data-testid="env-water-decision-link"]')).toHaveAttribute(
       "href",
@@ -109,7 +109,7 @@ test.describe("menu Ressources", () => {
       await expect(trigger).toHaveAttribute("aria-expanded", "true");
       const panel = page.locator('[data-testid="nav-resources-panel"]');
       await expect(panel.locator('a[href="/materials"]')).toBeVisible();
-      await expect(panel.locator('a[href="/water-intelligence"]')).toBeVisible();
+      await expect(panel.locator('a[href="/water"]')).toBeVisible();
 
       await page.keyboard.press("Escape");
       await expect(panel).toHaveCount(0);
@@ -122,7 +122,7 @@ test.describe("menu Ressources", () => {
       const group = page.locator('[data-testid="nav-resources-mobile"]');
       await expect(group).toBeVisible();
       await expect(group.locator('a[href="/materials"]')).toBeVisible();
-      await expect(group.locator('a[href="/water-intelligence"]')).toBeVisible();
+      await expect(group.locator('a[href="/water"]')).toBeVisible();
     }
   });
 
@@ -140,7 +140,7 @@ test.describe("menu Ressources", () => {
     await page.keyboard.press("ArrowDown");
     await expect(page.locator('[data-testid="nav-resources-item-1"]')).toBeFocused();
     await page.keyboard.press("Enter");
-    await page.waitForURL(/\/water-intelligence/);
+    await page.waitForURL(/\/water$/);
   });
 
   test("ne laisse aucun lien tabulable tant qu’il est fermé", async ({ page }) => {
@@ -154,7 +154,7 @@ test.describe("autres points d’entrée", () => {
   test("le pied de page mène aux deux modules", async ({ page }) => {
     await page.goto("/");
     const footer = page.locator("footer");
-    await expect(footer.locator('a[href="/water-intelligence"]')).toHaveCount(1);
+    await expect(footer.locator('a[href="/water"]')).toHaveCount(1);
     await expect(footer.locator('a[href="/materials"]')).toHaveCount(1);
   });
 
@@ -162,11 +162,14 @@ test.describe("autres points d’entrée", () => {
     const response = await page.goto("/sitemap.xml");
     expect(response?.status()).toBe(200);
     const xml = await page.content();
-    expect(xml).toContain("/water-intelligence");
+    expect(xml).toMatch(/<loc>[^<]*\/water<\/loc>/);
     expect(xml).toContain("/materials");
     // Les cockpits authentifiés n'ont rien à faire dans un plan de site public.
-    expect(xml).not.toMatch(/<loc>[^<]*\/water<\/loc>/);
+    expect(xml).not.toContain("/water/cockpit");
     expect(xml).not.toContain("/water/decision");
+    // L'ancienne URL redirige : la déclarer en plus enverrait indexer une URL
+    // dont on affirme par ailleurs qu'elle n'est plus la bonne.
+    expect(xml).not.toContain("/water-intelligence");
   });
 
   test("/materials répond toujours 200", async ({ page }) => {

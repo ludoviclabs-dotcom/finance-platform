@@ -4,12 +4,12 @@ Intelligence et les modules CarbonCo (P14, Wave D).
 
 ## Le problème que ce module rend impossible
 
-Water Intelligence a deux faces : une surface **publique** (`/water-intelligence`,
-aucune donnée d'entreprise) et un **cockpit authentifié** (`/water`, données
+Water Intelligence a deux faces : une surface **publique** (`/water`, aucune
+donnée d'entreprise) et un **cockpit authentifié** (`/water/cockpit`, données
 tenant). Relier les deux est utile — un lecteur du contexte public doit pouvoir
 rejoindre son propre suivi. Mais un lien mal construit suffit à faire fuiter du
 tenant : il suffit qu'une page publique compose une URL du type
-`/water?site=12345` pour que l'identifiant d'un site d'entreprise voyage dans
+`/water/cockpit?site=12345` pour que l'identifiant d'un site d'entreprise voyage
 une surface publique, dans l'historique du navigateur et dans les journaux.
 
 Ce module déclare donc les ponts **en données**, avec des invariants vérifiés à
@@ -170,7 +170,7 @@ class ModuleBridgeRegistry:
 CURRENT_BRIDGES: tuple[ModuleBridge, ...] = (
     ModuleBridge(
         bridge_id="water_cockpit",
-        target_path="/water",
+        target_path="/water/cockpit",
         label="Cockpit Eau & stress hydrique",
         water_signal="stress structurel, sécheresse, eaux souterraines, qualité",
         direction="public_to_cockpit",

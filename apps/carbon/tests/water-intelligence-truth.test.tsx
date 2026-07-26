@@ -27,7 +27,7 @@ import { resolve } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import WaterIntelligencePage, { metadata } from "@/app/water-intelligence/page";
+import WaterIntelligencePage, { metadata } from "@/app/water/page";
 import {
   CANONICAL_EMPTY_SNAPSHOT,
   SOURCE_STATUS,
@@ -37,7 +37,7 @@ import {
 const CARBON_ROOT = resolve(__dirname, "..");
 const REPO_ROOT = resolve(CARBON_ROOT, "../..");
 const PAGE_SOURCE = readFileSync(
-  resolve(CARBON_ROOT, "app/water-intelligence/page.tsx"),
+  resolve(CARBON_ROOT, "app/water/page.tsx"),
   "utf-8",
 );
 
@@ -248,7 +248,7 @@ describe("10 — metadata et footer cohérents avec l'état réel", () => {
   });
 
   it("renvoie toujours vers le cockpit authentifié", () => {
-    expect(markup).toContain('href="/water"');
+    expect(markup).toContain('href="/water/cockpit"');
   });
 });
 

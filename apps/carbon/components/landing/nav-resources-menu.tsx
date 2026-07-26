@@ -61,7 +61,7 @@ export const RESOURCE_MENU_ENTRIES: readonly ResourceMenuEntry[] = [
     description: "Dépendances, criticité et chaînes d’approvisionnement",
   },
   {
-    href: "/water-intelligence",
+    href: "/water",
     label: "Eau & risques hydriques",
     description: "Stress, prélèvements, qualité, réglementation et résilience",
   },

@@ -11,9 +11,9 @@
  * ## Pourquoi les liens de la page publique viennent d'ici
  *
  * Un lien écrit à la main dans le JSX peut, un jour, recevoir un paramètre :
- * `/water?site=12345`. Ce jour-là, un identifiant de site d'entreprise voyage
- * dans une surface publique, dans l'historique du navigateur et dans les
- * journaux d'accès. Le registre backend refuse à la construction toute cible
+ * `/water/cockpit?site=12345`. Ce jour-là, un identifiant de site d'entreprise
+ * voyage dans une surface publique, dans l'historique du navigateur et dans
+ * les journaux d'accès. Le registre backend refuse à la construction toute cible
  * portant un paramètre ou un nom de champ tenant ; en tirant les liens d'ici,
  * la page publique hérite de ce refus au lieu de le réimplémenter.
  *

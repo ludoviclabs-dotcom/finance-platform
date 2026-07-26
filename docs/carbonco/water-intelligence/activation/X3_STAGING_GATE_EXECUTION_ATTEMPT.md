@@ -164,7 +164,84 @@ sans révéler l'URL :
 Si la première ligne rend `False`, l'écriture n'a pas eu lieu : inutile de
 redémarrer.
 
-## 10. Ce que cette tentative n'a pas fait
+---
+
+# Troisième tentative — staging CI éphémère, 2026-07-26
+
+**Verdict : `workflow_dispatch_requires_default_branch`.**
+**Appels Hub'Eau : 0. Écritures : 0. Variable Carbon&Co touchée : 0.**
+
+La piste du staging persistant local est abandonnée. L'outillage complet de la
+répétition sur PostgreSQL éphémère de CI est **livré et poussé** ; il n'a pas
+pu être **déclenché**.
+
+## 11. Ce qui est prêt
+
+| Livrable | État |
+|---|---|
+| Audit Vercel non destructif | livré (`X3_VERCEL_ENV_AUDIT.md`) |
+| Workflow `water-x3-staging-rehearsal.yml` | livré, `workflow_dispatch` seul, `contents: read` |
+| `staging_rehearsal.py` (`gate`/`migrate`/`seed-sources`/`verify`/`snapshot`) | livré, testé, derrière la porte d'environnement |
+| Draft PR #167 | ouverte |
+
+## 12. Le blocage
+
+GitHub **n'enregistre un workflow `workflow_dispatch` que si son fichier
+existe sur la branche par défaut**. Tant que
+`.github/workflows/water-x3-staging-rehearsal.yml` n'est pas sur `master`, le
+workflow n'existe pas pour l'API :
+
+```
+gh workflow run water-x3-staging-rehearsal.yml --ref ops/water-staging-rehearsal-execution
+→ HTTP 404: workflow not found on the default branch
+
+POST /actions/workflows/water-x3-staging-rehearsal.yml/dispatches  (ref explicite)
+→ HTTP 404: Not Found
+```
+
+`gh api /actions/workflows` ne retourne aucune entrée correspondante : le
+workflow n'est pas enregistré, donc pas déclenchable, quelle que soit la `ref`.
+
+## 13. Pourquoi rien n'a été contourné
+
+Deux contournements existent, et **les deux sont explicitement interdits** par
+la consigne :
+
+- **ajouter un déclencheur `push` ou `pull_request`** — la consigne §2 les
+  proscrit nommément, et pour une bonne raison : ce workflow appelle des
+  services publics officiels et écrit dans une base. Il ne doit jamais partir
+  tout seul ;
+- **merger** — la consigne §13 dit « ne merge pas ».
+
+Aucun des deux n'a été fait. La décision appartient à l'exploitation.
+
+## 14. Comment débloquer
+
+Une seule action est nécessaire, et elle est réversible :
+
+**faire arriver le fichier de workflow sur `master`.** Deux voies, au choix :
+
+1. **PR dédiée minimale** (recommandé) — une PR ne portant que
+   `.github/workflows/water-x3-staging-rehearsal.yml`, mergée sur `master`.
+   C'est la pratique habituelle pour tout workflow manuel : le fichier doit
+   être sur la branche par défaut pour devenir déclenchable. La PR #167 reste
+   ouverte et non mergée ;
+2. **merger #167** — écarté par la consigne en l'état.
+
+Une fois le fichier sur `master`, la répétition se lance sur **cette branche**,
+sans rien merger d'autre :
+
+```
+gh workflow run water-x3-staging-rehearsal.yml --ref ops/water-staging-rehearsal-execution
+```
+
+Le workflow monte alors son propre PostgreSQL éphémère, applique les
+migrations jusqu'à 043, franchit le gate, déclare les quatre sources, acquiert
+les quatre artefacts réels, exécute dry-runs puis ingestions, prouve
+l'idempotence au rejeu, construit le manifeste candidat privé, et verse le
+tout en artefacts GitHub Actions.
+
+## 15. Ce que cette tentative n'a pas fait
 
 - aucune écriture, aucune lecture de base ;
 - aucun appel réseau ;

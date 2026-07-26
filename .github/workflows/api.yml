@@ -145,6 +145,14 @@ jobs:
       # idempotente jusqu'à 040, aucun reset) — ajoutés APRÈS
       # `test_nature_assess_prepare.py` et AVANT les modules
       # `*_schema_not_ready.py`, qui doivent rester groupés en tout dernier.
+      # X2B (graveur Evidence Kernel Eau) : `test_water_staging_writer.py` est
+      # un test DB-gated NORMAL (borne 029, montage idempotent, aucun reset). Il
+      # écrit des lignes GLOBALES (company_id IS NULL) et les nettoie lui-même
+      # avant ET après chaque test — placé donc avant les `*_schema_not_ready.py`,
+      # qui restent groupés en tout dernier. Sans cette ligne, la moitié
+      # transactionnelle du graveur ne tournerait JAMAIS (elle est skippée sans
+      # DATABASE_URL), et un graveur non exercé contre un vrai PostgreSQL n'est
+      # pas un graveur prouvé — cf. le défaut anti-IDOR de la Wave E.
       # `test_water_schema_not_ready.py` se retrouve de ce fait après
       # `test_nature_ledger.py`/`test_nature_assess_prepare.py` plutôt
       # qu'immédiatement après `test_water_screening_api.py` comme avant
@@ -199,6 +207,7 @@ jobs:
           tests/test_iro_actions.py
           tests/test_ai_review_ledger.py
           tests/test_demo_seed.py
+          tests/test_water_staging_writer.py
           tests/test_water_schema_not_ready.py
           tests/test_nature_schema_not_ready.py
 

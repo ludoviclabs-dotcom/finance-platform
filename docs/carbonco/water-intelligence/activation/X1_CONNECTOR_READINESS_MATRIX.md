@@ -11,6 +11,17 @@
 > résultats live après correction :
 > `docs/carbonco/water-intelligence/activation/X2A_SCHEMA_REMEDIATION_HANDOFF.md`.
 
+> **Mise à jour X3 (2026-07-26)** — répétition staging éphémère réelle,
+> graveur compris. **`HUBEAU_ADES`, `HUBEAU_QUALITE_SURFACE` et
+> `HUBEAU_BNPE_PRELEVEMENTS` ont ingéré et rejoué avec succès** (release
+> `validated`, idempotence prouvée). **`HUBEAU_HYDROMETRIE` reste
+> `ready_for_staging` en validation, mais est EXCLUE du graveur** :
+> `observations_tr` sert plusieurs lectures par jour, incompatibles avec le
+> grain jour du contrat d'identité partagé — statut
+> `subdaily_identity_collision`, décision humaine de différer plutôt que
+> deviner une résolution. Détail complet :
+> `docs/carbonco/water-intelligence/activation/X3_EPHEMERAL_STAGING_REHEARSAL.md`.
+
 > Le pack l'exige explicitement : « Ne pas conclure "live" sur la seule base
 > des fixtures ». Chaque colonne ci-dessous a donc été renseignée en ouvrant
 > le module concerné. La colonne **acquisition réelle** distingue ce qui existe
@@ -197,7 +208,7 @@ que la validation live a **révélés**, pas ceux qu'on anticipait.
 | 1. Un Fetcher opérateur réel et borné | ✅ `scripts/water_intelligence/fetcher.py` |
 | 2. Des commandes reproductibles | ✅ `validate_eea`, `validate_hubeau`, `discover_hubeau`, `verify_excluded_sources` |
 | 3. Des exécutions live documentées | ✅ 7 rapports dans `activation/reports/` |
-| 4. Un graveur Evidence Kernel Eau | ❌ X2 |
-| 5. Des releases staging | ❌ X2 |
+| 4. Un graveur Evidence Kernel Eau | ✅ X2B (`services/water/staging_writer.py`) |
+| 5. Des releases staging | ✅ X3 — 3/4 sources, staging **éphémère** (`HUBEAU_HYDROMETRIE` différée) |
 | 6. Des décisions humaines signées | ❌ X4 |
 | 7. Un snapshot public des sources approuvées | ❌ X4 |

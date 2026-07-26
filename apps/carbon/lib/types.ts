@@ -31,6 +31,8 @@ export type Page =
   | "diff"
   | "securite"
   | "resources"
+  | "water"
+  | "water-decision"
   | "demo-studio"
   | "demo-resources";
 

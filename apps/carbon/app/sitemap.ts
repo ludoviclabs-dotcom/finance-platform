@@ -12,6 +12,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: baseUrl, changeFrequency: "weekly", priority: 1.0 },
     { url: `${baseUrl}/produit`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${baseUrl}/proof`, changeFrequency: "weekly", priority: 0.85 },
+    /*
+      Les deux surfaces publiques thématiques manquaient au sitemap : elles
+      existaient, étaient indexables, et n'étaient déclarées nulle part.
+
+      `/water` et `/water/decision` n'y figurent PAS, et ne doivent pas y
+      figurer : ce sont des cockpits authentifiés, dont l'indexation n'aurait
+      aucun sens et dont l'URL n'a rien à faire dans un plan de site public.
+    */
+    { url: `${baseUrl}/materials`, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${baseUrl}/water-intelligence`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/integrations`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${baseUrl}/blog`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/aide`, changeFrequency: "monthly", priority: 0.8 },

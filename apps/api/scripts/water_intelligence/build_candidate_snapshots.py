@@ -117,7 +117,38 @@ def verify_nothing_is_approved() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _acquisition_argv(scope: SourceScope, *, release: str, artifacts: Path, reports: Path) -> list[str]:
+def _scope_paths(
+    candidate_key: str, source_code: str, *, artifacts: Path, reports: Path
+) -> tuple[Path, Path]:
+    """Répertoire d'artefacts et rapport d'UNE source DANS UN candidat.
+
+    Les deux sont indexés sur le couple (candidat, source), jamais sur la seule
+    source : `HUBEAU_ADES` figure dans les TROIS candidats, avec une
+    `release_key` différente à chaque fois. Des chemins indexés sur la seule
+    source feraient que `--candidate all` écrase les artefacts et le rapport de
+    A par ceux de B, puis par ceux de C — et l'ingestion de A recevrait le
+    rapport de C. `verify_report()` rejetterait alors la `release_key`
+    discordante, après que les trois acquisitions réseau ont déjà été
+    consommées.
+
+    Un répertoire par couple supprime aussi le risque de pages RÉSIDUELLES :
+    une acquisition plus courte ne laisse pas derrière elle les pages d'une
+    acquisition précédente plus longue.
+    """
+    return (
+        artifacts / candidate_key / source_code,
+        reports / f"acq_{candidate_key}_{source_code}.md",
+    )
+
+
+def _acquisition_argv(
+    scope: SourceScope,
+    *,
+    candidate_key: str,
+    release: str,
+    artifacts: Path,
+    reports: Path,
+) -> list[str]:
     """Invocation `validate_hubeau` d'UN périmètre.
 
     Composée depuis `candidate_scopes`, jamais recopiée dans le workflow : une
@@ -125,6 +156,9 @@ def _acquisition_argv(scope: SourceScope, *, release: str, artifacts: Path, repo
     modification, et c'est exactement ce qui rend un périmètre publié différent
     du périmètre approuvé.
     """
+    artifact_dir, report = _scope_paths(
+        candidate_key, scope.source_code, artifacts=artifacts, reports=reports
+    )
     argv = [
         sys.executable, "-m", "scripts.water_intelligence.validate_hubeau",
         "--source", scope.family,
@@ -136,8 +170,8 @@ def _acquisition_argv(scope: SourceScope, *, release: str, artifacts: Path, repo
         "--max-pages", str(scope.max_pages),
         "--max-bytes", "2000000",
         "--page-size", str(scope.page_size),
-        "--report", str(reports / f"acq_{scope.source_code}.md"),
-        "--artifact-dir", str(artifacts / scope.source_code),
+        "--report", str(report),
+        "--artifact-dir", str(artifact_dir),
     ]
     for code in scope.parameter_codes:
         argv += ["--parameter-code", code]
@@ -146,14 +180,17 @@ def _acquisition_argv(scope: SourceScope, *, release: str, artifacts: Path, repo
     return argv
 
 
-def _read_acquisition(artifacts: Path, source_code: str) -> dict[str, Any]:
-    """Relit l'artefact d'acquisition — checksum, comptes, pagination."""
-    candidates = sorted((artifacts / source_code).glob("*.json"))
-    if not candidates:
+def _read_acquisition(
+    artifacts: Path, candidate_key: str, source_code: str
+) -> dict[str, Any]:
+    """Relit l'artefact d'acquisition d'UN couple (candidat, source)."""
+    directory = artifacts / candidate_key / source_code
+    found = sorted(directory.glob("*.json"))
+    if not found:
         raise CandidateBuildError(
-            f"{source_code} : aucun artefact d'acquisition dans {artifacts / source_code}."
+            f"{candidate_key}/{source_code} : aucun artefact d'acquisition dans {directory}."
         )
-    return json.loads(candidates[-1].read_text(encoding="utf-8"))
+    return json.loads(found[-1].read_text(encoding="utf-8"))
 
 
 def _assert_exhaustive(scope: SourceScope, acquisition: dict[str, Any]) -> dict[str, Any]:
@@ -194,7 +231,13 @@ def command_acquire(args: argparse.Namespace) -> int:
     for candidate in _selected(args.candidate):
         for scope in candidate.scopes:
             release = f"{scope.source_code.lower()}-{candidate.key}-x4b-prep"
-            argv = _acquisition_argv(scope, release=release, artifacts=artifacts, reports=reports)
+            argv = _acquisition_argv(
+                scope,
+                candidate_key=candidate.key,
+                release=release,
+                artifacts=artifacts,
+                reports=reports,
+            )
             print(f"→ {scope.source_code} ({candidate.key})", flush=True)
             result = subprocess.run(argv, check=False)
             if result.returncode != 0:
@@ -202,7 +245,7 @@ def command_acquire(args: argparse.Namespace) -> int:
                     f"{scope.source_code} : acquisition en échec (code {result.returncode}). "
                     "Un verdict dégradé se corrige, il ne se contourne pas."
                 )
-            acquisition = _read_acquisition(artifacts, scope.source_code)
+            acquisition = _read_acquisition(artifacts, candidate.key, scope.source_code)
             summary["scopes"].append(
                 {
                     "candidate": candidate.key,
@@ -231,6 +274,7 @@ def command_acquire(args: argparse.Namespace) -> int:
 def _ingestion_argv(
     scope: SourceScope,
     *,
+    candidate_key: str,
     release: str,
     expect_database: str,
     artifacts: Path,
@@ -249,12 +293,15 @@ def _ingestion_argv(
     composition au parser du graveur : si l'un des deux bouge, la CI casse
     avant le run, pas pendant.
     """
+    artifact_dir, report = _scope_paths(
+        candidate_key, scope.source_code, artifacts=artifacts, reports=reports
+    )
     return [
         sys.executable, "-m", "scripts.water_intelligence.ingest_release",
         "--source-code", scope.source_code,
         "--release", release,
-        "--artifact", str(artifacts / scope.source_code),
-        "--report", str(reports / f"acq_{scope.source_code}.md"),
+        "--artifact", str(artifact_dir),
+        "--report", str(report),
         "--environment", "staging",
         "--expect-database", expect_database,
         # Staging JETABLE : les releases ne survivent pas au job. Le déclarer
@@ -275,6 +322,7 @@ def command_ingest(args: argparse.Namespace) -> int:
             release = f"{scope.source_code.lower()}-{candidate.key}-x4b-prep"
             base = _ingestion_argv(
                 scope,
+                candidate_key=candidate.key,
                 release=release,
                 expect_database=args.expect_database,
                 artifacts=artifacts,
@@ -449,7 +497,12 @@ def command_diff_ades(args: argparse.Namespace) -> int:
       remonte au signataire.
     """
     artifacts, reports = Path(args.artifact_dir), Path(args.report_dir)
-    acquisition = _read_acquisition(artifacts, "HUBEAU_ADES")
+    # Comparé sur `x3_technical_sample`, la reproduction STRICTE des bornes X3 :
+    # c'est la seule comparaison apples-to-apples avec le checksum X3. Lire un
+    # autre candidat opposerait un payload acquis sur une autre fenêtre à une
+    # référence qui ne la décrit pas — un écart alors « constaté » ne dirait
+    # rien de la source.
+    acquisition = _read_acquisition(artifacts, "x3_technical_sample", "HUBEAU_ADES")
     digest = acquisition.get("payload_sha256")
     received_bytes = int(acquisition.get("bytes") or 0)
 

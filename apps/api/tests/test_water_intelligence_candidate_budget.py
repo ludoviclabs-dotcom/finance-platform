@@ -252,6 +252,7 @@ class TestOperatorInvocationsMatchTheRealParsers:
 
         argv = bcs._acquisition_argv(
             self._scope(),
+            candidate_key="balanced_pilot",
             release="r-test",
             artifacts=Path("/tmp/a"),
             reports=Path("/tmp/r"),
@@ -266,6 +267,7 @@ class TestOperatorInvocationsMatchTheRealParsers:
         scope = self._scope()
         argv = bcs._ingestion_argv(
             scope,
+            candidate_key="balanced_pilot",
             release="r-test",
             expect_database="carbonco_water_staging",
             artifacts=Path("/tmp/a"),
@@ -288,9 +290,77 @@ class TestOperatorInvocationsMatchTheRealParsers:
             for scope in candidate.scopes:
                 argv = bcs._ingestion_argv(
                     scope,
+                    candidate_key=candidate.key,
                     release=f"{scope.source_code.lower()}-{candidate.key}",
                     expect_database="carbonco_water_staging",
                     artifacts=Path("/tmp/a"),
                     reports=Path("/tmp/r"),
                 )
                 build_parser().parse_args(argv[3:])
+
+
+class TestCandidatesNeverShareAcquisitionPaths:
+    """`--candidate all` ne doit jamais faire écraser un candidat par un autre.
+
+    Défaut trouvé en revue : les chemins d'artefacts et de rapport étaient
+    indexés sur la seule `source_code`, alors que `HUBEAU_ADES` figure dans les
+    TROIS candidats avec une `release_key` différente. A était écrasé par B,
+    puis par C ; l'ingestion de A recevait le rapport de C, et `verify_report()`
+    rejetait la `release_key` discordante — après que les trois acquisitions
+    réseau avaient déjà été consommées.
+    """
+
+    def _pairs(self) -> list[tuple[str, str]]:
+        return [
+            (candidate.key, scope.source_code)
+            for candidate in cs.CANDIDATES
+            for scope in candidate.scopes
+        ]
+
+    def test_ades_really_appears_in_all_three_candidates(self) -> None:
+        """La prémisse du défaut — si elle tombe, ces tests perdent leur sens."""
+        carrying = [c.key for c in cs.CANDIDATES if "HUBEAU_ADES" in c.source_codes]
+        assert len(carrying) == 3
+
+    def test_every_pair_gets_its_own_artifact_dir_and_report(self) -> None:
+        seen: dict[tuple[Path, Path], tuple[str, str]] = {}
+        for candidate_key, source_code in self._pairs():
+            paths = bcs._scope_paths(
+                candidate_key, source_code, artifacts=Path("/tmp/a"), reports=Path("/tmp/r")
+            )
+            assert paths not in seen, (
+                f"{candidate_key}/{source_code} partage ses chemins avec "
+                f"{seen[paths]} — un candidat en écraserait un autre."
+            )
+            seen[paths] = (candidate_key, source_code)
+        assert len(seen) == len(self._pairs())
+
+    def test_acquisition_and_ingestion_agree_on_the_same_paths(self) -> None:
+        """Le rapport écrit par l'acquisition doit être celui que l'ingestion lit.
+
+        C'est la discordance exacte que la revue a trouvée : deux compositions
+        indépendantes qui pouvaient diverger sans que rien ne le signale.
+        """
+        for candidate in cs.CANDIDATES:
+            for scope in candidate.scopes:
+                release = f"{scope.source_code.lower()}-{candidate.key}-x4b-prep"
+                acq = bcs._acquisition_argv(
+                    scope, candidate_key=candidate.key, release=release,
+                    artifacts=Path("/tmp/a"), reports=Path("/tmp/r"),
+                )
+                ing = bcs._ingestion_argv(
+                    scope, candidate_key=candidate.key, release=release,
+                    expect_database="carbonco_water_staging",
+                    artifacts=Path("/tmp/a"), reports=Path("/tmp/r"),
+                )
+                acq_report = acq[acq.index("--report") + 1]
+                acq_dir = acq[acq.index("--artifact-dir") + 1]
+                assert ing[ing.index("--report") + 1] == acq_report
+                assert ing[ing.index("--artifact") + 1] == acq_dir
+
+    def test_artifact_path_carries_the_candidate(self) -> None:
+        directory, report = bcs._scope_paths(
+            "balanced_pilot", "HUBEAU_ADES", artifacts=Path("/tmp/a"), reports=Path("/tmp/r")
+        )
+        assert "balanced_pilot" in str(directory)
+        assert "balanced_pilot" in report.name

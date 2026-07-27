@@ -219,3 +219,100 @@ reste hors périmètre.
 - Il n'écrit aucun code, ne publie rien, n'approuve aucune source.
 - Il ne mesure aucun budget : le workflow n'a toujours pas été exécuté.
 - Il ne traite pas la migration `identity_fingerprint`, hors périmètre.
+
+---
+
+## 11. Ce que l'implémentation a effectivement livré
+
+Section ajoutée **après** l'implémentation, pour que l'audit et le code ne
+racontent pas deux histoires. Ce qui a divergé du verdict §9 est signalé comme
+tel.
+
+| Livrable | Fichier | Écart avec le §9 |
+|---|---|---|
+| Provenance résolue hors base | `services/water_intelligence/release_provenance.py` | conforme |
+| `PreparedRelease` enrichi (provenance, agrégats, `identities`) | `services/water/staging_writer.py` | conforme — pas de `PreparedWaterRelease` distinct |
+| Reconstructeur depuis les `PreparedRelease` | `services/water_intelligence/public_snapshot_builder.py` | conforme |
+| Deux sérialiseurs canoniques nommés | idem, `canonical_payload_bytes` / `canonical_document_bytes` | conforme |
+| Contrôles de parité | `services/water_intelligence/release_parity.py` | **au-delà** du §9 — cf. 11.1 |
+| Chargement partagé artefact + rapport | `services/water/staging_ingestion.load_verified_request` | non prévu — cf. 11.2 |
+| Mesure sans lecture d'observations SQL | `scripts/water_intelligence/build_candidate_snapshots.py` | conforme |
+
+### 11.1 La parité ne compare pas trois ensembles de même nature
+
+Le §5 demandait `prepared == persisted == candidate`. L'implémentation a dû
+constater que **ces trois espaces n'ont pas la même résolution** :
+
+| Représentation | Ce qu'elle distingue |
+|---|---|
+| préparée | l'identité complète (`WaterObservationIdentity`) |
+| persistée | la clé de projection : sujet, métrique, code géographique, période |
+| candidate | tout sauf le sujet — le manifest ne transporte pas `subject_key` |
+
+Les comparer comme un seul ensemble supposerait que la projection conserve ce
+qu'elle ne conserve pas. L'ensemble préparé — seul autoritatif — est donc
+**projeté vers l'espace de l'autre côté** avant comparaison, jamais l'inverse :
+gonfler le côté persisté pour le rendre comparable reviendrait à reconstruire
+depuis SQL les champs qu'il ne porte pas, c'est-à-dire exactement ce que cette
+phase interdit.
+
+`UNVERIFIABLE_AFTER_PROJECTION` énumère les douze champs qu'aucun contrôle ne
+peut vérifier côté base. La liste figure dans chaque rapport de parité. Elle
+n'est pas décorative : c'est la démonstration **exécutable** que le snapshot
+public ne peut pas naître de PostgreSQL.
+
+### 11.2 Deux barrières ajoutées au graveur
+
+L'audit n'avait pas vu ce cas, et il est réel :
+
+> Deux identités DISTINCTES peuvent se réduire à la même clé de projection —
+> par exemple un même code géographique à deux niveaux de zoom
+> (`WaterGeographyScope` vaut `world`, `europe` ou `france`). La table
+> `observations` ne portant pas `geography_scope`, elles deviendraient **une
+> seule ligne**, que `_write_observations` compterait « réutilisée ».
+> Une observation perdue, zéro erreur.
+
+`assert_projection_can_distinguish()` est donc appelée **avant** l'INSERT —
+après, il serait trop tard : `evidence_kernel_guard` interdit toute
+UPDATE/DELETE sur `observations`. Une relecture dans la même transaction suit
+l'écriture.
+
+### 11.3 `retrieved_at` était faux des deux côtés
+
+Défaut trouvé en branchant la mesure : `ingest_release.py` ne passait pas
+`retrieved_at`, et le graveur retombait sur `datetime.now()`. La release
+portait donc comme **date de consultation de la source** le jour de sa gravure.
+L'attribution Licence Ouverte 2.0 porte précisément cette date : elle était
+donc fausse dès qu'ingestion et acquisition n'avaient pas lieu le même jour.
+
+Les deux chemins lisent maintenant l'`executed_at` du rapport d'acquisition,
+via `report_retrieved_on()`, qui **lève** plutôt que de retomber sur
+« aujourd'hui » — un défaut silencieux produirait une date plausible et fausse,
+indiscernable après coup.
+
+### 11.4 Un garde-fou qui interdisait le mot, pas le geste
+
+`test_no_operator_script_provides_a_license_decision` exigeait que tout script
+mentionnant `license_decision` écrive `license_decision=None`. Il interdisait
+donc aussi la **transmission légitime** d'une décision évaluée par
+`license_policy` depuis le Source Registry — c'est-à-dire la barrière réelle.
+
+Relu sur l'AST, il interdit désormais ce qui doit l'être : **écrire** une
+autorisation. Une décision entièrement fermée (les quatre `allow_*` à `False`)
+reste permise — refuser n'accorde aucun droit, et c'est ce que fait
+`validate_eea.py`.
+
+### 11.5 Ce qui reste NON MESURÉ
+
+Aucun chiffre de budget, aucun verdict ADES, aucune recommandation technique.
+Le workflow `water-x4b-candidate-builder.yml` n'a **jamais été exécuté** :
+l'agent ne peut pas déclencher de `workflow_dispatch` (`403 Resource not
+accessible by integration` côté MCP, `403 GitHub access is not enabled for this
+session` en REST, ni `gh` ni `hub` disponibles). Hub'Eau est également
+injoignable depuis ce runner (`CONNECT tunnel failed, response 403`).
+
+Le dispatch relève donc de l'humain, depuis l'onglet Actions, sur la branche
+`feat/water-x4b-public-snapshot-reconstruction`, candidat `all`. Tant qu'il n'a
+pas eu lieu, `X4B_CANDIDATE_REPORT.md` et `X4B_HUMAN_APPROVAL_PACKET.md`
+gardent leurs champs vides : une valeur plausible y serait indiscernable d'une
+valeur mesurée.

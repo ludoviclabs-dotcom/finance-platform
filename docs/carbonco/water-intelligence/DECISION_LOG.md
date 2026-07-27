@@ -401,3 +401,43 @@ n'est pas commencé.
   ordre que le budget de 100 ko, remontée et non tranchée. À défaut, publier
   sans cadence en le disant ; jamais approuver une cadence que la surface ne
   rendra pas.
+
+## X4B-RECONSTRUCT — le snapshot public ne naît jamais de la projection SQL
+
+- **Décision d'architecture (imposée, 2026-07-27)** : « ne jamais reconstruire le
+  snapshot public depuis la projection SQL ». Les snapshots candidats sont
+  reconstruits depuis les **artefacts vérifiés**, via `prepare_release()` — la
+  fonction qui grave. La base est lue pour **confronter** (parité, ligne du
+  Source Registry, capacités de licence), jamais pour composer.
+- **`prepare_validated_water_release` n'a pas été créée.** L'audit préalable a
+  établi que `prepare_release()` satisfait déjà chacune des exigences du §3 ; en
+  écrire une seconde aurait produit le normaliseur parallèle que le §3 interdit
+  lui-même. Le blocage venait de ses **entrées** (une ligne de registre lue en
+  transaction), pas de la fonction : la provenance est donc désormais résolue
+  hors base par `release_provenance.py`.
+- **Aucune migration.** Démontrable, puisque la reconstruction part des artefacts
+  et des rapports, jamais de la projection. La migration
+  `observations.identity_fingerprint` reste souhaitable pour une autre raison —
+  elle est hors périmètre, et aucune ADR n'était donc due.
+- **La parité ne compare pas trois ensembles de même nature.** Préparé, persisté
+  et candidat n'ont pas la même résolution ; l'ensemble préparé — seul autoritatif
+  — est projeté vers l'espace de l'autre côté avant comparaison, jamais l'inverse.
+  Gonfler le côté persisté pour le rendre comparable reviendrait à reconstruire
+  depuis SQL les champs qu'il ne porte pas. Les comparaisons portent sur des
+  **ensembles d'identités**, jamais sur des cardinaux : deux comptes égaux
+  laisseraient passer une substitution.
+- **Les pertes de la projection sont énumérées, pas contournées.**
+  `UNVERIFIABLE_AFTER_PROJECTION` liste les douze champs qu'aucun contrôle ne peut
+  vérifier côté base ; la liste figure dans chaque rapport de parité. C'est la
+  démonstration exécutable de la décision ci-dessus.
+- **Un seul registre de mesure.** `build_candidate_snapshots.py` en portait un
+  second, avec son propre motif et son propre réviseur factice. Deux registres
+  auraient divergé à la première correction de l'un des deux, et un artefact de
+  run n'aurait plus dit lequel l'avait produit. Le script délègue désormais à
+  `public_snapshot_builder`.
+- **Toujours rien de mesuré, et rien de signé.** Le workflow n'a jamais été
+  exécuté : l'agent ne peut pas déclencher de `workflow_dispatch`, et Hub'Eau est
+  injoignable depuis ce runner. Le dispatch relève de l'humain, depuis l'onglet
+  Actions. Les champs de `X4B_CANDIDATE_REPORT.md` et de
+  `X4B_HUMAN_APPROVAL_PACKET.md` restent **NON MESURÉ** et le formulaire humain
+  reste **non signé** — une valeur plausible y serait indiscernable d'une mesure.

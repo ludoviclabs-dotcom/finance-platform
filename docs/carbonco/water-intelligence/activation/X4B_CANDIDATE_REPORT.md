@@ -31,6 +31,26 @@ de budget, checksums du run, verdict du diff ADES, exhaustivité réelle.
 ordre de grandeur inscrit à la place d'une mesure se lit comme une mesure trois
 semaines plus tard.
 
+### 1.1 D'où viendront ces chiffres — et d'où ils ne viendront pas
+
+Depuis X4B-RECONSTRUCT, les snapshots candidats sont reconstruits depuis les
+**artefacts vérifiés**, par `prepare_release()` — la fonction qui grave — et
+**jamais depuis la table `observations`**. Celle-ci ne conserve qu'une
+projection du contrat P02 : ni période, ni portée ou libellé de géographie, ni
+couverture, et la provenance vit dans `source_releases`. Un budget mesuré sur
+une reconstruction approximative aurait été plausible et faux.
+
+Le run produit donc un artefact de plus, **bloquant** : `25_parity.json`. Il
+atteste, pour chaque release, que la forme préparée, la forme persistée et la
+forme candidate portent les mêmes observations — comparées en **ensembles
+d'identités**, jamais en cardinaux (deux comptes égaux laisseraient passer une
+substitution). Une divergence arrête le run avant toute mesure ; un budget
+mesuré sur une release amputée ne serait le budget de rien.
+
+Ce rapport énumère aussi les douze champs qu'aucun contrôle ne peut vérifier
+côté base (`unverifiable_after_projection`). Cette liste est la démonstration
+exécutable de la décision d'architecture de la phase.
+
 ## 2. Le constat qui commande les trois candidats
 
 Mesuré sur les rapports X3, sans acquisition nouvelle :

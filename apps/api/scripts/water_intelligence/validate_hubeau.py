@@ -88,6 +88,7 @@ from scripts.water_intelligence.fetcher import (
 from scripts.water_intelligence.replay import ReplayTransport
 from scripts.water_intelligence.reporting import ValidationReport
 from services.water_intelligence import hubeau_transport as transport_mod
+from services.water_intelligence import source_attribution
 from services.water_intelligence.connectors import hubeau_hydro as hydro
 from services.water_intelligence.connectors import hubeau_withdrawals_quality as usage
 from services.water_intelligence.pipeline import run_pipeline
@@ -740,8 +741,28 @@ def _source_reference(
         # Licence NON évaluée : X1 ne décide rien. La porte du pipeline reste
         # fermée (`license_decision=None`), ce qui retient toutes les valeurs.
         license=_unknown_license(),
-        attribution=transport_mod.attribution(accessed_on=started.date().isoformat()),
+        **_provenance(family.source_code, accessed_on=started.date()),
     )
+
+
+def _provenance(source_code: str, *, accessed_on: date) -> dict[str, object]:
+    """Attribution et fraîcheur canoniques d'une source, à sa date de lecture.
+
+    L'attribution est estampillée ICI, à l'acquisition — pas à l'assemblage.
+    C'est pourquoi la configuration canonique doit être en place AVANT toute
+    réacquisition : la corriger après obligerait à réacquérir (cf. §2.1 (a) du
+    plan X4B).
+
+    Une source hors configuration lève plutôt que de recevoir un libellé
+    générique : c'est exactement le défaut que X4A a écarté.
+    """
+    config = source_attribution.attribution_for(source_code)
+    return {
+        "attribution": config.label(accessed_on=accessed_on),
+        "source_information_url": config.information_url,
+        "source_refresh_cadence": config.refresh_cadence,
+        "source_last_updated_on": config.last_updated_on,
+    }
 
 
 def _unknown_license():
@@ -934,9 +955,7 @@ def run_prelevements_multi_year(
                 methodology_version=usage.WITHDRAWALS_METHOD.version,
                 # Licence NON évaluée : X2A ne décide rien, comme X1.
                 license=_unknown_license(),
-                attribution=transport_mod.attribution(
-                    accessed_on=retrieved_at.isoformat()
-                ),
+                **_provenance(family.source_code, accessed_on=retrieved_at),
             ),
             method=usage.WITHDRAWALS_METHOD,
             geography_resolver=usage.build_geography_resolver(parsed.ouvrage_ids),

@@ -23,6 +23,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -68,7 +69,34 @@ SOURCE_DECLARATIONS: dict[str, dict[str, Any]] = {
 }
 
 LICENSE_CODE = "etalab-2.0"
-ATTRIBUTION = "Source : Hub'Eau / eaufrance.fr — Licence Ouverte / Open Licence (Etalab 2.0)"
+
+#: Libellé historique — CONSERVÉ pour référence, plus jamais semé. Il nommait le
+#: point d'accès sans aucun producteur, ce que la condition de paternité de la
+#: Licence Ouverte n'admet pas. Remplacé par la configuration canonique par
+#: `source_code` (`services.water_intelligence.source_attribution`), qui
+#: distingue point d'accès, système d'information source et producteurs.
+LEGACY_PLATFORM_ATTRIBUTION = (
+    "Source : Hub'Eau / eaufrance.fr — Licence Ouverte / Open Licence (Etalab 2.0)"
+)
+
+
+def _today() -> date:
+    """Date de consultation de la déclaration. Lue à l'exécution, jamais figée :
+    une date de consultation gelée dans le code cesserait d'être vraie dès le
+    lendemain."""
+    return datetime.now(timezone.utc).date()
+
+
+def declared_attribution(source_code: str, *, accessed_on: date) -> str:
+    """Attribution canonique semée dans le Source Registry, par source.
+
+    Lève sur une source hors configuration : semer un libellé générique dans le
+    registre reproduirait le défaut d'origine, en le rendant durable.
+    """
+    from services.water_intelligence.source_attribution import attribution_label
+
+    return attribution_label(source_code, accessed_on=accessed_on)
+
 
 #: Capacités communes, transcrites de la Licence Ouverte 2.0.
 LICENSE_CAPABILITIES = {
@@ -320,7 +348,7 @@ def seed_sources(args) -> int:
                         LICENSE_CAPABILITIES["derived_use_allowed"],
                         LICENSE_CAPABILITIES["commercial_use_allowed"],
                         LICENSE_CAPABILITIES["redistribution_allowed"],
-                        ATTRIBUTION,
+                        declared_attribution(code, accessed_on=_today()),
                         "https://www.etalab.gouv.fr/licence-ouverte-open-licence",
                     ),
                 )

@@ -537,3 +537,285 @@ class TestParityCheckNeverEnforcesBudget:
             "(cas connu : ADES/x3_technical_sample) ne doit pas faire "
             "échouer tout le run de mesure."
         )
+
+
+class TestAdesDiffReadsTheValidatedReport:
+    """Le verdict ADES doit venir des PREUVES, pas d'un champ manquant.
+
+    Défaut du run 30306257628 : `command_diff_ades` lisait le payload brut,
+    n'y trouvait ni `payload_sha256` ni `bytes_received`, et concluait
+    `content_changed` sur `null` / `0` — un blocage prononcé sur une absence
+    de preuve prise pour une preuve d'absence. Le rapport du même run portait
+    pourtant exactement le checksum X3.
+    """
+
+    ADES_X3 = "54ac8e5b4d895f323ee352c1c7c8ddde3c9a3c5dae469b6e351ac46fc76ee00b"
+
+    def _reports_dir(self, tmp_path, *, checksum: str, size: int):
+        """Écrit le rapport ADES du candidat `x3_technical_sample`."""
+        import json as _json
+
+        payload = {
+            "source_code": "HUBEAU_ADES",
+            "release_key": "hubeau_ades-x3_technical_sample-x4b-prep",
+            "verdict": "ready_for_staging",
+            "executed_at": "2026-07-27T21:18:58+00:00",
+            "dry_run": True,
+            "bytes_received": size,
+            "pages_fetched": 1,
+            "records_received": 182,
+            "records_normalized": 182,
+            "payload_sha256": checksum,
+            "periods": ["2024-01-01/2024-03-31"],
+            "geographies": ["09892X0679/EXH70"],
+            "units": ["m"],
+        }
+        reports = tmp_path / "reports"
+        reports.mkdir(parents=True, exist_ok=True)
+        (reports / "acq_x3_technical_sample_HUBEAU_ADES.md").write_text(
+            "# Validation live — HUBEAU_ADES\n\n```json\n"
+            + _json.dumps(payload, ensure_ascii=False, indent=2)
+            + "\n```\n",
+            encoding="utf-8",
+        )
+        return reports
+
+    def _run(self, tmp_path, *, checksum: str, size: int):
+        import argparse
+        import json as _json
+
+        reports = self._reports_dir(tmp_path, checksum=checksum, size=size)
+        args = argparse.Namespace(
+            report_dir=str(reports), artifact_dir=str(tmp_path / "artifacts")
+        )
+        try:
+            code = bcs.command_diff_ades(args)
+        except bcs.CandidateBuildError as exc:
+            code = exc
+        verdict = _json.loads(
+            (reports / "40_ades_diff.json").read_text(encoding="utf-8")
+        )
+        return code, verdict
+
+    def test_the_x3_checksum_yields_byte_stable(self, tmp_path) -> None:
+        """Le cas RÉEL du run 30306257628, avec sa vraie preuve."""
+        code, report = self._run(tmp_path, checksum=self.ADES_X3, size=52139)
+        assert code == 0
+        assert report["verdict"] == "byte_stable"
+        assert report["run_checksum"] == self.ADES_X3
+        assert report["run_bytes"] == 52139
+        assert report["matches_reference"]["X3"] is True
+        assert report["blocks_source"] is None
+
+    def test_the_run_bytes_are_never_zero_when_the_report_exists(self, tmp_path) -> None:
+        """La signature exacte du défaut : `run_bytes=0` avec un rapport présent."""
+        _, report = self._run(tmp_path, checksum=self.ADES_X3, size=52139)
+        assert report["run_bytes"] != 0
+        assert report["run_checksum"] is not None
+
+    def test_same_length_other_checksum_is_provisional_not_final(self, tmp_path) -> None:
+        code, report = self._run(tmp_path, checksum="a" * 64, size=52139)
+        assert code == 0
+        assert report["verdict"] == "transport_only_variation_unproven"
+        assert report["blocks_source"] is None
+
+    def test_other_length_other_checksum_blocks_ades_only(self, tmp_path) -> None:
+        code, report = self._run(tmp_path, checksum="b" * 64, size=99999)
+        assert isinstance(code, bcs.CandidateBuildError)
+        assert report["verdict"] == "content_changed"
+        # Le blocage est SOURCE-SCOPED : il nomme ADES, et rien d'autre.
+        assert report["blocks_source"] == "HUBEAU_ADES"
+        assert "QUALITE" in report["scope_note"] and "BNPE" in report["scope_note"]
+
+    def test_a_missing_report_fails_loudly(self, tmp_path) -> None:
+        import argparse
+
+        reports = tmp_path / "reports"
+        reports.mkdir()
+        args = argparse.Namespace(
+            report_dir=str(reports), artifact_dir=str(tmp_path / "artifacts")
+        )
+        with pytest.raises(bcs.CandidateBuildError, match="preuve d'acquisition"):
+            bcs.command_diff_ades(args)
+
+    def test_the_diff_never_reads_a_raw_payload(self) -> None:
+        """Verrou de source : le payload brut ne doit plus être une entrée."""
+        source = Path(bcs.__file__).read_text(encoding="utf-8")
+        assert "_read_acquisition" not in source, (
+            "le lecteur de payload brut doit avoir disparu — sa seule existence "
+            "rend le défaut réintroduisible."
+        )
+        assert "load_acquisition_evidence" in source
+
+
+class TestAcquisitionSummaryUsesRealCounts:
+    """`10_acquisitions.json` portait 0 partout, pour la même raison."""
+
+    def _evidence(self, *, records: int, pages: int, size: int):
+        from services.water.staging_ingestion import AcquisitionEvidence
+
+        return AcquisitionEvidence(
+            source_code="HUBEAU_QUALITE_SURFACE",
+            release_key="hubeau_qualite_surface-balanced_pilot-x4b-prep",
+            verdict="ready_for_staging",
+            bytes_received=size,
+            pages_fetched=pages,
+            records_received=records,
+            records_normalized=records,
+            payload_sha256="c" * 64,
+            periods=("2024-01-01/2024-01-31",),
+            geographies=("34",),
+            units=("mg/L",),
+        )
+
+    def _scope(self, source_code: str):
+        return next(
+            s
+            for s in cs.CANDIDATES_BY_KEY["balanced_pilot"].scopes
+            if s.source_code == source_code
+        )
+
+    def test_quality_balanced_reports_its_real_counts(self) -> None:
+        scope = self._scope("HUBEAU_QUALITE_SURFACE")
+        summary = bcs._assert_exhaustive(
+            scope, self._evidence(records=78, pages=1, size=455168)
+        )
+        assert summary["records_received"] == 78
+        assert summary["pages"] == 1
+        assert summary["bytes_received"] == 455168
+        # 78 < 1 × 200 : la dernière page n'est pas saturée, donc exhaustif.
+        assert summary["last_page_full"] is False
+        assert summary["exhaustive"] is True
+
+    def test_bnpe_balanced_reports_its_real_counts(self) -> None:
+        scope = self._scope("HUBEAU_BNPE_PRELEVEMENTS")
+        summary = bcs._assert_exhaustive(
+            scope, self._evidence(records=3, pages=1, size=3118)
+        )
+        assert summary["records_received"] == 3
+        assert summary["exhaustive"] is True
+
+    def test_a_saturated_last_page_is_not_exhaustive(self) -> None:
+        """Le contrôle se fonde sur pages × page_size RÉELS.
+
+        Mesuré sur le scope `x3_technical_sample`, qui ne revendique PAS
+        l'exhaustivité : c'est justement le périmètre dont X3 a montré que sa
+        dernière page était saturée.
+        """
+        scope = next(
+            s
+            for s in cs.CANDIDATES_BY_KEY["x3_technical_sample"].scopes
+            if s.source_code == "HUBEAU_QUALITE_SURFACE"
+        )
+        assert scope.expects_incomplete_last_page is False
+        summary = bcs._assert_exhaustive(
+            scope, self._evidence(records=scope.page_size, pages=1, size=1)
+        )
+        assert summary["last_page_full"] is True
+        assert summary["exhaustive"] is False
+
+    def test_a_scope_claiming_exhaustivity_refuses_a_saturated_page(self) -> None:
+        scope = self._scope("HUBEAU_QUALITE_SURFACE")
+        assert scope.expects_incomplete_last_page is True
+        with pytest.raises(bcs.CandidateBuildError, match="SATURÉE"):
+            bcs._assert_exhaustive(
+                scope, self._evidence(records=scope.page_size, pages=1, size=1)
+            )
+
+    def test_the_summary_carries_the_checksum_not_a_null(self) -> None:
+        scope = self._scope("HUBEAU_BNPE_PRELEVEMENTS")
+        summary = bcs._assert_exhaustive(
+            scope, self._evidence(records=3, pages=1, size=3118)
+        )
+        assert summary["payload_sha256"] == "c" * 64
+
+
+class TestSecurityStepsSurviveASourceBlock:
+    """Un blocage de source ne doit dispenser aucun contrôle de sortie.
+
+    Au run 30306257628, l'échec `diff-ades` a fait SAUTER « Vérifier qu'aucune
+    donnée n'a été publiée » et « Scanner les rapports » : les deux étapes
+    n'avaient pas de garde `if`. Un contrôle de sécurité qui ne s'exécute
+    qu'en cas de succès ne contrôle que les runs dont on se méfie le moins.
+    """
+
+    #: Lu SANS PyYAML : `requirements.txt` ne le déclare pas, et le job `tests`
+    #: de la CI n'installe que celui-là. S'en remettre à une bibliothèque
+    #: présente seulement en local, c'est écrire un test qui ne s'exécute que
+    #: sur la machine où il a été écrit — le défaut de la première version de
+    #: cette classe, trouvé par la CI. Le fichier a une structure fixe (steps à
+    #: 6 espaces, clés à 8), et ce scan ligne à ligne suffit à la lire.
+    WORKFLOW = (
+        Path(bcs.__file__).resolve().parents[4]
+        / ".github"
+        / "workflows"
+        / "water-x4b-candidate-builder.yml"
+    )
+
+    def _steps(self) -> list[dict[str, str]]:
+        steps: list[dict[str, str]] = []
+        current: dict[str, str] | None = None
+        in_steps = False
+        for line in self.WORKFLOW.read_text(encoding="utf-8").split("\n"):
+            if line.strip() == "steps:":
+                in_steps = True
+                continue
+            if not in_steps:
+                continue
+            if line.startswith("      - "):
+                current = {}
+                steps.append(current)
+                body = line[len("      - ") :]
+            elif (
+                line.startswith("        ")
+                and not line.startswith("         ")
+                and current is not None
+            ):
+                # Exactement 8 espaces : une clé de l'étape elle-même. Plus
+                # profond, c'est un bloc imbriqué (`with:`), dont le `name:`
+                # écraserait celui de l'étape.
+                body = line[8:]
+            else:
+                continue
+            if ":" in body and not body.lstrip().startswith(("#", "|", "-")):
+                key, _, value = body.partition(":")
+                if key.strip() and " " not in key.strip():
+                    current[key.strip()] = value.strip()
+        return steps
+
+    def test_the_step_scan_actually_finds_the_steps(self) -> None:
+        """Sans ce contrôle, un scan cassé rendrait les autres tests vides."""
+        names = [s["name"] for s in self._steps() if "name" in s]
+        assert len(names) >= 12, names
+        assert any("Diff ADES" in n for n in names)
+
+    def test_the_three_exit_steps_always_run(self) -> None:
+        guarded = {
+            step["name"]: step.get("if")
+            for step in self._steps()
+            if "name" in step
+            and (
+                "aucune donnée n'a été publiée" in step["name"]
+                or "Scanner les rapports" in step["name"]
+                or "Publier les rapports" in step["name"]
+            )
+        }
+        assert len(guarded) == 3, guarded
+        for name, condition in guarded.items():
+            assert condition == "always()", f"{name} ne s'exécute pas toujours"
+
+    def test_the_workflow_stays_dispatch_only(self) -> None:
+        """Un blocage de source ne doit pas devenir un prétexte à automatiser."""
+        text = self.WORKFLOW.read_text(encoding="utf-8")
+        assert "\n  workflow_dispatch:\n" in text
+        for forbidden in ("\n  push:", "\n  pull_request:", "\n  schedule:"):
+            assert forbidden not in text, f"déclencheur interdit : {forbidden.strip()}"
+        assert "\npermissions:\n  contents: read\n" in text
+        # `contents: write` apparaît dans le commentaire d'en-tête, qui explique
+        # pourquoi il est refusé. Seules les lignes EFFECTIVES comptent.
+        effective = [
+            line
+            for line in text.split("\n")
+            if "contents: write" in line and not line.lstrip().startswith("#")
+        ]
+        assert not effective, effective

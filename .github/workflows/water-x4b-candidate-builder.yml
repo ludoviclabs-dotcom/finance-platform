@@ -222,7 +222,14 @@ jobs:
             diff-ades
 
       # ── 7. Garde-fous de sortie ─────────────────────────────────────────
+      # `if: always()` sur les trois étapes de sortie : un blocage de SOURCE
+      # (ex. diff ADES `content_changed`) doit bloquer cette source, pas
+      # dispenser le run de prouver qu'il n'a rien publié ni empêcher les
+      # mesures déjà obtenues pour les autres sources d'être conservées. Un
+      # contrôle de sécurité qui ne s'exécute qu'en cas de succès ne contrôle
+      # que les runs dont on se méfie le moins.
       - name: Vérifier qu'aucune donnée n'a été publiée
+        if: always()
         run: |
           set -e
           # Le registre réel ne porte aucune signature.
@@ -243,6 +250,7 @@ jobs:
           echo "aucun document canonique modifié"
 
       - name: Scanner les rapports (aucun payload brut, aucun secret)
+        if: always()
         run: |
           set -e
           # Les payloads bruts ne doivent JAMAIS sortir du runner : seuls les

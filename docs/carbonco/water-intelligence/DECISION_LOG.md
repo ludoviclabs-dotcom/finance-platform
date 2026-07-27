@@ -441,3 +441,33 @@ n'est pas commencé.
   Actions. Les champs de `X4B_CANDIDATE_REPORT.md` et de
   `X4B_HUMAN_APPROVAL_PACKET.md` restent **NON MESURÉ** et le formulaire humain
   reste **non signé** — une valeur plausible y serait indiscernable d'une mesure.
+
+## X4B-PREP — les candidats sont mesurés
+
+- **Run de référence** : `30306257628`, `master` @ `c01b8841`, `candidate=all`,
+  déclenché manuellement le 2026-07-27. Traçabilité :
+  `activation/X4B_WORKFLOW_RUN_EVIDENCE.md`.
+- **Le budget n'était pas une question théorique.** Sur dix-huit mesures, **une
+  seule** tient sous 100 000 octets : `HUBEAU_BNPE_PRELEVEMENTS` sur la commune
+  INSEE `34172`, année 2020 — 3 observations, 6 120 octets, marge 93 880. ADES
+  seule pèse 255 121 octets, soit 2,5 fois le budget.
+- **Aucune des trois options formulées avant mesure n'est publiable.** A (255 121),
+  B (371 144) et C (396 551) dépassent toutes. La recommandation technique porte
+  donc sur une **quatrième** option, plus étroite qu'aucune de celles envisagées :
+  `bnpe_minimal_pilot_v1`. Elle ne vaut aucune approbation humaine.
+- **Le poids vient de la provenance, et c'est voulu.** Chaque observation porte
+  son attribution, son URL officielle, sa cadence, son checksum et sa licence.
+  L'alléger rendrait le budget tenable en rendant la donnée non auditable :
+  écarté. La seule réponse acceptable est de **restreindre le périmètre**
+  jusqu'à ce qu'il tienne avec sa provenance intacte.
+- **Un périmètre exhaustif hors budget reste hors budget.** Le resserrement de
+  QUALITE (trimestre → janvier, 1×50 → 5×200) a bien produit 78 observations
+  exhaustives au lieu de 50 tronquées — un vrai progrès de méthode — mais
+  111 324 octets, soit 11 324 de trop. Le progrès ne rend pas le candidat
+  publiable.
+- **ADES est `byte_stable`.** Le checksum X4B-PREP est identique à celui de X3
+  sur 52 139 octets : rien n'a bougé côté source entre les deux acquisitions.
+  `deferred_over_budget` n'est donc pas un doute sur la source, c'est un report
+  faute de place.
+- **Le premier verdict ADES du run était FAUX**, et c'est le défaut le plus
+  instructif de cette phase — cf. `RISK_REGISTER.md`.

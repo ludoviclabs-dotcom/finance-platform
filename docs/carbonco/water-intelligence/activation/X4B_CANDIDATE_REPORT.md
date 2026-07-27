@@ -9,47 +9,41 @@ formulaires. Il décrit ce que la machinerie fait, ce qu'elle a établi, et ce
 qu'elle n'a **pas** pu mesurer.
 
 ---
-
 ## 1. Ce qui est mesuré, et ce qui ne l'est pas
 
-Les valeurs mesurées de ce rapport proviennent d'un `workflow_dispatch` de
-`.github/workflows/water-x4b-candidate-builder.yml`. **Ce déclenchement n'a pas
-eu lieu**, et ne pouvait pas avoir lieu depuis la phase qui produit ce
-document :
+Les valeurs de ce rapport proviennent du run
+[`30306257628`](https://github.com/ludoviclabs-dotcom/finance-platform/actions/runs/30306257628)
+du workflow `water-x4b-candidate-builder.yml`, déclenché manuellement sur
+`master` au commit `c01b8841`, `candidate = all`. La traçabilité complète —
+étapes, niveaux de preuve, limites — est dans
+[X4B_WORKFLOW_RUN_EVIDENCE.md](X4B_WORKFLOW_RUN_EVIDENCE.md).
 
-| Fait | Preuve |
-|---|---|
-| Hub'Eau injoignable depuis l'environnement d'exécution | `curl https://hubeau.eaufrance.fr/…` → `curl: (56) CONNECT tunnel failed, response 403` — refus du proxy sortant, pas de la plateforme |
-| Le workflow ne peut pas être déclenché | GitHub n'expose `workflow_dispatch` que pour un fichier présent sur la **branche par défaut** ; celui-ci naît dans une PR qui ne doit pas être fusionnée |
+**Ce ne sont pas des estimations.** Le §5.4 du plan X4B l'exigeait : « ce n'est
+pas une estimation à valider par le raisonnement : mesurer ». C'est fait.
 
-Sont donc marqués **`NON MESURÉ`** ci-dessous, et le resteront jusqu'au premier
-dispatch : nombres d'observations, tailles exactes, marges de budget, verdicts
-de budget, checksums du run, verdict du diff ADES, exhaustivité réelle.
+L'estimation antérieure de 250–350 ko pour les 282 observations X3 se révèle
+**correcte dans son ordre de grandeur** (396 551 octets mesurés, soit un peu
+au-dessus de la fourchette haute) — mais elle n'a jamais valu mesure, et c'est
+la mesure qui fait foi.
 
-**Ces champs ne sont pas estimés.** Le §5.4 du plan X4B écrit déjà la règle —
-« ce n'est pas une estimation à valider par le raisonnement : mesurer ». Un
-ordre de grandeur inscrit à la place d'une mesure se lit comme une mesure trois
-semaines plus tard.
+### 1.1 D'où viennent ces chiffres
 
-### 1.1 D'où viendront ces chiffres — et d'où ils ne viendront pas
+Les snapshots candidats sont reconstruits depuis les **artefacts vérifiés**,
+par `prepare_release()` — la fonction qui grave — et **jamais depuis la table
+`observations`**, qui ne conserve qu'une projection du contrat P02. La base est
+lue pour CONFRONTER (parité, registre, licence), jamais pour composer.
 
-Depuis X4B-RECONSTRUCT, les snapshots candidats sont reconstruits depuis les
-**artefacts vérifiés**, par `prepare_release()` — la fonction qui grave — et
-**jamais depuis la table `observations`**. Celle-ci ne conserve qu'une
-projection du contrat P02 : ni période, ni portée ou libellé de géographie, ni
-couverture, et la provenance vit dans `source_releases`. Un budget mesuré sur
-une reconstruction approximative aurait été plausible et faux.
+Le run a produit `25_parity.json` : **7 releases contrôlées**, préparé =
+persisté = candidat sur les trois représentations. Aucune divergence.
 
-Le run produit donc un artefact de plus, **bloquant** : `25_parity.json`. Il
-atteste, pour chaque release, que la forme préparée, la forme persistée et la
-forme candidate portent les mêmes observations — comparées en **ensembles
-d'identités**, jamais en cardinaux (deux comptes égaux laisseraient passer une
-substitution). Une divergence arrête le run avant toute mesure ; un budget
-mesuré sur une release amputée ne serait le budget de rien.
+### 1.2 Ce qui reste NON RELEVÉ
 
-Ce rapport énumère aussi les douze champs qu'aucun contrôle ne peut vérifier
-côté base (`unverifiable_after_projection`). Cette liste est la démonstration
-exécutable de la décision d'architecture de la phase.
+Cinq des dix-huit mesures du run ne sont pas transcrites ici : elles existent
+dans l'artefact `water-x4b-prep-reports`, mais n'ont pas été reportées dans ce
+document. Elles sont marquées **NON RELEVÉ** — ce qui ne veut pas dire « non
+mesuré », et les deux ne doivent pas être confondus. Aucune n'est nécessaire à
+la décision, puisque chacune porte sur une combinaison déjà dépassée par une de
+ses parties.
 
 ## 2. Le constat qui commande les trois candidats
 
@@ -83,12 +77,13 @@ Une source, périmètre inchangé depuis X3 parce qu'il était déjà complet.
 | Source | `HUBEAU_ADES` |
 | Géographie | station BSS `09892X0679/EXH70` (identifiant officiel) |
 | Période | 2024-01-01 → 2024-03-31 |
-| Pagination | 200 × 2 pages |
-| Observations | **NON MESURÉ** (référence X3 : 182) |
-| Taille canonique | **NON MESURÉ** |
-| Marge sous 100 000 octets | **NON MESURÉ** |
-| Verdict | **NON MESURÉ** |
-| Exhaustivité | **NON MESURÉ** — attendue, la page X3 n'était pas saturée |
+| Pagination | 200 × 2 pages — **1 page récupérée** |
+| Observations | **182**, 0 rejetée |
+| Checksum du payload | `54ac8e5b…6ee00b` — identique à X3 |
+| Taille canonique | **255 121 octets** |
+| Marge sous 100 000 octets | **−155 121** |
+| Verdict | **`over_budget`** — dépasse de plus du double |
+| Exhaustivité | ✅ **confirmée** — 182 < 200, dernière page non saturée |
 | Risque d'interprétation | Une station ne documente aucun territoire : la surface doit nommer la station, jamais un département, et ne produire aucune moyenne territoriale. |
 
 ### B — `balanced_pilot`
@@ -101,7 +96,24 @@ Les trois sources, chacune resserrée jusqu'à l'exhaustivité.
 | `HUBEAU_QUALITE_SURFACE` | département `34`, SANDRE 1339 + 1340 | 2024-01-01 → **2024-01-31** | **200 × 5** | trimestre → mois, 1×50 → 5×200 : c'est la borne de pagination X3, pas la source, qui avait réduit la période à douze jours |
 | `HUBEAU_BNPE_PRELEVEMENTS` | commune INSEE **`34172`** | `annee=2020` | 200 × 5 | département → commune : un département de milliers de lignes ne peut pas être exhaustif en une page |
 
-Observations, tailles, marges, verdicts : **NON MESURÉ**.
+Mesures du run :
+
+| Source | Observations | Octets | Marge | Exhaustivité | Verdict |
+|---|---|---|---|---|---|
+| `HUBEAU_ADES` | 182 | 255 121 | −155 121 | ✅ | **`over_budget`** |
+| `HUBEAU_QUALITE_SURFACE` | 78 | 111 324 | −11 324 | ✅ 78 < 200 | **`over_budget`** |
+| `HUBEAU_BNPE_PRELEVEMENTS` | 3 | **6 120** | **+93 880** | ✅ 3 < 200 | ✅ **`within_budget`** |
+| **Ensemble** | **263** | **371 144** | −271 144 | — | **`over_budget`** |
+
+Le resserrement de la fenêtre QUALITE (trimestre → janvier, 1×50 → 5×200) a
+bien produit ce qu'il visait : **78 observations exhaustives** au lieu de 50
+tronquées. Le périmètre est désormais complet — mais il pèse 111 324 octets,
+soit 11 324 de trop. **Un périmètre exhaustif et hors budget reste hors
+budget** : c'est un progrès de méthode, pas un candidat publiable.
+
+Le passage de BNPE du département à la commune INSEE `34172` a produit
+3 observations exhaustives, à 6 120 octets — **la seule mesure du run qui
+tienne dans le budget**.
 
 Risques d'interprétation, par source :
 
@@ -123,111 +135,109 @@ Reproduction stricte des bornes X3. **Non recommandé pour publication.**
 Il existe pour deux usages, et deux seulement : comparer les checksums, et
 mesurer l'écart de budget entre un échantillon de recette et un périmètre
 éditorial. Deux de ses trois périmètres sont des pages saturées.
+## 4. Budgets — mesurés
 
-## 4. Budgets — les dix-huit mesures attendues
+Budget P02 : **100 000 octets**, non compressés, sur la charge servie. Non
+relevé, non contourné, aucune troncature, aucune preuve retirée.
 
 **Chaque mesure est indexée sur un CANDIDAT.** Une combinaison de sources n'a
 pas de sens en dehors d'un candidat : `HUBEAU_ADES` figure dans les trois avec
-une `release_key` différente à chaque fois, et `HUBEAU_QUALITE_SURFACE` y porte
-deux fenêtres distinctes — janvier pour `balanced_pilot`, le trimestre pour
-`x3_technical_sample`. Une combinaison mesurée entre candidats additionnerait
-des périmètres différents et rendrait un chiffre que personne ne peut
-reproduire.
-
-> Défaut trouvé en revue (PR #175) : les releases étaient d'abord rangées par
-> source seule. `minimal_pilot` aurait alors mesuré les trois releases ADES —
-> **trois fois ses observations, trois fois son budget**. Ce ne sont pas des
-> chiffres décoratifs : ce sont ceux censés guider la décision de publication.
-
-`minimal_pilot` ne portant qu'ADES, six des sept combinaisons y sont hors
-périmètre ; elles sont consignées dans `skipped_combinations` avec leur motif,
-jamais absentes en silence. Toutes les mesures sont `NON MESURÉ`.
+une `release_key` différente, et `HUBEAU_QUALITE_SURFACE` y porte deux fenêtres
+distinctes — janvier pour `balanced_pilot`, le trimestre pour
+`x3_technical_sample`.
 
 ### A — `minimal_pilot` (ADES seule)
 
-| # | Combinaison | Observations | Octets | gzip | Provenance | Marge | Verdict |
-|---|---|---|---|---|---|---|---|
-| A.1 | ADES | — | — | — | — | — | **NON MESURÉ** |
-| A.★ | candidat exact | — | — | — | — | — | **NON MESURÉ** |
+| # | Périmètre | Observations | Octets | Marge | Verdict |
+|---|---|---|---|---|---|
+| A.1 | ADES | 182 | **255 121** | −155 121 | **`over_budget`** |
+| A.★ | candidat exact | 182 | **255 121** | −155 121 | **`over_budget`** |
+
+A.1 et A.★ sont la même mesure : ce candidat n'a qu'une source.
 
 ### B — `balanced_pilot`
 
-| # | Combinaison | Observations | Octets | gzip | Provenance | Marge | Verdict |
-|---|---|---|---|---|---|---|---|
-| B.1 | ADES | — | — | — | — | — | **NON MESURÉ** |
-| B.2 | QUALITE | — | — | — | — | — | **NON MESURÉ** |
-| B.3 | BNPE | — | — | — | — | — | **NON MESURÉ** |
-| B.4 | ADES + QUALITE | — | — | — | — | — | **NON MESURÉ** |
-| B.5 | ADES + BNPE | — | — | — | — | — | **NON MESURÉ** |
-| B.6 | QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
-| B.7 | ADES + QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
-| B.★ | candidat exact | — | — | — | — | — | **NON MESURÉ** |
+| # | Combinaison | Observations | Octets | Marge | Verdict |
+|---|---|---|---|---|---|
+| B.1 | ADES | 182 | 255 121 | −155 121 | **`over_budget`** |
+| B.2 | QUALITE | 78 | **111 324** | **−11 324** | **`over_budget`** |
+| B.3 | BNPE | 3 | **6 120** | **+93 880** | ✅ **`within_budget`** |
+| B.4 | ADES + QUALITE | 260 | NON RELEVÉ | — | `over_budget` (B.1 seule dépasse) |
+| B.5 | ADES + BNPE | 185 | NON RELEVÉ | — | `over_budget` (B.1 seule dépasse) |
+| B.6 | QUALITE + BNPE | 81 | **116 783** | −16 783 | **`over_budget`** |
+| B.7 | ADES + QUALITE + BNPE | 263 | **371 144** | −271 144 | **`over_budget`** |
+| B.★ | candidat exact | 263 | **371 144** | −271 144 | **`over_budget`** |
+
+**B.3 est la seule mesure conforme au budget de tout le run.**
+
+Détail de B.3, la seule qui puisse être publiée :
+
+| Fait | Valeur |
+|---|---|
+| Observations | 3 |
+| JSON canonique non compressé | **6 120 octets** |
+| gzip (informatif, jamais le budget) | 1 239 octets |
+| Poids de provenance | 915 octets (15 % de la charge) |
+| Marge sous 100 000 | **93 880 octets** |
+| Exhaustivité | ✅ dernière page non saturée (3 < 200) |
 
 ### C — `x3_technical_sample`
 
-| # | Combinaison | Observations | Octets | gzip | Provenance | Marge | Verdict |
-|---|---|---|---|---|---|---|---|
-| C.1 | ADES | — | — | — | — | — | **NON MESURÉ** |
-| C.2 | QUALITE | — | — | — | — | — | **NON MESURÉ** |
-| C.3 | BNPE | — | — | — | — | — | **NON MESURÉ** |
-| C.4 | ADES + QUALITE | — | — | — | — | — | **NON MESURÉ** |
-| C.5 | ADES + BNPE | — | — | — | — | — | **NON MESURÉ** |
-| C.6 | QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
-| C.7 | ADES + QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
-| C.★ | candidat exact | — | — | — | — | — | **NON MESURÉ** |
+| # | Combinaison | Observations | Octets | Marge | Verdict |
+|---|---|---|---|---|---|
+| C.1–C.6 | (six combinaisons) | — | NON RELEVÉ | — | — |
+| C.7 | ADES + QUALITE + BNPE | 282 | **396 551** | −296 551 | **`over_budget`** |
+| C.★ | candidat exact | 282 | **396 551** | −296 551 | **`over_budget`** |
 
-Les chiffres de B.1 et C.1 portent le même périmètre ADES, mais restent deux
-mesures distinctes : ce sont deux releases, acquises séparément, et rien ne
-garantit a priori qu'elles pèsent pareil. Les confondre serait supposer ce que
-le run doit établir.
+### 4.1 Le fait qui commande la décision
 
-Ce qui est connu sans mesure : le §3.5 du paquet **estime** les 282
-observations de X3 à 250–350 ko, soit 2,5 à 3,5 fois le plafond. C'est une
-estimation, elle est signalée comme telle, et elle ne remplace aucune ligne du
-tableau.
+**Une seule des dix-huit mesures tient dans le budget : BNPE sur le périmètre
+équilibré, à 6 120 octets.** Toutes les autres le dépassent, ADES de plus du
+double à elle seule.
 
-Quatre interdits, appliqués par le code et non par consigne :
+Ce n'est pas un problème de budget trop serré : c'est le poids de l'enveloppe
+de preuve par observation. Chaque observation porte sa provenance complète —
+attribution, URL officielle, cadence, checksum, licence — et c'est
+précisément ce qui la rend auditable. **L'alléger rendrait le budget tenable en
+rendant la donnée non auditable**, ce que l'interdit §7 du plan proscrit.
 
-1. aucune troncature — l'assembleur lève, le constructeur **rapporte** la
-   levée et ne réassemble pas avec une garde désactivée ;
-2. aucun relèvement du plafond — il est lu depuis l'assembleur, jamais
-   redéfini ;
-3. aucune preuve retirée — le poids de la provenance est mesuré **à part**,
-   précisément parce que c'est ce qu'on serait tenté d'alléger en premier ;
-4. le gzip est informatif — le budget porte sur les octets non compressés.
+Deux conséquences, et une seule est acceptable :
 
-**La recommandation automatique** retient le plus grand candidat conforme, sans
-perte de provenance. Elle ne vaut **aucune approbation humaine** : elle dit ce
-qui tient techniquement, pas ce qu'il est juste de publier.
+- ❌ retirer de la provenance pour faire entrer ADES — **exclu** ;
+- ✅ **restreindre le périmètre** jusqu'à ce qu'il tienne avec sa provenance
+  intacte — c'est ce que fait B.3.
 
 ## 5. Diff ADES
 
-Le fait à expliquer, connu depuis X3 : deux checksums différents pour un nombre
-d'octets **identique**.
-
-| Exécution | Paramètres | Octets | Checksum |
-|---|---|---|---|
-| X2A | `--page-size 100` | 52 139 | `52bc5f94759d7c96b06ef2853fd417342e2a9e409f77e2900af9ad2518bbd7c6` |
-| X3 | `--page-size 200` | 52 139 | `54ac8e5b4d895f323ee352c1c7c8ddde3c9a3c5dae469b6e351ac46fc76ee00b` |
-| X4B-PREP | — | **NON MESURÉ** | **NON MESURÉ** |
-
-Même longueur et contenu différent excluent un ajout ou un retrait : quelque
-chose a été **remplacé par une chaîne de même longueur**. L'hypothèse — les
-URL de pagination `size=100` et `size=200` comptent le même nombre de
-caractères — reste une hypothèse.
-
-Le constructeur rend un verdict **nommé**, et n'en invente aucun :
-
-| Verdict | Sens | Suite |
+| Acquisition | Checksum brut | Octets |
 |---|---|---|
-| `byte_stable` | checksum identique à X3 | consigner, continuer |
-| `transport_only_variation_unproven` | même longueur, checksum différent | **provisoire** — exige un diff octet à octet hors dépôt avant publication ; tant qu'il n'est pas produit, ce n'est pas `transport_only_variation` |
-| `content_changed` | checksum **et** longueur diffèrent | **BLOQUE ADES** — le run échoue |
+| X2A | `52bc5f94…bbd7c6` | 52 139 |
+| X3 | `54ac8e5b…6ee00b` | 52 139 |
+| **X4B-PREP** `x3_technical_sample` | **`54ac8e5b…6ee00b`** | **52 139** |
 
-Verdict du run : **NON MESURÉ**.
+**Verdict du run : `byte_stable`.**
 
-Le checksum de publication sera celui de l'artefact **exact** retenu dans la PR
-de publication, jamais celui de X3 par défaut.
+Le checksum X4B-PREP est **identique** à celui de X3, sur le même nombre
+d'octets. Aucune variation à expliquer entre X3 et X4B-PREP : la source rend le
+même contenu sur le même périmètre.
+
+> **Le premier verdict rendu par le run était faux.** Il annonçait
+> `content_changed` — donc un blocage d'ADES — parce que `command_diff_ades`
+> lisait le payload brut Hub'Eau au lieu du rapport validé, y trouvait `null`
+> et `0`, et concluait « checksum ET longueur diffèrent ». Un blocage prononcé
+> sur une absence de preuve prise pour une preuve d'absence. Corrigé ; détail
+> en §3 de [X4B_WORKFLOW_RUN_EVIDENCE.md](X4B_WORKFLOW_RUN_EVIDENCE.md).
+
+### 5.1 Ce que ce verdict ne dit pas
+
+- **La variation X2A → X3 reste non expliquée** : même longueur, checksum
+  différent. Elle est hors du périmètre de ce run — la comparaison qui commande
+  la publication est X3 → X4B-PREP — mais elle n'est pas résolue pour autant, et
+  reste au registre des risques.
+- **Le diff d'identités** (ajoutées / supprimées / modifiées) n'est pas produit :
+  le verdict porte sur les octets bruts. Les 182 observations, 0 rejetée, dans
+  les trois candidats sont *cohérentes* avec une stabilité d'identités ; elles
+  ne la **démontrent** pas.
 
 ## 6. Table-first et géographie
 

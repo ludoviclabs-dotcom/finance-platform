@@ -135,7 +135,7 @@ jobs:
           python -m scripts.water_intelligence.staging_rehearsal \
             --expect-database "$EXPECT_DB" \
             --output "$REPORTS/01_gate.json" \
-            gate --upto 043
+            gate --expect-migration 043
 
       - name: Déclarer les sources au Source Registry (idempotent)
         run: |

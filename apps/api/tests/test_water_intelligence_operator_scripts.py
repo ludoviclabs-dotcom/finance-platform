@@ -1093,3 +1093,88 @@ class TestNoNetworkInThisFile:
             assert "opener_factory" in keywords or keywords & {"max_bytes", "allowed_hosts"}, (
                 "un OperatorFetcher est construit sans opener injecté"
             )
+
+
+class TestWorkflowInvocationsMatchTheRealParsers:
+    """Chaque `python -m scripts…` du workflow X4B doit être ACCEPTÉ.
+
+    Défaut trouvé par le premier run réel : l'étape « Gate de base » appelait
+    `staging_rehearsal … gate --upto 043`, alors que `--upto` appartient au
+    sous-commande `migrate` ; `gate` attend `--expect-migration`. Le job est
+    mort en 53 secondes sur un `unrecognized arguments`.
+
+    Les tests de conformance existants confrontaient les invocations composées
+    **par le code Python** (`_acquisition_argv`, `_ingestion_argv`) aux vrais
+    parsers. Ils ne voyaient pas celles écrites **à la main dans le YAML** —
+    et c'est là que le défaut vivait. Un workflow n'est jamais exécuté par la
+    CI de la PR : rien ne pouvait le contredire avant un dispatch manuel.
+
+    Ces tests lisent le YAML, reconstituent chaque argv, et le passent au
+    parser réel. Une invocation fautive casse désormais la CI, pas le run.
+    """
+
+    WORKFLOW = (
+        API_ROOT.parents[1] / ".github" / "workflows" / "water-x4b-candidate-builder.yml"
+    )
+
+    #: Substitutions des variables de shell/GitHub — seules leur PRÉSENCE et
+    #: leur position comptent pour le parser, pas leur valeur.
+    SUBSTITUTIONS = {
+        '"$EXPECT_DB"': "water_x4b_ephemeral",
+        '"$REPORTS/00_migrate.json"': "/tmp/00_migrate.json",
+        '"$REPORTS/01_gate.json"': "/tmp/01_gate.json",
+        '"$REPORTS/02_seed_sources.json"': "/tmp/02_seed_sources.json",
+        '"$ARTIFACTS"': "/tmp/artifacts",
+        '"$REPORTS"': "/tmp/reports",
+        '"${{ inputs.candidate }}"': "all",
+    }
+
+    def _invocations(self) -> list[tuple[str, list[str]]]:
+        import re
+        import shlex
+
+        flat = self.WORKFLOW.read_text(encoding="utf-8").replace("\\\n", " ")
+        found: list[tuple[str, list[str]]] = []
+        for match in re.finditer(r"python -m (scripts\.\S+)([^\n]*)", flat):
+            module, raw = match.group(1), match.group(2)
+            for token, value in self.SUBSTITUTIONS.items():
+                raw = raw.replace(token, value)
+            found.append((module, shlex.split(raw)))
+        return found
+
+    def test_the_workflow_actually_invokes_the_operator_scripts(self) -> None:
+        """Si l'extraction cassait, les tests ci-dessous passeraient à vide."""
+        modules = {module for module, _ in self._invocations()}
+        assert modules == {
+            "scripts.water_intelligence.staging_rehearsal",
+            "scripts.water_intelligence.build_candidate_snapshots",
+        }
+        assert len(self._invocations()) == 7
+
+    def test_every_workflow_invocation_is_accepted_by_its_parser(self) -> None:
+        import importlib
+
+        for module_name, argv in self._invocations():
+            module = importlib.import_module(module_name)
+            parser = module.build_parser()
+            try:
+                parser.parse_args(argv)
+            except SystemExit as exc:  # argparse sort en code 2
+                raise AssertionError(
+                    f"{module_name} refuse l'invocation du workflow : {argv}"
+                ) from exc
+
+    def test_the_gate_step_still_proves_the_schema(self) -> None:
+        """`gate` sans `--expect-migration` ne vérifie AUCUNE table sentinelle.
+
+        Il passerait donc au vert sur une base au schéma incomplet — une
+        garde qui ne garde rien, pire qu'une erreur bruyante.
+        """
+        gate = [
+            argv
+            for module, argv in self._invocations()
+            if "gate" in argv
+        ]
+        assert len(gate) == 1
+        assert "--expect-migration" in gate[0]
+        assert "043" in gate[0]

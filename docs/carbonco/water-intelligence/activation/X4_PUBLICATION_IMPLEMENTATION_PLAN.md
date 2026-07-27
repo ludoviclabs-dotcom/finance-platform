@@ -100,9 +100,14 @@ estampillée **à l'acquisition**, pas à l'assemblage :
 `ATTRIBUTION` fixe dans le Source Registry. Réexécuter le workflow **non
 modifié** (§3.1) réestampillerait donc les observations avec le libellé composé
 que X4A déclare non publiable. Le remplacement se fait par source, avant la
-première acquisition, et le §4.2 ci-dessous en tient compte : **le checksum du
-payload n'est pas affecté** (il porte les octets bruts de la réponse, pas
-l'attribution), mais les observations normalisées le sont.
+première acquisition.
+
+Conséquence utile, qui découle du §4.1 ci-dessous : **les checksums attendus du
+§4.2 restent valables**. `payload_sha256` porte les octets bruts de la réponse
+et ne couvre ni les valeurs normalisées, ni l'attribution — changer le libellé
+ne le fait donc pas varier. Un écart de checksum après ce changement reste ce
+qu'il a toujours été : un signal à instruire selon le §4.4, jamais un effet
+attendu du remplacement.
 
 **b. Trancher le transport de `source_refresh_cadence`.**
 `WaterSourceReference` (`models/water_intelligence.py:98-114`) et son miroir Zod

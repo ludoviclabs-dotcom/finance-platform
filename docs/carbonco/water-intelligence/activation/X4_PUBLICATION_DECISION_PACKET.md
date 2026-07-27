@@ -15,6 +15,12 @@ Le plan technique correspondant est
 Il ne doit **pas** être exécuté avant que les formulaires ci-dessous soient
 signés.
 
+Les attributions par jeu de données et les trois champs de fraîcheur sont
+établis dans
+[X4A_ATTRIBUTION_AND_FRESHNESS.md](X4A_ATTRIBUTION_AND_FRESHNESS.md), qui solde
+documentairement les §3.2 et §3.4 ci-dessous — et remonte un écart non résolu
+sur la cadence BNPE.
+
 ---
 
 ## 1. Périmètre
@@ -61,7 +67,12 @@ référence**, pas un stock disponible.
 
 ## 3. Points à trancher avant toute signature
 
-Six points ne relèvent pas de la technique. Aucun n'est résolu ici.
+Six points ne relèvent pas de la technique. **Aucun n'est tranché ici** — aucune
+signature n'est apposée. Deux d'entre eux (§3.2 attribution, §3.4 fraîcheur)
+sont désormais **instruits documentairement** par
+[X4A_ATTRIBUTION_AND_FRESHNESS.md](X4A_ATTRIBUTION_AND_FRESHNESS.md) : le
+libellé et les cadences sont établis et proposés, la décision de les publier
+reste entière. Les quatre autres restent ouverts sans instruction nouvelle.
 
 ### 3.1 Un échantillon technique n'est pas un territoire
 
@@ -80,11 +91,20 @@ volumes aussi.
 | `hubeau_transport.attribution()` — porté par **chaque observation** | `Source : Hub'Eau (Office français de la biodiversité (OFB), Service Central Vigicrues (SCV), Bureau de recherches géologiques et minières (BRGM)) — Système d'Information sur l'Eau, Licence Ouverte / Open Licence (Etalab), données brutes, consultées le <date>` |
 | `staging_rehearsal.ATTRIBUTION` — porté par le **Source Registry** | `Source : Hub'Eau / eaufrance.fr — Licence Ouverte / Open Licence (Etalab 2.0)` |
 
-Le premier cite les trois producteurs indistinctement, y compris pour un jeu
-qui n'en relève que d'un (ADES → BRGM ; BNPE et Naïades → OFB). Le second cite
-la plateforme sans producteur. La Licence Ouverte impose de citer l'auteur du
-jeu : **le libellé publié doit être choisi**, pas hérité par défaut. Chaque
-formulaire porte un champ « attribution à afficher ».
+Le premier cite les trois éditeurs de la plateforme indistinctement, pour les
+trois jeux. Le second cite la plateforme sans producteur. La Licence Ouverte
+impose de citer l'auteur du jeu : **le libellé publié doit être choisi**, pas
+hérité par défaut. Chaque formulaire porte un champ « attribution à afficher ».
+
+**Résolu documentairement (X4A, complément).** Ni l'un ni l'autre libellé n'est
+publiable : trois libellés propres aux jeux de données sont établis en §1 de
+[X4A_ATTRIBUTION_AND_FRESHNESS.md](X4A_ATTRIBUTION_AND_FRESHNESS.md), qui
+distinguent le point d'accès (Hub'Eau et son API), le système d'information
+source (ADES, Naïades, BNPE) et les producteurs ou contributeurs réellement
+concernés. Aucun connecteur n'est modifié : les deux libellés ci-dessus restent
+en place dans le code, leur remplacement relève de X4B. Les formulaires du §5
+portent désormais le libellé canonique **en proposition**, à confirmer par
+signature.
 
 ### 3.3 La licence est vérifiée au niveau plateforme, pas jeu par jeu
 
@@ -93,13 +113,30 @@ Licence Ouverte / Etalab 2.0 a été relevée sur les fiches Hub'Eau ; elle n'a 
 été confirmée **jeu par jeu**. Signer revient à assumer que la licence
 plateforme couvre le jeu, ou à faire vérifier au préalable.
 
-### 3.4 La fraîcheur n'est pas documentée
+### 3.4 La fraîcheur — deux cadences relevées sur trois
 
-Aucun rapport X1/X2A/X3 n'établit la cadence de mise à jour des trois jeux côté
-source. Ce qui est connu est la **date de consultation** (2026-07-26) et la
-période observée. Publier une date de consultation sans cadence de mise à jour
-n'est pas faux, mais ne dit pas au lecteur si la donnée est courante. À
-trancher : publier sans cadence, ou faire relever la cadence avant.
+Aucun rapport X1/X2A/X3 n'établissait la cadence de mise à jour des trois jeux
+côté source. Le complément X4A la relève sur les pages officielles et sépare
+trois champs qui ne se déduisent pas les uns des autres —
+`source_refresh_cadence`, `observed_period`, `retrieved_on` (§2 de
+[X4A_ATTRIBUTION_AND_FRESHNESS.md](X4A_ATTRIBUTION_AND_FRESHNESS.md)) :
+
+| Source | Cadence côté source |
+|---|---|
+| `HUBEAU_ADES` | intégration **quotidienne** des mises à jour ADES — relevé |
+| `HUBEAU_QUALITE_SURFACE` | **synchronisation continue** avec Naïades (API v2) — relevé |
+| `HUBEAU_BNPE_PRELEVEMENTS` | **non vérifiée** — reste à trancher |
+
+**Ce qui reste ouvert, et qui est une question au signataire :** aucune page
+officielle relevée n'énonce de cadence mensuelle pour la BNPE, et le jeu publié
+par le Système d'Information sur l'Eau sur data.gouv.fr déclare une mise à jour
+**annuelle** — cohérente avec le grain annuel de la donnée et avec le paramètre
+`annee` à valeur unique de l'API. Les trois issues possibles sont posées en §3
+du complément. Aucune n'est retenue ici.
+
+**Ce qu'aucune cadence n'autorise à écrire :** une source synchronisée tous les
+jours ne rend pas « actuelle » une observation de 2024. Les deux énoncés sont
+vrais ensemble et doivent être rendus séparément.
 
 ### 3.5 Le budget de snapshot sera probablement dépassé
 
@@ -137,17 +174,19 @@ seuls les checksums et les statistiques.
 |---|---|
 | `release_key` | `hubeau-piezometrie-chroniques-x3-ephemeral` |
 | Checksum SHA-256 du payload | `54ac8e5b4d895f323ee352c1c7c8ddde3c9a3c5dae469b6e351ac46fc76ee00b` |
-| Période observée | 2024-01-01 → 2024-03-31 |
+| Période observée (`observed_period`) | 2024-01-01 → 2024-03-31 |
 | Territoire | 1 station, code BSS `09892X0679/EXH70` |
 | Métriques | `hubeau.piezometrie.niveau_nappe`, `hubeau.piezometrie.profondeur_nappe` |
 | Unités | `m NGF`, `m` — natives, aucune conversion |
 | Records reçus / normalisés / rejetés | 182 / 182 / 0 |
 | Observations produites | 182 |
 | Rejets | 0 — aucune cause de rejet |
-| Attribution | composée (cf. §3.2, à trancher) |
+| Attribution | `Source : Hub'Eau — API Piézométrie. Données issues d'ADES et des partenaires du Système d'information sur l'eau. Licence Ouverte / Etalab 2.0. Consultées le 2026-07-26.` (X4A §1.2, **proposé**) |
 | Licence | Licence Ouverte / Etalab 2.0, vérifiée **au niveau plateforme** (Wave B) |
 | Limites | Échantillon technique : une seule station, un seul trimestre. Ne documente aucun territoire. |
-| Fraîcheur | Consultée le 2026-07-26 ; période historique 2024. Cadence de mise à jour côté source **non vérifiée**. |
+| `source_refresh_cadence` | Intégration **quotidienne** des mises à jour de la base ADES dans l'API — relevé (X4A §1.4) |
+| `retrieved_on` | 2026-07-26 |
+| Fraîcheur — lecture | Source mise à jour quotidiennement **et** période observée historique (2024) : les deux énoncés se rendent séparément, jamais fusionnés en « données à jour ». |
 | Avertissements | aucun |
 | Idempotence | Rejeu : **0 écriture**, 182 déjà présentes, `release_reused=true`, même `release_id` |
 | Volume acquis | 1 page, 52 139 octets |
@@ -158,17 +197,19 @@ seuls les checksums et les statistiques.
 |---|---|
 | `release_key` | `hubeau-naiades-analyse-pc-x3-ephemeral` |
 | Checksum SHA-256 du payload | `cc88d7071ad059264905570f59e9f59738604f92697f3ffbea45a2a030ce0e45` |
-| Période observée | 2024-01-03 → 2024-01-15 (fenêtre demandée 2024-01-01 → 2024-03-31, bornée à 1 page de 50) |
+| Période observée (`observed_period`) | 2024-01-03 → 2024-01-15 (fenêtre demandée 2024-01-01 → 2024-03-31, bornée à 1 page de 50) |
 | Territoire | 21 stations, département `34` |
 | Métriques | `hubeau.qualite_rivieres.parametre.1339` (nitrites), `.1340` (nitrates) |
 | Unités | `mg(NO2)/L`, `mg(NO3)/L` |
 | Records reçus / normalisés / rejetés | 50 / 50 / 0 |
 | Observations produites | 50 |
 | Rejets | 0 |
-| Attribution | composée (cf. §3.2, à trancher) |
+| Attribution | `Source : Hub'Eau — API Qualité des cours d'eau. Données issues de Naïades et transmises par les Agences de l'eau. Licence Ouverte / Etalab 2.0. Consultées le 2026-07-26.` (X4A §1.2, **proposé**) |
 | Licence | Licence Ouverte / Etalab 2.0, vérifiée **au niveau plateforme** (Wave B) |
 | Limites | Échantillon technique. Une publication exige en outre une **allowlist de paramètres SANDRE revue**, et **aucune conclusion de conformité** — la conformité relève exclusivement du registre juridique. La période réelle est plus courte que la fenêtre demandée : la borne de pagination l'a tronquée. |
-| Fraîcheur | Consultée le 2026-07-26 ; période historique 2024. Cadence **non vérifiée**. |
+| `source_refresh_cadence` | **Synchronisation continue** avec la base Naïades depuis la v2 de l'API — relevé (X4A §1.4) |
+| `retrieved_on` | 2026-07-26 |
+| Fraîcheur — lecture | Source synchronisée en continu **et** période observée historique (janvier 2024) : les deux énoncés se rendent séparément. `observed_period` est la période **réellement** observée, jamais la fenêtre demandée. |
 | Avertissements | « Aucun code de remarque n'a été déclaré comme censurant : les remarques sont transportées verbatim et aucune censure n'est déduite. » — connu et documenté (Risk Register, Wave B) |
 | Idempotence | Rejeu : **0 écriture**, 50 déjà présentes, `release_reused=true`, même `release_id` |
 | Volume acquis | 1 page, 293 799 octets |
@@ -179,17 +220,19 @@ seuls les checksums et les statistiques.
 |---|---|
 | `release_key` | `hubeau-bnpe-chroniques-x3-ephemeral` |
 | Checksum SHA-256 du payload | `a72f6e472f0db12f0717f7d2831ab5caa03bff568a05131c6220e2c505a559e4` |
-| Période observée | 2020-01-01 → 2020-12-31 (année exacte, `annee=2020`) |
+| Période observée (`observed_period`) | 2020-01-01 → 2020-12-31 (année exacte, `annee=2020`) |
 | Territoire | 50 ouvrages, département `34` |
 | Métriques | `hubeau.prelevements.volume` |
 | Unités | `m3` |
 | Records reçus / normalisés / rejetés | 50 / 50 / 0 |
 | Observations produites | 50 |
 | Rejets | 0 |
-| Attribution | composée (cf. §3.2, à trancher) |
+| Attribution | `Source : Hub'Eau — API Prélèvements en eau. Données issues de la BNPE et de la gestion des redevances par les agences et offices de l'eau. Licence Ouverte / Etalab 2.0. Consultées le 2026-07-26.` (X4A §1.2, **proposé**) |
 | Licence | Licence Ouverte / Etalab 2.0, vérifiée **au niveau plateforme** (Wave B) |
 | Limites | **Couverture partielle par construction** : les usages exonérés de redevance sont inconnus et les volumes < 10 000 m³ ne sont pas déclarés. Une absence n'est **jamais** un prélèvement nul, et la publication doit rendre l'absence comme absence. Échantillon technique par ailleurs. Contrainte d'API : une requête par année (`annee=<AAAA>`), jamais `annee_min`/`annee_max` — ignorés en silence par la plateforme. |
-| Fraîcheur | Consultée le 2026-07-26 ; année observée 2020. Cadence **non vérifiée**. |
+| `source_refresh_cadence` | **NON VÉRIFIÉE.** Aucune page officielle relevée n'énonce de cadence mensuelle ; data.gouv.fr (Système d'Information sur l'Eau) déclare une mise à jour **annuelle**. Trois issues posées en X4A §3, aucune retenue. |
+| `retrieved_on` | 2026-07-26 |
+| Fraîcheur — lecture | Une cadence non vérifiée se rend comme **absence de relevé**, jamais comme absence de mise à jour. |
 | Avertissements | « Couverture partielle par construction : les volumes exonérés de redevance et < 10 000 m³ ne sont pas déclarés. Une absence n'est JAMAIS un prélèvement nul. » |
 | Idempotence | Rejeu : **0 écriture**, 50 déjà présentes, `release_reused=true`, même `release_id` |
 | Volume acquis | 1 page, 47 890 octets |
@@ -221,10 +264,11 @@ décision. Elles restent à confirmer, amender ou refuser.
 | Période | 2024-01-01 → 2024-03-31 | |
 | Métriques | `hubeau.piezometrie.niveau_nappe`, `hubeau.piezometrie.profondeur_nappe` | |
 | Licence | Licence Ouverte / Etalab 2.0 (vérifiée plateforme) | |
-| Attribution | à choisir entre les deux libellés du §3.2 | |
+| Attribution **proposée** | `Source : Hub'Eau — API Piézométrie. Données issues d'ADES et des partenaires du Système d'information sur l'eau. Licence Ouverte / Etalab 2.0. Consultées le <date>.` (X4A §1.2) | |
+| `source_refresh_cadence` **proposé** | intégration quotidienne des mises à jour ADES — relevé | |
 | `display_allowed` **proposé** | `true` — la Licence Ouverte accorde explicitement reproduction et rediffusion sous réserve d'attribution | |
 | `derived_use_allowed` **proposé** | `true` — même fondement (adaptation autorisée) | |
-| Limites à afficher | échantillon technique d'une seule station ; licence vérifiée au niveau plateforme ; cadence de mise à jour non vérifiée | |
+| Limites à afficher | échantillon technique d'une seule station ; licence vérifiée au niveau plateforme, pas jeu par jeu ; cadence quotidienne relevée par lecture indexée, relevé direct non horodaté (X4A §4) | |
 | `reviewer` | | |
 | `reviewed_on` | | |
 | **Décision** (`approved` / `rejected` / `deferred`) | | |
@@ -241,10 +285,11 @@ décision. Elles restent à confirmer, amender ou refuser.
 | Période | 2024-01-03 → 2024-01-15 (réellement observée) | |
 | Métriques | paramètres SANDRE `1339` (nitrites), `1340` (nitrates) | |
 | Licence | Licence Ouverte / Etalab 2.0 (vérifiée plateforme) | |
-| Attribution | à choisir (§3.2) | |
+| Attribution **proposée** | `Source : Hub'Eau — API Qualité des cours d'eau. Données issues de Naïades et transmises par les Agences de l'eau. Licence Ouverte / Etalab 2.0. Consultées le <date>.` (X4A §1.2) | |
+| `source_refresh_cadence` **proposé** | synchronisation continue avec Naïades (API v2) — relevé | |
 | `display_allowed` **proposé** | `true` — Licence Ouverte | |
 | `derived_use_allowed` **proposé** | `true` — Licence Ouverte | |
-| Limites à afficher | **allowlist SANDRE à valider explicitement** ; **aucune conclusion de conformité** ; remarques transportées verbatim, aucune censure déduite ; période tronquée par la pagination | |
+| Limites à afficher | **allowlist SANDRE à valider explicitement** ; **aucune conclusion de conformité** ; remarques transportées verbatim, aucune censure déduite ; période tronquée par la pagination ; cadence continue relevée par lecture indexée (X4A §4) | |
 | `reviewer` | | |
 | `reviewed_on` | | |
 | **Décision** (`approved` / `rejected` / `deferred`) | | |
@@ -261,10 +306,11 @@ décision. Elles restent à confirmer, amender ou refuser.
 | Période | 2020-01-01 → 2020-12-31 (`annee=2020`) | |
 | Métriques | `hubeau.prelevements.volume` | |
 | Licence | Licence Ouverte / Etalab 2.0 (vérifiée plateforme) | |
-| Attribution | à choisir (§3.2) | |
+| Attribution **proposée** | `Source : Hub'Eau — API Prélèvements en eau. Données issues de la BNPE et de la gestion des redevances par les agences et offices de l'eau. Licence Ouverte / Etalab 2.0. Consultées le <date>.` (X4A §1.2) | |
+| `source_refresh_cadence` | **NON VÉRIFIÉE — à trancher.** Mensuelle non confirmée ; annuelle déclarée sur data.gouv.fr. Trois issues en X4A §3. | |
 | `display_allowed` **proposé** | `true` — Licence Ouverte | |
 | `derived_use_allowed` **proposé** | `true` — Licence Ouverte. **Réserve** : un usage dérivé qui agrégerait ces volumes hériterait de la couverture partielle et produirait des totaux faux par défaut. | |
-| Limites à afficher | **couverture partielle par construction** — exonérés de redevance inconnus, volumes < 10 000 m³ non déclarés, une absence n'est jamais un zéro ; échantillon technique | |
+| Limites à afficher | **couverture partielle par construction** — exonérés de redevance inconnus, volumes < 10 000 m³ non déclarés, une absence n'est jamais un zéro ; échantillon technique ; **cadence de mise à jour non vérifiée** | |
 | `reviewer` | | |
 | `reviewed_on` | | |
 | **Décision** (`approved` / `rejected` / `deferred`) | | |

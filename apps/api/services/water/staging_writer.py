@@ -52,7 +52,7 @@ from services.water.staging_ingestion import (
 )
 from services.water_intelligence import observation_identity as identity_mod
 from services.water_intelligence import pipeline as pipe
-from services.water_intelligence import release_provenance
+from services.water_intelligence import release_parity, release_provenance
 from services.water_intelligence.connectors import hubeau_hydro as hydro
 from services.water_intelligence.connectors import hubeau_withdrawals_quality as usage
 from services.water_intelligence.release_provenance import ReleaseProvenance
@@ -836,11 +836,24 @@ def ingest_staging_release(
                 )
                 result.artifact_id = artifact_id
 
+                # Deux identités distinctes qui se réduisent à la même clé de
+                # projection deviendraient UNE ligne, comptée « réutilisée ».
+                # Vérifié avant l'INSERT, parce qu'après il est trop tard :
+                # `evidence_kernel_guard` interdit toute UPDATE/DELETE.
+                release_parity.assert_projection_can_distinguish(outcome)
+
                 written, obs_reused = _write_observations(
                     cur, release_id=release["id"], prepared=outcome.prepared
                 )
                 result.observations_written = written
                 result.observations_reused = obs_reused
+
+                # Relecture dans la MÊME transaction : ce qui a été écrit porte
+                # bien les identités préparées. Un écart avorte, y compris en
+                # `--commit`.
+                release_parity.assert_persisted_parity(
+                    outcome, list(_existing_projections(cur, release["id"]).values())
+                )
 
                 run_id, _ = _record_run(
                     cur, source_id=source["id"], release_id=release["id"],

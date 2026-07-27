@@ -869,11 +869,16 @@ class TestNoDatabaseNoPublication:
     #: - `ingest_release.py` — graveur Evidence Kernel, ÉCRIT (X2B) ;
     #: - `staging_rehearsal.py` — outils de répétition staging (X3) ;
     #: - `build_candidate_snapshots.py` — constructeur de candidats (X4B-PREP),
-    #:   **LECTURE SEULE** : il relit les observations des releases `validated`
-    #:   pour mesurer un budget, et n'écrit rien. Il est listé parce qu'il
-    #:   OUVRE la base, pas parce qu'il y écrit — l'exemption porte sur l'accès,
-    #:   jamais sur l'intention déclarée. `test_the_candidate_builder_never_writes`
-    #:   vérifie qu'il n'emprunte aucun chemin d'écriture.
+    #:   **LECTURE SEULE**. Depuis X4B-RECONSTRUCT il ne relit plus aucune
+    #:   observation publiable depuis SQL : les releases sont préparées depuis
+    #:   les ARTEFACTS, par `prepare_release()`, le graveur lui-même. Ses deux
+    #:   seuls accès base sont des SELECT — la ligne du Source Registry (pour
+    #:   confronter la provenance et évaluer la licence) et les lignes déjà
+    #:   gravées (pour la PARITÉ, jamais pour composer). Il est listé parce
+    #:   qu'il OUVRE la base, pas parce qu'il y écrit — l'exemption porte sur
+    #:   l'accès, jamais sur l'intention déclarée.
+    #:   `test_the_candidate_builder_never_writes` vérifie qu'il n'emprunte
+    #:   aucun chemin d'écriture.
     DATABASE_EXEMPT = frozenset(
         {
             "ingest_release.py",
@@ -917,6 +922,27 @@ class TestNoDatabaseNoPublication:
                 f"build_candidate_snapshots.py contient {statement!r} : il est exempté "
                 "pour LIRE, jamais pour écrire ni publier."
             )
+        # Il importe `staging_writer` pour `prepare_release()` — l'étape PURE,
+        # sans connexion. Appeler le graveur lui-même écrirait.
+        assert "ingest_staging_release" not in source, (
+            "build_candidate_snapshots.py appelle le graveur : il n'importe "
+            "`staging_writer` que pour sa préparation pure."
+        )
+
+    def test_the_candidate_builder_shares_the_writer_s_preparation(self) -> None:
+        """L'inverse du précédent, et la décision d'architecture de X4B.
+
+        Le constructeur DOIT appeler `prepare_release()` — la fonction qui
+        grave — et non une normalisation à lui. Un second normaliseur
+        divergerait du premier à la première correction, et un budget mesuré
+        sur une release préparée autrement ne serait le budget de rien.
+        """
+        source = (SCRIPTS_DIR / "build_candidate_snapshots.py").read_text(encoding="utf-8")
+        assert "prepare_release(" in source
+        assert "read_validated_observations" not in source, (
+            "le constructeur relit des observations depuis SQL — la projection "
+            "ne conserve ni période, ni géographie, ni provenance."
+        )
 
     def test_every_exempt_script_goes_through_the_environment_gate(self) -> None:
         """Toucher la base ne suffit pas : il faut prouver la destination.
@@ -970,14 +996,65 @@ class TestNoDatabaseNoPublication:
             source = path.read_text(encoding="utf-8")
             assert "dry_run=False" not in source, f"{path.name} tente de quitter le dry-run"
 
-    def test_no_operator_script_provides_a_license_decision(self) -> None:
-        """X1 n'approuve rien : la porte de licence reste fermée."""
+    def test_no_operator_script_composes_a_license_decision(self) -> None:
+        """X1 n'approuve rien : une décision de licence n'est jamais FABRIQUÉE.
+
+        La règle porte sur l'origine de l'AUTORISATION, pas sur le mot. Un
+        script peut :
+
+        - transmettre une décision **évaluée par `license_policy` depuis la
+          ligne du Source Registry** — c'est la barrière réelle, celle que suit
+          le graveur ;
+        - construire une décision **entièrement fermée** (les quatre `allow_*`
+          à `False`), comme le fait `validate_eea.py` pour dire « X1 a lu la
+          licence sur la fiche officielle, il n'en décide rien ». Refuser
+          n'accorde aucun droit.
+
+        Ce qu'aucun script ne peut faire, c'est écrire une autorisation :
+        un seul `allow_*` à `True` — ou une valeur calculée, qui pourrait valoir
+        `True` — passerait la porte de licence sans que rien ne l'ait vérifiée.
+
+        Formulée en texte brut, la règle interdisait aussi la transmission
+        légitime. Elle est donc lue sur l'AST.
+        """
+        for path in _sources(SCRIPTS_DIR):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                name = getattr(node.func, "id", None) or getattr(node.func, "attr", None)
+                if name not in ("LicenseDecision", "WaterLicenseDecision"):
+                    continue
+                for keyword in node.keywords:
+                    if not (keyword.arg or "").startswith("allow_"):
+                        continue
+                    closed = (
+                        isinstance(keyword.value, ast.Constant)
+                        and keyword.value.value is False
+                    )
+                    assert closed, (
+                        f"{path.name} construit une décision de licence dont "
+                        f"`{keyword.arg}` n'est pas `False` — une autorisation "
+                        "ne s'écrit pas, elle s'évalue depuis le registre."
+                    )
+
+    def test_a_transmitted_license_decision_comes_from_the_real_evaluator(self) -> None:
+        """Transmettre une décision oblige à l'avoir évaluée dans le même fichier.
+
+        Sans ce test, le précédent laisserait passer un script qui recevrait sa
+        décision d'ailleurs — un défaut par argument, plus difficile à voir
+        qu'un littéral.
+        """
         for path in _sources(SCRIPTS_DIR):
             source = path.read_text(encoding="utf-8")
-            if "license_decision" in source:
-                assert "license_decision=None" in source, (
-                    f"{path.name} fournit une décision de licence au pipeline"
-                )
+            if "license_decision=" not in source:
+                continue
+            if "license_decision=None" in source:
+                continue
+            assert "license_policy.evaluate(" in source, (
+                f"{path.name} transmet une décision de licence sans l'évaluer "
+                "depuis le Source Registry."
+            )
 
 
 class TestDependencyDirection:

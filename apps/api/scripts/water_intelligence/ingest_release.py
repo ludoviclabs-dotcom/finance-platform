@@ -29,7 +29,6 @@ puis, pour graver réellement :
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
@@ -41,17 +40,15 @@ from services.water.staging_environment import (
     staging_connection_factory,
 )
 from services.water.staging_ingestion import (
+    INGESTIBLE_SOURCES,
     StagingIngestionRefused,
-    WaterStagingIngestionRequest,
-    load_validation_report,
-    verify_report,
+    load_verified_request,
+    report_retrieved_on,
 )
 from services.water.staging_writer import (
-    INGESTIBLE_SOURCES,
     StagingWriteError,
     ingest_staging_release,
 )
-from services.water_intelligence.connectors import hubeau_withdrawals_quality as usage
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -120,39 +117,30 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"rapport introuvable : {report_path}")
 
     try:
-        report = load_validation_report(report_path)
-    except StagingIngestionRefused as exc:
-        raise SystemExit(f"REFUSÉ — {exc}") from exc
-
-    expected = str(report.get("payload_sha256") or "")
-    method = INGESTIBLE_SOURCES[args.source_code].method
-
-    try:
-        request = WaterStagingIngestionRequest(
+        # Chemin PARTAGÉ avec le constructeur de candidats X4B : une release
+        # mesurée doit être exactement celle que ce graveur préparerait.
+        loaded = load_verified_request(
             source_code=args.source_code,
             release_key=args.release,
             artifact_path=args.artifact,
-            expected_sha256=expected,
             report_path=report_path,
-            report_sha256=hashlib.sha256(report_path.read_bytes()).hexdigest(),
-            method_code=method.code,
-            method_version=method.version,
             environment=args.environment,
-            dry_run=not args.commit,
             operator=args.operator,
+            dry_run=not args.commit,
         )
-        verify_report(request, report)
-        pages = request.read_artifact_pages()
-        decoded = [usage.PAGE_DECODER.decode(page, page_index=i) for i, page in enumerate(pages)]
 
         result = ingest_staging_release(
-            request,
-            pages=pages,
-            decoded_pages=decoded,
-            report=report,
+            loaded.request,
+            pages=loaded.pages,
+            decoded_pages=loaded.decoded_pages,
+            report=loaded.report,
             connection_factory=connection_factory,
             storage=get_storage(),
             commit=args.commit,
+            # Le jour où la SOURCE a été consultée, lu dans le rapport — pas le
+            # jour où l'on grave. L'attribution Licence Ouverte 2.0 porte cette
+            # date : y écrire la date de gravure la rendrait fausse.
+            retrieved_at=report_retrieved_on(loaded.report),
         )
     except StagingEnvironmentRefused as exc:
         raise SystemExit(f"ENVIRONNEMENT REFUSÉ — {exc} (transaction avortée)") from exc

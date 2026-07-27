@@ -124,23 +124,62 @@ Il existe pour deux usages, et deux seulement : comparer les checksums, et
 mesurer l'écart de budget entre un échantillon de recette et un périmètre
 éditorial. Deux de ses trois périmètres sont des pages saturées.
 
-## 4. Budgets — les dix mesures attendues
+## 4. Budgets — les dix-huit mesures attendues
 
-Le workflow mesure les **sept combinaisons de sources** puis les **trois
-candidats exacts**. Toutes sont `NON MESURÉ`.
+**Chaque mesure est indexée sur un CANDIDAT.** Une combinaison de sources n'a
+pas de sens en dehors d'un candidat : `HUBEAU_ADES` figure dans les trois avec
+une `release_key` différente à chaque fois, et `HUBEAU_QUALITE_SURFACE` y porte
+deux fenêtres distinctes — janvier pour `balanced_pilot`, le trimestre pour
+`x3_technical_sample`. Une combinaison mesurée entre candidats additionnerait
+des périmètres différents et rendrait un chiffre que personne ne peut
+reproduire.
+
+> Défaut trouvé en revue (PR #175) : les releases étaient d'abord rangées par
+> source seule. `minimal_pilot` aurait alors mesuré les trois releases ADES —
+> **trois fois ses observations, trois fois son budget**. Ce ne sont pas des
+> chiffres décoratifs : ce sont ceux censés guider la décision de publication.
+
+`minimal_pilot` ne portant qu'ADES, six des sept combinaisons y sont hors
+périmètre ; elles sont consignées dans `skipped_combinations` avec leur motif,
+jamais absentes en silence. Toutes les mesures sont `NON MESURÉ`.
+
+### A — `minimal_pilot` (ADES seule)
 
 | # | Combinaison | Observations | Octets | gzip | Provenance | Marge | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1 | ADES | — | — | — | — | — | **NON MESURÉ** |
-| 2 | QUALITE | — | — | — | — | — | **NON MESURÉ** |
-| 3 | BNPE | — | — | — | — | — | **NON MESURÉ** |
-| 4 | ADES + QUALITE | — | — | — | — | — | **NON MESURÉ** |
-| 5 | ADES + BNPE | — | — | — | — | — | **NON MESURÉ** |
-| 6 | QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
-| 7 | ADES + QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
-| A | `minimal_pilot` | — | — | — | — | — | **NON MESURÉ** |
-| B | `balanced_pilot` | — | — | — | — | — | **NON MESURÉ** |
-| C | `x3_technical_sample` | — | — | — | — | — | **NON MESURÉ** |
+| A.1 | ADES | — | — | — | — | — | **NON MESURÉ** |
+| A.★ | candidat exact | — | — | — | — | — | **NON MESURÉ** |
+
+### B — `balanced_pilot`
+
+| # | Combinaison | Observations | Octets | gzip | Provenance | Marge | Verdict |
+|---|---|---|---|---|---|---|---|
+| B.1 | ADES | — | — | — | — | — | **NON MESURÉ** |
+| B.2 | QUALITE | — | — | — | — | — | **NON MESURÉ** |
+| B.3 | BNPE | — | — | — | — | — | **NON MESURÉ** |
+| B.4 | ADES + QUALITE | — | — | — | — | — | **NON MESURÉ** |
+| B.5 | ADES + BNPE | — | — | — | — | — | **NON MESURÉ** |
+| B.6 | QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
+| B.7 | ADES + QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
+| B.★ | candidat exact | — | — | — | — | — | **NON MESURÉ** |
+
+### C — `x3_technical_sample`
+
+| # | Combinaison | Observations | Octets | gzip | Provenance | Marge | Verdict |
+|---|---|---|---|---|---|---|---|
+| C.1 | ADES | — | — | — | — | — | **NON MESURÉ** |
+| C.2 | QUALITE | — | — | — | — | — | **NON MESURÉ** |
+| C.3 | BNPE | — | — | — | — | — | **NON MESURÉ** |
+| C.4 | ADES + QUALITE | — | — | — | — | — | **NON MESURÉ** |
+| C.5 | ADES + BNPE | — | — | — | — | — | **NON MESURÉ** |
+| C.6 | QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
+| C.7 | ADES + QUALITE + BNPE | — | — | — | — | — | **NON MESURÉ** |
+| C.★ | candidat exact | — | — | — | — | — | **NON MESURÉ** |
+
+Les chiffres de B.1 et C.1 portent le même périmètre ADES, mais restent deux
+mesures distinctes : ce sont deux releases, acquises séparément, et rien ne
+garantit a priori qu'elles pèsent pareil. Les confondre serait supposer ce que
+le run doit établir.
 
 Ce qui est connu sans mesure : le §3.5 du paquet **estime** les 282
 observations de X3 à 250–350 ko, soit 2,5 à 3,5 fois le plafond. C'est une

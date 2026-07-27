@@ -1,47 +1,75 @@
 /*
- * water-intelligence.css — thème visuel du module public Water Intelligence (P04).
+ * water-intelligence.css — système visuel de Water Intelligence.
  *
- * Scopé à `[data-wi]` : n'affecte aucune autre surface du site. Préfixe `--wi-*`
- * délibérément distinct de `--mx-*` (propre à /materials, matières premières).
+ * Scopé à `[data-wi]` : n'affecte aucune autre surface du site. Le préfixe
+ * `--wi-*` est délibérément distinct de `--mx-*` (propre à /materials) — les
+ * deux modules partagent une ambition produit, pas des variables.
  *
- * Clair/sombre via `prefers-color-scheme` UNIQUEMENT — aucun JavaScript, aucun
- * localStorage, donc aucun composant client et aucun écart d'hydratation
- * possible. Le clair est la valeur par défaut ; le sombre est appliqué quand le
- * système le demande.
+ * ## Thème
  *
- * Sémantique des couleurs (jamais porteuse d'information à elle seule : chaque
- * usage est doublé d'un libellé texte explicite) :
- *   --wi-water    bleu profond  → ressource / eau
- *   --wi-data     cyan          → donnée / qualité
- *   --wi-stress   ambre         → stress / attention
- *   --wi-alert    rouge         → alerte critique ou indisponibilité UNIQUEMENT
- *   --wi-compliance violet      → conformité / reporting
- *   --wi-adapt    vert          → adaptation
- *   --wi-absent   gris + hachures → donnée absente (jamais un zéro)
+ * Sombre par défaut, clair conservé. Le choix explicite est porté par
+ * `data-wi-theme` sur le conteneur, posé par `IntelligenceThemeProvider` ; en
+ * son absence, `prefers-color-scheme` décide. Les deux mécanismes coexistent
+ * pour que la page reste correcte AVANT hydratation et sans JavaScript.
+ *
+ * ## La couleur ne porte JAMAIS un statut à elle seule
+ *
+ * Chaque état est doublé d'un libellé, d'une icône et — pour les états
+ * d'absence — d'un motif hachuré. C'est une règle d'accessibilité, et c'est
+ * aussi une règle d'honnêteté : un point vert n'explique pas pourquoi une
+ * source est publiée.
+ *
+ * Sémantique :
+ *   --wi-water       turquoise → ressource, eau, valeur publiée
+ *   --wi-data        bleu clair → donnée, provenance, méthode
+ *   --wi-glacier     glacier   → accent froid, conformité
+ *   --wi-stress      vigilance → attention, report, condition
+ *   --wi-alert       critique  → blocage, indisponibilité
+ *   --wi-adapt       succès    → adaptation, disponible
+ *   --wi-absent      gris + hachures → donnée absente (JAMAIS un zéro)
+ *   --wi-compliance  alias de glacier, conservé pour les composants livrés
  */
 
 [data-wi] {
-  /* Clair par défaut */
-  --wi-bg: #f4f8fc;
-  --wi-surface: #ffffff;
-  --wi-card: #ffffff;
-  --wi-card-2: #eaf1f9;
-  --wi-border: rgba(11, 27, 43, 0.12);
-  --wi-border-2: rgba(11, 27, 43, 0.24);
-  --wi-fg: #0b1b2b;
-  --wi-muted: #4a5c70;
-  --wi-subtle: #667a90;
+  /* ---------------------------------------------------------- Sombre (défaut) */
+  --wi-bg: #07111f;
+  --wi-surface: #0d1b2a;
+  --wi-raised: #13263a;
+  --wi-card: #0d1b2a;
+  --wi-card-2: #13263a;
+  --wi-border: rgba(165, 243, 252, 0.14);
+  --wi-border-2: rgba(165, 243, 252, 0.3);
 
-  --wi-water: #0b4f82;
-  --wi-data: #0e6e7d;
-  --wi-stress: #8a5200;
-  --wi-alert: #a32015;
-  --wi-compliance: #5b3a9e;
-  --wi-adapt: #1e6b45;
-  --wi-absent: #5c6b7a;
+  --wi-fg: #f8fafc;
+  --wi-muted: #a9b8ca;
+  --wi-subtle: #8598ad;
 
-  --wi-focus: #0b4f82;
-  --wi-hatch: rgba(92, 107, 122, 0.18);
+  --wi-water: #2dd4bf;
+  --wi-data: #38bdf8;
+  --wi-glacier: #a5f3fc;
+  --wi-stress: #f59e0b;
+  --wi-alert: #fb7185;
+  --wi-adapt: #4ade80;
+  --wi-absent: #93a5b8;
+  --wi-compliance: var(--wi-glacier);
+
+  --wi-focus: #38bdf8;
+  --wi-hatch: rgba(147, 165, 184, 0.26);
+  --wi-glow: rgba(45, 212, 191, 0.14);
+
+  --wi-radius: 14px;
+  --wi-radius-sm: 9px;
+  --wi-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -18px rgb(0 0 0 / 0.9);
+  --wi-shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 48px -24px rgb(0 0 0 / 0.95);
+  --wi-shadow-panel: 0 10px 30px rgb(0 0 0 / 0.42);
+  --wi-shadow-tip: 0 4px 14px rgb(0 0 0 / 0.35);
+
+  /* Rampe cartographique — extrémité basse = le fond, jamais une teinte. */
+  --wi-ramp-from: var(--wi-card-2);
+  --wi-ramp-to: var(--wi-stress);
+  --wi-map-land: var(--wi-card-2);
+  --wi-map-stroke: var(--wi-border);
+  --wi-map-select: var(--wi-fg);
 
   --wi-font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --wi-font-mono: var(--font-jetbrains-mono), ui-monospace, Menlo, Consolas, monospace;
@@ -49,90 +77,154 @@
   background: var(--wi-bg);
   color: var(--wi-fg);
   min-height: 100vh;
+  /* Les chiffres s'alignent en colonne : un tableau de volumes dont les
+     chiffres dansent se relit mal, et se compare encore plus mal. */
+  font-variant-numeric: tabular-nums;
+
+  /*
+   * Aucun élément DÉCORATIF ne peut faire défiler la page.
+   *
+   * Le halo du hero déborde volontairement de sa boîte (`inset: … -20% …`)
+   * pour adoucir ses bords. Sans cette ligne, ce débordement devenait un
+   * défilement horizontal du document — 144 px sur un écran de 1280, trouvé
+   * par l'E2E et non par relecture.
+   *
+   * `clip` et non `hidden` : `hidden` crée un conteneur de défilement, ce qui
+   * casserait le `position: sticky` de la navigation ancrée. `clip` coupe
+   * sans rien rendre défilable.
+   */
+  overflow-x: clip;
 }
 
-@media (prefers-color-scheme: dark) {
-  [data-wi] {
-    --wi-bg: #05101c;
-    --wi-surface: #0a1a2a;
-    --wi-card: #0e2233;
-    --wi-card-2: #13293c;
-    --wi-border: rgba(255, 255, 255, 0.1);
-    --wi-border-2: rgba(255, 255, 255, 0.2);
-    --wi-fg: #e6eef7;
-    --wi-muted: #9baec2;
-    --wi-subtle: #7b8fa5;
+/*
+ * Clair. Servi soit par choix explicite (`data-wi-theme="clair"`), soit par
+ * préférence système quand aucun choix n'a été posé. Le `:not([data-wi-theme])`
+ * empêche la préférence système d'écraser un choix utilisateur.
+ *
+ * Ce ne sont pas les mêmes valeurs hexadécimales, c'est le MÊME rôle : les
+ * teintes vives du thème sombre descendraient sous 4,5:1 sur fond clair.
+ */
+[data-wi]:not([data-wi-theme]),
+[data-wi][data-wi-theme="clair"] {
+  --wi-light-bg: #f2f7fb;
+  --wi-light-surface: #ffffff;
+  --wi-light-card-2: #e8f0f8;
+  --wi-light-border: rgb(7 17 31 / 0.12);
+  --wi-light-border-2: rgb(7 17 31 / 0.26);
+  --wi-light-fg: #07111f;
+  --wi-light-muted: #3f5468;
+  --wi-light-subtle: #586d82;
+  --wi-light-water: #0f766e;
+  --wi-light-data: #0369a1;
+  --wi-light-glacier: #0e7490;
+  --wi-light-stress: #92400e;
+  --wi-light-alert: #9f1239;
+  --wi-light-adapt: #15803d;
+  --wi-light-absent: #4e6178;
+}
 
-    --wi-water: #6fb6f2;
-    --wi-data: #47d6e8;
-    --wi-stress: #f5b942;
-    --wi-alert: #ff8a7a;
-    --wi-compliance: #b79cf5;
-    --wi-adapt: #57d89a;
-    --wi-absent: #8595a6;
-
-    --wi-focus: #6fb6f2;
-    --wi-hatch: rgba(133, 149, 166, 0.22);
+@media (prefers-color-scheme: light) {
+  [data-wi]:not([data-wi-theme]) {
+    --wi-bg: var(--wi-light-bg);
+    --wi-surface: var(--wi-light-surface);
+    --wi-raised: var(--wi-light-surface);
+    --wi-card: var(--wi-light-surface);
+    --wi-card-2: var(--wi-light-card-2);
+    --wi-border: var(--wi-light-border);
+    --wi-border-2: var(--wi-light-border-2);
+    --wi-fg: var(--wi-light-fg);
+    --wi-muted: var(--wi-light-muted);
+    --wi-subtle: var(--wi-light-subtle);
+    --wi-water: var(--wi-light-water);
+    --wi-data: var(--wi-light-data);
+    --wi-glacier: var(--wi-light-glacier);
+    --wi-stress: var(--wi-light-stress);
+    --wi-alert: var(--wi-light-alert);
+    --wi-adapt: var(--wi-light-adapt);
+    --wi-absent: var(--wi-light-absent);
+    --wi-focus: var(--wi-light-data);
+    --wi-hatch: rgb(78 97 120 / 0.22);
+    --wi-glow: rgb(15 118 110 / 0.1);
+    --wi-shadow: 0 1px 2px rgb(7 17 31 / 0.06), 0 12px 28px -20px rgb(7 17 31 / 0.4);
+    --wi-shadow-lift: 0 2px 4px rgb(7 17 31 / 0.08), 0 24px 44px -26px rgb(7 17 31 / 0.5);
+    --wi-shadow-panel: 0 10px 30px rgb(7 17 31 / 0.16);
+    --wi-shadow-tip: 0 4px 14px rgb(7 17 31 / 0.14);
   }
 }
 
-/* ---------------------------------------------------------------- Structure */
+[data-wi][data-wi-theme="clair"] {
+  --wi-bg: var(--wi-light-bg);
+  --wi-surface: var(--wi-light-surface);
+  --wi-raised: var(--wi-light-surface);
+  --wi-card: var(--wi-light-surface);
+  --wi-card-2: var(--wi-light-card-2);
+  --wi-border: var(--wi-light-border);
+  --wi-border-2: var(--wi-light-border-2);
+  --wi-fg: var(--wi-light-fg);
+  --wi-muted: var(--wi-light-muted);
+  --wi-subtle: var(--wi-light-subtle);
+  --wi-water: var(--wi-light-water);
+  --wi-data: var(--wi-light-data);
+  --wi-glacier: var(--wi-light-glacier);
+  --wi-stress: var(--wi-light-stress);
+  --wi-alert: var(--wi-light-alert);
+  --wi-adapt: var(--wi-light-adapt);
+  --wi-absent: var(--wi-light-absent);
+  --wi-focus: var(--wi-light-data);
+  --wi-hatch: rgb(78 97 120 / 0.22);
+  --wi-glow: rgb(15 118 110 / 0.1);
+  --wi-shadow: 0 1px 2px rgb(7 17 31 / 0.06), 0 12px 28px -20px rgb(7 17 31 / 0.4);
+  --wi-shadow-lift: 0 2px 4px rgb(7 17 31 / 0.08), 0 24px 44px -26px rgb(7 17 31 / 0.5);
+  --wi-shadow-panel: 0 10px 30px rgb(7 17 31 / 0.16);
+  --wi-shadow-tip: 0 4px 14px rgb(7 17 31 / 0.14);
+}
+
+/* ------------------------------------------------------------------ Structure */
 
 [data-wi] .wi-shell {
-  max-width: 72rem;
+  width: 100%;
+  max-width: 74rem;
   margin: 0 auto;
   padding: 0 1.25rem 5rem;
 }
 
+@media (min-width: 48rem) {
+  [data-wi] .wi-shell {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
 [data-wi] .wi-section {
-  padding-top: 3.5rem;
+  padding-top: 4.5rem;
   /* Compense la navigation ancrée collante lors d'un saut d'ancre. */
   scroll-margin-top: 5rem;
-}
-
-[data-wi] .wi-card {
-  background: var(--wi-card);
-  border: 1px solid var(--wi-border);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-}
-
-[data-wi] .wi-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 48rem) {
-  [data-wi] .wi-grid-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  [data-wi] .wi-grid-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 /* --------------------------------------------------------------- Typographie */
 
 [data-wi] .wi-h1,
 [data-wi] .wi-h2,
-[data-wi] .wi-h3 {
+[data-wi] .wi-h3,
+[data-wi] .wi-h4 {
   font-family: var(--wi-font-display);
   color: var(--wi-fg);
   line-height: 1.15;
   text-wrap: balance;
+  margin: 0;
 }
 
 [data-wi] .wi-h1 {
-  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-size: clamp(2.25rem, 6vw, 4rem);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
 }
 
 [data-wi] .wi-h2 {
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.5rem, 3.2vw, 2.125rem);
   font-weight: 650;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 [data-wi] .wi-h3 {
@@ -140,27 +232,52 @@
   font-weight: 650;
 }
 
+[data-wi] .wi-h4 {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+[data-wi] .wi-kicker {
+  font-family: var(--wi-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wi-water);
+  margin: 0 0 0.5rem;
+}
+
 [data-wi] .wi-lede {
-  color: var(--wi-muted);
-  font-size: 1.0625rem;
-  line-height: 1.65;
-  max-width: 60ch;
+  color: var(--wi-fg);
+  font-size: clamp(1.0625rem, 2vw, 1.3125rem);
+  line-height: 1.55;
+  max-width: 62ch;
 }
 
 [data-wi] .wi-muted {
   color: var(--wi-muted);
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
+/* Monospace UNIQUEMENT pour les références techniques : checksum, code
+   source, clé de release, identifiant d'ouvrage. Jamais pour de la prose. */
 [data-wi] .wi-mono {
   font-family: var(--wi-font-mono);
   font-size: 0.8125rem;
+  letter-spacing: -0.01em;
+  word-break: break-all;
+}
+
+/* Chiffres alignés en colonne — obligatoire dans toute table de valeurs. */
+[data-wi] .wi-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 /* -------------------------------------------------------------------- Liens */
 
 [data-wi] .wi-link {
-  color: var(--wi-water);
+  color: var(--wi-data);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 0.2em;
@@ -172,7 +289,8 @@
 
 /* Focus visible homogène sur toute la surface — jamais supprimé. */
 [data-wi] a:focus-visible,
-[data-wi] button:focus-visible {
+[data-wi] button:focus-visible,
+[data-wi] [tabindex]:focus-visible {
   outline: 3px solid var(--wi-focus);
   outline-offset: 2px;
   border-radius: 0.25rem;
@@ -184,19 +302,26 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  background: color-mix(in srgb, var(--wi-bg) 92%, transparent);
-  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--wi-bg) 88%, transparent);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--wi-border);
 }
 
 [data-wi] .wi-nav-inner {
-  max-width: 72rem;
+  max-width: 74rem;
   margin: 0 auto;
   padding: 0.625rem 1.25rem;
   display: flex;
   gap: 0.375rem;
   overflow-x: auto;
   align-items: center;
+  /* La barre défile horizontalement sans afficher de scrollbar gênante : le
+     dépassement est réel, son ornement ne l'est pas. */
+  scrollbar-width: none;
+}
+
+[data-wi] .wi-nav-inner::-webkit-scrollbar {
+  display: none;
 }
 
 [data-wi] .wi-nav-link {
@@ -214,6 +339,48 @@
   background: var(--wi-card-2);
 }
 
+/* ---------------------------------------------------------------- Composants */
+
+[data-wi] .wi-card {
+  background: var(--wi-card);
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius);
+  padding: 1.25rem;
+  box-shadow: var(--wi-shadow);
+}
+
+[data-wi] .wi-card-raised {
+  background: var(--wi-raised);
+}
+
+[data-wi] .wi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+[data-wi] .wi-grid-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 44rem) {
+  [data-wi] .wi-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-wi] .wi-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 62rem) {
+  [data-wi] .wi-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  [data-wi] .wi-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 /* ------------------------------------------------------------------ Badges */
 
 [data-wi] .wi-badge {
@@ -228,6 +395,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.4;
+  white-space: nowrap;
 }
 
 [data-wi] .wi-badge-demo {
@@ -241,6 +409,28 @@
 }
 [data-wi] .wi-badge-alert {
   color: var(--wi-alert);
+}
+[data-wi] .wi-badge-published {
+  color: var(--wi-water);
+}
+[data-wi] .wi-badge-ok {
+  color: var(--wi-adapt);
+}
+
+/* Pastille pleine, pour le hero : lisible sur fond profond. */
+[data-wi] .wi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.3125rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--wi-border-2);
+  background: var(--wi-card-2);
+  color: var(--wi-fg);
+  font-size: 0.75rem;
+  font-weight: 650;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 /* ------------------------------------------------- Donnée absente (hachures) */
@@ -273,6 +463,9 @@
 [data-wi] .wi-accent-stress {
   border-left: 3px solid var(--wi-stress);
 }
+[data-wi] .wi-accent-alert {
+  border-left: 3px solid var(--wi-alert);
+}
 [data-wi] .wi-accent-compliance {
   border-left: 3px solid var(--wi-compliance);
 }
@@ -283,25 +476,117 @@
   border-left: 3px dashed var(--wi-absent);
 }
 
-/* ------------------------------------------------------------- Mouvement */
+/* ------------------------------------------------------------------- Tables */
 
-/*
- * Aucune animation n'est nécessaire à la compréhension de cette page : la
- * seule transition est décorative et neutralisée sous prefers-reduced-motion.
- */
-[data-wi] .wi-nav-link,
-[data-wi] .wi-link {
-  transition: color 120ms ease, background-color 120ms ease;
+[data-wi] .wi-table-wrap {
+  /*
+    Le débordement horizontal est confiné ICI. La page ne défile jamais
+    latéralement : c'est le tableau qui défile dans son propre cadre.
+  */
+  overflow-x: auto;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius);
+  background: var(--wi-card);
+  -webkit-overflow-scrolling: touch;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-wi] *,
-  [data-wi] *::before,
-  [data-wi] *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+[data-wi] .wi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  min-width: 44rem;
+}
+
+[data-wi] .wi-table caption {
+  text-align: left;
+  padding: 0.875rem 1rem;
+  color: var(--wi-muted);
+  font-size: 0.8125rem;
+  border-bottom: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-table th,
+[data-wi] .wi-table td {
+  padding: 0.6875rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--wi-border);
+  vertical-align: top;
+}
+
+[data-wi] .wi-table thead th {
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wi-subtle);
+  font-weight: 650;
+  background: var(--wi-card-2);
+}
+
+[data-wi] .wi-table td.wi-td-num,
+[data-wi] .wi-table th.wi-th-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-wi] .wi-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* -------------------------------------------------------------- Interaction */
+
+[data-wi] .wi-tab {
+  appearance: none;
+  border: 1px solid var(--wi-border);
+  background: var(--wi-card);
+  color: var(--wi-muted);
+  border-radius: 999px;
+  padding: 0.4375rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+}
+
+[data-wi] .wi-tab:hover {
+  border-color: var(--wi-border-2);
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-tab[aria-selected="true"],
+[data-wi] .wi-tab[aria-pressed="true"] {
+  border-color: var(--wi-water);
+  color: var(--wi-fg);
+  background: var(--wi-glow);
+}
+
+[data-wi] .wi-copy {
+  appearance: none;
+  border: 1px solid var(--wi-border);
+  background: var(--wi-card-2);
+  color: var(--wi-muted);
+  border-radius: var(--wi-radius-sm);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+[data-wi] .wi-copy:hover {
+  color: var(--wi-fg);
+  border-color: var(--wi-border-2);
+}
+
+/* Grille carte + légende, conservée pour l'explorateur cartographique. */
+[data-wi] .wi-map-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 64rem) {
+  [data-wi] .wi-map-grid {
+    grid-template-columns: 1fr 22rem;
   }
 }
 
@@ -325,58 +610,747 @@
   font-weight: 600;
 }
 
-/* ==========================================================================
-   Wave C — ajouts strictement limités à ce qu'autorise le blueprint §8.3/§9.1
-   ==========================================================================
+/* ------------------------------------------------------------- Mouvement */
 
-   Aucune couleur brute n'est introduite : les rampes et surfaces de carte
-   dérivent des tokens `--wi-*` existants. Aucune police n'est ajoutée, donc
-   aucune ouverture CSP. Deux classes typographiques seulement (`.wi-h4`,
-   `.wi-num`), toutes deux nécessaires à des composants réellement livrés.
-   -------------------------------------------------------------------------- */
-
-[data-wi] {
-  /* Rampe cartographique — extrémité basse = le fond, jamais une teinte.
-     `--wi-ramp-to` est réaffecté par la dimension active, ce qui évite
-     d'écrire une rampe en dur par dimension. */
-  --wi-ramp-from: var(--wi-card-2);
-  --wi-ramp-to: var(--wi-stress);
-
-  /* Surfaces de carte */
-  --wi-map-land: var(--wi-card-2);
-  --wi-map-stroke: var(--wi-border);
-  --wi-map-select: var(--wi-fg);
-
-  /* Élévation — le CSS d'origine n'a aucune ombre ; le panneau et le tiroir
-     en ont besoin pour se détacher du fond. */
-  --wi-shadow-panel: 0 10px 30px rgb(0 0 0 / 0.22);
-  --wi-shadow-tip: 0 4px 14px rgb(0 0 0 / 0.18);
+[data-wi] .wi-nav-link,
+[data-wi] .wi-link,
+[data-wi] .wi-card {
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
 }
 
-/* Sous-titre du panneau : une profondeur de plus que le shell P04. */
-[data-wi] .wi-h4 {
+/*
+ * Aucune animation n'est nécessaire à la compréhension de cette page. Sous
+ * `prefers-reduced-motion`, les mêmes contenus sont rendus — sans déplacement,
+ * sans apparition progressive, sans information perdue.
+ */
+@media (prefers-reduced-motion: reduce) {
+  [data-wi] *,
+  [data-wi] *::before,
+  [data-wi] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   Hero — Water V1
+   ========================================================================== */
+
+[data-wi] .wi-hero {
+  padding-top: 3rem;
+  padding-bottom: 1rem;
+  position: relative;
+}
+
+/*
+ * Halo d'ambiance. Purement décoratif, `pointer-events: none`, et il ne
+ * transporte aucune information : le retirer ne change rien à ce que la page
+ * dit. Il n'existe pas sous `prefers-reduced-motion` non plus — non parce
+ * qu'il bouge, mais parce qu'il ne manque à personne.
+ */
+[data-wi] .wi-hero::before {
+  content: "";
+  position: absolute;
+  inset: -10% -20% auto -20%;
+  height: 60%;
+  background: radial-gradient(60% 60% at 30% 0%, var(--wi-glow) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-wi] .wi-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+[data-wi] .wi-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+@media (min-width: 62rem) {
+  [data-wi] .wi-hero-grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 3.5rem;
+  }
+}
+
+[data-wi] .wi-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+[data-wi] .wi-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 1.75rem 0 0;
+  background: var(--wi-border);
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius);
+  overflow: hidden;
+}
+
+@media (min-width: 44rem) {
+  [data-wi] .wi-hero-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+[data-wi] .wi-hero-stats > div {
+  background: var(--wi-card);
+  padding: 0.875rem 1rem;
+}
+
+[data-wi] .wi-hero-stats dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-subtle);
+  font-weight: 650;
+}
+
+[data-wi] .wi-hero-stats dd {
+  margin: 0.25rem 0 0;
   font-family: var(--wi-font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--wi-fg);
+  line-height: 1.2;
+}
+
+[data-wi] .wi-hero-provenance {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  max-width: 62ch;
+}
+
+[data-wi] .wi-hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+[data-wi] .wi-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6875rem 1.25rem;
+  border-radius: 999px;
   font-size: 0.9375rem;
   font-weight: 650;
-  line-height: 1.35;
-  margin: 0;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
 }
 
-/* Chiffres alignés en colonne — obligatoire dans la table alternative. */
-[data-wi] .wi-num {
+[data-wi] .wi-cta-primary {
+  background: var(--wi-water);
+  /* Texte sombre sur turquoise : c'est le sens qui donne le contraste AA,
+     pas l'inverse. Le fond profond du thème sert de couleur de texte. */
+  color: #07111f;
+}
+
+[data-wi] .wi-cta-primary:hover {
+  transform: translateY(-1px);
+}
+
+[data-wi] .wi-cta-secondary {
+  border-color: var(--wi-border-2);
+  color: var(--wi-fg);
+  background: var(--wi-card);
+}
+
+[data-wi] .wi-cta-secondary:hover {
+  border-color: var(--wi-water);
+}
+
+[data-wi] .wi-hero-note {
+  margin-top: 1.25rem;
+  font-size: 0.875rem;
+}
+
+/* ------------------------------------------------------------- Cascade */
+
+[data-wi] .wi-cascade {
+  background: var(--wi-card);
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius);
+  padding: 1.375rem;
+  box-shadow: var(--wi-shadow-lift);
+}
+
+[data-wi] .wi-cascade-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+[data-wi] .wi-cascade-item {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-start;
+  padding: 0.625rem 0;
+  position: relative;
+}
+
+/* Le filet vertical relie les maillons : il montre l'enchaînement sans
+   ajouter de texte, et il est décoratif — l'ordre est déjà porté par `ol`. */
+[data-wi] .wi-cascade-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0.8125rem;
+  top: 2rem;
+  bottom: -0.25rem;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--wi-border-2), transparent);
+}
+
+[data-wi] .wi-cascade-rank {
+  flex: 0 0 auto;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 50%;
+  border: 1px solid var(--wi-border-2);
+  background: var(--wi-card-2);
+  color: var(--wi-water);
+  font-family: var(--wi-font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-wi] .wi-cascade-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-cascade-label {
+  font-family: var(--wi-font-display);
+  font-weight: 650;
+  font-size: 0.9375rem;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-cascade-hint {
+  font-size: 0.8125rem;
+  color: var(--wi-muted);
+  line-height: 1.5;
+}
+
+[data-wi] .wi-cascade-foot {
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+}
+
+/* ==========================================================================
+   Sections Water V1 — pilote, constellation, matrices, preuves
+   ========================================================================== */
+
+[data-wi] .wi-viewswitch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ------------------------------------------------------ Données pilotes */
+
+[data-wi] .wi-pilot-value {
+  font-family: var(--wi-font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--wi-water);
+  margin: 1rem 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
   font-variant-numeric: tabular-nums;
 }
 
-/* Grille carte + légende. Le point de rupture 64rem est le SEUL ajout à
-   l'échelle de points de rupture, et sert uniquement à cette disposition. */
-[data-wi] .wi-map-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
+[data-wi] .wi-pilot-unit {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--wi-muted);
+  font-family: var(--wi-font-mono);
 }
 
-@media (min-width: 64rem) {
-  [data-wi] .wi-map-grid {
-    grid-template-columns: 1fr 22rem;
+[data-wi] .wi-pilot-meta {
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 0.625rem;
+}
+
+[data-wi] .wi-pilot-meta dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-subtle);
+  font-weight: 650;
+}
+
+[data-wi] .wi-pilot-meta dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-pilot-limit {
+  margin: 1rem 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+  font-size: 0.8125rem;
+  color: var(--wi-stress);
+  line-height: 1.5;
+}
+
+[data-wi] .wi-pilot-attribution {
+  margin-top: 1rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+  font-size: 0.8125rem;
+}
+
+/* Barres de comparaison — trois valeurs, aucune bibliothèque. */
+[data-wi] .wi-bars {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+[data-wi] .wi-bar-row {
+  display: grid;
+  grid-template-columns: minmax(0, auto) 1fr minmax(0, auto);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+@media (max-width: 34rem) {
+  /* Sous 375 px, la barre passe sous son libellé plutôt que de comprimer
+     les trois colonnes jusqu'à l'illisible. */
+  [data-wi] .wi-bar-row {
+    grid-template-columns: 1fr auto;
   }
+  [data-wi] .wi-bar-track {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+
+[data-wi] .wi-bar-label {
+  font-size: 0.75rem;
+  color: var(--wi-muted);
+  white-space: nowrap;
+}
+
+[data-wi] .wi-bar-track {
+  height: 0.75rem;
+  border-radius: 999px;
+  background: var(--wi-card-2);
+  border: 1px solid var(--wi-border);
+  overflow: hidden;
+}
+
+[data-wi] .wi-bar-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--wi-water), var(--wi-data));
+  border-radius: 999px;
+}
+
+[data-wi] .wi-bar-value {
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--wi-fg);
+  white-space: nowrap;
+}
+
+[data-wi] .wi-bar-unit {
+  font-family: var(--wi-font-mono);
+  font-size: 0.75rem;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-limit-list {
+  margin: 0.875rem 0 0;
+  padding-left: 1.125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  color: var(--wi-muted);
+  line-height: 1.6;
+  font-size: 0.9375rem;
+}
+
+/* ------------------------------------------------------- Constellation */
+
+[data-wi] .wi-constellation {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.875rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 44rem) {
+  [data-wi] .wi-constellation {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 68rem) {
+  [data-wi] .wi-constellation {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+[data-wi] .wi-constellation-node {
+  background: var(--wi-card);
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius);
+  box-shadow: var(--wi-shadow);
+  overflow: hidden;
+  /* Un panneau ouvert doit pouvoir dépasser la hauteur de ses voisins sans
+     tirer toute la rangée : chaque nœud est autonome. */
+  align-self: start;
+}
+
+[data-wi] .wi-constellation-trigger {
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 1rem 1.125rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: inherit;
+}
+
+[data-wi] .wi-constellation-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+[data-wi] .wi-constellation-toggle {
+  font-size: 1.125rem;
+  color: var(--wi-muted);
+  line-height: 1;
+}
+
+[data-wi] .wi-constellation-title {
+  font-family: var(--wi-font-display);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  color: var(--wi-fg);
+  line-height: 1.35;
+}
+
+[data-wi] .wi-constellation-code {
+  color: var(--wi-subtle);
+  font-size: 0.6875rem;
+}
+
+[data-wi] .wi-constellation-panel {
+  padding: 0 1.125rem 1.125rem;
+  border-top: 1px solid var(--wi-border);
+  padding-top: 1rem;
+}
+
+[data-wi] .wi-constellation-facts {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+[data-wi] .wi-constellation-facts dt,
+[data-wi] .wi-territory-facts dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-subtle);
+  font-weight: 650;
+}
+
+[data-wi] .wi-constellation-facts dd,
+[data-wi] .wi-territory-facts dd {
+  margin: 0.1875rem 0 0;
+  font-size: 0.875rem;
+  color: var(--wi-fg);
+  line-height: 1.55;
+}
+
+[data-wi] .wi-constellation-block + .wi-constellation-block {
+  margin-top: 0.875rem;
+}
+
+[data-wi] .wi-constellation-block .wi-muted {
+  font-size: 0.875rem;
+}
+
+/* ------------------------------------------------------------ Matrices */
+
+[data-wi] .wi-intensity {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+[data-wi] .wi-intensity-dots {
+  display: inline-flex;
+  gap: 2px;
+}
+
+[data-wi] .wi-intensity-dots > span {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  border: 1px solid var(--wi-border-2);
+}
+
+[data-wi] .wi-intensity-dots > span[data-on="true"] {
+  background: var(--wi-water);
+  border-color: var(--wi-water);
+}
+
+/* L'intensité la plus forte se distingue AUSSI par sa teinte de libellé — mais
+   le libellé lui-même reste l'information première. */
+[data-wi] .wi-intensity[data-intensity="structurante"] .wi-intensity-label {
+  color: var(--wi-fg);
+  font-weight: 650;
+}
+
+[data-wi] .wi-intensity[data-intensity="inconnue"] .wi-intensity-label {
+  color: var(--wi-absent);
+  font-style: italic;
+}
+
+[data-wi] .wi-intensity-label {
+  font-size: 0.75rem;
+  color: var(--wi-muted);
+  white-space: nowrap;
+}
+
+[data-wi] .wi-rowbutton {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 650;
+  color: var(--wi-fg);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+[data-wi] .wi-rowbutton:hover {
+  color: var(--wi-data);
+}
+
+[data-wi] .wi-rownote {
+  margin: 0.625rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  max-width: 42ch;
+  white-space: normal;
+}
+
+/* ------------------------------------------------------------ Territoire */
+
+[data-wi] .wi-territory-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.875rem;
+  margin: 0.875rem 0 0;
+}
+
+/* ------------------------------------------------------------ Chronologie */
+
+[data-wi] .wi-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+[data-wi] .wi-timeline-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding-left: 1rem;
+  border-left: 2px solid var(--wi-border-2);
+}
+
+[data-wi] .wi-timeline-date {
+  color: var(--wi-water);
+  font-size: 0.75rem;
+  padding-top: 0.125rem;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------- Preuves */
+
+[data-wi] .wi-proof {
+  margin: 0;
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius);
+  overflow: hidden;
+  background: var(--wi-card);
+}
+
+[data-wi] .wi-proof-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
+  padding: 0.875rem 1.125rem;
+  border-bottom: 1px solid var(--wi-border);
+}
+
+@media (min-width: 44rem) {
+  [data-wi] .wi-proof-row {
+    grid-template-columns: 14rem 1fr;
+    gap: 1rem;
+    align-items: baseline;
+  }
+}
+
+[data-wi] .wi-proof-row:last-child {
+  border-bottom: none;
+}
+
+[data-wi] .wi-proof-row dt {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--wi-subtle);
+  font-weight: 650;
+}
+
+[data-wi] .wi-proof-row dd {
+  margin: 0;
+  min-width: 0;
+}
+
+[data-wi] .wi-proof-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  color: var(--wi-fg);
+  /* Un checksum de 64 caractères ne doit pas pousser la page : il se coupe. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+[data-wi] .wi-proof-note {
+  display: block;
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--wi-muted);
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------- Passerelle financière */
+
+[data-wi] .wi-bridge {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.625rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 44rem) {
+  [data-wi] .wi-bridge {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+[data-wi] .wi-bridge-step {
+  background: var(--wi-card);
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius-sm);
+  align-self: start;
+  overflow: hidden;
+}
+
+[data-wi] .wi-bridge-trigger {
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  padding: 0.75rem 0.875rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+[data-wi] .wi-bridge-rank {
+  flex: 0 0 auto;
+  font-family: var(--wi-font-mono);
+  font-size: 0.6875rem;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-bridge-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-bridge-label {
+  font-family: var(--wi-font-display);
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-bridge-kind {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--wi-subtle);
+  font-weight: 650;
+}
+
+[data-wi] .wi-bridge-panel {
+  padding: 0 0.875rem 0.875rem;
+  border-top: 1px solid var(--wi-border);
+  padding-top: 0.75rem;
 }

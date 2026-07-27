@@ -50,10 +50,16 @@ test.describe("découvrabilité depuis la page d’accueil", () => {
   }) => {
     await page.goto("/");
     const card = page.locator('[data-testid="env-card-water"]');
-    await expect(card).toContainText("Infrastructure opérationnelle");
-    await expect(card).toContainText("7 sources officielles instrumentées");
-    await expect(card).toContainText("Licences vérifiées");
-    await expect(card).toContainText("Données publiques en attente de validation humaine");
+    await expect(card).toContainText("Pilote public approuvé — périmètre limité");
+    /*
+      Ces libellés ont changé le 2026-07-28 : « Données publiques en attente de
+      validation humaine » est devenu faux le jour où une décision a été
+      signée. La carte décrit désormais la DÉCISION — un fait durable — et pas
+      l'état du document publié, qui change au premier run du workflow de
+      génération et à chaque retour arrière.
+    */
+    await expect(card).toContainText("7 sources officielles instrumentées, licences vérifiées");
+    await expect(card).toContainText("1 source approuvée à la publication, sur 1 commune et 1 année");
 
     const text = ((await card.textContent()) ?? "").toLowerCase();
     for (const forbidden of [

@@ -19,7 +19,12 @@ import { describe, expect, it } from "vitest";
 import WaterIntelligencePage from "@/app/water/page";
 
 const markup = renderToStaticMarkup(<WaterIntelligencePage />);
-const visible = markup.replace(/<[^>]+>/g, " ");
+const visible = markup
+  .replace(/<[^>]+>/g, " ")
+  .replace(/&#x27;/g, "'")
+  .replace(/&quot;/g, '"')
+  .replace(/&amp;/g, "&")
+  .replace(/&nbsp;| /g, " ");
 
 const PAGE_SOURCE = readFileSync(
   join(process.cwd(), "app", "water", "page.tsx"),
@@ -55,7 +60,10 @@ describe("ancres", () => {
 
 describe("état réel du produit — aucune couche publiée", () => {
   it("annonce l'absence de couche publiée", () => {
-    expect(visible).toContain("Aucune couche publiée");
+    /* Le libellé a changé avec Territory Readiness : « Aucune couche publiée »
+       décrivait un état de carte, « Couches géographiques différées » décrit
+       une décision. L'invariant testé est le même — l'absence est nommée. */
+    expect(visible).toContain("Couches géographiques différées");
   });
 
   it("ne rend aucune carte", () => {
@@ -67,8 +75,10 @@ describe("état réel du produit — aucune couche publiée", () => {
   });
 
   it("rend l'état de la donnée sans produire de score", () => {
-    expect(visible).toContain("État de la donnée");
-    expect(visible).toContain("ne produit aucun score");
+    /* Water Pulse remplace l'ancien bandeau « État de la donnée ». Il porte
+       huit facettes tenues séparées, et dit lui-même qu'il n'agrège rien. */
+    expect(visible).toContain("Water Pulse");
+    expect(visible).toContain("ne produit aucun indice composite");
   });
 
   it("annonce que le gate exige une décision humaine", () => {
@@ -77,9 +87,23 @@ describe("état réel du produit — aucune couche publiée", () => {
 });
 
 describe("contenus éditoriaux", () => {
-  it("rend un état vide honnête pour les événements et les innovations", () => {
-    expect(visible).toContain("Aucun contenu publié");
-    expect(visible).toContain("réviseur identifié");
+  it("rend un état vide honnête pour les événements", () => {
+    /* La chronologie est vide, et l'explique plutôt que d'afficher un grand
+       bloc hachuré : elle ÉNONCE les cinq éléments qu'un événement devra
+       porter — une information réelle, et un critère vérifiable. */
+    expect(visible).toContain("Aucun événement instruit");
+    expect(visible).toContain("Ce qu'un événement devra porter pour apparaître ici");
+    expect(visible).toContain("une date de revue humaine");
+  });
+
+  it("rend les innovations avec leurs contreparties, jamais leur seule promesse", () => {
+    /* Les innovations, elles, ne sont PAS vides : neuf familles qualitatives,
+       chacune portant son arbitrage. Aucune n'affiche de volume économisé. */
+    expect(visible).toContain("Innovations et adaptation");
+    expect(visible).toContain(
+      "Chacune porte sa contrepartie au même niveau que son bénéfice",
+    );
+    expect(visible).not.toMatch(/\d+\s*(litres|m³|%)\s*(économisés|d'économie)/i);
   });
 
   it("n'invente aucune date dans les sections éditoriales vides", () => {

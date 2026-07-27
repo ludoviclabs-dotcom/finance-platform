@@ -61,32 +61,54 @@ test.describe("page publique Water Intelligence", () => {
     }
   });
 
-  test("annonce un état public cohérent : infrastructure prête, rien de publié", async ({ page }) => {
+  test("annonce un état public cohérent : un pilote signé, un périmètre nommé", async ({
+    page,
+  }) => {
     await page.goto("/water");
-    await expect(page.getByText("Infrastructure opérationnelle").first()).toBeVisible();
-    await expect(
-      page.getByText("Données publiques en attente de validation").first(),
-    ).toBeVisible();
-    // L'état ne se contredit pas : rien n'est publié, et la page le dit.
-    await expect(
-      page.getByText(new RegExp(`aucune observation n${APOS}est rendue publique`, "i")).first(),
-    ).toBeVisible();
+    await expect(page.getByTestId("wi-hero-badge-pilot")).toBeVisible();
+
+    // « Publié » n'apparaît JAMAIS sans son périmètre : sans lui, le badge se
+    // lirait comme « les données Eau sont en ligne ».
+    await expect(page.getByTestId("wi-hero-badge-scope")).toContainText("34172");
+    await expect(page.getByTestId("wi-hero-badge-scope")).toContainText("2020");
+
+    // Le compteur d'observations est LU au document, jamais écrit en dur : il
+    // vaut zéro tant que le workflow de génération n'a pas tourné.
+    await expect(page.getByTestId("wi-hero-observations")).toHaveText(/^[0-9]+$/);
   });
 
-  test("montre les sources et leurs exclusions motivées", async ({ page }) => {
+  test("montre les sources avec un état DISTINCT par famille de blocage", async ({ page }) => {
     await page.goto("/water");
     const sources = page.locator("#sources");
     await expect(sources).toBeVisible();
-    await expect(sources.getByText(/licence\(s\) vérifiée\(s\)/i).first()).toBeVisible();
 
-    // Licence vérifiée et publication autorisée restent deux axes distincts.
+    // Sept sources qui afficheraient toutes le même état seraient exactes et
+    // inutiles : aucune n'échoue pour la même raison, et l'une publie.
+    for (const label of [
+      "Publié — pilote limité",
+      "Validé — reporté pour budget",
+      "Enregistrement requis",
+      "Décodage différé",
+    ]) {
+      await expect(sources.getByText(label).first()).toBeVisible();
+    }
+
     await expect(
-      page
-        .getByText(
-          new RegExp(`ne constitue pas la décision éditoriale|jamais l${APOS}autorisation`, "i"),
-        )
-        .first(),
+      sources.getByText(/licences vérifiées, une publication autorisée/i).first(),
     ).toBeVisible();
+  });
+
+  test("ouvre le panneau d’une source et y trouve son blocage", async ({ page }) => {
+    await page.goto("/water");
+    const trigger = page.getByTestId("wi-source-trigger-HUBEAU_ADES");
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await trigger.click();
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+    const panel = page.getByTestId("wi-source-panel-HUBEAU_ADES");
+    await expect(panel).toBeVisible();
+    // Le report d'ADES est un report de BUDGET, pas un doute sur la source.
+    await expect(panel).toContainText(/budget/i);
   });
 
   test("offre une navigation ancrée qui atteint réellement ses sections", async ({ page }) => {
@@ -106,14 +128,17 @@ test.describe("page publique Water Intelligence", () => {
     }
   });
 
-  test("rend la table alternative plutôt qu’un fond de carte trompeur", async ({ page }) => {
+  test("rend Territory Readiness plutôt qu’un fond de carte trompeur", async ({ page }) => {
     await page.goto("/water");
     const carte = page.locator("#carte");
     await expect(carte).toBeVisible();
-    // Aucune couche publiée : la carte n'est pas montée, l'absence est nommée.
-    await expect(
-      carte.getByText(/aucune couche.*publication|aucune couche publiée/i).first(),
-    ).toBeVisible();
+
+    // Aucune couche publiée : la carte n'est pas montée, et l'absence est
+    // nommée AVEC sa raison — un fond vide se lirait comme une couverture
+    // nulle, ce qui n'est pas la même chose qu'une absence de publication.
+    await expect(carte.getByText(/couches géographiques différées/i).first()).toBeVisible();
+    await expect(carte.getByText(/couverture nulle/i).first()).toBeVisible();
+    await expect(carte.locator("svg")).toHaveCount(0);
   });
 
   test("expose un lien d’évitement et un contenu principal atteignable au clavier", async ({

@@ -72,11 +72,17 @@ describe("route publique /water", () => {
     expect(metadata.alternates?.canonical).toBe("/water");
     expect(metadata.openGraph).toBeTruthy();
     // La metadata ne doit rien promettre que la page ne livre pas.
-    // Wave E : la page ne se décrit plus comme « en construction » — elle
-    // décrit une infrastructure opérationnelle dont les données sont retenues.
+    //
+    // Elle annonçait « infrastructure opérationnelle » : exact tant que rien
+    // n'était publié, et devenu insuffisant depuis qu'une publication pilote
+    // est autorisée. Elle annonce désormais la PROPOSITION du module, et
+    // nomme la limite du pilote dans la même phrase — un titre qui promet
+    // « Water Intelligence » sans dire « périmètre limité » se lirait comme
+    // une couverture générale.
     const meta = `${metadata.title} ${metadata.description}`.toLowerCase();
     expect(meta).not.toContain("construction");
-    expect(meta).toContain("infrastructure opérationnelle");
+    expect(meta).toContain("explicitement limité");
+    expect(meta).toContain("pilote");
   });
 });
 
@@ -105,7 +111,16 @@ describe("aucune valeur fabriquée n'atteint le lecteur", () => {
   });
 
   it("ne revendique aucun score hydrique composite", () => {
-    expect(markup).toContain("Aucun score unique opaque");
+    /* Le libellé « Aucun score unique opaque » vivait dans une carte de
+       proposition supprimée par la refonte. L'énoncé est repris par Water
+       Pulse, à l'endroit où les huit facettes sont introduites — c'est-à-dire
+       là où la tentation d'agréger se présente. */
+    const visible = markup
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&#x27;/g, "'")
+      .replace(/&nbsp;| /g, " ");
+    expect(visible).toContain("ne produit aucun indice composite");
+    expect(visible).toContain("contestable seule");
   });
 
   it("ne rend jamais une absence comme un zéro", () => {

@@ -562,14 +562,14 @@ export const FINANCIAL_BRIDGE: readonly FinancialBridgeStep[] = [
     id: "interruption",
     label: "Interruption",
     question: "Combien de jours l'activité s'arrête-t-elle, et sur quel périmètre ?",
-    note: "Une restriction d'usage n'est pas un arrêt total : la part de capacité affectée est une hypothèse à poser, jamais 100 % par défaut.",
+    note: "Une restriction d'usage n'est pas un arrêt total : la part de capacité affectée est une hypothèse à poser, jamais la totalité par défaut.",
     kind: "exposition",
   },
   {
     id: "capacite",
     label: "Perte de capacité",
     question: "Quelle fraction de la capacité reste disponible pendant l'événement ?",
-    note: "Distincte de la durée : un site à 40 % pendant trente jours n'équivaut pas à un arrêt de douze jours.",
+    note: "Distincte de la durée : un site tournant au ralenti pendant un mois n'équivaut pas à un arrêt complet de quelques jours.",
     kind: "exposition",
   },
   {

@@ -76,19 +76,19 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_DB: carbonco_water_staging
-          POSTGRES_USER: water_v1
+          POSTGRES_USER: water_x4c
           # Mot de passe LOCAL au job, jamais un secret de dépôt : la base
           # n'est jointe que depuis ce runner et meurt avec lui.
-          POSTGRES_PASSWORD: water_v1_ephemeral
+          POSTGRES_PASSWORD: water_x4c_ephemeral
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U water_v1 -d carbonco_water_staging"
+          --health-cmd "pg_isready -U water_x4c -d carbonco_water_staging"
           --health-interval 5s --health-timeout 5s --health-retries 20
 
     env:
       PUBLICATION_BRANCH: feat/water-v1-publication-premium-experience
       APPROVED_SCOPE: BNPE/34172/2020
-      WATER_STAGING_DATABASE_URL: postgresql://water_v1:water_v1_ephemeral@localhost:5432/carbonco_water_staging
+      WATER_STAGING_DATABASE_URL: postgresql://water_x4c:water_x4c_ephemeral@localhost:5432/carbonco_water_staging
       APP_ENV: staging
       EXPECT_DB: carbonco_water_staging
       ARTIFACTS: /tmp/water-v1/artifacts

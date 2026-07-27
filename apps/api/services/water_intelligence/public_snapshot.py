@@ -67,6 +67,7 @@ from services.water_intelligence.observation_identity import (
 )
 from services.water_intelligence.publication_decisions import (
     EXCLUSION_NO_DECISION,
+    EXCLUSION_OUTSIDE_AUTHORIZED_SCOPE,
     PublicationDecisionRegistry,
 )
 
@@ -84,6 +85,11 @@ SNAPSHOT_SCHEMA_VERSION = "1.0.0"
 #: sans provenance nommable est une donnée orpheline sur une surface publique —
 #: l'écarter avec motif est préférable à la publier muette.
 EXCLUSION_PROVENANCE_INCOMPLETE = "provenance_information_url_missing"
+
+#: Source approuvée dont l'assembleur n'a reçu AUCUNE observation. Distinct
+#: d'un refus : l'autorisation tient, c'est la donnée qui manque. Les
+#: confondre ferait lire une panne d'acquisition comme une décision.
+EXCLUSION_APPROVED_BUT_NO_OBSERVATION = "approved_but_no_observation_supplied"
 
 MAX_MANIFEST_BYTES_UNCOMPRESSED = 100_000
 MAX_LAYER_BYTES_GZIP = 400_000
@@ -249,6 +255,13 @@ def assemble_public_snapshot(
     ledger = WaterObservationLedger()
     seen_source_codes: set[str] = set()
     excluded_source_codes: dict[str, SourceExclusion] = {}
+    #: Sources dont AU MOINS une observation est sortie du périmètre signé.
+    #: Tenu à part et fusionné après la boucle : une source dont trois
+    #: observations sont dans le périmètre et une hors ne doit pas être
+    #: annoncée « exclue » — elle est publiée, amputée d'une observation, et
+    #: c'est l'avertissement qui le dit. La promouvoir en exclusion ferait lire
+    #: « rien de cette source n'est publié » là où trois valeurs le sont.
+    out_of_scope: dict[str, SourceExclusion] = {}
 
     for observation in sorted(
         observations, key=lambda o: (o.source.source_code, o.metric_code, o.period_start)
@@ -295,6 +308,49 @@ def assemble_public_snapshot(
             )
             continue
 
+        # Quatrième barrière : une source autorisée ne l'est que sur le
+        # PÉRIMÈTRE signé. Une observation d'une autre commune ou d'une autre
+        # année est écartée avec son propre motif — distinct d'un refus de
+        # source, parce que ce n'en est pas un : c'est le refus d'un
+        # élargissement que personne n'a signé.
+        #
+        # Sans elle, réacquérir le département 34 au lieu de la commune 34172
+        # publierait des milliers de lignes sous une signature qui en couvrait
+        # trois. Le périmètre est le cœur de l'autorisation, pas son décor.
+        decision = registry.get(source_code)
+        if decision is not None and decision.authorized_scope is not None:
+            if not decision.covers(
+                geography_code=observation.geography.code,
+                period_start=observation.period_start,
+                period_end=observation.period_end,
+            ):
+                accumulator.warnings.append(
+                    f"{source_code}/{observation.metric_code} : observation HORS du "
+                    f"périmètre autorisé "
+                    f"({decision.authorized_scope.geography_code}, "
+                    f"{decision.authorized_scope.period_start} → "
+                    f"{decision.authorized_scope.period_end}) — écartée du snapshot "
+                    "public. Élargir le périmètre exige une nouvelle décision humaine."
+                )
+                out_of_scope.setdefault(
+                    source_code,
+                    SourceExclusion(
+                        source_code=source_code,
+                        reason=EXCLUSION_OUTSIDE_AUTHORIZED_SCOPE,
+                        detail=(
+                            f"La décision humaine du {decision.reviewed_on} couvre "
+                            f"{decision.authorized_scope.geography_type} "
+                            f"{decision.authorized_scope.geography_code} entre "
+                            f"{decision.authorized_scope.period_start} et "
+                            f"{decision.authorized_scope.period_end}. Au moins une "
+                            "observation reçue sort de ce périmètre : elle est "
+                            "écartée, jamais publiée sous une signature qui ne la "
+                            "couvre pas."
+                        ),
+                    ),
+                )
+                continue
+
         # Double barrière : une source autorisée ne rend pas publiable une
         # observation dont la licence interdit l'affichage.
         if observation.value_withheld or not observation.source.license.allow_display:
@@ -314,17 +370,44 @@ def assemble_public_snapshot(
         accumulator.observations.append(observation)
         seen_source_codes.add(source_code)
 
+    # Une source dont TOUTES les observations sont sorties du périmètre signé
+    # n'apparaît nulle part dans le snapshot : elle devient une exclusion en
+    # bonne et due forme, avec son motif propre. Celles qui ont conservé au
+    # moins une observation restent incluses — leur perte partielle est déjà
+    # dite par un avertissement, et l'annoncer deux fois de deux façons
+    # contradictoires serait pire que de ne rien dire.
+    for source_code, exclusion in out_of_scope.items():
+        if source_code not in seen_source_codes:
+            excluded_source_codes.setdefault(source_code, exclusion)
+
     # Sources connues du registre mais dont aucune observation n'est arrivée.
     for source_code in _registry_source_codes(registry):
         if source_code in seen_source_codes or source_code in excluded_source_codes:
             continue
+        registry_decision = registry.get(source_code)
         if registry.allows(source_code):
+            # Source APPROUVÉE dont aucune observation n'est arrivée. Sortir
+            # silencieusement la ferait disparaître du snapshot — ni incluse,
+            # ni exclue, ni mentionnée — alors qu'une signature humaine la
+            # couvre. Or c'est précisément l'état qu'un lecteur doit pouvoir
+            # distinguer d'une source non approuvée : la décision existe, la
+            # donnée manque. Une absence de valeur n'est pas une absence
+            # d'autorisation, et l'inverse non plus.
+            excluded_source_codes[source_code] = SourceExclusion(
+                source_code=source_code,
+                reason=EXCLUSION_APPROVED_BUT_NO_OBSERVATION,
+                detail=(
+                    "Une décision humaine autorise cette source, mais aucune "
+                    "observation n'a été fournie à l'assembleur. Le snapshot ne "
+                    "publie donc rien pour elle — l'autorisation reste valide, "
+                    "c'est la donnée qui manque."
+                ),
+            )
             continue
-        decision = registry.get(source_code)
         excluded_source_codes[source_code] = SourceExclusion(
             source_code=source_code,
             reason=registry.exclusion_reason(source_code) or EXCLUSION_NO_DECISION,
-            detail=decision.reason if decision else "Aucune décision humaine.",
+            detail=registry_decision.reason if registry_decision else "Aucune décision humaine.",
         )
 
     exclusions = tuple(sorted(excluded_source_codes.values(), key=lambda e: e.source_code))
@@ -332,12 +415,26 @@ def assemble_public_snapshot(
 
     warnings = list(accumulator.warnings)
     if not accumulator.observations:
-        warnings.insert(
-            0,
-            "Aucune source n'est autorisée à la publication : le snapshot public est "
-            "vide. Ce n'est pas une panne — c'est le résultat du gate licence, qui "
-            "exige une décision humaine explicite et revue par source.",
-        )
+        # Deux vides qui n'ont pas la même cause, et que le message ne doit
+        # pas confondre : « personne n'a signé » et « quelqu'un a signé, mais
+        # aucune donnée n'est arrivée ». Le premier est le résultat du gate ;
+        # le second est une acquisition qui n'a pas eu lieu.
+        if registry.approved_source_codes:
+            warnings.insert(
+                0,
+                "Snapshot public vide alors que "
+                f"{', '.join(registry.approved_source_codes)} porte(nt) une décision "
+                "de publication signée : aucune observation n'a été fournie à "
+                "l'assembleur. Ce n'est pas le gate licence — c'est une acquisition "
+                "absente ou hors périmètre.",
+            )
+        else:
+            warnings.insert(
+                0,
+                "Aucune source n'est autorisée à la publication : le snapshot public "
+                "est vide. Ce n'est pas une panne — c'est le résultat du gate licence, "
+                "qui exige une décision humaine explicite et revue par source.",
+            )
 
     manifest = _build_manifest(
         accumulator.observations,

@@ -256,11 +256,24 @@ class TestProvenanceGate:
 
 
 class TestRealRegistryIsUntouched:
-    def test_no_source_is_approved_in_the_real_registry(self) -> None:
-        """Garde-fou : X4B-PREP ne signe rien."""
-        from services.water_intelligence.publication_decisions import current_registry
+    def test_the_registry_carries_exactly_the_named_human_approvals(self) -> None:
+        """Garde-fou : une signature s'écrit à deux endroits, ou elle échoue.
 
-        assert current_registry().approved_source_codes == ()
+        Le contrôle portait sur « aucune source approuvée ». Il porte
+        maintenant sur l'égalité entre le registre et la liste NOMMÉE des
+        approbations humaines : basculer une source en `approved` sans nommer
+        la même source dans `HUMAN_APPROVED_SOURCE_CODES` échoue ici. Une
+        approbation ne peut pas être glissée au milieu d'un diff.
+        """
+        from services.water_intelligence.publication_decisions import (
+            HUMAN_APPROVED_SOURCE_CODES,
+            assert_human_approvals_unchanged,
+            current_registry,
+        )
+
+        assert_human_approvals_unchanged()
+        assert current_registry().approved_source_codes == HUMAN_APPROVED_SOURCE_CODES
+        assert HUMAN_APPROVED_SOURCE_CODES == ("HUBEAU_BNPE_PRELEVEMENTS",)
 
 
 class TestAttributionIsNotCandidacy:

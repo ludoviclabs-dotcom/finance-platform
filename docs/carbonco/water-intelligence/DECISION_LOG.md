@@ -471,3 +471,50 @@ n'est pas commencé.
   faute de place.
 - **Le premier verdict ADES du run était FAUX**, et c'est le défaut le plus
   instructif de cette phase — cf. `RISK_REGISTER.md`.
+
+## Water V1 — la première publication publique est signée (2026-07-28)
+
+- **Une décision humaine, une source, un périmètre.**
+  `HUBEAU_BNPE_PRELEVEMENTS` passe `approved` au registre, signée par
+  `ludoviclabs-dotcom` le 2026-07-28, sur le **seul** périmètre commune INSEE
+  `34172` / année 2020. Motif : *publication pilote BNPE exhaustive sur un
+  périmètre communal et annuel explicitement limité*. Les six autres sources
+  restent exactement où elles étaient.
+- **Une approbation porte désormais son périmètre.** `PublicationDecision`
+  gagne un `authorized_scope` (type et code de géographie, bornes de période),
+  et `assemble_public_snapshot()` une quatrième barrière : une observation
+  d'une autre commune ou d'une autre année est écartée avec le motif
+  `outside_authorized_scope`. Sans elle, `approved` aurait autorisé la source
+  ENTIÈRE — réacquérir le département 34 au lieu de la commune 34172 aurait
+  publié des milliers de lignes sous une signature qui en couvrait trois.
+  *Le périmètre est le cœur de l'autorisation, pas son décor.*
+- **Une signature s'écrit à deux endroits.** `HUMAN_APPROVED_SOURCE_CODES`
+  énumère à la main les sources signées, et `assert_human_approvals_unchanged()`
+  la confronte au registre. Basculer une septième source en `approved` sans
+  toucher cette ligne fait échouer le workflow de publication et la CI : une
+  approbation ne peut pas être glissée au milieu d'un diff.
+- **Le contrôle « rien n'est signé » est devenu « rien d'AUTRE n'est signé ».**
+  `assert_real_registry_untouched()` vérifiait `approved_source_codes == ()`.
+  C'était exact jusqu'au 2026-07-28. Le remplacer par « au plus une » aurait
+  affaibli le contrôle à chaque signature suivante ; le supprimer aurait rendu
+  une mesure capable d'approuver en silence. Il compare donc à la liste nommée.
+- **La condition de paternité est traitée par un CHOIX, pas par une mesure.**
+  `source_last_updated_on` n'est toujours relevée pour aucune source. La
+  Licence Ouverte 2.0 admet une seconde voie — indiquer l'URL pointant vers
+  l'Information — et X4A §1.3 laissait explicitement ce choix au signataire.
+  La signature du 2026-07-28 **retient cette voie, pour BNPE uniquement**.
+  L'URL officielle devient donc obligatoire à la porte de publication (motif
+  `provenance_information_url_missing` si elle manque), la date de consultation
+  reste affichée **comme date de consultation**, et le relevé direct reste dû.
+  Cf. `activation/X4B_HUMAN_APPROVAL_PACKET.md` §6.1.
+- **`derived_use_allowed = false` est la contrainte la plus structurante.**
+  Les trois volumes sont publiables tels quels ; aucun total, moyenne,
+  classement, score ni extrapolation n'en est dérivable — ni côté backend, ni
+  côté surface. La couverture BNPE est partielle par construction : un total
+  communal calculé sur trois ouvrages présenterait une somme partielle comme le
+  prélèvement de la commune.
+- **Deux vides qui ne se confondent plus.** « Personne n'a signé » et
+  « quelqu'un a signé, mais aucune donnée n'est arrivée » produisaient le même
+  message. Le second porte maintenant son propre motif
+  (`approved_but_no_observation_supplied`) : une acquisition absente ne doit
+  pas se lire comme le résultat du gate licence.

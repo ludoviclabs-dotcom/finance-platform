@@ -15,6 +15,13 @@
   "decisions": [
     {
       "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
       "reason": "Statut connecteur `source_verified_decoder_deferred` : identité de source vérifiée mais décodage raster volontairement reporté (aucune dépendance GDAL/rasterio/netCDF4 sans ADR). Aucune valeur décodée, donc rien à publier.",
       "reviewed_by": null,
       "reviewed_on": null,
@@ -23,6 +30,13 @@
     },
     {
       "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
       "reason": "Licence CC BY 4.0 (détenteur EEA) vérifiée en Wave A, attribution composée disponible. Analyse faite, décision de publication NON rendue : identifier une licence permissive ne vaut pas autorisation éditoriale. Reste inactive.",
       "reviewed_by": null,
       "reviewed_on": null,
@@ -31,6 +45,13 @@
     },
     {
       "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
       "reason": "Licence Ouverte Etalab vérifiée en Wave B (plateforme). Décision par jeu NON rendue ; le connecteur n'a par ailleurs jamais publié (dry-run).",
       "reviewed_by": null,
       "reviewed_on": null,
@@ -38,15 +59,35 @@
       "status": "proposed"
     },
     {
-      "allows_publication": false,
-      "reason": "Licence Ouverte Etalab vérifiée en Wave B. Décision NON rendue. Rappel de couverture : usages exonérés de redevance inconnus et volumes < 10 000 m³ non déclarés — une publication devra rendre l'absence, jamais un zéro.",
-      "reviewed_by": null,
-      "reviewed_on": null,
+      "allows_publication": true,
+      "authorized_scope": {
+        "geography_code": "34172",
+        "geography_type": "code_commune_insee",
+        "measurement_only": false,
+        "period_end": "2020-12-31",
+        "period_start": "2020-01-01"
+      },
+      "permissions": {
+        "automated_access_allowed": true,
+        "derived_use_allowed": false,
+        "display_allowed": true,
+        "storage_allowed": true
+      },
+      "reason": "publication pilote BNPE exhaustive sur un périmètre communal et annuel explicitement limité",
+      "reviewed_by": "ludoviclabs-dotcom",
+      "reviewed_on": "2026-07-28",
       "source_code": "HUBEAU_BNPE_PRELEVEMENTS",
-      "status": "proposed"
+      "status": "approved"
     },
     {
       "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
       "reason": "Licence Ouverte Etalab vérifiée en Wave B (plateforme). Décision par jeu NON rendue ; le connecteur n'a par ailleurs jamais publié (dry-run).",
       "reviewed_by": null,
       "reviewed_on": null,
@@ -55,6 +96,13 @@
     },
     {
       "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
       "reason": "Licence Ouverte Etalab vérifiée en Wave B. Décision NON rendue. Une publication exigerait en outre une allowlist de paramètres SANDRE revue et l'absence de toute conclusion de conformité, qui relève exclusivement du registre juridique.",
       "reviewed_by": null,
       "reviewed_on": null,
@@ -63,6 +111,13 @@
     },
     {
       "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
       "reason": "Licence CC BY 4.0 vérifiée, mais WRI exige en outre un enregistrement pour partager/adapter les données. Enregistrement NON effectué : aucune valeur Aqueduct n'est publiable tant qu'un humain n'a pas tranché.",
       "reviewed_by": null,
       "reviewed_on": null,
@@ -87,8 +142,8 @@
       "source_code": "HUBEAU_ADES"
     },
     {
-      "detail": "Licence Ouverte Etalab vérifiée en Wave B. Décision NON rendue. Rappel de couverture : usages exonérés de redevance inconnus et volumes < 10 000 m³ non déclarés — une publication devra rendre l'absence, jamais un zéro.",
-      "reason": "decision_proposed_not_reviewed",
+      "detail": "Une décision humaine autorise cette source, mais aucune observation n'a été fournie à l'assembleur. Le snapshot ne publie donc rien pour elle — l'autorisation reste valide, c'est la donnée qui manque.",
+      "reason": "approved_but_no_observation_supplied",
       "source_code": "HUBEAU_BNPE_PRELEVEMENTS"
     },
     {
@@ -115,6 +170,6 @@
   "periods": [],
   "schema_version": "1.0.0",
   "warnings": [
-    "Aucune source n'est autorisée à la publication : le snapshot public est vide. Ce n'est pas une panne — c'est le résultat du gate licence, qui exige une décision humaine explicite et revue par source."
+    "Snapshot public vide alors que HUBEAU_BNPE_PRELEVEMENTS porte(nt) une décision de publication signée : aucune observation n'a été fournie à l'assembleur. Ce n'est pas le gate licence — c'est une acquisition absente ou hors périmètre."
   ]
 }

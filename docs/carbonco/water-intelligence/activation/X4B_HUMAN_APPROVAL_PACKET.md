@@ -1,11 +1,16 @@
 # X4B — Paquet d'approbation humaine
 
-**Statut : `unsigned` — aucune décision n'est rendue dans ce document.**
-**Aucune donnée n'est publiée. Aucune source n'est `approved` au registre.**
+**Statut : `signed` — décision rendue le 2026-07-28 par `ludoviclabs-dotcom`.**
+**Une source est `approved` au registre : `HUBEAU_BNPE_PRELEVEMENTS`, sur le**
+**seul périmètre commune INSEE `34172` / année 2020.**
 
-Ce paquet présente les trois options de première publication Water et porte les
-formulaires de décision. Les formulaires sont **vides**, et un formulaire vide
-vaut « non décidé », jamais « accepté par défaut ».
+Ce paquet présentait les trois options de première publication Water et portait
+les formulaires de décision. **Le formulaire §6 est désormais rempli et signé.**
+La décision retenue n'est aucune des trois options du §2 : c'est la quatrième,
+`bnpe_minimal_pilot_v1`, seule option mesurée sous le budget (§4).
+
+Les six autres sources restent **non approuvées**, chacune pour un motif nommé
+au §9.2. Aucune n'est rendue publiable par cette signature.
 
 Détail technique :
 [X4B_CANDIDATE_REPORT.md](X4B_CANDIDATE_REPORT.md). Audit préalable :
@@ -188,7 +193,7 @@ que la chaîne fonctionne — n'est pas technique et n'est pas tranchée ici.
 | 2 bis | Variation de checksum ADES X2A → X3, même longueur | **toujours non expliquée** — hors périmètre du run, reste due |
 | 2 ter | Diff d'**identités** ADES (ajoutées / supprimées / modifiées) | **non produit** — le verdict porte sur les octets bruts, pas sur les identités |
 | 3 | Cadence de mise à jour BNPE | **non vérifiée** — mensuelle non confirmée, annuelle déclarée sur data.gouv.fr |
-| 4 | `source_last_updated_on` des trois sources | ⛔ **NON RELEVÉE — BLOQUANT.** La Licence Ouverte 2.0 exige la source **et la date de dernière mise à jour de l'Information réutilisée**. Le dépôt écrit déjà que **tant que ce champ est vide, le libellé d'attribution de la source n'est pas publiable** (X4A §2.2, `RISK_REGISTER.md`). L'URL officielle **ne remplace pas** ce fait : elle rend la source citable, pas l'attribution conforme. **S'applique aussi à BNPE**, donc à `bnpe_minimal_pilot_v1`. |
+| 4 | `source_last_updated_on` des trois sources | ⚠️ **TOUJOURS NON RELEVÉE.** Pour BNPE, traitée par la **voie de l'URL officielle** explicitement retenue au §6.1 — un choix éditorial du signataire, pas une mesure. Reste ⛔ **BLOQUANT** pour ADES et Naïades. Texte d'origine : La Licence Ouverte 2.0 exige la source **et la date de dernière mise à jour de l'Information réutilisée**. Le dépôt écrit déjà que **tant que ce champ est vide, le libellé d'attribution de la source n'est pas publiable** (X4A §2.2, `RISK_REGISTER.md`). L'URL officielle **ne remplace pas** ce fait : elle rend la source citable, pas l'attribution conforme. **S'applique aussi à BNPE**, donc à `bnpe_minimal_pilot_v1`. |
 | 5 | Licence vérifiée au niveau **plateforme**, pas jeu par jeu | `license_scope = platform` inchangé |
 | 6 | Allowlist SANDRE (Naïades) | à **valider explicitement** avant publication |
 | 7 | Couverture partielle BNPE par construction | permanente — doit être affichée **à côté des valeurs**, pas en pied de page |
@@ -197,27 +202,65 @@ que la chaîne fonctionne — n'est pas technique et n'est pas tranchée ici.
 | 10 | Publication de **3 observations** | le périmètre conforme est très étroit : la valeur éditoriale d'une telle publication est une question humaine, pas technique |
 | 11 | Un contrôle de sécurité sauté par l'échec d'une étape métier | **corrigé** — les trois étapes de sortie passent en `if: always()`, mais cette exécution n'a pas encore été observée sur un run |
 
-## 6. Formulaire de décision — **non signé**
+## 6. Formulaire de décision — **signé le 2026-07-28**
 
-Un seul formulaire : l'option choisie détermine les sources. Ne pas grouper les
-sources sans nommer leur périmètre.
+Un seul formulaire : l'option choisie détermine les sources. Les sources ne sont
+pas groupées — une seule est approuvée, et son périmètre est nommé.
 
-| Champ | Valeur | Décision |
-|---|---|---|
-| **Option retenue** (`A` / `B` / `C` / `bnpe_minimal_pilot_v1` / aucune) | | |
-| Sources approuvées (énumérées, jamais « les sources Hub'Eau ») | | |
-| Périmètres approuvés (géographie + période, par source) | | |
-| Attributions retenues (libellé exact, octet pour octet) | | |
-| URLs officielles retenues | | |
-| **`source_last_updated_on`** par source — **bloquant tant qu'il est vide** | | |
-| `display_allowed` | | |
-| `derived_use_allowed` | | |
-| Cadence BNPE — issue retenue (relever / annuelle data.gouv.fr / non vérifiée assumée) | | |
-| Limites à afficher | | |
-| `reviewer` | | |
-| `reviewed_on` | | |
-| **Décision** (`approved` / `rejected` / `deferred`) | | |
-| Motif (obligatoire, quel que soit le verdict) | | |
+| Champ | Valeur |
+|---|---|
+| **Option retenue** | **`bnpe_minimal_pilot_v1`** — aucune des options A / B / C |
+| Sources approuvées | `HUBEAU_BNPE_PRELEVEMENTS`, et elle seule |
+| Périmètre approuvé | `code_commune_insee = 34172`, année **2020** (`2020-01-01` → `2020-12-31`), chroniques annuelles de prélèvements, pagination exhaustive |
+| Attribution retenue | Libellé canonique de `source_attribution.py` pour `HUBEAU_BNPE_PRELEVEMENTS`, octet pour octet |
+| URL officielle retenue | <https://hubeau.eaufrance.fr/page/api-prelevements-eau> |
+| **`source_last_updated_on`** | **NON RELEVÉE — voie de conformité de l'URL retenue, cf. §6.1** |
+| `display_allowed` | **`true`** |
+| `derived_use_allowed` | **`false`** |
+| `automated_access_allowed` | **`true`** |
+| `storage_allowed` | **`true`** |
+| Cadence BNPE | **non vérifiée, assumée** — `refresh_cadence = None`, aucune cadence n'est affichée |
+| Limites à afficher | Volumes exonérés de redevance possiblement absents ; petits volumes possiblement non déclarés ; **une absence de déclaration n'est jamais un prélèvement nul** ; couverture partielle par construction ; aucun total, moyenne, classement ni score |
+| `reviewer` | `ludoviclabs-dotcom` |
+| `reviewed_on` | `2026-07-28` |
+| **Décision** | **`approved`** |
+| Motif | publication pilote BNPE exhaustive sur un périmètre communal et annuel explicitement limité |
+
+### 6.1 La voie de conformité retenue pour la paternité — décision explicite
+
+Le risque 4 du §5 était marqué ⛔ **BLOQUANT** : `source_last_updated_on` n'est
+relevée pour aucune source, et le dépôt écrit que tant que ce champ est vide,
+le libellé d'attribution n'est pas publiable.
+
+Ce blocage **n'est pas levé par une mesure**. Il est levé par un **choix
+éditorial**, que la Licence Ouverte 2.0 rend disponible et que le dépôt avait
+explicitement laissé au signataire :
+
+> « La licence admet une seconde voie de conformité : indiquer l'URL pointant
+> vers l'Information, à condition que la paternité reste effectivement
+> attribuée. Retenir cette voie plutôt que la date relevée est un choix
+> éditorial — il appartient au signataire, et il n'est pas fait ici. »
+> — [X4A_ATTRIBUTION_AND_FRESHNESS.md](X4A_ATTRIBUTION_AND_FRESHNESS.md) §1.3
+
+**La signature du 2026-07-28 retient cette seconde voie pour BNPE**, et pour
+elle seule. Trois conséquences, toutes tenues par du code et non par une
+intention :
+
+1. `source_information_url` est **obligatoire** pour toute source publiée —
+   `assemble_public_snapshot()` écarte avec le motif
+   `provenance_information_url_missing` une source approuvée dont l'URL
+   manquerait. La voie retenue est donc mécaniquement contrôlée, pas déclarée.
+2. `source_last_updated_on` reste **`None`**, et rien ne l'invente. La date de
+   consultation continue d'être affichée **comme date de consultation**,
+   jamais comme date de mise à jour de la source : ce sont deux faits
+   différents, et le premier ne remplace pas le second.
+3. Ce choix vaut pour **BNPE uniquement**. Il ne s'étend ni à ADES, ni à
+   Naïades, ni à aucune source future : chacune exigera sa propre décision.
+
+**Ce que ce choix ne prétend pas.** Retenir la voie de l'URL est conforme à la
+licence ; ce n'est pas équivalent à relever la date. Un lecteur qui veut savoir
+quand la BNPE a changé pour la dernière fois ne le lira pas sur cette page. Le
+relevé direct reste dû, et il reste inscrit comme dette au registre des risques.
 
 ## 7. Après signature
 
@@ -234,12 +277,66 @@ sources sans nommer leur périmètre.
 
 ## 8. Ce que ce document n'est pas
 
-- Ce n'est pas une décision. Aucun champ n'est rempli, et aucun ne doit l'être
-  par un modèle.
 - Ce n'est plus un état non mesuré : les budgets, les comptes d'observations
   et le checksum ADES viennent du run `30306257628`. Ce qui manque encore est
   nommé comme manquant, jamais estimé.
-- Ce n'est pas une autorisation de publier : le budget a **refusé les trois
-  options**, et une condition de paternité reste **non levée** pour les trois
-  sources (§5, risque 4). Une mesure conforme au budget ne rend pas une
-  attribution conforme à sa licence.
+- Ce n'est **pas** une autorisation générale de publier Water. C'est une
+  autorisation **nommée, bornée et conditionnelle** : une source, une commune,
+  une année, trois observations, et une liste de divergences qui arrêtent la
+  publication (§9.3).
+- Ce n'est pas une levée des réserves du §5. Le risque 4 est **traité** pour
+  BNPE par un choix éditorial explicite (§6.1), pas résolu par une mesure ;
+  il reste entier pour ADES et Naïades.
+
+## 9. La décision rendue
+
+### 9.1 Ce qui est approuvé
+
+| Élément | Valeur signée |
+|---|---|
+| Option | `bnpe_minimal_pilot_v1` |
+| Source | `HUBEAU_BNPE_PRELEVEMENTS` |
+| Territoire | commune INSEE `34172` |
+| Période | 2020-01-01 → 2020-12-31 |
+| Opération | chroniques annuelles de prélèvements |
+| Pagination | exhaustive — dernière page non saturée exigée |
+| Observations attendues | **3** |
+| Checksum du payload source | `c9b8d10e9f1059fd49db51a45d6890ff1cebe546084eeac03d871742a74bd2e9` |
+| Snapshot candidat mesuré | 6 120 octets |
+| Budget maximum | 100 000 octets |
+| Marge mesurée | 93 880 octets |
+| Réviseur | `ludoviclabs-dotcom` |
+| Date | 2026-07-28 |
+
+### 9.2 Ce qui n'est PAS approuvé — les six autres sources
+
+Aucune de ces décisions n'est modifiée par la signature du 2026-07-28. Chaque
+motif est un fait établi, jamais une réserve de principe.
+
+| Source | Motif normalisé | Ce que cela veut dire |
+|---|---|---|
+| `HUBEAU_ADES` | `deferred_over_budget` | Acquisition **stable** (checksum identique à X3 sur 52 139 octets) et périmètre exhaustif. 182 observations pour 255 121 octets, soit 2,5× le budget. Report faute de place, **pas un doute sur la source**. |
+| `HUBEAU_QUALITE_SURFACE` | `deferred_over_budget` | Périmètre resserré jusqu'à l'exhaustivité (78 observations au lieu de 50 tronquées) — un vrai progrès de méthode, et 111 324 octets tout de même. Un périmètre exhaustif hors budget reste hors budget. |
+| `HUBEAU_HYDROMETRIE` | `subdaily_identity_collision` | Le grain jour du contrat d'identité ne modélise pas plusieurs lectures d'un même jour. Désaccord entre deux décisions d'architecture, pas un bug — trancher est une décision de fond, différée. |
+| `EEA_WEI_PLUS` | `manual_artifact_required` | Un artefact doit être obtenu manuellement avant toute ingestion. |
+| `WRI_AQUEDUCT` | `blocked_registration_required` | Licence CC BY 4.0 vérifiée, mais WRI exige **en outre** un enregistrement pour partager ou adapter — démarche humaine non effectuée. |
+| `COPERNICUS_EDO` | `source_verified_decoder_deferred` | Identité de source vérifiée, décodage raster volontairement reporté. Aucune valeur décodée : **rien à publier**, ce qui n'est pas la même chose qu'un refus. |
+
+### 9.3 Les conditions qui ARRÊTENT la publication
+
+L'autorisation est conditionnelle. La publication doit être **arrêtée** — pas
+ajustée, pas tronquée — si l'un de ces éléments diverge :
+
+1. checksum du payload différent de celui du §9.1 ;
+2. nombre d'observations différent de **3** ;
+3. périmètre différent de `34172` / 2020 ;
+4. pagination non exhaustive (dernière page saturée) ;
+5. snapshot supérieur ou égal à 100 000 octets ;
+6. attribution absente ;
+7. licence non applicable ;
+8. présence d'une donnée tenant ;
+9. présence d'une autre source dans le snapshot.
+
+Chacune de ces neuf conditions est **exécutable** : elles sont contrôlées par
+le workflow de génération, qui échoue plutôt que de produire un document —
+cf. `X4C_PUBLICATION_RUNBOOK.md`.

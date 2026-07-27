@@ -212,3 +212,41 @@ que la validation live a **révélés**, pas ceux qu'on anticipait.
 | 5. Des releases staging | ✅ X3 — 3/4 sources, staging **éphémère** (`HUBEAU_HYDROMETRIE` différée) |
 | 6. Des décisions humaines signées | ❌ X4 |
 | 7. Un snapshot public des sources approuvées | ❌ X4 |
+
+---
+
+## Matrice de préparation à la PUBLICATION — état au 2026-07-28
+
+Cette matrice ne remplace pas celle de l'acquisition ci-dessus : une source
+peut être parfaitement acquise et rester non publiable. Elle répond à une
+question différente — *qu'est-ce qui manque, aujourd'hui, pour que cette source
+atteigne la surface publique ?*
+
+| Source | Acquisition | Budget mesuré | Décision humaine | Motif normalisé | État public |
+|---|---|---|---|---|---|
+| Hub'Eau prélèvements (BNPE) | ✅ exhaustive sur `34172` / 2020 — dernière page non saturée | ✅ **6 120 o** (marge 93 880) | ✅ **`approved`** — `ludoviclabs-dotcom`, 2026-07-28 | `published_limited_scope` | **Publié — pilote limité** |
+| Hub'Eau piézométrie (ADES) | ✅ exhaustive — checksum `byte_stable` vs X3 | ❌ 255 121 o (2,5× le budget) | ⏸️ non rendue | `deferred_over_budget` | Validé — reporté pour budget |
+| Hub'Eau qualité surface (Naïades) | ✅ exhaustive après resserrement — 78 obs. | ❌ 111 324 o (+11 324) | ⏸️ non rendue | `deferred_over_budget` | Validé — reporté pour budget |
+| Hub'Eau hydrométrie | ⛔ ingestion différée | non mesuré | ⏸️ non rendue | `subdaily_identity_collision` | Collision d'identité sous-journalière |
+| EEA WEI+ | ⛔ artefact manuel requis | non mesuré | ⏸️ non rendue | `manual_artifact_required` | Artefact manuel requis |
+| WRI Aqueduct | ⛔ enregistrement WRI non effectué | non mesuré | ❌ `refused` | `blocked_registration_required` | Enregistrement requis |
+| Copernicus EDO | ⛔ décodeur raster reporté | non mesuré | ❌ `refused` | `source_verified_decoder_deferred` | Décodage différé |
+
+### Ce que la colonne « budget » dit, et ne dit pas
+
+Le budget de 100 000 octets porte sur la **charge servie** par l'endpoint
+public, provenance comprise. Deux sources y échouent alors que leur acquisition
+est irréprochable : c'est le poids de l'auditabilité — attribution, URL
+officielle, cadence, checksum et licence **par observation**.
+
+L'alléger rendrait le budget tenable en rendant la donnée non auditable. La
+seule réponse retenue est de restreindre le périmètre jusqu'à ce qu'il tienne
+avec sa provenance intacte. `deferred_over_budget` n'est donc pas un jugement
+sur la source ; c'est un constat sur le périmètre demandé.
+
+### Les six colonnes ne se remplacent pas
+
+Une source peut être ✅ partout sauf en décision humaine et rester non publiée :
+c'est l'état d'ADES et de Naïades. La décision est le gate, et aucune des cinq
+autres colonnes ne la remplace — c'est la leçon que ce chantier a inscrite dans
+le code plutôt que dans une consigne.

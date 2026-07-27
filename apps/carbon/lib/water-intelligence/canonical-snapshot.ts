@@ -33,6 +33,7 @@ import rawEmptySnapshot from "./public-snapshot-empty.json";
 import rawSourceStatus from "./source-status.json";
 import {
   WaterPublicSnapshotSchema,
+  WiAuthorizedScopeSchema,
   type WaterPublicSnapshot,
 } from "./public-snapshot";
 
@@ -72,6 +73,14 @@ export const WiSourceStatusSchema = z.object({
   state: WiSourceStateEnum,
   state_label: z.string().min(1),
   blocking_reason: z.string().min(1),
+  /**
+   * Code normalisé du motif de report ou de blocage. La constellation
+   * publique s'y adosse plutôt qu'à `blocking_reason` : une phrase française
+   * se réécrit, un code se compare.
+   */
+  deferral_code: z.string().min(1),
+  /** Périmètre signé, `null` tant qu'aucune décision ne couvre la source. */
+  authorized_scope: WiAuthorizedScopeSchema.nullable(),
 });
 export type WiSourceStatus = z.infer<typeof WiSourceStatusSchema>;
 

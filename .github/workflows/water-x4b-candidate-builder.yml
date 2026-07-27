@@ -1,0 +1,234 @@
+# X4B-PREP — Construction des snapshots CANDIDATS Water, sans publication.
+#
+# Déclenchement MANUEL uniquement. Aucun push, aucune pull_request, aucun cron,
+# aucun schedule : ce workflow appelle des services publics officiels (Hub'Eau)
+# et écrit dans une base — deux gestes qui ne partent jamais tout seuls.
+#
+# ## Ce que ce workflow NE fait pas, et qui n'est pas négociable
+#
+# - Il ne publie AUCUNE donnée. Aucun document canonique n'est écrit dans le
+#   dépôt, aucun snapshot public n'est modifié, `/water` n'est pas touché.
+# - Il n'obtient PAS `contents: write`. Le précédent `materials-price-history.yml`
+#   pousse sans revue ; répliqué ici, il produirait une publication sans
+#   signature humaine. Les permissions restent `contents: read`.
+# - Il n'approuve AUCUNE source. Le registre `publication_decisions.py` est lu,
+#   jamais écrit : les sept sources y restent `proposed`/`refused`.
+# - Il n'utilise NI Neon, NI Vercel, NI aucun secret PostgreSQL persistant.
+#   La base vit dans le réseau du runner et disparaît avec lui ; son URL est
+#   composée dans le job à partir du service `postgres` local. Aucune variable
+#   Carbon&Co (`DATABASE_URL*`, `DATABASE_ADMIN_URL`) n'est lue ni référencée,
+#   et la porte `staging_environment.py` refuse tout repli sur elles.
+#
+# ## Ce qu'il produit
+#
+# Des ARTEFACTS de run, hors dépôt : mesures de budget des sept combinaisons de
+# sources et des trois candidats exacts, diff de checksums ADES, rapports. Ce
+# sont ces chiffres — et eux seuls — qui remplissent les sections laissées
+# vides de X4B_CANDIDATE_REPORT.md et X4B_HUMAN_APPROVAL_PACKET.md.
+#
+# ## Sources
+#
+# Trois candidates : HUBEAU_ADES, HUBEAU_QUALITE_SURFACE,
+# HUBEAU_BNPE_PRELEVEMENTS. HUBEAU_HYDROMETRIE reste HORS de toute étape de
+# graveur (`subdaily_identity_collision`, cf. X3) ; EEA_WEI_PLUS, WRI_AQUEDUCT
+# et COPERNICUS_EDO ne sont pas touchées.
+
+name: Water X4B-PREP — construction des candidats (sans publication)
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate:
+        description: "Candidat à construire (all | minimal_pilot | balanced_pilot | x3_technical_sample)"
+        required: false
+        default: "all"
+
+permissions:
+  contents: read
+
+jobs:
+  build-candidates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: apps/api
+
+    services:
+      postgres:
+        # Même version que le job `migration-tests` : le schéma y est validé.
+        image: postgres:16
+        env:
+          POSTGRES_DB: carbonco_water_staging
+          POSTGRES_USER: water_x4b
+          # Mot de passe LOCAL au job, jamais un secret de dépôt : la base
+          # n'est jointe que depuis ce runner et meurt avec lui.
+          POSTGRES_PASSWORD: water_x4b_ephemeral
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U water_x4b -d carbonco_water_staging"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+
+    env:
+      WATER_STAGING_DATABASE_URL: postgresql://water_x4b:water_x4b_ephemeral@localhost:5432/carbonco_water_staging
+      APP_ENV: staging
+      EXPECT_DB: carbonco_water_staging
+      ARTIFACTS: /tmp/water-x4b/artifacts
+      REPORTS: /tmp/water-x4b/reports
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Préparer les répertoires hors dépôt
+        run: mkdir -p "$ARTIFACTS" "$REPORTS"
+
+      # ── 1. Schéma ────────────────────────────────────────────────────────
+      - name: Appliquer les migrations jusqu'à 043
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/00_migrate.json" \
+            migrate --upto 043
+
+      # Avant la répétition et PAS après : leur teardown supprime les lignes
+      # globales des sources Hub'Eau, ce qui effacerait les releases du run si
+      # l'ordre était inverse.
+      - name: Tests graveur contre PostgreSQL réel (zéro skip toléré)
+        env:
+          DATABASE_URL: postgresql://water_x4b:water_x4b_ephemeral@localhost:5432/carbonco_water_staging
+        run: |
+          pytest -q tests/test_water_staging_writer.py | tee /tmp/water-x4b/writer-tests.txt
+          grep -qE "[0-9]+ passed" /tmp/water-x4b/writer-tests.txt
+          if grep -qE "[0-9]+ skipped" /tmp/water-x4b/writer-tests.txt; then
+            echo "ARRÊT — des tests ont été skippés alors qu'une base est disponible"
+            exit 1
+          fi
+
+      # Les attributions par source doivent être en place AVANT toute
+      # acquisition : elles sont estampillées à l'acquisition, pas à
+      # l'assemblage. Les vérifier ici évite de découvrir après coup qu'il faut
+      # réacquérir (cf. §2.1 (a) du plan X4B).
+      - name: Attribution canonique par source — vérifiée avant acquisition
+        run: |
+          pytest -q tests/test_water_intelligence_source_attribution.py \
+                    tests/test_water_intelligence_candidate_budget.py
+
+      # ── 2. Gate : destination prouvée AVANT tout appel réseau ────────────
+      - name: Gate de base (destination prouvée, aucune donnée tenant)
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/01_gate.json" \
+            gate --upto 043
+
+      - name: Déclarer les sources au Source Registry (idempotent)
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/02_seed_sources.json" \
+            seed-sources
+
+      # ── 3. Acquisition des trois candidates ─────────────────────────────
+      # Les périmètres exacts viennent de `candidate_scopes.py`, en données :
+      # le script compose les invocations, elles ne sont pas recopiées ici où
+      # elles dériveraient du module de référence.
+      - name: Acquérir les trois sources selon les périmètres candidats
+        run: |
+          python -m scripts.water_intelligence.build_candidate_snapshots \
+            --expect-database "$EXPECT_DB" \
+            --candidate "${{ inputs.candidate }}" \
+            --artifact-dir "$ARTIFACTS" \
+            --report-dir "$REPORTS" \
+            acquire
+
+      # ── 4. Ingestion staging éphémère, puis rejeu idempotent ────────────
+      - name: Ingérer puis rejouer (idempotence prouvée)
+        run: |
+          python -m scripts.water_intelligence.build_candidate_snapshots \
+            --expect-database "$EXPECT_DB" \
+            --candidate "${{ inputs.candidate }}" \
+            --artifact-dir "$ARTIFACTS" \
+            --report-dir "$REPORTS" \
+            ingest
+
+      # ── 5. Construction des candidats et MESURE du budget ───────────────
+      # Sept combinaisons de sources + les trois candidats exacts. Aucune
+      # troncature, aucun relèvement du plafond de 100 000 octets : un candidat
+      # trop gros ressort `over_budget`, jamais allégé.
+      - name: Construire les candidats et mesurer les budgets
+        run: |
+          python -m scripts.water_intelligence.build_candidate_snapshots \
+            --expect-database "$EXPECT_DB" \
+            --candidate "${{ inputs.candidate }}" \
+            --artifact-dir "$ARTIFACTS" \
+            --report-dir "$REPORTS" \
+            measure
+
+      # ── 6. Diff ADES — la variation de checksum non expliquée ───────────
+      # X2A et X3 ont produit deux digests différents pour un nombre d'octets
+      # IDENTIQUE (52 139). Une hypothèse existe (URL de pagination `size=100`
+      # / `size=200`, même longueur) ; elle doit être DÉMONTRÉE par un diff,
+      # pas supposée. Verdict attendu : byte_stable, transport_only_variation
+      # ou content_changed — ce dernier, inexpliqué, BLOQUE ADES.
+      - name: Diff ADES (X2A / X3 / X4B-PREP)
+        run: |
+          python -m scripts.water_intelligence.build_candidate_snapshots \
+            --expect-database "$EXPECT_DB" \
+            --artifact-dir "$ARTIFACTS" \
+            --report-dir "$REPORTS" \
+            diff-ades
+
+      # ── 7. Garde-fous de sortie ─────────────────────────────────────────
+      - name: Vérifier qu'aucune donnée n'a été publiée
+        run: |
+          set -e
+          # Le registre réel ne porte aucune signature.
+          python - <<'PY'
+          from services.water_intelligence.publication_decisions import current_registry
+          approved = current_registry().approved_source_codes
+          assert approved == (), f"ARRÊT — sources approuvées dans le registre réel : {approved}"
+          print("registre réel : 0 source approuvée")
+          PY
+          # Aucun document canonique n'a bougé dans l'arbre de travail.
+          if ! git diff --quiet -- ../../docs/carbonco/water-intelligence/contracts/ \
+                                    ../../apps/carbon/lib/water-intelligence/; then
+            echo "ARRÊT — un document canonique ou un miroir a été modifié par ce run"
+            git --no-pager diff --stat -- ../../docs/carbonco/water-intelligence/contracts/ \
+                                          ../../apps/carbon/lib/water-intelligence/
+            exit 1
+          fi
+          echo "aucun document canonique modifié"
+
+      - name: Scanner les rapports (aucun payload brut, aucun secret)
+        run: |
+          set -e
+          # Les payloads bruts ne doivent JAMAIS sortir du runner : seuls les
+          # checksums et les statistiques font foi.
+          if grep -rlE '"data"\s*:\s*\[' "$REPORTS" 2>/dev/null; then
+            echo "ARRÊT — un rapport contient un tableau `data` brut"
+            exit 1
+          fi
+          if grep -rlE 'postgresql://|password=' "$REPORTS" 2>/dev/null; then
+            echo "ARRÊT — un rapport contient une URL de base ou un mot de passe"
+            exit 1
+          fi
+          echo "rapports propres"
+
+      - name: Publier les rapports en artefact de run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: water-x4b-prep-reports
+          # Rapports et mesures UNIQUEMENT. Les payloads bruts restent dans
+          # $ARTIFACTS, qui n'est pas téléversé : ils ne doivent être ni
+          # committés, ni exposés dans un artefact public.
+          path: /tmp/water-x4b/reports
+          retention-days: 7

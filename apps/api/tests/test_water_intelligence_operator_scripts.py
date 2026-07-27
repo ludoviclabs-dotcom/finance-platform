@@ -879,11 +879,21 @@ class TestNoDatabaseNoPublication:
     #:   l'accès, jamais sur l'intention déclarée.
     #:   `test_the_candidate_builder_never_writes` vérifie qu'il n'emprunte
     #:   aucun chemin d'écriture.
+    #: - `publish_water_v1.py` — production du snapshot public Water V1,
+    #:   **LECTURE SEULE EN BASE**. Quatrième nom, ajouté par une décision
+    #:   humaine et non par la commodité d'un test qui passait : le script
+    #:   ouvre la base pour les deux mêmes SELECT que le constructeur de
+    #:   candidats — la ligne du Source Registry (provenance confrontée,
+    #:   licence évaluée) et le contrôle qu'aucune observation ne porte de
+    #:   `company_id`. Il ÉCRIT, mais dans le DÉPÔT : deux documents JSON
+    #:   versionnés, jamais une ligne de base.
+    #:   `test_the_publisher_never_writes_to_the_database` le vérifie.
     DATABASE_EXEMPT = frozenset(
         {
             "ingest_release.py",
             "staging_rehearsal.py",
             "build_candidate_snapshots.py",
+            "publish_water_v1.py",
         }
     )
 
@@ -897,16 +907,103 @@ class TestNoDatabaseNoPublication:
 
     def test_the_database_exemption_stays_an_explicit_short_list(self) -> None:
         """L'exemption ne doit jamais devenir une catégorie : chaque fichier
-        qui touche la base est nommé, et il n'y en a que trois — le graveur
-        (X2B), les outils de répétition staging (X3) et le constructeur de
-        candidats en lecture seule (X4B-PREP)."""
+        qui touche la base est nommé, et il n'y en a que quatre — le graveur
+        (X2B), les outils de répétition staging (X3), le constructeur de
+        candidats en lecture seule (X4B-PREP) et le publieur Water V1, lui
+        aussi en lecture seule en base."""
         assert self.DATABASE_EXEMPT == {
+            "publish_water_v1.py",
             "ingest_release.py",
             "staging_rehearsal.py",
             "build_candidate_snapshots.py",
         }
         for name in self.DATABASE_EXEMPT:
             assert (SCRIPTS_DIR / name).is_file()
+
+    def test_the_publisher_never_writes_to_the_database(self) -> None:
+        """Le publieur écrit dans le DÉPÔT, jamais en base.
+
+        Son exemption porte sur deux SELECT — la ligne du Source Registry et
+        le contrôle d'absence de `company_id`. Un `INSERT`/`UPDATE`/`DELETE`
+        apparu ici doit casser la CI, pas passer parce que le fichier figure
+        dans la liste. Publier un document n'est pas graver une release.
+        """
+        source = (SCRIPTS_DIR / "publish_water_v1.py").read_text(encoding="utf-8")
+        for statement in ("INSERT INTO", "UPDATE ", "DELETE FROM", "publish_release"):
+            assert statement not in source, (
+                f"publish_water_v1.py contient {statement!r} : il est exempté pour "
+                "LIRE en base, jamais pour y écrire."
+            )
+        assert "ingest_staging_release" not in source, (
+            "publish_water_v1.py appelle le graveur — il ne doit emprunter que "
+            "l'étape PURE de préparation."
+        )
+
+    def test_the_publisher_reuses_every_existing_stage(self) -> None:
+        """Aucun second pipeline : chaque étape est celle qui existe déjà.
+
+        C'est la contrainte centrale de la publication. Un pipeline parallèle
+        « pour publier » divergerait du pipeline qui mesure à la première
+        correction apportée à l'un des deux — et le document publié cesserait
+        alors de correspondre au périmètre approuvé.
+        """
+        source = (SCRIPTS_DIR / "publish_water_v1.py").read_text(encoding="utf-8")
+
+        # Le normaliseur, la provenance, l'assembleur et le sérialiseur sont
+        # RÉUTILISÉS, jamais réécrits.
+        assert "_prepare_one" in source, "le publieur ne réutilise pas la préparation"
+        assert "assemble_public_snapshot" in source, (
+            "le publieur n'utilise pas l'assembleur public — il réimplémenterait "
+            "le gate licence, la barrière de provenance et les budgets."
+        )
+        assert "serialize_canonical_document" in source, (
+            "le publieur sérialise lui-même : une seconde règle de mise en forme "
+            "romprait la parité octet pour octet avec le miroir front."
+        )
+        assert "_acquisition_argv" in source, (
+            "le publieur compose sa propre invocation d'acquisition — une recette "
+            "dupliquée dérive de son module de référence."
+        )
+        # Et il ne redéfinit AUCUN budget : celui de l'assembleur, importé.
+        assert "MAX_MANIFEST_BYTES_UNCOMPRESSED" in source
+        assert "100_000" not in source and "100000" not in source, (
+            "le publieur porte un budget en dur : il doit importer celui du "
+            "contrat, jamais en recopier la valeur."
+        )
+
+    def test_the_publisher_refuses_rather_than_truncates(self) -> None:
+        """Les neuf conditions d'arrêt LÈVENT — aucune n'avertit.
+
+        Un contrôle qui se contente d'avertir n'a jamais empêché une
+        publication : le script doit refuser de produire un document plutôt
+        que d'en produire un amputé.
+        """
+        source = (SCRIPTS_DIR / "publish_water_v1.py").read_text(encoding="utf-8")
+
+        # Le checksum approuvé est écrit en toutes lettres, pas recalculé.
+        assert (
+            "c9b8d10e9f1059fd49db51a45d6890ff1cebe546084eeac03d871742a74bd2e9" in source
+        )
+        # Chaque condition d'arrêt lève la même exception nommée.
+        assert source.count("raise PublicationRefused") >= 15, (
+            "moins de conditions d'arrêt que prévu — les neuf conditions de "
+            "l'autorisation humaine doivent toutes être exécutables."
+        )
+        # Aucune troncature, aucun relèvement de plafond.
+        for forbidden in ("[:3]", "truncate", "[: APPROVED_OBSERVATION_COUNT]"):
+            assert forbidden not in source, (
+                f"publish_water_v1.py contient {forbidden!r} : un périmètre trop "
+                "large se refuse, il ne se coupe pas."
+            )
+
+    def test_the_publisher_never_commits_raw_payload(self) -> None:
+        """Les octets bruts Hub'Eau ne quittent jamais le runner."""
+        source = (SCRIPTS_DIR / "publish_water_v1.py").read_text(encoding="utf-8")
+        # Les documents écrits sont nommés, et il n'y en a que deux.
+        assert "PUBLIC_SNAPSHOT_BNPE_V1.json" in source
+        assert "public-snapshot-bnpe-v1.json" in source
+        # Le répertoire d'artefacts est LU, jamais recopié vers le dépôt.
+        assert "decoded_pages" not in source and "raw_pages" not in source
 
     def test_the_candidate_builder_never_writes(self) -> None:
         """Le constructeur de candidats LIT — il ne doit jamais écrire.
@@ -1178,3 +1275,227 @@ class TestWorkflowInvocationsMatchTheRealParsers:
         assert len(gate) == 1
         assert "--expect-migration" in gate[0]
         assert "043" in gate[0]
+
+
+class TestWaterV1PublicationWorkflow:
+    """Le workflow qui PUBLIE, confronté aux mêmes contrôles que celui qui mesure.
+
+    Un workflow n'est jamais exécuté par la CI d'une PR : `workflow_dispatch`
+    ne se déclenche qu'à la main. Sans ces tests, une invocation fautive ou une
+    garde manquante ne se découvrirait qu'au run — c'est-à-dire après avoir
+    consommé un appel réseau, et pour celui-ci, à un pas d'un commit.
+
+    Le YAML est lu par un scan ligne à ligne, sans PyYAML : la dépendance est
+    absente de `requirements.txt`, donc du job `tests`. Un test qui ne
+    s'exécute que sur la machine où il a été écrit ne verrouille rien.
+    """
+
+    WORKFLOW = (
+        API_ROOT.parents[1] / ".github" / "workflows" / "water-v1-publication.yml"
+    )
+    BRANCH = "feat/water-v1-publication-premium-experience"
+
+    SUBSTITUTIONS = {
+        '"$EXPECT_DB"': "carbonco_water_staging",
+        '"$REPORTS/00_migrate.json"': "/tmp/00_migrate.json",
+        '"$REPORTS/01_gate.json"': "/tmp/01_gate.json",
+        '"$REPORTS/02_seed_sources.json"': "/tmp/02_seed_sources.json",
+        '"$ARTIFACTS"': "/tmp/artifacts",
+        '"$REPORTS"': "/tmp/reports",
+    }
+
+    def _text(self) -> str:
+        return self.WORKFLOW.read_text(encoding="utf-8")
+
+    def _effective_lines(self) -> list[str]:
+        """Lignes EFFECTIVES — les commentaires sont écartés.
+
+        L'en-tête explique longuement pourquoi telle permission est bornée ;
+        chercher `contents: write` sans écarter les commentaires trouverait la
+        phrase qui l'explique aussi bien que la ligne qui l'accorde.
+        """
+        return [
+            line
+            for line in self._text().splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        ]
+
+    def _invocations(self) -> list[tuple[str, list[str]]]:
+        import re
+        import shlex
+
+        flat = self._text().replace("\\\n", " ")
+        found: list[tuple[str, list[str]]] = []
+        for match in re.finditer(r"python -m (scripts\.\S+)([^\n]*)", flat):
+            module, raw = match.group(1), match.group(2)
+            for token, value in self.SUBSTITUTIONS.items():
+                raw = raw.replace(token, value)
+            found.append((module, shlex.split(raw)))
+        return found
+
+    # -- Déclenchement ----------------------------------------------------
+
+    def test_it_is_manual_only(self) -> None:
+        """Aucun push, aucune pull_request, aucun cron.
+
+        Ce workflow appelle un service public officiel ET committe dans le
+        dépôt. Un déclencheur automatique ferait partir les deux tout seuls.
+        """
+        lines = self._effective_lines()
+        assert any(line.strip() == "workflow_dispatch:" for line in lines)
+        for forbidden in ("push:", "pull_request:", "schedule:", "repository_dispatch:"):
+            assert not any(line.strip() == forbidden for line in lines), (
+                f"déclencheur {forbidden!r} — la publication ne part jamais seule"
+            )
+
+    # -- La borne ---------------------------------------------------------
+
+    def test_the_ref_guard_is_the_first_step(self) -> None:
+        """La borne s'exécute AVANT le checkout et avant tout appel réseau.
+
+        `contents: write` est attribué au job, statiquement — GitHub n'offre
+        aucune permission conditionnelle. La borne ne peut donc être qu'une
+        étape, et elle ne vaut que si rien ne s'exécute avant elle.
+        """
+        lines = self._effective_lines()
+        names = [line.strip() for line in lines if line.strip().startswith("- name:")]
+        uses = [line.strip() for line in lines if line.strip().startswith("- uses:")]
+        first_guard = names[0]
+        assert "Refuser toute ref" in first_guard, first_guard
+        # Et le checkout vient APRÈS la borne.
+        guard_index = self._text().index("Refuser toute ref")
+        checkout_index = self._text().index("actions/checkout")
+        assert guard_index < checkout_index, (
+            "le checkout précède la borne : du code de la ref refusée serait "
+            "déjà présent sur le runner."
+        )
+        assert uses, "aucune action utilisée — extraction cassée"
+
+    def test_master_is_refused_by_name(self) -> None:
+        """`master` est refusé explicitement, pas seulement par différence.
+
+        Une garde qui dit « la ref doit être X » refuse master par accident.
+        Une garde qui NOMME master dit pourquoi, et survit à un changement de
+        nom de branche de PR.
+        """
+        text = self._text()
+        assert 'refs/heads/master' in text
+        assert "ne s'exécute JAMAIS sur master" in text
+
+    def test_the_scope_guard_accepts_exactly_one_value(self) -> None:
+        lines = self._effective_lines()
+        assert any("APPROVED_SCOPE: BNPE/34172/2020" in line for line in lines)
+        assert 'Refuser tout périmètre autre' in self._text()
+
+    def test_the_commit_step_rechecks_the_ref(self) -> None:
+        """Un commit est irréversible côté distant.
+
+        La borne d'entrée a déjà refusé toute autre ref ; l'étape de commit la
+        revérifie plutôt que de faire confiance à une étape exécutée vingt
+        minutes plus tôt.
+        """
+        commit_block = self._text().split("Committer les documents")[1]
+        assert 'GITHUB_REF' in commit_block
+        assert "PUBLICATION_BRANCH" in commit_block
+
+    # -- Ce que le workflow ne fait pas -----------------------------------
+
+    def test_it_never_pushes_to_master(self) -> None:
+        text = self._text()
+        assert "git push origin \"HEAD:${PUBLICATION_BRANCH}\"" in text
+        for forbidden in ("HEAD:master", "origin master", "push --force"):
+            assert forbidden not in text, f"{forbidden!r} présent"
+
+    def test_it_neither_opens_nor_merges_a_pull_request(self) -> None:
+        """Générer un snapshot n'est pas le fusionner."""
+        text = self._text()
+        for forbidden in ("gh pr ", "pull-request", "merge_pull_request", "auto-merge"):
+            assert forbidden not in text, f"{forbidden!r} présent"
+
+    def test_it_commits_only_the_two_public_documents(self) -> None:
+        text = self._text()
+        assert "PUBLIC_SNAPSHOT_BNPE_V1.json" in text
+        assert "public-snapshot-bnpe-v1.json" in text
+        # Et il PROUVE qu'aucun autre fichier n'a bougé avant de committer.
+        assert "Vérifier qu'aucun autre fichier n'a été modifié" in text
+        guard = text.index("Vérifier qu'aucun autre fichier")
+        commit = text.index("Committer les documents")
+        assert guard < commit, "le contrôle des fichiers modifiés suit le commit"
+
+    def test_it_acquires_no_other_source(self) -> None:
+        """Les six autres sources ne sont nommées que pour être REFUSÉES."""
+        text = self._text()
+        for other in (
+            "HUBEAU_ADES",
+            "HUBEAU_QUALITE_SURFACE",
+            "HUBEAU_HYDROMETRIE",
+            "EEA_WEI_PLUS",
+            "WRI_AQUEDUCT",
+            "COPERNICUS_EDO",
+        ):
+            if other in text:
+                assert "ARRÊT" in text.split(other)[1][:400], (
+                    f"{other} apparaît hors d'un contrôle de refus"
+                )
+
+    def test_the_raw_payload_directory_is_never_uploaded(self) -> None:
+        """Seuls les rapports sortent du runner ; les octets bruts restent."""
+        text = self._text()
+        assert "path: /tmp/water-v1/reports" in text
+        assert "path: /tmp/water-v1/artifacts" not in text
+
+    # -- Conformité des invocations ---------------------------------------
+
+    def test_the_workflow_actually_invokes_the_operator_scripts(self) -> None:
+        modules = {module for module, _ in self._invocations()}
+        assert modules == {
+            "scripts.water_intelligence.staging_rehearsal",
+            "scripts.water_intelligence.publish_water_v1",
+        }
+
+    def test_every_workflow_invocation_is_accepted_by_its_parser(self) -> None:
+        """Chaque `python -m scripts…` du YAML, passé au parser RÉEL.
+
+        C'est le contrôle qui manquait avant le premier run de X4B : une
+        invocation composée à la main dans un YAML n'est confrontée à rien
+        tant qu'un humain n'a pas cliqué.
+        """
+        import importlib
+
+        for module_name, argv in self._invocations():
+            module = importlib.import_module(module_name)
+            parser = module.build_parser()
+            try:
+                parser.parse_args(argv)
+            except SystemExit as exc:
+                raise AssertionError(
+                    f"{module_name} refuse l'invocation du workflow : {argv}"
+                ) from exc
+
+    def test_both_publication_subcommands_are_invoked(self) -> None:
+        """Acquérir sans publier ne produit rien ; publier sans acquérir
+        publierait un artefact d'un run précédent."""
+        commands = [
+            argv[-1]
+            for module, argv in self._invocations()
+            if module.endswith("publish_water_v1")
+        ]
+        assert commands == ["acquire", "publish"], commands
+
+    def test_the_gate_step_still_proves_the_schema(self) -> None:
+        gate = [argv for _module, argv in self._invocations() if "gate" in argv]
+        assert len(gate) == 1
+        assert "--expect-migration" in gate[0]
+        assert "043" in gate[0]
+
+    def test_the_signature_is_verified_before_any_network_call(self) -> None:
+        """Le registre est confronté à la signature attendue AVANT Hub'Eau.
+
+        Découvrir après acquisition qu'une septième source est approuvée
+        signifierait avoir déjà consommé l'appel réseau — et avoir assemblé
+        sous un registre qu'on ne contrôlait pas.
+        """
+        text = self._text()
+        signature = text.index("assert_human_approvals_unchanged")
+        acquisition = text.index("publish_water_v1")
+        assert signature < acquisition

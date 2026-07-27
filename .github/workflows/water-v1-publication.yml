@@ -1,0 +1,320 @@
+# Water V1 — génération du snapshot PUBLIC BNPE (`bnpe_minimal_pilot_v1`).
+#
+# Déclenchement MANUEL uniquement. Aucun push, aucune pull_request, aucun cron.
+# Ce workflow appelle un service public officiel (Hub'Eau) et COMMITTE deux
+# documents dans le dépôt — deux gestes qui ne partent jamais tout seuls.
+#
+# ## Pourquoi un workflow dédié plutôt qu'une option de X4B-PREP
+#
+# `water-x4b-candidate-builder.yml` MESURE : il tourne en `contents: read`, il
+# assemble avec un registre de MESURE, et sa dernière étape vérifie qu'il n'a
+# rien publié. Y greffer une branche « publier » produirait un seul workflow qui
+# refuse ou effectue une publication selon un `input` — c'est-à-dire un workflow
+# dont on ne peut plus lire les garanties dans son en-tête. Les deux restent
+# séparés ; ce qu'ils partagent, ce sont leurs ÉTAPES (mêmes scripts, mêmes
+# gardes), pas leur fichier.
+#
+# ## `contents: write`, et ce qui le borne
+#
+# GitHub attribue les permissions au job, statiquement : il n'existe aucun moyen
+# de les accorder « sous condition ». La borne est donc une ÉTAPE, la première,
+# qui échoue avant tout appel réseau et avant toute écriture si la ref n'est pas
+# exactement la branche de la PR. Ce n'est pas un contrôle affaibli : rien ne
+# s'exécute derrière un `exit 1`, et l'étape ne dépend d'aucune entrée
+# utilisateur — elle lit `github.ref`, que le déclencheur ne choisit pas
+# librement.
+#
+# Ce que ce workflow ne fait pas, et qui n'est pas négociable :
+#
+# - il REFUSE de s'exécuter sur `master`, explicitement et en premier ;
+# - il n'acquiert AUCUNE autre source : ni ADES, ni Naïades, ni hydrométrie, ni
+#   EEA, ni WRI, ni Copernicus. Le périmètre vient de `candidate_scopes.py`, en
+#   données, et le script refuse tout autre territoire ou toute autre année ;
+# - il ne pousse RIEN sur `master` et n'ouvre, ne met à jour ni ne fusionne
+#   aucune pull request ;
+# - il ne committe QUE les deux documents publics et rien d'autre — les octets
+#   bruts Hub'Eau restent dans `$ARTIFACTS`, qui n'est ni committé ni téléversé ;
+# - il n'approuve AUCUNE source. Le registre est LU. Une septième source
+#   `approved` fait échouer `assert_human_approvals_unchanged()`.
+#
+# ## Ce qu'il produit
+#
+# Deux documents versionnés, identiques octet pour octet — le document canonique
+# et son miroir front — plus un rapport de preuve en artefact de run
+# (checksums et comptes, jamais un tableau `data`).
+
+name: Water V1 — génère le snapshot public BNPE
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_scope:
+        description: >-
+          Périmètre à publier. Une seule valeur est acceptée, à recopier
+          exactement : BNPE/34172/2020
+        required: true
+        default: "BNPE/34172/2020"
+
+# Nécessaire pour committer les deux documents SUR LA BRANCHE DE LA PR.
+# Bornée par l'étape « Refuser toute ref autre que la branche de la PR ».
+permissions:
+  contents: write
+
+concurrency:
+  # Deux exécutions simultanées produiraient deux commits concurrents sur la
+  # même branche. La seconde attend plutôt que d'écraser.
+  group: water-v1-publication
+  cancel-in-progress: false
+
+jobs:
+  publish-water-v1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: carbonco_water_staging
+          POSTGRES_USER: water_v1
+          # Mot de passe LOCAL au job, jamais un secret de dépôt : la base
+          # n'est jointe que depuis ce runner et meurt avec lui.
+          POSTGRES_PASSWORD: water_v1_ephemeral
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U water_v1 -d carbonco_water_staging"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+
+    env:
+      PUBLICATION_BRANCH: feat/water-v1-publication-premium-experience
+      APPROVED_SCOPE: BNPE/34172/2020
+      WATER_STAGING_DATABASE_URL: postgresql://water_v1:water_v1_ephemeral@localhost:5432/carbonco_water_staging
+      APP_ENV: staging
+      EXPECT_DB: carbonco_water_staging
+      ARTIFACTS: /tmp/water-v1/artifacts
+      REPORTS: /tmp/water-v1/reports
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      # ── 0. LA BORNE ──────────────────────────────────────────────────────
+      # Première étape, avant checkout : rien ne s'exécute derrière un exit 1.
+      - name: Refuser toute ref autre que la branche de la PR
+        run: |
+          set -euo pipefail
+          echo "ref reçue : ${GITHUB_REF}"
+          if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
+            echo "ARRÊT — ce workflow ne s'exécute JAMAIS sur master."
+            echo "Il committe des documents publics ; sur master, ce serait une"
+            echo "publication sans revue."
+            exit 1
+          fi
+          if [ "${GITHUB_REF}" != "refs/heads/${PUBLICATION_BRANCH}" ]; then
+            echo "ARRÊT — ref ${GITHUB_REF}, attendue refs/heads/${PUBLICATION_BRANCH}."
+            exit 1
+          fi
+          echo "ref conforme"
+
+      - name: Refuser tout périmètre autre que celui approuvé
+        run: |
+          set -euo pipefail
+          RECEIVED='${{ inputs.confirm_scope }}'
+          if [ "${RECEIVED}" != "${APPROVED_SCOPE}" ]; then
+            echo "ARRÊT — périmètre « ${RECEIVED} », approuvé « ${APPROVED_SCOPE} »."
+            echo "Élargir un périmètre exige une nouvelle décision humaine,"
+            echo "jamais une nouvelle saisie."
+            exit 1
+          fi
+          echo "périmètre conforme : ${APPROVED_SCOPE}"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PUBLICATION_BRANCH }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: apps/api
+        run: pip install -r requirements.txt
+
+      - name: Préparer les répertoires hors dépôt
+        run: mkdir -p "$ARTIFACTS" "$REPORTS"
+
+      # ── 1. Le registre porte-t-il EXACTEMENT la signature attendue ? ─────
+      - name: Vérifier la signature humaine avant tout appel réseau
+        working-directory: apps/api
+        run: |
+          python - <<'PY'
+          from services.water_intelligence.publication_decisions import (
+              HUMAN_APPROVED_SOURCE_CODES,
+              assert_human_approvals_unchanged,
+              current_registry,
+          )
+
+          assert_human_approvals_unchanged()
+          registry = current_registry()
+          approved = registry.approved_source_codes
+          assert approved == ("HUBEAU_BNPE_PRELEVEMENTS",), approved
+          assert HUMAN_APPROVED_SOURCE_CODES == approved
+
+          scope = registry.authorized_scope("HUBEAU_BNPE_PRELEVEMENTS")
+          assert scope.geography_type == "code_commune_insee", scope
+          assert scope.geography_code == "34172", scope
+          assert scope.period_start.isoformat() == "2020-01-01", scope
+          assert scope.period_end.isoformat() == "2020-12-31", scope
+          assert scope.measurement_only is False
+
+          decision = registry.get("HUBEAU_BNPE_PRELEVEMENTS")
+          assert decision.reviewed_by == "ludoviclabs-dotcom"
+          assert decision.reviewed_on.isoformat() == "2026-07-28"
+          assert decision.display_allowed is True
+          assert decision.derived_use_allowed is False
+          print("signature conforme :", approved, scope)
+          PY
+
+      # ── 2. Schéma et gate — destination prouvée AVANT le réseau ──────────
+      - name: Appliquer les migrations jusqu'à 043
+        working-directory: apps/api
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/00_migrate.json" \
+            migrate --upto 043
+
+      - name: Gate de base (destination prouvée, aucune donnée tenant)
+        working-directory: apps/api
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/01_gate.json" \
+            gate --expect-migration 043
+
+      - name: Déclarer les sources au Source Registry (idempotent)
+        working-directory: apps/api
+        run: |
+          python -m scripts.water_intelligence.staging_rehearsal \
+            --expect-database "$EXPECT_DB" \
+            --output "$REPORTS/02_seed_sources.json" \
+            seed-sources
+
+      # ── 3. Acquisition — BNPE seule, périmètre signé, et sa PREUVE ───────
+      # Le script vérifie dans cet ordre : territoire signé (avant réseau),
+      # HTTP valide, page unique, dernière page non saturée, 3 reçus,
+      # 3 normalisés, 0 rejet, checksum approuvé, unité m3, 3 géographies.
+      # Toute divergence lève — aucune ne produit un avertissement.
+      - name: Acquérir BNPE (34172 / 2020) et prouver le périmètre
+        working-directory: apps/api
+        run: |
+          python -m scripts.water_intelligence.publish_water_v1 \
+            --expect-database "$EXPECT_DB" \
+            --artifact-dir "$ARTIFACTS" \
+            --report-dir "$REPORTS" \
+            acquire
+
+      # ── 4. Assemblage public et écriture des deux documents ─────────────
+      # Préparation par `prepare_release()` — le graveur —, assemblage par
+      # `assemble_public_snapshot()` sous le registre RÉEL, sérialisation par
+      # le sérialiseur canonique partagé. Aucun second pipeline.
+      - name: Assembler le snapshot public et écrire les documents
+        working-directory: apps/api
+        run: |
+          python -m scripts.water_intelligence.publish_water_v1 \
+            --expect-database "$EXPECT_DB" \
+            --artifact-dir "$ARTIFACTS" \
+            --report-dir "$REPORTS" \
+            publish
+
+      # ── 5. Ce qui a RÉELLEMENT changé dans l'arbre de travail ───────────
+      # Un run qui écrirait ailleurs que dans ces deux fichiers doit échouer
+      # AVANT le commit, pas être découvert dans le diff d'une PR.
+      - name: Vérifier qu'aucun autre fichier n'a été modifié
+        run: |
+          set -euo pipefail
+          CHANGED="$(git status --porcelain | awk '{print $2}' | sort)"
+          EXPECTED="apps/carbon/lib/water-intelligence/public-snapshot-bnpe-v1.json
+          docs/carbonco/water-intelligence/contracts/PUBLIC_SNAPSHOT_BNPE_V1.json"
+          EXPECTED="$(echo "$EXPECTED" | sed 's/^[[:space:]]*//' | sort)"
+          if [ "$CHANGED" != "$EXPECTED" ]; then
+            echo "ARRÊT — fichiers modifiés inattendus."
+            echo "--- modifiés ---"; echo "$CHANGED"
+            echo "--- attendus ---"; echo "$EXPECTED"
+            exit 1
+          fi
+          echo "seuls les deux documents publics ont changé"
+
+      - name: Vérifier la parité octet pour octet des deux documents
+        run: |
+          set -euo pipefail
+          cmp docs/carbonco/water-intelligence/contracts/PUBLIC_SNAPSHOT_BNPE_V1.json \
+              apps/carbon/lib/water-intelligence/public-snapshot-bnpe-v1.json
+          BYTES=$(wc -c < docs/carbonco/water-intelligence/contracts/PUBLIC_SNAPSHOT_BNPE_V1.json)
+          echo "document : ${BYTES} octets"
+          if [ "$BYTES" -ge 100000 ]; then
+            echo "ARRÊT — budget de 100 000 octets dépassé."
+            exit 1
+          fi
+
+      - name: Vérifier qu'aucun payload brut ni secret n'atteint le dépôt
+        run: |
+          set -euo pipefail
+          DOC=docs/carbonco/water-intelligence/contracts/PUBLIC_SNAPSHOT_BNPE_V1.json
+          # Aucune donnée tenant.
+          for field in company_id tenant_id site_id organisation_id user_id; do
+            if grep -q "$field" "$DOC"; then
+              echo "ARRÊT — champ tenant '$field' dans le document public"; exit 1
+            fi
+          done
+          # Aucune autre source Water.
+          for other in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_HYDROMETRIE \
+                       EEA_WEI_PLUS WRI_AQUEDUCT COPERNICUS_EDO; do
+            if grep -q "\"source_code\": \"$other\"" "$DOC"; then
+              echo "ARRÊT — observation de $other dans le snapshot"; exit 1
+            fi
+          done
+          # Ni URL de base, ni mot de passe, ni payload brut dans les rapports.
+          if grep -rlE 'postgresql://|password=' "$REPORTS" 2>/dev/null; then
+            echo "ARRÊT — un rapport contient une URL de base ou un mot de passe"
+            exit 1
+          fi
+          if grep -rlE '"data"[[:space:]]*:[[:space:]]*\[' "$REPORTS" 2>/dev/null; then
+            echo "ARRÊT — un rapport contient un tableau 'data' brut"; exit 1
+          fi
+          echo "document et rapports propres"
+
+      # ── 6. Commit — sur la branche de la PR, et nulle part ailleurs ─────
+      - name: Committer les documents sur la branche de la PR
+        run: |
+          set -euo pipefail
+          # Ceinture et bretelles : la borne d'entrée a déjà refusé toute autre
+          # ref, mais un commit est irréversible côté distant. On revérifie
+          # juste avant de pousser plutôt que de faire confiance à une étape
+          # exécutée vingt minutes plus tôt.
+          if [ "${GITHUB_REF}" != "refs/heads/${PUBLICATION_BRANCH}" ]; then
+            echo "ARRÊT — ref inattendue au moment du commit : ${GITHUB_REF}"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/carbonco/water-intelligence/contracts/PUBLIC_SNAPSHOT_BNPE_V1.json \
+                  apps/carbon/lib/water-intelligence/public-snapshot-bnpe-v1.json
+          if git diff --cached --quiet; then
+            echo "aucun changement — le snapshot est déjà à jour, rien à committer"
+            exit 0
+          fi
+          git commit -m "data(carbon): génère le snapshot public BNPE Water V1" \
+                     -m "Périmètre signé le 2026-07-28 : HUBEAU_BNPE_PRELEVEMENTS, commune INSEE 34172, année 2020. Trois observations, checksum et budget vérifiés avant écriture. Généré par le workflow Water V1, run ${GITHUB_RUN_ID}."
+          git push origin "HEAD:${PUBLICATION_BRANCH}"
+          echo "documents committés sur ${PUBLICATION_BRANCH}"
+
+      # ── 7. Preuve ───────────────────────────────────────────────────────
+      - name: Publier le rapport de preuve en artefact de run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: water-v1-publication-proof
+          # Rapports UNIQUEMENT. Les payloads bruts restent dans $ARTIFACTS,
+          # qui n'est pas téléversé : ils ne doivent être ni committés, ni
+          # exposés dans un artefact.
+          path: /tmp/water-v1/reports
+          retention-days: 30

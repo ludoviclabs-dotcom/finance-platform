@@ -217,6 +217,40 @@ class WaterPublicSnapshot:
 # ---------------------------------------------------------------------------
 
 
+def _ordering_key(observation: WaterMetricObservation) -> tuple[str, ...]:
+    """Ordre TOTAL des observations dans le snapshot.
+
+    ## Pourquoi la clé s'est allongée
+
+    Elle valait `(source_code, metric_code, period_start)`. Ces trois champs ne
+    départagent pas des observations qui ne diffèrent que par leur
+    **géographie** — c'est-à-dire exactement la forme du pilote BNPE : trois
+    ouvrages, une même métrique, une même année. Le tri de Python étant stable,
+    l'ordre d'ENTRÉE survivait alors dans la sortie, et deux assemblages du
+    même contenu produisaient des octets différents, donc deux ETag différents
+    sans qu'aucune valeur n'ait changé.
+
+    Le défaut n'était pas visible auparavant parce qu'aucun jeu n'avait cette
+    forme : les fixtures existantes différaient toujours par la métrique ou la
+    période. Il aurait été découvert à la première publication réelle, sous la
+    forme d'un document qui « change » à chaque régénération.
+
+    La clé est donc rendue **totale** : géographie puis valeur départagent ce
+    que les trois premiers champs laissent à égalité. `str()` sur la valeur
+    plutôt que la valeur elle-même, parce qu'elle peut être `None`, un nombre,
+    une chaîne ou un booléen — un tri hétérogène lèverait.
+    """
+    return (
+        observation.source.source_code,
+        observation.metric_code,
+        observation.period_start.isoformat(),
+        observation.period_end.isoformat(),
+        observation.geography.code or "",
+        observation.geography.scope,
+        str(observation.value),
+    )
+
+
 @dataclass
 class _Accumulator:
     observations: list[WaterMetricObservation] = field(default_factory=list)
@@ -264,7 +298,7 @@ def assemble_public_snapshot(
     out_of_scope: dict[str, SourceExclusion] = {}
 
     for observation in sorted(
-        observations, key=lambda o: (o.source.source_code, o.metric_code, o.period_start)
+        observations, key=_ordering_key
     ):
         _reject_tenant_data(observation)
         source_code = observation.source.source_code
@@ -308,27 +342,29 @@ def assemble_public_snapshot(
             )
             continue
 
-        # Quatrième barrière : une source autorisée ne l'est que sur le
-        # PÉRIMÈTRE signé. Une observation d'une autre commune ou d'une autre
-        # année est écartée avec son propre motif — distinct d'un refus de
-        # source, parce que ce n'en est pas un : c'est le refus d'un
-        # élargissement que personne n'a signé.
+        # Quatrième barrière : une source autorisée ne l'est que sur la
+        # PÉRIODE signée. Une observation d'une autre année est écartée avec
+        # son propre motif — distinct d'un refus de source, parce que ce n'en
+        # est pas un : c'est le refus d'un élargissement que personne n'a
+        # signé.
         #
-        # Sans elle, réacquérir le département 34 au lieu de la commune 34172
-        # publierait des milliers de lignes sous une signature qui en couvrait
-        # trois. Le périmètre est le cœur de l'autorisation, pas son décor.
+        # L'autre axe du périmètre — le territoire — n'est PAS vérifiable ici :
+        # le code géographique d'une observation est exprimé dans le
+        # référentiel de la source (un identifiant d'ouvrage, côté BNPE), pas
+        # dans celui du périmètre (une commune INSEE). Le comparer refuserait
+        # les observations approuvées elles-mêmes. Il est donc vérifié une
+        # fois, sur la REQUÊTE d'acquisition, avant tout appel réseau —
+        # cf. `AuthorizedScope.matches_acquisition()`.
         decision = registry.get(source_code)
         if decision is not None and decision.authorized_scope is not None:
             if not decision.covers(
-                geography_code=observation.geography.code,
                 period_start=observation.period_start,
                 period_end=observation.period_end,
             ):
                 accumulator.warnings.append(
-                    f"{source_code}/{observation.metric_code} : observation HORS du "
-                    f"périmètre autorisé "
-                    f"({decision.authorized_scope.geography_code}, "
-                    f"{decision.authorized_scope.period_start} → "
+                    f"{source_code}/{observation.metric_code} : observation HORS de "
+                    "la période autorisée "
+                    f"({decision.authorized_scope.period_start} → "
                     f"{decision.authorized_scope.period_end}) — écartée du snapshot "
                     "public. Élargir le périmètre exige une nouvelle décision humaine."
                 )
@@ -343,7 +379,7 @@ def assemble_public_snapshot(
                             f"{decision.authorized_scope.geography_code} entre "
                             f"{decision.authorized_scope.period_start} et "
                             f"{decision.authorized_scope.period_end}. Au moins une "
-                            "observation reçue sort de ce périmètre : elle est "
+                            "observation reçue sort de cette période : elle est "
                             "écartée, jamais publiée sous une signature qui ne la "
                             "couvre pas."
                         ),

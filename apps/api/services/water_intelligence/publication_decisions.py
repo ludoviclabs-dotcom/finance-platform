@@ -101,24 +101,50 @@ class AuthorizedScope:
                 f"Période inversée : {self.period_start} → {self.period_end}."
             )
 
-    def covers(
-        self, *, geography_code: str | None, period_start: date, period_end: date
-    ) -> bool:
-        """Vrai si cette observation tombe DANS le périmètre signé.
+    def covers(self, *, period_start: date, period_end: date) -> bool:
+        """Vrai si cette observation tombe dans la PÉRIODE signée.
 
-        Les deux bornes sont inclusives, et le code géographique doit être
-        exactement celui approuvé : aucune correspondance par préfixe, aucun
-        rattachement territorial déduit. `34` ne couvre pas `34172` et
-        réciproquement — un département n'est pas une commune.
+        Bornes inclusives. C'est le seul des deux axes du périmètre qui soit
+        vérifiable observation par observation — cf. `matches_acquisition()`
+        pour l'autre, et le commentaire ci-dessous pour la raison.
         """
         if self.measurement_only:
             # Mesurer ce que pèserait un périmètre n'est pas l'autoriser : le
             # contexte de mesure ne filtre rien, et n'atteint jamais le
             # registre réel.
             return True
-        if (geography_code or "") != self.geography_code:
-            return False
         return self.period_start <= period_start and period_end <= self.period_end
+
+    def matches_acquisition(self, *, geography_type: str, geography_code: str) -> bool:
+        """Vrai si la REQUÊTE d'acquisition porte exactement le territoire signé.
+
+        ## Pourquoi le territoire ne se vérifie pas sur une observation
+
+        Le code géographique d'une observation est exprimé dans le référentiel
+        de la SOURCE, pas dans celui du périmètre. Une observation BNPE porte
+        un identifiant d'**ouvrage** (`geography_code = ouvrage_id`) ; le
+        périmètre signé, lui, nomme une **commune INSEE**. Ce sont deux
+        référentiels différents, et le premier ne contient pas le second : le
+        rattachement commune → ouvrages n'existe que dans la requête adressée
+        à Hub'Eau, jamais dans l'observation qui en revient.
+
+        Comparer le code d'un ouvrage à `34172` échouerait donc pour les trois
+        observations approuvées elles-mêmes — un contrôle qui refuse ce qu'il
+        est censé autoriser n'est pas un contrôle strict, c'est un contrôle
+        faux.
+
+        Le territoire est donc vérifié **une fois, sur la requête**, avant tout
+        appel réseau ; la période l'est **à chaque observation**, à
+        l'assemblage. Élargir la commune fait échouer ce contrôle-ci ; publier
+        une autre année fait échouer `covers()`. Les deux axes restent tenus,
+        chacun là où il est vérifiable.
+        """
+        if self.measurement_only:
+            return True
+        return (
+            geography_type == self.geography_type
+            and geography_code == self.geography_code
+        )
 
     def as_mapping(self) -> dict[str, object]:
         return {
@@ -205,22 +231,26 @@ class PublicationDecision:
             return EXCLUSION_DECISION_PENDING
         return EXCLUSION_DECISION_REFUSED
 
-    def covers(
-        self, *, geography_code: str | None, period_start: date, period_end: date
-    ) -> bool:
-        """Vrai si cette observation est DANS le périmètre signé.
+    def covers(self, *, period_start: date, period_end: date) -> bool:
+        """Vrai si cette observation est dans la période signée.
 
         Faux dès que la décision n'autorise pas, et faux dès que l'observation
-        sort du périmètre — les deux refus sont distincts et le sont restés :
+        sort de la période — les deux refus sont distincts et le sont restés :
         `exclusion_reason` dit « pas de décision », celui-ci dit « hors du
         périmètre de la décision ».
         """
         if not self.allows_publication or self.authorized_scope is None:
             return False
         return self.authorized_scope.covers(
-            geography_code=geography_code,
-            period_start=period_start,
-            period_end=period_end,
+            period_start=period_start, period_end=period_end
+        )
+
+    def matches_acquisition(self, *, geography_type: str, geography_code: str) -> bool:
+        """Vrai si la requête d'acquisition porte le territoire signé."""
+        if not self.allows_publication or self.authorized_scope is None:
+            return False
+        return self.authorized_scope.matches_acquisition(
+            geography_type=geography_type, geography_code=geography_code
         )
 
 
@@ -249,21 +279,23 @@ class PublicationDecisionRegistry:
         return decision.allows_publication if decision else False
 
     def covers(
-        self,
-        source_code: str,
-        *,
-        geography_code: str | None,
-        period_start: date,
-        period_end: date,
+        self, source_code: str, *, period_start: date, period_end: date
     ) -> bool:
         """Vrai si CETTE observation-là est couverte par la signature."""
         decision = self.get(source_code)
         if decision is None:
             return False
-        return decision.covers(
-            geography_code=geography_code,
-            period_start=period_start,
-            period_end=period_end,
+        return decision.covers(period_start=period_start, period_end=period_end)
+
+    def matches_acquisition(
+        self, source_code: str, *, geography_type: str, geography_code: str
+    ) -> bool:
+        """Vrai si la requête d'acquisition porte le territoire signé."""
+        decision = self.get(source_code)
+        if decision is None:
+            return False
+        return decision.matches_acquisition(
+            geography_type=geography_type, geography_code=geography_code
         )
 
     def authorized_scope(self, source_code: str) -> AuthorizedScope | None:

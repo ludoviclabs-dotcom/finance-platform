@@ -146,17 +146,27 @@ def canonical_payload_bytes(snapshot: WaterPublicSnapshot) -> bytes:
     return snapshot.canonical_json().encode("utf-8")
 
 
-def canonical_document_bytes(snapshot: WaterPublicSnapshot) -> bytes:
-    """Octets du DOCUMENT canonique versionné — la forme que la parité impose.
+def serialize_canonical_document(document: object) -> bytes:
+    """Mise en forme du DOCUMENT canonique versionné — la règle, en un endroit.
 
     `json.dumps(..., ensure_ascii=False, indent=2, sort_keys=True) + "\\n"`,
     exactement ce que `TestDocumentParity` compare entre `contracts/*.json` et
-    son miroir front. Ce n'est **pas** la forme soumise au budget.
+    son miroir front.
+
+    Prend un mapping plutôt qu'un snapshot : le document publié Water V1 porte,
+    en plus de l'enveloppe, un bloc `pilot` que l'assembleur ne connaît pas.
+    Laisser l'appelant sérialiser lui-même aurait fait exister une seconde
+    règle de mise en forme — et une divergence d'un saut de ligne suffit à
+    rompre la parité octet pour octet entre le document et son miroir.
     """
-    document = json.loads(snapshot.canonical_json())
     return (
         json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     ).encode("utf-8")
+
+
+def canonical_document_bytes(snapshot: WaterPublicSnapshot) -> bytes:
+    """Octets du DOCUMENT canonique d'un snapshot. Pas la forme du budget."""
+    return serialize_canonical_document(json.loads(snapshot.canonical_json()))
 
 
 def gzip_bytes(payload: bytes) -> int:

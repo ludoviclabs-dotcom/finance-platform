@@ -1,0 +1,17 @@
+{
+  "approved_scope": {
+    "expected_observation_count": 3,
+    "geography_code": "34172",
+    "geography_type": "code_commune_insee",
+    "period_end": "2020-12-31",
+    "period_start": "2020-01-01",
+    "reviewed_by": "ludoviclabs-dotcom",
+    "reviewed_on": "2026-07-28",
+    "source_code": "HUBEAU_BNPE_PRELEVEMENTS"
+  },
+  "contains_no_observation": true,
+  "explanation": "Ce document est un MARQUEUR, pas un snapshot. Il existe pour que la surface publique se construise et puisse dire honnêtement que le document pilote n'a pas encore été généré — plutôt que de dépendre d'un fichier absent, ou de porter un snapshot d'attente fabriqué.",
+  "how_it_becomes_real": "Le workflow « Water V1 — génère le snapshot public BNPE » (workflow_dispatch, branche feat/water-v1-publication-premium-experience) réacquiert le périmètre signé, vérifie le checksum, le compte d'observations, la pagination et le budget, puis remplace ce marqueur par le document canonique. Aucune valeur n'est écrite ici à la main.",
+  "option_key": "bnpe_minimal_pilot_v1",
+  "pilot_document_status": "not_generated"
+}

@@ -111,6 +111,22 @@ class WaterSourceReference(BaseModel):
     methodology_version: str = Field(min_length=1)
     license: WaterLicenseDecision
     attribution: str | None = None
+    #: URL officielle STABLE de la page décrivant le jeu — jamais une URL
+    #: d'appel d'API paramétrée. Nullable au contrat pour ne pas invalider les
+    #: documents canoniques déjà gelés (`FIXTURE_MANIFEST.json` en porte
+    #: quatre) ; l'obligation « une source PUBLIÉE en porte une » vit à la
+    #: porte de publication (`assemble_public_snapshot`), qui écarte avec motif
+    #: plutôt que de publier une provenance muette.
+    source_information_url: str | None = None
+    #: Cadence de mise à jour CÔTÉ SOURCE, relevée. `None` = non vérifiée, ce
+    #: qui n'est PAS « pas de mise à jour » : la surface doit rendre les deux
+    #: différemment. Distinct de `retrieved_at`, qui est notre date de lecture.
+    source_refresh_cadence: str | None = None
+    #: Date de dernière mise à jour de l'Information réutilisée, relevée
+    #: directement sur la source officielle. Exigée par la condition de
+    #: paternité de la Licence Ouverte 2.0. JAMAIS déduite d'un checksum, d'une
+    #: période observée ou d'une date de consultation — trois faits distincts.
+    source_last_updated_on: date | None = None
     warnings: list[str] = Field(default_factory=list)
 
 

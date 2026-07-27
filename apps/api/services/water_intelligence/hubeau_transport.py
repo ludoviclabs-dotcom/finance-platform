@@ -768,14 +768,42 @@ def _page_from_token(page_token: str | None) -> int:
     return page
 
 
-def attribution(*, accessed_on: str) -> str:
-    """Attribution composée à partir des faits vérifiés. La Licence Ouverte
-    impose de citer l'auteur du jeu de données ; ce libellé le fait
-    explicitement, sans prétendre être un gabarit officiel imposé."""
-    return ATTRIBUTION_TEMPLATE.format(
-        publishers=", ".join(PUBLISHERS),
-        license_label=LICENSE_LABEL,
-        accessed_on=accessed_on,
+def attribution(*, accessed_on: str, source_code: str | None = None) -> str:
+    """Attribution d'un jeu Hub'Eau, à sa date de consultation.
+
+    ## Pourquoi `source_code` est nécessaire, et ce qui se passe sans lui
+
+    Ce libellé énumérait les trois ÉDITEURS DE LA PLATEFORME (OFB, SCV, BRGM)
+    indistinctement, pour tous les jeux. C'est faux jeu par jeu : un jeu
+    piézométrique ADES n'est pas produit par le Service Central Vigicrues, et
+    l'énumération globale attribue à chaque jeu des producteurs qui ne le
+    concernent pas. La Licence Ouverte impose de citer l'auteur DU JEU.
+
+    Depuis X4B-PREP, un `source_code` connu de
+    `services.water_intelligence.source_attribution` reçoit son libellé
+    canonique — celui qui distingue le point d'accès, le système d'information
+    source et les producteurs réellement concernés.
+
+    Sans `source_code`, le libellé plateforme historique est rendu tel quel,
+    **assorti d'une réserve explicite** : il décrit la plateforme, pas le jeu,
+    et n'est pas publiable en l'état. Il reste disponible pour les usages
+    d'inventaire (journaux, rapports d'exploration) où aucune source n'est
+    encore identifiée — jamais pour une surface publique, où la porte de
+    publication le refuserait de toute façon faute d'URL officielle.
+    """
+    if source_code is not None:
+        from services.water_intelligence.source_attribution import attribution_label
+
+        return attribution_label(source_code, accessed_on=accessed_on)
+
+    return (
+        ATTRIBUTION_TEMPLATE.format(
+            publishers=", ".join(PUBLISHERS),
+            license_label=LICENSE_LABEL,
+            accessed_on=accessed_on,
+        )
+        + " [Attribution de PLATEFORME, non spécifique au jeu de données — non "
+        "publiable en l'état.]"
     )
 
 

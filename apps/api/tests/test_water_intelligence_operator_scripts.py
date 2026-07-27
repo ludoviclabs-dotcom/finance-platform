@@ -860,12 +860,27 @@ def _imported_names(path: Path) -> set[str]:
 class TestNoDatabaseNoPublication:
     FORBIDDEN = ("psycopg", "psycopg2", "sqlalchemy", "asyncpg", "db", "db.session")
 
-    #: SEUL script opérateur autorisé à ouvrir la base (X2B — graveur Evidence
-    #: Kernel). Exemption NOMMÉE, même idiome que `fetcher.py` pour le réseau :
-    #: la règle reste vraie pour tous les autres, et un nouveau script qui
-    #: écrirait en base ferait échouer ce test tant qu'il n'est pas listé ici
-    #: — c'est-à-dire tant qu'un humain ne l'a pas décidé.
-    DATABASE_EXEMPT = frozenset({"ingest_release.py", "staging_rehearsal.py"})
+    #: Scripts opérateur autorisés à ouvrir la base. Exemption NOMMÉE, même
+    #: idiome que `fetcher.py` pour le réseau : la règle reste vraie pour tous
+    #: les autres, et un nouveau script qui toucherait la base fait échouer ce
+    #: test tant qu'il n'est pas listé ici — c'est-à-dire tant qu'un humain ne
+    #: l'a pas décidé. C'est ce qui s'est produit pour le troisième nom.
+    #:
+    #: - `ingest_release.py` — graveur Evidence Kernel, ÉCRIT (X2B) ;
+    #: - `staging_rehearsal.py` — outils de répétition staging (X3) ;
+    #: - `build_candidate_snapshots.py` — constructeur de candidats (X4B-PREP),
+    #:   **LECTURE SEULE** : il relit les observations des releases `validated`
+    #:   pour mesurer un budget, et n'écrit rien. Il est listé parce qu'il
+    #:   OUVRE la base, pas parce qu'il y écrit — l'exemption porte sur l'accès,
+    #:   jamais sur l'intention déclarée. `test_the_candidate_builder_never_writes`
+    #:   vérifie qu'il n'emprunte aucun chemin d'écriture.
+    DATABASE_EXEMPT = frozenset(
+        {
+            "ingest_release.py",
+            "staging_rehearsal.py",
+            "build_candidate_snapshots.py",
+        }
+    )
 
     def test_no_operator_script_imports_a_database_client(self) -> None:
         for path in _sources(SCRIPTS_DIR):
@@ -877,11 +892,31 @@ class TestNoDatabaseNoPublication:
 
     def test_the_database_exemption_stays_an_explicit_short_list(self) -> None:
         """L'exemption ne doit jamais devenir une catégorie : chaque fichier
-        qui touche la base est nommé, et il n'y en a que deux — le graveur
-        (X2B) et les outils de répétition staging (X3)."""
-        assert self.DATABASE_EXEMPT == {"ingest_release.py", "staging_rehearsal.py"}
+        qui touche la base est nommé, et il n'y en a que trois — le graveur
+        (X2B), les outils de répétition staging (X3) et le constructeur de
+        candidats en lecture seule (X4B-PREP)."""
+        assert self.DATABASE_EXEMPT == {
+            "ingest_release.py",
+            "staging_rehearsal.py",
+            "build_candidate_snapshots.py",
+        }
         for name in self.DATABASE_EXEMPT:
             assert (SCRIPTS_DIR / name).is_file()
+
+    def test_the_candidate_builder_never_writes(self) -> None:
+        """Le constructeur de candidats LIT — il ne doit jamais écrire.
+
+        Son exemption porte sur l'accès à la base, pas sur une autorisation
+        d'écriture : mesurer ce que pèserait une publication n'est pas publier.
+        Un `INSERT`/`UPDATE`/`DELETE` apparu ici doit casser la CI, pas passer
+        parce que le fichier figure dans la liste.
+        """
+        source = (SCRIPTS_DIR / "build_candidate_snapshots.py").read_text(encoding="utf-8")
+        for statement in ("INSERT INTO", "UPDATE ", "DELETE FROM", "publish_release"):
+            assert statement not in source, (
+                f"build_candidate_snapshots.py contient {statement!r} : il est exempté "
+                "pour LIRE, jamais pour écrire ni publier."
+            )
 
     def test_every_exempt_script_goes_through_the_environment_gate(self) -> None:
         """Toucher la base ne suffit pas : il faut prouver la destination.

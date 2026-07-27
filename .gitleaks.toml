@@ -65,6 +65,21 @@ regexes = [
   # volontairement étroit : seul le préfixe "hubeau-" est couvert, comme dans
   # l'entrée précédente.
   '''"release_key":\s*"hubeau-[A-Za-z0-9._-]*"''',
+  # Mot de passe du service PostgreSQL ÉPHÉMÈRE des workflows de répétition
+  # Water (.github/workflows/water-x3-staging-rehearsal.yml,
+  # water-x4b-candidate-builder.yml). Ce n'est pas un secret et ne peut pas en
+  # devenir un : la base est un service Docker du job, jointe uniquement depuis
+  # le réseau du runner, détruite avec lui. Aucun secret de dépôt n'est
+  # référencé, et `staging_environment.py` refuse tout repli sur une variable
+  # Carbon&Co (`DATABASE_URL*`, `DATABASE_ADMIN_URL`).
+  #
+  # Pourquoi l'entrée apparaît maintenant et pas en X3 : `water_x3_ephemeral`
+  # passe sous le seuil d'entropie de 3.5, `water_x4b_ephemeral` le dépasse de
+  # 0,011 (3.511086). Le motif est donc couvert explicitement plutôt que laissé
+  # dépendre d'un hasard d'entropie — un garde-fou qui ne se déclenche que par
+  # chance ne protège rien. Motif volontairement étroit : seules les valeurs de
+  # la forme `water_x<phase>_ephemeral` sont couvertes.
+  '''water_x[0-9a-z]+_ephemeral''',
 ]
 paths = [
   # Scénarios de démonstration produit : données entièrement fictives, jamais de

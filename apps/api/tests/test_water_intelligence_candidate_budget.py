@@ -739,17 +739,55 @@ class TestSecurityStepsSurviveASourceBlock:
     qu'en cas de succès ne contrôle que les runs dont on se méfie le moins.
     """
 
-    def _steps(self):
-        import yaml
+    #: Lu SANS PyYAML : `requirements.txt` ne le déclare pas, et le job `tests`
+    #: de la CI n'installe que celui-là. S'en remettre à une bibliothèque
+    #: présente seulement en local, c'est écrire un test qui ne s'exécute que
+    #: sur la machine où il a été écrit — le défaut de la première version de
+    #: cette classe, trouvé par la CI. Le fichier a une structure fixe (steps à
+    #: 6 espaces, clés à 8), et ce scan ligne à ligne suffit à la lire.
+    WORKFLOW = (
+        Path(bcs.__file__).resolve().parents[4]
+        / ".github"
+        / "workflows"
+        / "water-x4b-candidate-builder.yml"
+    )
 
-        workflow = (
-            Path(bcs.__file__).resolve().parents[4]
-            / ".github"
-            / "workflows"
-            / "water-x4b-candidate-builder.yml"
-        )
-        data = yaml.safe_load(workflow.read_text(encoding="utf-8"))
-        return data["jobs"]["build-candidates"]["steps"]
+    def _steps(self) -> list[dict[str, str]]:
+        steps: list[dict[str, str]] = []
+        current: dict[str, str] | None = None
+        in_steps = False
+        for line in self.WORKFLOW.read_text(encoding="utf-8").split("\n"):
+            if line.strip() == "steps:":
+                in_steps = True
+                continue
+            if not in_steps:
+                continue
+            if line.startswith("      - "):
+                current = {}
+                steps.append(current)
+                body = line[len("      - ") :]
+            elif (
+                line.startswith("        ")
+                and not line.startswith("         ")
+                and current is not None
+            ):
+                # Exactement 8 espaces : une clé de l'étape elle-même. Plus
+                # profond, c'est un bloc imbriqué (`with:`), dont le `name:`
+                # écraserait celui de l'étape.
+                body = line[8:]
+            else:
+                continue
+            if ":" in body and not body.lstrip().startswith(("#", "|", "-")):
+                key, _, value = body.partition(":")
+                if key.strip() and " " not in key.strip():
+                    current[key.strip()] = value.strip()
+        return steps
+
+    def test_the_step_scan_actually_finds_the_steps(self) -> None:
+        """Sans ce contrôle, un scan cassé rendrait les autres tests vides."""
+        names = [s["name"] for s in self._steps() if "name" in s]
+        assert len(names) >= 12, names
+        assert any("Diff ADES" in n for n in names)
 
     def test_the_three_exit_steps_always_run(self) -> None:
         guarded = {
@@ -768,15 +806,16 @@ class TestSecurityStepsSurviveASourceBlock:
 
     def test_the_workflow_stays_dispatch_only(self) -> None:
         """Un blocage de source ne doit pas devenir un prétexte à automatiser."""
-        import yaml
-
-        workflow = (
-            Path(bcs.__file__).resolve().parents[4]
-            / ".github"
-            / "workflows"
-            / "water-x4b-candidate-builder.yml"
-        )
-        data = yaml.safe_load(workflow.read_text(encoding="utf-8"))
-        triggers = data.get("on", data.get(True))
-        assert list(triggers) == ["workflow_dispatch"]
-        assert data["permissions"] == {"contents": "read"}
+        text = self.WORKFLOW.read_text(encoding="utf-8")
+        assert "\n  workflow_dispatch:\n" in text
+        for forbidden in ("\n  push:", "\n  pull_request:", "\n  schedule:"):
+            assert forbidden not in text, f"déclencheur interdit : {forbidden.strip()}"
+        assert "\npermissions:\n  contents: read\n" in text
+        # `contents: write` apparaît dans le commentaire d'en-tête, qui explique
+        # pourquoi il est refusé. Seules les lignes EFFECTIVES comptent.
+        effective = [
+            line
+            for line in text.split("\n")
+            if "contents: write" in line and not line.lstrip().startswith("#")
+        ]
+        assert not effective, effective

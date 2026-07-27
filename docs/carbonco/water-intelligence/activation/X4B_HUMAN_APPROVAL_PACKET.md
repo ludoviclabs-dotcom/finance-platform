@@ -47,13 +47,14 @@ l'opportunité de publier trois observations restent des jugements humains.
 | Sources | `HUBEAU_ADES` seule |
 | Périmètre | station BSS `09892X0679/EXH70`, 2024-01-01 → 2024-03-31 |
 | Pourquoi | Seule des trois dont l'acquisition X3 n'était **pas tronquée** (182 sur une page de 200) |
-| Observations exactes | **NON MESURÉ** |
-| Taille exacte / marge | **NON MESURÉ** |
-| Checksum exact du run | **NON MESURÉ** |
+| Observations | **182**, 0 rejetée |
+| Taille / marge | **255 121 octets** — marge **−155 121** ❌ |
+| Checksum du run | `54ac8e5b…6ee00b` — **identique à X3**, `byte_stable` |
+| Verdict budget | ❌ **`over_budget`** — 2,5× le plafond |
 | Attribution | `Source : Hub'Eau — API Piézométrie. Données issues d'ADES et des partenaires du Système d'information sur l'eau. Licence Ouverte / Etalab 2.0. Source officielle : https://hubeau.eaufrance.fr/page/api-piezometrie. Consultées le <date>.` |
 | URL officielle | <https://hubeau.eaufrance.fr/page/api-piezometrie> |
 | Cadence source | intégration **quotidienne** des mises à jour ADES — relevée |
-| Dernière mise à jour source | **non relevée** — conformité portée par l'URL officielle |
+| Dernière mise à jour source | ⛔ **NON RELEVÉE — bloque la publication de cette attribution** (cf. §5, risque 4) |
 | Limite principale | Une station ne documente **aucun territoire** |
 
 ### Option B — pilote équilibré
@@ -68,7 +69,17 @@ URLs officielles : <https://hubeau.eaufrance.fr/page/api-piezometrie> ·
 <https://hubeau.eaufrance.fr/page/api-qualite-cours-deau> ·
 <https://hubeau.eaufrance.fr/page/api-prelevements-eau>
 
-Observations exactes, tailles exactes, checksums exacts : **NON MESURÉ**.
+Mesures du run :
+
+| Source | Observations | Octets | Marge | Verdict |
+|---|---|---|---|---|
+| `HUBEAU_ADES` | 182 | 255 121 | −155 121 | ❌ `over_budget` |
+| `HUBEAU_QUALITE_SURFACE` | 78 (exhaustif) | 111 324 | **−11 324** | ❌ `over_budget` |
+| `HUBEAU_BNPE_PRELEVEMENTS` | 3 (exhaustif) | **6 120** | **+93 880** | ✅ `within_budget` |
+| **Ensemble (option B)** | **263** | **371 144** | −271 144 | ❌ `over_budget` |
+
+**Dernière mise à jour source : ⛔ NON RELEVÉE pour les trois sources** — cf.
+§5, risque 4. Elle bloque la publication de leurs attributions.
 
 Limites : aucune conclusion de conformité (Naïades) ; couverture partielle par
 construction et « une absence n'est jamais un zéro » (BNPE) ; aucune
@@ -146,7 +157,23 @@ pourquoi trois observations d'une source valent mieux que 263 hors budget.
 et la question qu'il pose au signataire est celle du périmètre, pas de la
 qualité.
 
-### 4.3 Ce que la recommandation ne dit pas
+### 4.3 ⛔ Ce que cette recommandation ne lève PAS
+
+`bnpe_minimal_pilot_v1` est la seule option **conforme au budget**. Elle n'est
+pas pour autant publiable en l'état : `source_last_updated_on` n'est relevé
+pour **aucune** des trois sources, BNPE comprise, et le dépôt établit déjà que
+tant que ce champ est vide, le libellé d'attribution de la source **n'est pas
+publiable** (X4A §2.2, `RISK_REGISTER.md`).
+
+L'URL officielle rend la source **citable** ; elle ne rend pas l'attribution
+**conforme**. Ce sont deux choses différentes, et les confondre est précisément
+le défaut que la revue de X4A avait déjà signalé une fois.
+
+**Conséquence pratique** : relever la date de dernière mise à jour de la BNPE
+est un prérequis à la publication, pas une formalité postérieure. Le formulaire
+§6 porte désormais un champ pour elle.
+
+### 4.4 Ce que la recommandation ne dit pas
 
 Trois observations sur une commune, c'est peu. La question de savoir si une
 telle publication a un **sens éditorial** — plutôt que de démontrer seulement
@@ -161,7 +188,7 @@ que la chaîne fonctionne — n'est pas technique et n'est pas tranchée ici.
 | 2 bis | Variation de checksum ADES X2A → X3, même longueur | **toujours non expliquée** — hors périmètre du run, reste due |
 | 2 ter | Diff d'**identités** ADES (ajoutées / supprimées / modifiées) | **non produit** — le verdict porte sur les octets bruts, pas sur les identités |
 | 3 | Cadence de mise à jour BNPE | **non vérifiée** — mensuelle non confirmée, annuelle déclarée sur data.gouv.fr |
-| 4 | `source_last_updated_on` des trois sources | **non relevée** — conformité de paternité portée par l'URL officielle |
+| 4 | `source_last_updated_on` des trois sources | ⛔ **NON RELEVÉE — BLOQUANT.** La Licence Ouverte 2.0 exige la source **et la date de dernière mise à jour de l'Information réutilisée**. Le dépôt écrit déjà que **tant que ce champ est vide, le libellé d'attribution de la source n'est pas publiable** (X4A §2.2, `RISK_REGISTER.md`). L'URL officielle **ne remplace pas** ce fait : elle rend la source citable, pas l'attribution conforme. **S'applique aussi à BNPE**, donc à `bnpe_minimal_pilot_v1`. |
 | 5 | Licence vérifiée au niveau **plateforme**, pas jeu par jeu | `license_scope = platform` inchangé |
 | 6 | Allowlist SANDRE (Naïades) | à **valider explicitement** avant publication |
 | 7 | Couverture partielle BNPE par construction | permanente — doit être affichée **à côté des valeurs**, pas en pied de page |
@@ -182,6 +209,7 @@ sources sans nommer leur périmètre.
 | Périmètres approuvés (géographie + période, par source) | | |
 | Attributions retenues (libellé exact, octet pour octet) | | |
 | URLs officielles retenues | | |
+| **`source_last_updated_on`** par source — **bloquant tant qu'il est vide** | | |
 | `display_allowed` | | |
 | `derived_use_allowed` | | |
 | Cadence BNPE — issue retenue (relever / annuelle data.gouv.fr / non vérifiée assumée) | | |
@@ -208,7 +236,10 @@ sources sans nommer leur périmètre.
 
 - Ce n'est pas une décision. Aucun champ n'est rempli, et aucun ne doit l'être
   par un modèle.
-- Ce n'est pas un état mesuré : les chiffres exacts manquent, et sont nommés
-  comme manquants.
-- Ce n'est pas une garantie de faisabilité : le budget peut refuser les trois
-  options, et c'est un résultat possible du premier dispatch.
+- Ce n'est plus un état non mesuré : les budgets, les comptes d'observations
+  et le checksum ADES viennent du run `30306257628`. Ce qui manque encore est
+  nommé comme manquant, jamais estimé.
+- Ce n'est pas une autorisation de publier : le budget a **refusé les trois
+  options**, et une condition de paternité reste **non levée** pour les trois
+  sources (§5, risque 4). Une mesure conforme au budget ne rend pas une
+  attribution conforme à sa licence.

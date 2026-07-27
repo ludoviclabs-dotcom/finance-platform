@@ -49,6 +49,7 @@ from services.intelligence import license_policy
 from services.water.staging_environment import staging_connection_factory
 from services.water.staging_ingestion import (
     StagingIngestionRefused,
+    load_acquisition_evidence,
     load_verified_request,
     report_retrieved_on,
 )
@@ -167,28 +168,52 @@ def _acquisition_argv(
     return argv
 
 
-def _read_acquisition(
-    artifacts: Path, candidate_key: str, source_code: str
-) -> dict[str, Any]:
-    """Relit l'artefact d'acquisition d'UN couple (candidat, source)."""
-    directory = artifacts / candidate_key / source_code
-    found = sorted(directory.glob("*.json"))
-    if not found:
-        raise CandidateBuildError(
-            f"{candidate_key}/{source_code} : aucun artefact d'acquisition dans {directory}."
+def _acquisition_evidence(
+    reports: Path, candidate_key: str, scope: SourceScope, release_key: str
+):
+    """Preuve d'acquisition d'UN couple (candidat, source), lue au RAPPORT.
+
+    Le lecteur précédent globbait `*.json` dans le répertoire d'ARTEFACTS —
+    c'est-à-dire le payload brut Hub'Eau — et y cherchait `payload_sha256`,
+    `records_received` et `pages`. Une réponse d'API ne porte évidemment aucune
+    de ces clés : chacune rendait `None`, que `int(None or 0)` transformait en
+    0 sans jamais lever. D'où, au run 30306257628, un `run_checksum=null`, un
+    `run_bytes=0`, et un verdict ADES `content_changed` prononcé sur une
+    absence de preuve prise pour une preuve d'absence.
+
+    La preuve vient donc du rapport validé, via `load_acquisition_evidence()`,
+    qui exige la concordance de source et de release avant de rendre quoi que
+    ce soit.
+    """
+    _, report_path = _scope_paths(
+        candidate_key, scope.source_code, artifacts=Path("/dev/null"), reports=reports
+    )
+    try:
+        return load_acquisition_evidence(
+            report_path,
+            expect_source_code=scope.source_code,
+            expect_release_key=release_key,
         )
-    return json.loads(found[-1].read_text(encoding="utf-8"))
+    except StagingIngestionRefused as exc:
+        raise CandidateBuildError(
+            f"{candidate_key}/{scope.source_code} : preuve d'acquisition "
+            f"inexploitable — {exc}"
+        ) from exc
 
 
-def _assert_exhaustive(scope: SourceScope, acquisition: dict[str, Any]) -> dict[str, Any]:
+def _assert_exhaustive(scope: SourceScope, evidence) -> dict[str, Any]:
     """Une prétention d'exhaustivité doit être PROUVÉE, pas déclarée.
 
     Le seul signal disponible est la saturation de la dernière page : si elle
     est pleine, des enregistrements ont pu rester de l'autre côté de la borne,
     et le périmètre est tronqué — pas exhaustif.
+
+    Les deux nombres viennent du rapport, jamais d'un `or 0` : un périmètre
+    dont la preuve manque n'est ni exhaustif ni tronqué, il est **non établi**,
+    et `load_acquisition_evidence()` lève avant d'arriver ici.
     """
-    received = int(acquisition.get("records_received") or 0)
-    pages = int(acquisition.get("pages") or 0)
+    received = evidence.records_received
+    pages = evidence.pages_fetched
     last_page_full = pages > 0 and received == pages * scope.page_size
     exhaustive = not last_page_full
 
@@ -202,12 +227,16 @@ def _assert_exhaustive(scope: SourceScope, acquisition: dict[str, Any]) -> dict[
         )
     return {
         "records_received": received,
+        "records_normalized": evidence.records_normalized,
         "pages": pages,
         "page_size": scope.page_size,
+        "bytes_received": evidence.bytes_received,
         "last_page_full": last_page_full,
         "exhaustive": exhaustive,
-        "announced_total": acquisition.get("count"),
-        "payload_sha256": acquisition.get("payload_sha256"),
+        "payload_sha256": evidence.payload_sha256,
+        "periods": list(evidence.periods),
+        "geographies": list(evidence.geographies),
+        "units": list(evidence.units),
     }
 
 
@@ -232,7 +261,7 @@ def command_acquire(args: argparse.Namespace) -> int:
                     f"{scope.source_code} : acquisition en échec (code {result.returncode}). "
                     "Un verdict dégradé se corrige, il ne se contourne pas."
                 )
-            acquisition = _read_acquisition(artifacts, candidate.key, scope.source_code)
+            evidence = _acquisition_evidence(reports, candidate.key, scope, release)
             summary["scopes"].append(
                 {
                     "candidate": candidate.key,
@@ -245,7 +274,7 @@ def command_acquire(args: argparse.Namespace) -> int:
                     "parameter_codes": list(scope.parameter_codes),
                     "justification": scope.justification,
                     "interpretation_risk": scope.interpretation_risk,
-                    **_assert_exhaustive(scope, acquisition),
+                    **_assert_exhaustive(scope, evidence),
                 }
             )
 
@@ -653,15 +682,30 @@ def command_diff_ades(args: argparse.Namespace) -> int:
       Une donnée qui bouge sans explication n'est pas publiable, et la question
       remonte au signataire.
     """
-    artifacts, reports = Path(args.artifact_dir), Path(args.report_dir)
+    reports = Path(args.report_dir)
     # Comparé sur `x3_technical_sample`, la reproduction STRICTE des bornes X3 :
     # c'est la seule comparaison apples-to-apples avec le checksum X3. Lire un
     # autre candidat opposerait un payload acquis sur une autre fenêtre à une
     # référence qui ne la décrit pas — un écart alors « constaté » ne dirait
     # rien de la source.
-    acquisition = _read_acquisition(artifacts, "x3_technical_sample", "HUBEAU_ADES")
-    digest = acquisition.get("payload_sha256")
-    received_bytes = int(acquisition.get("bytes") or 0)
+    #
+    # La preuve vient du RAPPORT validé, jamais du payload brut : celui-ci ne
+    # porte ni `payload_sha256` ni `bytes_received`, et les y chercher rendait
+    # `null`/`0` — donc un `content_changed` prononcé faute de preuve, pas
+    # faute de stabilité.
+    scope = next(
+        s
+        for s in CANDIDATES_BY_KEY["x3_technical_sample"].scopes
+        if s.source_code == "HUBEAU_ADES"
+    )
+    evidence = _acquisition_evidence(
+        reports,
+        "x3_technical_sample",
+        scope,
+        "hubeau_ades-x3_technical_sample-x4b-prep",
+    )
+    digest = evidence.payload_sha256
+    received_bytes = evidence.bytes_received
 
     matches = {
         label: (digest == expected) for label, expected in ADES_REFERENCE_CHECKSUMS.items()
@@ -697,14 +741,31 @@ def command_diff_ades(args: argparse.Namespace) -> int:
 
     payload = {
         "source_code": "HUBEAU_ADES",
+        "release_key": evidence.release_key,
         "reference_checksums": ADES_REFERENCE_CHECKSUMS,
         "reference_bytes": ADES_REFERENCE_BYTES,
         "run_checksum": digest,
         "run_bytes": received_bytes,
+        "run_records_received": evidence.records_received,
+        "run_records_normalized": evidence.records_normalized,
+        "run_pages_fetched": evidence.pages_fetched,
         "matches_reference": matches,
         "same_byte_length_as_reference": same_length,
         "verdict": verdict,
         "detail": detail,
+        # Le blocage porte sur ADES SEULE. Les mesures des autres sources sont
+        # déjà écrites (`30_budgets.json`) et restent valides : une source qui
+        # bouge n'invalide pas celles qui n'ont pas bougé.
+        "blocks_source": "HUBEAU_ADES" if verdict == "content_changed" else None,
+        "scope_note": (
+            "Ce verdict porte sur HUBEAU_ADES et sur elle seule. Un blocage "
+            "n'efface ni les mesures de HUBEAU_QUALITE_SURFACE ni celles de "
+            "HUBEAU_BNPE_PRELEVEMENTS, et n'exempte aucun contrôle de sortie."
+        ),
+        "evidence_source": (
+            "rapport de validation `acq_x3_technical_sample_HUBEAU_ADES.md` "
+            "(bloc JSON structuré), jamais le payload brut."
+        ),
         "publication_checksum_note": (
             "Le checksum de publication sera celui de l'artefact EXACT retenu dans "
             "la PR de publication, jamais celui de X3 par défaut."
@@ -714,7 +775,10 @@ def command_diff_ades(args: argparse.Namespace) -> int:
 
     if verdict == "content_changed":
         raise CandidateBuildError(
-            "ARRÊT — diff ADES `content_changed` inexpliqué : ADES est bloquée."
+            "ARRÊT — diff ADES `content_changed` inexpliqué : ADES est bloquée. "
+            "Les mesures des autres sources restent valides et sont conservées "
+            "dans les rapports ; les contrôles de sortie et le téléversement "
+            "s'exécutent quand même."
         )
     return 0
 

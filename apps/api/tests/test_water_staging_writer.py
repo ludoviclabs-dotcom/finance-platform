@@ -38,6 +38,7 @@ from services.water.staging_writer import (
     ingest_staging_release,
     prepare_release,
 )
+from services.water_intelligence.release_provenance import provenance_for
 
 HYDRO = "HUBEAU_HYDROMETRIE"
 RELEASE = "hubeau-hydrometrie-x2b-fixture"
@@ -136,7 +137,9 @@ class TestPreparePure:
             report=report,
             license_decision=license_decision,
             retrieved_at=date(2026, 7, 26),
-            attribution="Hub'Eau — Licence Ouverte Etalab",
+            provenance=provenance_for(
+                request.source_code, accessed_on=date(2026, 7, 26)
+            ),
         )
 
     def test_each_measurement_becomes_one_identified_observation(self, tmp_path: Path) -> None:
@@ -209,7 +212,10 @@ class TestPreparePure:
         with pytest.raises(StagingIngestionRefused, match="paramètre de fenêtre"):
             prepare_release(
                 request, pages=decoded, report=report, license_decision=PERMISSIVE,
-                retrieved_at=date(2026, 7, 26), attribution=None,
+                retrieved_at=date(2026, 7, 26),
+                provenance=provenance_for(
+                    request.source_code, accessed_on=date(2026, 7, 26)
+                ),
             )
 
     def test_preparation_is_deterministic(self, tmp_path: Path) -> None:

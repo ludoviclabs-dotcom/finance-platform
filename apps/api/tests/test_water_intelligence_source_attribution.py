@@ -34,7 +34,11 @@ from services.water_intelligence.publication_decisions import (
 )
 
 CANDIDATES = ("HUBEAU_ADES", "HUBEAU_QUALITE_SURFACE", "HUBEAU_BNPE_PRELEVEMENTS")
-EXCLUDED = ("HUBEAU_HYDROMETRIE", "EEA_WEI_PLUS", "WRI_AQUEDUCT", "COPERNICUS_EDO")
+#: Sources sans attribution canonique. `HUBEAU_HYDROMETRIE` n'y figure PLUS :
+#: elle est ingérable, elle a une page officielle, et lui refuser une provenance
+#: rendait le graveur dépendant d'un jugement de publication. Sa non-candidature
+#: se lit dans `candidate_scopes` et le registre de décisions — pas ici.
+UNATTRIBUTED = ("EEA_WEI_PLUS", "WRI_AQUEDUCT", "COPERNICUS_EDO")
 
 
 class TestPerSourceAttribution:
@@ -72,8 +76,8 @@ class TestPerSourceAttribution:
         assert "Vigicrues" not in label
         assert "SCV" not in label
 
-    @pytest.mark.parametrize("source_code", EXCLUDED)
-    def test_excluded_sources_have_no_configuration_and_never_fall_back(
+    @pytest.mark.parametrize("source_code", UNATTRIBUTED)
+    def test_unattributed_sources_have_no_configuration_and_never_fall_back(
         self, source_code: str
     ) -> None:
         """Aucun repli générique : une source hors périmètre LÈVE.
@@ -257,3 +261,33 @@ class TestRealRegistryIsUntouched:
         from services.water_intelligence.publication_decisions import current_registry
 
         assert current_registry().approved_source_codes == ()
+
+
+class TestAttributionIsNotCandidacy:
+    """Décrire un jeu n'est pas le proposer à la publication.
+
+    Confondre les deux rendait le graveur dépendant d'un jugement de
+    publication : `HUBEAU_HYDROMETRIE` est ingérable et n'a pas pu être gravée
+    parce qu'elle n'avait pas d'attribution canonique — alors que sa
+    non-candidature tient à une collision d'identité sous-journalière, qui n'a
+    rien à voir avec sa provenance.
+    """
+
+    def test_hydrometrie_has_an_attribution(self) -> None:
+        config = sa.attribution_for("HUBEAU_HYDROMETRIE")
+        assert config.information_url.endswith("/api-hydrometrie")
+
+    def test_hydrometrie_is_not_a_publication_candidate(self) -> None:
+        from scripts.water_intelligence import candidate_scopes as cs
+
+        for candidate in cs.CANDIDATES:
+            assert "HUBEAU_HYDROMETRIE" not in candidate.source_codes
+
+    def test_hydrometrie_is_not_approved_in_the_real_registry(self) -> None:
+        from services.water_intelligence.publication_decisions import current_registry
+
+        assert "HUBEAU_HYDROMETRIE" not in current_registry().approved_source_codes
+
+    def test_hydrometrie_cadence_is_not_invented(self) -> None:
+        """« Temps réel » décrit la donnée, pas la fréquence d'intégration."""
+        assert sa.refresh_cadence("HUBEAU_HYDROMETRIE") is None

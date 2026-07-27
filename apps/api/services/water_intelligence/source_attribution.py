@@ -140,15 +140,44 @@ class SourceAttribution:
         return " ".join(parts)
 
 
-#: Configuration réelle des trois sources candidates. Chaque `provenance`
+#: Configuration réelle des jeux Hub'Eau INGÉRABLES. Chaque `provenance`
 #: reprend ce que la page officielle du jeu énonce, sans désigner l'OFB, le
 #: BRGM ou le SCV comme producteur unique — aucune preuve du dossier ne
 #: l'établit.
 #:
-#: Les quatre sources exclues (`HUBEAU_HYDROMETRIE`, `EEA_WEI_PLUS`,
-#: `WRI_AQUEDUCT`, `COPERNICUS_EDO`) sont volontairement ABSENTES : leur donner
-#: une attribution canonique laisserait croire qu'elles sont candidates.
+#: ## Attribution n'est pas candidature
+#:
+#: `HUBEAU_HYDROMETRIE` figure ici alors qu'elle n'est PAS candidate à la
+#: publication (`subdaily_identity_collision`). Ce n'est pas une contradiction :
+#: une attribution DÉCRIT un jeu de données, elle ne le propose pas. Le jeu
+#: existe, il est ingérable, il a une page officielle — il doit donc pouvoir
+#: être gravé avec une provenance citable, comme n'importe quel autre.
+#:
+#: Ce qui fait la candidature est ailleurs, et à deux endroits qui ne mentent
+#: pas : `candidate_scopes.CANDIDATES` (les périmètres) et
+#: `publication_decisions.CURRENT_DECISIONS` (la décision humaine). Confondre
+#: les deux — comme cette configuration le faisait d'abord — revenait à faire
+#: dépendre l'ingestion d'un jugement de publication.
+#:
+#: `EEA_WEI_PLUS`, `WRI_AQUEDUCT` et `COPERNICUS_EDO` restent absentes : elles
+#: ne sont pas des jeux Hub'Eau, aucune attribution n'a été vérifiée pour
+#: elles ici, et aucune n'est ingérable par ce chemin.
 CANONICAL_ATTRIBUTIONS: tuple[SourceAttribution, ...] = (
+    SourceAttribution(
+        source_code="HUBEAU_HYDROMETRIE",
+        access_point="Hub'Eau — API Hydrométrie",
+        provenance=(
+            "Données issues du réseau hydrométrique et des partenaires du "
+            "Système d'information sur l'eau."
+        ),
+        information_url="https://hubeau.eaufrance.fr/page/api-hydrometrie",
+        # NON VÉRIFIÉE, délibérément `None`. L'endpoint `observations_tr` sert
+        # plusieurs lectures par jour et par station (~33/jour observées en X3),
+        # mais aucune page officielle relevée n'énonce de cadence — et « temps
+        # réel » décrit la donnée, pas la fréquence d'intégration. Écrire l'un
+        # pour l'autre serait une fraîcheur inventée.
+        refresh_cadence=None,
+    ),
     SourceAttribution(
         source_code="HUBEAU_ADES",
         access_point="Hub'Eau — API Piézométrie",
@@ -200,8 +229,9 @@ def _index() -> Mapping[str, SourceAttribution]:
 
 ATTRIBUTIONS: Mapping[str, SourceAttribution] = _index()
 
-#: Sources candidates, dans l'ordre déterministe du registre.
-CANDIDATE_SOURCE_CODES: tuple[str, ...] = tuple(sorted(ATTRIBUTIONS))
+#: Jeux disposant d'une attribution canonique — INGÉRABLES, pas candidats.
+#: La candidature se lit dans `candidate_scopes` et le registre de décisions.
+ATTRIBUTED_SOURCE_CODES: tuple[str, ...] = tuple(sorted(ATTRIBUTIONS))
 
 
 def attribution_for(source_code: str) -> SourceAttribution:

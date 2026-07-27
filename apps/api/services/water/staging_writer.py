@@ -52,8 +52,10 @@ from services.water.staging_ingestion import (
 )
 from services.water_intelligence import observation_identity as identity_mod
 from services.water_intelligence import pipeline as pipe
+from services.water_intelligence import release_parity, release_provenance
 from services.water_intelligence.connectors import hubeau_hydro as hydro
 from services.water_intelligence.connectors import hubeau_withdrawals_quality as usage
+from services.water_intelligence.release_provenance import ReleaseProvenance
 
 #: Statut natif d'une release validée mais NON publiée. Voir le docstring.
 STAGING_RELEASE_STATUS = "validated"
@@ -105,7 +107,18 @@ class PreparedObservation:
 
 @dataclass
 class PreparedRelease:
-    """Résultat de l'étape pure. Aucune écriture n'a eu lieu."""
+    """Résultat de l'étape pure. Aucune écriture n'a eu lieu.
+
+    C'est la représentation COMPLÈTE d'une release avant sa projection vers
+    l'Evidence Kernel — et donc la seule source légitime pour reconstruire un
+    snapshot public. La table `observations` n'en conserve qu'une projection
+    (ni période, ni portée géographique, ni provenance) : reconstruire depuis
+    elle produirait des snapshots plausibles et inexacts.
+
+    Les agrégats ci-dessous sont LUS sur les observations préparées, jamais
+    déduits d'un voisin : les unités sont celles portées par les observations,
+    les géographies sont leurs géographies, la période est le min/max réel.
+    """
 
     prepared: list[PreparedObservation] = field(default_factory=list)
     records_received: int = 0
@@ -115,6 +128,43 @@ class PreparedRelease:
     errors: list[str] = field(default_factory=list)
     observed_period_start: date | None = None
     observed_period_end: date | None = None
+    #: Provenance canonique — résolue hors base (`release_provenance.py`).
+    provenance: "ReleaseProvenance | None" = None
+    source_code: str | None = None
+    release_key: str | None = None
+    artifact_checksum: str | None = None
+    validation_report_checksum: str | None = None
+    method_code: str | None = None
+    method_version: str | None = None
+
+    @property
+    def observations(self) -> list[WaterMetricObservation]:
+        return [item.observation for item in self.prepared]
+
+    @property
+    def identities(self) -> set[identity_mod.WaterObservationIdentity]:
+        """Ensemble d'identités préparées, pour les contrôles de parité.
+
+        `WaterObservationIdentity` est `frozen=True`, donc hachable : les
+        identités se comparent en ensembles, jamais par leur nombre. Comparer
+        des comptes laisserait passer une substitution — autant d'identités,
+        mais pas les mêmes.
+        """
+        return {item.identity for item in self.prepared}
+
+    @property
+    def metric_codes(self) -> tuple[str, ...]:
+        return tuple(sorted({o.metric_code for o in self.observations}))
+
+    @property
+    def units(self) -> tuple[str, ...]:
+        return tuple(sorted({o.unit for o in self.observations if o.unit}))
+
+    @property
+    def geography_codes(self) -> tuple[str, ...]:
+        return tuple(
+            sorted({o.geography.code for o in self.observations if o.geography.code})
+        )
 
 
 def _window(report: Mapping[str, Any], source_code: str) -> tuple[str, str]:
@@ -247,7 +297,7 @@ def prepare_release(
     report: Mapping[str, Any],
     license_decision: LicenseDecision,
     retrieved_at: date,
-    attribution: str | None,
+    provenance: "ReleaseProvenance",
 ) -> PreparedRelease:
     """Artefact + rapport → observations validées, identifiées, sans collision.
 
@@ -260,6 +310,12 @@ def prepare_release(
     drafts, outcome, geography_resolver, period_resolver = _parse_and_normalize(
         request, pages=pages, report=report, retrieved_at=retrieved_at
     )
+    outcome.provenance = provenance
+    outcome.source_code = request.source_code
+    outcome.release_key = request.release_key
+    outcome.artifact_checksum = request.expected_sha256.lower()
+    outcome.method_code = source_meta.method.code
+    outcome.method_version = source_meta.method.version
 
     source_ref = WaterSourceReference(
         source_code=request.source_code,
@@ -270,7 +326,14 @@ def prepare_release(
         observed_period_end=outcome.observed_period_end,
         methodology_version=source_meta.method.version,
         license=license_decision,
-        attribution=attribution,
+        attribution=provenance.attribution,
+        # Provenance citable, exigée par la porte de publication depuis
+        # X4B-PREP. Sans ces champs, une release préparée aujourd'hui serait
+        # écartée du snapshot public pour provenance muette — correctement,
+        # mais pour la mauvaise raison.
+        source_information_url=provenance.information_url,
+        source_refresh_cadence=provenance.refresh_cadence,
+        source_last_updated_on=provenance.last_updated_on,
         warnings=[],
     )
 
@@ -398,7 +461,7 @@ def idempotency_key(request: WaterStagingIngestionRequest) -> str:
     ).hexdigest()
 
 
-def _load_source(cur, source_code: str) -> dict[str, Any]:
+def load_source_row(cur, source_code: str) -> dict[str, Any]:
     cur.execute(
         "SELECT * FROM source_registry WHERE code = %s AND company_id IS NULL",
         (source_code,),
@@ -716,7 +779,17 @@ def ingest_staging_release(
                 # d'opérateur, jamais une requête utilisateur.
                 cur.execute("SET LOCAL app.rls_bypass = 'on'")
 
-                source = _load_source(cur, request.source_code)
+                source = load_source_row(cur, request.source_code)
+                # La provenance vient de la CONFIGURATION CANONIQUE, jamais de
+                # la ligne du registre : celle-ci est confrontée à elle, et une
+                # divergence lève avant toute écriture. Un registre semé par une
+                # version antérieure porterait sinon une attribution obsolète que
+                # le graveur recopierait sur chaque observation — et une release
+                # est immuable.
+                provenance = release_provenance.provenance_for(
+                    request.source_code, accessed_on=effective_retrieved_at
+                )
+                release_provenance.verify_registry_row(provenance, source)
                 decision = license_policy.evaluate(source)
                 if not decision.allow_ingest:
                     raise StagingIngestionRefused(
@@ -735,7 +808,7 @@ def ingest_staging_release(
                     report=report,
                     license_decision=decision,
                     retrieved_at=effective_retrieved_at,
-                    attribution=source.get("attribution_text"),
+                    provenance=provenance,
                 )
                 result.records_received = outcome.records_received
                 result.records_rejected = outcome.records_rejected
@@ -763,11 +836,24 @@ def ingest_staging_release(
                 )
                 result.artifact_id = artifact_id
 
+                # Deux identités distinctes qui se réduisent à la même clé de
+                # projection deviendraient UNE ligne, comptée « réutilisée ».
+                # Vérifié avant l'INSERT, parce qu'après il est trop tard :
+                # `evidence_kernel_guard` interdit toute UPDATE/DELETE.
+                release_parity.assert_projection_can_distinguish(outcome)
+
                 written, obs_reused = _write_observations(
                     cur, release_id=release["id"], prepared=outcome.prepared
                 )
                 result.observations_written = written
                 result.observations_reused = obs_reused
+
+                # Relecture dans la MÊME transaction : ce qui a été écrit porte
+                # bien les identités préparées. Un écart avorte, y compris en
+                # `--commit`.
+                release_parity.assert_persisted_parity(
+                    outcome, list(_existing_projections(cur, release["id"]).values())
+                )
 
                 run_id, _ = _record_run(
                     cur, source_id=source["id"], release_id=release["id"],

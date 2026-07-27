@@ -87,15 +87,19 @@ def _today() -> date:
     return datetime.now(timezone.utc).date()
 
 
-def declared_attribution(source_code: str, *, accessed_on: date) -> str:
+def declared_attribution(source_code: str) -> str:
     """Attribution canonique semée dans le Source Registry, par source.
+
+    Forme STABLE, sans date de consultation : une ligne de registre décrit une
+    source, pas une lecture. La date est composée par release au moment de la
+    préparation, là où elle est vraie.
 
     Lève sur une source hors configuration : semer un libellé générique dans le
     registre reproduirait le défaut d'origine, en le rendant durable.
     """
-    from services.water_intelligence.source_attribution import attribution_label
+    from services.water_intelligence.source_attribution import stable_attribution
 
-    return attribution_label(source_code, accessed_on=accessed_on)
+    return stable_attribution(source_code)
 
 
 #: Capacités communes, transcrites de la Licence Ouverte 2.0.
@@ -318,11 +322,28 @@ def seed_sources(args) -> int:
                     ]
                     if existing["license_code"] != LICENSE_CODE:
                         drift.append("license_code")
+                    # L'attribution AUSSI. Sans ce contrôle, une base semée par
+                    # une version antérieure gardait son ancien libellé — daté,
+                    # donc rejeté par `verify_registry_row` — et cette commande
+                    # répondait `already_present` sans rien signaler. L'écart
+                    # ne se manifestait qu'à l'ingestion suivante, sous la forme
+                    # d'un refus dont la cause était ailleurs.
+                    expected_attribution = declared_attribution(code)
+                    if (existing["attribution_text"] or "") != expected_attribution:
+                        drift.append("attribution_text")
                     if drift:
                         raise SystemExit(
                             f"ARRÊT — source {code} déjà présente avec des valeurs "
-                            f"différentes sur {drift}. Aucune modification n'est faite : "
-                            "un écart de licence se tranche par une décision humaine."
+                            f"différentes sur {drift}. Aucune modification n'est faite.\n"
+                            f"  registre      : {existing['attribution_text']!r}\n"
+                            f"  configuration : {expected_attribution!r}\n"
+                            "Un écart de licence ou d'attribution se tranche par une "
+                            "décision humaine : ces deux champs portent un engagement "
+                            "juridique, et les réécrire automatiquement remplacerait "
+                            "une déclaration par une supposition. Sur une base de "
+                            "staging JETABLE, la remise à niveau est de la recréer ; "
+                            "sur une base persistante, c'est un UPDATE délibéré, "
+                            "constaté et daté par un opérateur."
                         )
                     outcome.append({"source_code": code, "action": "already_present",
                                      "source_id": existing["id"]})
@@ -348,7 +369,7 @@ def seed_sources(args) -> int:
                         LICENSE_CAPABILITIES["derived_use_allowed"],
                         LICENSE_CAPABILITIES["commercial_use_allowed"],
                         LICENSE_CAPABILITIES["redistribution_allowed"],
-                        declared_attribution(code, accessed_on=_today()),
+                        declared_attribution(code),
                         "https://www.etalab.gouv.fr/licence-ouverte-open-licence",
                     ),
                 )

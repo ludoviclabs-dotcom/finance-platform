@@ -38,6 +38,8 @@ from services.water.staging_writer import (
     ingest_staging_release,
     prepare_release,
 )
+from services.water_intelligence.release_provenance import provenance_for
+from services.water_intelligence.source_attribution import stable_attribution
 
 HYDRO = "HUBEAU_HYDROMETRIE"
 RELEASE = "hubeau-hydrometrie-x2b-fixture"
@@ -136,7 +138,9 @@ class TestPreparePure:
             report=report,
             license_decision=license_decision,
             retrieved_at=date(2026, 7, 26),
-            attribution="Hub'Eau — Licence Ouverte Etalab",
+            provenance=provenance_for(
+                request.source_code, accessed_on=date(2026, 7, 26)
+            ),
         )
 
     def test_each_measurement_becomes_one_identified_observation(self, tmp_path: Path) -> None:
@@ -209,7 +213,10 @@ class TestPreparePure:
         with pytest.raises(StagingIngestionRefused, match="paramètre de fenêtre"):
             prepare_release(
                 request, pages=decoded, report=report, license_decision=PERMISSIVE,
-                retrieved_at=date(2026, 7, 26), attribution=None,
+                retrieved_at=date(2026, 7, 26),
+                provenance=provenance_for(
+                    request.source_code, accessed_on=date(2026, 7, 26)
+                ),
             )
 
     def test_preparation_is_deterministic(self, tmp_path: Path) -> None:
@@ -380,11 +387,16 @@ def seed_source(**flags) -> int:
                      derived_use_allowed, commercial_use_allowed, redistribution_allowed,
                      active, attribution_text, license_code)
                 VALUES (NULL, %s, 'Hub''Eau (fictif)', 'Hydrométrie (fixture X2B)', 'api',
-                        %s, %s, %s, %s, true, true, %s, 'Fixture X2B', 'etalab-2.0')
+                        %s, %s, %s, %s, true, true, %s, %s, 'etalab-2.0')
                 RETURNING id
                 """,
+                # L'attribution semée est la forme STABLE canonique : depuis
+                # X4B-RECONSTRUCT, le graveur confronte la ligne du registre à la
+                # configuration et refuse une divergence. Une fixture qui sèmerait
+                # autre chose testerait un état que la production n'admet plus.
                 (HYDRO, values["automated_access_allowed"], values["storage_allowed"],
-                 values["display_allowed"], values["derived_use_allowed"], values["active"]),
+                 values["display_allowed"], values["derived_use_allowed"], values["active"],
+                 stable_attribution(HYDRO)),
             )
             return cur.fetchone()["id"]
 

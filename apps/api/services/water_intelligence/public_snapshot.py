@@ -228,6 +228,7 @@ def assemble_public_snapshot(
     geo_layers: Sequence[Any] = (),
     scenarios: Sequence[Any] = (),
     editorial_records: Sequence[Any] = (),
+    enforce_budget: bool = True,
 ) -> WaterPublicSnapshot:
     """Assemble le snapshot public.
 
@@ -235,6 +236,14 @@ def assemble_public_snapshot(
     observations dont la source n'est pas explicitement autorisée sont
     écartées **avec un motif** ; celles dont la licence interdit l'affichage
     le sont aussi, même si leur source est autorisée.
+
+    `enforce_budget=False` désactive la levée `SnapshotBudgetExceeded` en
+    sortie — **jamais** utilisé pour publier ou pour mesurer un budget
+    (`candidate_budget.measure()` garde `True` : c'est elle qui doit refuser).
+    Réservé à un besoin orthogonal au budget : inspecter le contenu d'un
+    snapshot reconstruit — gate licence, provenance, exclusions — sans que la
+    taille de publication n'interrompe l'inspection. Le budget reste calculé
+    et rapporté (`payload_bytes()`) ; seule la levée est tue.
     """
     accumulator = _Accumulator()
     ledger = WaterObservationLedger()
@@ -360,7 +369,8 @@ def assemble_public_snapshot(
         methods=_distinct_methods(accumulator.observations),
     )
 
-    _enforce_budgets(snapshot)
+    if enforce_budget:
+        _enforce_budgets(snapshot)
     return snapshot
 
 

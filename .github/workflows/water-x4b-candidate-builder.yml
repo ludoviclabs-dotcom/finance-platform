@@ -21,10 +21,18 @@
 #
 # ## Ce qu'il produit
 #
-# Des ARTEFACTS de run, hors dépôt : mesures de budget des sept combinaisons de
-# sources et des trois candidats exacts, diff de checksums ADES, rapports. Ce
-# sont ces chiffres — et eux seuls — qui remplissent les sections laissées
-# vides de X4B_CANDIDATE_REPORT.md et X4B_HUMAN_APPROVAL_PACKET.md.
+# Des ARTEFACTS de run, hors dépôt : rapports de PARITÉ, mesures de budget des
+# sept combinaisons de sources et des trois candidats exacts, diff de checksums
+# ADES. Ce sont ces chiffres — et eux seuls — qui remplissent les sections
+# laissées vides de X4B_CANDIDATE_REPORT.md et X4B_HUMAN_APPROVAL_PACKET.md.
+#
+# ## D'où viennent les snapshots candidats
+#
+# Des ARTEFACTS vérifiés, via `prepare_release()` — la fonction qui grave.
+# **Jamais de la table `observations`** : celle-ci ne conserve qu'une projection
+# du contrat P02 (ni période, ni portée ou libellé de géographie, ni couverture,
+# et la provenance vit dans `source_releases`). La base est lue pour CONFRONTER
+# (parité, registre, licence), jamais pour composer.
 #
 # ## Sources
 #
@@ -127,7 +135,7 @@ jobs:
           python -m scripts.water_intelligence.staging_rehearsal \
             --expect-database "$EXPECT_DB" \
             --output "$REPORTS/01_gate.json" \
-            gate --upto 043
+            gate --expect-migration 043
 
       - name: Déclarer les sources au Source Registry (idempotent)
         run: |
@@ -171,6 +179,33 @@ jobs:
             --artifact-dir "$ARTIFACTS" \
             --report-dir "$REPORTS" \
             measure
+
+      # ── 5 bis. La parité a-t-elle VRAIMENT été contrôlée ? ───────────────
+      # `check_release_parity` rapporte `checked_persisted: false` quand rien
+      # n'a été relu en base — un état légitime en dry-run, mais qui ne prouve
+      # rien. Sans cette étape, un run où la relecture n'aurait porté sur
+      # aucune release rendrait un rapport vert sans avoir rien confronté.
+      - name: Vérifier que la parité a porté sur des lignes réellement gravées
+        run: |
+          set -e
+          python - <<'PY'
+          import json, os, pathlib, sys
+
+          path = pathlib.Path(os.environ["REPORTS"]) / "25_parity.json"
+          if not path.is_file():
+              sys.exit(f"ARRÊT — aucun rapport de parité produit ({path}).")
+          releases = json.loads(path.read_text(encoding="utf-8"))["releases"]
+          if not releases:
+              sys.exit("ARRÊT — rapport de parité vide : aucune release contrôlée.")
+          unchecked = [r for r in releases if not r.get("checked_persisted")]
+          if unchecked:
+              names = ", ".join(f"{r['candidate']}/{r['source_code']}" for r in unchecked)
+              sys.exit(f"ARRÊT — parité non confrontée à la base pour : {names}")
+          for release in releases:
+              if release["prepared_count"] != release["candidate_count"]:
+                  sys.exit(f"ARRÊT — {release['source_code']} : préparé ≠ candidat.")
+          print(f"parité confrontée sur {len(releases)} release(s)")
+          PY
 
       # ── 6. Diff ADES — la variation de checksum non expliquée ───────────
       # X2A et X3 ont produit deux digests différents pour un nombre d'octets

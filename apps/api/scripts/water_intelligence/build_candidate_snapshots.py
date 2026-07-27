@@ -33,7 +33,7 @@ import json
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -45,11 +45,18 @@ from scripts.water_intelligence.candidate_scopes import (
     Candidate,
     SourceScope,
 )
+from services.intelligence import license_policy
 from services.water.staging_environment import staging_connection_factory
+from services.water.staging_ingestion import (
+    StagingIngestionRefused,
+    load_verified_request,
+    report_retrieved_on,
+)
+from services.water.staging_writer import load_source_row, prepare_release
+from services.water_intelligence import public_snapshot_builder as builder
+from services.water_intelligence import release_parity, release_provenance
 from services.water_intelligence.publication_decisions import (
-    PublicationDecision,
     PublicationDecisionRegistry,
-    current_registry,
 )
 
 #: Checksums de référence de la variation ADES non expliquée (§4.3 du plan).
@@ -75,41 +82,21 @@ class CandidateBuildError(Exception):
 def measurement_registry(source_codes: Sequence[str]) -> PublicationDecisionRegistry:
     """Registre en mémoire autorisant les sources À MESURER.
 
-    Il n'existe que le temps d'un assemblage de mesure et n'est jamais écrit.
-    `CURRENT_DECISIONS` reste intouché : les sept sources y demeurent
-    `proposed`/`refused`, et `verify_nothing_is_approved()` le vérifie à la fin
-    de chaque exécution.
-
-    Le motif est écrit en toutes lettres dans le registre lui-même, pour qu'un
-    artefact de run relu plus tard ne puisse pas être confondu avec une
-    décision.
+    Délégué à `public_snapshot_builder` : ce script en portait une seconde
+    définition, avec son propre motif et son propre réviseur factice. Deux
+    registres de mesure divergeraient à la première correction de l'un des
+    deux, et un artefact de run ne dirait plus lequel l'a produit. Il n'y en a
+    qu'un.
     """
-    return PublicationDecisionRegistry(
-        [
-            PublicationDecision(
-                source_code=code,
-                status="approved",
-                reason=(
-                    "MESURE X4B-PREP UNIQUEMENT — registre en mémoire, jamais écrit, "
-                    "jamais publié. Ne vaut aucune approbation humaine : le registre "
-                    "réel reste inchangé et aucune de ses sources n'est approuvée."
-                ),
-                reviewed_by="x4b-prep-measurement (non humain, sans valeur de signature)",
-                reviewed_on=date(1970, 1, 1),
-            )
-            for code in sorted(set(source_codes))
-        ]
-    )
+    return builder.measurement_registry(source_codes)
 
 
 def verify_nothing_is_approved() -> None:
     """Le registre RÉEL ne porte aucune signature — vérifié, pas supposé."""
-    approved = current_registry().approved_source_codes
-    if approved:
-        raise CandidateBuildError(
-            f"ARRÊT — le registre réel porte des sources approuvées : {approved}. "
-            "X4B-PREP ne signe rien."
-        )
+    try:
+        builder.assert_real_registry_untouched()
+    except builder.RealRegistryMutated as exc:
+        raise CandidateBuildError(f"{exc} X4B-PREP ne signe rien.") from exc
 
 
 # ---------------------------------------------------------------------------
@@ -353,55 +340,72 @@ def command_ingest(args: argparse.Namespace) -> int:
 
 
 @dataclass(frozen=True)
-class _LoadedObservations:
-    by_source: dict[str, list[Any]]
+class _PreparedReleases:
+    """Les releases préparées du run, indexées par (CANDIDAT, source).
 
-    def for_codes(self, codes: Sequence[str]) -> list[Any]:
+    Elles viennent des ARTEFACTS, jamais de la table `observations` : celle-ci
+    ne conserve qu'une projection du contrat P02 (ni période, ni portée ou
+    libellé de géographie, ni couverture, et la provenance vit dans
+    `source_releases`). C'est le constat de la PR #174, et la décision
+    d'architecture de cette phase : **le snapshot public ne se reconstruit
+    jamais depuis la projection SQL.**
+
+    ## Pourquoi le candidat fait partie de la clé
+
+    `HUBEAU_ADES` figure dans les TROIS candidats, avec une `release_key`
+    différente à chaque fois, et `HUBEAU_QUALITE_SURFACE` y porte deux fenêtres
+    distinctes (janvier pour `balanced_pilot`, le trimestre pour
+    `x3_technical_sample`). Un index sur la seule source ferait que la mesure
+    de `minimal_pilot` additionnerait les trois releases ADES : **trois fois
+    ses observations, trois fois son budget** — et ce sont précisément les
+    chiffres censés guider la décision de publication.
+
+    Même famille de défaut que les chemins d'acquisition partagés corrigés en
+    PR #174 : une clé trop courte confond des choses distinctes, et l'erreur
+    est un nombre plausible, pas un plantage.
+    """
+
+    by_candidate: dict[str, dict[str, list[Any]]]
+
+    def observations(self, candidate_key: str, codes: Sequence[str]) -> list[Any]:
+        group = self.by_candidate.get(candidate_key, {})
         out: list[Any] = []
         for code in codes:
-            out.extend(self.by_source.get(code, []))
+            out.extend(
+                observation
+                for release in group.get(code, [])
+                for observation in release.observations
+            )
         return out
 
+    def codes_of(self, candidate_key: str) -> frozenset[str]:
+        return frozenset(self.by_candidate.get(candidate_key, {}))
 
-def _load_observations(expect_database: str) -> _LoadedObservations:
-    """Relit les observations des releases `validated`, en LECTURE SEULE.
+    def releases(self) -> list[Any]:
+        return [
+            release
+            for group in self.by_candidate.values()
+            for bucket in group.values()
+            for release in bucket
+        ]
 
-    Trois prédicats non négociables : `published_at IS NULL` (rien de déjà
-    publié), `company_id IS NULL` (aucune donnée tenant), et une release
-    `validated`. Le constructeur REFUSE de produire un document si une ligne
-    tenant apparaît, plutôt que de la filtrer — filtrer masquerait le fait
-    qu'une donnée tenant a atteint une release publique.
+
+def _prepare_releases(
+    args: argparse.Namespace, artifacts: Path, reports: Path
+) -> _PreparedReleases:
+    """Rejoue la MÊME préparation que le graveur, depuis les artefacts.
+
+    Deux accès base, tous deux en LECTURE : la ligne du Source Registry (pour
+    confronter la provenance et évaluer les capacités de licence, exactement
+    comme le graveur) et les observations déjà gravées de chaque release (pour
+    la parité). Aucune observation publiable n'est LUE depuis SQL — elles sont
+    toutes préparées ici, à partir des artefacts vérifiés.
     """
     factory, _target = staging_connection_factory(
-        expect_database=expect_database, ephemeral=True
+        expect_database=args.expect_database, ephemeral=True
     )
-    try:
-        from services.water.staging_ingestion import (  # type: ignore[attr-defined]
-            read_validated_observations,
-        )
-    except ImportError as exc:
-        # DÉFAUT CONNU, non masqué. `services/water/staging_ingestion.py` n'expose
-        # aucun lecteur de ce nom : la table `observations` ne stocke qu'une
-        # PROJECTION du contrat P02 (ni `period_start`/`period_end`, ni portée
-        # ou libellé de géographie, ni couverture, ni référence de source — la
-        # provenance vit dans `source_releases`). Reconstruire un
-        # `WaterMetricObservation` fidèle depuis cette projection est exactement
-        # le travail que le §5.1 du plan X4B assigne à un script
-        # `build_public_snapshot.py` qui n'existe pas encore.
-        #
-        # Écrire ici une reconstruction approximative produirait des mesures de
-        # budget plausibles et fausses — précisément ce que cette phase existe
-        # pour empêcher. L'étape échoue donc en le NOMMANT.
-        raise CandidateBuildError(
-            "ARRÊT — la mesure de budget n'est pas implémentable en l'état : "
-            "`services.water.staging_ingestion` n'expose aucun lecteur "
-            "`read_validated_observations`, et la table `observations` ne "
-            "conserve qu'une projection du contrat P02 (période, géographie et "
-            "provenance ne s'y relisent pas). Reconstruire une observation "
-            "fidèle relève du §5.1 du plan X4B. Les acquisitions, l'ingestion "
-            "et le rejeu de ce run restent valides — seule la mesure est "
-            "bloquée. Aucune mesure approximative n'est produite."
-        ) from exc
+    by_candidate: dict[str, dict[str, list[Any]]] = {}
+    parities: list[dict[str, Any]] = []
 
     with factory() as connection:
         with connection.cursor() as cur:
@@ -416,41 +420,188 @@ def _load_observations(expect_database: str) -> _LoadedObservations:
                     "filtrer : filtrer masquerait qu'une donnée tenant a atteint une "
                     "release publique."
                 )
-        observations = read_validated_observations(connection)
 
-    by_source: dict[str, list[Any]] = {}
-    for observation in observations:
-        by_source.setdefault(observation.source.source_code, []).append(observation)
-    return _LoadedObservations(by_source=by_source)
+            for candidate in _selected(args.candidate):
+                for scope in candidate.scopes:
+                    release_key = (
+                        f"{scope.source_code.lower()}-{candidate.key}-x4b-prep"
+                    )
+                    artifact_dir, report_path = _scope_paths(
+                        candidate.key,
+                        scope.source_code,
+                        artifacts=artifacts,
+                        reports=reports,
+                    )
+                    prepared = _prepare_one(
+                        cur,
+                        source_code=scope.source_code,
+                        release_key=release_key,
+                        artifact_dir=artifact_dir,
+                        report_path=report_path,
+                    )
+                    by_candidate.setdefault(candidate.key, {}).setdefault(
+                        scope.source_code, []
+                    ).append(prepared)
+                    parities.append(
+                        _check_parity(cur, prepared, candidate_key=candidate.key)
+                    )
+
+    _write(reports / "25_parity.json", {"releases": parities})
+    return _PreparedReleases(by_candidate=by_candidate)
+
+
+def _prepare_one(
+    cur, *, source_code: str, release_key: str, artifact_dir: Path, report_path: Path
+) -> Any:
+    """Une release préparée — via `prepare_release()`, le graveur lui-même.
+
+    Aucun second normaliseur : la fonction appelée ici est celle qui grave. Une
+    préparation parallèle « pour mesurer » divergerait de la préparation qui
+    publie à la première correction apportée à l'une des deux.
+    """
+    loaded = load_verified_request(
+        source_code=source_code,
+        release_key=release_key,
+        artifact_path=artifact_dir,
+        report_path=report_path,
+        operator="x4b-measure",
+        dry_run=True,
+    )
+    # Même date que celle qu'a gravée l'ingestion : lue dans le rapport, jamais
+    # « aujourd'hui ». Une release mesurée sous une autre date de consultation
+    # porterait une attribution différente de la release gravée.
+    retrieved_at = report_retrieved_on(loaded.report)
+    provenance = release_provenance.provenance_for(
+        source_code, accessed_on=retrieved_at
+    )
+
+    # `load_source_row()`, la fonction du graveur — pas une requête réécrite ici.
+    # La version manuscrite précédente interrogeait une table `sources` qui
+    # n'existe pas (le registre est `source_registry`) et sélectionnait des
+    # colonnes `license_*` absentes du schéma : elle aurait levé
+    # `UndefinedTable` APRÈS les acquisitions réseau et l'ingestion des trois
+    # candidats. Même famille de défaut que l'invocation `ingest_release`
+    # composée d'après son usage supposé (PR #174) — une requête écrite de
+    # mémoire est une supposition tant qu'elle n'est pas celle du code qui
+    # marche.
+    try:
+        row = load_source_row(cur, source_code)
+    except StagingIngestionRefused as exc:
+        raise CandidateBuildError(
+            f"{source_code} : {exc} Semer le registre "
+            "(`staging_rehearsal seed-sources`) avant de mesurer."
+        ) from exc
+    # Mêmes barrières que le graveur, dans le même ordre : la provenance est
+    # confrontée à la configuration, PUIS la licence est évaluée en base.
+    release_provenance.verify_registry_row(provenance, row)
+    decision = license_policy.evaluate(row)
+    if not (decision.allow_ingest and decision.allow_store):
+        raise CandidateBuildError(
+            f"{source_code} : licence refusant ingestion ou conservation — "
+            + " ; ".join(decision.reasons)
+        )
+
+    return prepare_release(
+        loaded.request,
+        pages=loaded.decoded_pages,
+        report=loaded.report,
+        license_decision=decision,
+        retrieved_at=retrieved_at,
+        provenance=provenance,
+    )
+
+
+def _check_parity(cur, prepared: Any, *, candidate_key: str) -> dict[str, Any]:
+    """Parité entre la release préparée et ce que la base porte réellement.
+
+    Les lignes relues servent à CONFRONTER, jamais à composer : aucune
+    observation publiable n'en est dérivée. Une divergence lève, et le run
+    s'arrête — un budget mesuré sur une release amputée ne serait le budget de
+    rien.
+    """
+    cur.execute(
+        "SELECT o.subject_type, o.subject_key, o.metric_code, o.geography_code, "
+        "o.valid_from, o.valid_to, o.unit, o.methodology_version "
+        "FROM observations o JOIN source_releases r ON r.id = o.source_release_id "
+        "WHERE r.release_key = %s AND o.company_id IS NULL AND r.published_at IS NULL",
+        (prepared.release_key,),
+    )
+    rows = [dict(row) for row in cur.fetchall()]
+    # `enforce_budget=False` : la parité vérifie que le CONTENU d'une release
+    # survit fidèlement à l'assemblage (gate licence, provenance, exclusions),
+    # pas si elle tient sous 100 000 octets À ELLE SEULE — orthogonal, et
+    # mesuré séparément par `command_measure`. Une release individuellement
+    # surdimensionnée (cas connu : ADES/x3_technical_sample, ~255 ko) ne doit
+    # pas faire échouer TOUT le run de mesure avant que le budget n'ait eu la
+    # chance d'être rapporté proprement en `over_budget`.
+    reconstructed = builder.reconstruct_candidate(
+        label=f"{candidate_key}/{prepared.source_code}",
+        releases=[prepared],
+        generated_at=datetime.now(timezone.utc),
+        enforce_budget=False,
+    )
+    manifest = reconstructed.snapshot.manifest
+    try:
+        report = release_parity.check_release_parity(
+            prepared,
+            candidate_observations=manifest.observations if manifest else [],
+            persisted_rows=rows or None,
+        )
+    except release_parity.ParityViolation as exc:
+        raise CandidateBuildError(
+            f"ARRÊT — parité rompue sur {candidate_key}/{prepared.source_code}.\n{exc}"
+        ) from exc
+    return {"candidate": candidate_key, **report.as_mapping()}
 
 
 def command_measure(args: argparse.Namespace) -> int:
-    reports = Path(args.report_dir)
-    loaded = _load_observations(args.expect_database)
+    artifacts, reports = Path(args.artifact_dir), Path(args.report_dir)
+    loaded = _prepare_releases(args, artifacts, reports)
     clock = datetime.now(timezone.utc)
 
     measurements: list[budget.BudgetMeasurement] = []
-
-    # Les sept combinaisons de base — elles disent où le budget casse,
-    # indépendamment de tout choix éditorial.
-    for combination in BUDGET_COMBINATIONS:
-        observations = loaded.for_codes(combination)
-        measurements.append(
-            budget.measure(
-                label="combinaison : " + " + ".join(combination),
-                observations=observations,
-                registry=measurement_registry(combination),
-                generated_at=clock,
-            )
-        )
-
-    # Puis les trois candidats exacts.
     candidate_measurements: list[budget.BudgetMeasurement] = []
+    skipped: list[dict[str, Any]] = []
+
     for candidate in _selected(args.candidate):
+        available = loaded.codes_of(candidate.key)
+
+        # Les combinaisons de sources — mesurées DANS un candidat, jamais entre
+        # candidats. Une même source n'y a pas le même périmètre : ADES est
+        # commune aux trois, mais QUALITE couvre janvier dans `balanced_pilot`
+        # et le trimestre dans `x3_technical_sample`. Une combinaison mesurée
+        # sans nommer son candidat serait un chiffre que personne ne peut
+        # reproduire.
+        for combination in BUDGET_COMBINATIONS:
+            if not set(combination) <= available:
+                # Combinaison hors du périmètre de ce candidat — `minimal_pilot`
+                # ne porte qu'ADES. Consigné plutôt que silencieusement absent :
+                # une ligne manquante dans un tableau de budgets se lit comme un
+                # oubli, pas comme une décision.
+                skipped.append(
+                    {
+                        "candidate": candidate.key,
+                        "combination": list(combination),
+                        "reason": "sources_hors_perimetre_du_candidat",
+                    }
+                )
+                continue
+            measurements.append(
+                budget.measure(
+                    label=(
+                        f"{candidate.key} — combinaison : " + " + ".join(combination)
+                    ),
+                    observations=loaded.observations(candidate.key, combination),
+                    registry=measurement_registry(combination),
+                    generated_at=clock,
+                )
+            )
+
+        # Puis le candidat exact.
         codes = candidate.source_codes
         measurement = budget.measure(
             label=f"{candidate.key} — {candidate.title}",
-            observations=loaded.for_codes(codes),
+            observations=loaded.observations(candidate.key, codes),
             registry=measurement_registry(codes),
             generated_at=clock,
         )
@@ -465,6 +616,12 @@ def command_measure(args: argparse.Namespace) -> int:
         {
             "budget_bytes": budget.MAX_MANIFEST_BYTES_UNCOMPRESSED,
             "measurements": [m.as_mapping() for m in measurements],
+            "skipped_combinations": skipped,
+            "scope_note": (
+                "Chaque mesure est indexée sur un CANDIDAT. Une même source n'a "
+                "pas le même périmètre d'un candidat à l'autre : additionner ses "
+                "releases entre candidats gonflerait les comptes et les budgets."
+            ),
             "recommended": recommended.as_mapping() if recommended else None,
             "recommendation_note": (
                 "Recommandation TECHNIQUE : le plus grand candidat conforme au budget, "

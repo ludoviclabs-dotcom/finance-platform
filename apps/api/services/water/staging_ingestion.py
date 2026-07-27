@@ -31,6 +31,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -420,3 +421,92 @@ def verify_report(
             f"paramètre(s) de tenant dans la recette du rapport : {leaked} — une "
             "source publique ne s'interroge jamais avec une clé de tenant (règle 15)."
         )
+
+
+# ---------------------------------------------------------------------------
+# Chargement d'une demande vérifiée — chemin PARTAGÉ
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class LoadedRequest:
+    """Une demande d'ingestion vérifiée, avec ses pages prêtes à préparer."""
+
+    request: "WaterStagingIngestionRequest"
+    report: dict[str, Any]
+    pages: list[bytes]
+    decoded_pages: list[Any]
+
+
+def load_verified_request(
+    *,
+    source_code: str,
+    release_key: str,
+    artifact_path: Path,
+    report_path: Path,
+    environment: str = STAGING_ENVIRONMENT,
+    operator: str,
+    dry_run: bool = True,
+) -> LoadedRequest:
+    """Artefact + rapport → demande vérifiée, pages décodées.
+
+    Extrait de `scripts/water_intelligence/ingest_release.py`, où cette
+    séquence vivait en ligne, pour qu'un SEUL chemin la porte. Le constructeur
+    de candidats X4B doit préparer exactement les mêmes releases que le
+    graveur ; les composer chacun de son côté ferait diverger deux recettes qui
+    doivent rester identiques — et une release préparée autrement que celle
+    gravée mesurerait un budget qui n'est celui de rien.
+
+    Aucune tolérance : `verify_report` lève avant tout décodage.
+    """
+    report = load_validation_report(report_path)
+    method = INGESTIBLE_SOURCES[source_code].method
+    request = WaterStagingIngestionRequest(
+        source_code=source_code,
+        release_key=release_key,
+        artifact_path=artifact_path,
+        expected_sha256=str(report.get("payload_sha256") or ""),
+        report_path=report_path,
+        report_sha256=hashlib.sha256(report_path.read_bytes()).hexdigest(),
+        method_code=method.code,
+        method_version=method.version,
+        environment=environment,
+        dry_run=dry_run,
+        operator=operator,
+    )
+    verify_report(request, report)
+    pages = request.read_artifact_pages()
+    decoded = [
+        usage.PAGE_DECODER.decode(page, page_index=index)
+        for index, page in enumerate(pages)
+    ]
+    return LoadedRequest(
+        request=request, report=report, pages=pages, decoded_pages=decoded
+    )
+
+
+def report_retrieved_on(report: Mapping[str, Any]) -> "date":
+    """Date de CONSULTATION de la source, lue dans le rapport d'acquisition.
+
+    `retrieved_at` désigne le jour où la source a été interrogée, pas le jour
+    où la release a été gravée. Les confondre inscrirait dans l'attribution une
+    date de consultation qui n'a jamais eu lieu — et l'attribution Licence
+    Ouverte 2.0 porte précisément cette date.
+
+    Lève plutôt que de retomber sur « aujourd'hui » : un défaut silencieux
+    produirait une date plausible et fausse, indiscernable après coup.
+    """
+    raw = report.get("executed_at")
+    if not raw:
+        raise StagingIngestionRefused(
+            "rapport sans `executed_at` — la date de consultation de la source "
+            "ne peut pas être établie, et elle n'est jamais remplacée par la "
+            "date du jour."
+        )
+    try:
+        return datetime.fromisoformat(str(raw).replace("Z", "+00:00")).date()
+    except ValueError as exc:
+        raise StagingIngestionRefused(
+            f"rapport avec `executed_at` illisible ({raw!r}) — aucune date de "
+            "consultation n'est devinée."
+        ) from exc

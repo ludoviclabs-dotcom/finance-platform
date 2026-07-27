@@ -62,7 +62,7 @@ export const RESOURCE_MENU_ENTRIES: readonly ResourceMenuEntry[] = [
   },
   {
     href: "/water",
-    label: "Eau & risques hydriques",
+    label: "Eau et ressources hydriques",
     description: "Stress, prélèvements, qualité, réglementation et résilience",
   },
 ] as const;

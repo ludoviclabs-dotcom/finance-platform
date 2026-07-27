@@ -212,7 +212,7 @@ describe("menu Ressources — mobile", () => {
     expect(html).toContain('data-testid="nav-resources-mobile"');
     expect(html).toContain('href="/materials"');
     expect(html).toContain('href="/water"');
-    expect(html).toContain("Eau &amp; risques hydriques");
+    expect(html).toContain("Eau et ressources hydriques");
   });
 
   it("ne dépend d’aucun état replié pour être atteignable", () => {
@@ -240,13 +240,32 @@ describe("section Intelligence environnementale", () => {
   });
 
   it("emploie les libellés de statut exacts, mot pour mot", () => {
-    expect(html).toContain("Infrastructure opérationnelle");
-    expect(html).toContain("7 sources officielles instrumentées");
-    expect(html).toContain("Licences vérifiées");
-    expect(html).toContain("Données publiques en attente de validation humaine");
+    /*
+      Ces libellés ont changé le 2026-07-28 : « Données publiques en attente de
+      validation humaine » est devenu faux le jour où une décision a été
+      signée. La carte décrit désormais la DÉCISION — un fait durable — et non
+      l'état du document publié, qui change au premier run du workflow de
+      génération et à chaque retour arrière.
+    */
+    expect(html).toContain("Pilote public approuvé — périmètre limité");
+    expect(html).toContain("7 sources officielles instrumentées, licences vérifiées");
+    expect(html).toContain(
+      "1 source approuvée à la publication, sur 1 commune et 1 année",
+    );
     expect(html).toContain(
       "Stress, sécheresse, nappes, prélèvements, qualité et réglementation",
     );
+  });
+
+  it("ne prétend pas que toute la source Eau est publiée", () => {
+    /*
+      Le piège exact de cette carte : « pilote approuvé » se lirait comme
+      « les données Eau sont en ligne » si le périmètre n'était pas nommé à
+      côté. Une commune et une année, écrites sur la carte elle-même.
+    */
+    expect(html).toContain("sur 1 commune et 1 année");
+    expect(html).not.toContain("toutes les sources");
+    expect(html).not.toContain("données Eau publiées");
   });
 
   it("ne promet AUCUNE donnée vivante", () => {

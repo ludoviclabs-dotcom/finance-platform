@@ -91,9 +91,12 @@ export function WaterShell({
           </Link>
 
           {/*
-            La vitrine publique est nommée comme telle : un utilisateur
-            authentifié qui clique doit savoir qu'il quitte ses données pour
-            une page qui n'en contient aucune.
+            La surface publique est nommée par SON nom, pas par sa nature.
+            « Vitrine publique » décrivait une catégorie de page ; depuis que
+            `/water` porte une publication réelle et une identité produit, le
+            lien doit dire OÙ il mène — au même titre que « Tableau de bord »
+            ci-dessus. L'icône de lien externe continue de signaler qu'on
+            quitte les surfaces authentifiées.
           */}
           <Link
             href="/water"
@@ -101,7 +104,7 @@ export function WaterShell({
             data-testid="water-shell-link-public"
           >
             <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            Vitrine publique
+            Retour à Water Intelligence
           </Link>
 
           <div className="ml-auto flex items-center gap-3">

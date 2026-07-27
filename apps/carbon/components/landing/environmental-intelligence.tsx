@@ -191,13 +191,21 @@ export function EnvironmentalIntelligence() {
             <ModuleCard
               accent={WATER}
               kicker="Hydrique"
-              title="Eau & risques hydriques"
-              status="Infrastructure opérationnelle"
-              intro="Le contexte hydrique à partir de sources officielles traçables. Les connecteurs et les contrats fonctionnent ; la publication des données attend une décision humaine, source par source."
+              title="Eau et ressources hydriques"
+              /*
+                La carte décrit la DÉCISION, pas l'état du document. La
+                première est un fait durable — un humain a signé le 2026-07-28 ;
+                le second change au premier run du workflow de génération. Une
+                carte de page d'accueil qui annoncerait « 3 observations
+                publiées » deviendrait fausse à chaque retour arrière, et
+                personne ne penserait à la corriger.
+              */
+              status="Pilote public approuvé — périmètre limité"
+              intro="Le contexte hydrique à partir de sources officielles traçables. Une première publication pilote est approuvée sur un périmètre communal et annuel explicitement limité ; les six autres sources restent non publiées, chacune pour un motif nommé."
               bullets={[
-                "7 sources officielles instrumentées",
-                "Licences vérifiées",
-                "Données publiques en attente de validation humaine",
+                "7 sources officielles instrumentées, licences vérifiées",
+                "1 source approuvée à la publication, sur 1 commune et 1 année",
+                "Chaque valeur porte sa source, sa période et son checksum",
                 "Stress, sécheresse, nappes, prélèvements, qualité et réglementation",
               ]}
               cta="Explorer Water Intelligence"

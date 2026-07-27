@@ -228,6 +228,44 @@ def command_acquire(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 
+def _ingestion_argv(
+    scope: SourceScope,
+    *,
+    release: str,
+    expect_database: str,
+    artifacts: Path,
+    reports: Path,
+) -> list[str]:
+    """Invocation `ingest_release` d'UN périmètre.
+
+    Composée depuis la signature RÉELLE du graveur, pas depuis son usage
+    supposé : `--source-code`, `--artifact`, `--report` et `--expect-database`
+    y sont **obligatoires**, et `--ephemeral` est ce qui déclare une base
+    jetable. Une invocation approximative échouerait au premier appel avec un
+    `unrecognized arguments`, après avoir déjà consommé les acquisitions
+    réseau — c'est-à-dire au pire moment.
+
+    `test_ingestion_argv_is_accepted_by_the_real_parser` confronte cette
+    composition au parser du graveur : si l'un des deux bouge, la CI casse
+    avant le run, pas pendant.
+    """
+    return [
+        sys.executable, "-m", "scripts.water_intelligence.ingest_release",
+        "--source-code", scope.source_code,
+        "--release", release,
+        "--artifact", str(artifacts / scope.source_code),
+        "--report", str(reports / f"acq_{scope.source_code}.md"),
+        "--environment", "staging",
+        "--expect-database", expect_database,
+        # Staging JETABLE : les releases ne survivent pas au job. Le déclarer
+        # explicitement plutôt que le laisser deviner — X3 a montré qu'un
+        # drapeau qui NOMME une intention sans la faire respecter ne protège
+        # rien, et l'inverse vaut aussi : une intention non déclarée n'est pas
+        # une intention.
+        "--ephemeral",
+    ]
+
+
 def command_ingest(args: argparse.Namespace) -> int:
     artifacts, reports = Path(args.artifact_dir), Path(args.report_dir)
     outcome: list[dict[str, Any]] = []
@@ -235,13 +273,13 @@ def command_ingest(args: argparse.Namespace) -> int:
     for candidate in _selected(args.candidate):
         for scope in candidate.scopes:
             release = f"{scope.source_code.lower()}-{candidate.key}-x4b-prep"
-            base = [
-                sys.executable, "-m", "scripts.water_intelligence.ingest_release",
-                "--environment", "staging",
-                "--expect-database", args.expect_database,
-                "--release", release,
-                "--artifact-dir", str(artifacts / scope.source_code),
-            ]
+            base = _ingestion_argv(
+                scope,
+                release=release,
+                expect_database=args.expect_database,
+                artifacts=artifacts,
+                reports=reports,
+            )
             # Dry-run d'abord : il exécute le VRAI chemin d'écriture puis
             # avorte la transaction — il ne simule rien.
             for phase, extra in (("dry-run", ["--dry-run"]), ("commit", ["--commit"]),
@@ -289,7 +327,33 @@ def _load_observations(expect_database: str) -> _LoadedObservations:
     factory, _target = staging_connection_factory(
         expect_database=expect_database, ephemeral=True
     )
-    from services.water.staging_ingestion import read_validated_observations
+    try:
+        from services.water.staging_ingestion import (  # type: ignore[attr-defined]
+            read_validated_observations,
+        )
+    except ImportError as exc:
+        # DÉFAUT CONNU, non masqué. `services/water/staging_ingestion.py` n'expose
+        # aucun lecteur de ce nom : la table `observations` ne stocke qu'une
+        # PROJECTION du contrat P02 (ni `period_start`/`period_end`, ni portée
+        # ou libellé de géographie, ni couverture, ni référence de source — la
+        # provenance vit dans `source_releases`). Reconstruire un
+        # `WaterMetricObservation` fidèle depuis cette projection est exactement
+        # le travail que le §5.1 du plan X4B assigne à un script
+        # `build_public_snapshot.py` qui n'existe pas encore.
+        #
+        # Écrire ici une reconstruction approximative produirait des mesures de
+        # budget plausibles et fausses — précisément ce que cette phase existe
+        # pour empêcher. L'étape échoue donc en le NOMMANT.
+        raise CandidateBuildError(
+            "ARRÊT — la mesure de budget n'est pas implémentable en l'état : "
+            "`services.water.staging_ingestion` n'expose aucun lecteur "
+            "`read_validated_observations`, et la table `observations` ne "
+            "conserve qu'une projection du contrat P02 (période, géographie et "
+            "provenance ne s'y relisent pas). Reconstruire une observation "
+            "fidèle relève du §5.1 du plan X4B. Les acquisitions, l'ingestion "
+            "et le rejeu de ce run restent valides — seule la mesure est "
+            "bloquée. Aucune mesure approximative n'est produite."
+        ) from exc
 
     with factory() as connection:
         with connection.cursor() as cur:

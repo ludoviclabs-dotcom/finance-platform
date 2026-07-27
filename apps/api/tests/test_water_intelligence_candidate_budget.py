@@ -11,6 +11,7 @@ et qu'elle ne recommande jamais un candidat hors budget.
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 import pytest
 
@@ -22,6 +23,7 @@ from models.water_intelligence import (
     WaterQualityMetadata,
     WaterSourceReference,
 )
+from scripts.water_intelligence import build_candidate_snapshots as bcs
 from scripts.water_intelligence import candidate_budget as cb
 from scripts.water_intelligence import candidate_scopes as cs
 from services.water_intelligence import source_attribution as sa
@@ -224,3 +226,71 @@ class TestCandidateScopes:
             "HUBEAU_QUALITE_SURFACE",
             "HUBEAU_BNPE_PRELEVEMENTS",
         )
+
+
+class TestOperatorInvocationsMatchTheRealParsers:
+    """Les invocations composées doivent être acceptées par les VRAIS parsers.
+
+    Défaut que ces tests verrouillent, trouvé avant le premier run : le
+    constructeur composait `ingest_release --artifact-dir …` sans
+    `--source-code` ni `--report`, alors que les trois sont obligatoires. Le
+    workflow aurait acquis les trois sources sur le réseau, puis échoué à la
+    première ingestion sur un `unrecognized arguments` — au pire moment, après
+    avoir déjà consommé les appels réseau.
+
+    Confronter la composition au parser plutôt qu'à sa lecture est la seule
+    façon de le voir sans dépenser un run : c'est la même leçon que le drapeau
+    `--environment staging` de X3, qui nommait une intention sans que rien ne
+    la confronte au réel.
+    """
+
+    def _scope(self) -> cs.SourceScope:
+        return cs.BALANCED_PILOT.scopes[1]  # qualité : porte des --parameter-code
+
+    def test_acquisition_argv_is_accepted_by_the_real_parser(self) -> None:
+        from scripts.water_intelligence.validate_hubeau import build_parser
+
+        argv = bcs._acquisition_argv(
+            self._scope(),
+            release="r-test",
+            artifacts=Path("/tmp/a"),
+            reports=Path("/tmp/r"),
+        )
+        parsed = build_parser().parse_args(argv[3:])  # sans python -m <module>
+        assert parsed.release == "r-test"
+        assert parsed.parameter_code == ["1339", "1340"]
+
+    def test_ingestion_argv_is_accepted_by_the_real_parser(self) -> None:
+        from scripts.water_intelligence.ingest_release import build_parser
+
+        scope = self._scope()
+        argv = bcs._ingestion_argv(
+            scope,
+            release="r-test",
+            expect_database="carbonco_water_staging",
+            artifacts=Path("/tmp/a"),
+            reports=Path("/tmp/r"),
+        )
+        parsed = build_parser().parse_args(argv[3:])
+        assert parsed.source_code == scope.source_code
+        assert parsed.release == "r-test"
+        assert parsed.expect_database == "carbonco_water_staging"
+        assert parsed.ephemeral is True
+        # `--dry-run` / `--commit` sont ajoutés par phase, jamais dans la base :
+        # le défaut par défaut doit rester le dry-run.
+        assert parsed.commit is False
+
+    def test_every_candidate_scope_composes_a_valid_ingestion(self) -> None:
+        """Aucun périmètre ne doit produire une invocation refusée."""
+        from scripts.water_intelligence.ingest_release import build_parser
+
+        for candidate in cs.CANDIDATES:
+            for scope in candidate.scopes:
+                argv = bcs._ingestion_argv(
+                    scope,
+                    release=f"{scope.source_code.lower()}-{candidate.key}",
+                    expect_database="carbonco_water_staging",
+                    artifacts=Path("/tmp/a"),
+                    reports=Path("/tmp/r"),
+                )
+                build_parser().parse_args(argv[3:])

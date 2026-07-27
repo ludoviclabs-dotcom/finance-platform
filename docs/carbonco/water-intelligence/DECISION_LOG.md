@@ -377,3 +377,27 @@ n'est pas commencé.
   officielles ont été lues par indexation, pas téléchargées. Les cadences ADES
   et Naïades sont donc établies à un niveau de preuve inférieur à celui des
   checksums X3, et un relevé direct horodaté reste dû avant publication.
+- **Les trois libellés ne satisfont pas encore la condition de paternité de la
+  Licence Ouverte 2.0** (revue de PR #172). La licence exige la source **et la
+  date de la dernière mise à jour de l'Information réutilisée** ; les libellés
+  portent une date de *consultation*, qui n'est pas ce fait, et aucun des trois
+  autres champs de fraîcheur ne le porte non plus. Un quatrième champ,
+  `source_last_updated_on`, est ouvert et **non relevé** pour les trois sources
+  — il ne se déduit ni du checksum, ni de la période, ni de `retrieved_on`.
+  Tant qu'il est vide, le libellé de la source concernée n'est pas publiable.
+- **L'attribution est estampillée à l'acquisition, pas à l'assemblage**
+  (`validate_hubeau.py:743` et `:937` ; `staging_rehearsal.py:71`). Le §3.1 du
+  plan X4B réexécutant le workflow **non modifié**, une réacquisition menée
+  telle quelle réestampillerait les 282 observations avec le libellé écarté. Le
+  remplacement doit donc **précéder** la réacquisition : le plan porte désormais
+  une étape 1 bis bloquante. Placé après, il obligerait à réacquérir deux fois.
+- **Le contrat public ne sait pas transporter une cadence.**
+  `WaterSourceReference` (`models/water_intelligence.py:98-114`) et son miroir
+  Zod (`apps/carbon/lib/water-intelligence/contracts.ts:87-88`) portent
+  `retrieved_at` et les bornes de période, mais **aucun champ de cadence** : le
+  champ serait perdu à la sérialisation **sans erreur**, produisant un snapshot
+  valide à fraîcheur muette. L'étendre touche P02, le miroir TypeScript, les
+  documents canoniques et `TestDocumentParity` — décision d'architecture du même
+  ordre que le budget de 100 ko, remontée et non tranchée. À défaut, publier
+  sans cadence en le disant ; jamais approuver une cadence que la surface ne
+  rendra pas.

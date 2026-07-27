@@ -87,6 +87,38 @@ Une source `proposed`, `refused` ou absente du registre **ne peut pas** franchir
 l'assembleur : elle en sort en exclusion motivée. Ce n'est pas une consigne de
 processus, c'est le comportement du code.
 
+### 2.1 Deux travaux à mener AVANT la réacquisition du §3
+
+Constatés dans le code en X4A (§4 de
+[X4A_ATTRIBUTION_AND_FRESHNESS.md](X4A_ATTRIBUTION_AND_FRESHNESS.md)). Les
+placer après la réacquisition obligerait à réacquérir deux fois.
+
+**a. Porter les libellés d'attribution par jeu dans le code.** L'attribution est
+estampillée **à l'acquisition**, pas à l'assemblage :
+`validate_hubeau.py:743` et `:937` appellent
+`transport_mod.attribution(accessed_on=…)`, et `staging_rehearsal.py:71` sème un
+`ATTRIBUTION` fixe dans le Source Registry. Réexécuter le workflow **non
+modifié** (§3.1) réestampillerait donc les observations avec le libellé composé
+que X4A déclare non publiable. Le remplacement se fait par source, avant la
+première acquisition, et le §4.2 ci-dessous en tient compte : **le checksum du
+payload n'est pas affecté** (il porte les octets bruts de la réponse, pas
+l'attribution), mais les observations normalisées le sont.
+
+**b. Trancher le transport de `source_refresh_cadence`.**
+`WaterSourceReference` (`models/water_intelligence.py:98-114`) et son miroir Zod
+(`apps/carbon/lib/water-intelligence/contracts.ts:87-88`) portent `retrieved_at`
+et les bornes de période, **mais aucun champ de cadence**. Le champ serait perdu
+à la sérialisation, **sans erreur** — un snapshot correct portant une fraîcheur
+muette. Étendre le contrat touche P02, le miroir TypeScript, les documents
+canoniques et `TestDocumentParity` : c'est une décision d'architecture, du même
+ordre que le budget du §5.4, et elle se prend avant X4B. À défaut, publier sans
+cadence **en le disant** — jamais approuver une cadence que la surface ne rendra
+pas.
+
+Aucune de ces deux étapes n'est un ajustement de confort : sans (a) le snapshot
+publié porte une attribution écartée, sans (b) il ne porte pas la fraîcheur
+approuvée.
+
 ## 3. Reproduire les trois acquisitions
 
 Aucune release X3 n'existe plus (PostgreSQL éphémère). X4B **réacquiert** avec
@@ -388,6 +420,7 @@ par une pull request relue.
 | # | Étape | Sortie |
 |---|---|---|
 | 1 | Formulaires signés, registre mis à jour, `DECISION_LOG.md` à jour | commit de décision |
+| 1 bis | **Libellés d'attribution par jeu portés dans le code** (§2.1 a) et **sort de `source_refresh_cadence` tranché** (§2.1 b) | code + contrat, relus |
 | 2 | Réacquisition (§3), vérification des checksums (§4) | rapports, hors dépôt |
 | 3 | Ingestion staging éphémère + rejeu idempotent | rapports de parité |
 | 4 | Construction du snapshot, **mesure du budget** (§5.4) | document canonique + miroir |
@@ -406,6 +439,8 @@ variable Carbon&Co, aucun `git push` automatique.
   après signature.
 - Il ne traite ni `HUBEAU_HYDROMETRIE`, ni `EEA_WEI_PLUS`, ni `WRI_AQUEDUCT`,
   ni `COPERNICUS_EDO`.
-- Il ne tranche ni le libellé d'attribution (§3.2 du paquet), ni le sort du
-  budget de 100 ko (§5.4), ni la valeur de `generated_at` (§5.2). Ces trois
-  points sont remontés, pas décidés.
+- Il ne tranche ni le libellé d'attribution (§3.2 du paquet — instruit par X4A,
+  non signé, et incomplet tant que `source_last_updated_on` n'est pas relevé),
+  ni le sort du budget de 100 ko (§5.4), ni la valeur de `generated_at` (§5.2),
+  ni l'extension du contrat P02 à un champ de cadence (§2.1 b). Ces points sont
+  remontés, pas décidés.

@@ -69,7 +69,36 @@ Licence Ouverte / Etalab 2.0. Consultées le <date>.
 date d'assemblage ni la date du jour. Pour les acquisitions de référence de X3,
 elle vaut **2026-07-26** ; X4B réacquiert, donc X4B la réécrit.
 
-### 1.3 Trois précisions qui ne doivent pas se perdre
+### 1.3 Ces trois libellés sont incomplets au regard de la Licence Ouverte 2.0
+
+La Licence Ouverte / Open Licence 2.0 conditionne la réutilisation à la mention
+de la paternité de l'Information : **sa source (a minima le nom du Concédant)
+et la date de la dernière mise à jour de l'Information réutilisée**
+(<https://www.data.gouv.fr/pages/legal/licences/etalab-2.0>).
+
+Les trois libellés ci-dessus portent une date de **consultation**
+(« Consultées le … »). Ce n'est pas la même chose : la date de consultation dit
+quand *nous* avons lu, la date de dernière mise à jour dit quand *la source* a
+changé pour la dernière fois. `retrieved_on` ne fournit pas le second fait — le
+§2 le dit déjà de la fraîcheur, et la conséquence vaut aussi pour l'attribution.
+
+**Conséquence à assumer : en l'état, les trois libellés ne satisfont pas la
+condition de paternité de la licence.** Il manque un fait, et ce fait ne
+s'invente pas : la date de dernière mise à jour doit être **relevée par jeu**
+avant publication, puis portée dans le libellé, la date de consultation étant
+conservée à côté comme provenance.
+
+Un quatrième champ est donc ouvert et **non renseigné** :
+`source_last_updated_on` (§2.2). Tant qu'il est vide pour une source, le libellé
+d'attribution de cette source **n'est pas publiable** — pas parce qu'il est mal
+rédigé, mais parce qu'il lui manque une mention exigée par la licence.
+
+La licence admet une seconde voie de conformité : indiquer l'URL pointant vers
+l'Information, à condition que la paternité reste effectivement attribuée.
+Retenir cette voie plutôt que la date relevée est un choix éditorial — il
+appartient au signataire, et il n'est pas fait ici.
+
+### 1.4 Trois précisions qui ne doivent pas se perdre
 
 1. **`license_scope` reste `platform`.** La Licence Ouverte / Etalab 2.0 a été
    relevée au niveau de la plateforme Hub'Eau (Wave B), **pas jeu par jeu**.
@@ -91,7 +120,7 @@ elle vaut **2026-07-26** ; X4B réacquiert, donc X4B la réécrit.
    (`TestDocumentParity`). La forme exacte doit donc être figée au moment de la
    signature, pas au moment du commit du snapshot.
 
-### 1.4 Pages officielles utilisées
+### 1.5 Pages officielles utilisées
 
 | Fait | Page |
 |---|---|
@@ -104,7 +133,7 @@ elle vaut **2026-07-26** ; X4B réacquiert, donc X4B la réécrit.
 | Fréquence de mise à jour déclarée du jeu « Prélèvements en eau » (Système d'Information sur l'Eau) | <https://www.data.gouv.fr/datasets/prelevements-en-eau> |
 | Licence Ouverte / Open Licence (Etalab) | <https://www.etalab.gouv.fr/licence-ouverte-open-licence> |
 
-## 2. Fraîcheur et temporalité — trois champs distincts
+## 2. Fraîcheur et temporalité — trois champs distincts, plus celui qu'exige la licence
 
 ### 2.1 Pourquoi trois champs et pas un
 
@@ -115,17 +144,29 @@ aucun ne se déduit des deux autres.
 
 | Champ | Ce qu'il dit | Ce qu'il ne dit pas |
 |---|---|---|
-| `source_refresh_cadence` | À quelle fréquence la source intègre de nouvelles données | Que **nos** données sont récentes |
+| `source_refresh_cadence` | À quelle fréquence la source intègre de nouvelles données | Que **nos** données sont récentes, ni quand la source a changé pour la dernière fois |
 | `observed_period` | La période que les observations décrivent | Quand elles ont été publiées |
-| `retrieved_on` | Quand nous avons interrogé l'API | Que la source n'a pas changé depuis |
+| `retrieved_on` | Quand nous avons interrogé l'API | Que la source n'a pas changé depuis, ni quand elle a changé avant |
+
+Un **quatrième** champ est exigé, non par la lisibilité mais par la licence :
+
+| Champ | Ce qu'il dit | Pourquoi il est obligatoire |
+|---|---|---|
+| `source_last_updated_on` | Date de la **dernière mise à jour de l'Information réutilisée**, côté source | Condition de paternité de la Licence Ouverte 2.0 (§1.3). Aucun des trois autres champs ne la porte : une cadence n'est pas une date, et une date de consultation est la nôtre, pas celle de la source. |
 
 ### 2.2 Les trois sources
 
-| Source | `source_refresh_cadence` | `observed_period` | `retrieved_on` |
-|---|---|---|---|
-| `HUBEAU_ADES` | Intégration **quotidienne** des mises à jour de la base ADES dans l'API — **vérifié** | 2024-01-01 → 2024-03-31 | 2026-07-26 |
-| `HUBEAU_QUALITE_SURFACE` | **Synchronisation continue** avec la base Naïades depuis la v2 de l'API — **vérifié** | 2024-01-03 → 2024-01-15 | 2026-07-26 |
-| `HUBEAU_BNPE_PRELEVEMENTS` | **NON VÉRIFIÉE** — cf. §3 | 2020-01-01 → 2020-12-31 | 2026-07-26 |
+| Source | `source_refresh_cadence` | `observed_period` | `retrieved_on` | `source_last_updated_on` |
+|---|---|---|---|---|
+| `HUBEAU_ADES` | Intégration **quotidienne** des mises à jour de la base ADES dans l'API — **vérifié** | 2024-01-01 → 2024-03-31 | 2026-07-26 | **NON RELEVÉ** |
+| `HUBEAU_QUALITE_SURFACE` | **Synchronisation continue** avec la base Naïades depuis la v2 de l'API — **vérifié** | 2024-01-03 → 2024-01-15 | 2026-07-26 | **NON RELEVÉ** |
+| `HUBEAU_BNPE_PRELEVEMENTS` | **NON VÉRIFIÉE** — cf. §3 | 2020-01-01 → 2020-12-31 | 2026-07-26 | **NON RELEVÉ** |
+
+`source_last_updated_on` n'est renseigné pour aucune des trois sources, et
+**n'est pas déductible** de ce que le dossier X3 contient : ni le checksum, ni
+la période observée, ni la date de consultation ne disent quand le jeu a été mis
+à jour pour la dernière fois. Le relever est un geste d'instruction à faire
+avant publication — pas un calcul.
 
 `observed_period` de `HUBEAU_QUALITE_SURFACE` est la période **réellement
 observée**, plus courte que la fenêtre demandée (2024-01-01 → 2024-03-31) : la
@@ -191,7 +232,52 @@ entre trois issues :
    vérifiée » — acceptable, à condition que la surface le rende comme une
    absence de relevé et non comme une absence de mise à jour.
 
-## 4. Méthode de vérification, et sa limite
+## 4. Deux écarts qui rendraient X4B inopérant — vérifiés dans le code
+
+Instruire un libellé et une cadence dans un document ne les fait pas arriver sur
+la surface publique. Deux chemins manquent, l'un et l'autre constatés dans le
+code, et **tous deux doivent être traités par X4B avant la réacquisition** — le
+plan a été complété en conséquence (§2 et §13 de
+[X4_PUBLICATION_IMPLEMENTATION_PLAN.md](X4_PUBLICATION_IMPLEMENTATION_PLAN.md)).
+
+### 4.1 L'attribution est estampillée à l'acquisition, pas à l'assemblage
+
+`scripts/water_intelligence/validate_hubeau.py` compose l'attribution de chaque
+observation **au moment de l'acquisition**, depuis le socle :
+
+| Emplacement | Appel |
+|---|---|
+| `validate_hubeau.py:743` | `attribution=transport_mod.attribution(accessed_on=…)` |
+| `validate_hubeau.py:937` | `attribution=transport_mod.attribution(…)` |
+| `staging_rehearsal.py:71` | `ATTRIBUTION` fixe, semée dans le Source Registry |
+
+Le §3.1 du plan X4B réexécute le workflow **non modifié**. Conséquence
+mécanique : une réacquisition menée telle quelle réestampillerait les 282
+observations avec le libellé composé que le §1.1 déclare non publiable, et le
+snapshot assemblé ensuite le porterait. Le remplacement des libellés doit donc
+précéder la réacquisition, source par source — il ne peut pas être fait après
+coup sans réacquérir une seconde fois.
+
+### 4.2 Le contrat public ne sait pas transporter une cadence
+
+`WaterSourceReference` (`models/water_intelligence.py:98-114`) porte
+`retrieved_at`, `observed_period_start`, `observed_period_end` et `attribution`
+— **aucun champ de cadence**. Son miroir Zod ne l'a pas davantage
+(`apps/carbon/lib/water-intelligence/contracts.ts:87-88`).
+
+Conséquence : `source_refresh_cadence` ne peut pas atteindre la surface
+publique, et l'affichage en trois lignes du §2.3 est **impossible en l'état** —
+le champ serait perdu à la sérialisation, sans erreur, ce qui est le pire des
+cas. Ajouter le champ touche le contrat P02, son miroir TypeScript, les
+documents canoniques et leurs tests de parité : c'est une **décision
+d'architecture**, de même nature que le budget de 100 ko, et elle se tranche
+avant X4B plutôt qu'au milieu.
+
+Tant qu'elle n'est pas tranchée, deux options seulement, toutes deux au
+signataire : étendre le contrat, ou publier sans cadence en le disant — jamais
+approuver une cadence que la surface ne saura pas rendre.
+
+## 5. Méthode de vérification, et sa limite
 
 Les faits du §1 et du §2 ont été relevés sur les pages officielles listées en
 §1.4, **lues par indexation** et non téléchargées directement : depuis
@@ -208,12 +294,17 @@ Le relevé direct — page officielle ouverte, date de relevé consignée — re
 faire par le signataire, et le §4.4 du plan X4B est le bon endroit pour
 l'inscrire.
 
-## 5. Ce que ce document ne fait pas
+## 6. Ce que ce document ne fait pas
 
 - Il ne signe aucune décision : aucun `reviewer`, aucun `reviewed_on`, aucun
   verdict n'est rempli, ici ni dans le paquet de décision.
+- Il ne rend pas les trois libellés publiables : `source_last_updated_on` reste
+  non relevé pour les trois sources, et la condition de paternité de la Licence
+  Ouverte 2.0 n'est donc satisfaite par aucun d'eux (§1.3).
 - Il ne referme pas le §3.3 du paquet : la licence reste vérifiée au niveau
   plateforme, pas jeu par jeu.
+- Il ne tranche ni l'extension du contrat P02 à un champ de cadence, ni l'ordre
+  exact des étapes de X4B (§4) : il les nomme et les remonte.
 - Il ne modifie ni `hubeau_transport.py`, ni `staging_rehearsal.py`, ni aucun
   connecteur : les deux libellés préexistants restent en place tels quels, et
   leur remplacement éventuel dans le code relève de X4B, après signature.

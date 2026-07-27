@@ -461,7 +461,7 @@ def idempotency_key(request: WaterStagingIngestionRequest) -> str:
     ).hexdigest()
 
 
-def _load_source(cur, source_code: str) -> dict[str, Any]:
+def load_source_row(cur, source_code: str) -> dict[str, Any]:
     cur.execute(
         "SELECT * FROM source_registry WHERE code = %s AND company_id IS NULL",
         (source_code,),
@@ -779,7 +779,7 @@ def ingest_staging_release(
                 # d'opérateur, jamais une requête utilisateur.
                 cur.execute("SET LOCAL app.rls_bypass = 'on'")
 
-                source = _load_source(cur, request.source_code)
+                source = load_source_row(cur, request.source_code)
                 # La provenance vient de la CONFIGURATION CANONIQUE, jamais de
                 # la ligne du registre : celle-ci est confrontée à elle, et une
                 # divergence lève avant toute écriture. Un registre semé par une

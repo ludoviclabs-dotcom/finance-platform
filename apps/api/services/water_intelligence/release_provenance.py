@@ -154,9 +154,15 @@ def verify_registry_row(
             "vérité de la provenance : elle est vérifiée contre elle.\n"
             f"  registre     : {declared!r}\n"
             f"  configuration: {provenance.stable_attribution!r}\n"
-            "Resemer le Source Registry (`staging_rehearsal seed-sources`) plutôt "
-            "que d'accepter la divergence — une release est immuable, et une "
-            "provenance fausse y resterait."
+            "Cause la plus probable : une base semée par une version antérieure, "
+            "dont le libellé portait encore une date de consultation.\n"
+            "`staging_rehearsal seed-sources` SIGNALE cet écart mais ne le "
+            "répare pas : l'attribution porte un engagement juridique, et la "
+            "réécrire automatiquement remplacerait une déclaration par une "
+            "supposition. Sur une base de staging jetable, la recréer ; sur une "
+            "base persistante, un UPDATE délibéré d'opérateur. Jamais accepter "
+            "la divergence — une release est immuable, et une provenance fausse "
+            "y resterait."
         )
 
     declared_license = _normalized_license(row.get("license_code"))

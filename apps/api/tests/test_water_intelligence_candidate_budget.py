@@ -364,3 +364,127 @@ class TestCandidatesNeverShareAcquisitionPaths:
         )
         assert "balanced_pilot" in str(directory)
         assert "balanced_pilot" in report.name
+
+
+class TestTheMeasurementQueriesTheRealSchema:
+    """Une requête SQL écrite de mémoire est une supposition.
+
+    Défaut trouvé en revue (PR #175) : la mesure interrogeait une table
+    `sources` — qui n'existe pas, le registre est `source_registry` — et
+    sélectionnait des colonnes `license_url`/`license_allows_*` absentes du
+    schéma. Le workflow atteint cette requête APRÈS avoir acquis les trois
+    sources sur le réseau et ingéré les trois candidats : l'échec serait
+    survenu au pire moment, exactement comme l'invocation `ingest_release`
+    corrigée en PR #174.
+
+    Le remède n'est pas une meilleure requête : c'est de n'en avoir qu'une.
+    """
+
+    def test_the_builder_reuses_the_writer_s_own_source_lookup(self) -> None:
+        source = Path(bcs.__file__).read_text(encoding="utf-8")
+        assert "load_source_row(" in source, (
+            "le constructeur doit relire la source via la fonction du graveur, "
+            "pas via une requête réécrite."
+        )
+        assert "FROM sources" not in source, (
+            "`sources` n'existe pas — le registre est `source_registry`."
+        )
+
+    def test_the_shared_lookup_targets_the_table_that_exists(self) -> None:
+        from services.water import staging_writer
+
+        writer = Path(staging_writer.__file__).read_text(encoding="utf-8")
+        assert "FROM source_registry WHERE code = %s" in writer
+
+    def test_the_lookup_row_feeds_the_real_license_evaluator(self) -> None:
+        """`license_policy.evaluate()` lit des colonnes précises.
+
+        Les nommer à côté (`license_allows_derivatives` plutôt que
+        `derived_use_allowed`) rendrait une décision entièrement fermée sans
+        aucune erreur — une source correctement licenciée serait refusée, ou
+        pire, une absence de colonne serait lue comme un `False`.
+        """
+        import inspect
+
+        from services.intelligence import license_policy
+
+        body = inspect.getsource(license_policy.evaluate)
+        for column in (
+            "automated_access_allowed",
+            "storage_allowed",
+            "display_allowed",
+            "derived_use_allowed",
+        ):
+            assert f'"{column}"' in body
+
+
+class TestBudgetsAreMeasuredWithinACandidate:
+    """Une même source n'a pas le même périmètre d'un candidat à l'autre.
+
+    Défaut trouvé en revue (PR #175) : les releases préparées étaient rangées
+    par source seule. `HUBEAU_ADES` figurant dans les TROIS candidats, la
+    mesure de `minimal_pilot` additionnait les trois releases — trois fois ses
+    observations, trois fois son budget. Ce sont les chiffres censés guider la
+    décision de publication : gonflés, ils ne guident rien.
+    """
+
+    def test_the_same_source_carries_distinct_scopes_across_candidates(self) -> None:
+        """Le fait qui rend l'index par source seule faux."""
+        from scripts.water_intelligence.candidate_scopes import CANDIDATES_BY_KEY
+
+        windows = {
+            key: next(
+                s for s in candidate.scopes
+                if s.source_code == "HUBEAU_QUALITE_SURFACE"
+            )
+            for key, candidate in CANDIDATES_BY_KEY.items()
+            if "HUBEAU_QUALITE_SURFACE" in candidate.source_codes
+        }
+        assert len(windows) >= 2
+        assert len({(s.date_from, s.date_to) for s in windows.values()}) > 1, (
+            "si les fenêtres devenaient identiques, ce test cesserait de "
+            "protéger quoi que ce soit — le mélange resterait faux."
+        )
+
+    def test_ades_appears_in_every_candidate_with_a_distinct_release_key(self) -> None:
+        from scripts.water_intelligence.candidate_scopes import CANDIDATES
+
+        keys = {
+            f"hubeau_ades-{candidate.key}-x4b-prep"
+            for candidate in CANDIDATES
+            if "HUBEAU_ADES" in candidate.source_codes
+        }
+        assert len(keys) == 3
+
+    def test_prepared_releases_are_keyed_by_candidate_then_source(self) -> None:
+        from scripts.water_intelligence.build_candidate_snapshots import (
+            _PreparedReleases,
+        )
+
+        class _Release:
+            def __init__(self, observations):
+                self.observations = observations
+
+        loaded = _PreparedReleases(
+            by_candidate={
+                "minimal_pilot": {"HUBEAU_ADES": [_Release(["a", "b"])]},
+                "x3_technical_sample": {"HUBEAU_ADES": [_Release(["c", "d", "e"])]},
+            }
+        )
+        # Le défaut corrigé : `minimal_pilot` ne doit PAS voir les cinq.
+        assert loaded.observations("minimal_pilot", ["HUBEAU_ADES"]) == ["a", "b"]
+        assert loaded.observations("x3_technical_sample", ["HUBEAU_ADES"]) == [
+            "c",
+            "d",
+            "e",
+        ]
+        assert len(loaded.releases()) == 2
+
+    def test_an_unknown_candidate_yields_nothing_rather_than_everything(self) -> None:
+        from scripts.water_intelligence.build_candidate_snapshots import (
+            _PreparedReleases,
+        )
+
+        loaded = _PreparedReleases(by_candidate={})
+        assert loaded.observations("inexistant", ["HUBEAU_ADES"]) == []
+        assert loaded.codes_of("inexistant") == frozenset()

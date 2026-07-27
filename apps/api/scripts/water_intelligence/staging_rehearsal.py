@@ -322,11 +322,28 @@ def seed_sources(args) -> int:
                     ]
                     if existing["license_code"] != LICENSE_CODE:
                         drift.append("license_code")
+                    # L'attribution AUSSI. Sans ce contrôle, une base semée par
+                    # une version antérieure gardait son ancien libellé — daté,
+                    # donc rejeté par `verify_registry_row` — et cette commande
+                    # répondait `already_present` sans rien signaler. L'écart
+                    # ne se manifestait qu'à l'ingestion suivante, sous la forme
+                    # d'un refus dont la cause était ailleurs.
+                    expected_attribution = declared_attribution(code)
+                    if (existing["attribution_text"] or "") != expected_attribution:
+                        drift.append("attribution_text")
                     if drift:
                         raise SystemExit(
                             f"ARRÊT — source {code} déjà présente avec des valeurs "
-                            f"différentes sur {drift}. Aucune modification n'est faite : "
-                            "un écart de licence se tranche par une décision humaine."
+                            f"différentes sur {drift}. Aucune modification n'est faite.\n"
+                            f"  registre      : {existing['attribution_text']!r}\n"
+                            f"  configuration : {expected_attribution!r}\n"
+                            "Un écart de licence ou d'attribution se tranche par une "
+                            "décision humaine : ces deux champs portent un engagement "
+                            "juridique, et les réécrire automatiquement remplacerait "
+                            "une déclaration par une supposition. Sur une base de "
+                            "staging JETABLE, la remise à niveau est de la recréer ; "
+                            "sur une base persistante, c'est un UPDATE délibéré, "
+                            "constaté et daté par un opérateur."
                         )
                     outcome.append({"source_code": code, "action": "already_present",
                                      "source_id": existing["id"]})

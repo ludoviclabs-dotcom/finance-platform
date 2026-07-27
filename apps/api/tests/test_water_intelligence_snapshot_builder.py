@@ -278,3 +278,49 @@ class TestRegistryIsVerifiedNotTrusted:
         assert "Consultées le" in provenance_for(
             "HUBEAU_ADES", accessed_on=date(2026, 7, 26)
         ).attribution
+
+
+class TestAttributionDriftIsDetectedWhereItCanBeRepaired:
+    """Un refus dont la cause est ailleurs n'aide personne.
+
+    Défaut trouvé en revue (PR #175) : sur une base de staging persistante
+    semée AVANT la forme stable, `attribution_text` gardait l'ancien libellé
+    daté. `verify_registry_row` rejetait alors chaque ingestion, tandis que
+    `staging_rehearsal seed-sources` — le remède que le message d'erreur
+    désignait — répondait `already_present` sans rien signaler : il ne
+    contrôlait que les capacités de licence et le `license_code`.
+
+    L'écart est désormais détecté à la SEMAILLE, là où un opérateur peut le
+    traiter, et le message d'erreur d'ingestion ne promet plus une réparation
+    automatique qui n'existe pas.
+    """
+
+    def test_seeding_compares_the_attribution_too(self) -> None:
+        from pathlib import Path
+
+        from scripts.water_intelligence import staging_rehearsal
+
+        source = Path(staging_rehearsal.__file__).read_text(encoding="utf-8")
+        assert 'drift.append("attribution_text")' in source
+
+    def test_the_refusal_does_not_promise_an_automatic_repair(self) -> None:
+        p = provenance_for("HUBEAU_ADES", accessed_on=date(2026, 7, 26))
+        with pytest.raises(ProvenanceMismatch) as caught:
+            verify_registry_row(
+                p,
+                {
+                    "attribution_text": "Source : Hub'Eau (ancien libellé daté)",
+                    "license_code": "etalab-2.0",
+                },
+            )
+        message = str(caught.value)
+        assert "ne le répare pas" in message
+        # Le geste réel est nommé pour chacun des deux cas.
+        assert "jetable" in message and "persistante" in message
+
+    def test_the_seeded_form_is_the_one_the_writer_verifies(self) -> None:
+        """Si les deux divergeaient, toute ingestion échouerait sur une base
+        pourtant fraîchement semée."""
+        from scripts.water_intelligence.staging_rehearsal import declared_attribution
+
+        assert declared_attribution("HUBEAU_ADES") == stable_attribution("HUBEAU_ADES")

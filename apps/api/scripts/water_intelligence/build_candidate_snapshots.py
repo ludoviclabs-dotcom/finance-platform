@@ -117,7 +117,38 @@ def verify_nothing_is_approved() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _acquisition_argv(scope: SourceScope, *, release: str, artifacts: Path, reports: Path) -> list[str]:
+def _scope_paths(
+    candidate_key: str, source_code: str, *, artifacts: Path, reports: Path
+) -> tuple[Path, Path]:
+    """Répertoire d'artefacts et rapport d'UNE source DANS UN candidat.
+
+    Les deux sont indexés sur le couple (candidat, source), jamais sur la seule
+    source : `HUBEAU_ADES` figure dans les TROIS candidats, avec une
+    `release_key` différente à chaque fois. Des chemins indexés sur la seule
+    source feraient que `--candidate all` écrase les artefacts et le rapport de
+    A par ceux de B, puis par ceux de C — et l'ingestion de A recevrait le
+    rapport de C. `verify_report()` rejetterait alors la `release_key`
+    discordante, après que les trois acquisitions réseau ont déjà été
+    consommées.
+
+    Un répertoire par couple supprime aussi le risque de pages RÉSIDUELLES :
+    une acquisition plus courte ne laisse pas derrière elle les pages d'une
+    acquisition précédente plus longue.
+    """
+    return (
+        artifacts / candidate_key / source_code,
+        reports / f"acq_{candidate_key}_{source_code}.md",
+    )
+
+
+def _acquisition_argv(
+    scope: SourceScope,
+    *,
+    candidate_key: str,
+    release: str,
+    artifacts: Path,
+    reports: Path,
+) -> list[str]:
     """Invocation `validate_hubeau` d'UN périmètre.
 
     Composée depuis `candidate_scopes`, jamais recopiée dans le workflow : une
@@ -125,6 +156,9 @@ def _acquisition_argv(scope: SourceScope, *, release: str, artifacts: Path, repo
     modification, et c'est exactement ce qui rend un périmètre publié différent
     du périmètre approuvé.
     """
+    artifact_dir, report = _scope_paths(
+        candidate_key, scope.source_code, artifacts=artifacts, reports=reports
+    )
     argv = [
         sys.executable, "-m", "scripts.water_intelligence.validate_hubeau",
         "--source", scope.family,
@@ -136,8 +170,8 @@ def _acquisition_argv(scope: SourceScope, *, release: str, artifacts: Path, repo
         "--max-pages", str(scope.max_pages),
         "--max-bytes", "2000000",
         "--page-size", str(scope.page_size),
-        "--report", str(reports / f"acq_{scope.source_code}.md"),
-        "--artifact-dir", str(artifacts / scope.source_code),
+        "--report", str(report),
+        "--artifact-dir", str(artifact_dir),
     ]
     for code in scope.parameter_codes:
         argv += ["--parameter-code", code]
@@ -146,14 +180,17 @@ def _acquisition_argv(scope: SourceScope, *, release: str, artifacts: Path, repo
     return argv
 
 
-def _read_acquisition(artifacts: Path, source_code: str) -> dict[str, Any]:
-    """Relit l'artefact d'acquisition — checksum, comptes, pagination."""
-    candidates = sorted((artifacts / source_code).glob("*.json"))
-    if not candidates:
+def _read_acquisition(
+    artifacts: Path, candidate_key: str, source_code: str
+) -> dict[str, Any]:
+    """Relit l'artefact d'acquisition d'UN couple (candidat, source)."""
+    directory = artifacts / candidate_key / source_code
+    found = sorted(directory.glob("*.json"))
+    if not found:
         raise CandidateBuildError(
-            f"{source_code} : aucun artefact d'acquisition dans {artifacts / source_code}."
+            f"{candidate_key}/{source_code} : aucun artefact d'acquisition dans {directory}."
         )
-    return json.loads(candidates[-1].read_text(encoding="utf-8"))
+    return json.loads(found[-1].read_text(encoding="utf-8"))
 
 
 def _assert_exhaustive(scope: SourceScope, acquisition: dict[str, Any]) -> dict[str, Any]:
@@ -194,7 +231,13 @@ def command_acquire(args: argparse.Namespace) -> int:
     for candidate in _selected(args.candidate):
         for scope in candidate.scopes:
             release = f"{scope.source_code.lower()}-{candidate.key}-x4b-prep"
-            argv = _acquisition_argv(scope, release=release, artifacts=artifacts, reports=reports)
+            argv = _acquisition_argv(
+                scope,
+                candidate_key=candidate.key,
+                release=release,
+                artifacts=artifacts,
+                reports=reports,
+            )
             print(f"→ {scope.source_code} ({candidate.key})", flush=True)
             result = subprocess.run(argv, check=False)
             if result.returncode != 0:
@@ -202,7 +245,7 @@ def command_acquire(args: argparse.Namespace) -> int:
                     f"{scope.source_code} : acquisition en échec (code {result.returncode}). "
                     "Un verdict dégradé se corrige, il ne se contourne pas."
                 )
-            acquisition = _read_acquisition(artifacts, scope.source_code)
+            acquisition = _read_acquisition(artifacts, candidate.key, scope.source_code)
             summary["scopes"].append(
                 {
                     "candidate": candidate.key,
@@ -228,6 +271,48 @@ def command_acquire(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 
+def _ingestion_argv(
+    scope: SourceScope,
+    *,
+    candidate_key: str,
+    release: str,
+    expect_database: str,
+    artifacts: Path,
+    reports: Path,
+) -> list[str]:
+    """Invocation `ingest_release` d'UN périmètre.
+
+    Composée depuis la signature RÉELLE du graveur, pas depuis son usage
+    supposé : `--source-code`, `--artifact`, `--report` et `--expect-database`
+    y sont **obligatoires**, et `--ephemeral` est ce qui déclare une base
+    jetable. Une invocation approximative échouerait au premier appel avec un
+    `unrecognized arguments`, après avoir déjà consommé les acquisitions
+    réseau — c'est-à-dire au pire moment.
+
+    `test_ingestion_argv_is_accepted_by_the_real_parser` confronte cette
+    composition au parser du graveur : si l'un des deux bouge, la CI casse
+    avant le run, pas pendant.
+    """
+    artifact_dir, report = _scope_paths(
+        candidate_key, scope.source_code, artifacts=artifacts, reports=reports
+    )
+    return [
+        sys.executable, "-m", "scripts.water_intelligence.ingest_release",
+        "--source-code", scope.source_code,
+        "--release", release,
+        "--artifact", str(artifact_dir),
+        "--report", str(report),
+        "--environment", "staging",
+        "--expect-database", expect_database,
+        # Staging JETABLE : les releases ne survivent pas au job. Le déclarer
+        # explicitement plutôt que le laisser deviner — X3 a montré qu'un
+        # drapeau qui NOMME une intention sans la faire respecter ne protège
+        # rien, et l'inverse vaut aussi : une intention non déclarée n'est pas
+        # une intention.
+        "--ephemeral",
+    ]
+
+
 def command_ingest(args: argparse.Namespace) -> int:
     artifacts, reports = Path(args.artifact_dir), Path(args.report_dir)
     outcome: list[dict[str, Any]] = []
@@ -235,13 +320,14 @@ def command_ingest(args: argparse.Namespace) -> int:
     for candidate in _selected(args.candidate):
         for scope in candidate.scopes:
             release = f"{scope.source_code.lower()}-{candidate.key}-x4b-prep"
-            base = [
-                sys.executable, "-m", "scripts.water_intelligence.ingest_release",
-                "--environment", "staging",
-                "--expect-database", args.expect_database,
-                "--release", release,
-                "--artifact-dir", str(artifacts / scope.source_code),
-            ]
+            base = _ingestion_argv(
+                scope,
+                candidate_key=candidate.key,
+                release=release,
+                expect_database=args.expect_database,
+                artifacts=artifacts,
+                reports=reports,
+            )
             # Dry-run d'abord : il exécute le VRAI chemin d'écriture puis
             # avorte la transaction — il ne simule rien.
             for phase, extra in (("dry-run", ["--dry-run"]), ("commit", ["--commit"]),
@@ -289,7 +375,33 @@ def _load_observations(expect_database: str) -> _LoadedObservations:
     factory, _target = staging_connection_factory(
         expect_database=expect_database, ephemeral=True
     )
-    from services.water.staging_ingestion import read_validated_observations
+    try:
+        from services.water.staging_ingestion import (  # type: ignore[attr-defined]
+            read_validated_observations,
+        )
+    except ImportError as exc:
+        # DÉFAUT CONNU, non masqué. `services/water/staging_ingestion.py` n'expose
+        # aucun lecteur de ce nom : la table `observations` ne stocke qu'une
+        # PROJECTION du contrat P02 (ni `period_start`/`period_end`, ni portée
+        # ou libellé de géographie, ni couverture, ni référence de source — la
+        # provenance vit dans `source_releases`). Reconstruire un
+        # `WaterMetricObservation` fidèle depuis cette projection est exactement
+        # le travail que le §5.1 du plan X4B assigne à un script
+        # `build_public_snapshot.py` qui n'existe pas encore.
+        #
+        # Écrire ici une reconstruction approximative produirait des mesures de
+        # budget plausibles et fausses — précisément ce que cette phase existe
+        # pour empêcher. L'étape échoue donc en le NOMMANT.
+        raise CandidateBuildError(
+            "ARRÊT — la mesure de budget n'est pas implémentable en l'état : "
+            "`services.water.staging_ingestion` n'expose aucun lecteur "
+            "`read_validated_observations`, et la table `observations` ne "
+            "conserve qu'une projection du contrat P02 (période, géographie et "
+            "provenance ne s'y relisent pas). Reconstruire une observation "
+            "fidèle relève du §5.1 du plan X4B. Les acquisitions, l'ingestion "
+            "et le rejeu de ce run restent valides — seule la mesure est "
+            "bloquée. Aucune mesure approximative n'est produite."
+        ) from exc
 
     with factory() as connection:
         with connection.cursor() as cur:
@@ -385,7 +497,12 @@ def command_diff_ades(args: argparse.Namespace) -> int:
       remonte au signataire.
     """
     artifacts, reports = Path(args.artifact_dir), Path(args.report_dir)
-    acquisition = _read_acquisition(artifacts, "HUBEAU_ADES")
+    # Comparé sur `x3_technical_sample`, la reproduction STRICTE des bornes X3 :
+    # c'est la seule comparaison apples-to-apples avec le checksum X3. Lire un
+    # autre candidat opposerait un payload acquis sur une autre fenêtre à une
+    # référence qui ne la décrit pas — un écart alors « constaté » ne dirait
+    # rien de la source.
+    acquisition = _read_acquisition(artifacts, "x3_technical_sample", "HUBEAU_ADES")
     digest = acquisition.get("payload_sha256")
     received_bytes = int(acquisition.get("bytes") or 0)
 

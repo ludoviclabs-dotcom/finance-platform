@@ -488,3 +488,52 @@ class TestBudgetsAreMeasuredWithinACandidate:
         loaded = _PreparedReleases(by_candidate={})
         assert loaded.observations("inexistant", ["HUBEAU_ADES"]) == []
         assert loaded.codes_of("inexistant") == frozenset()
+
+
+class TestParityCheckNeverEnforcesBudget:
+    """Défaut trouvé au premier run réel (candidat `x3_technical_sample`) :
+    `_check_parity` reconstruisait chaque release avec le budget appliqué par
+    défaut, et la release ADES seule (~255 ko) faisait lever
+    `SnapshotBudgetExceeded` AVANT que `command_measure` n'ait pu rapporter
+    quoi que ce soit — le run entier mourait sur la première release
+    individuellement surdimensionnée.
+
+    Vérouillé au niveau du texte source : `_check_parity` doit passer
+    `enforce_budget=False` à `reconstruct_candidate` — la parité vérifie la
+    fidélité du contenu, pas la taille de publication, et les deux sont
+    orthogonales.
+    """
+
+    def test_check_parity_disables_budget_enforcement(self) -> None:
+        """Lu sur l'AST, pas sur le texte : un commentaire mentionnant
+        `enforce_budget=False` ferait passer une recherche textuelle même si
+        l'argument réel avait disparu du code — exactement le faux négatif
+        que ce test doit éviter."""
+        import ast
+
+        source = Path(bcs.__file__).read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        function = next(
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.FunctionDef) and node.name == "_check_parity"
+        )
+        calls = [
+            node
+            for node in ast.walk(function)
+            if isinstance(node, ast.Call)
+            and getattr(node.func, "attr", None) == "reconstruct_candidate"
+        ]
+        assert len(calls) == 1
+        keywords = {kw.arg: kw.value for kw in calls[0].keywords}
+        assert "enforce_budget" in keywords, (
+            "_check_parity doit passer enforce_budget explicitement à "
+            "reconstruct_candidate."
+        )
+        value = keywords["enforce_budget"]
+        assert isinstance(value, ast.Constant) and value.value is False, (
+            "_check_parity doit reconstruire SANS enforcer le budget de "
+            "publication — une release individuellement surdimensionnée "
+            "(cas connu : ADES/x3_technical_sample) ne doit pas faire "
+            "échouer tout le run de mesure."
+        )

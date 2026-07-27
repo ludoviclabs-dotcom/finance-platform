@@ -199,6 +199,7 @@ def reconstruct_candidate(
     label: str,
     releases: Sequence,
     generated_at: datetime,
+    enforce_budget: bool = True,
 ) -> ReconstructedCandidate:
     """Reconstruit un snapshot candidat depuis des `PreparedRelease`.
 
@@ -206,6 +207,17 @@ def reconstruct_candidate(
     réimplémentée ici. Le contexte de décision est
     `candidate_measurement_only` : il autorise l'assemblage pour MESURER ce que
     pèserait une publication, ce qui n'est pas l'autoriser.
+
+    `enforce_budget=False` réservé au contrôle de PARITÉ (X4B-RECONSTRUCT) :
+    une release à elle seule au-dessus du budget de publication (le cas
+    documenté d'ADES/`x3_technical_sample`, ~255 ko) est un fait de MESURE,
+    pas un défaut de parité — la parité vérifie que le contenu survit
+    fidèlement à l'assemblage, indépendamment de sa taille. Faire dépendre
+    l'un de l'autre ferait échouer TOUT le run de mesure sur la première
+    release surdimensionnée, avant même que `candidate_budget.measure()` n'ait
+    pu la rapporter proprement en `over_budget`. Le défaut par défaut reste
+    `True` : rien d'autre n'appelle cette fonction avec `False`, et
+    `TestBudgetIsNeverBypassed` verrouille le comportement par défaut.
     """
     assert_real_registry_untouched()
 
@@ -216,6 +228,7 @@ def reconstruct_candidate(
         observations=observations,
         registry=measurement_registry(source_codes),
         generated_at=generated_at,
+        enforce_budget=enforce_budget,
     )
 
     payload = canonical_payload_bytes(snapshot)

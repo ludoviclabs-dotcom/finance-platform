@@ -527,10 +527,18 @@ def _check_parity(cur, prepared: Any, *, candidate_key: str) -> dict[str, Any]:
         (prepared.release_key,),
     )
     rows = [dict(row) for row in cur.fetchall()]
+    # `enforce_budget=False` : la parité vérifie que le CONTENU d'une release
+    # survit fidèlement à l'assemblage (gate licence, provenance, exclusions),
+    # pas si elle tient sous 100 000 octets À ELLE SEULE — orthogonal, et
+    # mesuré séparément par `command_measure`. Une release individuellement
+    # surdimensionnée (cas connu : ADES/x3_technical_sample, ~255 ko) ne doit
+    # pas faire échouer TOUT le run de mesure avant que le budget n'ait eu la
+    # chance d'être rapporté proprement en `over_budget`.
     reconstructed = builder.reconstruct_candidate(
         label=f"{candidate_key}/{prepared.source_code}",
         releases=[prepared],
         generated_at=datetime.now(timezone.utc),
+        enforce_budget=False,
     )
     manifest = reconstructed.snapshot.manifest
     try:

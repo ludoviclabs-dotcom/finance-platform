@@ -230,6 +230,48 @@ class TestBudgetIsNeverBypassed:
         assert result.as_mapping()["payload_bytes"] == result.payload_bytes
 
 
+class TestParityIsOrthogonalToBudget:
+    """Défaut trouvé au premier run réel du workflow X4B (candidat
+    `x3_technical_sample`) : la release ADES seule pèse ~255 ko, plus du
+    double du budget de publication de 100 000 octets. `_check_parity`
+    reconstruisait cette release avec `reconstruct_candidate()` par défaut
+    (`enforce_budget=True`), qui LÈVE `SnapshotBudgetExceeded` — et cette
+    levée n'était interceptée nulle part dans `_prepare_releases`.
+
+    Conséquence : le run de mesure entier mourait sur la première release
+    individuellement surdimensionnée, AVANT que `candidate_budget.measure()`
+    n'ait la moindre chance de la rapporter proprement en `over_budget` — ce
+    qui est précisément ce que cette fonction existe pour faire (elle
+    intercepte déjà la même exception, cf. `candidate_budget.py::measure`).
+
+    La parité vérifie que le CONTENU d'une release survit à l'assemblage
+    (gate licence, provenance, exclusions) — une question indépendante de sa
+    taille. `reconstruct_candidate(..., enforce_budget=False)` sépare les deux.
+    """
+
+    def test_an_oversized_release_does_not_crash_the_parity_check(self) -> None:
+        result = builder.reconstruct_candidate(
+            label="x3_technical_sample/HUBEAU_ADES",
+            releases=[_release("HUBEAU_ADES", 4000)],
+            generated_at=CLOCK,
+            enforce_budget=False,
+        )
+        assert result.payload_bytes > MAX_MANIFEST_BYTES_UNCOMPRESSED
+        assert result.snapshot.manifest is not None
+        assert result.snapshot.included_source_codes == ("HUBEAU_ADES",)
+
+    def test_the_default_still_enforces_the_budget(self) -> None:
+        """`enforce_budget` doit rester `True` par défaut : aucun autre
+        appelant ne doit se retrouver à mesurer un budget désactivé sans
+        l'avoir demandé explicitement."""
+        with pytest.raises(SnapshotBudgetExceeded):
+            builder.reconstruct_candidate(
+                label="trop gros, sans le drapeau",
+                releases=[_release("HUBEAU_ADES", 4000)],
+                generated_at=CLOCK,
+            )
+
+
 class TestRegistryIsVerifiedNotTrusted:
     """La ligne du Source Registry est confrontée à la configuration.
 

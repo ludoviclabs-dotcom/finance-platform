@@ -115,6 +115,29 @@ class SourceAttribution:
                 "jamais une URL d'appel d'API paramétrée — une requête ne décrit pas un jeu."
             )
 
+    def stable_label(self) -> str:
+        """Libellé SANS date de consultation — l'identité du jeu de données.
+
+        C'est cette forme que porte le Source Registry : une ligne de registre
+        décrit une source, pas une lecture. Y inscrire une date de consultation
+        la rendrait fausse dès l'ingestion suivante, et toute vérification par
+        égalité stricte deviendrait intenable — en production comme en test.
+
+        La date, elle, est composée par release au moment de la préparation
+        (`label()`), là où elle est vraie.
+        """
+        parts = [
+            f"Source : {self.access_point}.",
+            f"{self.provenance}",
+            f"{LICENSE_LABEL}.",
+            f"Source officielle : {self.information_url}.",
+        ]
+        if self.last_updated_on is not None:
+            parts.append(
+                f"Dernière mise à jour de la source : {self.last_updated_on.isoformat()}."
+            )
+        return " ".join(parts)
+
     def label(self, *, accessed_on: date | str) -> str:
         """Libellé d'attribution complet, prêt à afficher.
 
@@ -253,6 +276,11 @@ def attribution_for(source_code: str) -> SourceAttribution:
 def attribution_label(source_code: str, *, accessed_on: date | str) -> str:
     """Libellé d'attribution d'une source, à sa date de consultation."""
     return attribution_for(source_code).label(accessed_on=accessed_on)
+
+
+def stable_attribution(source_code: str) -> str:
+    """Libellé sans date — la forme que porte le Source Registry."""
+    return attribution_for(source_code).stable_label()
 
 
 def information_url(source_code: str) -> str:

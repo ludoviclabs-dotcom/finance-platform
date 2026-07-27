@@ -69,6 +69,10 @@ class ReleaseProvenance:
 
     source_code: str
     attribution: str
+    #: Libellé SANS date — la forme que porte le Source Registry. La ligne d'un
+    #: registre décrit une source, pas une lecture : y inscrire une date de
+    #: consultation la rendrait fausse dès l'ingestion suivante.
+    stable_attribution: str
     information_url: str
     refresh_cadence: str | None
     last_updated_on: date | None
@@ -105,6 +109,7 @@ def provenance_for(source_code: str, *, accessed_on: date) -> ReleaseProvenance:
     return ReleaseProvenance(
         source_code=source_code,
         attribution=config.label(accessed_on=accessed_on),
+        stable_attribution=config.stable_label(),
         information_url=config.information_url,
         refresh_cadence=config.refresh_cadence,
         last_updated_on=config.last_updated_on,
@@ -137,14 +142,18 @@ def verify_registry_row(
     autorisation déclarée en base, évaluée par `license_policy`, et restent
     une barrière à part entière.
     """
+    # Comparé à la forme STABLE : l'attribution portée par une release contient
+    # sa date de consultation, celle du registre non. Exiger l'égalité avec la
+    # forme datée ferait échouer toute ingestion dont la date diffère du jour
+    # où le registre a été semé — c'est-à-dire presque toutes.
     declared = row.get("attribution_text")
-    if declared is not None and declared != provenance.attribution:
+    if declared is not None and declared != provenance.stable_attribution:
         raise ProvenanceMismatch(
             f"{provenance.source_code} : l'attribution déclarée au Source Registry "
             "diverge de la configuration canonique. La base n'est plus la source de "
             "vérité de la provenance : elle est vérifiée contre elle.\n"
             f"  registre     : {declared!r}\n"
-            f"  configuration: {provenance.attribution!r}\n"
+            f"  configuration: {provenance.stable_attribution!r}\n"
             "Resemer le Source Registry (`staging_rehearsal seed-sources`) plutôt "
             "que d'accepter la divergence — une release est immuable, et une "
             "provenance fausse y resterait."

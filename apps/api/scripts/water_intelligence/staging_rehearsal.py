@@ -87,15 +87,19 @@ def _today() -> date:
     return datetime.now(timezone.utc).date()
 
 
-def declared_attribution(source_code: str, *, accessed_on: date) -> str:
+def declared_attribution(source_code: str) -> str:
     """Attribution canonique semée dans le Source Registry, par source.
+
+    Forme STABLE, sans date de consultation : une ligne de registre décrit une
+    source, pas une lecture. La date est composée par release au moment de la
+    préparation, là où elle est vraie.
 
     Lève sur une source hors configuration : semer un libellé générique dans le
     registre reproduirait le défaut d'origine, en le rendant durable.
     """
-    from services.water_intelligence.source_attribution import attribution_label
+    from services.water_intelligence.source_attribution import stable_attribution
 
-    return attribution_label(source_code, accessed_on=accessed_on)
+    return stable_attribution(source_code)
 
 
 #: Capacités communes, transcrites de la Licence Ouverte 2.0.
@@ -348,7 +352,7 @@ def seed_sources(args) -> int:
                         LICENSE_CAPABILITIES["derived_use_allowed"],
                         LICENSE_CAPABILITIES["commercial_use_allowed"],
                         LICENSE_CAPABILITIES["redistribution_allowed"],
-                        declared_attribution(code, accessed_on=_today()),
+                        declared_attribution(code),
                         "https://www.etalab.gouv.fr/licence-ouverte-open-licence",
                     ),
                 )

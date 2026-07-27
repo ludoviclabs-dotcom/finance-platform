@@ -76,6 +76,13 @@ def source(**overrides) -> WaterSourceReference:
         methodology_version="1.0.0",
         license=ALLOWED,
         attribution="Source: European Environment Agency (EEA) — CC-BY-4.0",
+        # Depuis X4B-PREP, l'assembleur écarte une source publiée dont la
+        # provenance ne porte aucune URL officielle stable : sans elle, la
+        # condition de paternité de la Licence Ouverte 2.0 n'est pas
+        # satisfaite. Les fixtures en portent donc une, comme les objets réels
+        # — un double qui ne la porterait pas testerait un chemin que la
+        # publication n'emprunte plus.
+        source_information_url="https://www.eea.europa.eu/en/datahub",
     )
     params.update(overrides)
     return WaterSourceReference(**params)

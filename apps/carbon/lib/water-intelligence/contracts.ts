@@ -90,6 +90,29 @@ export const WaterSourceReferenceSchema = z.object({
   methodology_version: z.string().min(1),
   license: WaterLicenseDecisionSchema,
   attribution: z.string().nullable().optional(),
+  /**
+   * URL officielle STABLE de la page décrivant le jeu — jamais une URL d'appel
+   * d'API paramétrée. Nullable au contrat pour ne pas invalider les documents
+   * canoniques déjà gelés (`FIXTURE_MANIFEST.json` en porte quatre) :
+   * l'obligation « une source PUBLIÉE en porte une » est appliquée par
+   * l'assembleur Python, qui écarte avec motif plutôt que de publier une
+   * provenance muette.
+   */
+  source_information_url: z.string().nullable().optional(),
+  /**
+   * Cadence de mise à jour CÔTÉ SOURCE. `null` signifie « non vérifiée », ce
+   * qui n'est pas « pas de mise à jour » — la surface rend les deux
+   * différemment. Distinct de `retrieved_at`, qui est notre date de lecture :
+   * une source synchronisée tous les jours ne rend pas « actuelle » une
+   * observation historique.
+   */
+  source_refresh_cadence: z.string().nullable().optional(),
+  /**
+   * Date de dernière mise à jour de l'Information réutilisée, relevée sur la
+   * source officielle. Exigée par la condition de paternité de la Licence
+   * Ouverte 2.0. Jamais déduite d'un checksum ni d'une période observée.
+   */
+  source_last_updated_on: z.string().nullable().optional(),
   warnings: z.array(z.string()).default([]),
 });
 export type WaterSourceReference = z.infer<typeof WaterSourceReferenceSchema>;

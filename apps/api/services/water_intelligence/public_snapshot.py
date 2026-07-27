@@ -75,6 +75,16 @@ from services.water_intelligence.publication_decisions import (
 SNAPSHOT_SCHEMA_VERSION = "1.0.0"
 
 #: Budgets repris de `contracts/P02_DATA_CONTRACTS.md` §7 — non renégociés.
+#: Motif d'exclusion propre à l'assembleur : la décision humaine autorise la
+#: source, mais sa référence de provenance ne porte pas l'URL officielle stable
+#: exigée pour satisfaire la condition de paternité de la Licence Ouverte 2.0.
+#:
+#: Ce n'est pas un doublon du gate licence : celui-ci vérifie qu'un HUMAIN a
+#: autorisé, celui-là qu'on sait DIRE d'où vient la donnée. Une source publiée
+#: sans provenance nommable est une donnée orpheline sur une surface publique —
+#: l'écarter avec motif est préférable à la publier muette.
+EXCLUSION_PROVENANCE_INCOMPLETE = "provenance_information_url_missing"
+
 MAX_MANIFEST_BYTES_UNCOMPRESSED = 100_000
 MAX_LAYER_BYTES_GZIP = 400_000
 MAX_FEATURES_PER_LAYER = 1_000
@@ -247,6 +257,31 @@ def assemble_public_snapshot(
                     reason=reason,
                     detail=decision.reason if decision else
                     "Aucune décision humaine de publication n'existe pour cette source.",
+                ),
+            )
+            continue
+
+        # Troisième barrière : une source autorisée dont la provenance ne porte
+        # pas d'URL officielle stable est écartée AVEC MOTIF, jamais publiée.
+        # La Licence Ouverte 2.0 exige de mentionner la paternité — la source
+        # et la date de dernière mise à jour de l'Information, ou à défaut
+        # l'URL pointant vers elle. Sans URL ni date relevée, le libellé
+        # d'attribution ne satisfait pas la condition, et publier quand même
+        # ferait porter au lecteur une provenance que nous ne savons pas citer.
+        if not (observation.source.source_information_url or "").strip():
+            excluded_source_codes.setdefault(
+                source_code,
+                SourceExclusion(
+                    source_code=source_code,
+                    reason=EXCLUSION_PROVENANCE_INCOMPLETE,
+                    detail=(
+                        "La décision humaine autorise cette source, mais sa référence de "
+                        "provenance ne porte aucune URL officielle stable "
+                        "(`source_information_url`). La condition de paternité de la "
+                        "Licence Ouverte 2.0 n'est donc pas satisfaite : la source est "
+                        "écartée du snapshot public plutôt que publiée sans provenance "
+                        "citable."
+                    ),
                 ),
             )
             continue

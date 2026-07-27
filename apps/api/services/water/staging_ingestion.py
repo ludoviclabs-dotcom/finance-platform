@@ -510,3 +510,155 @@ def report_retrieved_on(report: Mapping[str, Any]) -> "date":
             f"rapport avec `executed_at` illisible ({raw!r}) — aucune date de "
             "consultation n'est devinée."
         ) from exc
+
+
+# ---------------------------------------------------------------------------
+# Preuve d'ACQUISITION — le rapport validé, jamais le payload brut
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class AcquisitionEvidence:
+    """Ce qu'une acquisition a RÉELLEMENT produit, lu dans son rapport validé.
+
+    ## Le défaut que ce type existe pour rendre impossible
+
+    Le constructeur de candidats relisait le **payload brut Hub'Eau** — un
+    glob `*.json` dans le répertoire d'artefacts — et y cherchait
+    `payload_sha256`, `records_received`, `pages`. Ces clés n'existent pas
+    dans une réponse d'API : elles appartiennent au RAPPORT de validation, que
+    `validate_hubeau` écrit à côté. Le payload répondait donc `None` à chaque
+    question, et `int(None or 0)` rendait 0 sans lever.
+
+    Conséquence observée au run 30306257628 : `run_checksum=null`,
+    `run_bytes=0`, et un verdict ADES `content_changed` **faux** — un blocage
+    prononcé sur une absence de preuve prise pour une preuve d'absence.
+
+    Toutes les valeurs ci-dessous viennent du bloc JSON structuré du rapport,
+    celui-là même que `load_validation_report()` sert déjà à l'ingestion. Il
+    n'y a qu'une source de preuve, et ce n'est jamais la donnée elle-même.
+    """
+
+    source_code: str
+    release_key: str
+    verdict: str
+    bytes_received: int
+    pages_fetched: int
+    records_received: int
+    records_normalized: int
+    payload_sha256: str
+    periods: tuple[str, ...]
+    geographies: tuple[str, ...]
+    units: tuple[str, ...]
+
+    def as_mapping(self) -> dict[str, Any]:
+        return {
+            "source_code": self.source_code,
+            "release_key": self.release_key,
+            "verdict": self.verdict,
+            "bytes_received": self.bytes_received,
+            "pages_fetched": self.pages_fetched,
+            "records_received": self.records_received,
+            "records_normalized": self.records_normalized,
+            "payload_sha256": self.payload_sha256,
+            "periods": list(self.periods),
+            "geographies": list(self.geographies),
+            "units": list(self.units),
+        }
+
+
+def _required_int(report: Mapping[str, Any], key: str, path: Path) -> int:
+    """Entier OBLIGATOIRE. Une absence lève au lieu de valoir zéro.
+
+    `int(report.get(key) or 0)` est précisément l'idiome qui a produit
+    `run_bytes=0` : il confond « le champ vaut zéro » et « le champ n'est pas
+    là », deux faits que rien ne permet ensuite de distinguer.
+    """
+    value = report.get(key)
+    if value is None:
+        raise StagingIngestionRefused(
+            f"rapport {path} : champ `{key}` absent. Une preuve manquante n'est "
+            "jamais un zéro — le rapport ne peut pas attester ce qu'il ne porte pas."
+        )
+    try:
+        return int(value)
+    except (TypeError, ValueError) as exc:
+        raise StagingIngestionRefused(
+            f"rapport {path} : champ `{key}` non entier ({value!r})."
+        ) from exc
+
+
+def load_acquisition_evidence(
+    report_path: Path,
+    *,
+    expect_source_code: str | None = None,
+    expect_release_key: str | None = None,
+) -> AcquisitionEvidence:
+    """Preuve d'acquisition, lue dans le rapport VALIDÉ et nulle part ailleurs.
+
+    Refuse : rapport absent ou illisible, bloc JSON manquant, source ou release
+    discordante, checksum absent, taille absente, verdict autre que
+    `ready_for_staging`.
+
+    Ne lit JAMAIS le payload brut : celui-ci porte la donnée, pas la preuve de
+    la façon dont elle a été obtenue.
+    """
+    if not report_path.is_file():
+        raise StagingIngestionRefused(
+            f"rapport d'acquisition introuvable : {report_path}. Aucune preuve "
+            "n'est déduite de son absence."
+        )
+
+    report = load_validation_report(report_path)
+
+    source_code = report.get("source_code")
+    if not source_code:
+        raise StagingIngestionRefused(
+            f"rapport {report_path} : `source_code` absent."
+        )
+    if expect_source_code is not None and source_code != expect_source_code:
+        raise StagingIngestionRefused(
+            f"rapport {report_path} émis pour {source_code!r}, preuve demandée "
+            f"pour {expect_source_code!r} — un rapport d'une autre source "
+            "n'atteste rien de celle-ci."
+        )
+
+    release_key = report.get("release_key")
+    if not release_key:
+        raise StagingIngestionRefused(
+            f"rapport {report_path} : `release_key` absente."
+        )
+    if expect_release_key is not None and release_key != expect_release_key:
+        raise StagingIngestionRefused(
+            f"rapport {report_path} émis pour la release {release_key!r}, preuve "
+            f"demandée pour {expect_release_key!r}."
+        )
+
+    verdict = report.get("verdict")
+    if verdict != ACCEPTED_VERDICT:
+        raise StagingIngestionRefused(
+            f"rapport {report_path} : verdict {verdict!r} — seul "
+            f"{ACCEPTED_VERDICT!r} atteste une acquisition exploitable."
+        )
+
+    payload_sha256 = (report.get("payload_sha256") or "").strip().lower()
+    if not _is_sha256(payload_sha256):
+        raise StagingIngestionRefused(
+            f"rapport {report_path} : `payload_sha256` absent ou malformé "
+            f"({report.get('payload_sha256')!r}). Sans checksum, aucune "
+            "comparaison d'acquisition n'a de sens."
+        )
+
+    return AcquisitionEvidence(
+        source_code=source_code,
+        release_key=release_key,
+        verdict=verdict,
+        bytes_received=_required_int(report, "bytes_received", report_path),
+        pages_fetched=_required_int(report, "pages_fetched", report_path),
+        records_received=_required_int(report, "records_received", report_path),
+        records_normalized=_required_int(report, "records_normalized", report_path),
+        payload_sha256=payload_sha256,
+        periods=tuple(report.get("periods") or ()),
+        geographies=tuple(report.get("geographies") or ()),
+        units=tuple(report.get("units") or ()),
+    )

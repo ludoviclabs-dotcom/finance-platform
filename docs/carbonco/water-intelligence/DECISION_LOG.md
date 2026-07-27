@@ -335,3 +335,69 @@ Détail complet : `FINAL_TRACEABILITY.md`.
   [PR #169](https://github.com/ludoviclabs-dotcom/finance-platform/pull/169)
   (merge `da6d0b1d47430456a78b4b80af9c137f34f05ea8`, 2026-07-26T19:16:45Z).
   X4 et la Phase B ne sont pas commencés.
+
+## 2026-07-27 — X4A (complément) : attributions par jeu et fraîcheur instruites, rien de signé
+
+Détail complet :
+[X4A_ATTRIBUTION_AND_FRESHNESS.md](activation/X4A_ATTRIBUTION_AND_FRESHNESS.md).
+**Aucune décision de publication n'est rendue par cette entrée** : les sept
+sources restent `proposed`/`refused` au registre, les trois formulaires du
+paquet de décision restent non signés, le snapshot public reste vide, et X4B
+n'est pas commencé.
+
+- **Les deux libellés d'attribution préexistants sont écartés, tous les deux.**
+  `hubeau_transport.attribution()` énumère les trois éditeurs de la plateforme
+  (OFB, SCV, BRGM) indistinctement pour les trois jeux — un jeu piézométrique
+  ADES n'est pas produit par le Service Central Vigicrues.
+  `staging_rehearsal.ATTRIBUTION` nomme le point d'accès sans aucun producteur,
+  ce que la Licence Ouverte n'accepte pas. Trois libellés propres aux jeux les
+  remplacent en **proposition**, distinguant le point d'accès (Hub'Eau et son
+  API), le système d'information source (ADES, Naïades, BNPE) et les
+  producteurs ou contributeurs réellement concernés.
+- **Aucun connecteur n'est modifié.** Les deux libellés restent en place dans le
+  code : les remplacer relève de X4B, après signature. X4A ne touche que des
+  fichiers Markdown.
+- **`license_scope` reste `platform`.** Nommer la licence dans un libellé
+  d'attribution ne la vérifie pas jeu par jeu ; le §3.3 du paquet reste ouvert.
+- **Trois champs de fraîcheur distincts** remplacent la rubrique unique :
+  `source_refresh_cadence`, `observed_period`, `retrieved_on`. Aucun ne se
+  déduit des deux autres, et une source fréquemment synchronisée ne rend pas
+  « actuelle » une observation historique — les énoncés se rendent séparément.
+- **Deux cadences relevées sur trois** : intégration quotidienne des mises à
+  jour ADES ; synchronisation continue avec Naïades depuis la v2 de l'API.
+- **La cadence BNPE annoncée « mensuelle » n'est pas confirmée, et un relevé la
+  donne annuelle.** Aucune page officielle relevée n'énonce de cadence
+  mensuelle ; data.gouv.fr (Système d'Information sur l'Eau) déclare une mise à
+  jour annuelle, cohérente avec le grain annuel de la donnée et le paramètre
+  `annee` à valeur unique établi en X1/X2A. L'écrire « mensuelle » aurait
+  inventé une fraîcheur. `source_refresh_cadence` reste **non vérifiée**, trois
+  issues posées au signataire. Consigné aussi au `RISK_REGISTER.md`.
+- **Limite de preuve assumée.** L'accès HTTPS direct à `*.eaufrance.fr` est
+  refusé au proxy sortant depuis l'environnement d'exécution : les pages
+  officielles ont été lues par indexation, pas téléchargées. Les cadences ADES
+  et Naïades sont donc établies à un niveau de preuve inférieur à celui des
+  checksums X3, et un relevé direct horodaté reste dû avant publication.
+- **Les trois libellés ne satisfont pas encore la condition de paternité de la
+  Licence Ouverte 2.0** (revue de PR #172). La licence exige la source **et la
+  date de la dernière mise à jour de l'Information réutilisée** ; les libellés
+  portent une date de *consultation*, qui n'est pas ce fait, et aucun des trois
+  autres champs de fraîcheur ne le porte non plus. Un quatrième champ,
+  `source_last_updated_on`, est ouvert et **non relevé** pour les trois sources
+  — il ne se déduit ni du checksum, ni de la période, ni de `retrieved_on`.
+  Tant qu'il est vide, le libellé de la source concernée n'est pas publiable.
+- **L'attribution est estampillée à l'acquisition, pas à l'assemblage**
+  (`validate_hubeau.py:743` et `:937` ; `staging_rehearsal.py:71`). Le §3.1 du
+  plan X4B réexécutant le workflow **non modifié**, une réacquisition menée
+  telle quelle réestampillerait les 282 observations avec le libellé écarté. Le
+  remplacement doit donc **précéder** la réacquisition : le plan porte désormais
+  une étape 1 bis bloquante. Placé après, il obligerait à réacquérir deux fois.
+- **Le contrat public ne sait pas transporter une cadence.**
+  `WaterSourceReference` (`models/water_intelligence.py:98-114`) et son miroir
+  Zod (`apps/carbon/lib/water-intelligence/contracts.ts:87-88`) portent
+  `retrieved_at` et les bornes de période, mais **aucun champ de cadence** : le
+  champ serait perdu à la sérialisation **sans erreur**, produisant un snapshot
+  valide à fraîcheur muette. L'étendre touche P02, le miroir TypeScript, les
+  documents canoniques et `TestDocumentParity` — décision d'architecture du même
+  ordre que le budget de 100 ko, remontée et non tranchée. À défaut, publier
+  sans cadence en le disant ; jamais approuver une cadence que la surface ne
+  rendra pas.

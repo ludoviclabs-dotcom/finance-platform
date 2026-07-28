@@ -78,6 +78,12 @@ export function WiHero({
 
   return (
     <header className="wi-hero" data-testid="wi-hero">
+      {!reduce && (
+        <div className="wi-hero-halo" aria-hidden="true">
+          <span />
+          <span />
+        </div>
+      )}
       <div className="wi-hero-grid">
         {/* ------------------------------------------------------ Colonne texte */}
         <div>

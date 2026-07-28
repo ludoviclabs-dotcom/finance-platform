@@ -1,5 +1,6 @@
 /**
- * app/water/page.tsx — Water Intelligence, surface publique autonome.
+ * app/water/page.tsx — Water Intelligence, surface publique autonome
+ * (Water Intelligence v2).
  *
  * ## Où cette page vit
  *
@@ -18,26 +19,39 @@
  * - `public-snapshot-bnpe-v1.json` — le pilote publié, ou son marqueur
  *   « non généré » tant que le workflow de génération n'a pas tourné ;
  * - `source-status.json` — l'état réel des sept sources et leurs motifs ;
- * - le registre juridique, la carte des ponts et le contrat du moteur
- *   financier, tous assemblés côté backend.
+ * - le contrat du moteur financier, assemblé côté backend.
  *
  * Les seuls contenus rédigés ici sont ÉDITORIAUX et qualitatifs
  * (`editorial-matrices.ts`) : ils ne portent aucun chiffre, et ce fichier-là
- * explique pourquoi.
+ * explique pourquoi. Le marqueur de la carte (`MONTPELLIER_LONLAT`) est la
+ * seule coordonnée écrite en dur de tout le module — un fait géographique
+ * public et stable (le centre de la commune 34172, vérifié), pas une donnée
+ * d'observation.
  *
  * ## Aucun appel réseau client
  *
- * Rien n'est fetché : les documents sont importés au build. Aucune requête
- * vers Hub'Eau n'est émise depuis le navigateur — une surface publique ne doit
- * pas faire porter au lecteur des appels vers un service tiers.
+ * Rien n'est fetché : les documents sont importés au build, et la topologie
+ * cartographique (`world-atlas`) est un import de module — jamais un `fetch`
+ * vers un CDN, y compris pour la carte. Aucune requête vers Hub'Eau n'est
+ * émise depuis le navigateur.
+ *
+ * ## Ce que la v2 a retiré, et pourquoi ce n'est pas silencieux
+ *
+ * La maquette v2 réunit ce que la V1 présentait en deux sections séparées —
+ * « Réglementation » (`WiRegulatoryRegistry`) et « Synergies Carbon&Co »
+ * (`WiModuleBridges`) — dans une unique section 08 — Finance, centrée sur le
+ * pont financier et son simulateur qualitatif. Les deux composants retirés
+ * de CETTE page restent dans le dépôt, inchangés, avec leurs tests : rien
+ * n'est supprimé, un choix éditorial de mise en page est fait. Les anciennes
+ * ancres `#reglementation` et `#synergies` sont conservées comme cibles de
+ * défilement — un lien externe existant vers l'une d'elles atterrit toujours
+ * quelque part d'utile plutôt que nulle part.
  */
 
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { WiFinancialEngineContract } from "@/components/water-intelligence/WiFinancialEngine";
-import { WiModuleBridges } from "@/components/water-intelligence/WiBridges";
-import { WiRegulatoryRegistry } from "@/components/water-intelligence/WiRegulatory";
 import { WiHero } from "@/components/water-intelligence/WiHero";
 import { WiPilotData } from "@/components/water-intelligence/WiPilotData";
 import { WiConstellation } from "@/components/water-intelligence/WiConstellation";
@@ -47,14 +61,22 @@ import {
   WiTerritory,
   WiTimeline,
 } from "@/components/water-intelligence/WiMatrices";
-import { WiFinancialBridge, WiProofTable } from "@/components/water-intelligence/WiProof";
+import {
+  WiFinancialBridge,
+  WiFinancialSimulator,
+  WiProofTable,
+} from "@/components/water-intelligence/WiProof";
 import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
 import { WiSection } from "@/components/water-intelligence/WiPrimitives";
 import {
   IntelligenceThemeProvider,
   IntelligenceThemeToggle,
 } from "@/components/intelligence/IntelligenceThemeProvider";
-import { EVIDENCE_LABELS, PULSE_FACETS } from "@/lib/water-intelligence/editorial-matrices";
+import {
+  EVIDENCE_LABELS,
+  PUBLICATION_STATE_LABELS,
+  PULSE_FACETS,
+} from "@/lib/water-intelligence/editorial-matrices";
 import { SOURCE_STATUS, orderedSources } from "@/lib/water-intelligence/canonical-snapshot";
 import {
   PILOT_FILE,
@@ -83,7 +105,10 @@ export const metadata: Metadata = {
 /**
  * Ancres. Les historiques sont CONSERVÉES — elles existent en production
  * publique et des liens externes peuvent les viser. La refonte réorganise ce
- * qu'elles contiennent, elle n'en renomme ni n'en supprime aucune.
+ * qu'elles contiennent, elle n'en renomme ni n'en supprime aucune ; `finance`
+ * est la seule addition, et `reglementation`/`synergies` restent des cibles
+ * de défilement valides même si la barre de navigation ne les affiche plus
+ * séparément (voir la section 08 plus bas).
  */
 const NAV_ITEMS: readonly WiNavItem[] = [
   { id: "vue-ensemble", label: "Vue d'ensemble" },
@@ -94,11 +119,24 @@ const NAV_ITEMS: readonly WiNavItem[] = [
   { id: "secteurs", label: "Secteurs et dépendances" },
   { id: "evenements", label: "Climat et événements" },
   { id: "innovations", label: "Innovations et adaptation" },
-  { id: "reglementation", label: "Réglementation" },
-  { id: "synergies", label: "Synergies Carbon&Co" },
+  { id: "finance", label: "Finance" },
   { id: "preuves", label: "Preuves et provenance" },
   { id: "limites", label: "Limites et suite" },
 ];
+
+/**
+ * Centre de la commune 34172 (Montpellier) — un fait géographique public et
+ * stable, pas une observation. Précision suffisante pour un marqueur sur une
+ * silhouette de la France ; ce n'est pas une donnée de mesure.
+ */
+const MONTPELLIER_LONLAT: readonly [number, number] = [3.8772, 43.6119];
+
+const PUBSTATE_ICON: Record<string, string> = {
+  published: "●",
+  qualitative: "◆",
+  deferred: "◷",
+  not_instrumented: "○",
+};
 
 export default function WaterIntelligencePage() {
   /* La garde est appliquée EN LIGNE : `pilotIsPublished` est un prédicat de
@@ -116,6 +154,13 @@ export default function WaterIntelligencePage() {
   const warnings = pilotCoverageWarnings(PILOT_FILE);
   const sources = orderedSources(SOURCE_STATUS);
   const scopeLabel = `commune ${scope.geographyCode}, année ${scope.periodStart.slice(0, 4)}`;
+  const yearLabel = scope.periodStart.slice(0, 4);
+  const licenseLabel = pilot
+    ? `${pilot.license_code} — portée ${pilot.license_scope}`
+    : "ETALAB-2.0 — portée platform";
+  const methodLabel = observations[0]
+    ? `${observations[0].methodCode} · ${observations[0].methodVersion}`
+    : "n.c.";
 
   return (
     <IntelligenceThemeProvider scope="wi">
@@ -150,10 +195,30 @@ export default function WaterIntelligencePage() {
             facette reste lisible, comparable et contestable seule.
           </p>
 
+          <div className="wi-pulse-legend" aria-hidden="true">
+            <span className="wi-pulse-legend-label">États&nbsp;:</span>
+            {(["published", "qualitative", "deferred", "not_instrumented"] as const).map(
+              (state) => (
+                <span key={state} className={`wi-pubstate wi-pubstate-${state}`}>
+                  {PUBLICATION_STATE_LABELS[state]}
+                </span>
+              ),
+            )}
+          </div>
+
           <div className="wi-grid wi-grid-4" style={{ marginTop: "1.5rem" }}>
             {PULSE_FACETS.map((facet) => (
               <article key={facet.id} className={`wi-card wi-accent-${facet.accent}`}>
-                <h3 className="wi-h3">{facet.label}</h3>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
+                  <h3 className="wi-h3">{facet.label}</h3>
+                  <span
+                    className={`wi-pubstate wi-pubstate-${facet.publicationState}`}
+                    data-testid={`wi-pulse-state-${facet.id}`}
+                  >
+                    <span aria-hidden="true">{PUBSTATE_ICON[facet.publicationState]}</span>
+                    {PUBLICATION_STATE_LABELS[facet.publicationState]}
+                  </span>
+                </div>
                 <p
                   className="wi-muted"
                   style={{ marginTop: "0.375rem", fontSize: "0.8125rem", fontStyle: "italic" }}
@@ -177,6 +242,13 @@ export default function WaterIntelligencePage() {
                   </strong>{" "}
                   {facet.published}
                 </p>
+                {facet.publicationState === "published" && (
+                  <span className="wi-pulse-bars" aria-hidden="true" data-testid={`wi-pulse-bars-${facet.id}`}>
+                    <span style={{ height: "45%" }} />
+                    <span style={{ height: "100%" }} />
+                    <span style={{ height: "70%" }} />
+                  </span>
+                )}
                 <span className="wi-badge wi-badge-pending" style={{ marginTop: "0.625rem" }}>
                   <span aria-hidden="true">◷</span>
                   {EVIDENCE_LABELS[facet.evidenceLevel]}
@@ -198,23 +270,19 @@ export default function WaterIntelligencePage() {
 
         {/* ------------------------------------------- 2 — Données pilotes */}
         <WiSection id="pilote" kicker="02 — Publication" title="Première publication pilote">
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Une décision humaine signée le {scope.reviewedOn} par{" "}
-            <span className="wi-mono">{scope.reviewedBy}</span> autorise la publication
-            de <strong>{scope.expectedObservationCount} observations</strong> de
-            prélèvements déclarés, sur la {scopeLabel}. Elle n&apos;autorise rien
-            d&apos;autre&nbsp;: tout autre territoire et toute autre année exigeraient
-            une nouvelle décision.
-          </p>
-
           <div style={{ marginTop: "1.5rem" }}>
             <WiPilotData
               observations={observations}
               coverageWarnings={warnings}
-                scopeLabel={scopeLabel}
+              scopeLabel={scopeLabel}
               attribution={pilot?.attribution ?? null}
               sourceUrl={pilot?.source_information_url ?? null}
-                isPublished={published}
+              isPublished={published}
+              reviewedOn={scope.reviewedOn}
+              sourceCode={scope.sourceCode}
+              licenseLabel={licenseLabel}
+              methodLabel={methodLabel}
+              yearLabel={yearLabel}
               notGeneratedExplanation="Le document canonique est produit par un workflow de génération : il réacquiert le périmètre signé, vérifie le checksum, le nombre d'observations, la pagination exhaustive et le budget, puis écrit le document et son miroir. Tant qu'il n'a pas été déclenché, aucune observation n'est publiée."
             />
           </div>
@@ -223,10 +291,9 @@ export default function WaterIntelligencePage() {
         {/* -------------------------------------------- 3 — Territoires */}
         <WiSection id="carte" kicker="03 — Territoires" title="Territory Readiness">
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Les couches géographiques sont différées. Plutôt qu&apos;une carte vide —
-            qui se lirait comme une couverture nulle — cette section dit ce qui est
-            prêt, ce qui manque, et quelle jointure sera possible le jour où une couche
-            sera validée.
+            Les couches géographiques complètes restent différées. Un unique point
+            vérifié est désormais montré — la commune du périmètre signé, rien de
+            plus — et la section dit toujours ce qui manque pour aller plus loin.
           </p>
 
           <div style={{ marginTop: "1.5rem" }}>
@@ -235,7 +302,8 @@ export default function WaterIntelligencePage() {
               geographyCode={scope.geographyCode}
               periodLabel={scope.periodStart.slice(0, 4)}
               ouvrageCount={observations.length}
-                isPublished={published}
+              isPublished={published}
+              markerLonLat={published ? MONTPELLIER_LONLAT : null}
             />
           </div>
         </WiSection>
@@ -293,27 +361,22 @@ export default function WaterIntelligencePage() {
           </div>
         </WiSection>
 
-        {/* ------------------------------ 8 — Réglementation et finance */}
-        <WiSection id="reglementation" kicker="08 — Conformité" title="Compliance Cockpit">
+        {/* ------------------------------------------------- 8 — Finance */}
+        <WiSection id="finance" kicker="08 — Finance" title="Financial Water Bridge">
+          {/* Cibles de défilement historiques — voir la docstring en tête de
+              fichier. Invisibles, sans contenu propre : elles existent pour
+              qu'un ancien lien externe atterrisse ici plutôt que nulle part. */}
+          <span id="reglementation" aria-hidden="true" />
+          <span id="synergies" aria-hidden="true" />
+
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Le registre distingue les statuts réellement différents — en vigueur, adopté
-            mais non applicable, en attente de transposition, dépendant de la
-            matérialité, volontaire, hors périmètre, inconnu — plutôt que de réduire une
-            règle à «&nbsp;obligatoire&nbsp;». Il sépare aussi le droit contraignant des
-            référentiels volontaires, qui n&apos;obligent personne.
-          </p>
-
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiRegulatoryRegistry />
-          </div>
-
-          <h3 className="wi-h2" style={{ marginTop: "3rem" }}>
-            Financial Water Bridge
-          </h3>
-          <p className="wi-muted" style={{ marginTop: "0.75rem", maxWidth: "62ch" }}>
             Dix étapes, d&apos;une interruption d&apos;usage à un signal comptable.
             Chacune est une <strong>question à instruire</strong>, jamais un calcul — le
             moteur de scénarios vit côté authentifié et exige des hypothèses explicites.
+            Cette section réunit ce que la V1 présentait séparément sous « Réglementation »
+            et « Synergies Carbon&amp;Co »&nbsp;: les deux registres restent dans le
+            module authentifié, inchangés — seule cette page publique se resserre sur
+            l&apos;exposition financière.
           </p>
 
           <div style={{ marginTop: "1.5rem" }}>
@@ -321,25 +384,16 @@ export default function WaterIntelligencePage() {
           </div>
 
           <div style={{ marginTop: "2rem" }}>
+            <WiFinancialSimulator />
+          </div>
+
+          <div style={{ marginTop: "2rem" }}>
             <WiFinancialEngineContract />
           </div>
         </WiSection>
 
-        {/* --------------------------------------------- 9 — Synergies */}
-        <WiSection id="synergies" kicker="09 — Articulation" title="Synergies Carbon&amp;Co">
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Cette page explique le contexte. Le travail sur vos propres données se fait
-            dans les modules authentifiés, seule surface où apparaissent des informations
-            d&apos;entreprise.
-          </p>
-
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiModuleBridges />
-          </div>
-        </WiSection>
-
-        {/* ------------------------------------------ 10 — Preuves */}
-        <WiSection id="preuves" kicker="10 — Vérification" title="Chaque valeur porte sa preuve">
+        {/* ------------------------------------------ 9 — Preuves */}
+        <WiSection id="preuves" kicker="09 — Vérification" title="Chaque valeur porte sa preuve">
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
             Ce qu&apos;il faut pouvoir emporter pour vérifier par soi-même. Les
             références techniques sont copiables&nbsp;: une empreinte de 64 caractères ne
@@ -374,9 +428,7 @@ export default function WaterIntelligencePage() {
                 },
                 {
                   label: "Licence",
-                  value: pilot
-                    ? `${pilot.license_code} — portée ${pilot.license_scope}`
-                    : "ETALAB-2.0 — portée platform",
+                  value: licenseLabel,
                   note: "Vérifiée au niveau de la plateforme, pas jeu par jeu.",
                 },
                 { label: "Attribution", value: pilot?.attribution ?? null },
@@ -403,9 +455,7 @@ export default function WaterIntelligencePage() {
                 },
                 {
                   label: "Méthode",
-                  value: observations[0]
-                    ? `${observations[0].methodCode} · ${observations[0].methodVersion}`
-                    : null,
+                  value: observations[0] ? methodLabel : null,
                   mono: true,
                   note: "Reprise verbatim des volumes déclarés, sans conversion d'unité.",
                 },
@@ -423,36 +473,57 @@ export default function WaterIntelligencePage() {
               ]}
             />
           </div>
-
         </WiSection>
 
-        {/* ------------------------------------------ 11 — Limites et suite */}
-        <WiSection id="limites" kicker="11 — Honnêteté" title="Limites et prochaines étapes">
+        {/* ------------------------------------------ 10 — Limites et suite */}
+        <WiSection id="limites" kicker="10 — Honnêteté" title="Limites et prochaines étapes">
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
             L&apos;état réel de ce module, sans arrondi favorable. Aucune de ces étapes
             n&apos;est technique&nbsp;: ce sont des décisions et des démarches humaines.
           </p>
 
-          <div className="wi-card wi-accent-absent" style={{ marginTop: "1.5rem" }}>
-            <h3 className="wi-h3">Ce qui reste dû</h3>
-            <ul className="wi-limit-list">
-              <li>
+          <h3 className="wi-h3" style={{ marginTop: "2rem" }}>
+            Ce qui reste dû
+          </h3>
+
+          <div className="wi-limits-grid" style={{ marginTop: "1rem" }}>
+            <div className="wi-limits-card">
+              <p className="wi-kicker" style={{ margin: 0 }}>
+                Provenance
+              </p>
+              <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
                 Le relevé direct de la date de dernière mise à jour de chaque source. Il
                 reste <strong>bloquant</strong> pour la piézométrie et la qualité,
                 qu&apos;aucune signature ne couvre.
-              </li>
-              <li>
-                Les couches géographiques validées, sans lesquelles aucune carte ne monte.
-              </li>
-              <li>
+              </p>
+            </div>
+            <div className="wi-limits-card">
+              <p className="wi-kicker" style={{ margin: 0 }}>
+                Cartographie
+              </p>
+              <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
+                Les couches géographiques validées, sans lesquelles aucune carte de
+                couverture ne monte — seul un point reste montré aujourd&apos;hui.
+              </p>
+            </div>
+            <div className="wi-limits-card">
+              <p className="wi-kicker" style={{ margin: 0 }}>
+                Réglementation
+              </p>
+              <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
                 Un réviseur juridique, sans lequel chaque règle du registre reste{" "}
                 <span className="wi-mono">unknown</span>.
-              </li>
-              <li>
+              </p>
+            </div>
+            <div className="wi-limits-card">
+              <p className="wi-kicker" style={{ margin: 0 }}>
+                Sources mondiales
+              </p>
+              <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
                 L&apos;enregistrement exigé par WRI, et l&apos;arbitrage sur le décodage
                 raster Copernicus. Deux démarches humaines, pas des réglages.
-              </li>
-            </ul>
+              </p>
+            </div>
           </div>
         </WiSection>
       </main>

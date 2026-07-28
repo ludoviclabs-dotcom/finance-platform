@@ -130,27 +130,38 @@ describe("aucune valeur fabriquée n'atteint le lecteur", () => {
 });
 
 describe("ancres et navigation", () => {
-  const REQUIRED_ANCHORS = [
-    "vue-ensemble",
-    "risques",
-    "carte",
-    "sources",
-    "secteurs",
-    "reglementation",
-    "synergies",
-    "limites",
-  ];
+  /*
+   * Water Intelligence v2 réunit « Réglementation » et « Synergies » (V1)
+   * dans une unique section « Finance » (voir la docstring de `page.tsx`).
+   * Ces deux anchors restent des CIBLES valides — un lien externe existant
+   * doit toujours atterrir quelque part — mais la barre de navigation
+   * n'affiche plus de lien séparé vers elles, puisqu'elles ne correspondent
+   * plus à un contenu distinct : c'est `finance` que la nav affiche.
+   */
+  const REQUIRED_ANCHORS = ["vue-ensemble", "risques", "carte", "sources", "secteurs", "limites"];
+  const LEGACY_ANCHORS_WITHOUT_NAV_LINK = ["reglementation", "synergies"];
 
-  it("rend les huit sections attendues avec leur ancre", () => {
+  it("rend les sections attendues avec leur ancre", () => {
     for (const anchor of REQUIRED_ANCHORS) {
       expect(markup).toContain(`id="${anchor}"`);
     }
   });
 
-  it("rend un lien de navigation vers chaque ancre", () => {
+  it("rend un lien de navigation vers chaque ancre courante", () => {
     for (const anchor of REQUIRED_ANCHORS) {
       expect(markup).toContain(`href="#${anchor}"`);
     }
+  });
+
+  it("conserve les ancres historiques comme cibles, sans lien de nav séparé", () => {
+    for (const anchor of LEGACY_ANCHORS_WITHOUT_NAV_LINK) {
+      expect(markup, `ancre historique #${anchor} absente`).toContain(`id="${anchor}"`);
+    }
+  });
+
+  it("affiche « Finance » dans la nav comme successeur de Réglementation et Synergies", () => {
+    expect(markup).toContain('id="finance"');
+    expect(markup).toContain('href="#finance"');
   });
 
   it("lie explicitement vers le cockpit authentifié /water/cockpit", () => {

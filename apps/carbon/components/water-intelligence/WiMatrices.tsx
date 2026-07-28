@@ -18,6 +18,8 @@
 
 import { useState } from "react";
 
+import { WiBassin3D } from "@/components/water-intelligence/WiBassin3D";
+import { WiFranceMap } from "@/components/water-intelligence/WiFranceMap";
 import {
   CLIMATE_EVENTS,
   CLIMATE_EVENT_KINDS,
@@ -34,23 +36,53 @@ import {
 } from "@/lib/water-intelligence/editorial-matrices";
 
 /**
- * Cellule d'intensité.
+ * Cellule d'intensité — badge plein (Water Intelligence v2).
  *
- * Trois signaux simultanés : un libellé texte, un nombre de pastilles pleines
- * et une teinte. Le libellé suffit seul — les deux autres sont des renforts.
- * Une matrice qui ne coderait l'intensité que par la couleur serait illisible
- * pour une part de ses lecteurs, et ambiguë pour tous les autres.
+ * Le LIBELLÉ COMPLET reste le vecteur d'information premier — jamais
+ * abrégé, contrairement à la maquette qui tronque en « Struct. » faute de
+ * place dans sa grille. La teinte et le remplissage sont des renforts, pas
+ * la seule information : `data-rank` porte aussi le mot entier pour tout
+ * agent qui lirait l'attribut plutôt que le texte visible.
  */
 function IntensityCell({ value }: { value: Intensity }) {
-  const rank = INTENSITY_RANK[value];
   return (
-    <span className="wi-intensity" data-intensity={value}>
-      <span className="wi-intensity-dots" aria-hidden="true">
-        {[1, 2, 3, 4].map((step) => (
-          <span key={step} data-on={step <= rank ? "true" : "false"} />
-        ))}
-      </span>
-      <span className="wi-intensity-label">{INTENSITY_LABELS[value]}</span>
+    <span className="wi-rank" data-rank={value}>
+      {INTENSITY_LABELS[value]}
+    </span>
+  );
+}
+
+/**
+ * Barre d'axe — variante de `IntensityCell` pour la matrice Innovations.
+ *
+ * Une barre par axe (maturité, coût, énergie, carbone, eau économisée) rend
+ * les CINQ profils d'une famille comparables d'un coup d'œil sur la même
+ * ligne, ce qu'un badge plein par cellule rendrait moins lisible sur cinq
+ * colonnes. Le libellé texte de l'intensité reste affiché à droite de la
+ * barre — la longueur illustre, elle ne remplace jamais le mot.
+ */
+function IntensityBar({ value }: { value: Intensity }) {
+  const rank = INTENSITY_RANK[value];
+  const pct = (rank / 4) * 100;
+  return (
+    <span className="wi-innov-axis-track" style={{ display: "block" }}>
+      <span
+        className="wi-innov-axis-fill"
+        data-hatched={rank === 0 ? "true" : "false"}
+        style={{
+          width: rank === 0 ? "100%" : `${Math.max(pct, 14)}%`,
+          background:
+            rank === 0
+              ? undefined
+              : value === "structurante"
+                ? "var(--wi-water)"
+                : value === "significative"
+                  ? "color-mix(in srgb, var(--wi-water) 55%, var(--wi-data))"
+                  : value === "variable"
+                    ? "var(--wi-data)"
+                    : "var(--wi-absent)",
+        }}
+      />
     </span>
   );
 }
@@ -147,6 +179,17 @@ export function WiSectors() {
         </table>
       </div>
 
+      <div className="wi-rank-legend" aria-hidden="true">
+        {(["structurante", "significative", "variable", "faible", "inconnue"] as const).map(
+          (value) => (
+            <span key={value} className="wi-rank-legend-swatch">
+              <span className="wi-rank" data-rank={value} style={{ width: "1.25rem", minHeight: "1.25rem", padding: 0 }} />
+              {INTENSITY_LABELS[value]}
+            </span>
+          ),
+        )}
+      </div>
+
       <p className="wi-muted" style={{ marginTop: "1rem", maxWidth: "62ch", fontSize: "0.875rem" }}>
         Aucun classement quantitatif n&apos;est publié. « Le textile consomme X litres
         par kilo » se recopie de source en source sans que personne ne remonte à la
@@ -212,8 +255,14 @@ export function WiInnovations() {
                   )}
                 </th>
                 {INNOVATION_AXES.map((axis) => (
-                  <td key={axis.id}>
-                    <IntensityCell value={family.axes[axis.id]} />
+                  <td key={axis.id} style={{ minWidth: "7rem" }}>
+                    <IntensityBar value={family.axes[axis.id]} />
+                    <span
+                      className="wi-muted"
+                      style={{ display: "block", marginTop: "0.25rem", fontSize: "0.71875rem" }}
+                    >
+                      {INTENSITY_LABELS[family.axes[axis.id]]}
+                    </span>
                   </td>
                 ))}
                 <td>
@@ -241,18 +290,29 @@ export interface WiTerritoryProps {
   periodLabel: string;
   ouvrageCount: number;
   isPublished: boolean;
+  /** Coordonnées approximatives du chef-lieu — `null` tant que non publié. */
+  markerLonLat: readonly [number, number] | null;
+  reducedMotion?: boolean;
 }
 
 /**
- * Territory Readiness — ce qui remplace une carte que rien n'alimente.
+ * Territory Readiness — une carte minimale, honnête sur ce qu'elle NE montre
+ * pas (Water Intelligence v2).
  *
- * `geo_layers = deferred` est un état honnête, et une carte du monde vide en
- * serait une traduction trompeuse : un fond de carte sans données se lit comme
- * une couverture nulle, alors qu'il s'agit d'une absence de publication. Les
- * deux ne se corrigent pas de la même façon.
+ * ## Ce qui a changé par rapport à la V1
  *
- * Ce composant dit donc ce qui est prêt, ce qui manque, et quelle jointure
- * sera possible — sans dessiner un territoire que le module ne décrit pas.
+ * La V1 n'affichait aucune carte : une carte du monde sans données se lit
+ * comme une couverture nulle, alors qu'il s'agissait d'une absence de
+ * publication — les deux ne se corrigent pas de la même façon. Cet argument
+ * reste vrai, mais il visait une carte de COUVERTURE (une teinte par
+ * territoire). `WiFranceMap` n'en est pas une : elle place un unique marqueur
+ * sur la seule commune signée, avec une légende qui nomme explicitement
+ * l'absence du reste — ce n'est pas la même affirmation qu'une carte pleine
+ * sans données, et la garder cachée n'ajouterait plus rien à l'honnêteté.
+ *
+ * `geo_layers = deferred` reste vrai pour tout le reste : aucun contour de
+ * bassin, aucune autre commune, aucune couche de coverage. Le composant le
+ * dit toujours, juste à côté du point qu'il peut désormais montrer.
  */
 export function WiTerritory({
   geographyType,
@@ -260,9 +320,22 @@ export function WiTerritory({
   periodLabel,
   ouvrageCount,
   isPublished,
+  markerLonLat,
+  reducedMotion,
 }: WiTerritoryProps) {
   return (
-    <div className="wi-grid wi-grid-2" data-testid="wi-territory">
+    <div data-testid="wi-territory">
+      {isPublished && markerLonLat && (
+        <WiFranceMap
+          markerLonLat={markerLonLat}
+          geographyCode={geographyCode}
+          ouvrageCount={ouvrageCount}
+          periodLabel={periodLabel}
+          reducedMotion={reducedMotion}
+        />
+      )}
+
+      <div className="wi-grid wi-grid-2" style={{ marginTop: isPublished ? "1.25rem" : 0 }}>
       <div className="wi-card wi-accent-water">
         <p className="wi-kicker">Périmètre publié</p>
         <dl className="wi-territory-facts">
@@ -292,13 +365,13 @@ export function WiTerritory({
           <span aria-hidden="true">◇</span> Couches géographiques différées
         </div>
         <h3 className="wi-h3" style={{ marginTop: "0.75rem" }}>
-          Aucune carte n&apos;est affichée, et c&apos;est volontaire
+          Une seule commune est cartographiée, et c&apos;est volontaire
         </h3>
         <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
-          Une carte du monde sans données se lit comme une couverture nulle. Or il
-          s&apos;agit d&apos;une absence de <em>publication</em> — les deux ne se
-          corrigent pas de la même façon, et confondre l&apos;une avec l&apos;autre
-          ferait chercher une panne là où il y a une décision non prise.
+          Le point affiché est la commune du périmètre signé, rien de plus. Une
+          carte de <em>couverture</em> — une teinte par territoire — se lirait
+          comme une donnée là où il n&apos;y en a pas&nbsp;: les contours de bassin,
+          les autres communes et toute couche de coverage restent différés.
         </p>
       </div>
 
@@ -333,6 +406,20 @@ export function WiTerritory({
             un budget distinct de celui du manifest.
           </li>
         </ul>
+      </div>
+      </div>
+
+      <div className="wi-bassin-3d">
+        <p className="wi-kicker">Illustration pédagogique</p>
+        <h3 className="wi-h3">Le cycle de l&apos;eau à l&apos;échelle d&apos;un bassin</h3>
+        <p className="wi-muted" style={{ marginTop: "0.5rem", maxWidth: "62ch", fontSize: "0.9375rem" }}>
+          Une coupe 3D interactive, pas une donnée&nbsp;: elle situe où un forage
+          prélève par rapport à la nappe, au relief et au réseau hydrographique.
+          Aucune valeur du pilote n&apos;y est représentée.
+        </p>
+        <div style={{ marginTop: "1.25rem" }}>
+          <WiBassin3D reducedMotion={reducedMotion} />
+        </div>
       </div>
     </div>
   );

@@ -590,6 +590,28 @@
   }
 }
 
+/* ------------------------------------------------------- Texte hors écran */
+
+/*
+ * Contenu présent dans le DOM et annoncé par un lecteur d'écran, jamais peint
+ * à l'écran. Contrairement à `title` (infobulle souris, peu fiable au
+ * clavier, absente au toucher), ce texte reste une information de PREMIER
+ * niveau — utilisé là où un libellé distinct doit exister pour chaque nœud
+ * d'un graphe compact sans en alourdir le rendu visuel (voir le graphe en
+ * orbite des sources).
+ */
+[data-wi] .wi-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* -------------------------------------------------------- Lien d'évitement */
 
 [data-wi] .wi-skip {
@@ -645,21 +667,14 @@
 }
 
 /*
- * Halo d'ambiance. Purement décoratif, `pointer-events: none`, et il ne
- * transporte aucune information : le retirer ne change rien à ce que la page
- * dit. Il n'existe pas sous `prefers-reduced-motion` non plus — non parce
- * qu'il bouge, mais parce qu'il ne manque à personne.
+ * Halo d'ambiance — voir `.wi-hero-halo` plus bas (deux lueurs dérivantes,
+ * Water Intelligence v2). Purement décoratif, `pointer-events: none`, et il
+ * ne transporte aucune information : le retirer ne change rien à ce que la
+ * page dit. Contenu par son propre `overflow: clip`, en plus de celui déjà
+ * posé sur `[data-wi]` — c'est ce double confinement qui avait été omis la
+ * première fois et avait produit un débordement horizontal de 144 px, trouvé
+ * par l'E2E et non par relecture.
  */
-[data-wi] .wi-hero::before {
-  content: "";
-  position: absolute;
-  inset: -10% -20% auto -20%;
-  height: 60%;
-  background: radial-gradient(60% 60% at 30% 0%, var(--wi-glow) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
 [data-wi] .wi-hero > * {
   position: relative;
   z-index: 1;
@@ -1353,4 +1368,763 @@
   padding: 0 0.875rem 0.875rem;
   border-top: 1px solid var(--wi-border);
   padding-top: 0.75rem;
+}
+
+/* ==========================================================================
+   Water Intelligence v2 — ajouts visuels (refonte)
+   ==========================================================================
+   Cette section AJOUTE aux règles ci-dessus ; elle n'en retire aucune. Les
+   classes historiques (`.wi-bridge`, `.wi-constellation-panel`, `.wi-proof-row`,
+   `.wi-intensity`…) restent utilisées ailleurs (panneaux de détail, tests) —
+   la refonte v2 change la disposition d'ensemble, pas le vocabulaire visuel
+   qui exprime déjà correctement les mêmes invariants (jamais la couleur
+   seule, jamais un total, jamais une valeur fabriquée).
+   ========================================================================== */
+
+/* --------------------------------------------------------- Halo du hero v2 */
+
+[data-wi] .wi-hero-halo {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-wi] .wi-hero-halo > span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+/*
+ * Statique, délibérément : une boucle perpétuelle sur une page qui se veut
+ * calme et lisible en continu coûte de la batterie et de l'attention sans
+ * ajouter d'information — le hero V1 tenait déjà ce même principe avec un
+ * halo fixe. Voir aussi `.wi-orbit-node` plus bas, même raisonnement.
+ */
+[data-wi] .wi-hero-halo > span:first-child {
+  top: -7.5rem;
+  left: -5rem;
+  width: 32.5rem;
+  height: 32.5rem;
+  background: radial-gradient(circle, rgb(45 212 191 / 0.16), transparent 65%);
+}
+
+[data-wi] .wi-hero-halo > span:last-child {
+  top: 3.75rem;
+  right: -8.75rem;
+  width: 38.75rem;
+  height: 38.75rem;
+  background: radial-gradient(circle, rgb(56 189 248 / 0.12), transparent 65%);
+}
+
+/* ---------------------------------------------- Pastille d'état publication */
+
+/*
+ * Quatre états, quatre teintes, et le libellé texte reste TOUJOURS présent :
+ * la pastille double une phrase déjà lisible, elle ne la remplace jamais.
+ */
+[data-wi] .wi-pulse-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  align-items: center;
+  margin-top: 1.375rem;
+}
+
+[data-wi] .wi-pulse-legend-label {
+  font-size: 0.75rem;
+  color: var(--wi-subtle);
+  font-weight: 650;
+}
+
+[data-wi] .wi-pubstate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.65625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+[data-wi] .wi-pubstate::before {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+[data-wi] .wi-pubstate-published {
+  color: var(--wi-water);
+}
+[data-wi] .wi-pubstate-qualitative {
+  color: var(--wi-data);
+}
+[data-wi] .wi-pubstate-deferred {
+  color: var(--wi-stress);
+}
+[data-wi] .wi-pubstate-not_instrumented {
+  color: var(--wi-absent);
+}
+
+/* Mini-barres au pied d'une carte Water Pulse PUBLIÉE — trois valeurs, une
+   échelle relative entre elles, jamais un chiffre. Absente des trois autres
+   états : rien ne doit ressembler à une mesure là où il n'y en a pas. */
+[data-wi] .wi-pulse-bars {
+  display: flex;
+  gap: 0.3125rem;
+  align-items: flex-end;
+  height: 1.25rem;
+  margin-top: 0.5625rem;
+}
+
+[data-wi] .wi-pulse-bars > span {
+  flex: 0 0 auto;
+  width: 1.125rem;
+  border-radius: 2px 2px 0 0;
+  background: var(--wi-water);
+  box-shadow: 0 0 10px rgb(45 212 191 / 0.35);
+}
+
+/* ---------------------------------------------------- Constellation en orbite */
+
+[data-wi] .wi-orbit {
+  position: relative;
+  min-height: 30rem;
+  background: radial-gradient(circle at 50% 50%, var(--wi-card) 0%, var(--wi-bg) 70%);
+  border: 1px solid var(--wi-border);
+  border-radius: 1.125rem;
+  overflow: clip;
+}
+
+[data-wi] .wi-orbit-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+[data-wi] .wi-orbit-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: var(--wi-raised);
+  border: 1px solid var(--wi-border-2);
+  border-radius: 1rem;
+  padding: 0.875rem 1.125rem;
+  box-shadow: var(--wi-shadow-panel);
+}
+
+[data-wi] .wi-orbit-center strong {
+  display: block;
+  font-family: var(--wi-font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+[data-wi] .wi-orbit-center span {
+  display: block;
+  margin-top: 0.125rem;
+  font-family: var(--wi-font-mono);
+  font-size: 0.6875rem;
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-orbit-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3125rem;
+  appearance: none;
+  border-radius: 0.875rem;
+  color: var(--wi-fg);
+  cursor: pointer;
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+[data-wi] .wi-orbit-node span:first-child {
+  line-height: 1;
+}
+
+[data-wi] .wi-orbit-node span:last-child {
+  font-size: 0.71875rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+[data-wi] .wi-orbit-detail {
+  background: var(--wi-card);
+  border: 1px solid var(--wi-border);
+  border-radius: 1.125rem;
+  padding: 1.625rem;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-wi] .wi-orbit-detail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+[data-wi] .wi-orbit-facts {
+  margin: 1.25rem 0 0;
+  display: grid;
+  gap: 1rem;
+}
+
+[data-wi] .wi-orbit-facts dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-water);
+  font-weight: 700;
+}
+
+[data-wi] .wi-orbit-facts dt[data-warn="true"] {
+  color: var(--wi-stress);
+}
+
+[data-wi] .wi-orbit-facts dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-orbit-foot {
+  margin-top: auto;
+  padding-top: 1.125rem;
+  font-size: 0.78125rem;
+  color: var(--wi-subtle);
+}
+
+/* -------------------------------------------------------- Matrice secteurs */
+
+/*
+ * Cellule d'intensité v2 — une pastille pleine plutôt que des points. Le
+ * LIBELLÉ COMPLET reste le vecteur d'information premier ; la teinte et le
+ * remplissage sont des renforts, jamais la seule information (même règle
+ * que `.wi-intensity`, une disposition différente).
+ */
+[data-wi] .wi-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.125rem;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  text-align: center;
+  line-height: 1.3;
+}
+
+[data-wi] .wi-rank[data-rank="structurante"] {
+  background: var(--wi-water);
+  color: #07111f;
+}
+[data-wi] .wi-rank[data-rank="significative"] {
+  background: color-mix(in srgb, var(--wi-water) 38%, transparent);
+  color: var(--wi-fg);
+}
+[data-wi] .wi-rank[data-rank="variable"] {
+  background: color-mix(in srgb, var(--wi-stress) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--wi-stress) 55%, transparent);
+  color: var(--wi-fg);
+}
+[data-wi] .wi-rank[data-rank="faible"] {
+  background: color-mix(in srgb, var(--wi-absent) 14%, transparent);
+  color: var(--wi-muted);
+}
+[data-wi] .wi-rank[data-rank="inconnue"] {
+  background: transparent;
+  border: 1px dashed color-mix(in srgb, var(--wi-absent) 45%, transparent);
+  color: var(--wi-subtle);
+  font-style: italic;
+}
+
+[data-wi] .wi-rank-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  align-items: center;
+  margin-top: 0.875rem;
+  font-size: 0.75rem;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-rank-legend-swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+[data-wi] .wi-rank-legend-swatch > span {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.25rem;
+}
+
+/* ----------------------------------------------- Innovations — barres d'axes */
+
+[data-wi] .wi-innov-axis {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: 0.625rem;
+  align-items: center;
+}
+
+[data-wi] .wi-innov-axis + .wi-innov-axis {
+  margin-top: 0.5rem;
+}
+
+[data-wi] .wi-innov-axis-label {
+  font-size: 0.75rem;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-innov-axis-track {
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: var(--wi-card-2);
+  overflow: hidden;
+}
+
+[data-wi] .wi-innov-axis-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+[data-wi] .wi-innov-axis-fill[data-hatched="true"] {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--wi-hatch) 0,
+    var(--wi-hatch) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+/* ------------------------------------------------- Territoires et bassin 3D */
+
+[data-wi] .wi-map-frame {
+  border: 1px solid var(--wi-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--wi-bg);
+  min-height: 28.75rem;
+}
+
+[data-wi] .wi-map-frame iframe {
+  width: 100%;
+  height: 30rem;
+  border: 0;
+  display: block;
+}
+
+/* Contour de la France : se dessine une fois, à l'entrée dans le viewport
+   (déclenché en React via `reducedMotion`), jamais en boucle. */
+[data-wi] .wi-map-outline-draw {
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: wiMapDraw 2.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes wiMapDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+[data-wi] .wi-map-marker {
+  opacity: 0;
+  animation: wiMapMarkerIn 600ms ease forwards;
+}
+
+@keyframes wiMapMarkerIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * Trois répétitions puis silence — jamais perpétuel. Le ping attire l'œil
+ * vers l'unique point vérifié une fois le marqueur apparu ; au-delà, il ne
+ * porte plus d'information et une boucle infinie ne serait que du bruit.
+ */
+[data-wi] .wi-map-pulse {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: wiMapPulse 2.4s ease-out 3;
+  animation-fill-mode: forwards;
+}
+
+@keyframes wiMapPulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+[data-wi] .wi-deferred-layers {
+  border: 1px dashed var(--wi-border-2);
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--wi-hatch) 0,
+    var(--wi-hatch) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+[data-wi] .wi-deferred-layers ul {
+  list-style: none;
+  margin: 0.875rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--wi-border-2);
+  display: grid;
+  gap: 0.5rem;
+}
+
+[data-wi] .wi-deferred-layers li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.78125rem;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-bassin-3d {
+  margin-top: 2.75rem;
+}
+
+[data-wi] .wi-bassin-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+}
+
+[data-wi] .wi-bassin-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--wi-card);
+  border: 1px solid var(--wi-border);
+  font-size: 0.78125rem;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-bassin-legend-item > span {
+  width: 0.5625rem;
+  height: 0.5625rem;
+  border-radius: 50%;
+}
+
+[data-wi] .wi-bassin-canvas-wrap {
+  border: 1px solid var(--wi-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #0a1626;
+  position: relative;
+  height: 32.5rem;
+}
+
+[data-wi] .wi-bassin-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+[data-wi] .wi-bassin-canvas-wrap canvas:active {
+  cursor: grabbing;
+}
+
+[data-wi] .wi-bassin-hint {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  font-size: 0.75rem;
+  color: var(--wi-muted);
+  background: color-mix(in srgb, var(--wi-bg) 70%, transparent);
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+[data-wi] .wi-bassin-export {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+[data-wi] .wi-bassin-export button {
+  appearance: none;
+  border: 1px solid var(--wi-border-2);
+  background: var(--wi-raised);
+  color: var(--wi-fg);
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+[data-wi] .wi-bassin-export button:hover {
+  border-color: var(--wi-water);
+}
+
+[data-wi] .wi-bassin-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wi-muted);
+  font-size: 0.875rem;
+}
+
+/* --------------------------------------------------------- Pont financier v2 */
+
+[data-wi] .wi-bridge-stepper {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-top: 1rem;
+}
+
+[data-wi] .wi-bridge-stepper-item {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 8.5rem;
+}
+
+[data-wi] .wi-bridge-stepper-btn {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+  background: var(--wi-card);
+  border: 1px solid var(--wi-border);
+  border-top: 3px solid var(--wi-subtle);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  color: var(--wi-fg);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 150ms ease;
+}
+
+[data-wi] .wi-bridge-stepper-btn[data-open="true"] {
+  background: var(--wi-raised);
+}
+
+[data-wi] .wi-bridge-stepper-rank {
+  font-family: var(--wi-font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+[data-wi] .wi-bridge-stepper-label {
+  font-size: 0.78125rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+[data-wi] .wi-bridge-stepper-arrow {
+  padding: 0 0.25rem;
+  color: var(--wi-subtle);
+  font-size: 0.875rem;
+  flex: 0 0 auto;
+}
+
+[data-wi] .wi-bridge-legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+[data-wi] .wi-bridge-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  font-size: 0.78125rem;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-bridge-legend-item > span {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 0.1875rem;
+}
+
+/* -------------------------------------------------------------- Simulateur */
+
+[data-wi] .wi-sim {
+  margin-top: 2.75rem;
+  background: linear-gradient(180deg, var(--wi-card), var(--wi-bg));
+  border: 1px solid var(--wi-border-2);
+  border-radius: 1.125rem;
+  padding: 1.75rem;
+}
+
+[data-wi] .wi-sim-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+[data-wi] .wi-sim-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 52rem) {
+  [data-wi] .wi-sim-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+[data-wi] .wi-sim-field label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.84375rem;
+  font-weight: 650;
+}
+
+[data-wi] .wi-sim-field output {
+  font-family: var(--wi-font-mono);
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-sim-field input[type="range"] {
+  width: 100%;
+  margin-top: 0.625rem;
+  accent-color: var(--wi-water);
+}
+
+[data-wi] .wi-sim-field + .wi-sim-field {
+  margin-top: 1.375rem;
+}
+
+[data-wi] .wi-sim-summary {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--wi-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 650;
+}
+
+[data-wi] .wi-sim-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+}
+
+[data-wi] .wi-sim-step {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.8125rem;
+  border-radius: 999px;
+  font-size: 0.78125rem;
+  font-weight: 650;
+  border: 1px solid var(--wi-border);
+  color: var(--wi-subtle);
+  transition: all 200ms ease;
+}
+
+[data-wi] .wi-sim-step[data-active="true"] {
+  background: color-mix(in srgb, var(--wi-water) 6%, transparent);
+}
+
+/* -------------------------------------------------------- Preuves — cartes */
+
+[data-wi] .wi-proof-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 44rem) {
+  [data-wi] .wi-proof-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+[data-wi] .wi-proof-card {
+  background: var(--wi-card);
+  border: 1px solid var(--wi-border);
+  border-radius: 0.75rem;
+  padding: 1rem 1.125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+[data-wi] .wi-proof-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.625rem;
+  align-items: center;
+}
+
+/* -------------------------------------------------------------- Limites v2 */
+
+[data-wi] .wi-limits-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 44rem) {
+  [data-wi] .wi-limits-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+[data-wi] .wi-limits-card {
+  background: var(--wi-card);
+  border: 1px dashed var(--wi-border-2);
+  border-radius: 0.75rem;
+  padding: 1.125rem;
 }

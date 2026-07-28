@@ -67,12 +67,22 @@ describe("état réel du produit — aucune couche publiée", () => {
     expect(visible).toContain("Couches géographiques différées");
   });
 
-  it("ne rend aucune carte", () => {
-    expect(markup).not.toContain("<svg");
+  it("rend une carte minimale d'un seul point vérifié, pas une couverture", () => {
+    /*
+     * Water Intelligence v2 introduit `WiFranceMap` : un unique marqueur sur
+     * la commune du périmètre signé, jamais une carte de COUVERTURE (une
+     * teinte par territoire). L'invariant V1 — pas de carte qui prétendrait
+     * couvrir un territoire que le module ne décrit pas — reste vérifié,
+     * juste sur une affirmation plus précise : voir `WiTerritory` dans
+     * `WiMatrices.tsx`.
+     */
+    expect(markup).toContain("<svg");
+    expect(markup).toContain('data-testid="wi-france-map"');
   });
 
-  it("explique pourquoi la carte n'est pas affichée", () => {
-    expect(visible).toContain("couverture nulle");
+  it("explique que le point affiché n'est pas une couche de couverture", () => {
+    expect(visible).toContain("Une seule commune est cartographiée");
+    expect(visible).toContain("couches géographiques complètes restent différées");
   });
 
   it("rend l'état de la donnée sans produire de score", () => {
@@ -124,15 +134,16 @@ describe("Wave D — les deux previews sont remplacées", () => {
    * réel du moteur financier, conformément à la consigne « remplacer, pas
    * compléter ». Les assertions qui vérifiaient leur présence ont donc été
    * retirées en connaissance de cause et remplacées par celles du contenu réel.
+   *
+   * Water Intelligence v2 va un cran plus loin : `WiRegulatoryRegistry` et
+   * `WiModuleBridges` ne sont plus rendus SUR CETTE PAGE — la maquette v2
+   * réunit leur contenu dans une unique section 08 — Finance, centrée sur le
+   * pont financier. Les deux composants restent dans le dépôt, inchangés,
+   * avec leurs propres tests d'isolation (`water-intelligence-regulatory` et
+   * `water-intelligence-bridges`) — ce test-ci vérifie l'intégration à la
+   * page, qui a changé ; il ne vérifie plus les composants eux-mêmes.
    */
-  it("rend le registre juridique réel en section Réglementation", () => {
-    expect(visible).toContain("Registre juridique");
-    expect(visible).toContain("Aucun texte instruit");
-    expect(visible).toContain("Droit contraignant");
-    expect(visible).toContain("Référentiels volontaires");
-  });
-
-  it("rend le contrat réel du moteur financier en section Synergies", () => {
+  it("rend le contrat réel du moteur financier en section Finance", () => {
     expect(visible).toContain("Passerelle financière");
     expect(visible).toContain("Aucun montant sur cette page");
     expect(visible).toContain("Sensibilité plutôt que certitude");
@@ -143,9 +154,23 @@ describe("Wave D — les deux previews sont remplacées", () => {
     expect(visible).not.toContain("Aperçu — livré par");
   });
 
-  it("rend les ponts vers les modules CarbonCo", () => {
+  it("ne rend plus le registre juridique ni les ponts CarbonCo sur cette page", () => {
+    /* Consolidation v2, pas une suppression : les deux composants et leurs
+       tests dédiés existent toujours, voir la docstring ci-dessus. */
+    expect(visible).not.toContain("Registre juridique");
+    expect(visible).not.toContain("Droit contraignant");
+    expect(visible).not.toContain("chemins nus");
+  });
+
+  it("réunit Réglementation et Synergies dans la section Finance, en le disant", () => {
+    expect(markup).toContain('id="finance"');
+    expect(visible).toContain("Financial Water Bridge");
+    expect(visible).toContain("Réglementation");
+    expect(visible).toContain("Synergies Carbon&Co");
+  });
+
+  it("conserve un lien vers le cockpit Eau authentifié", () => {
     expect(visible).toContain("Cockpit Eau");
-    expect(visible).toContain("chemins nus");
   });
 });
 

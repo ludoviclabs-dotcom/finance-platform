@@ -70,6 +70,30 @@ export const INTENSITY_RANK: Record<Intensity, number> = {
    1 — Water Pulse : huit facettes du contexte hydrique
    ========================================================================== */
 
+/**
+ * État de publication réel de la facette — DISTINCT du niveau de preuve.
+ *
+ * `evidenceLevel` décrit un fondement épistémique (contexte institutionnel,
+ * consensus qualitatif, mesure requise, valeur sourcée) ; `publicationState`
+ * décrit un fait opérationnel plus grossier — la facette est-elle publiée,
+ * qualitative seulement, différée, ou aucune source n'est instrumentée. Les
+ * deux axes ne se déduisent pas l'un de l'autre : une facette « qualitative »
+ * peut reposer sur un consensus institutionnel solide sans jamais devenir une
+ * valeur chiffrée.
+ */
+export type PulseFacetPublicationState =
+  | "published"
+  | "qualitative"
+  | "deferred"
+  | "not_instrumented";
+
+export const PUBLICATION_STATE_LABELS: Record<PulseFacetPublicationState, string> = {
+  published: "Publié",
+  qualitative: "Qualitatif",
+  deferred: "Différé",
+  not_instrumented: "Non instrumenté",
+};
+
 export interface PulseFacet {
   readonly id: string;
   readonly label: string;
@@ -79,50 +103,52 @@ export interface PulseFacet {
   /** Ce que le module publie AUJOURD'HUI sur cette facette. */
   readonly published: string;
   readonly evidenceLevel: EvidenceLevel;
+  readonly publicationState: PulseFacetPublicationState;
 }
 
 export const PULSE_FACETS: readonly PulseFacet[] = [
   {
     id: "disponibilite",
-    label: "Disponibilité de la ressource",
+    label: "Disponibilité",
     accent: "water",
     question: "La ressource suffit-elle, durablement, là où l'activité se trouve ?",
     body:
-      "La disponibilité se joue à l'échelle d'un bassin, pas d'un pays : deux sites d'une même entreprise peuvent connaître des situations opposées. Elle dépend de la ressource renouvelable, des prélèvements de tous les usagers et des transferts entre bassins.",
-    published: "Aucune valeur publiée — les sources de disponibilité restent non approuvées.",
+      "Se joue à l'échelle du bassin, pas du pays : deux sites d'une même entreprise peuvent vivre des situations opposées.",
+    published: "Sources non approuvées — publication différée.",
     evidenceLevel: "institutional_context",
+    publicationState: "deferred",
   },
   {
     id: "prelevements",
     label: "Prélèvements",
     accent: "water",
-    question: "Combien est prélevé, par qui, et sur quelle ressource ?",
+    question: "Combien est prélevé, par qui, sur quelle ressource ?",
     body:
-      "Un prélèvement déclaré est un fait administratif avant d'être une mesure : sa couverture dépend du régime de redevance qui l'a fait déclarer. Les volumes exonérés et les petits volumes échappent à la déclaration.",
-    published:
-      "Trois volumes annuels d'ouvrages, sur une commune et une année — la première publication pilote.",
+      "Un prélèvement déclaré est un fait administratif : volumes exonérés et petits volumes échappent à la déclaration.",
+    published: "3 volumes annuels publiés — pilote 34172, 2020.",
     evidenceLevel: "sourced_figure",
+    publicationState: "published",
   },
   {
     id: "qualite",
     label: "Qualité",
     accent: "data",
-    question: "L'eau disponible est-elle utilisable pour l'usage visé ?",
-    body:
-      "La qualité est une propriété par paramètre et par usage, jamais un état global. Un paramètre conforme pour un usage industriel peut ne pas l'être pour un usage alimentaire, et les limites de quantification font partie de la mesure.",
-    published:
-      "Aucune valeur publiée — le périmètre exhaustif mesuré dépasse le budget du snapshot public.",
+    question: "L'eau est-elle utilisable pour l'usage visé ?",
+    body: "Une propriété par paramètre et par usage, jamais un état global.",
+    published: "Budget du snapshot dépassé — re-périmétrage requis.",
     evidenceLevel: "institutional_context",
+    publicationState: "deferred",
   },
   {
     id: "secheresse",
     label: "Sécheresse",
     accent: "stress",
-    question: "La situation actuelle est-elle conjoncturelle ou structurelle ?",
+    question: "Conjoncturel ou structurel ?",
     body:
-      "Une sécheresse est un écart à une normale sur une période donnée. Elle ne se confond pas avec le stress structurel : un bassin durablement tendu peut traverser une année humide, et l'inverse est vrai.",
-    published: "Aucune valeur publiée — le décodage de l'indice combiné est reporté.",
+      "Un écart à une normale ne se confond pas avec le stress structurel : un bassin tendu peut traverser une année humide.",
+    published: "Décodage raster Copernicus reporté.",
     evidenceLevel: "institutional_context",
+    publicationState: "deferred",
   },
   {
     id: "inondation",
@@ -130,9 +156,10 @@ export const PULSE_FACETS: readonly PulseFacet[] = [
     accent: "alert",
     question: "L'excès d'eau est-il un aléa pour ce site ?",
     body:
-      "L'inondation est un aléa d'excès, sans relation de causalité avec la rareté. Les fusionner dans un indicateur unique ferait disparaître les deux : un site peut être exposé aux deux, ou à aucun.",
-    published: "Aucune valeur publiée — aucune source d'aléa n'est instrumentée.",
+      "Un aléa d'excès, sans causalité avec la rareté : les fusionner ferait disparaître les deux.",
+    published: "Aucune source d'aléa instrumentée à ce jour.",
     evidenceLevel: "institutional_context",
+    publicationState: "not_instrumented",
   },
   {
     id: "dependances",
@@ -140,29 +167,31 @@ export const PULSE_FACETS: readonly PulseFacet[] = [
     accent: "adapt",
     question: "Quelle part de l'activité s'arrête si l'eau manque ?",
     body:
-      "La dépendance est une propriété du procédé, indépendante de l'état de la ressource. Elle se mesure sur site : refroidissement, lavage, incorporation au produit et transport n'ont ni les mêmes volumes ni les mêmes substituts.",
-    published: "Matrice qualitative par secteur — aucune valeur chiffrée.",
+      "Une propriété du procédé, indépendante de la ressource : elle se mesure sur site.",
+    published: "Matrice ordinale — section 05, aucun chiffre.",
     evidenceLevel: "qualitative_consensus",
+    publicationState: "qualitative",
   },
   {
     id: "reglementation",
     label: "Réglementation",
     accent: "compliance",
-    question: "Quelles obligations s'appliquent, et à partir de quand ?",
+    question: "Quelles obligations, à partir de quand ?",
     body:
-      "Une règle n'est pas « obligatoire » en général : elle l'est pour une entité, dans une juridiction, à une date, et parfois sous condition de matérialité. Le registre distingue ces statuts plutôt que de les réduire.",
-    published: "Registre versionné des textes à instruire — aucune conclusion de conformité.",
+      "Une règle oblige une entité, dans une juridiction, à une date — parfois sous condition de matérialité.",
+    published: "Registre versionné — aucune conclusion.",
     evidenceLevel: "institutional_context",
+    publicationState: "qualitative",
   },
   {
     id: "adaptation",
     label: "Adaptation",
     accent: "adapt",
-    question: "Quelles marges de manœuvre existent, et à quel coût ?",
-    body:
-      "Une solution d'adaptation a toujours des contreparties : énergie, carbone, coût, emprise, maturité. Une famille de solutions présentée par son seul bénéfice hydrique est une promesse, pas une option.",
-    published: "Matrice de familles avec leurs arbitrages — aucune performance garantie.",
+    question: "Quelles marges de manœuvre, à quel coût ?",
+    body: "Toute solution a des contreparties : énergie, carbone, coût, maturité.",
+    published: "Matrice d'arbitrages — section 07, aucune garantie.",
     evidenceLevel: "qualitative_consensus",
+    publicationState: "qualitative",
   },
 ] as const;
 
@@ -562,73 +591,111 @@ export const FINANCIAL_BRIDGE: readonly FinancialBridgeStep[] = [
     id: "interruption",
     label: "Interruption",
     question: "Combien de jours l'activité s'arrête-t-elle, et sur quel périmètre ?",
-    note: "Une restriction d'usage n'est pas un arrêt total : la part de capacité affectée est une hypothèse à poser, jamais la totalité par défaut.",
+    note: "Une restriction n'est pas un arrêt total : la part de capacité affectée est une hypothèse à poser.",
     kind: "exposition",
   },
   {
     id: "capacite",
     label: "Perte de capacité",
     question: "Quelle fraction de la capacité reste disponible pendant l'événement ?",
-    note: "Distincte de la durée : un site tournant au ralenti pendant un mois n'équivaut pas à un arrêt complet de quelques jours.",
+    note: "Distincte de la durée : un mois au ralenti n'équivaut pas à quelques jours d'arrêt complet.",
     kind: "exposition",
   },
   {
     id: "revenu",
-    label: "Chiffre d'affaires exposé",
+    label: "CA exposé",
     question: "Quel revenu dépend de la capacité affectée ?",
-    note: "Le revenu du site, pas celui du groupe. Une exposition calculée sur le mauvais périmètre est une exposition fausse.",
+    note: "Le revenu du site, pas celui du groupe : le mauvais périmètre donne une exposition fausse.",
     kind: "exposition",
   },
   {
     id: "adaptation",
     label: "Coûts d'adaptation",
-    question: "Que coûte la réponse — approvisionnement de substitution, transport, arrêt partiel ?",
-    note: "Ces coûts existent même quand la production continue : les omettre sous-estime l'exposition d'un site qui a « tenu ».",
+    question: "Que coûte la réponse — substitution, transport, arrêt partiel ?",
+    note: "Ces coûts existent même quand la production continue : les omettre sous-estime un site qui a « tenu ».",
     kind: "cout",
   },
   {
     id: "capex",
     label: "CAPEX",
-    question: "Quel investissement d'adaptation est envisagé, sur quel horizon ?",
-    note: "À comparer à l'exposition évitée, avec un taux d'actualisation FOURNI — le moteur n'en a aucun par défaut.",
+    question: "Quel investissement d'adaptation, sur quel horizon ?",
+    note: "À comparer à l'exposition évitée, avec un taux d'actualisation fourni — jamais par défaut.",
     kind: "cout",
   },
   {
     id: "opex",
     label: "OPEX",
-    question: "Quel surcoût opératoire récurrent l'adaptation entraîne-t-elle ?",
-    note: "Une solution qui économise de l'eau en consommant de l'énergie déplace une dépense ; elle ne la supprime pas.",
+    question: "Quel surcoût opératoire récurrent ?",
+    note: "Économiser l'eau en consommant de l'énergie déplace une dépense ; elle ne la supprime pas.",
     kind: "cout",
   },
   {
     id: "assurance",
     label: "Assurance",
     question: "Le risque est-il couvert, et quelles exclusions s'appliquent ?",
-    note: "Aucune indemnisation n'est supposée. Les exclusions liées aux événements climatiques sont à vérifier au contrat.",
+    note: "Aucune indemnisation n'est supposée. Les exclusions climatiques se vérifient au contrat.",
     kind: "cout",
   },
   {
     id: "impairment",
-    label: "Revue de dépréciation",
-    question: "L'exposition constitue-t-elle un indice de perte de valeur à examiner ?",
-    note: "IAS 36 — un indice appelle un test, et le test reste un acte comptable humain. Le module signale la question, il ne conclut pas.",
+    label: "Dépréciation",
+    question: "L'exposition constitue-t-elle un indice de perte de valeur ?",
+    note: "IAS 36 — un indice appelle un test, et le test reste un acte comptable humain.",
     kind: "comptable",
   },
   {
     id: "provisions",
     label: "Provisions",
     question: "Existe-t-il une obligation actuelle résultant d'un événement passé ?",
-    note: "IAS 37 — provision ou passif éventuel : la qualification dépend du degré de certitude, qui n'est pas un paramètre technique.",
+    note: "IAS 37 — la qualification dépend du degré de certitude, qui n'est pas un paramètre technique.",
     kind: "comptable",
   },
   {
     id: "redevances",
     label: "Taxes et redevances",
     question: "Quel est le fait générateur de la redevance applicable ?",
-    note: "IFRIC 21 — il peut être distinct de l'exercice de consommation. Aucun taux n'est encodé : ils dépendent du bassin et de l'usage.",
+    note: "IFRIC 21 — il peut être distinct de l'exercice de consommation. Aucun taux n'est encodé.",
     kind: "comptable",
   },
 ] as const;
+
+/* ==========================================================================
+   6 — Simulateur qualitatif du Financial Water Bridge
+   ========================================================================== */
+
+/**
+ * Quelles étapes du pont deviennent des QUESTIONS à instruire, à partir de
+ * deux hypothèses d'événement posées par le lecteur.
+ *
+ * Ceci n'est PAS un calcul financier : aucun montant, aucun taux, aucune
+ * écriture comptable n'en sort. C'est une règle d'affichage — des seuils
+ * qualitatifs qui décident quelle carte s'allume — strictement séparée du
+ * moteur de scénarios réel, qui vit côté authentifié et exige des hypothèses
+ * chiffrées explicites. Confondre les deux ferait passer un seuil d'interface
+ * pour une conclusion financière.
+ *
+ * L'ordre des booléens renvoyés suit EXACTEMENT `FINANCIAL_BRIDGE` — un test
+ * de parité verrouille cet alignement.
+ */
+export function financialBridgeQuestionsToInstruct(
+  interruptionDays: number,
+  remainingCapacityPct: number,
+): readonly boolean[] {
+  const d = interruptionDays;
+  const c = remainingCapacityPct;
+  return [
+    d > 0, // interruption
+    c < 100, // capacite
+    d > 0 || c < 100, // revenu (CA exposé)
+    d >= 7, // adaptation (coûts d'adaptation)
+    c <= 70, // capex
+    d >= 14, // opex
+    d >= 30, // assurance
+    d >= 45 || c <= 40, // impairment (dépréciation)
+    d >= 60, // provisions
+    d > 0, // redevances
+  ] as const;
+}
 
 /* ==========================================================================
    5 — Chronologie climatique

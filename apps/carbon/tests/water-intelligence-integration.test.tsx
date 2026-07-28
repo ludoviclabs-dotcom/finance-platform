@@ -17,6 +17,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import WaterIntelligencePage from "@/app/water/page";
+import { PILOT_FILE } from "@/lib/water-intelligence/pilot-snapshot";
 
 const markup = renderToStaticMarkup(<WaterIntelligencePage />);
 const visible = markup
@@ -151,7 +152,27 @@ describe("Wave D — les deux previews sont remplacées", () => {
 describe("garde-fous de la surface publique", () => {
   it("ne réintroduit aucune valeur fabriquée", () => {
     expect(visible).not.toMatch(/\b42\b/);
-    expect(visible).not.toMatch(/[0-9a-f]{16,}/);
+  });
+
+  it("ne rend aucune empreinte qui ne vienne du document publié", () => {
+    /* Ce contrôle interdisait toute suite hexadécimale longue — il valait
+       tant que rien n'était publié, puisqu'une empreinte affichée ne pouvait
+       alors qu'être inventée.
+     *
+     * Une fois le document généré, la Phase F exige l'inverse : « chaque
+     * valeur porte sa preuve », checksum copiable compris. L'interdiction
+     * absolue et l'exigence de preuve se contrediraient.
+     *
+     * Le contrôle porte donc désormais sur l'ORIGINE : toute empreinte rendue
+     * doit se retrouver dans le document. Tant que celui-ci est un marqueur,
+     * il n'en contient aucune et l'interdiction stricte s'applique de nouveau
+     * — sans qu'aucune exception n'ait été écrite. */
+    const known = new Set<string>();
+    for (const [hex] of JSON.stringify(PILOT_FILE).matchAll(/[0-9a-f]{16,}/g)) {
+      known.add(hex);
+    }
+    const rendered = [...visible.matchAll(/[0-9a-f]{16,}/g)].map(([hex]) => hex);
+    expect(rendered.filter((hex) => !known.has(hex))).toEqual([]);
   });
 
   it("ne rend aucune donnée tenant", () => {

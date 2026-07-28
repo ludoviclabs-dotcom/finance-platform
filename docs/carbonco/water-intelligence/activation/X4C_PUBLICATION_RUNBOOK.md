@@ -82,7 +82,45 @@ commit ne contient que ces deux fichiers, et l'étape 5 du workflow l'a vérifi�
 avant de committer. Aucune migration, aucun état de base, aucun cache
 persistant n'est à défaire.
 
-## 6. Ce que ce runbook ne couvre pas
+## 6. Le premier run a échoué — ce qu'il a prouvé, et ce qu'il a coûté
+
+Run [30328044831](https://github.com/ludoviclabs-dotcom/finance-platform/actions/runs/30328044831),
+2026-07-28 04:12 UTC, échec à l'étape 4 en 45 s.
+
+**Ce qui a fonctionné** — l'étape 3 est passée en entier, contre le service réel :
+
+```
+1 page(s) écrite(s), dernière page incomplète (3/200)
+✓ 3 observations, checksum conforme
+```
+
+Soit : HTTP valide, page unique, pagination exhaustive prouvée par une dernière
+page non saturée, 3 enregistrements reçus, 3 normalisés, 0 rejeté, unité `m3`,
+trois géographies, et **le checksum approuvé au bit près**. Les conditions
+d'arrêt 1 à 4 ont donc été mesurées sur la source réelle, et aucune n'a divergé.
+
+**Ce qui a échoué** — l'acquisition écrivait son rapport dans
+`acq_bnpe-minimal-pilot-v1_HUBEAU_BNPE_PRELEVEMENTS.md`, la publication le
+cherchait dans `acq_bnpe_v1.md`. Deux conventions de nommage pour un même
+fichier : `_acquisition_argv()` dérivait la sienne de `_scope_paths()`,
+`_paths()` réécrivait la sienne à la main. Chaque commande était cohérente avec
+elle-même — `acquire` relisait le chemin qu'il venait d'écrire et réussissait —
+ce qui est précisément ce qui rendait l'écart invisible.
+
+C'est la quatrième occurrence de la même famille de défaut sur ce chantier
+(chemins d'acquisition partagés en PR #174, `gate --upto` en PR #175, lecteur de
+preuve en PR #176) : **deux écritures d'une même vérité finissent par diverger.**
+
+**Ce que ça a coûté** — une acquisition Hub'Eau réelle, consommée pour rien. La
+comparaison des chemins s'exécute désormais **avant** `subprocess.run` : une
+divergence arrête la publication sans appeler le service.
+
+**Ce qui le verrouille** — `TestAcquireWritesWherePublishReads` compare le
+chemin réellement passé à `validate_hubeau` (relu de l'argv) à celui que lit la
+publication, sans réseau ni base. Les quatre contrôles échouent si l'ancienne
+convention revient.
+
+## 7. Ce que ce runbook ne couvre pas
 
 - **Il ne fusionne rien.** La Draft PR reste en revue humaine.
 - **Il ne publie sur aucun autre périmètre.** Élargir la commune ou l'année

@@ -157,7 +157,7 @@
       "source_code": "WRI_AQUEDUCT"
     }
   ],
-  "generated_at": "2026-07-28T04:59:23.945731+00:00",
+  "generated_at": "2026-07-28T12:00:00+00:00",
   "included_source_codes": [
     "HUBEAU_BNPE_PRELEVEMENTS"
   ],
@@ -165,22 +165,22 @@
   "manifest": {
     "editorial_records": [],
     "fixture_label": null,
-    "generated_at": "2026-07-28T04:59:23.945731Z",
+    "generated_at": "2026-07-28T12:00:00Z",
     "geo_layers": [],
     "legal_records": [],
     "manifest_version": "1.0.0",
     "observations": [
       {
         "geography": {
-          "code": "OPR0000054778",
-          "label": "OPR0000054778",
+          "code": "TEST-OPR-A",
+          "label": "TEST-OPR-A",
           "scope": "france"
         },
         "method": {
           "code": "CC-WI-HUBEAU-BNPE-PASSTHROUGH",
           "version": "1.0.0"
         },
-        "metric_code": "hubeau.prelevements.volume",
+        "metric_code": "water.withdrawal.volume",
         "period_end": "2020-12-31",
         "period_start": "2020-01-01",
         "quality": {
@@ -191,10 +191,10 @@
         },
         "scenario": null,
         "source": {
-          "attribution": "Source : Hub'Eau — API Prélèvements en eau. Données issues de la BNPE et de la gestion des redevances par les agences et offices de l'eau. Licence Ouverte / Etalab 2.0. Source officielle : https://hubeau.eaufrance.fr/page/api-prelevements-eau. Consultées le 2026-07-28.",
-          "checksum_sha256": "c9b8d10e9f1059fd49db51a45d6890ff1cebe546084eeac03d871742a74bd2e9",
+          "attribution": "Données issues de la BNPE (fixture de test).",
+          "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "license": {
-            "allow_derived_use": true,
+            "allow_derived_use": false,
             "allow_display": true,
             "allow_ingest": true,
             "allow_store": true,
@@ -214,20 +214,20 @@
           "warnings": []
         },
         "unit": "m3",
-        "value": 10999.0,
+        "value": 12500.0,
         "value_withheld": false
       },
       {
         "geography": {
-          "code": "OPR0000054779",
-          "label": "OPR0000054779",
+          "code": "TEST-OPR-B",
+          "label": "TEST-OPR-B",
           "scope": "france"
         },
         "method": {
           "code": "CC-WI-HUBEAU-BNPE-PASSTHROUGH",
           "version": "1.0.0"
         },
-        "metric_code": "hubeau.prelevements.volume",
+        "metric_code": "water.withdrawal.volume",
         "period_end": "2020-12-31",
         "period_start": "2020-01-01",
         "quality": {
@@ -238,10 +238,10 @@
         },
         "scenario": null,
         "source": {
-          "attribution": "Source : Hub'Eau — API Prélèvements en eau. Données issues de la BNPE et de la gestion des redevances par les agences et offices de l'eau. Licence Ouverte / Etalab 2.0. Source officielle : https://hubeau.eaufrance.fr/page/api-prelevements-eau. Consultées le 2026-07-28.",
-          "checksum_sha256": "c9b8d10e9f1059fd49db51a45d6890ff1cebe546084eeac03d871742a74bd2e9",
+          "attribution": "Données issues de la BNPE (fixture de test).",
+          "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "license": {
-            "allow_derived_use": true,
+            "allow_derived_use": false,
             "allow_display": true,
             "allow_ingest": true,
             "allow_store": true,
@@ -261,20 +261,20 @@
           "warnings": []
         },
         "unit": "m3",
-        "value": 217865.0,
+        "value": 3200.0,
         "value_withheld": false
       },
       {
         "geography": {
-          "code": "OPR0000054780",
-          "label": "OPR0000054780",
+          "code": "TEST-OPR-C",
+          "label": "TEST-OPR-C",
           "scope": "france"
         },
         "method": {
           "code": "CC-WI-HUBEAU-BNPE-PASSTHROUGH",
           "version": "1.0.0"
         },
-        "metric_code": "hubeau.prelevements.volume",
+        "metric_code": "water.withdrawal.volume",
         "period_end": "2020-12-31",
         "period_start": "2020-01-01",
         "quality": {
@@ -285,10 +285,10 @@
         },
         "scenario": null,
         "source": {
-          "attribution": "Source : Hub'Eau — API Prélèvements en eau. Données issues de la BNPE et de la gestion des redevances par les agences et offices de l'eau. Licence Ouverte / Etalab 2.0. Source officielle : https://hubeau.eaufrance.fr/page/api-prelevements-eau. Consultées le 2026-07-28.",
-          "checksum_sha256": "c9b8d10e9f1059fd49db51a45d6890ff1cebe546084eeac03d871742a74bd2e9",
+          "attribution": "Données issues de la BNPE (fixture de test).",
+          "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "license": {
-            "allow_derived_use": true,
+            "allow_derived_use": false,
             "allow_display": true,
             "allow_ingest": true,
             "allow_store": true,
@@ -308,17 +308,17 @@
           "warnings": []
         },
         "unit": "m3",
-        "value": 33830.0,
+        "value": 48900.0,
         "value_withheld": false
       }
     ],
     "scenarios": [],
     "sources": [
       {
-        "attribution": "Source : Hub'Eau — API Prélèvements en eau. Données issues de la BNPE et de la gestion des redevances par les agences et offices de l'eau. Licence Ouverte / Etalab 2.0. Source officielle : https://hubeau.eaufrance.fr/page/api-prelevements-eau. Consultées le 2026-07-28.",
-        "checksum_sha256": "c9b8d10e9f1059fd49db51a45d6890ff1cebe546084eeac03d871742a74bd2e9",
+        "attribution": "Données issues de la BNPE (fixture de test).",
+        "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "license": {
-          "allow_derived_use": true,
+          "allow_derived_use": false,
           "allow_display": true,
           "allow_ingest": true,
           "allow_store": true,
@@ -353,8 +353,8 @@
     ]
   ],
   "pilot": {
-    "artifact_checksum": "c9b8d10e9f1059fd49db51a45d6890ff1cebe546084eeac03d871742a74bd2e9",
-    "attribution": "Source : Hub'Eau — API Prélèvements en eau. Données issues de la BNPE et de la gestion des redevances par les agences et offices de l'eau. Licence Ouverte / Etalab 2.0. Source officielle : https://hubeau.eaufrance.fr/page/api-prelevements-eau. Consultées le 2026-07-28.",
+    "artifact_checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "attribution": "Données issues de la BNPE (FIXTURE DE TEST).",
     "coverage_warnings": [
       "Les volumes exonérés de redevance peuvent être absents de cette source.",
       "Certains petits volumes peuvent ne pas être déclarés.",

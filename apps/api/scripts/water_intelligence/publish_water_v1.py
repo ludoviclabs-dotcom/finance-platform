@@ -66,6 +66,7 @@ from scripts.water_intelligence.build_candidate_snapshots import (
     _acquisition_argv,
     _assert_exhaustive,
     _prepare_one,
+    _scope_paths,
 )
 from scripts.water_intelligence.candidate_scopes import (
     BNPE_MINIMAL_PILOT_V1,
@@ -132,7 +133,31 @@ class PublicationRefused(Exception):
 
 
 def _paths(artifacts: Path, reports: Path) -> tuple[Path, Path]:
-    return artifacts / BNPE_PILOT_RELEASE_KEY, reports / "acq_bnpe_v1.md"
+    """Répertoire d'artefacts et rapport d'acquisition du pilote.
+
+    **Dérivés de `_scope_paths()`, jamais réécrits ici.** C'est cette fonction
+    qu'utilise `_acquisition_argv()` pour composer la ligne de commande qui
+    ÉCRIT ces deux chemins ; les recopier à la main revient à maintenir deux
+    conventions de nommage pour un même fichier, et deux conventions divergent.
+
+    Elles ont divergé : cette fonction a rendu `acq_bnpe_v1.md` pendant que
+    l'acquisition écrivait `acq_bnpe-minimal-pilot-v1_HUBEAU_BNPE_PRELEVEMENTS.md`.
+    `acquire` était cohérent avec lui-même — il relisait le chemin qu'il venait
+    d'écrire — et `publish` lisait ailleurs. Le run du 2026-07-28 04:12 UTC a
+    donc consommé une acquisition réseau réelle, vérifié son checksum, puis
+    échoué à retrouver son propre rapport.
+
+    Le couple passé à `_scope_paths()` est (clé de release, code source), ce qui
+    place le pilote dans son propre répertoire : il ne partage aucun chemin avec
+    les candidats de mesure X4B, dont les acquisitions ne portent ni le même
+    périmètre ni la même `release_key`.
+    """
+    return _scope_paths(
+        BNPE_PILOT_RELEASE_KEY,
+        PILOT_SOURCE_CODE,
+        artifacts=artifacts,
+        reports=reports,
+    )
 
 
 def _repo_root() -> Path:
@@ -188,11 +213,30 @@ def command_acquire(args: argparse.Namespace) -> int:
         artifacts=Path(args.artifact_dir),
         reports=Path(args.report_dir),
     )
-    # `_acquisition_argv` indexe ses chemins sur le couple (candidat, source).
-    # On lui donne la clé de release comme candidat, ce qui produit le même
-    # répertoire que `_paths()` — vérifié plutôt que supposé.
+    # Le chemin que l'acquisition va ÉCRIRE, relu depuis la ligne de commande
+    # réellement composée, et confronté à celui que `publish` LIRA.
+    #
+    # Ce contrôle est ici parce que sa version précédente n'existait pas : le
+    # commentaire annonçait « vérifié plutôt que supposé » et le code se
+    # contentait d'extraire les deux chemins sans jamais les comparer. Une
+    # affirmation de preuve tenait lieu de preuve, et les deux conventions ont
+    # divergé sans que rien ne le signale.
+    #
+    # Il s'exécute AVANT `subprocess.run` : une divergence de chemins doit
+    # arrêter la publication avant l'appel réseau, pas après. Le run du
+    # 2026-07-28 a consommé une acquisition Hub'Eau pour échouer ensuite.
     argv_artifact = Path(argv[argv.index("--artifact-dir") + 1])
     argv_report = Path(argv[argv.index("--report") + 1])
+    if (argv_artifact, argv_report) != (artifact_dir, report_path):
+        raise PublicationRefused(
+            "ARRÊT — l'acquisition n'écrit pas là où la publication lit.\n"
+            f"  acquisition écrit : {argv_report}\n"
+            f"  publication lit   : {report_path}\n"
+            f"  artefacts écrits  : {argv_artifact}\n"
+            f"  artefacts lus     : {artifact_dir}\n"
+            "Les deux chemins doivent venir de `_scope_paths()`. Aucun appel "
+            "réseau n'a été passé."
+        )
 
     print(f"→ acquisition {PILOT_SOURCE_CODE} — {scope.geography_code} / 2020", flush=True)
     result = subprocess.run(argv, check=False)
@@ -205,7 +249,7 @@ def command_acquire(args: argparse.Namespace) -> int:
     from services.water.staging_ingestion import load_acquisition_evidence
 
     evidence = load_acquisition_evidence(
-        argv_report,
+        report_path,
         expect_source_code=PILOT_SOURCE_CODE,
         expect_release_key=BNPE_PILOT_RELEASE_KEY,
     )
@@ -263,7 +307,7 @@ def command_acquire(args: argparse.Namespace) -> int:
             "year": scope.date_from,
             "page_size": scope.page_size,
             "max_pages": scope.max_pages,
-            "artifact_dir": str(argv_artifact),
+            "artifact_dir": str(artifact_dir),
             **summary,
         },
     )

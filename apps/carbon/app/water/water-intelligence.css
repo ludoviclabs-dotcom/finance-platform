@@ -1397,13 +1397,18 @@
   filter: blur(2px);
 }
 
+/*
+ * Statique, délibérément : une boucle perpétuelle sur une page qui se veut
+ * calme et lisible en continu coûte de la batterie et de l'attention sans
+ * ajouter d'information — le hero V1 tenait déjà ce même principe avec un
+ * halo fixe. Voir aussi `.wi-orbit-node` plus bas, même raisonnement.
+ */
 [data-wi] .wi-hero-halo > span:first-child {
   top: -7.5rem;
   left: -5rem;
   width: 32.5rem;
   height: 32.5rem;
   background: radial-gradient(circle, rgb(45 212 191 / 0.16), transparent 65%);
-  animation: wiDrift 14s ease-in-out infinite;
 }
 
 [data-wi] .wi-hero-halo > span:last-child {
@@ -1412,27 +1417,6 @@
   width: 38.75rem;
   height: 38.75rem;
   background: radial-gradient(circle, rgb(56 189 248 / 0.12), transparent 65%);
-  animation: wiDrift2 18s ease-in-out infinite;
-}
-
-@keyframes wiDrift {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(2.5rem, -1.875rem) scale(1.15);
-  }
-}
-
-@keyframes wiDrift2 {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-3.125rem, 1.5625rem) scale(1.1);
-  }
 }
 
 /* ---------------------------------------------- Pastille d'état publication */
@@ -1577,22 +1561,6 @@
   font-size: 0.71875rem;
   font-weight: 650;
   white-space: nowrap;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  [data-wi] .wi-orbit-node[data-selected="false"] {
-    animation: wiFloatC 4s ease-in-out infinite;
-  }
-}
-
-@keyframes wiFloatC {
-  0%,
-  100% {
-    transform: translate(-50%, -50%);
-  }
-  50% {
-    transform: translate(-50%, -58%);
-  }
 }
 
 [data-wi] .wi-orbit-detail {
@@ -1795,10 +1763,16 @@
   }
 }
 
+/*
+ * Trois répétitions puis silence — jamais perpétuel. Le ping attire l'œil
+ * vers l'unique point vérifié une fois le marqueur apparu ; au-delà, il ne
+ * porte plus d'information et une boucle infinie ne serait que du bruit.
+ */
 [data-wi] .wi-map-pulse {
   transform-origin: center;
   transform-box: fill-box;
-  animation: wiMapPulse 2.4s ease-out infinite;
+  animation: wiMapPulse 2.4s ease-out 3;
+  animation-fill-mode: forwards;
 }
 
 @keyframes wiMapPulse {

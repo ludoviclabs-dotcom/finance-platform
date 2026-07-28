@@ -63,6 +63,12 @@ async function buildBassinGroup() {
     acier: new THREE.MeshStandardMaterial({ color: 0xb9c7d4, roughness: 0.5, metalness: 0.3 }),
     pompe: new THREE.MeshStandardMaterial({ color: 0x2dd4bf, roughness: 0.5 }),
   };
+  /* `usemtl` (OBJExporter) et le sérialiseur MTL ci-dessous doivent
+     référencer le MÊME nom : sans `.name`, l'export OBJ+MTL produirait des
+     références de matériau vides. */
+  for (const [key, material] of Object.entries(M)) {
+    material.name = key;
+  }
 
   const g = new THREE.Group();
   g.name = "bassin_versant";
@@ -227,6 +233,14 @@ export function WiBassin3D({ reducedMotion = false }: WiBassin3DProps) {
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(width, height);
+        /* Un <canvas> n'est pas focalisable par défaut : sans `tabIndex`, Tab
+           saute le cadre 3D et `listenToKeyEvents` ne reçoit jamais rien —
+           la navigation clavier annoncée dans la légende serait un mensonge. */
+        renderer.domElement.tabIndex = 0;
+        renderer.domElement.setAttribute(
+          "aria-label",
+          "Coupe 3D interactive du bassin versant — flèches pour orbiter une fois le cadre focalisé",
+        );
         container.appendChild(renderer.domElement);
 
         controls = new OrbitControls(camera, renderer.domElement);
@@ -237,12 +251,14 @@ export function WiBassin3D({ reducedMotion = false }: WiBassin3DProps) {
         controls.maxDistance = 20;
         controls.autoRotate = !reducedMotion;
         controls.autoRotateSpeed = 0.6;
+        controls.listenToKeyEvents(renderer.domElement);
 
         const stopAutoRotate = () => {
           if (controls) controls.autoRotate = false;
         };
         renderer.domElement.addEventListener("pointerdown", stopAutoRotate, { once: true });
         renderer.domElement.addEventListener("wheel", stopAutoRotate, { once: true });
+        renderer.domElement.addEventListener("keydown", stopAutoRotate, { once: true });
 
         const renderLoop = () => {
           controls?.update();
@@ -287,8 +303,15 @@ export function WiBassin3D({ reducedMotion = false }: WiBassin3DProps) {
     if (!built) return;
     const { OBJExporter } = await import("three/examples/jsm/exporters/OBJExporter.js");
     const exporter = new OBJExporter();
-    const text = exporter.parse(built.group);
-    downloadText("bassin-versant.obj", text);
+    const objText = exporter.parse(built.group);
+    /* `OBJExporter` documente lui-même ne pas produire de fichier MTL — voir
+       sa source. Le bouton annonce « OBJ + MTL » : le fichier MTL doit donc
+       exister réellement, sérialisé ici à partir des mêmes matériaux nommés
+       (`.name`, posé dans `buildBassinGroup`) que ceux référencés par les
+       lignes `usemtl` de l'OBJ. */
+    const mtlText = buildMtlText(built.group);
+    downloadText("bassin-versant.obj", `mtllib bassin-versant.mtl\n${objText}`);
+    downloadText("bassin-versant.mtl", mtlText);
   };
 
   const exportGlb = async () => {
@@ -345,6 +368,43 @@ export function WiBassin3D({ reducedMotion = false }: WiBassin3DProps) {
       </p>
     </div>
   );
+}
+
+/**
+ * Sérialise les matériaux du groupe en MTL — three.js n'en fournit pas
+ * (`OBJExporter` ne gère que la géométrie). Chaque matériau de la scène est
+ * un `MeshStandardMaterial` plat (couleur, rugosité, métallicité, opacité),
+ * sans texture : le mapping vers les champs MTL classiques est direct et
+ * n'a besoin d'aucune approximation hasardeuse.
+ */
+function buildMtlText(group: import("three").Group): string {
+  const seen = new Map<string, import("three").MeshStandardMaterial>();
+  group.traverse((object) => {
+    const material = (object as import("three").Mesh).material as
+      | import("three").MeshStandardMaterial
+      | undefined;
+    if (material?.name && !seen.has(material.name)) {
+      seen.set(material.name, material);
+    }
+  });
+
+  const blocks = [...seen.entries()].map(([name, material]) => {
+    const { r, g, b } = material.color;
+    const specular = 0.04 + material.metalness * 0.6;
+    const shininess = Math.round(10 + (1 - material.roughness) * 900);
+    const opacity = material.transparent ? material.opacity : 1;
+    return [
+      `newmtl ${name}`,
+      `Ka ${(r * 0.2).toFixed(4)} ${(g * 0.2).toFixed(4)} ${(b * 0.2).toFixed(4)}`,
+      `Kd ${r.toFixed(4)} ${g.toFixed(4)} ${b.toFixed(4)}`,
+      `Ks ${specular.toFixed(4)} ${specular.toFixed(4)} ${specular.toFixed(4)}`,
+      `Ns ${shininess}`,
+      `d ${opacity.toFixed(4)}`,
+      `illum 2`,
+    ].join("\n");
+  });
+
+  return `# bassin-versant.mtl — illustration pédagogique, aucune donnée\n${blocks.join("\n\n")}\n`;
 }
 
 function downloadText(filename: string, content: string) {

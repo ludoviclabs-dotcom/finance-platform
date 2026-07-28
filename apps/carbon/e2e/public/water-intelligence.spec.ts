@@ -100,12 +100,18 @@ test.describe("page publique Water Intelligence", () => {
 
   test("ouvre le panneau d’une source et y trouve son blocage", async ({ page }) => {
     await page.goto("/water");
+    /*
+     * Water Intelligence v2 remplace l'accordéon (un panneau par source) par
+     * un graphe en orbite : un seul panneau de détail, partagé, qui affiche
+     * la source SÉLECTIONNÉE. Le clic reste vérifiable de la même façon —
+     * l'état "sélectionné" change et le détail affiché change avec lui.
+     */
     const trigger = page.getByTestId("wi-source-trigger-HUBEAU_ADES");
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
     await trigger.click();
     await expect(trigger).toHaveAttribute("aria-expanded", "true");
 
-    const panel = page.getByTestId("wi-source-panel-HUBEAU_ADES");
+    const panel = page.getByTestId("wi-source-detail");
     await expect(panel).toBeVisible();
     // Le report d'ADES est un report de BUDGET, pas un doute sur la source.
     await expect(panel).toContainText(/budget/i);
@@ -128,17 +134,23 @@ test.describe("page publique Water Intelligence", () => {
     }
   });
 
-  test("rend Territory Readiness plutôt qu’un fond de carte trompeur", async ({ page }) => {
+  test("rend une carte minimale d’un point vérifié, jamais une couverture trompeuse", async ({
+    page,
+  }) => {
     await page.goto("/water");
     const carte = page.locator("#carte");
     await expect(carte).toBeVisible();
 
-    // Aucune couche publiée : la carte n'est pas montée, et l'absence est
-    // nommée AVEC sa raison — un fond vide se lirait comme une couverture
-    // nulle, ce qui n'est pas la même chose qu'une absence de publication.
-    await expect(carte.getByText(/couches géographiques différées/i).first()).toBeVisible();
-    await expect(carte.getByText(/couverture nulle/i).first()).toBeVisible();
-    await expect(carte.locator("svg")).toHaveCount(0);
+    /*
+     * Water Intelligence v2 introduit `WiFranceMap` : un unique marqueur sur
+     * la commune du périmètre signé — jamais une carte de COUVERTURE (une
+     * teinte par territoire), ce que le test V1 refusait. La carte existe
+     * désormais ; ce qu'elle refuse de prétendre reste vrai, avec un texte
+     * plus précis : les couches géographiques COMPLÈTES restent différées.
+     */
+    await expect(carte.getByText(/couches géographiques complètes restent différées/i).first()).toBeVisible();
+    await expect(carte.getByText(/une seule commune est cartographiée/i).first()).toBeVisible();
+    await expect(carte.locator("svg").first()).toBeVisible();
   });
 
   test("expose un lien d’évitement et un contenu principal atteignable au clavier", async ({

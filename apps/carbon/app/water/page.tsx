@@ -162,6 +162,19 @@ export default function WaterIntelligencePage() {
     ? `${observations[0].methodCode} · ${observations[0].methodVersion}`
     : "n.c.";
 
+  /*
+   * Hauteurs des trois mini-barres de la carte « Prélèvements » (Water
+   * Pulse). Dérivées des MÊMES observations que le graphique de la section
+   * 02, avec la MÊME échelle (`Math.max` des valeurs, jamais un total) —
+   * jamais une proportion inventée. Un plancher de 4% garde une barre nulle
+   * visible plutôt qu'invisible, comme la comparaison de la section 02.
+   */
+  const pulseBarHeights = (() => {
+    const values = observations.map((o) => (typeof o.value === "number" ? o.value : 0));
+    const scale = Math.max(...values, 1);
+    return values.map((v) => `${Math.max(4, Math.round((v / scale) * 100))}%`);
+  })();
+
   return (
     <IntelligenceThemeProvider scope="wi">
       <a href="#contenu" className="wi-skip">
@@ -244,9 +257,9 @@ export default function WaterIntelligencePage() {
                 </p>
                 {facet.publicationState === "published" && (
                   <span className="wi-pulse-bars" aria-hidden="true" data-testid={`wi-pulse-bars-${facet.id}`}>
-                    <span style={{ height: "45%" }} />
-                    <span style={{ height: "100%" }} />
-                    <span style={{ height: "70%" }} />
+                    {pulseBarHeights.map((height, index) => (
+                      <span key={index} style={{ height }} />
+                    ))}
                   </span>
                 )}
                 <span className="wi-badge wi-badge-pending" style={{ marginTop: "0.625rem" }}>
@@ -374,9 +387,11 @@ export default function WaterIntelligencePage() {
             Chacune est une <strong>question à instruire</strong>, jamais un calcul — le
             moteur de scénarios vit côté authentifié et exige des hypothèses explicites.
             Cette section réunit ce que la V1 présentait séparément sous « Réglementation »
-            et « Synergies Carbon&amp;Co »&nbsp;: les deux registres restent dans le
-            module authentifié, inchangés — seule cette page publique se resserre sur
-            l&apos;exposition financière.
+            et « Synergies Carbon&amp;Co »&nbsp;: cette page publique se resserre sur
+            l&apos;exposition financière&nbsp;; le registre juridique et les ponts vers les
+            autres modules restent dans le code, avec leurs tests, mais ne sont pour
+            l&apos;instant rendus sur aucune route — les réintégrer est une décision
+            d&apos;intégration distincte, pas encore prise.
           </p>
 
           <div style={{ marginTop: "1.5rem" }}>

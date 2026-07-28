@@ -17,6 +17,7 @@
  */
 
 import { useState } from "react";
+import { useReducedMotion } from "framer-motion";
 
 import { WiBassin3D } from "@/components/water-intelligence/WiBassin3D";
 import { WiFranceMap } from "@/components/water-intelligence/WiFranceMap";
@@ -292,7 +293,6 @@ export interface WiTerritoryProps {
   isPublished: boolean;
   /** Coordonnées approximatives du chef-lieu — `null` tant que non publié. */
   markerLonLat: readonly [number, number] | null;
-  reducedMotion?: boolean;
 }
 
 /**
@@ -321,8 +321,13 @@ export function WiTerritory({
   ouvrageCount,
   isPublished,
   markerLonLat,
-  reducedMotion,
 }: WiTerritoryProps) {
+  /* `page.tsx` est un Server Component : il ne peut pas résoudre
+     `prefers-reduced-motion` lui-même. Comme `WiHero` et `WiPilotData`,
+     ce composant client résout la préférence directement plutôt que de
+     dépendre d'une prop qu'aucun parent serveur ne peut fournir. */
+  const reducedMotion = useReducedMotion() ?? false;
+
   return (
     <div data-testid="wi-territory">
       {isPublished && markerLonLat && (

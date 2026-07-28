@@ -1499,3 +1499,134 @@ class TestWaterV1PublicationWorkflow:
         signature = text.index("assert_human_approvals_unchanged")
         acquisition = text.index("publish_water_v1")
         assert signature < acquisition
+
+
+class TestAcquireWritesWherePublishReads:
+    """`acquire` et `publish` désignent-ils le MÊME fichier ?
+
+    Ils ne le désignaient pas. `acquire` composait sa ligne de commande via
+    `_acquisition_argv()` — donc via `_scope_paths()` — et écrivait
+    `acq_bnpe-minimal-pilot-v1_HUBEAU_BNPE_PRELEVEMENTS.md` ; `publish` lisait
+    `acq_bnpe_v1.md`, une convention écrite à la main dans `_paths()`. Chaque
+    commande était cohérente avec elle-même, ce qui est précisément ce qui
+    rendait le défaut invisible : `acquire` relisait le chemin qu'il venait
+    d'écrire et réussissait.
+
+    Le run du 2026-07-28 04:12 UTC a donc acquis trois enregistrements réels,
+    vérifié leur checksum contre celui approuvé, puis échoué à retrouver son
+    propre rapport — après l'appel réseau.
+
+    Ces tests n'ouvrent aucune connexion et ne touchent ni base ni réseau : ils
+    comparent des chemins. C'est exactement le niveau auquel le défaut vivait,
+    et le niveau auquel il aurait dû être arrêté.
+    """
+
+    ARTIFACTS = Path("/tmp/water-v1/artifacts")
+    REPORTS = Path("/tmp/water-v1/reports")
+
+    def _module(self):
+        import importlib
+
+        return importlib.import_module("scripts.water_intelligence.publish_water_v1")
+
+    def _argv_paths(self, module) -> tuple[Path, Path]:
+        """Les chemins RÉELLEMENT passés à `validate_hubeau`, relus de l'argv.
+
+        Lire l'argv plutôt que rappeler `_scope_paths()` est délibéré : c'est
+        cette liste-là que `subprocess.run` reçoit. Un test qui recomparerait
+        `_scope_paths()` à lui-même passerait quelle que soit la ligne de
+        commande composée.
+        """
+        argv = module._acquisition_argv(
+            module.BNPE_MINIMAL_PILOT_V1,
+            candidate_key=module.BNPE_PILOT_RELEASE_KEY,
+            release=module.BNPE_PILOT_RELEASE_KEY,
+            artifacts=self.ARTIFACTS,
+            reports=self.REPORTS,
+        )
+        return (
+            Path(argv[argv.index("--artifact-dir") + 1]),
+            Path(argv[argv.index("--report") + 1]),
+        )
+
+    def test_the_report_written_is_the_report_read(self) -> None:
+        module = self._module()
+        _artifact, written = self._argv_paths(module)
+        _read_artifact, read = module._paths(self.ARTIFACTS, self.REPORTS)
+        assert written == read, (
+            f"l'acquisition écrit {written}, la publication lit {read} : "
+            "l'acquisition réseau serait consommée avant l'échec."
+        )
+
+    def test_the_artifact_directory_written_is_the_one_read(self) -> None:
+        module = self._module()
+        written, _report = self._argv_paths(module)
+        read, _read_report = module._paths(self.ARTIFACTS, self.REPORTS)
+        assert written == read, (
+            f"l'acquisition écrit ses pages dans {written}, la publication les "
+            f"lit dans {read}."
+        )
+
+    def test_paths_are_derived_from_the_shared_convention(self) -> None:
+        """`_paths()` DÉLÈGUE, il ne recopie pas.
+
+        Le contrôle porte sur la source : deux chemins peuvent coïncider
+        aujourd'hui et diverger au premier renommage si l'un des deux est
+        écrit à la main. C'est ce qui s'est produit.
+        """
+        module = self._module()
+        expected = module._scope_paths(
+            module.BNPE_PILOT_RELEASE_KEY,
+            module.PILOT_SOURCE_CODE,
+            artifacts=self.ARTIFACTS,
+            reports=self.REPORTS,
+        )
+        assert module._paths(self.ARTIFACTS, self.REPORTS) == expected
+
+    def _code(self) -> str:
+        """Le source du publieur, prose retirée.
+
+        Ce fichier documente longuement CE QU'IL NE FAIT PAS — « il s'exécute
+        avant `subprocess.run` », « l'acquisition écrivait `acq_bnpe_v1.md` ».
+        Un grep naïf trouve ces phrases aussi bien que le code, et la première
+        version de ces tests a effectivement localisé un commentaire au lieu de
+        l'appel réseau. Même précaution que `_effective_lines()` plus haut.
+        """
+        import re
+
+        source = (SCRIPTS_DIR / "publish_water_v1.py").read_text(encoding="utf-8")
+        without_docstrings = re.sub(r'"""[\s\S]*?"""', '""', source)
+        return "\n".join(
+            line
+            for line in without_docstrings.splitlines()
+            if not line.lstrip().startswith("#")
+        )
+
+    def test_no_report_filename_is_hand_written_in_the_publisher(self) -> None:
+        """Aucun littéral `acq_…md` dans le publieur.
+
+        Un nom de rapport écrit en dur y est toujours une seconde convention,
+        quelle que soit sa valeur du moment.
+        """
+        import re
+
+        assert not re.search(r'"acq_[^"]*\.md"', self._code()), (
+            "un nom de rapport est écrit à la main dans publish_water_v1.py : "
+            "il doit venir de `_scope_paths()`."
+        )
+
+    def test_the_guard_refuses_before_the_network_call(self) -> None:
+        """La divergence lève AVANT `subprocess.run`, pas après.
+
+        Le contrôle vérifie l'ORDRE dans le code : un garde-fou placé après
+        l'acquisition aurait laissé le run du 2026-07-28 consommer son appel
+        réseau exactement comme il l'a fait.
+        """
+        code = self._code()
+        acquire = code.index("def command_acquire")
+        guard = code.index("l'acquisition n'écrit pas là où la publication lit", acquire)
+        network = code.index("subprocess.run(", acquire)
+        assert guard < network, (
+            "la comparaison des chemins suit l'appel réseau : elle ne protège "
+            "plus l'acquisition, seulement le rapport."
+        )

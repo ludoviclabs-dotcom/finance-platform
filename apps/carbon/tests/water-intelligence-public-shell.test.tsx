@@ -21,6 +21,7 @@ import { resolve } from "path";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import WaterIntelligencePage, { metadata } from "@/app/water/page";
+import { PILOT_FILE } from "@/lib/water-intelligence/pilot-snapshot";
 
 const CARBON_ROOT = resolve(__dirname, "..");
 const PUBLIC_PAGE = resolve(CARBON_ROOT, "app/water/page.tsx");
@@ -216,12 +217,46 @@ describe("aucun appel réseau ni bailout CSR", () => {
     }
   });
 
-  it("ne référence aucune URL externe dans le markup rendu", () => {
-    // Seules des URL internes (/water/cockpit, /materials, /, #ancre) sont permises.
-    const externalHrefs = [...markup.matchAll(/href="(https?:)?\/\/[^"]*"/g)];
-    expect(externalHrefs).toEqual([]);
+  it("ne charge aucune ressource externe au rendu", () => {
+    /* `src` est la seule des deux qui déclenche une requête du navigateur.
+       Elle reste interdite sans exception : c'est elle qui ferait de `/water`
+       une page appelant Hub'Eau chez le lecteur. */
     const externalSrcs = [...markup.matchAll(/src="(https?:)?\/\/[^"]*"/g)];
-    expect(externalSrcs).toEqual([]);
+    expect(externalSrcs.map((m) => m[0])).toEqual([]);
+    for (const tag of [/<script\b/, /<link\b[^>]*rel="(preconnect|dns-prefetch)"/]) {
+      expect(markup).not.toMatch(tag);
+    }
+  });
+
+  it("ne pointe vers l'extérieur que par les URL que le document PORTE", () => {
+    /* Un `href` externe n'est pas un appel réseau — le navigateur ne va nulle
+       part tant que personne ne clique. Il en faut d'ailleurs : la Phase F
+       exige que l'URL officielle de la source soit affichée à côté de chaque
+       valeur, c'est la voie de conformité à la condition de paternité de la
+       Licence Ouverte 2.0.
+     *
+     * Le contrôle porte donc sur la PROVENANCE du lien, pas sur son existence :
+     * chaque URL externe rendue doit se retrouver telle quelle dans le document
+     * publié. Aucun domaine n'est autorisé en dur — tant que rien n'est publié,
+     * l'ensemble permis est vide et le test redevient l'interdiction stricte
+     * qu'il était. */
+    const allowed = new Set<string>();
+    const walk = (node: unknown): void => {
+      if (typeof node === "string") {
+        if (/^https?:\/\//.test(node)) allowed.add(node);
+      } else if (Array.isArray(node)) {
+        node.forEach(walk);
+      } else if (node && typeof node === "object") {
+        Object.values(node).forEach(walk);
+      }
+    };
+    walk(PILOT_FILE);
+
+    const externalHrefs = [...markup.matchAll(/href="((?:https?:)?\/\/[^"]*)"/g)].map(
+      (m) => m[1],
+    );
+    const unexpected = externalHrefs.filter((href) => !allowed.has(href));
+    expect(unexpected).toEqual([]);
   });
 
   it("reste un Server Component (aucun composant client dans l'arbre)", () => {

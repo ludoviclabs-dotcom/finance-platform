@@ -671,16 +671,41 @@ class TestLicenceAndSourceRefusalsAgainstRealPostgres:
 
     def test_a_permissive_licence_never_publishes(self, clean_kernel, tmp_path: Path) -> None:
         """Le point le plus facile à rater : une licence permissive autorise le
-        STOCKAGE, jamais la publication. Aucune source n'est `approved` au
-        registre des décisions humaines."""
-        from services.water_intelligence.publication_decisions import CURRENT_DECISIONS
+        STOCKAGE, jamais la publication.
+
+        La ligne semée ici accorde TOUTES les capacités de licence —
+        `display_allowed`, `derived_use_allowed`, `commercial_use_allowed`,
+        `redistribution_allowed`. C'est le cas le plus favorable qui soit, et
+        `HUBEAU_HYDROMETRIE` n'en devient pas publiable pour autant : sa
+        décision humaine n'a pas été rendue.
+
+        ## Ce que ce test vérifiait, et ce qu'il vérifie maintenant
+
+        Il assertait « aucune source n'est `approved` ». C'était exact jusqu'au
+        2026-07-28, et c'est devenu faux — sans que rien de ce que ce test
+        SURVEILLE n'ait changé. Un test qui échoue pour une raison étrangère à
+        son sujet est un test qu'on finit par affaiblir.
+
+        Il porte donc désormais sur son sujet réel : la source ingérée reste
+        non publiable malgré une licence maximale, et les approbations sont
+        exactement celles qu'un humain a nommées — ni plus, ni moins.
+        """
+        from services.water_intelligence.publication_decisions import (
+            assert_human_approvals_unchanged,
+            current_registry,
+        )
 
         seed_source()
         request, pages, decoded, report = build_request(tmp_path)
         result = run_ingest(request, pages, decoded, report, commit=True)
 
         assert result.release_status == "validated"
-        assert all(d.status != "approved" for d in CURRENT_DECISIONS)
+
+        registry = current_registry()
+        # La source de cette fixture : licence maximale, publication refusée.
+        assert registry.allows(HYDRO) is False
+        # Et le graveur n'a rien approuvé au passage.
+        assert_human_approvals_unchanged()
 
     def test_no_release_is_ever_published_by_this_writer(
         self, clean_kernel, tmp_path: Path

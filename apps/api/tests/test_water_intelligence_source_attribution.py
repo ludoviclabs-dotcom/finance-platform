@@ -193,8 +193,9 @@ def _observation(*, information_url: str | None) -> WaterMetricObservation:
 def _signed_registry() -> PublicationDecisionRegistry:
     """Registre de TEST portant une signature — jamais le registre réel.
 
-    `CURRENT_DECISIONS` reste intouché : les sept sources y demeurent
-    `proposed`/`refused`, et un test qui le modifierait vaudrait approbation.
+    `CURRENT_DECISIONS` reste intouché : `HUBEAU_ADES`, la source signée ici,
+    y demeure `proposed`. Un test qui modifierait le registre réel vaudrait
+    approbation, et `TestRealRegistryIsUntouched` le vérifie explicitement.
     """
     return PublicationDecisionRegistry(
         [

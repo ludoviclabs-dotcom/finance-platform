@@ -265,10 +265,24 @@ jobs:
               echo "ARRÊT — champ tenant '$field' dans le document public"; exit 1
             fi
           done
-          # Aucune autre source Water.
+          # Aucune autre source Water DANS LES OBSERVATIONS PUBLIÉES.
+          #
+          # Pas un grep sur le document entier : `decisions` et `exclusions`
+          # NOMMENT légitimement les six autres sources, avec leur motif
+          # propre — c'est une exigence de la Phase A/D (« chaque source
+          # affiche son état réel »), vérifiée par
+          # `test_the_six_other_sources_are_excluded_with_a_named_reason`.
+          # Un grep texte confond cette mention requise avec une observation
+          # publiée, et refuserait TOUT document conforme : le run du
+          # 2026-07-28 04:43 UTC a échoué exactement ainsi, sur un document
+          # dont l'acquisition et la publication étaient par ailleurs
+          # correctes.
+          OBSERVED_SOURCES=$(jq -r \
+            '(.manifest.observations // [])[].source.source_code,
+             (.manifest.sources // [])[].source_code' "$DOC" | sort -u)
           for other in HUBEAU_ADES HUBEAU_QUALITE_SURFACE HUBEAU_HYDROMETRIE \
                        EEA_WEI_PLUS WRI_AQUEDUCT COPERNICUS_EDO; do
-            if grep -q "\"source_code\": \"$other\"" "$DOC"; then
+            if echo "$OBSERVED_SOURCES" | grep -qx "$other"; then
               echo "ARRÊT — observation de $other dans le snapshot"; exit 1
             fi
           done

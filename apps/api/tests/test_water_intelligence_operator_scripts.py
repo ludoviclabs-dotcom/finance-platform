@@ -1488,6 +1488,109 @@ class TestWaterV1PublicationWorkflow:
         assert "--expect-migration" in gate[0]
         assert "043" in gate[0]
 
+    def _hygiene_step_script(self) -> str:
+        """Le corps EXÉCUTABLE de l'étape « Vérifier qu'aucun payload brut ni
+        secret n'atteint le dépôt », extrait tel quel du YAML.
+
+        Extrait entre son `run: |` et le `- name:` suivant, dédenté de
+        l'indentation YAML (10 espaces). C'est le script RÉEL que GitHub
+        Actions exécute — pas une reconstruction à la main, qui dériverait du
+        script au premier renommage de variable.
+        """
+        lines = self._text().splitlines()
+        start = next(
+            i for i, line in enumerate(lines) if "Vérifier qu'aucun payload brut" in line
+        )
+        run_index = start + 1
+        assert lines[run_index].strip() == "run: |", lines[run_index]
+        # S'arrête à la première ligne non vide dont l'indentation retombe
+        # sous celle du bloc `run:` (10 espaces) — pas seulement à un `- name:`
+        # suivant. Un commentaire d'en-tête de section (6 espaces, entre deux
+        # étapes) n'en est pas un, et une première version de ce test l'a
+        # inclus dans le script extrait, produisant un fragment inexécutable.
+        end = next(
+            i
+            for i in range(run_index + 1, len(lines))
+            if lines[i].strip() and len(lines[i]) - len(lines[i].lstrip(" ")) < 10
+        )
+        body = lines[run_index + 1 : end]
+        return "\n".join(line[10:] if line.strip() else "" for line in body)
+
+    def test_the_hygiene_step_accepts_the_real_compliant_document(self) -> None:
+        """Le document RÉEL — qui nomme les six autres sources dans ses
+        décisions et ses exclusions, comme la Phase A/D l'exige — passe.
+
+        Ce test aurait détecté le défaut avant le run du 2026-07-28 04:43 UTC :
+        un grep sur le document ENTIER trouvait `"source_code": "HUBEAU_ADES"`
+        dans `decisions`/`exclusions` — une mention requise, pas une
+        observation — et arrêtait un document par ailleurs conforme.
+        """
+        import subprocess
+        import tempfile
+        from pathlib import Path as _Path
+
+        sample = (
+            SCRIPTS_DIR.parents[2]
+            / "carbon"
+            / "tests"
+            / "fixtures"
+            / "pilot-document-sample.json"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            doc = _Path(tmp) / "PUBLIC_SNAPSHOT_BNPE_V1.json"
+            doc.write_bytes(sample.read_bytes())
+            reports = _Path(tmp) / "reports"
+            reports.mkdir()
+            script = self._hygiene_step_script().replace(
+                "docs/carbonco/water-intelligence/contracts/PUBLIC_SNAPSHOT_BNPE_V1.json",
+                str(doc),
+            )
+            result = subprocess.run(
+                ["bash", "-c", script],
+                env={"REPORTS": str(reports), "PATH": "/usr/bin:/bin"},
+                capture_output=True,
+                text=True,
+            )
+            assert result.returncode == 0, result.stdout + result.stderr
+            assert "document et rapports propres" in result.stdout
+
+    def test_the_hygiene_step_still_refuses_a_real_foreign_observation(self) -> None:
+        """Le même script arrête bien une VRAIE observation d'une autre
+        source — le fixer sur `decisions`/`exclusions` ne doit pas l'aveugler
+        sur le cas qu'il existe pour attraper."""
+        import json
+        import subprocess
+        import tempfile
+        from pathlib import Path as _Path
+
+        sample = (
+            SCRIPTS_DIR.parents[2]
+            / "carbon"
+            / "tests"
+            / "fixtures"
+            / "pilot-document-sample.json"
+        )
+        document = json.loads(sample.read_text(encoding="utf-8"))
+        document["manifest"]["observations"][0]["source"]["source_code"] = "HUBEAU_ADES"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            doc = _Path(tmp) / "PUBLIC_SNAPSHOT_BNPE_V1.json"
+            doc.write_text(json.dumps(document), encoding="utf-8")
+            reports = _Path(tmp) / "reports"
+            reports.mkdir()
+            script = self._hygiene_step_script().replace(
+                "docs/carbonco/water-intelligence/contracts/PUBLIC_SNAPSHOT_BNPE_V1.json",
+                str(doc),
+            )
+            result = subprocess.run(
+                ["bash", "-c", script],
+                env={"REPORTS": str(reports), "PATH": "/usr/bin:/bin"},
+                capture_output=True,
+                text=True,
+            )
+            assert result.returncode != 0
+            assert "ARRÊT — observation de HUBEAU_ADES dans le snapshot" in result.stdout
+
     def test_the_signature_is_verified_before_any_network_call(self) -> None:
         """Le registre est confronté à la signature attendue AVANT Hub'Eau.
 

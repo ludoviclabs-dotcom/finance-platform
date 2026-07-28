@@ -24,7 +24,9 @@ fictifs.
 from __future__ import annotations
 
 import json
+import os
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 import pytest
 
@@ -49,6 +51,8 @@ from services.water_intelligence.publication_decisions import (
     EXCLUSION_OUTSIDE_AUTHORIZED_SCOPE,
     current_registry,
 )
+
+API_ROOT = Path(__file__).resolve().parents[1]
 
 CLOCK = datetime(2026, 7, 28, 12, 0, tzinfo=timezone.utc)
 
@@ -570,3 +574,187 @@ class TestCoverageWarningsSurviveTheSignature:
             "JAMAIS un prélèvement nul" in warning
             for warning in pub.MANDATORY_WARNINGS
         )
+
+
+# ---------------------------------------------------------------------------
+# Le document réellement écrit
+# ---------------------------------------------------------------------------
+
+
+def _prepared_double():
+    """Double de `PreparedRelease` portant TOUS les champs que lit le publieur.
+
+    Le double de `TestEveryStopConditionActuallyStops` n'en porte que la moitié
+    — il exerce `_verify_prepared`, qui ne lit rien d'autre. Celui-ci exerce
+    `_document()` et `_proof()`, qui lisent en plus la release, ses deux
+    checksums et toute la provenance.
+    """
+    from services.water_intelligence.release_provenance import ReleaseProvenance
+
+    class _Prepared:
+        observations = _three_in_scope()
+        records_rejected = 0
+        units = ("m3",)
+        geography_codes = FAKE_OUVRAGES
+        release_key = "bnpe-minimal-pilot-v1"
+        artifact_checksum = "a" * 64
+        validation_report_checksum = "b" * 64
+        provenance = ReleaseProvenance(
+            source_code="HUBEAU_BNPE_PRELEVEMENTS",
+            # L'attribution du DOUBLE s'annonce comme telle : si ce document de
+            # test atteignait un jour une surface, il le dirait lui-même.
+            attribution="Données issues de la BNPE (FIXTURE DE TEST).",
+            stable_attribution="Données issues de la BNPE (FIXTURE DE TEST).",
+            information_url="https://hubeau.eaufrance.fr/page/api-prelevements-eau",
+            refresh_cadence=None,
+            last_updated_on=None,
+            license_code="ETALAB-2.0",
+            license_scope="platform",
+            accessed_on=date(2026, 7, 28),
+        )
+
+    return _Prepared
+
+
+def _generated_document() -> dict:
+    return pub._document(_assemble(_three_in_scope()), _prepared_double(), CLOCK)
+
+
+class TestTheDocumentIsActuallyProduced:
+    """`_document()` et `_proof()`, EXÉCUTÉS.
+
+    Aucun test ne les appelait. Les contrôles de document portaient sur
+    l'enveloppe de l'assembleur — `serialize_canonical_document(
+    snapshot.canonical_json())` — c'est-à-dire sur tout SAUF le bloc `pilot`
+    que `_document()` ajoute, et que la Phase D rend obligatoire.
+
+    Ce bloc est aussi celui que le front valide par un `.parse()` qui casse le
+    build. Une clé manquante ne se serait donc découverte qu'APRÈS le commit
+    du workflow — sur un document déjà publié, après un appel réseau déjà
+    consommé.
+    """
+
+    def test_the_pilot_block_carries_every_mandatory_metadata(self) -> None:
+        pilot = _generated_document()["pilot"]
+        assert pilot["option_key"] == "bnpe_minimal_pilot_v1"
+        assert pilot["publication_mode"] == "table_first"
+        assert pilot["geo_layers"] == "deferred"
+        assert pilot["pilot_status"] == "limited_scope"
+        assert pilot["observation_count"] == 3
+        assert pilot["observed_period_start"] == "2020-01-01"
+        assert pilot["observed_period_end"] == "2020-12-31"
+        assert pilot["retrieved_at"] == "2026-07-28"
+        # `None` ASSUMÉ, et vérifié comme tel : une cadence inventée serait un
+        # fait sur la source que personne n'a relevé.
+        assert pilot["source_refresh_cadence"] is None
+        assert pilot["source_last_updated_on"] is None
+
+    def test_the_document_announces_itself_as_generated(self) -> None:
+        """Le discriminant que lit le miroir front, sans lequel `/water` rendrait
+        l'état « non généré » sur un document généré."""
+        assert _generated_document()["pilot_document_status"] == "generated"
+
+    def test_the_document_carries_the_signed_scope_and_permissions(self) -> None:
+        pilot = _generated_document()["pilot"]
+        assert pilot["geography_type"] == "code_commune_insee"
+        assert pilot["geography_code"] == "34172"
+        assert pilot["reviewed_by"] == "ludoviclabs-dotcom"
+        assert pilot["reviewed_on"] == "2026-07-28"
+        # `derived_use_allowed = false` voyage jusqu'au document : c'est lui qui
+        # interdit à la surface tout total, moyenne, classement ou score.
+        assert pilot["permissions"]["derived_use_allowed"] is False
+        assert pilot["permissions"]["display_allowed"] is True
+
+    def test_the_three_warnings_travel_with_the_values(self) -> None:
+        assert _generated_document()["pilot"]["coverage_warnings"] == list(
+            pub.MANDATORY_WARNINGS
+        )
+
+    def test_the_document_stays_far_under_the_budget(self) -> None:
+        payload = serialize_canonical_document(_generated_document())
+        assert len(payload) < MAX_MANIFEST_BYTES_UNCOMPRESSED
+
+    def test_the_proof_report_carries_no_raw_payload(self) -> None:
+        """Le rapport de preuve porte des empreintes et des comptes.
+
+        Un tableau `data` y ferait entrer des octets Hub'Eau bruts dans un
+        artefact de run — ce que l'autorisation interdit sans réserve.
+        """
+        document = _generated_document()
+        payload = serialize_canonical_document(document)
+        proof = pub._proof(
+            _assemble(_three_in_scope()), _prepared_double(), document, payload, CLOCK
+        )
+        assert proof["observation_count"] == 3
+        assert proof["approved_payload_sha256"] == pub.APPROVED_PAYLOAD_SHA256
+        assert proof["document_bytes"] == len(payload)
+        assert proof["margin_bytes"] == MAX_MANIFEST_BYTES_UNCOMPRESSED - len(payload)
+        assert proof["included_source_codes"] == ["HUBEAU_BNPE_PRELEVEMENTS"]
+        assert "data" not in proof
+        serialized = json.dumps(proof, ensure_ascii=False, default=str)
+        for field in ("company_id", "tenant_id", "site_id"):
+            assert field not in serialized
+
+
+class TestThePythonDocumentSatisfiesTheTypeScriptContract:
+    """Le document produit par Python, relu par le contrat du front.
+
+    `PilotFileSchema.parse()` casse le build du front sur un document hors
+    contrat — c'est délibéré, et c'est ce qui rend la dérive coûteuse au pire
+    moment : le workflow committe le document AVANT que quoi que ce soit ne le
+    valide côté TypeScript.
+
+    L'échantillon versionné est donc verrouillé aux OCTETS sur la sortie de
+    `_document()`. Un champ ajouté, renommé ou retypé côté Python fait échouer
+    ce test ; un test Vitest parse le même fichier avec le schéma zod réel. Les
+    deux langages regardent alors le même document, et aucun ne peut dériver
+    sans que l'autre ne le dise.
+    """
+
+    #: Échantillon partagé. Ses valeurs sont FABRIQUÉES (ouvrages `TEST-OPR-*`,
+    #: attribution qui s'annonce comme fixture) : il exerce un contrat, il ne
+    #: prétend décrire aucun prélèvement.
+    SAMPLE = (
+        API_ROOT.parents[1]
+        / "apps"
+        / "carbon"
+        / "tests"
+        / "fixtures"
+        / "pilot-document-sample.json"
+    )
+
+    #: Régénération explicite : `REGENERATE_PILOT_SAMPLE=1 python -m pytest
+    #: tests/test_water_v1_publication.py -k byte_identical`. Le mécanisme est
+    #: celui de `vitest -u` — jamais implicite, sinon un échantillon se
+    #: réécrirait tout seul et ne verrouillerait plus rien.
+    REGENERATE = "REGENERATE_PILOT_SAMPLE"
+
+    def test_the_sample_is_byte_identical_to_what_the_publisher_produces(
+        self,
+    ) -> None:
+        produced = serialize_canonical_document(_generated_document())
+        if os.environ.get(self.REGENERATE) == "1":
+            self.SAMPLE.parent.mkdir(parents=True, exist_ok=True)
+            self.SAMPLE.write_bytes(produced)
+        assert self.SAMPLE.exists(), (
+            f"échantillon absent : {self.SAMPLE}. Le régénérer avec "
+            f"`{self.REGENERATE}=1 python -m pytest "
+            "tests/test_water_v1_publication.py -k byte_identical`."
+        )
+        assert self.SAMPLE.read_bytes() == produced, (
+            "l'échantillon versionné a dérivé de la sortie de `_document()`.\n"
+            f"Le régénérer (`{self.REGENERATE}=1 …`) plutôt qu'assouplir ce "
+            "test : c'est lui qui prouve que le contrat TypeScript regarde le "
+            "document RÉEL, et non une copie figée qui lui ressemblait."
+        )
+
+    def test_the_sample_announces_that_its_values_are_fabricated(self) -> None:
+        """Un document d'apparence publiable, versionné, doit se dénoncer.
+
+        Sans cela, un échantillon de contrat se confond avec un snapshot
+        publié — pour un lecteur du dépôt comme pour un futur test.
+        """
+        content = self.SAMPLE.read_text(encoding="utf-8")
+        assert "FIXTURE DE TEST" in content
+        for fake in FAKE_OUVRAGES:
+            assert fake in content

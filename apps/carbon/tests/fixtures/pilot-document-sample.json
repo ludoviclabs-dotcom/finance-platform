@@ -1,0 +1,425 @@
+{
+  "budgets": {
+    "max_features_per_layer": 1000,
+    "max_layer_bytes_gzip": 400000,
+    "max_manifest_bytes_uncompressed": 100000,
+    "max_points_per_series": 120
+  },
+  "coverage": {
+    "excluded_source_count": 6,
+    "layer_count": 0,
+    "observation_count": 3,
+    "period_count": 1,
+    "source_count": 1
+  },
+  "decisions": [
+    {
+      "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
+      "reason": "Statut connecteur `source_verified_decoder_deferred` : identité de source vérifiée mais décodage raster volontairement reporté (aucune dépendance GDAL/rasterio/netCDF4 sans ADR). Aucune valeur décodée, donc rien à publier.",
+      "reviewed_by": null,
+      "reviewed_on": null,
+      "source_code": "COPERNICUS_EDO",
+      "status": "refused"
+    },
+    {
+      "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
+      "reason": "Licence CC BY 4.0 (détenteur EEA) vérifiée en Wave A, attribution composée disponible. Analyse faite, décision de publication NON rendue : identifier une licence permissive ne vaut pas autorisation éditoriale. Reste inactive.",
+      "reviewed_by": null,
+      "reviewed_on": null,
+      "source_code": "EEA_WEI_PLUS",
+      "status": "proposed"
+    },
+    {
+      "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
+      "reason": "Licence Ouverte Etalab vérifiée en Wave B (plateforme). Décision par jeu NON rendue ; le connecteur n'a par ailleurs jamais publié (dry-run).",
+      "reviewed_by": null,
+      "reviewed_on": null,
+      "source_code": "HUBEAU_ADES",
+      "status": "proposed"
+    },
+    {
+      "allows_publication": true,
+      "authorized_scope": {
+        "geography_code": "34172",
+        "geography_type": "code_commune_insee",
+        "measurement_only": false,
+        "period_end": "2020-12-31",
+        "period_start": "2020-01-01"
+      },
+      "permissions": {
+        "automated_access_allowed": true,
+        "derived_use_allowed": false,
+        "display_allowed": true,
+        "storage_allowed": true
+      },
+      "reason": "publication pilote BNPE exhaustive sur un périmètre communal et annuel explicitement limité",
+      "reviewed_by": "ludoviclabs-dotcom",
+      "reviewed_on": "2026-07-28",
+      "source_code": "HUBEAU_BNPE_PRELEVEMENTS",
+      "status": "approved"
+    },
+    {
+      "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
+      "reason": "Licence Ouverte Etalab vérifiée en Wave B (plateforme). Décision par jeu NON rendue ; le connecteur n'a par ailleurs jamais publié (dry-run).",
+      "reviewed_by": null,
+      "reviewed_on": null,
+      "source_code": "HUBEAU_HYDROMETRIE",
+      "status": "proposed"
+    },
+    {
+      "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
+      "reason": "Licence Ouverte Etalab vérifiée en Wave B. Décision NON rendue. Une publication exigerait en outre une allowlist de paramètres SANDRE revue et l'absence de toute conclusion de conformité, qui relève exclusivement du registre juridique.",
+      "reviewed_by": null,
+      "reviewed_on": null,
+      "source_code": "HUBEAU_QUALITE_SURFACE",
+      "status": "proposed"
+    },
+    {
+      "allows_publication": false,
+      "authorized_scope": null,
+      "permissions": {
+        "automated_access_allowed": false,
+        "derived_use_allowed": false,
+        "display_allowed": false,
+        "storage_allowed": false
+      },
+      "reason": "Licence CC BY 4.0 vérifiée, mais WRI exige en outre un enregistrement pour partager/adapter les données. Enregistrement NON effectué : aucune valeur Aqueduct n'est publiable tant qu'un humain n'a pas tranché.",
+      "reviewed_by": null,
+      "reviewed_on": null,
+      "source_code": "WRI_AQUEDUCT",
+      "status": "refused"
+    }
+  ],
+  "exclusions": [
+    {
+      "detail": "Statut connecteur `source_verified_decoder_deferred` : identité de source vérifiée mais décodage raster volontairement reporté (aucune dépendance GDAL/rasterio/netCDF4 sans ADR). Aucune valeur décodée, donc rien à publier.",
+      "reason": "decision_refused",
+      "source_code": "COPERNICUS_EDO"
+    },
+    {
+      "detail": "Licence CC BY 4.0 (détenteur EEA) vérifiée en Wave A, attribution composée disponible. Analyse faite, décision de publication NON rendue : identifier une licence permissive ne vaut pas autorisation éditoriale. Reste inactive.",
+      "reason": "decision_proposed_not_reviewed",
+      "source_code": "EEA_WEI_PLUS"
+    },
+    {
+      "detail": "Licence Ouverte Etalab vérifiée en Wave B (plateforme). Décision par jeu NON rendue ; le connecteur n'a par ailleurs jamais publié (dry-run).",
+      "reason": "decision_proposed_not_reviewed",
+      "source_code": "HUBEAU_ADES"
+    },
+    {
+      "detail": "Licence Ouverte Etalab vérifiée en Wave B (plateforme). Décision par jeu NON rendue ; le connecteur n'a par ailleurs jamais publié (dry-run).",
+      "reason": "decision_proposed_not_reviewed",
+      "source_code": "HUBEAU_HYDROMETRIE"
+    },
+    {
+      "detail": "Licence Ouverte Etalab vérifiée en Wave B. Décision NON rendue. Une publication exigerait en outre une allowlist de paramètres SANDRE revue et l'absence de toute conclusion de conformité, qui relève exclusivement du registre juridique.",
+      "reason": "decision_proposed_not_reviewed",
+      "source_code": "HUBEAU_QUALITE_SURFACE"
+    },
+    {
+      "detail": "Licence CC BY 4.0 vérifiée, mais WRI exige en outre un enregistrement pour partager/adapter les données. Enregistrement NON effectué : aucune valeur Aqueduct n'est publiable tant qu'un humain n'a pas tranché.",
+      "reason": "decision_refused",
+      "source_code": "WRI_AQUEDUCT"
+    }
+  ],
+  "generated_at": "2026-07-28T12:00:00+00:00",
+  "included_source_codes": [
+    "HUBEAU_BNPE_PRELEVEMENTS"
+  ],
+  "is_empty": false,
+  "manifest": {
+    "editorial_records": [],
+    "fixture_label": null,
+    "generated_at": "2026-07-28T12:00:00Z",
+    "geo_layers": [],
+    "legal_records": [],
+    "manifest_version": "1.0.0",
+    "observations": [
+      {
+        "geography": {
+          "code": "TEST-OPR-A",
+          "label": "TEST-OPR-A",
+          "scope": "france"
+        },
+        "method": {
+          "code": "CC-WI-HUBEAU-BNPE-PASSTHROUGH",
+          "version": "1.0.0"
+        },
+        "metric_code": "water.withdrawal.volume",
+        "period_end": "2020-12-31",
+        "period_start": "2020-01-01",
+        "quality": {
+          "confidence": null,
+          "coverage_pct": null,
+          "data_status": "manual",
+          "warnings": []
+        },
+        "scenario": null,
+        "source": {
+          "attribution": "Données issues de la BNPE (fixture de test).",
+          "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "license": {
+            "allow_derived_use": false,
+            "allow_display": true,
+            "allow_ingest": true,
+            "allow_store": true,
+            "reasons": [],
+            "warnings": []
+          },
+          "methodology_version": "1.0.0",
+          "observed_period_end": "2020-12-31",
+          "observed_period_start": "2020-01-01",
+          "published_at": null,
+          "release_key": "bnpe-minimal-pilot-v1",
+          "retrieved_at": "2026-07-28",
+          "source_code": "HUBEAU_BNPE_PRELEVEMENTS",
+          "source_information_url": "https://hubeau.eaufrance.fr/page/api-prelevements-eau",
+          "source_last_updated_on": null,
+          "source_refresh_cadence": null,
+          "warnings": []
+        },
+        "unit": "m3",
+        "value": 12500.0,
+        "value_withheld": false
+      },
+      {
+        "geography": {
+          "code": "TEST-OPR-B",
+          "label": "TEST-OPR-B",
+          "scope": "france"
+        },
+        "method": {
+          "code": "CC-WI-HUBEAU-BNPE-PASSTHROUGH",
+          "version": "1.0.0"
+        },
+        "metric_code": "water.withdrawal.volume",
+        "period_end": "2020-12-31",
+        "period_start": "2020-01-01",
+        "quality": {
+          "confidence": null,
+          "coverage_pct": null,
+          "data_status": "manual",
+          "warnings": []
+        },
+        "scenario": null,
+        "source": {
+          "attribution": "Données issues de la BNPE (fixture de test).",
+          "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "license": {
+            "allow_derived_use": false,
+            "allow_display": true,
+            "allow_ingest": true,
+            "allow_store": true,
+            "reasons": [],
+            "warnings": []
+          },
+          "methodology_version": "1.0.0",
+          "observed_period_end": "2020-12-31",
+          "observed_period_start": "2020-01-01",
+          "published_at": null,
+          "release_key": "bnpe-minimal-pilot-v1",
+          "retrieved_at": "2026-07-28",
+          "source_code": "HUBEAU_BNPE_PRELEVEMENTS",
+          "source_information_url": "https://hubeau.eaufrance.fr/page/api-prelevements-eau",
+          "source_last_updated_on": null,
+          "source_refresh_cadence": null,
+          "warnings": []
+        },
+        "unit": "m3",
+        "value": 3200.0,
+        "value_withheld": false
+      },
+      {
+        "geography": {
+          "code": "TEST-OPR-C",
+          "label": "TEST-OPR-C",
+          "scope": "france"
+        },
+        "method": {
+          "code": "CC-WI-HUBEAU-BNPE-PASSTHROUGH",
+          "version": "1.0.0"
+        },
+        "metric_code": "water.withdrawal.volume",
+        "period_end": "2020-12-31",
+        "period_start": "2020-01-01",
+        "quality": {
+          "confidence": null,
+          "coverage_pct": null,
+          "data_status": "manual",
+          "warnings": []
+        },
+        "scenario": null,
+        "source": {
+          "attribution": "Données issues de la BNPE (fixture de test).",
+          "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "license": {
+            "allow_derived_use": false,
+            "allow_display": true,
+            "allow_ingest": true,
+            "allow_store": true,
+            "reasons": [],
+            "warnings": []
+          },
+          "methodology_version": "1.0.0",
+          "observed_period_end": "2020-12-31",
+          "observed_period_start": "2020-01-01",
+          "published_at": null,
+          "release_key": "bnpe-minimal-pilot-v1",
+          "retrieved_at": "2026-07-28",
+          "source_code": "HUBEAU_BNPE_PRELEVEMENTS",
+          "source_information_url": "https://hubeau.eaufrance.fr/page/api-prelevements-eau",
+          "source_last_updated_on": null,
+          "source_refresh_cadence": null,
+          "warnings": []
+        },
+        "unit": "m3",
+        "value": 48900.0,
+        "value_withheld": false
+      }
+    ],
+    "scenarios": [],
+    "sources": [
+      {
+        "attribution": "Données issues de la BNPE (fixture de test).",
+        "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "license": {
+          "allow_derived_use": false,
+          "allow_display": true,
+          "allow_ingest": true,
+          "allow_store": true,
+          "reasons": [],
+          "warnings": []
+        },
+        "methodology_version": "1.0.0",
+        "observed_period_end": "2020-12-31",
+        "observed_period_start": "2020-01-01",
+        "published_at": null,
+        "release_key": "bnpe-minimal-pilot-v1",
+        "retrieved_at": "2026-07-28",
+        "source_code": "HUBEAU_BNPE_PRELEVEMENTS",
+        "source_information_url": "https://hubeau.eaufrance.fr/page/api-prelevements-eau",
+        "source_last_updated_on": null,
+        "source_refresh_cadence": null,
+        "warnings": []
+      }
+    ],
+    "warnings": []
+  },
+  "methods": [
+    [
+      "CC-WI-HUBEAU-BNPE-PASSTHROUGH",
+      "1.0.0"
+    ]
+  ],
+  "periods": [
+    [
+      "2020-01-01",
+      "2020-12-31"
+    ]
+  ],
+  "pilot": {
+    "artifact_checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "attribution": "Données issues de la BNPE (FIXTURE DE TEST).",
+    "coverage_warnings": [
+      "Les volumes exonérés de redevance peuvent être absents de cette source.",
+      "Certains petits volumes peuvent ne pas être déclarés.",
+      "Une absence de déclaration n'est JAMAIS un prélèvement nul."
+    ],
+    "excluded_sources": [
+      {
+        "detail": "Statut connecteur `source_verified_decoder_deferred` : identité de source vérifiée mais décodage raster volontairement reporté (aucune dépendance GDAL/rasterio/netCDF4 sans ADR). Aucune valeur décodée, donc rien à publier.",
+        "reason": "decision_refused",
+        "source_code": "COPERNICUS_EDO"
+      },
+      {
+        "detail": "Licence CC BY 4.0 (détenteur EEA) vérifiée en Wave A, attribution composée disponible. Analyse faite, décision de publication NON rendue : identifier une licence permissive ne vaut pas autorisation éditoriale. Reste inactive.",
+        "reason": "decision_proposed_not_reviewed",
+        "source_code": "EEA_WEI_PLUS"
+      },
+      {
+        "detail": "Licence Ouverte Etalab vérifiée en Wave B (plateforme). Décision par jeu NON rendue ; le connecteur n'a par ailleurs jamais publié (dry-run).",
+        "reason": "decision_proposed_not_reviewed",
+        "source_code": "HUBEAU_ADES"
+      },
+      {
+        "detail": "Licence Ouverte Etalab vérifiée en Wave B (plateforme). Décision par jeu NON rendue ; le connecteur n'a par ailleurs jamais publié (dry-run).",
+        "reason": "decision_proposed_not_reviewed",
+        "source_code": "HUBEAU_HYDROMETRIE"
+      },
+      {
+        "detail": "Licence Ouverte Etalab vérifiée en Wave B. Décision NON rendue. Une publication exigerait en outre une allowlist de paramètres SANDRE revue et l'absence de toute conclusion de conformité, qui relève exclusivement du registre juridique.",
+        "reason": "decision_proposed_not_reviewed",
+        "source_code": "HUBEAU_QUALITE_SURFACE"
+      },
+      {
+        "detail": "Licence CC BY 4.0 vérifiée, mais WRI exige en outre un enregistrement pour partager/adapter les données. Enregistrement NON effectué : aucune valeur Aqueduct n'est publiable tant qu'un humain n'a pas tranché.",
+        "reason": "decision_refused",
+        "source_code": "WRI_AQUEDUCT"
+      }
+    ],
+    "geo_layers": "deferred",
+    "geography_code": "34172",
+    "geography_type": "code_commune_insee",
+    "license_code": "ETALAB-2.0",
+    "license_scope": "platform",
+    "observation_count": 3,
+    "observed_period_end": "2020-12-31",
+    "observed_period_start": "2020-01-01",
+    "option_key": "bnpe_minimal_pilot_v1",
+    "payload_sha256": "c9b8d10e9f1059fd49db51a45d6890ff1cebe546084eeac03d871742a74bd2e9",
+    "permissions": {
+      "automated_access_allowed": true,
+      "derived_use_allowed": false,
+      "display_allowed": true,
+      "storage_allowed": true
+    },
+    "pilot_status": "limited_scope",
+    "publication_mode": "table_first",
+    "release_key": "bnpe-minimal-pilot-v1",
+    "retrieved_at": "2026-07-28",
+    "reviewed_by": "ludoviclabs-dotcom",
+    "reviewed_on": "2026-07-28",
+    "source_code": "HUBEAU_BNPE_PRELEVEMENTS",
+    "source_information_url": "https://hubeau.eaufrance.fr/page/api-prelevements-eau",
+    "source_last_updated_on": null,
+    "source_refresh_cadence": null
+  },
+  "pilot_document_status": "generated",
+  "schema_version": "1.0.0",
+  "warnings": []
+}

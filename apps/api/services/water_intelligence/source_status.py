@@ -61,7 +61,7 @@ LicenseScope = Literal["dataset", "platform", "unknown"]
 #: État public d'une source, du point de vue du lecteur de la page publique.
 #: Ces cinq valeurs sont celles que la surface a le droit d'afficher.
 PublicSourceState = Literal[
-    "publishable",  # décision humaine signée — aucune source n'est ici à ce jour
+    "publishable",  # décision humaine signée — BNPE seule, sur son périmètre pilote
     "decision_pending",  # analyse faite, décision NON rendue
     "publication_blocked",  # refus explicite pour une cause externe (WRI)
     "decoder_deferred",  # rien à publier : aucune valeur décodée (Copernicus)
@@ -94,11 +94,27 @@ class SourceStatus:
     license_verified_in: str | None
     #: Statut du connecteur, tel que formalisé par les Waves A et B.
     connector_status: str
-    #: Ce qu'il manque pour publier, en une phrase actionnable.
+    #: Ce qu'il manque pour publier, en une phrase actionnable. Pour une
+    #: source PUBLIÉE sur un périmètre pilote, ce qui reste bloqué est tout ce
+    #: qui sort de ce périmètre — la phrase le dit alors ainsi.
     blocking_reason: str
+    #: Code NORMALISÉ du motif de report ou de blocage, destiné à la surface.
+    #:
+    #: Il existe parce qu'une phrase française ne se compare pas : la
+    #: constellation publique doit pouvoir afficher sept états distincts sans
+    #: que chacun dépende d'une chaîne libre qu'un remaniement de copie
+    #: casserait. `blocking_reason` explique à un lecteur, celui-ci s'adresse
+    #: au code — et les deux disent la même chose.
+    deferral_code: str
 
     def __post_init__(self) -> None:
-        for name in ("source_code", "label", "connector_status", "blocking_reason"):
+        for name in (
+            "source_code",
+            "label",
+            "connector_status",
+            "blocking_reason",
+            "deferral_code",
+        ):
             if not str(getattr(self, name)).strip():
                 raise SourceStatusError(f"SourceStatus.{name} obligatoire.")
         if self.license_code is None and self.license_scope != "unknown":
@@ -146,6 +162,14 @@ class SourceStatus:
             "state": self.state(registry),
             "state_label": STATE_LABELS[self.state(registry)],
             "blocking_reason": self.blocking_reason,
+            "deferral_code": self.deferral_code,
+            # Le périmètre signé voyage jusqu'à la surface : « publiée » sans
+            # dire SUR QUOI se lirait comme « toute la source est publiée ».
+            "authorized_scope": (
+                scope.as_mapping()
+                if (scope := registry.authorized_scope(self.source_code))
+                else None
+            ),
         }
 
 
@@ -160,6 +184,7 @@ class SourceStatus:
 CURRENT_SOURCE_STATUS: tuple[SourceStatus, ...] = (
     SourceStatus(
         source_code="WRI_AQUEDUCT",
+        deferral_code="blocked_registration_required",
         label="WRI Aqueduct 4.0",
         license_code="CC-BY-4.0",
         license_scope="dataset",
@@ -173,6 +198,7 @@ CURRENT_SOURCE_STATUS: tuple[SourceStatus, ...] = (
     ),
     SourceStatus(
         source_code="COPERNICUS_EDO",
+        deferral_code="source_verified_decoder_deferred",
         label="Copernicus EDO — indice combiné de sécheresse",
         license_code="COPERNICUS-EMS-FREE-FULL-OPEN",
         license_scope="dataset",
@@ -186,6 +212,7 @@ CURRENT_SOURCE_STATUS: tuple[SourceStatus, ...] = (
     ),
     SourceStatus(
         source_code="EEA_WEI_PLUS",
+        deferral_code="manual_artifact_required",
         label="EEA / WISE — Water Exploitation Index Plus",
         license_code="CC-BY-4.0",
         license_scope="dataset",
@@ -199,6 +226,7 @@ CURRENT_SOURCE_STATUS: tuple[SourceStatus, ...] = (
     ),
     SourceStatus(
         source_code="HUBEAU_HYDROMETRIE",
+        deferral_code="subdaily_identity_collision",
         label="Hub'Eau — hydrométrie (débits et hauteurs)",
         license_code="ETALAB-2.0",
         license_scope="platform",
@@ -212,44 +240,54 @@ CURRENT_SOURCE_STATUS: tuple[SourceStatus, ...] = (
     ),
     SourceStatus(
         source_code="HUBEAU_ADES",
+        deferral_code="deferred_over_budget",
         label="Hub'Eau — piézométrie (niveaux de nappe)",
         license_code="ETALAB-2.0",
         license_scope="platform",
         license_verified_in="Wave B",
         connector_status="source_verified",
         blocking_reason=(
-            "Licence Ouverte vérifiée au niveau de la PLATEFORME, pas jeu par jeu. "
-            "La décision de publication n'a pas été rendue, et le connecteur n'a "
-            "jamais publié (exécution à blanc uniquement)."
+            "Acquisition mesurée et STABLE — le checksum X4B-PREP est identique à "
+            "celui de X3 sur 52 139 octets. Le report ne porte donc aucun doute "
+            "sur la source : à 182 observations pour 255 121 octets, elle occupe "
+            "2,5 fois le budget de 100 000 octets du snapshot public. Alléger la "
+            "provenance rendrait le budget tenable en rendant la donnée non "
+            "auditable ; la décision de publication reste non rendue."
         ),
     ),
     SourceStatus(
         source_code="HUBEAU_BNPE_PRELEVEMENTS",
+        deferral_code="published_limited_scope",
         label="Hub'Eau — prélèvements (BNPE)",
         license_code="ETALAB-2.0",
         license_scope="platform",
         license_verified_in="Wave B",
-        connector_status="source_verified",
+        connector_status="source_verified_published_limited_scope",
         blocking_reason=(
-            "Licence Ouverte vérifiée au niveau de la plateforme. Décision non "
-            "rendue. La couverture est en outre partielle par construction : les "
-            "usages exonérés de redevance sont inconnus et les volumes inférieurs "
-            "à 10 000 m³ ne sont pas déclarés — une publication devra rendre "
-            "l'absence, jamais un zéro."
+            "Publication autorisée le 2026-07-28, et UNIQUEMENT sur la commune "
+            "INSEE 34172 pour l'année 2020. Tout autre territoire et toute autre "
+            "année restent non publiables : ils exigeraient une nouvelle décision "
+            "humaine. La couverture reste en outre partielle par construction — "
+            "les usages exonérés de redevance sont inconnus et les volumes "
+            "inférieurs à 10 000 m³ ne sont pas déclarés : une absence de "
+            "déclaration n'est jamais un prélèvement nul."
         ),
     ),
     SourceStatus(
         source_code="HUBEAU_QUALITE_SURFACE",
+        deferral_code="deferred_over_budget",
         label="Hub'Eau — qualité des cours d'eau (Naïades)",
         license_code="ETALAB-2.0",
         license_scope="platform",
         license_verified_in="Wave B",
         connector_status="source_verified",
         blocking_reason=(
-            "Licence Ouverte vérifiée au niveau de la plateforme. Décision non "
-            "rendue. Une publication exigerait en outre une liste de paramètres "
-            "SANDRE revue et l'absence de toute conclusion de conformité — la "
-            "conformité relève exclusivement du registre juridique."
+            "Périmètre resserré jusqu'à devenir exhaustif — 78 observations sur "
+            "janvier 2024, au lieu de 50 tronquées sur un trimestre. Le progrès de "
+            "méthode ne rend pas le candidat publiable : 111 324 octets, soit "
+            "11 324 de trop. Une publication exigerait en outre une liste de "
+            "paramètres SANDRE revue et l'absence de toute conclusion de "
+            "conformité — celle-ci relève exclusivement du registre juridique."
         ),
     ),
 )

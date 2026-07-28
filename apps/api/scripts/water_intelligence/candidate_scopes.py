@@ -294,6 +294,57 @@ X3_TECHNICAL_SAMPLE = Candidate(
 )
 
 
+# ---------------------------------------------------------------------------
+# bnpe_minimal_pilot_v1 — le périmètre RÉELLEMENT signé
+# ---------------------------------------------------------------------------
+#
+# Ce périmètre n'est pas un quatrième candidat à mesurer : c'est celui que la
+# décision humaine du 2026-07-28 a approuvé, et le seul de tout le chantier
+# dont le poids ait été mesuré sous le budget (6 120 octets pour 100 000).
+#
+# Il vit ici, avec les autres, pour une raison précise : les périmètres sont
+# définis en DONNÉES, jamais recopiés dans un workflow. Une recette dupliquée
+# dérive de son module de référence à la première modification — et c'est
+# exactement ce qui rend un périmètre publié différent du périmètre approuvé.
+#
+# `max_pages = 1` reprend la borne signée (page 1, taille 200). Ce n'est pas
+# une troncature : 3 enregistrements sur une page de 200 laissent la dernière
+# page incomplète, seul signal qui prouve qu'aucun enregistrement n'a été
+# laissé de l'autre côté de la borne.
+
+#: Clé de release du pilote publié. Stable : elle est gravée dans le document
+#: canonique et sert à recouper le rapport de preuve.
+BNPE_PILOT_RELEASE_KEY = "bnpe-minimal-pilot-v1"
+
+BNPE_MINIMAL_PILOT_V1 = SourceScope(
+    source_code="HUBEAU_BNPE_PRELEVEMENTS",
+    family="prelevements",
+    geography_type="code_commune_insee",
+    geography_code="34172",
+    date_from="2020",
+    date_to="2020",
+    page_size=200,
+    max_pages=1,
+    max_years=1,
+    expects_incomplete_last_page=True,
+    justification=(
+        "Périmètre approuvé par décision humaine signée le 2026-07-28 "
+        "(ludoviclabs-dotcom) : commune INSEE 34172, année 2020, chroniques "
+        "annuelles de prélèvements, pagination exhaustive. Seul périmètre du "
+        "chantier mesuré sous le budget de 100 000 octets — 6 120 octets, "
+        "marge 93 880."
+    ),
+    interpretation_risk=(
+        "COUVERTURE PARTIELLE PAR CONSTRUCTION : les volumes exonérés de "
+        "redevance peuvent être absents et certains petits volumes peuvent ne "
+        "pas être déclarés. Une absence de déclaration n'est JAMAIS un "
+        "prélèvement nul. Aucun total, aucune moyenne, aucun classement et "
+        "aucun score ne doivent être dérivés de ces trois valeurs — "
+        "`derived_use_allowed = false` au registre des décisions."
+    ),
+)
+
+
 CANDIDATES: tuple[Candidate, ...] = (MINIMAL_PILOT, BALANCED_PILOT, X3_TECHNICAL_SAMPLE)
 
 CANDIDATES_BY_KEY = {candidate.key: candidate for candidate in CANDIDATES}

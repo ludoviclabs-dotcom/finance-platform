@@ -134,9 +134,52 @@ def assemble(observations, *, registry=None, **kwargs):
 
 
 class TestLicenceGate:
-    def test_no_source_is_approved_today(self) -> None:
-        """Le registre réel : aucune source n'est approuvée à ce jour."""
-        assert current_registry().approved_source_codes == ()
+    def test_only_bnpe_is_approved_and_only_on_the_signed_scope(self) -> None:
+        """Le registre réel : UNE source approuvée, sur UN périmètre.
+
+        Ce test disait « aucune source n'est approuvée ». C'était exact
+        jusqu'au 2026-07-28 et ne l'est plus : un humain a signé BNPE sur la
+        commune INSEE 34172 et l'année 2020. L'assertion utile n'est donc plus
+        « zéro », c'est « exactement celle-là, et exactement ce périmètre-là ».
+        Une septième source approuvée, ou un périmètre élargi d'un
+        département, fait tomber ce test.
+        """
+        registry = current_registry()
+
+        assert registry.approved_source_codes == ("HUBEAU_BNPE_PRELEVEMENTS",)
+
+        scope = registry.authorized_scope("HUBEAU_BNPE_PRELEVEMENTS")
+        assert scope is not None
+        assert scope.geography_type == "code_commune_insee"
+        assert scope.geography_code == "34172"
+        assert scope.period_start == date(2020, 1, 1)
+        assert scope.period_end == date(2020, 12, 31)
+        assert scope.measurement_only is False
+
+    def test_the_signed_permissions_are_those_of_the_form(self) -> None:
+        """Les quatre permissions sont celles du formulaire, pas des défauts."""
+        decision = current_registry().get("HUBEAU_BNPE_PRELEVEMENTS")
+
+        assert decision.reviewed_by == "ludoviclabs-dotcom"
+        assert decision.reviewed_on == date(2026, 7, 28)
+        assert decision.display_allowed is True
+        assert decision.derived_use_allowed is False
+        assert decision.automated_access_allowed is True
+        assert decision.storage_allowed is True
+
+    def test_the_six_other_sources_stay_unapproved(self) -> None:
+        """La signature de BNPE n'en emporte aucune autre."""
+        registry = current_registry()
+
+        for code in (
+            "HUBEAU_ADES",
+            "HUBEAU_QUALITE_SURFACE",
+            "HUBEAU_HYDROMETRIE",
+            "EEA_WEI_PLUS",
+            "WRI_AQUEDUCT",
+            "COPERNICUS_EDO",
+        ):
+            assert registry.allows(code) is False, code
 
     def test_identifying_a_permissive_licence_does_not_publish(self) -> None:
         """EEA est en CC BY 4.0 et Hub'Eau en Licence Ouverte — vérifié en

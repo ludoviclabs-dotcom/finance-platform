@@ -232,12 +232,24 @@ jobs:
         if: always()
         run: |
           set -e
-          # Le registre réel ne porte aucune signature.
+          # Le registre réel porte EXACTEMENT les signatures humaines
+          # énumérées — ni plus, ni moins. Ce contrôle vérifiait « zéro source
+          # approuvée » ; c'était exact jusqu'au 2026-07-28 et ne l'est plus.
+          # Le relâcher en « au plus une » l'aurait affaibli à chaque signature
+          # suivante : il compare donc à la liste nommée, et une mesure qui
+          # aurait approuvé quoi que ce soit échoue toujours ici.
           python - <<'PY'
-          from services.water_intelligence.publication_decisions import current_registry
+          from services.water_intelligence.publication_decisions import (
+              HUMAN_APPROVED_SOURCE_CODES,
+              assert_human_approvals_unchanged,
+              current_registry,
+          )
+          assert_human_approvals_unchanged()
           approved = current_registry().approved_source_codes
-          assert approved == (), f"ARRÊT — sources approuvées dans le registre réel : {approved}"
-          print("registre réel : 0 source approuvée")
+          assert approved == HUMAN_APPROVED_SOURCE_CODES, (
+              f"ARRÊT — registre {approved}, attendu {HUMAN_APPROVED_SOURCE_CODES}"
+          )
+          print(f"registre réel inchangé : {approved}")
           PY
           # Aucun document canonique n'a bougé dans l'arbre de travail.
           if ! git diff --quiet -- ../../docs/carbonco/water-intelligence/contracts/ \

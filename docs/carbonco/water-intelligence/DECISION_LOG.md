@@ -471,3 +471,99 @@ n'est pas commencé.
   faute de place.
 - **Le premier verdict ADES du run était FAUX**, et c'est le défaut le plus
   instructif de cette phase — cf. `RISK_REGISTER.md`.
+
+## Water V1 — la première publication publique est signée (2026-07-28)
+
+- **Une décision humaine, une source, un périmètre.**
+  `HUBEAU_BNPE_PRELEVEMENTS` passe `approved` au registre, signée par
+  `ludoviclabs-dotcom` le 2026-07-28, sur le **seul** périmètre commune INSEE
+  `34172` / année 2020. Motif : *publication pilote BNPE exhaustive sur un
+  périmètre communal et annuel explicitement limité*. Les six autres sources
+  restent exactement où elles étaient.
+- **Une approbation porte désormais son périmètre.** `PublicationDecision`
+  gagne un `authorized_scope` (type et code de géographie, bornes de période),
+  et `assemble_public_snapshot()` une quatrième barrière : une observation
+  d'une autre commune ou d'une autre année est écartée avec le motif
+  `outside_authorized_scope`. Sans elle, `approved` aurait autorisé la source
+  ENTIÈRE — réacquérir le département 34 au lieu de la commune 34172 aurait
+  publié des milliers de lignes sous une signature qui en couvrait trois.
+  *Le périmètre est le cœur de l'autorisation, pas son décor.*
+- **Une signature s'écrit à deux endroits.** `HUMAN_APPROVED_SOURCE_CODES`
+  énumère à la main les sources signées, et `assert_human_approvals_unchanged()`
+  la confronte au registre. Basculer une septième source en `approved` sans
+  toucher cette ligne fait échouer le workflow de publication et la CI : une
+  approbation ne peut pas être glissée au milieu d'un diff.
+- **Le contrôle « rien n'est signé » est devenu « rien d'AUTRE n'est signé ».**
+  `assert_real_registry_untouched()` vérifiait `approved_source_codes == ()`.
+  C'était exact jusqu'au 2026-07-28. Le remplacer par « au plus une » aurait
+  affaibli le contrôle à chaque signature suivante ; le supprimer aurait rendu
+  une mesure capable d'approuver en silence. Il compare donc à la liste nommée.
+- **La condition de paternité est traitée par un CHOIX, pas par une mesure.**
+  `source_last_updated_on` n'est toujours relevée pour aucune source. La
+  Licence Ouverte 2.0 admet une seconde voie — indiquer l'URL pointant vers
+  l'Information — et X4A §1.3 laissait explicitement ce choix au signataire.
+  La signature du 2026-07-28 **retient cette voie, pour BNPE uniquement**.
+  L'URL officielle devient donc obligatoire à la porte de publication (motif
+  `provenance_information_url_missing` si elle manque), la date de consultation
+  reste affichée **comme date de consultation**, et le relevé direct reste dû.
+  Cf. `activation/X4B_HUMAN_APPROVAL_PACKET.md` §6.1.
+- **`derived_use_allowed = false` est la contrainte la plus structurante.**
+  Les trois volumes sont publiables tels quels ; aucun total, moyenne,
+  classement, score ni extrapolation n'en est dérivable — ni côté backend, ni
+  côté surface. La couverture BNPE est partielle par construction : un total
+  communal calculé sur trois ouvrages présenterait une somme partielle comme le
+  prélèvement de la commune.
+- **Deux vides qui ne se confondent plus.** « Personne n'a signé » et
+  « quelqu'un a signé, mais aucune donnée n'est arrivée » produisaient le même
+  message. Le second porte maintenant son propre motif
+  (`approved_but_no_observation_supplied`) : une acquisition absente ne doit
+  pas se lire comme le résultat du gate licence.
+
+## Water V1 — la surface publique, et ce que la refonte a trouvé
+
+- **`/water` était DÉJÀ autonome.** C'est le constat qui a rendu la Phase E
+  courte : `app/water/page.tsx` est le VOISIN du groupe
+  `app/water/(authenticated)`, pas son enfant. Elle ne traverse ni son layout
+  ni sa garde depuis la refonte des routes. Il restait trois libellés devenus
+  faux le 2026-07-28, pas une architecture à défaire.
+- **Un défaut de DÉTERMINISME trouvé par les tests de publication.** La clé de
+  tri des observations valait `(source_code, metric_code, period_start)`. Trois
+  ouvrages d'une même métrique sur une même année y sont à égalité : le tri de
+  Python étant stable, l'ordre d'ENTRÉE survivait dans la sortie, et deux
+  assemblages du même contenu produisaient deux ETag différents. C'est
+  exactement la forme du pilote BNPE, et aucun jeu antérieur ne l'avait — les
+  fixtures différaient toujours par la métrique ou la période. Le défaut se
+  serait manifesté à la première régénération du document publié, sous la forme
+  d'un fichier qui « change » sans changement.
+- **Le territoire ne se vérifie pas sur une observation.** Premier jet :
+  comparer `observation.geography.code` au périmètre signé. Vérification faite
+  sur le connecteur — une observation BNPE porte un identifiant d'**ouvrage**,
+  le périmètre nomme une **commune INSEE**. Le contrôle aurait refusé les trois
+  observations approuvées elles-mêmes. *Un contrôle qui refuse ce qu'il est
+  censé autoriser n'est pas strict, il est faux.* Les deux axes sont désormais
+  tenus chacun là où il est vérifiable : la période à chaque observation, le
+  territoire une fois sur la requête.
+- **Un débordement horizontal de 144 px, trouvé par l'E2E et non par
+  relecture.** Le halo décoratif du hero déborde volontairement de sa boîte ;
+  ce débordement devenait un défilement du document. `overflow-x: clip` sur la
+  racine — et non `hidden`, qui créerait un conteneur de défilement et
+  casserait le `sticky` de la navigation.
+- **Deux ancres historiques disparues, rattrapées par l'E2E.** `#risques` et
+  `#limites` avaient sauté de mon premier découpage. Elles existent en
+  production publique et des liens externes peuvent les viser : une refonte
+  réorganise ce qu'une ancre contient, elle ne la supprime pas.
+- **Le marqueur plutôt qu'un faux snapshot.** Trois contraintes s'excluaient :
+  le document ne peut pas être écrit à la main, la page doit se construire
+  avant qu'il existe, et rien de fabriqué ne doit être rendu comme une donnée.
+  Un `import` de fichier absent casse le build ; un snapshot d'attente se lit
+  comme une donnée. Le marqueur satisfait les trois — il existe, ne contient
+  aucune observation, et dit ce qu'il est.
+- **Deux chiffres d'illustration retirés, signalés par un test que j'avais
+  écrit.** Les deux vivaient dans des phrases qui INTERDISENT de supposer la
+  valeur citée. Reformulés plutôt qu'exceptés : une exception dans le test
+  rouvrirait la porte à de vrais chiffres.
+- **Le thème Water n'étend pas celui de `/materials`.** `MxThemeProvider` fait
+  exactement la même chose, et l'étendre aurait fait hériter `data-mx` —
+  crochet auquel toute la feuille `/materials` est accrochée. Le provider
+  partagé est paramétré par son domaine ; les deux modules partagent la
+  mécanique, aucun sélecteur, aucune variable et aucune clé de stockage.

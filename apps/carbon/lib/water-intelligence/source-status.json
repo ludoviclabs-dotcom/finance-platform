@@ -1,11 +1,13 @@
 {
   "license_verified_count": 7,
-  "publishable_count": 0,
+  "publishable_count": 1,
   "source_count": 7,
   "sources": [
     {
+      "authorized_scope": null,
       "blocking_reason": "L'identité de la source est vérifiée, mais le portail ne distribue que du GeoTIFF et du NetCDF. Le décodage raster a été volontairement reporté plutôt que simulé : il n'existe aucune valeur à publier.",
       "connector_status": "source_verified_decoder_deferred",
+      "deferral_code": "source_verified_decoder_deferred",
       "label": "Copernicus EDO — indice combiné de sécheresse",
       "license_code": "COPERNICUS-EMS-FREE-FULL-OPEN",
       "license_scope": "dataset",
@@ -16,8 +18,10 @@
       "state_label": "Décodage reporté"
     },
     {
+      "authorized_scope": null,
       "blocking_reason": "Licence et attribution vérifiées. La décision humaine de publication n'a pas été rendue — identifier une licence permissive ne vaut pas autorisation éditoriale.",
       "connector_status": "source_verified",
+      "deferral_code": "manual_artifact_required",
       "label": "EEA / WISE — Water Exploitation Index Plus",
       "license_code": "CC-BY-4.0",
       "license_scope": "dataset",
@@ -28,8 +32,10 @@
       "state_label": "Décision humaine non rendue"
     },
     {
-      "blocking_reason": "Licence Ouverte vérifiée au niveau de la PLATEFORME, pas jeu par jeu. La décision de publication n'a pas été rendue, et le connecteur n'a jamais publié (exécution à blanc uniquement).",
+      "authorized_scope": null,
+      "blocking_reason": "Acquisition mesurée et STABLE — le checksum X4B-PREP est identique à celui de X3 sur 52 139 octets. Le report ne porte donc aucun doute sur la source : à 182 observations pour 255 121 octets, elle occupe 2,5 fois le budget de 100 000 octets du snapshot public. Alléger la provenance rendrait le budget tenable en rendant la donnée non auditable ; la décision de publication reste non rendue.",
       "connector_status": "source_verified",
+      "deferral_code": "deferred_over_budget",
       "label": "Hub'Eau — piézométrie (niveaux de nappe)",
       "license_code": "ETALAB-2.0",
       "license_scope": "platform",
@@ -40,20 +46,30 @@
       "state_label": "Décision humaine non rendue"
     },
     {
-      "blocking_reason": "Licence Ouverte vérifiée au niveau de la plateforme. Décision non rendue. La couverture est en outre partielle par construction : les usages exonérés de redevance sont inconnus et les volumes inférieurs à 10 000 m³ ne sont pas déclarés — une publication devra rendre l'absence, jamais un zéro.",
-      "connector_status": "source_verified",
+      "authorized_scope": {
+        "geography_code": "34172",
+        "geography_type": "code_commune_insee",
+        "measurement_only": false,
+        "period_end": "2020-12-31",
+        "period_start": "2020-01-01"
+      },
+      "blocking_reason": "Publication autorisée le 2026-07-28, et UNIQUEMENT sur la commune INSEE 34172 pour l'année 2020. Tout autre territoire et toute autre année restent non publiables : ils exigeraient une nouvelle décision humaine. La couverture reste en outre partielle par construction — les usages exonérés de redevance sont inconnus et les volumes inférieurs à 10 000 m³ ne sont pas déclarés : une absence de déclaration n'est jamais un prélèvement nul.",
+      "connector_status": "source_verified_published_limited_scope",
+      "deferral_code": "published_limited_scope",
       "label": "Hub'Eau — prélèvements (BNPE)",
       "license_code": "ETALAB-2.0",
       "license_scope": "platform",
       "license_verified": true,
       "license_verified_in": "Wave B",
       "source_code": "HUBEAU_BNPE_PRELEVEMENTS",
-      "state": "decision_pending",
-      "state_label": "Décision humaine non rendue"
+      "state": "publishable",
+      "state_label": "Publication autorisée"
     },
     {
+      "authorized_scope": null,
       "blocking_reason": "Licence Ouverte vérifiée au niveau de la PLATEFORME, pas jeu par jeu. La décision de publication n'a pas été rendue, et le connecteur n'a jamais publié (exécution à blanc uniquement).",
       "connector_status": "source_verified",
+      "deferral_code": "subdaily_identity_collision",
       "label": "Hub'Eau — hydrométrie (débits et hauteurs)",
       "license_code": "ETALAB-2.0",
       "license_scope": "platform",
@@ -64,8 +80,10 @@
       "state_label": "Décision humaine non rendue"
     },
     {
-      "blocking_reason": "Licence Ouverte vérifiée au niveau de la plateforme. Décision non rendue. Une publication exigerait en outre une liste de paramètres SANDRE revue et l'absence de toute conclusion de conformité — la conformité relève exclusivement du registre juridique.",
+      "authorized_scope": null,
+      "blocking_reason": "Périmètre resserré jusqu'à devenir exhaustif — 78 observations sur janvier 2024, au lieu de 50 tronquées sur un trimestre. Le progrès de méthode ne rend pas le candidat publiable : 111 324 octets, soit 11 324 de trop. Une publication exigerait en outre une liste de paramètres SANDRE revue et l'absence de toute conclusion de conformité — celle-ci relève exclusivement du registre juridique.",
       "connector_status": "source_verified",
+      "deferral_code": "deferred_over_budget",
       "label": "Hub'Eau — qualité des cours d'eau (Naïades)",
       "license_code": "ETALAB-2.0",
       "license_scope": "platform",
@@ -76,8 +94,10 @@
       "state_label": "Décision humaine non rendue"
     },
     {
+      "authorized_scope": null,
       "blocking_reason": "La licence est vérifiée, mais WRI exige EN OUTRE un enregistrement pour partager ou adapter les données. Cet enregistrement n'a pas été effectué : c'est une démarche humaine, pas un réglage technique.",
       "connector_status": "source_verified_publication_blocked",
+      "deferral_code": "blocked_registration_required",
       "label": "WRI Aqueduct 4.0",
       "license_code": "CC-BY-4.0",
       "license_scope": "dataset",

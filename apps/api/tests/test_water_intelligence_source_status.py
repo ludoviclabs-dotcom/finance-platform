@@ -39,10 +39,45 @@ REGISTRY = current_registry()
 class TestTwoAxesNeverMerged:
     """Identifier une licence permissive ne rend rien publiable."""
 
-    def test_every_license_is_verified_and_nothing_is_publishable(self) -> None:
+    def test_every_license_is_verified_and_only_one_source_is_publishable(self) -> None:
+        """Sept licences vérifiées, UNE publication autorisée.
+
+        L'écart entre les deux nombres est exactement ce que ce module existe
+        pour rendre lisible : identifier une licence permissive n'autorise
+        rien. Six sources gardent une licence vérifiée et restent non
+        publiables.
+        """
         document = public_source_document()
         assert document["license_verified_count"] == document["source_count"]
-        assert document["publishable_count"] == 0
+        assert document["publishable_count"] == 1
+
+        publishable = [
+            s for s in document["sources"] if s["state"] == "publishable"  # type: ignore[index]
+        ]
+        assert [s["source_code"] for s in publishable] == ["HUBEAU_BNPE_PRELEVEMENTS"]
+        # Publiée, mais pas en entier : le périmètre voyage avec l'état.
+        assert publishable[0]["authorized_scope"] == {
+            "geography_type": "code_commune_insee",
+            "geography_code": "34172",
+            "period_start": "2020-01-01",
+            "period_end": "2020-12-31",
+            "measurement_only": False,
+        }
+
+    def test_every_source_carries_a_normalised_deferral_code(self) -> None:
+        """Les sept codes attendus par la surface, un par source."""
+        document = public_source_document()
+        assert {
+            s["source_code"]: s["deferral_code"] for s in document["sources"]  # type: ignore[index]
+        } == {
+            "COPERNICUS_EDO": "source_verified_decoder_deferred",
+            "EEA_WEI_PLUS": "manual_artifact_required",
+            "HUBEAU_ADES": "deferred_over_budget",
+            "HUBEAU_BNPE_PRELEVEMENTS": "published_limited_scope",
+            "HUBEAU_HYDROMETRIE": "subdaily_identity_collision",
+            "HUBEAU_QUALITE_SURFACE": "deferred_over_budget",
+            "WRI_AQUEDUCT": "blocked_registration_required",
+        }
 
     def test_license_and_publication_are_separate_fields(self) -> None:
         for source in public_source_document()["sources"]:  # type: ignore[index]
@@ -71,16 +106,28 @@ class TestFiveStates:
         assert edo.connector_status == "source_verified_decoder_deferred"
 
     def test_eea_and_hubeau_await_a_human_decision(self) -> None:
+        """BNPE a quitté cette liste le 2026-07-28 — les quatre autres non."""
         pending = sorted(
             s.source_code for s in CURRENT_SOURCE_STATUS if s.state(REGISTRY) == "decision_pending"
         )
         assert pending == [
             "EEA_WEI_PLUS",
             "HUBEAU_ADES",
-            "HUBEAU_BNPE_PRELEVEMENTS",
             "HUBEAU_HYDROMETRIE",
             "HUBEAU_QUALITE_SURFACE",
         ]
+
+    def test_bnpe_is_publishable_and_names_what_stays_blocked(self) -> None:
+        """« Publiée » ne veut pas dire « toute la source est publiée »."""
+        bnpe = next(
+            s for s in CURRENT_SOURCE_STATUS if s.source_code == "HUBEAU_BNPE_PRELEVEMENTS"
+        )
+        assert bnpe.state(REGISTRY) == "publishable"
+        assert "34172" in bnpe.blocking_reason
+        assert "nouvelle décision humaine" in bnpe.blocking_reason
+        # L'avertissement de couverture SURVIT à l'approbation : c'est un fait
+        # sur la source, pas une réserve qu'une signature lèverait.
+        assert "jamais un prélèvement nul" in bnpe.blocking_reason
 
     def test_a_source_absent_from_the_registry_has_no_decision(self) -> None:
         orphan = SourceStatus(
@@ -91,6 +138,7 @@ class TestFiveStates:
             license_verified_in=None,
             connector_status="source_verified",
             blocking_reason="Aucune décision enregistrée.",
+            deferral_code="no_decision",
         )
         assert orphan.state(REGISTRY) == "no_decision"
 
@@ -118,6 +166,7 @@ class TestLicenseScope:
                 license_verified_in=None,
                 connector_status="source_verified",
                 blocking_reason="…",
+                deferral_code="test",
             )
 
     def test_a_verified_license_must_declare_its_scope(self) -> None:
@@ -130,6 +179,7 @@ class TestLicenseScope:
                 license_verified_in="Wave A",
                 connector_status="source_verified",
                 blocking_reason="…",
+                deferral_code="test",
             )
 
 

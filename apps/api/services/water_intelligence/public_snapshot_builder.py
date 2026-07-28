@@ -38,6 +38,7 @@ from services.water_intelligence.public_snapshot import (
     assemble_public_snapshot,
 )
 from services.water_intelligence.publication_decisions import (
+    HUMAN_APPROVED_SOURCE_CODES,
     PublicationDecision,
     PublicationDecisionRegistry,
     current_registry,
@@ -83,6 +84,12 @@ def measurement_registry(source_codes: Sequence[str]) -> PublicationDecisionRegi
                 reason=MEASUREMENT_ONLY_REASON,
                 reviewed_by=MEASUREMENT_REVIEWER,
                 reviewed_on=MEASUREMENT_REVIEW_DATE,
+                # Aucun `authorized_scope` : la mesure ne filtre rien, elle
+                # pèse. Un périmètre inventé ici serait indiscernable d'un
+                # périmètre signé, et `current_registry()` refuse de toute
+                # façon toute approbation sans périmètre — ce registre-ci n'y
+                # entre jamais.
+                display_allowed=True,
             )
             for code in sorted(set(source_codes))
         ]
@@ -90,12 +97,26 @@ def measurement_registry(source_codes: Sequence[str]) -> PublicationDecisionRegi
 
 
 def assert_real_registry_untouched() -> None:
-    """Le registre RÉEL ne porte aucune signature — vérifié, jamais supposé."""
+    """Une mesure ne signe rien — vérifié, jamais supposé.
+
+    ## Ce que ce contrôle est devenu, et pourquoi
+
+    Il vérifiait « zéro source approuvée ». C'était exact tant qu'aucune
+    signature n'existait, et ça a cessé de l'être le 2026-07-28. Le remplacer
+    par « au plus une » aurait affaibli le contrôle à chaque signature
+    suivante ; le supprimer aurait rendu une mesure capable d'approuver sans
+    que rien ne le dise.
+
+    Il compare donc le registre réel à la liste NOMMÉE des approbations
+    humaines. L'invariant tenu n'a pas changé — une mesure ne signe rien —
+    seule sa formulation est passée de « rien n'est signé » à « rien d'autre
+    que ce qui est signé ne l'est ».
+    """
     approved = current_registry().approved_source_codes
-    if approved:
+    if approved != HUMAN_APPROVED_SOURCE_CODES:
         raise RealRegistryMutated(
-            f"ARRÊT — le registre réel porte des sources approuvées : {approved}. "
-            "Une mesure ne signe rien."
+            f"ARRÊT — sources approuvées au registre réel : {approved}, attendu "
+            f"{HUMAN_APPROVED_SOURCE_CODES}. Une mesure ne signe rien."
         )
 
 
@@ -125,17 +146,27 @@ def canonical_payload_bytes(snapshot: WaterPublicSnapshot) -> bytes:
     return snapshot.canonical_json().encode("utf-8")
 
 
-def canonical_document_bytes(snapshot: WaterPublicSnapshot) -> bytes:
-    """Octets du DOCUMENT canonique versionné — la forme que la parité impose.
+def serialize_canonical_document(document: object) -> bytes:
+    """Mise en forme du DOCUMENT canonique versionné — la règle, en un endroit.
 
     `json.dumps(..., ensure_ascii=False, indent=2, sort_keys=True) + "\\n"`,
     exactement ce que `TestDocumentParity` compare entre `contracts/*.json` et
-    son miroir front. Ce n'est **pas** la forme soumise au budget.
+    son miroir front.
+
+    Prend un mapping plutôt qu'un snapshot : le document publié Water V1 porte,
+    en plus de l'enveloppe, un bloc `pilot` que l'assembleur ne connaît pas.
+    Laisser l'appelant sérialiser lui-même aurait fait exister une seconde
+    règle de mise en forme — et une divergence d'un saut de ligne suffit à
+    rompre la parité octet pour octet entre le document et son miroir.
     """
-    document = json.loads(snapshot.canonical_json())
     return (
         json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     ).encode("utf-8")
+
+
+def canonical_document_bytes(snapshot: WaterPublicSnapshot) -> bytes:
+    """Octets du DOCUMENT canonique d'un snapshot. Pas la forme du budget."""
+    return serialize_canonical_document(json.loads(snapshot.canonical_json()))
 
 
 def gzip_bytes(payload: bytes) -> int:

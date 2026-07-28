@@ -23,6 +23,9 @@ export const WiExclusionReasonEnum = z.enum([
   "no_human_decision",
   "decision_proposed_not_reviewed",
   "decision_refused",
+  "provenance_information_url_missing",
+  "outside_authorized_scope",
+  "approved_but_no_observation_supplied",
 ]);
 export type WiExclusionReason = z.infer<typeof WiExclusionReasonEnum>;
 
@@ -33,6 +36,37 @@ export const WiSourceExclusionSchema = z.object({
 });
 export type WiSourceExclusion = z.infer<typeof WiSourceExclusionSchema>;
 
+/**
+ * Périmètre EXACT couvert par une signature humaine.
+ *
+ * Il accompagne la décision jusqu'à la surface : afficher « source publiée »
+ * sans dire sur quel territoire ni sur quelle année laisserait croire que
+ * toute la source l'est. Le pilote BNPE couvre une commune et une année.
+ */
+export const WiAuthorizedScopeSchema = z.object({
+  geography_type: z.string().min(1),
+  geography_code: z.string().min(1),
+  period_start: z.string().min(1),
+  period_end: z.string().min(1),
+  measurement_only: z.boolean(),
+});
+export type WiAuthorizedScope = z.infer<typeof WiAuthorizedScopeSchema>;
+
+/**
+ * Les quatre permissions du formulaire humain, transportées verbatim.
+ *
+ * `derived_use_allowed` n'est pas décoratif : à `false`, la surface ne doit
+ * produire aucun total, aucune moyenne, aucun classement ni aucun score à
+ * partir des valeurs publiées.
+ */
+export const WiDecisionPermissionsSchema = z.object({
+  display_allowed: z.boolean(),
+  derived_use_allowed: z.boolean(),
+  automated_access_allowed: z.boolean(),
+  storage_allowed: z.boolean(),
+});
+export type WiDecisionPermissions = z.infer<typeof WiDecisionPermissionsSchema>;
+
 export const WiPublicationDecisionSchema = z.object({
   source_code: z.string().min(1),
   status: z.enum(["approved", "proposed", "refused"]),
@@ -40,6 +74,8 @@ export const WiPublicationDecisionSchema = z.object({
   reviewed_by: z.string().nullable(),
   reviewed_on: z.string().nullable(),
   allows_publication: z.boolean(),
+  authorized_scope: WiAuthorizedScopeSchema.nullable(),
+  permissions: WiDecisionPermissionsSchema,
 });
 export type WiPublicationDecision = z.infer<typeof WiPublicationDecisionSchema>;
 
@@ -73,6 +109,9 @@ export const EXCLUSION_LABELS: Record<WiExclusionReason, string> = {
   no_human_decision: "Aucune décision humaine de publication",
   decision_proposed_not_reviewed: "Décision proposée, non revue",
   decision_refused: "Publication refusée",
+  provenance_information_url_missing: "Provenance non citable — URL officielle absente",
+  outside_authorized_scope: "Hors du périmètre autorisé par la décision",
+  approved_but_no_observation_supplied: "Publication autorisée, aucune observation fournie",
 };
 
 /**

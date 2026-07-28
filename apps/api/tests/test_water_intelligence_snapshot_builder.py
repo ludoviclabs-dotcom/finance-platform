@@ -136,12 +136,28 @@ class TestReconstructionUsesTheRealAssembler:
 
 
 class TestMeasurementNeverSigns:
-    def test_the_real_registry_stays_empty_before_and_after(self) -> None:
-        assert current_registry().approved_source_codes == ()
+    def test_the_real_registry_is_unchanged_before_and_after(self) -> None:
+        """Une mesure ne signe rien — et n'efface rien non plus.
+
+        Le contrôle portait sur « le registre reste vide ». Depuis la
+        signature du 2026-07-28 il porte sur « le registre reste CE QU'IL
+        EST » : mesurer ADES ne doit ni approuver ADES, ni retirer BNPE.
+        """
+        before = current_registry().approved_source_codes
+        assert before == ("HUBEAU_BNPE_PRELEVEMENTS",)
+
         builder.reconstruct_candidate(
             label="A", releases=[_release("HUBEAU_ADES", 3)], generated_at=CLOCK
         )
-        assert current_registry().approved_source_codes == ()
+
+        assert current_registry().approved_source_codes == before
+
+    def test_measuring_an_unapproved_source_never_approves_it(self) -> None:
+        """ADES est mesurable et reste non publiable — les deux à la fois."""
+        builder.reconstruct_candidate(
+            label="A", releases=[_release("HUBEAU_ADES", 3)], generated_at=CLOCK
+        )
+        assert current_registry().allows("HUBEAU_ADES") is False
 
     def test_the_measurement_context_names_itself_as_worthless(self) -> None:
         registry = builder.measurement_registry(["HUBEAU_ADES"])

@@ -42,6 +42,45 @@ const VIEWBOX_H = 520;
 /** Code ISO numérique du pays France dans `world-atlas` (id `250`). */
 const FRANCE_ID = "250";
 
+/**
+ * Fenêtre du domaine métropolitain, en degrés.
+ *
+ * Dans `world-atlas`, « France » est UNE feature qui porte aussi les
+ * territoires ultramarins — la Guyane s'étend jusqu'à ~54° ouest. Cadrer
+ * `fitExtent` sur la feature entière étire la projection de la Guyane à la
+ * Corse : la métropole tombe à 83 × 79 px dans un cadre de 720 × 520 — 2 % de
+ * la surface — et le marqueur de la commune publiée se colle au bord droit,
+ * son étiquette débordant du cadre.
+ *
+ * Le cadrage retient donc les anneaux métropolitains, seul périmètre que
+ * cette carte prétend montrer. Ce n'est pas un jugement sur les territoires
+ * ultramarins : la carte ne les cartographie pas, exactement comme elle ne
+ * cartographie aucune couche géographique différée.
+ */
+const METROPOLITAN_BOUNDS = { west: -6, east: 10, south: 41, north: 52 } as const;
+
+/**
+ * Ne conserve, d'une géométrie France, que les anneaux métropolitains.
+ *
+ * Retourne la géométrie inchangée si le filtre ne retient rien : un fond de
+ * carte dégradé vaut mieux qu'une carte vide, et la règle du module est que
+ * l'absence ne se fabrique jamais silencieusement.
+ */
+function metropolitanOnly<T>(geometry: T): T {
+  const geom = geometry as { type?: string; coordinates?: number[][][][] };
+  if (geom?.type !== "MultiPolygon" || !Array.isArray(geom.coordinates)) return geometry;
+  const kept = geom.coordinates.filter((polygon) =>
+    polygon[0]?.some(
+      ([lon, lat]) =>
+        lon >= METROPOLITAN_BOUNDS.west &&
+        lon <= METROPOLITAN_BOUNDS.east &&
+        lat >= METROPOLITAN_BOUNDS.south &&
+        lat <= METROPOLITAN_BOUNDS.north,
+    ),
+  );
+  return kept.length ? ({ ...geom, coordinates: kept } as T) : geometry;
+}
+
 export function WiFranceMap({
   markerLonLat,
   geographyCode,
@@ -61,7 +100,8 @@ export function WiFranceMap({
     ) as unknown as {
       features: Array<{ id?: string | number; type: string } & Record<string, unknown>>;
     };
-    const france = collection.features.find((f) => String(f.id) === FRANCE_ID);
+    const found = collection.features.find((f) => String(f.id) === FRANCE_ID);
+    const france = found ? { ...found, geometry: metropolitanOnly(found.geometry) } : undefined;
     const others = collection.features.filter((f) => String(f.id) !== FRANCE_ID);
 
     const projection = geoConicConformal()

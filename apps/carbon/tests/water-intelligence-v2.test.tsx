@@ -177,6 +177,9 @@ describe("PulseFacet.publicationState", () => {
    3 — Carte et coupe 3D : rendu serveur honnête
    ========================================================================== */
 
+/** Largeur du cadre de `WiFranceMap`, reprise ici pour rester lisible. */
+const VIEWBOX_WIDTH = 720;
+
 describe("WiFranceMap — rendu serveur", () => {
   it("rend un SVG avec un unique marqueur nommé, sans appel réseau", () => {
     const markup = renderToStaticMarkup(
@@ -191,6 +194,43 @@ describe("WiFranceMap — rendu serveur", () => {
     expect(markup).toContain("<svg");
     expect(markup).toContain("34172");
     expect(markup).not.toMatch(/fetch\(|XMLHttpRequest/);
+  });
+
+  it("cadre la métropole, et non l'emprise ultramarine de la feature « France »", () => {
+    /* `world-atlas` range les territoires ultramarins dans la MÊME feature que
+       la métropole. Cadrer sur la feature entière écrasait la métropole à
+       ~83 × 79 px dans un cadre de 720 × 520 et poussait le marqueur à x≈653,
+       contre le bord droit — son étiquette (190 px de large, ancrée à +30 px)
+       débordait. Ce test tient le cadrage : la silhouette occupe l'essentiel
+       du cadre et le marqueur reste au centre, avec la place de son
+       étiquette. */
+    const markup = renderToStaticMarkup(
+      <WiFranceMap
+        markerLonLat={[3.8772, 43.6119]}
+        geographyCode="34172"
+        ouvrageCount={3}
+        periodLabel="2020"
+        reducedMotion
+      />,
+    );
+
+    const marker = markup.match(/translate\(([\d.]+),([\d.]+)\)/);
+    expect(marker).not.toBeNull();
+    const [mx, my] = [Number(marker![1]), Number(marker![2])];
+    expect(mx).toBeGreaterThan(200);
+    expect(mx).toBeLessThan(500); // 500 + 30 + 190 tient dans les 720 px du cadre
+    expect(my).toBeGreaterThan(200);
+    expect(my).toBeLessThan(480);
+
+    /* Étendue horizontale de la silhouette française — la couche hachurée
+       identifie la France sans ambiguïté parmi les tracés du fond. Au moins la
+       moitié du cadre : un cadrage ultramarin la ramenait sous 100 px. */
+    const outline = markup.match(/<path d="(M[^"]+)" fill="url\(#wi-map-hatch\)"/);
+    expect(outline).not.toBeNull();
+    const xs = Array.from(outline![1].matchAll(/[ML](-?[\d.]+),(-?[\d.]+)/g)).map((m) =>
+      Number(m[1]),
+    );
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(VIEWBOX_WIDTH / 2);
   });
 });
 

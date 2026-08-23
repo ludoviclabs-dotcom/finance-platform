@@ -26,6 +26,8 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 
+import { WiScopeChip } from "./WiPrimitives";
+
 /**
  * L'ordre de causalité du module. Il se lit de haut en bas et chaque maillon
  * correspond à une section de la page — la cascade est la table des matières
@@ -88,14 +90,12 @@ export function WiHero({
         {/* ------------------------------------------------------ Colonne texte */}
         <div>
           <div className="wi-hero-badges">
-            <span className="wi-chip" data-testid="wi-hero-badge-pilot">
-              <span aria-hidden="true">◆</span>
-              Pilote public vérifié
-            </span>
-            <span className="wi-chip" data-testid="wi-hero-badge-scope">
-              <span aria-hidden="true">▨</span>
-              Périmètre limité — {scopeLabel}
-            </span>
+            <WiScopeChip icon="◆" label="Pilote public vérifié" testId="wi-hero-badge-pilot" />
+            <WiScopeChip
+              icon="▨"
+              label={`Périmètre limité — ${scopeLabel}`}
+              testId="wi-hero-badge-scope"
+            />
           </div>
 
           <h1 className="wi-h1" style={{ marginTop: "1.25rem" }}>

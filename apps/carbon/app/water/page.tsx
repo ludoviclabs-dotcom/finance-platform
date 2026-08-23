@@ -46,6 +46,17 @@
  * ancres `#reglementation` et `#synergies` sont conservées comme cibles de
  * défilement — un lien externe existant vers l'une d'elles atterrit toujours
  * quelque part d'utile plutôt que nulle part.
+ *
+ * ## WI-V3-01 — fondation visuelle
+ *
+ * Trois ajouts, aucun retrait : `WiScopeRail` (bandeau de provenance sous le
+ * hero, sept faits déjà calculés ci-dessous, jamais de nouvelle constante) ;
+ * `WiStatusChip` centralise le rendu de l'axe Publication State
+ * (`.wi-pubstate-*`), qui vivait en JSX local dans ce fichier ; le thème
+ * `--wi-*` est désormais sombre par défaut sans dépendre de
+ * `prefers-color-scheme` (voir `water-intelligence.css`). Voir
+ * `WiPrimitives.tsx` pour la grammaire de statut à trois axes que ce chantier
+ * centralise.
  */
 
 import type { Metadata } from "next";
@@ -67,16 +78,17 @@ import {
   WiProofTable,
 } from "@/components/water-intelligence/WiProof";
 import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
-import { WiSection } from "@/components/water-intelligence/WiPrimitives";
+import { WiScopeRail } from "@/components/water-intelligence/WiScopeRail";
+import {
+  WiEvidenceChip,
+  WiSection,
+  WiStatusChip,
+} from "@/components/water-intelligence/WiPrimitives";
 import {
   IntelligenceThemeProvider,
   IntelligenceThemeToggle,
 } from "@/components/intelligence/IntelligenceThemeProvider";
-import {
-  EVIDENCE_LABELS,
-  PUBLICATION_STATE_LABELS,
-  PULSE_FACETS,
-} from "@/lib/water-intelligence/editorial-matrices";
+import { PULSE_FACETS } from "@/lib/water-intelligence/editorial-matrices";
 import { SOURCE_STATUS, orderedSources } from "@/lib/water-intelligence/canonical-snapshot";
 import {
   PILOT_FILE,
@@ -130,13 +142,6 @@ const NAV_ITEMS: readonly WiNavItem[] = [
  * silhouette de la France ; ce n'est pas une donnée de mesure.
  */
 const MONTPELLIER_LONLAT: readonly [number, number] = [3.8772, 43.6119];
-
-const PUBSTATE_ICON: Record<string, string> = {
-  published: "●",
-  qualitative: "◆",
-  deferred: "◷",
-  not_instrumented: "○",
-};
 
 export default function WaterIntelligencePage() {
   /* La garde est appliquée EN LIGNE : `pilotIsPublished` est un prédicat de
@@ -193,6 +198,15 @@ export default function WaterIntelligencePage() {
             sourceCount={SOURCE_STATUS.source_count}
             publishableCount={SOURCE_STATUS.publishable_count}
           />
+          <WiScopeRail
+            territoryCode={scope.geographyCode}
+            periodLabel={yearLabel}
+            snapshotDate={pilotDocument ? pilotDocument.generated_at.slice(0, 10) : null}
+            observationCount={observations.length}
+            sourceCount={SOURCE_STATUS.source_count}
+            publishableCount={SOURCE_STATUS.publishable_count}
+            published={published}
+          />
         </div>
 
         {/* ---------------------------------------------- 1 — Water Pulse */}
@@ -212,9 +226,7 @@ export default function WaterIntelligencePage() {
             <span className="wi-pulse-legend-label">États&nbsp;:</span>
             {(["published", "qualitative", "deferred", "not_instrumented"] as const).map(
               (state) => (
-                <span key={state} className={`wi-pubstate wi-pubstate-${state}`}>
-                  {PUBLICATION_STATE_LABELS[state]}
-                </span>
+                <WiStatusChip key={state} state={state} />
               ),
             )}
           </div>
@@ -224,13 +236,10 @@ export default function WaterIntelligencePage() {
               <article key={facet.id} className={`wi-card wi-accent-${facet.accent}`}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
                   <h3 className="wi-h3">{facet.label}</h3>
-                  <span
-                    className={`wi-pubstate wi-pubstate-${facet.publicationState}`}
-                    data-testid={`wi-pulse-state-${facet.id}`}
-                  >
-                    <span aria-hidden="true">{PUBSTATE_ICON[facet.publicationState]}</span>
-                    {PUBLICATION_STATE_LABELS[facet.publicationState]}
-                  </span>
+                  <WiStatusChip
+                    state={facet.publicationState}
+                    testId={`wi-pulse-state-${facet.id}`}
+                  />
                 </div>
                 <p
                   className="wi-muted"
@@ -262,9 +271,8 @@ export default function WaterIntelligencePage() {
                     ))}
                   </span>
                 )}
-                <span className="wi-badge wi-badge-pending" style={{ marginTop: "0.625rem" }}>
-                  <span aria-hidden="true">◷</span>
-                  {EVIDENCE_LABELS[facet.evidenceLevel]}
+                <span style={{ display: "inline-block", marginTop: "0.625rem" }}>
+                  <WiEvidenceChip level={facet.evidenceLevel} />
                 </span>
               </article>
             ))}

@@ -27,16 +27,7 @@ import {
   type WiSourceStatus,
   type WiSourceStatusDocument,
 } from "@/lib/water-intelligence/canonical-snapshot";
-import { WiBadge } from "./WiPrimitives";
-
-/** Ton du badge d'état. Toujours doublé du libellé texte. */
-const STATE_TONE: Record<WiSourceStatus["state"], "demo" | "absent" | "pending" | "alert"> = {
-  publishable: "demo",
-  publication_blocked: "alert",
-  decoder_deferred: "absent",
-  decision_pending: "pending",
-  no_decision: "absent",
-};
+import { SOURCE_STATE_TONE, WiBadge } from "./WiPrimitives";
 
 function WiSourceRow({ source }: { source: WiSourceStatus }) {
   return (
@@ -51,7 +42,7 @@ function WiSourceRow({ source }: { source: WiSourceStatus }) {
         }}
       >
         <h4 className="wi-h4">{source.label}</h4>
-        <WiBadge tone={STATE_TONE[source.state]} label={source.state_label} />
+        <WiBadge tone={SOURCE_STATE_TONE[source.state]} label={source.state_label} />
       </div>
 
       <p className="wi-muted" style={{ marginTop: "0.35rem", fontSize: "0.8125rem" }}>

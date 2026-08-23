@@ -23,15 +23,24 @@
  *
  * ## Pourquoi il n'y a pas de troisième état
  *
- * Pas de « système ». La feuille de style répond DÉJÀ à
- * `prefers-color-scheme` tant qu'aucun attribut n'est posé : c'est ce qui rend
- * la page correcte avant hydratation et sans JavaScript. Un troisième état
- * dupliquerait cette logique en JS, et les deux divergeraient.
+ * Pas de « système » PORTÉ ICI. En l'absence d'attribut, c'est la feuille de
+ * style du domaine — pas ce composant — qui décide du rendu : ce composant ne
+ * sait pas, et n'a pas besoin de savoir, ce que cette absence signifie
+ * visuellement. Un troisième état explicite dupliquerait cette décision en JS,
+ * et les deux divergeraient tôt ou tard.
  *
- * Conséquence assumée : le premier rendu suit la préférence système, et
- * l'attribut n'apparaît qu'après hydratation si un choix a été mémorisé. C'est
- * un changement de thème visible, pas un écart d'hydratation — l'attribut est
- * posé dans un effet, jamais pendant le rendu.
+ * Ce que « l'absence d'attribut » rend concrètement dépend donc du domaine :
+ * `/materials` (`MxThemeProvider`, non dérivé de ce composant) répond à
+ * `prefers-color-scheme` ; Water, depuis WI-V3-01, a retiré cette règle de
+ * `water-intelligence.css` et rend systématiquement son sombre par défaut,
+ * qu'importe le système — un choix de produit, pas une limite de ce provider.
+ * Un domaine futur reste libre de choisir l'un ou l'autre : c'est sa feuille de
+ * style qui tranche, jamais un paramètre ajouté ici.
+ *
+ * Conséquence assumée : le premier rendu suit le comportement par défaut de la
+ * feuille de style du domaine, et l'attribut n'apparaît qu'après hydratation si
+ * un choix a été mémorisé. C'est un changement de thème visible, pas un écart
+ * d'hydratation — l'attribut est posé dans un effet, jamais pendant le rendu.
  */
 
 import {

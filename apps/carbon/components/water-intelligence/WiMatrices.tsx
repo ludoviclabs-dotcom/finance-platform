@@ -21,11 +21,11 @@ import { useReducedMotion } from "framer-motion";
 
 import { WiBassin3D } from "@/components/water-intelligence/WiBassin3D";
 import { WiFranceMap } from "@/components/water-intelligence/WiFranceMap";
+import { WiEvidenceChip } from "@/components/water-intelligence/WiPrimitives";
 import {
   CLIMATE_EVENTS,
   CLIMATE_EVENT_KINDS,
   CLIMATE_EVENT_REQUIREMENTS,
-  EVIDENCE_LABELS,
   INNOVATION_AXES,
   INNOVATION_FAMILIES,
   INTENSITY_LABELS,
@@ -162,9 +162,8 @@ export function WiSectors() {
                     <p className="wi-rownote wi-muted">
                       {sector.note}
                       <br />
-                      <span className="wi-badge wi-badge-pending" style={{ marginTop: "0.5rem" }}>
-                        <span aria-hidden="true">◷</span>
-                        {EVIDENCE_LABELS[sector.evidenceLevel]}
+                      <span style={{ display: "inline-block", marginTop: "0.5rem" }}>
+                        <WiEvidenceChip level={sector.evidenceLevel} />
                       </span>
                     </p>
                   )}
@@ -267,10 +266,7 @@ export function WiInnovations() {
                   </td>
                 ))}
                 <td>
-                  <span className="wi-badge wi-badge-pending">
-                    <span aria-hidden="true">◷</span>
-                    {EVIDENCE_LABELS[family.evidenceLevel]}
-                  </span>
+                  <WiEvidenceChip level={family.evidenceLevel} />
                 </td>
               </tr>
             ))}

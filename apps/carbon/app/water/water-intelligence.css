@@ -3,14 +3,26 @@
  *
  * Scopé à `[data-wi]` : n'affecte aucune autre surface du site. Le préfixe
  * `--wi-*` est délibérément distinct de `--mx-*` (propre à /materials) — les
- * deux modules partagent une ambition produit, pas des variables.
+ * deux modules partagent une ambition produit, pas des variables. La
+ * convergence voulue par WI-V3-01 est PERCEPTUELLE (rythme des conteneurs,
+ * hairlines, radius, mono metadata) : aucun sélecteur `[data-mx]` n'est référencé
+ * ici, et `apps/carbon/tests/water-v1-experience.test.tsx` le vérifie par grep.
  *
- * ## Thème
+ * ## Thème — sombre PAR DÉFAUT, indépendamment du système (WI-V3-01)
  *
- * Sombre par défaut, clair conservé. Le choix explicite est porté par
- * `data-wi-theme` sur le conteneur, posé par `IntelligenceThemeProvider` ; en
- * son absence, `prefers-color-scheme` décide. Les deux mécanismes coexistent
- * pour que la page reste correcte AVANT hydratation et sans JavaScript.
+ * Le bloc `[data-wi]` ci-dessous porte les valeurs SOMBRES sans condition :
+ * c'est le rendu de toute première visite, avant même l'hydratation, qu'importe
+ * `prefers-color-scheme`. Le thème clair n'existe que sous
+ * `[data-wi][data-wi-theme="clair"]` — un attribut posé explicitement par
+ * `IntelligenceThemeProvider`, jamais déduit du système.
+ *
+ * Avant WI-V3-01, l'absence de choix mémorisé retombait sur la préférence
+ * système (règle supprimée ci-dessous). Ce n'est plus le cas : Water est un
+ * produit d'intelligence institutionnelle, pas un habillage qui suit l'OS du
+ * lecteur. Le mécanisme reste néanmoins générique côté React — voir
+ * `components/intelligence/IntelligenceThemeProvider.tsx` — un domaine futur
+ * pourrait choisir d'honorer `prefers-color-scheme` en écrivant sa propre
+ * feuille de style différemment ; c'est un choix de CSS, pas de composant.
  *
  * ## La couleur ne porte JAMAIS un statut à elle seule
  *
@@ -31,19 +43,44 @@
  */
 
 [data-wi] {
-  /* ---------------------------------------------------------- Sombre (défaut) */
+  /* ---------------------------------------------------------- Sombre (défaut,
+     inconditionnel — voir la docstring de thème ci-dessus) */
   --wi-bg: #07111f;
+  /* `--wi-surface` (fond de page/footer) et `--wi-card` (cartes) étaient la
+     MÊME valeur avant WI-V3-01 : aucune des deux surfaces ne se détachait de
+     l'autre. Materials distingue ses trois paliers (surface < card < card-2)
+     en sombre uniquement — même en clair, `--mx-card` y vaut `--mx-surface`.
+     Le geste est donc perceptuel, pas une copie de valeurs : un palier de plus
+     entre le fond et le relief, en sombre seulement. */
   --wi-surface: #0d1b2a;
   --wi-raised: #13263a;
-  --wi-card: #0d1b2a;
+  --wi-card: #102237;
   --wi-card-2: #13263a;
-  --wi-border: rgba(165, 243, 252, 0.14);
-  --wi-border-2: rgba(165, 243, 252, 0.3);
+  /* Hairline neutralisée : la teinte cyan vive (165,243,252) tirait la bordure
+     vers un accent, alors que la bordure n'est JAMAIS un accent — seul
+     `--wi-water` doit l'être, et « cyan/glacier très contrôlé » (WI-V3-01 §2)
+     s'applique aussi aux bordures. Le rôle ne change pas (hairline 1px), la
+     teinte se rapproche du gris-froid neutre de `--mx-border`. */
+  --wi-border: rgba(198, 219, 230, 0.13);
+  --wi-border-2: rgba(198, 219, 230, 0.28);
 
   --wi-fg: #f8fafc;
   --wi-muted: #a9b8ca;
   --wi-subtle: #8598ad;
 
+  /*
+   * Comportement d'accent — délibérément NON convergé vers Materials.
+   *
+   * `--mx-em` est UN accent unique, répété partout (CTA, KPI, treemap, nav
+   * active…) : c'est un langage de MARQUE. Ici, six teintes se partagent le
+   * rôle d'accent et chacune est verrouillée à UN SEUL sens : `--wi-water`
+   * (ressource/valeur publiée), `--wi-data` (donnée/méthode), `--wi-glacier`
+   * (conformité), `--wi-stress` (vigilance UNIQUEMENT), `--wi-alert` (blocage
+   * UNIQUEMENT), `--wi-adapt` (disponibilité/adaptation UNIQUEMENT). Aplatir
+   * ces six rôles vers un accent unique romprait exactement la distinction que
+   * le contrat épistémique exige de garder lisible (WI-V3-00 §4-5). C'est un
+   * langage d'ÉVIDENCE, pas de marque — la convergence s'arrête ici.
+   */
   --wi-water: #2dd4bf;
   --wi-data: #38bdf8;
   --wi-glacier: #a5f3fc;
@@ -57,7 +94,9 @@
   --wi-hatch: rgba(147, 165, 184, 0.26);
   --wi-glow: rgba(45, 212, 191, 0.14);
 
-  --wi-radius: 14px;
+  /* 14px → 16px : parenté avec le radius des cartes Materials (`rounded-2xl`),
+     qui pose la même intention — « premium », pas « anguleux ». */
+  --wi-radius: 16px;
   --wi-radius-sm: 9px;
   --wi-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -18px rgb(0 0 0 / 0.9);
   --wi-shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 48px -24px rgb(0 0 0 / 0.95);
@@ -97,14 +136,17 @@
 }
 
 /*
- * Clair. Servi soit par choix explicite (`data-wi-theme="clair"`), soit par
- * préférence système quand aucun choix n'a été posé. Le `:not([data-wi-theme])`
- * empêche la préférence système d'écraser un choix utilisateur.
+ * Clair. Servi UNIQUEMENT par choix explicite (`data-wi-theme="clair"`),
+ * jamais par `prefers-color-scheme` depuis WI-V3-01 — voir la docstring de
+ * thème en tête de fichier. La déclaration des variables `--wi-light-*` et
+ * leur application sont désormais un seul et même bloc : il n'existe plus de
+ * second contexte (`:not([data-wi-theme])`) où elles s'appliqueraient sans
+ * attribut posé.
  *
- * Ce ne sont pas les mêmes valeurs hexadécimales, c'est le MÊME rôle : les
- * teintes vives du thème sombre descendraient sous 4,5:1 sur fond clair.
+ * Ce ne sont pas les mêmes valeurs hexadécimales que le sombre, c'est le MÊME
+ * rôle : les teintes vives du thème sombre descendraient sous 4,5:1 sur fond
+ * clair.
  */
-[data-wi]:not([data-wi-theme]),
 [data-wi][data-wi-theme="clair"] {
   --wi-light-bg: #f2f7fb;
   --wi-light-surface: #ffffff;
@@ -121,38 +163,7 @@
   --wi-light-alert: #9f1239;
   --wi-light-adapt: #15803d;
   --wi-light-absent: #4e6178;
-}
 
-@media (prefers-color-scheme: light) {
-  [data-wi]:not([data-wi-theme]) {
-    --wi-bg: var(--wi-light-bg);
-    --wi-surface: var(--wi-light-surface);
-    --wi-raised: var(--wi-light-surface);
-    --wi-card: var(--wi-light-surface);
-    --wi-card-2: var(--wi-light-card-2);
-    --wi-border: var(--wi-light-border);
-    --wi-border-2: var(--wi-light-border-2);
-    --wi-fg: var(--wi-light-fg);
-    --wi-muted: var(--wi-light-muted);
-    --wi-subtle: var(--wi-light-subtle);
-    --wi-water: var(--wi-light-water);
-    --wi-data: var(--wi-light-data);
-    --wi-glacier: var(--wi-light-glacier);
-    --wi-stress: var(--wi-light-stress);
-    --wi-alert: var(--wi-light-alert);
-    --wi-adapt: var(--wi-light-adapt);
-    --wi-absent: var(--wi-light-absent);
-    --wi-focus: var(--wi-light-data);
-    --wi-hatch: rgb(78 97 120 / 0.22);
-    --wi-glow: rgb(15 118 110 / 0.1);
-    --wi-shadow: 0 1px 2px rgb(7 17 31 / 0.06), 0 12px 28px -20px rgb(7 17 31 / 0.4);
-    --wi-shadow-lift: 0 2px 4px rgb(7 17 31 / 0.08), 0 24px 44px -26px rgb(7 17 31 / 0.5);
-    --wi-shadow-panel: 0 10px 30px rgb(7 17 31 / 0.16);
-    --wi-shadow-tip: 0 4px 14px rgb(7 17 31 / 0.14);
-  }
-}
-
-[data-wi][data-wi-theme="clair"] {
   --wi-bg: var(--wi-light-bg);
   --wi-surface: var(--wi-light-surface);
   --wi-raised: var(--wi-light-surface);
@@ -183,7 +194,11 @@
 
 [data-wi] .wi-shell {
   width: 100%;
-  max-width: 74rem;
+  /* 74rem (1184px) → 80rem (1280px), rythme de conteneur aligné sur
+     `max-w-[1280px]` de /materials (WI-V3-01). `.wi-nav-inner` porte la MÊME
+     valeur juste plus bas : les deux doivent rester alignés, sans quoi la nav
+     et le contenu qu'elle surplombe dérivent visuellement l'un de l'autre. */
+  max-width: 80rem;
   margin: 0 auto;
   padding: 0 1.25rem 5rem;
 }
@@ -308,7 +323,7 @@
 }
 
 [data-wi] .wi-nav-inner {
-  max-width: 74rem;
+  max-width: 80rem;
   margin: 0 auto;
   padding: 0.625rem 1.25rem;
   display: flex;
@@ -2127,4 +2142,111 @@
   border: 1px dashed var(--wi-border-2);
   border-radius: 0.75rem;
   padding: 1.125rem;
+}
+
+/* ==========================================================================
+   Water Intelligence v3 — fondation visuelle (WI-V3-01)
+   ==========================================================================
+   Cette section AJOUTE aux règles ci-dessus ; elle n'en retire aucune, comme
+   la section « v2 — ajouts visuels » plus haut le documentait déjà pour la
+   refonte précédente.
+   ========================================================================== */
+
+/* --------------------------------------------------- Provenance / Scope Rail */
+
+/*
+ * Bandeau compact sous le hero : territoire, période, snapshot, compteurs de
+ * sources, statut de publication — sept chiffres/statuts déjà calculés par
+ * `page.tsx`, jamais recopiés ici. NON sticky, par choix : la barre de
+ * navigation (`.wi-nav`) est déjà collante en haut de viewport, et empiler un
+ * second bandeau collant sous elle exigerait de connaître sa hauteur — une
+ * coordination JS que ce bandeau, en Server Component, n'a pas besoin
+ * d'introduire pour rester utile.
+ */
+[data-wi] .wi-rail {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.75rem 0 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Un `<a>` peut recevoir `:focus-visible` : l'anneau de focus déborderait du
+     cadre défilant sans cette marge de respiration. */
+  padding: 0.1875rem;
+}
+
+[data-wi] .wi-rail::-webkit-scrollbar {
+  display: none;
+}
+
+[data-wi] .wi-rail-item {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  min-width: 7.5rem;
+  padding: 0.5625rem 0.875rem;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius-sm);
+  background: var(--wi-card-2);
+  text-decoration: none;
+  color: inherit;
+}
+
+[data-wi] .wi-rail-item:hover {
+  border-color: var(--wi-border-2);
+}
+
+[data-wi] .wi-rail-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-subtle);
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+[data-wi] .wi-rail-value {
+  font-family: var(--wi-font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--wi-fg);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Provenance tooltip — révélée au survol ET au focus clavier, jamais la seule
+   voie vers une information : la valeur au-dessus reste TOUJOURS visible,
+   cette bulle n'ajoute qu'un contexte, elle ne le porte jamais seule. */
+[data-wi] .wi-rail-tip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.375rem);
+  z-index: 5;
+  max-width: 16rem;
+  padding: 0.4375rem 0.625rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--wi-border-2);
+  background: var(--wi-raised);
+  box-shadow: var(--wi-shadow-tip);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--wi-muted);
+  white-space: normal;
+  opacity: 0;
+  transform: translateY(-2px);
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+[data-wi] .wi-rail-item:hover .wi-rail-tip,
+[data-wi] .wi-rail-item:focus-visible .wi-rail-tip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-wi] .wi-rail-tip {
+    transition: opacity 0.01ms ease;
+  }
 }

@@ -2413,3 +2413,330 @@
   }
 }
 
+/* ==========================================================================
+   Water Intelligence v3 — Observed Withdrawals (WI-V3-03)
+   ==========================================================================
+   Lollipop horizontal à baseline zéro COMMUNE. Le composant ne dessine de
+   longueur que si unité, période et méthode sont identiques d'une observation
+   à l'autre : les règles ci-dessous n'ont donc jamais à exprimer une échelle,
+   elles ne font que peindre une largeur déjà calculée et déjà justifiée.
+   ========================================================================== */
+
+[data-wi] .wi-pilot-facts {
+  margin: 1.125rem 0 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+[data-wi] .wi-pilot-facts dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-pilot-facts dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+[data-wi] .wi-lolli-card {
+  display: flex;
+  flex-direction: column;
+}
+
+[data-wi] .wi-lolli-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+[data-wi] .wi-lolli-unit-note {
+  font-size: 0.6875rem;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-lolli {
+  list-style: none;
+  margin: 1.375rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+[data-wi] .wi-lolli-row {
+  border-bottom: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-lolli-row:last-child {
+  border-bottom: none;
+}
+
+/*
+ * La rangée entière est le déclencheur d'inspection : viser une petite icône
+ * « détail » à droite d'un tableau dense est une cible de 16 px, la rangée en
+ * fait une de 48.
+ */
+[data-wi] .wi-lolli-trigger {
+  appearance: none;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.625rem 0.375rem;
+  border-radius: 0.5rem;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr minmax(0, auto) 1rem;
+  align-items: center;
+  gap: 0.875rem;
+  transition: background-color 140ms ease;
+}
+
+[data-wi] .wi-lolli-trigger:hover {
+  background: var(--wi-card-2);
+}
+
+@media (max-width: 40rem) {
+  /* Sous 640 px, le tracé passe SOUS l'identité et la valeur plutôt que de
+     comprimer quatre colonnes jusqu'à l'illisible — même parti que les
+     anciennes barres de comparaison. */
+  [data-wi] .wi-lolli-trigger {
+    grid-template-columns: 1fr minmax(0, auto) 1rem;
+  }
+  [data-wi] .wi-lolli-track,
+  [data-wi] .wi-lolli-absent {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+
+[data-wi] .wi-lolli-ident {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-lolli-code {
+  font-size: 0.78125rem;
+  color: var(--wi-fg);
+  overflow-wrap: anywhere;
+}
+
+[data-wi] .wi-lolli-meta {
+  font-size: 0.6875rem;
+  color: var(--wi-subtle);
+}
+
+/* ------------------------------------------------------------------ Tracé */
+
+[data-wi] .wi-lolli-track {
+  position: relative;
+  height: 0.875rem;
+  min-width: 3rem;
+  display: block;
+}
+
+/* La ligne d'origine : elle matérialise le zéro, qui est le même pour toutes
+   les pistes. Sans elle, une tige flotterait sans point de départ visible. */
+[data-wi] .wi-lolli-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--wi-border-2);
+}
+
+[data-wi] .wi-lolli-stem {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--wi-water) 45%, transparent),
+    var(--wi-water)
+  );
+  transform-origin: left center;
+}
+
+[data-wi] .wi-lolli-dot {
+  position: absolute;
+  top: 50%;
+  width: 0.5625rem;
+  height: 0.5625rem;
+  border-radius: 50%;
+  background: var(--wi-water);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--wi-water) 18%, transparent);
+}
+
+[data-wi] .wi-lolli-absent {
+  display: flex;
+  align-items: center;
+}
+
+/* --------------------------------------------------------------- Valeur */
+
+/*
+ * Le nombre est l'information PREMIÈRE : graisse d'affichage, taille au-dessus
+ * de tout le reste de la rangée. La tige n'est qu'un repère de lecture, et la
+ * hiérarchie typographique doit le dire sans commentaire.
+ */
+[data-wi] .wi-lolli-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  justify-content: flex-end;
+  font-family: var(--wi-font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--wi-fg);
+  white-space: nowrap;
+}
+
+[data-wi] .wi-lolli-unit {
+  font-family: var(--wi-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-lolli-chevron {
+  font-family: var(--wi-font-mono);
+  font-size: 0.875rem;
+  color: var(--wi-subtle);
+  text-align: center;
+}
+
+/* ------------------------------------------------------ Panneau d'inspection */
+
+[data-wi] .wi-lolli-panel {
+  margin: 0 0 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius-sm);
+  background: var(--wi-card-2);
+  display: grid;
+  gap: 0.625rem;
+}
+
+[data-wi] .wi-lolli-panel-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.125rem;
+}
+
+@media (min-width: 34rem) {
+  [data-wi] .wi-lolli-panel-row {
+    grid-template-columns: 11rem 1fr;
+    gap: 0.75rem;
+    align-items: baseline;
+  }
+}
+
+[data-wi] .wi-lolli-panel-row dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-lolli-panel-row dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--wi-fg);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------- Axe et pied */
+
+[data-wi] .wi-lolli-axis {
+  margin: 1.25rem 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-lolli-foot {
+  margin: 0.625rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------- Mouvement */
+
+/*
+ * Entrée dans le viewport, une seule fois — la classe `.wi-lolli-animate` est
+ * posée par le composant au premier franchissement, puis l'observateur se
+ * déconnecte. L'état de BASE est l'état final : sans JavaScript, les tiges
+ * sont déjà à leur longueur.
+ */
+@keyframes wiLolliGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes wiLolliDotIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes wiLolliFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+[data-wi] .wi-lolli-animate .wi-lolli-stem {
+  animation: wiLolliGrow 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--wi-i, 0) * 60ms);
+}
+
+[data-wi] .wi-lolli-animate .wi-lolli-dot {
+  animation: wiLolliDotIn 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--wi-i, 0) * 60ms + 180ms);
+}
+
+[data-wi] .wi-lolli-animate .wi-lolli-value {
+  animation: wiLolliFade 360ms ease both;
+  animation-delay: calc(var(--wi-i, 0) * 60ms + 120ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-wi] .wi-lolli-animate .wi-lolli-stem,
+  [data-wi] .wi-lolli-animate .wi-lolli-dot,
+  [data-wi] .wi-lolli-animate .wi-lolli-value {
+    animation-delay: 0ms !important;
+  }
+}
+

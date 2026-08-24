@@ -294,8 +294,18 @@ export default function WaterIntelligencePage() {
           </p>
         </WiSection>
 
-        {/* ------------------------------------------- 2 — Données pilotes */}
-        <WiSection id="pilote" kicker="02 — Publication" title="Première publication pilote">
+        {/* --------------------------------------- 2 — Observed Withdrawals */}
+        <WiSection
+          id="pilote"
+          kicker="02 — Observed Withdrawals"
+          title="Ce qui est effectivement publié"
+        >
+          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
+            Valeurs indépendantes — aucune agrégation, moyenne ou hiérarchie
+            n&apos;est calculée. Trois observations, dans l&apos;ordre du document, sur
+            le périmètre signé et rien d&apos;autre.
+          </p>
+
           <div style={{ marginTop: "1.5rem" }}>
             <WiPilotData
               observations={observations}

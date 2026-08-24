@@ -186,8 +186,25 @@ export function WiFranceMap({
     );
 
   return (
-    <div data-testid="wi-basin-atlas">
+    <div className="wi-atlas" data-testid="wi-basin-atlas">
       <div className="wi-map-frame">
+        {/*
+          Boîte de rendu du SVG, isolée de `.wi-map-frame`.
+          `.wi-map-frame` porte un `min-height` de confort pour la mise en
+          page ; le SVG, avec `height: 100%`, ne le REMPLIT pas forcément —
+          un pourcentage de hauteur qui se résout contre un ancêtre à hauteur
+          `auto` retombe sur le ratio intrinsèque du SVG (720:520), presque
+          toujours plus bas que le `min-height`. La sonde d'inspection est
+          positionnée en pourcentage des coordonnées du viewBox : si elle
+          reste sœur du SVG dans `.wi-map-frame`, ses pourcentages se
+          résolvent contre le cadre entier, pas contre la boîte réelle du
+          SVG — sur un mobile de 375 px, l'écart mesuré atteignait 211 px, la
+          sonde tombant dans l'espace vide sous la carte plutôt que sur le
+          marqueur. `.wi-map-canvas` porte le même ratio via `aspect-ratio` :
+          sonde et SVG partagent alors exactement la même boîte, quelle que
+          soit la largeur.
+        */}
+        <div className="wi-map-canvas">
         <svg
           viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
           role="img"
@@ -278,6 +295,7 @@ export function WiFranceMap({
             Inspecter le périmètre publié — commune {geographyCode}, {periodLabel}
           </span>
         </button>
+        </div>
       </div>
 
       {/* ------------------------------------------------ Légende persistante */}

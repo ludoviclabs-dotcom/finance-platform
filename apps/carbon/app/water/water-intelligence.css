@@ -1652,14 +1652,49 @@
 /* ------------------------------------------------- Territoires et bassin 3D */
 
 [data-wi] .wi-map-frame {
-  /* `relative` : le déclencheur d'inspection est un bouton HTML positionné
-     au-dessus du SVG, en pourcentage du cadre (WI-V3-04). */
-  position: relative;
   border: 1px solid var(--wi-border);
   border-radius: 1rem;
   overflow: hidden;
   background: var(--wi-bg);
   min-height: 28.75rem;
+  /* Centre `.wi-map-canvas` verticalement si le cadre est plus haut que le
+     ratio de la carte ne l'exige — l'espace excédentaire se répartit en
+     haut et en bas plutôt que de rester entièrement sous la carte. */
+  display: flex;
+  align-items: center;
+}
+
+/*
+ * Boîte de rendu réelle du SVG — `position: relative` vit ICI, pas sur
+ * `.wi-map-frame` (WI-V3-04, correction post-revue).
+ *
+ * `.wi-map-frame` porte un `min-height` de confort ; le SVG qu'il contient,
+ * en `height: 100%`, ne le remplit pas forcément — un pourcentage de hauteur
+ * qui se résout contre un ancêtre à hauteur `auto` retombe sur le ratio
+ * intrinsèque du SVG. `aspect-ratio` fixe ce ratio explicitement sur CE
+ * conteneur : la sonde d'inspection, positionnée en pourcentage des
+ * coordonnées du viewBox, partage alors exactement la boîte du SVG au lieu
+ * de se résoudre contre un cadre plus haut — l'écart mesuré atteignait
+ * 211 px sur un mobile de 375 px avant ce correctif.
+ */
+[data-wi] .wi-map-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 720 / 520;
+}
+
+/*
+ * `.wi-atlas` borne la largeur de l'ensemble carte + légende — sans quoi
+ * `aspect-ratio` fait grandir la hauteur avec la largeur du contenu : sur un
+ * viewport de 1280 px, la carte occupait 866 px de haut (la largeur pleine
+ * de `.wi-shell` divisée par le ratio 720:520), presque toute la fenêtre
+ * pour une section qui tenait auparavant dans les 460 px du `min-height`
+ * fixe. La légende partage le même plafond pour rester alignée avec la
+ * carte plutôt que déborder à sa pleine largeur.
+ */
+[data-wi] .wi-atlas {
+  max-width: 47rem;
+  margin-inline: auto;
 }
 
 [data-wi] .wi-map-frame iframe {

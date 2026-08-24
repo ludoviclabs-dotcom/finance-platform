@@ -307,8 +307,10 @@ export default function WaterIntelligencePage() {
         >
           <p className="wi-muted" style={{ maxWidth: "62ch" }}>
             Valeurs indépendantes — aucune agrégation, moyenne ou hiérarchie
-            n&apos;est calculée. Trois observations, dans l&apos;ordre du document, sur
-            le périmètre signé et rien d&apos;autre.
+            n&apos;est calculée.{" "}
+            {published
+              ? `${observations.length} observation${observations.length > 1 ? "s" : ""}, dans l'ordre du document, sur le périmètre signé et rien d'autre.`
+              : "Aucune observation publiée à ce jour : le document pilote n'a pas encore été généré."}
           </p>
 
           <div style={{ marginTop: "1.5rem" }}>

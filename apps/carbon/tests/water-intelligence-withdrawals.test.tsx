@@ -394,12 +394,27 @@ describe("inspection d'une observation", () => {
     expect(text).toContain(observation.retrievedAt);
     expect(text).toContain(SCOPE.sourceCode);
 
-    // Empreinte abrégée à l'écran, jamais les 64 caractères.
+    // Empreinte abrégée à l'écran par défaut, jamais les 64 caractères.
     expect(text).toContain(observation.checksum.slice(0, 12));
     expect(text).not.toContain(observation.checksum);
 
-    // …mais copiable en entier.
-    expect(panel.querySelector("button")?.getAttribute("aria-label")).toContain("Copier");
+    // …mais copiable en entier…
+    const copyButton = [...panel.querySelectorAll("button")].find((b) =>
+      b.getAttribute("aria-label")?.startsWith("Copier"),
+    );
+    expect(copyButton).toBeDefined();
+
+    // …et atteignable en entier SANS presse-papiers, via le bouton de
+    // révélation — pas seulement promis en commentaire (WI-V3-04, revue Codex).
+    const expandButton = m.container.querySelector<HTMLButtonElement>(
+      `[data-testid="wi-checksum-expand-${observation.ouvrageCode}"]`,
+    )!;
+    expect(expandButton.getAttribute("aria-expanded")).toBe("false");
+    await act(async () => {
+      expandButton.click();
+    });
+    expect(panel.textContent).toContain(observation.checksum);
+    expect(expandButton.getAttribute("aria-expanded")).toBe("true");
 
     await act(async () => {
       m.root.unmount();

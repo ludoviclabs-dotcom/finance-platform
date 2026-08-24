@@ -174,9 +174,29 @@ export function WiPilotData({
         if (typeof observation.value !== "number" || scale === null || !sharedAxis) {
           return { observation, pct: null };
         }
+        /*
+         * Un zéro MESURÉ — distinct d'une absence — va à l'origine exacte de
+         * l'axe, jamais au plancher. Le schéma des métriques l'autorise :
+         * une observation peut légitimement valoir 0, y compris à côté
+         * d'observations non nulles (`scale` alors non nul). Le plancher
+         * existe pour garder VISIBLE une valeur réelle mais MINUSCULE, pas
+         * pour déplacer un zéro loin de son origine — un zéro affublé d'un
+         * plancher de 1,5 % se lirait comme « une petite valeur positive »,
+         * l'inverse de ce qu'il est.
+         *
+         * Ce contrôle précède celui de `scale`, et le couvre par construction
+         * : `scale` est le maximum des valeurs numériques (jamais négatives
+         * pour un volume), donc `scale === 0` implique que CETTE observation
+         * vaut aussi 0 quand elle est numérique. Diviser par un `scale` nul
+         * produirait sinon `NaN`, qu'aucun plancher ne rattrape (`Math.max`
+         * avec un `NaN` renvoie `NaN`).
+         */
+        if (observation.value === 0) {
+          return { observation, pct: 0 };
+        }
         /* Plancher à 1,5 % : une valeur réelle mais minuscule doit rester
            visible. Le plancher ne s'applique JAMAIS à une absence, qui n'a
-           pas de tige du tout. */
+           pas de tige du tout, ni à un zéro mesuré, traité ci-dessus. */
         return { observation, pct: Math.max(1.5, (observation.value / scale) * 100) };
       }),
     [observations, scale, sharedAxis],
@@ -346,14 +366,14 @@ export function WiPilotData({
                       <InspectionRow label="Clé de release">
                         <span className="wi-mono">{observation.releaseKey}</span>
                       </InspectionRow>
-                      {/* Douze caractères à l'écran, soixante-quatre dans le
-                          presse-papiers : l'empreinte complète reste
-                          vérifiable sans encombrer la lecture. */}
+                      {/* Douze caractères par défaut, pour ne pas encombrer la
+                          lecture ; le bouton « Afficher en entier » rend les
+                          soixante-quatre sans dépendre du presse-papiers —
+                          voir la docstring de `ChecksumField`. */}
                       <InspectionRow label="Empreinte du payload">
-                        <span className="wi-mono">{observation.checksum.slice(0, 12)}…</span>{" "}
-                        <CopyButton
-                          value={observation.checksum}
-                          label={`l'empreinte de ${observation.ouvrageCode}`}
+                        <ChecksumField
+                          checksum={observation.checksum}
+                          ouvrageCode={observation.ouvrageCode}
                         />
                       </InspectionRow>
                       <InspectionRow label="Décision de publication">
@@ -440,5 +460,41 @@ function InspectionRow({ label, children }: { label: string; children: React.Rea
       <dt>{label}</dt>
       <dd>{children}</dd>
     </div>
+  );
+}
+
+/**
+ * Empreinte de payload — 12 caractères par défaut, 64 sur demande.
+ *
+ * `CopyButton` échoue silencieusement hors contexte sécurisé ou si la
+ * permission est refusée (voir sa docstring dans `WiProof.tsx`) : son propre
+ * commentaire promet qu'« la valeur reste affichée en entier et
+ * sélectionnable », promesse que cette section ne tenait pas — seuls les 12
+ * premiers caractères atteignaient jamais le DOM, et les 52 restants
+ * n'existaient que comme argument du presse-papiers. Un lecteur dont le
+ * presse-papiers échoue n'avait alors aucun moyen d'obtenir l'empreinte
+ * complète, malgré la promesse.
+ *
+ * Le repli n'est donc pas le presse-papiers : c'est ce bouton, qui ne dépend
+ * d'aucune permission ni d'aucun contexte sécurisé.
+ */
+function ChecksumField({ checksum, ouvrageCode }: { checksum: string; ouvrageCode: string }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <span style={{ display: "inline-flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem" }}>
+      <span className="wi-mono" style={{ overflowWrap: "anywhere" }}>
+        {expanded ? checksum : `${checksum.slice(0, 12)}…`}
+      </span>
+      <button
+        type="button"
+        className="wi-copy"
+        onClick={() => setExpanded((current) => !current)}
+        aria-expanded={expanded}
+        data-testid={`wi-checksum-expand-${ouvrageCode}`}
+      >
+        {expanded ? "Réduire" : "Afficher en entier"}
+      </button>
+      <CopyButton value={checksum} label={`l'empreinte de ${ouvrageCode}`} />
+    </span>
   );
 }

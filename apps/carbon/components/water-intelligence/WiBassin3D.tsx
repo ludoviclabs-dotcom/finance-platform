@@ -198,6 +198,7 @@ export function WiBassin3D({ reducedMotion = false }: WiBassin3DProps) {
 
     let disposed = false;
     let frameId = 0;
+    let autoRotateTimer = 0;
     let resizeObserver: ResizeObserver | undefined;
     let renderer: import("three").WebGLRenderer | undefined;
     let controls: import("three/examples/jsm/controls/OrbitControls.js").OrbitControls | undefined;
@@ -259,6 +260,16 @@ export function WiBassin3D({ reducedMotion = false }: WiBassin3DProps) {
         renderer.domElement.addEventListener("pointerdown", stopAutoRotate, { once: true });
         renderer.domElement.addEventListener("wheel", stopAutoRotate, { once: true });
         renderer.domElement.addEventListener("keydown", stopAutoRotate, { once: true });
+        /*
+         * La rotation s'arrête d'elle-même au bout de six secondes.
+         *
+         * Elle ne s'interrompait jusqu'ici qu'à la première interaction : pour
+         * un lecteur qui ne touche à rien, elle tournait indéfiniment à côté
+         * d'un texte à lire. C'est le même raisonnement que le ping de la
+         * carte, borné à trois répétitions dès la v2 — l'affordance « ceci se
+         * manipule » est donnée, puis la page se tait.
+         */
+        autoRotateTimer = window.setTimeout(stopAutoRotate, 6000);
 
         const renderLoop = () => {
           controls?.update();
@@ -289,6 +300,7 @@ export function WiBassin3D({ reducedMotion = false }: WiBassin3DProps) {
     return () => {
       disposed = true;
       if (frameId) cancelAnimationFrame(frameId);
+      if (autoRotateTimer) window.clearTimeout(autoRotateTimer);
       resizeObserver?.disconnect();
       controls?.dispose();
       if (renderer) {
@@ -334,6 +346,19 @@ export function WiBassin3D({ reducedMotion = false }: WiBassin3DProps) {
 
   return (
     <div>
+      {/*
+        Avertissement AVANT la scène, pas après.
+        Une coupe 3D d'aspect réaliste posée sous un titre parlant de
+        Montpellier se lit comme une reconstruction du bassin réel. Elle n'en
+        est pas une : les reliefs, la nappe et le cours d'eau sont un schéma
+        générique, sans topographie ni géométrie mesurée. La mention est donc
+        placée là où elle est lue avant l'image, jamais en légende sous elle.
+      */}
+      <p className="wi-bassin-notice" data-testid="wi-bassin-notice">
+        <span aria-hidden="true">◆</span> Coupe pédagogique — représentation
+        illustrative, non topographique. Aucune géométrie de cette scène ne
+        décrit le bassin réel de la commune publiée.
+      </p>
       <div className="wi-bassin-canvas-wrap" data-testid="wi-bassin-3d">
         <div ref={containerRef} style={{ width: "100%", height: "100%" }} aria-hidden={state !== "ready"} />
         {state !== "ready" && (

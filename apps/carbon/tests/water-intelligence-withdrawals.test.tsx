@@ -435,7 +435,12 @@ describe("inspection d'une observation", () => {
 
 describe("mouvement borné", () => {
   const css = read("app/water/water-intelligence.css");
-  const section = css.slice(css.indexOf("Water Intelligence v3 — Observed Withdrawals"));
+  /* Découpe BORNÉE à la section : sans borne de fin, le slice avalait les
+     sections v3 suivantes et jugeait leurs durées comme si elles étaient
+     celles-ci. */
+  const sectionStart = css.indexOf("Water Intelligence v3 — Observed Withdrawals");
+  const sectionEnd = css.indexOf("Water Intelligence v3 — Basin Atlas");
+  const section = css.slice(sectionStart, sectionEnd > sectionStart ? sectionEnd : undefined);
 
   it("n'entretient aucune animation perpétuelle", () => {
     expect(section).not.toContain("infinite");

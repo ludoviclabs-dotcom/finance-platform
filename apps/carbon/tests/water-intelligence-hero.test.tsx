@@ -384,8 +384,18 @@ describe("hero — mouvement borné", () => {
   });
 
   it("annule les délais sous mouvement réduit, plutôt que de retarder l'affichage", () => {
-    const reduced = CSS.slice(CSS.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
-    expect(reduced).toContain("animation-delay: 0ms !important");
+    /* On cherche le bloc qui traite CE chantier, pas « le dernier du
+       fichier » : chaque section v3 ajoute le sien, et un découpage par
+       position se casse au chantier suivant. */
+    const blocks = CSS.split("@media (prefers-reduced-motion: reduce)").slice(1);
+    const covering = blocks.find(
+      (block) =>
+        block.includes("wi-anim-rise") && block.includes("animation-delay: 0ms !important"),
+    );
+    expect(
+      covering,
+      "aucun bloc mouvement réduit n'annule le délai d'entrée du hero",
+    ).toBeDefined();
   });
 
   it("continue de consulter la préférence de mouvement côté client", () => {

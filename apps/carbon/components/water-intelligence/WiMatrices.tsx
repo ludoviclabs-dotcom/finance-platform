@@ -22,6 +22,7 @@ import { useReducedMotion } from "framer-motion";
 import { WiBassin3D } from "@/components/water-intelligence/WiBassin3D";
 import { WiFranceMap } from "@/components/water-intelligence/WiFranceMap";
 import { WiEvidenceChip } from "@/components/water-intelligence/WiPrimitives";
+import type { WiBasinJoin } from "@/lib/water-intelligence/basin-atlas";
 import {
   CLIMATE_EVENTS,
   CLIMATE_EVENT_KINDS,
@@ -289,6 +290,10 @@ export interface WiTerritoryProps {
   isPublished: boolean;
   /** Coordonnées approximatives du chef-lieu — `null` tant que non publié. */
   markerLonLat: readonly [number, number] | null;
+  /** État de jointure bassin, DÉRIVÉ du document par `page.tsx`. */
+  join: WiBasinJoin;
+  sourceCode: string;
+  reviewedOn: string;
 }
 
 /**
@@ -317,6 +322,9 @@ export function WiTerritory({
   ouvrageCount,
   isPublished,
   markerLonLat,
+  join,
+  sourceCode,
+  reviewedOn,
 }: WiTerritoryProps) {
   /* `page.tsx` est un Server Component : il ne peut pas résoudre
      `prefers-reduced-motion` lui-même. Comme `WiHero` et `WiPilotData`,
@@ -333,6 +341,9 @@ export function WiTerritory({
           ouvrageCount={ouvrageCount}
           periodLabel={periodLabel}
           reducedMotion={reducedMotion}
+          join={join}
+          sourceCode={sourceCode}
+          reviewedOn={reviewedOn}
         />
       )}
 
@@ -373,6 +384,18 @@ export function WiTerritory({
           carte de <em>couverture</em> — une teinte par territoire — se lirait
           comme une donnée là où il n&apos;y en a pas&nbsp;: les contours de bassin,
           les autres communes et toute couche de coverage restent différés.
+        </p>
+        {/*
+          La hiérarchie visée est ouvrage → commune → bassin. Le troisième
+          niveau n'est pas franchi, et l'état vient du document plutôt que
+          d'une phrase : voir `basinJoin()` dans `lib/water-intelligence`.
+        */}
+        <p
+          className="wi-mono"
+          style={{ marginTop: "0.875rem", color: "var(--wi-stress)", fontSize: "0.75rem" }}
+          data-testid="wi-territory-basin-join"
+        >
+          {join.label}
         </p>
       </div>
 

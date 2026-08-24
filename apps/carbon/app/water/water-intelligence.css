@@ -1652,6 +1652,9 @@
 /* ------------------------------------------------- Territoires et bassin 3D */
 
 [data-wi] .wi-map-frame {
+  /* `relative` : le déclencheur d'inspection est un bouton HTML positionné
+     au-dessus du SVG, en pourcentage du cadre (WI-V3-04). */
+  position: relative;
   border: 1px solid var(--wi-border);
   border-radius: 1rem;
   overflow: hidden;
@@ -1666,12 +1669,18 @@
   display: block;
 }
 
-/* Contour de la France : se dessine une fois, à l'entrée dans le viewport
-   (déclenché en React via `reducedMotion`), jamais en boucle. */
+/*
+ * Contour de la France : se dessine UNE fois, jamais en boucle.
+ *
+ * 2,6 s en v2 → 480 ms (WI-V3-04). Le tracé était devenu un spectacle : deux
+ * secondes et demie pendant lesquelles la seule chose vérifiée de la carte —
+ * le point publié — n'existait pas encore à l'écran. Le trait sert à situer,
+ * pas à se faire regarder.
+ */
 [data-wi] .wi-map-outline-draw {
   stroke-dasharray: 1400;
   stroke-dashoffset: 1400;
-  animation: wiMapDraw 2.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: wiMapDraw 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes wiMapDraw {
@@ -1680,38 +1689,27 @@
   }
 }
 
+/*
+ * Marqueur : fondu ET montée d'échelle depuis 0,8 — le point grandit vers sa
+ * place au lieu d'apparaître d'un bloc. Le ping en trois répétitions de la v2
+ * est SUPPRIMÉ : il attirait l'œil une fois le marqueur déjà visible, donc
+ * après que son information soit passée.
+ */
 [data-wi] .wi-map-marker {
   opacity: 0;
-  animation: wiMapMarkerIn 600ms ease forwards;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wiMapMarkerIn 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes wiMapMarkerIn {
+  from {
+    opacity: 0;
+    scale: 0.8;
+  }
   to {
     opacity: 1;
-  }
-}
-
-/*
- * Trois répétitions puis silence — jamais perpétuel. Le ping attire l'œil
- * vers l'unique point vérifié une fois le marqueur apparu ; au-delà, il ne
- * porte plus d'information et une boucle infinie ne serait que du bruit.
- */
-[data-wi] .wi-map-pulse {
-  transform-origin: center;
-  transform-box: fill-box;
-  animation: wiMapPulse 2.4s ease-out 3;
-  animation-fill-mode: forwards;
-}
-
-@keyframes wiMapPulse {
-  0% {
-    opacity: 0.9;
-    transform: scale(0.4);
-  }
-  70%,
-  100% {
-    opacity: 0;
-    transform: scale(2.6);
+    scale: 1;
   }
 }
 
@@ -2737,6 +2735,341 @@
   [data-wi] .wi-lolli-animate .wi-lolli-dot,
   [data-wi] .wi-lolli-animate .wi-lolli-value {
     animation-delay: 0ms !important;
+  }
+}
+
+/* ==========================================================================
+   Water Intelligence v3 — Basin Atlas (WI-V3-04)
+   ==========================================================================
+   Trois types de couches, une légende persistante, un tiroir d'inspection.
+   Aucune règle ici ne teinte un polygone en fonction d'une valeur : il
+   n'existe aucune métrique par polygone, et une rampe de couleur en
+   inventerait une.
+   ========================================================================== */
+
+/* ------------------------------------------------- Couches et leur bascule */
+
+/*
+ * Fondu croisé d'une couche. `visibility` accompagne l'opacité : une couche
+ * éteinte ne doit pas rester cliquable ni lisible par un lecteur d'écran.
+ */
+[data-wi] .wi-layer {
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+[data-wi] .wi-layer[data-visible="false"] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ------------------------------------------- Déclencheur d'inspection */
+
+/*
+ * Cible tactile de 44 px centrée sur le point publié, transparente : le
+ * marqueur dessiné reste le repère visuel, ce bouton n'ajoute qu'une surface
+ * atteignable au doigt et au clavier. Un `<circle>` de 4,5 px de rayon
+ * n'aurait été ni l'un ni l'autre.
+ */
+[data-wi] .wi-map-probe {
+  position: absolute;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -1.375rem 0 0 -1.375rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+[data-wi] .wi-map-probe:hover {
+  background: color-mix(in srgb, var(--wi-water) 16%, transparent);
+}
+
+/* ------------------------------------------------- Légende persistante */
+
+[data-wi] .wi-atlas-legend {
+  margin-top: 1rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius);
+  background: var(--wi-card);
+}
+
+[data-wi] .wi-atlas-layers {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.375rem;
+}
+
+/*
+ * Le `li` n'est jamais le conteneur de disposition : celle-ci est portée par
+ * l'enveloppe interne, `.wi-atlas-layer-static` ou `.wi-atlas-layer-toggle`
+ * selon que la couche est activable. Sans cela, une couche à bouton
+ * imbriquerait un conteneur flex dans un autre.
+ */
+[data-wi] .wi-atlas-layer {
+  display: block;
+  border-radius: 0.5rem;
+}
+
+/* Une couche différée est visiblement inerte : hachurée, en retrait, et sans
+   interrupteur — `AtlasLegendEntry` ne lui rend aucun bouton. */
+[data-wi] .wi-atlas-layer[data-kind="deferred"] {
+  border: 1px dashed var(--wi-border-2);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--wi-hatch) 0,
+    var(--wi-hatch) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  opacity: 0.75;
+}
+
+[data-wi] .wi-atlas-layer-static,
+[data-wi] .wi-atlas-layer-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+}
+
+[data-wi] .wi-atlas-layer-toggle {
+  appearance: none;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+[data-wi] .wi-atlas-layer-toggle:hover {
+  background: var(--wi-card-2);
+  border-color: var(--wi-border);
+}
+
+[data-wi] .wi-atlas-swatch {
+  flex: 0 0 auto;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: 0.125rem;
+  border-radius: 0.25rem;
+}
+
+[data-wi] .wi-atlas-swatch-published {
+  background: var(--wi-water);
+}
+
+/* Repérage : un contour, jamais un aplat — un fond plein se lirait comme une
+   surface porteuse de donnée. */
+[data-wi] .wi-atlas-swatch-context {
+  background: transparent;
+  border: 1px solid var(--wi-border-2);
+}
+
+[data-wi] .wi-atlas-swatch-deferred {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--wi-absent) 0,
+    var(--wi-absent) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  border: 1px dashed var(--wi-absent);
+}
+
+[data-wi] .wi-atlas-layer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
+}
+
+[data-wi] .wi-atlas-layer-label {
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-atlas-layer-detail {
+  font-size: 0.71875rem;
+  line-height: 1.45;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-atlas-kind {
+  flex: 0 0 auto;
+  font-family: var(--wi-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding-top: 0.0625rem;
+}
+
+[data-wi] .wi-atlas-kind-published {
+  color: var(--wi-water);
+}
+[data-wi] .wi-atlas-kind-context {
+  color: var(--wi-subtle);
+}
+[data-wi] .wi-atlas-kind-deferred {
+  color: var(--wi-stress);
+}
+
+/* Une couche éteinte se signale par la mise en retrait de son libellé, pas
+   seulement par l'état ARIA : `aria-pressed` ne se voit pas. */
+[data-wi] .wi-atlas-layer-toggle[aria-pressed="false"] .wi-atlas-layer-label,
+[data-wi] .wi-atlas-layer-toggle[aria-pressed="false"] .wi-atlas-swatch {
+  opacity: 0.45;
+}
+
+/* ------------------------------------------------- Tiroir d'inspection */
+
+[data-wi] .wi-drawer-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+[data-wi] .wi-drawer-scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  background: rgb(7 17 31 / 0.55);
+  animation: wiDrawerScrim 200ms ease both;
+}
+
+@keyframes wiDrawerScrim {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+[data-wi] .wi-drawer {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: min(26rem, 100%);
+  overflow-y: auto;
+  padding: 1.375rem;
+  background: var(--wi-surface);
+  border-inline-start: 1px solid var(--wi-border-2);
+  box-shadow: var(--wi-shadow-panel);
+  animation: wiDrawerIn 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes wiDrawerIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[data-wi] .wi-drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+[data-wi] .wi-drawer-close {
+  appearance: none;
+  flex: 0 0 auto;
+  border: 1px solid var(--wi-border-2);
+  border-radius: 0.5rem;
+  background: var(--wi-card);
+  color: var(--wi-fg);
+  font: inherit;
+  font-size: 0.78125rem;
+  font-weight: 650;
+  padding: 0.3125rem 0.75rem;
+  cursor: pointer;
+}
+
+[data-wi] .wi-drawer-close:hover {
+  border-color: var(--wi-water);
+}
+
+[data-wi] .wi-drawer-rows {
+  margin: 1.125rem 0 0;
+  display: grid;
+  gap: 0.625rem;
+}
+
+[data-wi] .wi-drawer-row dt {
+  font-size: 0.65625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-drawer-row dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--wi-fg);
+  overflow-wrap: anywhere;
+}
+
+[data-wi] .wi-drawer-section {
+  margin-top: 1.125rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-drawer-section-body {
+  margin-top: 0.375rem;
+  font-size: 0.78125rem;
+  line-height: 1.55;
+}
+
+[data-wi] .wi-drawer-foot {
+  margin-top: 1.125rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+}
+
+/* --------------------------------------------------- Avertissement 3D */
+
+/*
+ * Avant la scène, pas sous elle. Une coupe d'aspect réaliste sous un titre
+ * nommant une commune se lit comme une reconstruction de son bassin.
+ */
+[data-wi] .wi-bassin-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--wi-border-2);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--wi-stress);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Le tiroir apparaît sans glisser : l'information est la même, le
+     déplacement n'en portait aucune. */
+  [data-wi] .wi-drawer {
+    animation: wiDrawerScrim 0.01ms ease both;
   }
 }
 

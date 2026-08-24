@@ -99,6 +99,7 @@ import {
   IntelligenceThemeToggle,
 } from "@/components/intelligence/IntelligenceThemeProvider";
 import { PULSE_FACETS } from "@/lib/water-intelligence/editorial-matrices";
+import { basinJoin } from "@/lib/water-intelligence/basin-atlas";
 import { SOURCE_STATUS, orderedSources } from "@/lib/water-intelligence/canonical-snapshot";
 import {
   PILOT_FILE,
@@ -166,6 +167,10 @@ export default function WaterIntelligencePage() {
 
   const observations = pilotObservations(PILOT_FILE);
   const scope = pilotScope(PILOT_FILE);
+  /* Jointure bassin : DÉRIVÉE du document, jamais affirmée dans le JSX. Voir
+     `lib/water-intelligence/basin-atlas.ts` — elle exige deux faits canoniques
+     dont aucun n'est vrai aujourd'hui. */
+  const join = basinJoin(PILOT_FILE);
   const warnings = pilotCoverageWarnings(PILOT_FILE);
   const sources = orderedSources(SOURCE_STATUS);
   const scopeLabel = `commune ${scope.geographyCode}, année ${scope.periodStart.slice(0, 4)}`;
@@ -340,6 +345,9 @@ export default function WaterIntelligencePage() {
               ouvrageCount={observations.length}
               isPublished={published}
               markerLonLat={published ? MONTPELLIER_LONLAT : null}
+              join={join}
+              sourceCode={scope.sourceCode}
+              reviewedOn={scope.reviewedOn}
             />
           </div>
         </WiSection>

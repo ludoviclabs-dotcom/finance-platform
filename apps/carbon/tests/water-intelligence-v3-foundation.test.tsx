@@ -1,8 +1,8 @@
 /**
  * tests/water-intelligence-v3-foundation.test.tsx — fondation visuelle Water
- * Intelligence V3 (WI-V3-01).
+ * Intelligence V3 (WI-V3-01, étendu par WI-V3-02).
  *
- * Quatre garanties, indépendantes de toute maquette :
+ * Garanties tenues ici, indépendantes de toute maquette :
  *
  * 1. Le thème est sombre PAR DÉFAUT, structurellement — plus aucune dépendance
  *    à `prefers-color-scheme` dans la feuille de style, et le mécanisme reste
@@ -10,11 +10,22 @@
  * 2. Un choix explicite se persiste — « clair » comme « sombre » — et se
  *    retrouve identique après un remontage (l'équivalent d'un retour sur la
  *    page).
- * 3. La Provenance Rail affiche exactement ce qu'on lui donne, jamais une
- *    valeur qu'elle aurait recalculée ou importée elle-même.
- * 4. Rien de nouveau ajouté par ce chantier n'introduit une constante
- *    quantitative — les primitives de statut restent des lecteurs, jamais des
- *    sources.
+ * 3. Rien de nouveau n'introduit une constante quantitative : les primitives
+ *    de statut restent des lecteurs, jamais des sources.
+ *
+ * Les tests du hero (Evidence Counters, Snapshot pilote, Evidence Chain)
+ * vivent dans `water-intelligence-hero.test.tsx` — ce fichier-ci reste celui
+ * de la FONDATION : thème, persistance, grammaire de statut.
+ *
+ * ## Ce que WI-V3-02 a retiré, et pourquoi ce n'est pas silencieux
+ *
+ * Le bloc « WiScopeRail — Provenance / Scope Rail » qui vivait ici a été
+ * supprimé AVEC son composant : les quatre Evidence Counters et le bloc
+ * « Snapshot pilote » du hero portent désormais les mêmes faits. Ses
+ * assertions n'ont pas été perdues, elles ont changé de sujet — on les
+ * retrouve dans `water-intelligence-hero.test.tsx` : valeurs reçues en props
+ * et jamais recalculées, absence de jointure de bassin inventée, aucune
+ * lecture directe des documents hydriques par un composant de présentation.
  */
 
 import { readFileSync } from "node:fs";
@@ -29,7 +40,6 @@ import {
   IntelligenceThemeProvider,
   IntelligenceThemeToggle,
 } from "@/components/intelligence/IntelligenceThemeProvider";
-import { WiScopeRail } from "@/components/water-intelligence/WiScopeRail";
 import {
   WiEvidenceChip,
   WiStatusChip,
@@ -186,92 +196,7 @@ describe("persistance du thème Water", () => {
 });
 
 /* ==========================================================================
-   3 — Provenance Rail : un lecteur, jamais une source
-   ========================================================================== */
-
-describe("WiScopeRail — Provenance / Scope Rail", () => {
-  const PROPS = {
-    territoryCode: "34172",
-    periodLabel: "2020",
-    snapshotDate: "2026-07-28",
-    observationCount: 3,
-    sourceCount: 7,
-    publishableCount: 1,
-    published: true,
-  } as const;
-
-  it("rend exactement les valeurs reçues, jamais recalculées", () => {
-    const markup = renderToStaticMarkup(<WiScopeRail {...PROPS} />);
-    expect(markup).toContain('data-testid="wi-scope-rail"');
-    expect(markup).toContain("34172");
-    expect(markup).toContain("2020");
-    expect(markup).toContain("2026-07-28");
-    expect(markup).toContain(">3<");
-    expect(markup).toContain(">7<");
-    expect(markup).toContain(">1<");
-  });
-
-  it("rend le statut « non généré » sans fabriquer de date", () => {
-    const markup = renderToStaticMarkup(
-      <WiScopeRail {...PROPS} snapshotDate={null} published={false} />,
-    );
-    expect(markup).toContain("non généré");
-    expect(markup).not.toContain("2026-07-28");
-  });
-
-  it("chaque item mène à l'Evidence Registry (#preuves)", () => {
-    const markup = renderToStaticMarkup(<WiScopeRail {...PROPS} />);
-    const hrefs = [...markup.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
-    expect(hrefs.length).toBeGreaterThan(0);
-    for (const href of hrefs) {
-      expect(href).toBe("#preuves");
-    }
-  });
-
-  it("n'affiche pas de jointure de bassin — aucun état canonique ne l'expose", () => {
-    /* Le blueprint prévoyait ce champ SOUS CONDITION qu'un état canonique
-       existe. Il n'existe pas (voir la docstring de WiScopeRail.tsx) : ce
-       test tient la clause conditionnelle, pas seulement l'implémentation
-       actuelle. */
-    const markup = renderToStaticMarkup(<WiScopeRail {...PROPS} />);
-    expect(markup.toLowerCase()).not.toContain("bassin");
-  });
-
-  it("est un repère nommé pour un lecteur d'écran", () => {
-    const markup = renderToStaticMarkup(<WiScopeRail {...PROPS} />);
-    expect(markup).toContain('aria-label="Portée et provenance publiées"');
-  });
-
-  it("ne lit aucune donnée hydrique par elle-même — tout arrive en props", () => {
-    /* Si ce composant importait `canonical-snapshot`/`pilot-snapshot`, il
-       pourrait diverger silencieusement des valeurs que `page.tsx` calcule
-       déjà pour le hero. Un seul point de calcul, un composant qui ne fait
-       que réafficher. */
-    const source = read("components/water-intelligence/WiScopeRail.tsx");
-    expect(source).not.toMatch(/from ["']@\/lib\/water-intelligence/);
-  });
-
-  it("page.tsx ne passe aucun littéral en dur à WiScopeRail — uniquement des expressions", () => {
-    const source = stripComments(read("app/water/page.tsx"));
-    const call = source.slice(source.indexOf("<WiScopeRail"), source.indexOf("/>", source.indexOf("<WiScopeRail")) + 2);
-    expect(call.length).toBeGreaterThan(0);
-    // Chaque prop est de la forme `nom={expression}` — jamais `nom="texte"`.
-    const props = [...call.matchAll(/(\w+)=/g)].map((m) => m[1]);
-    expect(props).toEqual([
-      "territoryCode",
-      "periodLabel",
-      "snapshotDate",
-      "observationCount",
-      "sourceCount",
-      "publishableCount",
-      "published",
-    ]);
-    expect(call).not.toMatch(/=\s*"/);
-  });
-});
-
-/* ==========================================================================
-   4 — Grammaire de statut centralisée : aucune constante quantitative
+   3 — Grammaire de statut centralisée : aucune constante quantitative
    ========================================================================== */
 
 describe("grammaire de statut — WiStatusChip / WiEvidenceChip / SOURCE_STATE_TONE", () => {

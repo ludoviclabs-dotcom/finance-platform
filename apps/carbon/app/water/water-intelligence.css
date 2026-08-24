@@ -715,44 +715,8 @@
   gap: 0.5rem;
 }
 
-[data-wi] .wi-hero-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  margin: 1.75rem 0 0;
-  background: var(--wi-border);
-  border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius);
-  overflow: hidden;
-}
-
-@media (min-width: 44rem) {
-  [data-wi] .wi-hero-stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-[data-wi] .wi-hero-stats > div {
-  background: var(--wi-card);
-  padding: 0.875rem 1rem;
-}
-
-[data-wi] .wi-hero-stats dt {
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--wi-subtle);
-  font-weight: 650;
-}
-
-[data-wi] .wi-hero-stats dd {
-  margin: 0.25rem 0 0;
-  font-family: var(--wi-font-display);
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--wi-fg);
-  line-height: 1.2;
-}
+/* `.wi-hero-stats` (bandeau de quatre chiffres collés) a été REMPLACÉ par les
+   Evidence Counters en WI-V3-02 — voir plus bas. */
 
 [data-wi] .wi-hero-provenance {
   margin-top: 1rem;
@@ -825,61 +789,10 @@
   gap: 0;
 }
 
-[data-wi] .wi-cascade-item {
-  display: flex;
-  gap: 0.875rem;
-  align-items: flex-start;
-  padding: 0.625rem 0;
-  position: relative;
-}
-
-/* Le filet vertical relie les maillons : il montre l'enchaînement sans
-   ajouter de texte, et il est décoratif — l'ordre est déjà porté par `ol`. */
-[data-wi] .wi-cascade-item:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  left: 0.8125rem;
-  top: 2rem;
-  bottom: -0.25rem;
-  width: 1px;
-  background: linear-gradient(to bottom, var(--wi-border-2), transparent);
-}
-
-[data-wi] .wi-cascade-rank {
-  flex: 0 0 auto;
-  width: 1.625rem;
-  height: 1.625rem;
-  border-radius: 50%;
-  border: 1px solid var(--wi-border-2);
-  background: var(--wi-card-2);
-  color: var(--wi-water);
-  font-family: var(--wi-font-mono);
-  font-size: 0.625rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-[data-wi] .wi-cascade-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  min-width: 0;
-}
-
-[data-wi] .wi-cascade-label {
-  font-family: var(--wi-font-display);
-  font-weight: 650;
-  font-size: 0.9375rem;
-  color: var(--wi-fg);
-}
-
-[data-wi] .wi-cascade-hint {
-  font-size: 0.8125rem;
-  color: var(--wi-muted);
-  line-height: 1.5;
-}
+/* Les maillons eux-mêmes (`.wi-cascade-item`, `-rank`, `-body`, `-label`,
+   `-hint`) ont été REMPLACÉS par l'Evidence Chain en WI-V3-02 — voir
+   `.wi-chain-*` plus bas. Le conteneur, la liste et le pied restent : la
+   chaîne est toujours une liste ordonnée dans une carte. */
 
 [data-wi] .wi-cascade-foot {
   margin: 1rem 0 0;
@@ -2145,108 +2058,358 @@
 }
 
 /* ==========================================================================
-   Water Intelligence v3 — fondation visuelle (WI-V3-01)
+   Water Intelligence v3 — hero / centre de commande (WI-V3-02)
    ==========================================================================
-   Cette section AJOUTE aux règles ci-dessus ; elle n'en retire aucune, comme
-   la section « v2 — ajouts visuels » plus haut le documentait déjà pour la
-   refonte précédente.
+   Cette section AJOUTE aux règles ci-dessus. Elle remplace `.wi-rail-*`
+   (WI-V3-01), retirée avec son composant : les Evidence Counters et le bloc
+   « Snapshot pilote » portent désormais les mêmes faits, dans le hero.
    ========================================================================== */
 
-/* --------------------------------------------------- Provenance / Scope Rail */
+/* -------------------------------------------------- Colonne latérale du hero */
+
+[data-wi] .wi-hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------- Evidence Counters */
 
 /*
- * Bandeau compact sous le hero : territoire, période, snapshot, compteurs de
- * sources, statut de publication — sept chiffres/statuts déjà calculés par
- * `page.tsx`, jamais recopiés ici. NON sticky, par choix : la barre de
- * navigation (`.wi-nav`) est déjà collante en haut de viewport, et empiler un
- * second bandeau collant sous elle exigerait de connaître sa hauteur — une
- * coordination JS que ce bandeau, en Server Component, n'a pas besoin
- * d'introduire pour rester utile.
+ * Quatre valeurs nues. Aucun anneau, aucune jauge, aucune barre de
+ * complétion, aucun pourcentage : il n'existe AUCUN dénominateur honnête pour
+ * ces compteurs — personne ne sait combien d'observations « il faudrait »
+ * publier, et en dessiner un l'inventerait.
  */
-[data-wi] .wi-rail {
-  display: flex;
-  gap: 0.5rem;
-  margin: 1.75rem 0 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  /* Un `<a>` peut recevoir `:focus-visible` : l'anneau de focus déborderait du
-     cadre défilant sans cette marge de respiration. */
-  padding: 0.1875rem;
+[data-wi] .wi-counters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.75rem;
 }
 
-[data-wi] .wi-rail::-webkit-scrollbar {
-  display: none;
-}
-
-[data-wi] .wi-rail-item {
+[data-wi] .wi-counter {
   position: relative;
-  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 0.1875rem;
-  min-width: 7.5rem;
-  padding: 0.5625rem 0.875rem;
+  padding: 0.9375rem 1rem 1rem;
   border: 1px solid var(--wi-border);
   border-radius: var(--wi-radius-sm);
-  background: var(--wi-card-2);
+  background: var(--wi-card);
   text-decoration: none;
   color: inherit;
+  transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
 }
 
-[data-wi] .wi-rail-item:hover {
+[data-wi] .wi-counter:hover {
   border-color: var(--wi-border-2);
+  background: var(--wi-card-2);
+  transform: translateY(-1px);
 }
 
-[data-wi] .wi-rail-label {
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--wi-subtle);
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-[data-wi] .wi-rail-value {
+[data-wi] .wi-counter-value {
   font-family: var(--wi-font-display);
-  font-size: 0.9375rem;
+  font-size: clamp(1.875rem, 4.2vw, 2.375rem);
   font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   color: var(--wi-fg);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
-/* Provenance tooltip — révélée au survol ET au focus clavier, jamais la seule
-   voie vers une information : la valeur au-dessus reste TOUJOURS visible,
-   cette bulle n'ajoute qu'un contexte, elle ne le porte jamais seule. */
-[data-wi] .wi-rail-tip {
+/*
+ * Variante RÉFÉRENCE — appliquée en plus de `.wi-counter-value`, donc écrite
+ * après elle pour la surcharger. Le monospace dit que la valeur est un
+ * identifiant (un code commune INSEE), pas une quantité : « 34172 » rendu
+ * dans la même graisse display que « 3 » se lirait comme trente-quatre mille.
+ */
+[data-wi] .wi-counter-value-ref {
+  font-family: var(--wi-font-mono);
+  font-size: clamp(1.375rem, 3.2vw, 1.75rem);
+  letter-spacing: -0.01em;
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-counter-label {
+  margin-top: 0.3125rem;
+  font-size: 0.78125rem;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-counter-meta {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--wi-subtle);
+}
+
+/* Provenance — révélée au survol ET au focus clavier, jamais la seule voie
+   vers une information : la valeur, son libellé et sa métadonnée restent
+   TOUJOURS visibles ; cette bulle n'ajoute qu'un contexte. */
+[data-wi] .wi-counter-tip {
   position: absolute;
   left: 0;
   top: calc(100% + 0.375rem);
   z-index: 5;
-  max-width: 16rem;
+  max-width: min(18rem, 68vw);
   padding: 0.4375rem 0.625rem;
   border-radius: 0.375rem;
   border: 1px solid var(--wi-border-2);
   background: var(--wi-raised);
   box-shadow: var(--wi-shadow-tip);
-  font-size: 0.75rem;
+  font-size: 0.71875rem;
   font-weight: 500;
+  line-height: 1.45;
   color: var(--wi-muted);
   white-space: normal;
   opacity: 0;
   transform: translateY(-2px);
   pointer-events: none;
-  transition: opacity 120ms ease, transform 120ms ease;
+  transition: opacity 140ms ease, transform 140ms ease;
 }
 
-[data-wi] .wi-rail-item:hover .wi-rail-tip,
-[data-wi] .wi-rail-item:focus-visible .wi-rail-tip {
+[data-wi] .wi-counter:hover .wi-counter-tip,
+[data-wi] .wi-counter:focus-visible .wi-counter-tip {
   opacity: 1;
   transform: translateY(0);
 }
 
+/* ------------------------------------------------------------ Snapshot pilote */
+
+[data-wi] .wi-snapshot {
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--wi-water) 7%, transparent),
+      transparent 46%
+    ),
+    var(--wi-card);
+  border: 1px solid color-mix(in srgb, var(--wi-water) 22%, var(--wi-border));
+  border-radius: var(--wi-radius);
+  padding: 1.25rem;
+  box-shadow: var(--wi-shadow-lift);
+}
+
+[data-wi] .wi-snapshot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+[data-wi] .wi-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 1.125rem 0 0;
+}
+
+/* Le code source (`HUBEAU_BNPE_PRELEVEMENTS`) ne tient pas dans une demi-
+   colonne : il occupe la largeur, et se coupe plutôt que de pousser la carte. */
+[data-wi] .wi-snapshot-source {
+  grid-column: 1 / -1;
+}
+
+[data-wi] .wi-snapshot-grid dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-snapshot-grid dd {
+  margin: 0.1875rem 0 0;
+  font-size: 0.875rem;
+  color: var(--wi-fg);
+  overflow-wrap: anywhere;
+}
+
+[data-wi] .wi-snapshot-foot {
+  margin: 1.125rem 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--wi-muted);
+}
+
+/* ------------------------------------------------------------- Evidence Chain */
+
+/*
+ * Sept maillons, un connecteur d'UN pixel de large — constant.
+ *
+ * Ce n'est ni un Sankey ni un diagramme de flux : rien n'est quantifié entre
+ * deux maillons, et une épaisseur variable prétendrait mesurer quelque chose.
+ * Ce que la chaîne porte, c'est l'ORDRE du raisonnement et l'état de
+ * publication de chaque maillon.
+ */
+[data-wi] .wi-cascade-list {
+  gap: 0.5rem;
+}
+
+[data-wi] .wi-chain-node {
+  position: relative;
+}
+
+[data-wi] .wi-chain-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.625rem;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 140ms ease;
+}
+
+[data-wi] .wi-chain-link:hover {
+  background: var(--wi-card-2);
+}
+
+[data-wi] .wi-chain-icon {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--wi-border-2);
+  background: var(--wi-card-2);
+  color: var(--wi-water);
+  transition: border-color 140ms ease;
+}
+
+[data-wi] .wi-chain-link:hover .wi-chain-icon {
+  border-color: var(--wi-water);
+}
+
+[data-wi] .wi-chain-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-chain-label {
+  font-family: var(--wi-font-display);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.25;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-chain-hint {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--wi-muted);
+}
+
+/* Pastille d'état — DOUBLÉE d'un texte hors écran dans le composant : la
+   couleur ne porte jamais seule l'état de publication d'un maillon. */
+[data-wi] .wi-chain-dot {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+[data-wi] .wi-chain-dot[data-state="published"] {
+  background: var(--wi-water);
+  color: var(--wi-water);
+}
+[data-wi] .wi-chain-dot[data-state="qualitative"] {
+  background: var(--wi-data);
+  color: var(--wi-data);
+}
+[data-wi] .wi-chain-dot[data-state="deferred"] {
+  background: var(--wi-stress);
+  color: var(--wi-stress);
+}
+[data-wi] .wi-chain-dot[data-state="not_instrumented"] {
+  background: var(--wi-absent);
+  color: var(--wi-absent);
+}
+
+/* Le filet vertical relie les maillons. Décoratif : l'ordre est déjà porté
+   par `ol`, et l'enchaînement par le texte de chaque maillon. */
+[data-wi] .wi-chain-node:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 1.5rem;
+  top: 2.625rem;
+  bottom: -0.5rem;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--wi-border-2),
+    color-mix(in srgb, var(--wi-border-2) 18%, transparent)
+  );
+  transform-origin: top center;
+}
+
+/* -------------------------------------------------------------- Mouvement v3 */
+
+/*
+ * Les animations d'entrée partent de l'état initial et REVIENNENT à l'état de
+ * base, qui est l'état final : sans JavaScript, la page reste complète. C'est
+ * la différence avec une animation pilotée par `framer-motion`, dont l'état
+ * initial (opacité 0) est écrit dans le HTML rendu et n'en sort que si le
+ * script s'exécute.
+ *
+ * Aucune n'est perpétuelle : `animation-iteration-count` vaut 1 par défaut, et
+ * l'E2E public refuse toute animation infinie sur cette page.
+ */
+@keyframes wiRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[data-wi] .wi-anim-rise {
+  animation: wiRise 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--wi-i, 0) * 55ms);
+}
+
+@keyframes wiChainDraw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+[data-wi] .wi-chain-draw .wi-chain-node:not(:last-child)::after {
+  animation: wiChainDraw 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--wi-i, 0) * 70ms);
+}
+
+/*
+ * Sous mouvement réduit, la règle globale plus haut ramène déjà toute durée à
+ * 0,01 ms — mais pas les DÉLAIS, qui laisseraient le contenu invisible une
+ * demi-seconde avant d'apparaître d'un coup. Ils sont annulés ici.
+ */
 @media (prefers-reduced-motion: reduce) {
-  [data-wi] .wi-rail-tip {
+  [data-wi] .wi-anim-rise,
+  [data-wi] .wi-chain-draw .wi-chain-node:not(:last-child)::after {
+    animation-delay: 0ms !important;
+  }
+
+  [data-wi] .wi-counter-tip {
     transition: opacity 0.01ms ease;
   }
 }
+

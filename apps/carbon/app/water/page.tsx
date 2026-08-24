@@ -49,14 +49,25 @@
  *
  * ## WI-V3-01 — fondation visuelle
  *
- * Trois ajouts, aucun retrait : `WiScopeRail` (bandeau de provenance sous le
- * hero, sept faits déjà calculés ci-dessous, jamais de nouvelle constante) ;
  * `WiStatusChip` centralise le rendu de l'axe Publication State
  * (`.wi-pubstate-*`), qui vivait en JSX local dans ce fichier ; le thème
  * `--wi-*` est désormais sombre par défaut sans dépendre de
  * `prefers-color-scheme` (voir `water-intelligence.css`). Voir
  * `WiPrimitives.tsx` pour la grammaire de statut à trois axes que ce chantier
  * centralise.
+ *
+ * ## WI-V3-02 — le hero absorbe la Provenance Rail
+ *
+ * `WiScopeRail`, introduit en WI-V3-01 sous le hero, est RETIRÉ : les quatre
+ * Evidence Counters et le bloc « Snapshot pilote » du hero portent désormais
+ * les mêmes sept faits, en meilleure place et avec la même provenance au
+ * survol. Les garder tous les deux aurait affiché « 7 sources instrumentées »
+ * deux fois dans le premier écran, à trente pixels d'écart — ce qui coûte
+ * précisément la lisibilité que ce chantier cherche.
+ *
+ * Le composant et sa feuille de style sont supprimés plutôt que laissés
+ * dormants : rien ne le rendait, et un composant mort se réveille toujours par
+ * accident.
  */
 
 import type { Metadata } from "next";
@@ -78,7 +89,6 @@ import {
   WiProofTable,
 } from "@/components/water-intelligence/WiProof";
 import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
-import { WiScopeRail } from "@/components/water-intelligence/WiScopeRail";
 import {
   WiEvidenceChip,
   WiSection,
@@ -195,17 +205,12 @@ export default function WaterIntelligencePage() {
             isPublished={published}
             snapshotDate={pilotDocument ? pilotDocument.generated_at.slice(0, 10) : null}
             scopeLabel={scopeLabel}
-            sourceCount={SOURCE_STATUS.source_count}
-            publishableCount={SOURCE_STATUS.publishable_count}
-          />
-          <WiScopeRail
             territoryCode={scope.geographyCode}
             periodLabel={yearLabel}
-            snapshotDate={pilotDocument ? pilotDocument.generated_at.slice(0, 10) : null}
-            observationCount={observations.length}
+            reviewedOn={scope.reviewedOn}
+            sourceCode={scope.sourceCode}
             sourceCount={SOURCE_STATUS.source_count}
             publishableCount={SOURCE_STATUS.publishable_count}
-            published={published}
           />
         </div>
 

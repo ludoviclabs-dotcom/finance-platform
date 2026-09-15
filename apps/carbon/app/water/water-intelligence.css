@@ -3,14 +3,26 @@
  *
  * Scopé à `[data-wi]` : n'affecte aucune autre surface du site. Le préfixe
  * `--wi-*` est délibérément distinct de `--mx-*` (propre à /materials) — les
- * deux modules partagent une ambition produit, pas des variables.
+ * deux modules partagent une ambition produit, pas des variables. La
+ * convergence voulue par WI-V3-01 est PERCEPTUELLE (rythme des conteneurs,
+ * hairlines, radius, mono metadata) : aucun sélecteur `[data-mx]` n'est référencé
+ * ici, et `apps/carbon/tests/water-v1-experience.test.tsx` le vérifie par grep.
  *
- * ## Thème
+ * ## Thème — sombre PAR DÉFAUT, indépendamment du système (WI-V3-01)
  *
- * Sombre par défaut, clair conservé. Le choix explicite est porté par
- * `data-wi-theme` sur le conteneur, posé par `IntelligenceThemeProvider` ; en
- * son absence, `prefers-color-scheme` décide. Les deux mécanismes coexistent
- * pour que la page reste correcte AVANT hydratation et sans JavaScript.
+ * Le bloc `[data-wi]` ci-dessous porte les valeurs SOMBRES sans condition :
+ * c'est le rendu de toute première visite, avant même l'hydratation, qu'importe
+ * `prefers-color-scheme`. Le thème clair n'existe que sous
+ * `[data-wi][data-wi-theme="clair"]` — un attribut posé explicitement par
+ * `IntelligenceThemeProvider`, jamais déduit du système.
+ *
+ * Avant WI-V3-01, l'absence de choix mémorisé retombait sur la préférence
+ * système (règle supprimée ci-dessous). Ce n'est plus le cas : Water est un
+ * produit d'intelligence institutionnelle, pas un habillage qui suit l'OS du
+ * lecteur. Le mécanisme reste néanmoins générique côté React — voir
+ * `components/intelligence/IntelligenceThemeProvider.tsx` — un domaine futur
+ * pourrait choisir d'honorer `prefers-color-scheme` en écrivant sa propre
+ * feuille de style différemment ; c'est un choix de CSS, pas de composant.
  *
  * ## La couleur ne porte JAMAIS un statut à elle seule
  *
@@ -31,19 +43,44 @@
  */
 
 [data-wi] {
-  /* ---------------------------------------------------------- Sombre (défaut) */
+  /* ---------------------------------------------------------- Sombre (défaut,
+     inconditionnel — voir la docstring de thème ci-dessus) */
   --wi-bg: #07111f;
+  /* `--wi-surface` (fond de page/footer) et `--wi-card` (cartes) étaient la
+     MÊME valeur avant WI-V3-01 : aucune des deux surfaces ne se détachait de
+     l'autre. Materials distingue ses trois paliers (surface < card < card-2)
+     en sombre uniquement — même en clair, `--mx-card` y vaut `--mx-surface`.
+     Le geste est donc perceptuel, pas une copie de valeurs : un palier de plus
+     entre le fond et le relief, en sombre seulement. */
   --wi-surface: #0d1b2a;
   --wi-raised: #13263a;
-  --wi-card: #0d1b2a;
+  --wi-card: #102237;
   --wi-card-2: #13263a;
-  --wi-border: rgba(165, 243, 252, 0.14);
-  --wi-border-2: rgba(165, 243, 252, 0.3);
+  /* Hairline neutralisée : la teinte cyan vive (165,243,252) tirait la bordure
+     vers un accent, alors que la bordure n'est JAMAIS un accent — seul
+     `--wi-water` doit l'être, et « cyan/glacier très contrôlé » (WI-V3-01 §2)
+     s'applique aussi aux bordures. Le rôle ne change pas (hairline 1px), la
+     teinte se rapproche du gris-froid neutre de `--mx-border`. */
+  --wi-border: rgba(198, 219, 230, 0.13);
+  --wi-border-2: rgba(198, 219, 230, 0.28);
 
   --wi-fg: #f8fafc;
   --wi-muted: #a9b8ca;
   --wi-subtle: #8598ad;
 
+  /*
+   * Comportement d'accent — délibérément NON convergé vers Materials.
+   *
+   * `--mx-em` est UN accent unique, répété partout (CTA, KPI, treemap, nav
+   * active…) : c'est un langage de MARQUE. Ici, six teintes se partagent le
+   * rôle d'accent et chacune est verrouillée à UN SEUL sens : `--wi-water`
+   * (ressource/valeur publiée), `--wi-data` (donnée/méthode), `--wi-glacier`
+   * (conformité), `--wi-stress` (vigilance UNIQUEMENT), `--wi-alert` (blocage
+   * UNIQUEMENT), `--wi-adapt` (disponibilité/adaptation UNIQUEMENT). Aplatir
+   * ces six rôles vers un accent unique romprait exactement la distinction que
+   * le contrat épistémique exige de garder lisible (WI-V3-00 §4-5). C'est un
+   * langage d'ÉVIDENCE, pas de marque — la convergence s'arrête ici.
+   */
   --wi-water: #2dd4bf;
   --wi-data: #38bdf8;
   --wi-glacier: #a5f3fc;
@@ -57,7 +94,9 @@
   --wi-hatch: rgba(147, 165, 184, 0.26);
   --wi-glow: rgba(45, 212, 191, 0.14);
 
-  --wi-radius: 14px;
+  /* 14px → 16px : parenté avec le radius des cartes Materials (`rounded-2xl`),
+     qui pose la même intention — « premium », pas « anguleux ». */
+  --wi-radius: 16px;
   --wi-radius-sm: 9px;
   --wi-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -18px rgb(0 0 0 / 0.9);
   --wi-shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 48px -24px rgb(0 0 0 / 0.95);
@@ -97,14 +136,17 @@
 }
 
 /*
- * Clair. Servi soit par choix explicite (`data-wi-theme="clair"`), soit par
- * préférence système quand aucun choix n'a été posé. Le `:not([data-wi-theme])`
- * empêche la préférence système d'écraser un choix utilisateur.
+ * Clair. Servi UNIQUEMENT par choix explicite (`data-wi-theme="clair"`),
+ * jamais par `prefers-color-scheme` depuis WI-V3-01 — voir la docstring de
+ * thème en tête de fichier. La déclaration des variables `--wi-light-*` et
+ * leur application sont désormais un seul et même bloc : il n'existe plus de
+ * second contexte (`:not([data-wi-theme])`) où elles s'appliqueraient sans
+ * attribut posé.
  *
- * Ce ne sont pas les mêmes valeurs hexadécimales, c'est le MÊME rôle : les
- * teintes vives du thème sombre descendraient sous 4,5:1 sur fond clair.
+ * Ce ne sont pas les mêmes valeurs hexadécimales que le sombre, c'est le MÊME
+ * rôle : les teintes vives du thème sombre descendraient sous 4,5:1 sur fond
+ * clair.
  */
-[data-wi]:not([data-wi-theme]),
 [data-wi][data-wi-theme="clair"] {
   --wi-light-bg: #f2f7fb;
   --wi-light-surface: #ffffff;
@@ -121,38 +163,7 @@
   --wi-light-alert: #9f1239;
   --wi-light-adapt: #15803d;
   --wi-light-absent: #4e6178;
-}
 
-@media (prefers-color-scheme: light) {
-  [data-wi]:not([data-wi-theme]) {
-    --wi-bg: var(--wi-light-bg);
-    --wi-surface: var(--wi-light-surface);
-    --wi-raised: var(--wi-light-surface);
-    --wi-card: var(--wi-light-surface);
-    --wi-card-2: var(--wi-light-card-2);
-    --wi-border: var(--wi-light-border);
-    --wi-border-2: var(--wi-light-border-2);
-    --wi-fg: var(--wi-light-fg);
-    --wi-muted: var(--wi-light-muted);
-    --wi-subtle: var(--wi-light-subtle);
-    --wi-water: var(--wi-light-water);
-    --wi-data: var(--wi-light-data);
-    --wi-glacier: var(--wi-light-glacier);
-    --wi-stress: var(--wi-light-stress);
-    --wi-alert: var(--wi-light-alert);
-    --wi-adapt: var(--wi-light-adapt);
-    --wi-absent: var(--wi-light-absent);
-    --wi-focus: var(--wi-light-data);
-    --wi-hatch: rgb(78 97 120 / 0.22);
-    --wi-glow: rgb(15 118 110 / 0.1);
-    --wi-shadow: 0 1px 2px rgb(7 17 31 / 0.06), 0 12px 28px -20px rgb(7 17 31 / 0.4);
-    --wi-shadow-lift: 0 2px 4px rgb(7 17 31 / 0.08), 0 24px 44px -26px rgb(7 17 31 / 0.5);
-    --wi-shadow-panel: 0 10px 30px rgb(7 17 31 / 0.16);
-    --wi-shadow-tip: 0 4px 14px rgb(7 17 31 / 0.14);
-  }
-}
-
-[data-wi][data-wi-theme="clair"] {
   --wi-bg: var(--wi-light-bg);
   --wi-surface: var(--wi-light-surface);
   --wi-raised: var(--wi-light-surface);
@@ -183,7 +194,11 @@
 
 [data-wi] .wi-shell {
   width: 100%;
-  max-width: 74rem;
+  /* 74rem (1184px) → 80rem (1280px), rythme de conteneur aligné sur
+     `max-w-[1280px]` de /materials (WI-V3-01). `.wi-nav-inner` porte la MÊME
+     valeur juste plus bas : les deux doivent rester alignés, sans quoi la nav
+     et le contenu qu'elle surplombe dérivent visuellement l'un de l'autre. */
+  max-width: 80rem;
   margin: 0 auto;
   padding: 0 1.25rem 5rem;
 }
@@ -308,7 +323,7 @@
 }
 
 [data-wi] .wi-nav-inner {
-  max-width: 74rem;
+  max-width: 80rem;
   margin: 0 auto;
   padding: 0.625rem 1.25rem;
   display: flex;
@@ -700,44 +715,8 @@
   gap: 0.5rem;
 }
 
-[data-wi] .wi-hero-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  margin: 1.75rem 0 0;
-  background: var(--wi-border);
-  border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius);
-  overflow: hidden;
-}
-
-@media (min-width: 44rem) {
-  [data-wi] .wi-hero-stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-[data-wi] .wi-hero-stats > div {
-  background: var(--wi-card);
-  padding: 0.875rem 1rem;
-}
-
-[data-wi] .wi-hero-stats dt {
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--wi-subtle);
-  font-weight: 650;
-}
-
-[data-wi] .wi-hero-stats dd {
-  margin: 0.25rem 0 0;
-  font-family: var(--wi-font-display);
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--wi-fg);
-  line-height: 1.2;
-}
+/* `.wi-hero-stats` (bandeau de quatre chiffres collés) a été REMPLACÉ par les
+   Evidence Counters en WI-V3-02 — voir plus bas. */
 
 [data-wi] .wi-hero-provenance {
   margin-top: 1rem;
@@ -810,61 +789,10 @@
   gap: 0;
 }
 
-[data-wi] .wi-cascade-item {
-  display: flex;
-  gap: 0.875rem;
-  align-items: flex-start;
-  padding: 0.625rem 0;
-  position: relative;
-}
-
-/* Le filet vertical relie les maillons : il montre l'enchaînement sans
-   ajouter de texte, et il est décoratif — l'ordre est déjà porté par `ol`. */
-[data-wi] .wi-cascade-item:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  left: 0.8125rem;
-  top: 2rem;
-  bottom: -0.25rem;
-  width: 1px;
-  background: linear-gradient(to bottom, var(--wi-border-2), transparent);
-}
-
-[data-wi] .wi-cascade-rank {
-  flex: 0 0 auto;
-  width: 1.625rem;
-  height: 1.625rem;
-  border-radius: 50%;
-  border: 1px solid var(--wi-border-2);
-  background: var(--wi-card-2);
-  color: var(--wi-water);
-  font-family: var(--wi-font-mono);
-  font-size: 0.625rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-[data-wi] .wi-cascade-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  min-width: 0;
-}
-
-[data-wi] .wi-cascade-label {
-  font-family: var(--wi-font-display);
-  font-weight: 650;
-  font-size: 0.9375rem;
-  color: var(--wi-fg);
-}
-
-[data-wi] .wi-cascade-hint {
-  font-size: 0.8125rem;
-  color: var(--wi-muted);
-  line-height: 1.5;
-}
+/* Les maillons eux-mêmes (`.wi-cascade-item`, `-rank`, `-body`, `-label`,
+   `-hint`) ont été REMPLACÉS par l'Evidence Chain en WI-V3-02 — voir
+   `.wi-chain-*` plus bas. Le conteneur, la liste et le pied restent : la
+   chaîne est toujours une liste ordonnée dans une carte. */
 
 [data-wi] .wi-cascade-foot {
   margin: 1rem 0 0;
@@ -1729,6 +1657,44 @@
   overflow: hidden;
   background: var(--wi-bg);
   min-height: 28.75rem;
+  /* Centre `.wi-map-canvas` verticalement si le cadre est plus haut que le
+     ratio de la carte ne l'exige — l'espace excédentaire se répartit en
+     haut et en bas plutôt que de rester entièrement sous la carte. */
+  display: flex;
+  align-items: center;
+}
+
+/*
+ * Boîte de rendu réelle du SVG — `position: relative` vit ICI, pas sur
+ * `.wi-map-frame` (WI-V3-04, correction post-revue).
+ *
+ * `.wi-map-frame` porte un `min-height` de confort ; le SVG qu'il contient,
+ * en `height: 100%`, ne le remplit pas forcément — un pourcentage de hauteur
+ * qui se résout contre un ancêtre à hauteur `auto` retombe sur le ratio
+ * intrinsèque du SVG. `aspect-ratio` fixe ce ratio explicitement sur CE
+ * conteneur : la sonde d'inspection, positionnée en pourcentage des
+ * coordonnées du viewBox, partage alors exactement la boîte du SVG au lieu
+ * de se résoudre contre un cadre plus haut — l'écart mesuré atteignait
+ * 211 px sur un mobile de 375 px avant ce correctif.
+ */
+[data-wi] .wi-map-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 720 / 520;
+}
+
+/*
+ * `.wi-atlas` borne la largeur de l'ensemble carte + légende — sans quoi
+ * `aspect-ratio` fait grandir la hauteur avec la largeur du contenu : sur un
+ * viewport de 1280 px, la carte occupait 866 px de haut (la largeur pleine
+ * de `.wi-shell` divisée par le ratio 720:520), presque toute la fenêtre
+ * pour une section qui tenait auparavant dans les 460 px du `min-height`
+ * fixe. La légende partage le même plafond pour rester alignée avec la
+ * carte plutôt que déborder à sa pleine largeur.
+ */
+[data-wi] .wi-atlas {
+  max-width: 47rem;
+  margin-inline: auto;
 }
 
 [data-wi] .wi-map-frame iframe {
@@ -1738,12 +1704,18 @@
   display: block;
 }
 
-/* Contour de la France : se dessine une fois, à l'entrée dans le viewport
-   (déclenché en React via `reducedMotion`), jamais en boucle. */
+/*
+ * Contour de la France : se dessine UNE fois, jamais en boucle.
+ *
+ * 2,6 s en v2 → 480 ms (WI-V3-04). Le tracé était devenu un spectacle : deux
+ * secondes et demie pendant lesquelles la seule chose vérifiée de la carte —
+ * le point publié — n'existait pas encore à l'écran. Le trait sert à situer,
+ * pas à se faire regarder.
+ */
 [data-wi] .wi-map-outline-draw {
   stroke-dasharray: 1400;
   stroke-dashoffset: 1400;
-  animation: wiMapDraw 2.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: wiMapDraw 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes wiMapDraw {
@@ -1752,38 +1724,27 @@
   }
 }
 
+/*
+ * Marqueur : fondu ET montée d'échelle depuis 0,8 — le point grandit vers sa
+ * place au lieu d'apparaître d'un bloc. Le ping en trois répétitions de la v2
+ * est SUPPRIMÉ : il attirait l'œil une fois le marqueur déjà visible, donc
+ * après que son information soit passée.
+ */
 [data-wi] .wi-map-marker {
   opacity: 0;
-  animation: wiMapMarkerIn 600ms ease forwards;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wiMapMarkerIn 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes wiMapMarkerIn {
+  from {
+    opacity: 0;
+    scale: 0.8;
+  }
   to {
     opacity: 1;
-  }
-}
-
-/*
- * Trois répétitions puis silence — jamais perpétuel. Le ping attire l'œil
- * vers l'unique point vérifié une fois le marqueur apparu ; au-delà, il ne
- * porte plus d'information et une boucle infinie ne serait que du bruit.
- */
-[data-wi] .wi-map-pulse {
-  transform-origin: center;
-  transform-box: fill-box;
-  animation: wiMapPulse 2.4s ease-out 3;
-  animation-fill-mode: forwards;
-}
-
-@keyframes wiMapPulse {
-  0% {
-    opacity: 0.9;
-    transform: scale(0.4);
-  }
-  70%,
-  100% {
-    opacity: 0;
-    transform: scale(2.6);
+    scale: 1;
   }
 }
 
@@ -2128,3 +2089,1022 @@
   border-radius: 0.75rem;
   padding: 1.125rem;
 }
+
+/* ==========================================================================
+   Water Intelligence v3 — hero / centre de commande (WI-V3-02)
+   ==========================================================================
+   Cette section AJOUTE aux règles ci-dessus. Elle remplace `.wi-rail-*`
+   (WI-V3-01), retirée avec son composant : les Evidence Counters et le bloc
+   « Snapshot pilote » portent désormais les mêmes faits, dans le hero.
+   ========================================================================== */
+
+/* -------------------------------------------------- Colonne latérale du hero */
+
+[data-wi] .wi-hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------- Evidence Counters */
+
+/*
+ * Quatre valeurs nues. Aucun anneau, aucune jauge, aucune barre de
+ * complétion, aucun pourcentage : il n'existe AUCUN dénominateur honnête pour
+ * ces compteurs — personne ne sait combien d'observations « il faudrait »
+ * publier, et en dessiner un l'inventerait.
+ */
+[data-wi] .wi-counters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+[data-wi] .wi-counter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  padding: 0.9375rem 1rem 1rem;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius-sm);
+  background: var(--wi-card);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+
+[data-wi] .wi-counter:hover {
+  border-color: var(--wi-border-2);
+  background: var(--wi-card-2);
+  transform: translateY(-1px);
+}
+
+[data-wi] .wi-counter-value {
+  font-family: var(--wi-font-display);
+  font-size: clamp(1.875rem, 4.2vw, 2.375rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--wi-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Variante RÉFÉRENCE — appliquée en plus de `.wi-counter-value`, donc écrite
+ * après elle pour la surcharger. Le monospace dit que la valeur est un
+ * identifiant (un code commune INSEE), pas une quantité : « 34172 » rendu
+ * dans la même graisse display que « 3 » se lirait comme trente-quatre mille.
+ */
+[data-wi] .wi-counter-value-ref {
+  font-family: var(--wi-font-mono);
+  font-size: clamp(1.375rem, 3.2vw, 1.75rem);
+  letter-spacing: -0.01em;
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-counter-label {
+  margin-top: 0.3125rem;
+  font-size: 0.78125rem;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-counter-meta {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--wi-subtle);
+}
+
+/* Provenance — révélée au survol ET au focus clavier, jamais la seule voie
+   vers une information : la valeur, son libellé et sa métadonnée restent
+   TOUJOURS visibles ; cette bulle n'ajoute qu'un contexte. */
+[data-wi] .wi-counter-tip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.375rem);
+  z-index: 5;
+  max-width: min(18rem, 68vw);
+  padding: 0.4375rem 0.625rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--wi-border-2);
+  background: var(--wi-raised);
+  box-shadow: var(--wi-shadow-tip);
+  font-size: 0.71875rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--wi-muted);
+  white-space: normal;
+  opacity: 0;
+  transform: translateY(-2px);
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+[data-wi] .wi-counter:hover .wi-counter-tip,
+[data-wi] .wi-counter:focus-visible .wi-counter-tip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ------------------------------------------------------------ Snapshot pilote */
+
+[data-wi] .wi-snapshot {
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--wi-water) 7%, transparent),
+      transparent 46%
+    ),
+    var(--wi-card);
+  border: 1px solid color-mix(in srgb, var(--wi-water) 22%, var(--wi-border));
+  border-radius: var(--wi-radius);
+  padding: 1.25rem;
+  box-shadow: var(--wi-shadow-lift);
+}
+
+[data-wi] .wi-snapshot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+[data-wi] .wi-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 1.125rem 0 0;
+}
+
+/* Le code source (`HUBEAU_BNPE_PRELEVEMENTS`) ne tient pas dans une demi-
+   colonne : il occupe la largeur, et se coupe plutôt que de pousser la carte. */
+[data-wi] .wi-snapshot-source {
+  grid-column: 1 / -1;
+}
+
+[data-wi] .wi-snapshot-grid dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-snapshot-grid dd {
+  margin: 0.1875rem 0 0;
+  font-size: 0.875rem;
+  color: var(--wi-fg);
+  overflow-wrap: anywhere;
+}
+
+[data-wi] .wi-snapshot-foot {
+  margin: 1.125rem 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--wi-muted);
+}
+
+/* ------------------------------------------------------------- Evidence Chain */
+
+/*
+ * Sept maillons, un connecteur d'UN pixel de large — constant.
+ *
+ * Ce n'est ni un Sankey ni un diagramme de flux : rien n'est quantifié entre
+ * deux maillons, et une épaisseur variable prétendrait mesurer quelque chose.
+ * Ce que la chaîne porte, c'est l'ORDRE du raisonnement et l'état de
+ * publication de chaque maillon.
+ */
+[data-wi] .wi-cascade-list {
+  gap: 0.5rem;
+}
+
+[data-wi] .wi-chain-node {
+  position: relative;
+}
+
+[data-wi] .wi-chain-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.625rem;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 140ms ease;
+}
+
+[data-wi] .wi-chain-link:hover {
+  background: var(--wi-card-2);
+}
+
+[data-wi] .wi-chain-icon {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--wi-border-2);
+  background: var(--wi-card-2);
+  color: var(--wi-water);
+  transition: border-color 140ms ease;
+}
+
+[data-wi] .wi-chain-link:hover .wi-chain-icon {
+  border-color: var(--wi-water);
+}
+
+[data-wi] .wi-chain-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-chain-label {
+  font-family: var(--wi-font-display);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.25;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-chain-hint {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--wi-muted);
+}
+
+/* Pastille d'état — DOUBLÉE d'un texte hors écran dans le composant : la
+   couleur ne porte jamais seule l'état de publication d'un maillon. */
+[data-wi] .wi-chain-dot {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+[data-wi] .wi-chain-dot[data-state="published"] {
+  background: var(--wi-water);
+  color: var(--wi-water);
+}
+[data-wi] .wi-chain-dot[data-state="qualitative"] {
+  background: var(--wi-data);
+  color: var(--wi-data);
+}
+[data-wi] .wi-chain-dot[data-state="deferred"] {
+  background: var(--wi-stress);
+  color: var(--wi-stress);
+}
+[data-wi] .wi-chain-dot[data-state="not_instrumented"] {
+  background: var(--wi-absent);
+  color: var(--wi-absent);
+}
+
+/* Le filet vertical relie les maillons. Décoratif : l'ordre est déjà porté
+   par `ol`, et l'enchaînement par le texte de chaque maillon. */
+[data-wi] .wi-chain-node:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 1.5rem;
+  top: 2.625rem;
+  bottom: -0.5rem;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--wi-border-2),
+    color-mix(in srgb, var(--wi-border-2) 18%, transparent)
+  );
+  transform-origin: top center;
+}
+
+/* -------------------------------------------------------------- Mouvement v3 */
+
+/*
+ * Les animations d'entrée partent de l'état initial et REVIENNENT à l'état de
+ * base, qui est l'état final : sans JavaScript, la page reste complète. C'est
+ * la différence avec une animation pilotée par `framer-motion`, dont l'état
+ * initial (opacité 0) est écrit dans le HTML rendu et n'en sort que si le
+ * script s'exécute.
+ *
+ * Aucune n'est perpétuelle : `animation-iteration-count` vaut 1 par défaut, et
+ * l'E2E public refuse toute animation infinie sur cette page.
+ */
+@keyframes wiRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[data-wi] .wi-anim-rise {
+  animation: wiRise 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--wi-i, 0) * 55ms);
+}
+
+@keyframes wiChainDraw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+[data-wi] .wi-chain-draw .wi-chain-node:not(:last-child)::after {
+  animation: wiChainDraw 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--wi-i, 0) * 70ms);
+}
+
+/*
+ * Sous mouvement réduit, la règle globale plus haut ramène déjà toute durée à
+ * 0,01 ms — mais pas les DÉLAIS, qui laisseraient le contenu invisible une
+ * demi-seconde avant d'apparaître d'un coup. Ils sont annulés ici.
+ */
+@media (prefers-reduced-motion: reduce) {
+  [data-wi] .wi-anim-rise,
+  [data-wi] .wi-chain-draw .wi-chain-node:not(:last-child)::after {
+    animation-delay: 0ms !important;
+  }
+
+  [data-wi] .wi-counter-tip {
+    transition: opacity 0.01ms ease;
+  }
+}
+
+/* ==========================================================================
+   Water Intelligence v3 — Observed Withdrawals (WI-V3-03)
+   ==========================================================================
+   Lollipop horizontal à baseline zéro COMMUNE. Le composant ne dessine de
+   longueur que si unité, période et méthode sont identiques d'une observation
+   à l'autre : les règles ci-dessous n'ont donc jamais à exprimer une échelle,
+   elles ne font que peindre une largeur déjà calculée et déjà justifiée.
+   ========================================================================== */
+
+[data-wi] .wi-pilot-facts {
+  margin: 1.125rem 0 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+[data-wi] .wi-pilot-facts dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-pilot-facts dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+[data-wi] .wi-lolli-card {
+  display: flex;
+  flex-direction: column;
+}
+
+[data-wi] .wi-lolli-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+[data-wi] .wi-lolli-unit-note {
+  font-size: 0.6875rem;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-lolli {
+  list-style: none;
+  margin: 1.375rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+[data-wi] .wi-lolli-row {
+  border-bottom: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-lolli-row:last-child {
+  border-bottom: none;
+}
+
+/*
+ * La rangée entière est le déclencheur d'inspection : viser une petite icône
+ * « détail » à droite d'un tableau dense est une cible de 16 px, la rangée en
+ * fait une de 48.
+ */
+[data-wi] .wi-lolli-trigger {
+  appearance: none;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.625rem 0.375rem;
+  border-radius: 0.5rem;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr minmax(0, auto) 1rem;
+  align-items: center;
+  gap: 0.875rem;
+  transition: background-color 140ms ease;
+}
+
+[data-wi] .wi-lolli-trigger:hover {
+  background: var(--wi-card-2);
+}
+
+@media (max-width: 40rem) {
+  /* Sous 640 px, le tracé passe SOUS l'identité et la valeur plutôt que de
+     comprimer quatre colonnes jusqu'à l'illisible — même parti que les
+     anciennes barres de comparaison. */
+  [data-wi] .wi-lolli-trigger {
+    grid-template-columns: 1fr minmax(0, auto) 1rem;
+  }
+  [data-wi] .wi-lolli-track,
+  [data-wi] .wi-lolli-absent {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+
+[data-wi] .wi-lolli-ident {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-lolli-code {
+  font-size: 0.78125rem;
+  color: var(--wi-fg);
+  overflow-wrap: anywhere;
+}
+
+[data-wi] .wi-lolli-meta {
+  font-size: 0.6875rem;
+  color: var(--wi-subtle);
+}
+
+/* ------------------------------------------------------------------ Tracé */
+
+[data-wi] .wi-lolli-track {
+  position: relative;
+  height: 0.875rem;
+  min-width: 3rem;
+  display: block;
+}
+
+/* La ligne d'origine : elle matérialise le zéro, qui est le même pour toutes
+   les pistes. Sans elle, une tige flotterait sans point de départ visible. */
+[data-wi] .wi-lolli-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--wi-border-2);
+}
+
+[data-wi] .wi-lolli-stem {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--wi-water) 45%, transparent),
+    var(--wi-water)
+  );
+  transform-origin: left center;
+}
+
+[data-wi] .wi-lolli-dot {
+  position: absolute;
+  top: 50%;
+  width: 0.5625rem;
+  height: 0.5625rem;
+  border-radius: 50%;
+  background: var(--wi-water);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--wi-water) 18%, transparent);
+}
+
+[data-wi] .wi-lolli-absent {
+  display: flex;
+  align-items: center;
+}
+
+/* --------------------------------------------------------------- Valeur */
+
+/*
+ * Le nombre est l'information PREMIÈRE : graisse d'affichage, taille au-dessus
+ * de tout le reste de la rangée. La tige n'est qu'un repère de lecture, et la
+ * hiérarchie typographique doit le dire sans commentaire.
+ */
+[data-wi] .wi-lolli-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  justify-content: flex-end;
+  font-family: var(--wi-font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--wi-fg);
+  white-space: nowrap;
+}
+
+[data-wi] .wi-lolli-unit {
+  font-family: var(--wi-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-lolli-chevron {
+  font-family: var(--wi-font-mono);
+  font-size: 0.875rem;
+  color: var(--wi-subtle);
+  text-align: center;
+}
+
+/* ------------------------------------------------------ Panneau d'inspection */
+
+[data-wi] .wi-lolli-panel {
+  margin: 0 0 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius-sm);
+  background: var(--wi-card-2);
+  display: grid;
+  gap: 0.625rem;
+}
+
+[data-wi] .wi-lolli-panel-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.125rem;
+}
+
+@media (min-width: 34rem) {
+  [data-wi] .wi-lolli-panel-row {
+    grid-template-columns: 11rem 1fr;
+    gap: 0.75rem;
+    align-items: baseline;
+  }
+}
+
+[data-wi] .wi-lolli-panel-row dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-lolli-panel-row dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--wi-fg);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------- Axe et pied */
+
+[data-wi] .wi-lolli-axis {
+  margin: 1.25rem 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-lolli-foot {
+  margin: 0.625rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------- Mouvement */
+
+/*
+ * Entrée dans le viewport, une seule fois — la classe `.wi-lolli-animate` est
+ * posée par le composant au premier franchissement, puis l'observateur se
+ * déconnecte. L'état de BASE est l'état final : sans JavaScript, les tiges
+ * sont déjà à leur longueur.
+ */
+@keyframes wiLolliGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes wiLolliDotIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes wiLolliFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+[data-wi] .wi-lolli-animate .wi-lolli-stem {
+  animation: wiLolliGrow 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--wi-i, 0) * 60ms);
+}
+
+[data-wi] .wi-lolli-animate .wi-lolli-dot {
+  animation: wiLolliDotIn 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--wi-i, 0) * 60ms + 180ms);
+}
+
+[data-wi] .wi-lolli-animate .wi-lolli-value {
+  animation: wiLolliFade 360ms ease both;
+  animation-delay: calc(var(--wi-i, 0) * 60ms + 120ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-wi] .wi-lolli-animate .wi-lolli-stem,
+  [data-wi] .wi-lolli-animate .wi-lolli-dot,
+  [data-wi] .wi-lolli-animate .wi-lolli-value {
+    animation-delay: 0ms !important;
+  }
+}
+
+/* ==========================================================================
+   Water Intelligence v3 — Basin Atlas (WI-V3-04)
+   ==========================================================================
+   Trois types de couches, une légende persistante, un tiroir d'inspection.
+   Aucune règle ici ne teinte un polygone en fonction d'une valeur : il
+   n'existe aucune métrique par polygone, et une rampe de couleur en
+   inventerait une.
+   ========================================================================== */
+
+/* ------------------------------------------------- Couches et leur bascule */
+
+/*
+ * Fondu croisé d'une couche. `visibility` accompagne l'opacité : une couche
+ * éteinte ne doit pas rester cliquable ni lisible par un lecteur d'écran.
+ */
+[data-wi] .wi-layer {
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+[data-wi] .wi-layer[data-visible="false"] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ------------------------------------------- Déclencheur d'inspection */
+
+/*
+ * Cible tactile de 44 px centrée sur le point publié, transparente : le
+ * marqueur dessiné reste le repère visuel, ce bouton n'ajoute qu'une surface
+ * atteignable au doigt et au clavier. Un `<circle>` de 4,5 px de rayon
+ * n'aurait été ni l'un ni l'autre.
+ */
+[data-wi] .wi-map-probe {
+  position: absolute;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -1.375rem 0 0 -1.375rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+[data-wi] .wi-map-probe:hover {
+  background: color-mix(in srgb, var(--wi-water) 16%, transparent);
+}
+
+/* ------------------------------------------------- Légende persistante */
+
+[data-wi] .wi-atlas-legend {
+  margin-top: 1rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius);
+  background: var(--wi-card);
+}
+
+[data-wi] .wi-atlas-layers {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.375rem;
+}
+
+/*
+ * Le `li` n'est jamais le conteneur de disposition : celle-ci est portée par
+ * l'enveloppe interne, `.wi-atlas-layer-static` ou `.wi-atlas-layer-toggle`
+ * selon que la couche est activable. Sans cela, une couche à bouton
+ * imbriquerait un conteneur flex dans un autre.
+ */
+[data-wi] .wi-atlas-layer {
+  display: block;
+  border-radius: 0.5rem;
+}
+
+/* Une couche différée est visiblement inerte : hachurée, en retrait, et sans
+   interrupteur — `AtlasLegendEntry` ne lui rend aucun bouton. */
+[data-wi] .wi-atlas-layer[data-kind="deferred"] {
+  border: 1px dashed var(--wi-border-2);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--wi-hatch) 0,
+    var(--wi-hatch) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  opacity: 0.75;
+}
+
+[data-wi] .wi-atlas-layer-static,
+[data-wi] .wi-atlas-layer-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+}
+
+[data-wi] .wi-atlas-layer-toggle {
+  appearance: none;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+[data-wi] .wi-atlas-layer-toggle:hover {
+  background: var(--wi-card-2);
+  border-color: var(--wi-border);
+}
+
+[data-wi] .wi-atlas-swatch {
+  flex: 0 0 auto;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: 0.125rem;
+  border-radius: 0.25rem;
+}
+
+[data-wi] .wi-atlas-swatch-published {
+  background: var(--wi-water);
+}
+
+/* Repérage : un contour, jamais un aplat — un fond plein se lirait comme une
+   surface porteuse de donnée. */
+[data-wi] .wi-atlas-swatch-context {
+  background: transparent;
+  border: 1px solid var(--wi-border-2);
+}
+
+[data-wi] .wi-atlas-swatch-deferred {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--wi-absent) 0,
+    var(--wi-absent) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  border: 1px dashed var(--wi-absent);
+}
+
+[data-wi] .wi-atlas-layer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
+}
+
+[data-wi] .wi-atlas-layer-label {
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-atlas-layer-detail {
+  font-size: 0.71875rem;
+  line-height: 1.45;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-atlas-kind {
+  flex: 0 0 auto;
+  font-family: var(--wi-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding-top: 0.0625rem;
+}
+
+[data-wi] .wi-atlas-kind-published {
+  color: var(--wi-water);
+}
+[data-wi] .wi-atlas-kind-context {
+  color: var(--wi-subtle);
+}
+[data-wi] .wi-atlas-kind-deferred {
+  color: var(--wi-stress);
+}
+
+/* Une couche éteinte se signale par la mise en retrait de son libellé, pas
+   seulement par l'état ARIA : `aria-pressed` ne se voit pas. */
+[data-wi] .wi-atlas-layer-toggle[aria-pressed="false"] .wi-atlas-layer-label,
+[data-wi] .wi-atlas-layer-toggle[aria-pressed="false"] .wi-atlas-swatch {
+  opacity: 0.45;
+}
+
+/* ------------------------------------------------- Tiroir d'inspection */
+
+[data-wi] .wi-drawer-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+[data-wi] .wi-drawer-scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  background: rgb(7 17 31 / 0.55);
+  animation: wiDrawerScrim 200ms ease both;
+}
+
+@keyframes wiDrawerScrim {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+[data-wi] .wi-drawer {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: min(26rem, 100%);
+  overflow-y: auto;
+  padding: 1.375rem;
+  background: var(--wi-surface);
+  border-inline-start: 1px solid var(--wi-border-2);
+  box-shadow: var(--wi-shadow-panel);
+  animation: wiDrawerIn 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes wiDrawerIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[data-wi] .wi-drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+[data-wi] .wi-drawer-close {
+  appearance: none;
+  flex: 0 0 auto;
+  border: 1px solid var(--wi-border-2);
+  border-radius: 0.5rem;
+  background: var(--wi-card);
+  color: var(--wi-fg);
+  font: inherit;
+  font-size: 0.78125rem;
+  font-weight: 650;
+  padding: 0.3125rem 0.75rem;
+  cursor: pointer;
+}
+
+[data-wi] .wi-drawer-close:hover {
+  border-color: var(--wi-water);
+}
+
+[data-wi] .wi-drawer-rows {
+  margin: 1.125rem 0 0;
+  display: grid;
+  gap: 0.625rem;
+}
+
+[data-wi] .wi-drawer-row dt {
+  font-size: 0.65625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--wi-subtle);
+}
+
+[data-wi] .wi-drawer-row dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--wi-fg);
+  overflow-wrap: anywhere;
+}
+
+[data-wi] .wi-drawer-section {
+  margin-top: 1.125rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-drawer-section-body {
+  margin-top: 0.375rem;
+  font-size: 0.78125rem;
+  line-height: 1.55;
+}
+
+[data-wi] .wi-drawer-foot {
+  margin-top: 1.125rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--wi-border);
+}
+
+/* --------------------------------------------------- Avertissement 3D */
+
+/*
+ * Avant la scène, pas sous elle. Une coupe d'aspect réaliste sous un titre
+ * nommant une commune se lit comme une reconstruction de son bassin.
+ */
+[data-wi] .wi-bassin-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--wi-border-2);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--wi-stress);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Le tiroir apparaît sans glisser : l'information est la même, le
+     déplacement n'en portait aucune. */
+  [data-wi] .wi-drawer {
+    animation: wiDrawerScrim 0.01ms ease both;
+  }
+}
+

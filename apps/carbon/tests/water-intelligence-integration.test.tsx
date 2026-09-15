@@ -77,7 +77,9 @@ describe("état réel du produit — aucune couche publiée", () => {
      * `WiMatrices.tsx`.
      */
     expect(markup).toContain("<svg");
-    expect(markup).toContain('data-testid="wi-france-map"');
+    /* WI-V3-04 : la carte devient le Basin Atlas — même affirmation (un point
+       vérifié, jamais une couverture), testid renommé avec elle. */
+    expect(markup).toContain('data-testid="wi-basin-atlas"');
   });
 
   it("explique que le point affiché n'est pas une couche de couverture", () => {

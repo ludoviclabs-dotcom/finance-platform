@@ -46,6 +46,28 @@
  * ancres `#reglementation` et `#synergies` sont conservées comme cibles de
  * défilement — un lien externe existant vers l'une d'elles atterrit toujours
  * quelque part d'utile plutôt que nulle part.
+ *
+ * ## WI-V3-01 — fondation visuelle
+ *
+ * `WiStatusChip` centralise le rendu de l'axe Publication State
+ * (`.wi-pubstate-*`), qui vivait en JSX local dans ce fichier ; le thème
+ * `--wi-*` est désormais sombre par défaut sans dépendre de
+ * `prefers-color-scheme` (voir `water-intelligence.css`). Voir
+ * `WiPrimitives.tsx` pour la grammaire de statut à trois axes que ce chantier
+ * centralise.
+ *
+ * ## WI-V3-02 — le hero absorbe la Provenance Rail
+ *
+ * `WiScopeRail`, introduit en WI-V3-01 sous le hero, est RETIRÉ : les quatre
+ * Evidence Counters et le bloc « Snapshot pilote » du hero portent désormais
+ * les mêmes sept faits, en meilleure place et avec la même provenance au
+ * survol. Les garder tous les deux aurait affiché « 7 sources instrumentées »
+ * deux fois dans le premier écran, à trente pixels d'écart — ce qui coûte
+ * précisément la lisibilité que ce chantier cherche.
+ *
+ * Le composant et sa feuille de style sont supprimés plutôt que laissés
+ * dormants : rien ne le rendait, et un composant mort se réveille toujours par
+ * accident.
  */
 
 import type { Metadata } from "next";
@@ -67,16 +89,17 @@ import {
   WiProofTable,
 } from "@/components/water-intelligence/WiProof";
 import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
-import { WiSection } from "@/components/water-intelligence/WiPrimitives";
+import {
+  WiEvidenceChip,
+  WiSection,
+  WiStatusChip,
+} from "@/components/water-intelligence/WiPrimitives";
 import {
   IntelligenceThemeProvider,
   IntelligenceThemeToggle,
 } from "@/components/intelligence/IntelligenceThemeProvider";
-import {
-  EVIDENCE_LABELS,
-  PUBLICATION_STATE_LABELS,
-  PULSE_FACETS,
-} from "@/lib/water-intelligence/editorial-matrices";
+import { PULSE_FACETS } from "@/lib/water-intelligence/editorial-matrices";
+import { basinJoin } from "@/lib/water-intelligence/basin-atlas";
 import { SOURCE_STATUS, orderedSources } from "@/lib/water-intelligence/canonical-snapshot";
 import {
   PILOT_FILE,
@@ -131,13 +154,6 @@ const NAV_ITEMS: readonly WiNavItem[] = [
  */
 const MONTPELLIER_LONLAT: readonly [number, number] = [3.8772, 43.6119];
 
-const PUBSTATE_ICON: Record<string, string> = {
-  published: "●",
-  qualitative: "◆",
-  deferred: "◷",
-  not_instrumented: "○",
-};
-
 export default function WaterIntelligencePage() {
   /* La garde est appliquée EN LIGNE : `pilotIsPublished` est un prédicat de
      type, et TypeScript ne rétrécit `PILOT_FILE` que là où il est invoqué. Un
@@ -151,6 +167,10 @@ export default function WaterIntelligencePage() {
 
   const observations = pilotObservations(PILOT_FILE);
   const scope = pilotScope(PILOT_FILE);
+  /* Jointure bassin : DÉRIVÉE du document, jamais affirmée dans le JSX. Voir
+     `lib/water-intelligence/basin-atlas.ts` — elle exige deux faits canoniques
+     dont aucun n'est vrai aujourd'hui. */
+  const join = basinJoin(PILOT_FILE);
   const warnings = pilotCoverageWarnings(PILOT_FILE);
   const sources = orderedSources(SOURCE_STATUS);
   const scopeLabel = `commune ${scope.geographyCode}, année ${scope.periodStart.slice(0, 4)}`;
@@ -190,6 +210,10 @@ export default function WaterIntelligencePage() {
             isPublished={published}
             snapshotDate={pilotDocument ? pilotDocument.generated_at.slice(0, 10) : null}
             scopeLabel={scopeLabel}
+            territoryCode={scope.geographyCode}
+            periodLabel={yearLabel}
+            reviewedOn={scope.reviewedOn}
+            sourceCode={scope.sourceCode}
             sourceCount={SOURCE_STATUS.source_count}
             publishableCount={SOURCE_STATUS.publishable_count}
           />
@@ -212,9 +236,7 @@ export default function WaterIntelligencePage() {
             <span className="wi-pulse-legend-label">États&nbsp;:</span>
             {(["published", "qualitative", "deferred", "not_instrumented"] as const).map(
               (state) => (
-                <span key={state} className={`wi-pubstate wi-pubstate-${state}`}>
-                  {PUBLICATION_STATE_LABELS[state]}
-                </span>
+                <WiStatusChip key={state} state={state} />
               ),
             )}
           </div>
@@ -224,13 +246,10 @@ export default function WaterIntelligencePage() {
               <article key={facet.id} className={`wi-card wi-accent-${facet.accent}`}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
                   <h3 className="wi-h3">{facet.label}</h3>
-                  <span
-                    className={`wi-pubstate wi-pubstate-${facet.publicationState}`}
-                    data-testid={`wi-pulse-state-${facet.id}`}
-                  >
-                    <span aria-hidden="true">{PUBSTATE_ICON[facet.publicationState]}</span>
-                    {PUBLICATION_STATE_LABELS[facet.publicationState]}
-                  </span>
+                  <WiStatusChip
+                    state={facet.publicationState}
+                    testId={`wi-pulse-state-${facet.id}`}
+                  />
                 </div>
                 <p
                   className="wi-muted"
@@ -262,9 +281,8 @@ export default function WaterIntelligencePage() {
                     ))}
                   </span>
                 )}
-                <span className="wi-badge wi-badge-pending" style={{ marginTop: "0.625rem" }}>
-                  <span aria-hidden="true">◷</span>
-                  {EVIDENCE_LABELS[facet.evidenceLevel]}
+                <span style={{ display: "inline-block", marginTop: "0.625rem" }}>
+                  <WiEvidenceChip level={facet.evidenceLevel} />
                 </span>
               </article>
             ))}
@@ -281,8 +299,20 @@ export default function WaterIntelligencePage() {
           </p>
         </WiSection>
 
-        {/* ------------------------------------------- 2 — Données pilotes */}
-        <WiSection id="pilote" kicker="02 — Publication" title="Première publication pilote">
+        {/* --------------------------------------- 2 — Observed Withdrawals */}
+        <WiSection
+          id="pilote"
+          kicker="02 — Observed Withdrawals"
+          title="Ce qui est effectivement publié"
+        >
+          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
+            Valeurs indépendantes — aucune agrégation, moyenne ou hiérarchie
+            n&apos;est calculée.{" "}
+            {published
+              ? `${observations.length} observation${observations.length > 1 ? "s" : ""}, dans l'ordre du document, sur le périmètre signé et rien d'autre.`
+              : "Aucune observation publiée à ce jour : le document pilote n'a pas encore été généré."}
+          </p>
+
           <div style={{ marginTop: "1.5rem" }}>
             <WiPilotData
               observations={observations}
@@ -317,6 +347,9 @@ export default function WaterIntelligencePage() {
               ouvrageCount={observations.length}
               isPublished={published}
               markerLonLat={published ? MONTPELLIER_LONLAT : null}
+              join={join}
+              sourceCode={scope.sourceCode}
+              reviewedOn={scope.reviewedOn}
             />
           </div>
         </WiSection>

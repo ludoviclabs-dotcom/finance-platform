@@ -330,12 +330,20 @@ describe("WiExclusionList", () => {
 /* ----------------------------------------- Discipline de thème et fixture */
 
 describe("discipline de thème", () => {
+  /*
+   * `WiProvenanceDrawer.tsx` a été REMPLACÉ par `WiInspectionDrawer.tsx` en
+   * WI-V3-04 : mêmes mécaniques (Échap, piège et restitution de focus, aucune
+   * récupération de données), contenu rendu générique pour servir aussi bien
+   * une source qu'un territoire. Le tiroir d'origine n'avait aucun appelant ;
+   * en garder deux dans le même module aurait dupliqué la seule partie
+   * délicate, l'accessibilité du dialogue.
+   */
   const files = [
     "WiDataState.tsx",
     "WiFoundations.tsx",
     "WiMapFrame.tsx",
     "WiFilterBar.tsx",
-    "WiProvenanceDrawer.tsx",
+    "WiInspectionDrawer.tsx",
   ];
 
   it("n'utilise jamais les tokens --mx-* de /materials", () => {
@@ -361,11 +369,14 @@ describe("discipline de thème", () => {
 
   it("limite les îlots clients à ceux qui ont une interaction réelle", () => {
     expect(read("WiFilterBar.tsx")).toContain('"use client"');
-    expect(read("WiProvenanceDrawer.tsx")).toContain('"use client"');
+    expect(read("WiInspectionDrawer.tsx")).toContain('"use client"');
   });
 
-  it("le tiroir de provenance ne récupère rien lui-même", () => {
-    const source = read("WiProvenanceDrawer.tsx");
+  it("le tiroir d'inspection ne récupère rien lui-même", () => {
+    /* Tout arrive en props : c'est ce qui rend structurellement impossible un
+       appel réseau depuis cette surface publique — vrai qu'il décrive une
+       source ou un territoire. */
+    const source = read("WiInspectionDrawer.tsx");
 
     expect(source).not.toContain("fetch(");
     expect(source).not.toContain("axios");

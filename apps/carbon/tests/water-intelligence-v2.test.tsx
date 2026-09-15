@@ -28,6 +28,7 @@ import {
 import { WiFinancialBridge, WiFinancialSimulator } from "@/components/water-intelligence/WiProof";
 import { WiFranceMap } from "@/components/water-intelligence/WiFranceMap";
 import { WiBassin3D } from "@/components/water-intelligence/WiBassin3D";
+import { basinJoin } from "@/lib/water-intelligence/basin-atlas";
 
 /* ==========================================================================
    1 — Simulateur qualitatif : seuils, jamais un calcul
@@ -180,17 +181,27 @@ describe("PulseFacet.publicationState", () => {
 /** Largeur du cadre de `WiFranceMap`, reprise ici pour rester lisible. */
 const VIEWBOX_WIDTH = 720;
 
+/*
+ * WI-V3-04 : `WiFranceMap` devient le Basin Atlas et reçoit trois arguments de
+ * plus — l'état de jointure bassin (DÉRIVÉ du document par `basinJoin()`,
+ * jamais écrit ici), la source du périmètre et la date de revue. Les
+ * assertions de cadrage ci-dessous sont inchangées : c'est la même projection,
+ * le même marqueur, la même exigence.
+ */
+const ATLAS_PROPS = {
+  markerLonLat: [3.8772, 43.6119] as readonly [number, number],
+  geographyCode: "34172",
+  ouvrageCount: 3,
+  periodLabel: "2020",
+  reducedMotion: true,
+  join: basinJoin(),
+  sourceCode: "HUBEAU_BNPE_PRELEVEMENTS",
+  reviewedOn: "2026-07-28",
+} as const;
+
 describe("WiFranceMap — rendu serveur", () => {
   it("rend un SVG avec un unique marqueur nommé, sans appel réseau", () => {
-    const markup = renderToStaticMarkup(
-      <WiFranceMap
-        markerLonLat={[3.8772, 43.6119]}
-        geographyCode="34172"
-        ouvrageCount={3}
-        periodLabel="2020"
-        reducedMotion
-      />,
-    );
+    const markup = renderToStaticMarkup(<WiFranceMap {...ATLAS_PROPS} />);
     expect(markup).toContain("<svg");
     expect(markup).toContain("34172");
     expect(markup).not.toMatch(/fetch\(|XMLHttpRequest/);
@@ -204,15 +215,7 @@ describe("WiFranceMap — rendu serveur", () => {
        débordait. Ce test tient le cadrage : la silhouette occupe l'essentiel
        du cadre et le marqueur reste au centre, avec la place de son
        étiquette. */
-    const markup = renderToStaticMarkup(
-      <WiFranceMap
-        markerLonLat={[3.8772, 43.6119]}
-        geographyCode="34172"
-        ouvrageCount={3}
-        periodLabel="2020"
-        reducedMotion
-      />,
-    );
+    const markup = renderToStaticMarkup(<WiFranceMap {...ATLAS_PROPS} />);
 
     const marker = markup.match(/translate\(([\d.]+),([\d.]+)\)/);
     expect(marker).not.toBeNull();

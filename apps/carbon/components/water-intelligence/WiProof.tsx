@@ -38,7 +38,14 @@ import {
 
 /* ---------------------------------------------------------- Copie */
 
-function CopyButton({ value, label }: { value: string; label: string }) {
+/**
+ * Bouton de copie. Exporté depuis WI-V3-03 : le panneau d'inspection des
+ * observations en a besoin pour la même raison exactement — une empreinte de
+ * 64 caractères ne se recopie pas à la main sans erreur. Une seconde
+ * implémentation aurait divergé sur le repli (il n'y en a pas) ou sur le
+ * libellé accessible (qui nomme CE QUI est copié).
+ */
+export function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
 
   const copy = useCallback(async () => {

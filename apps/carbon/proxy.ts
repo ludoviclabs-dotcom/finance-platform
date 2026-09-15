@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+import { DEMO_SESSION_COOKIE } from "@/lib/demo/session";
 
 // Report-To group pointing to our internal collector endpoint
 const REPORT_TO_GROUP = JSON.stringify({
@@ -98,8 +100,61 @@ export function buildCsp(): string {
     .join("; ");
 }
 
-export function proxy() {
-  const response = NextResponse.next();
+const DEMO_PROTECTED_PREFIXES = [
+  "/actions",
+  "/admin",
+  "/alerts",
+  "/audit",
+  "/baselines",
+  "/beges",
+  "/consolidation",
+  "/copilot",
+  "/crma",
+  "/dashboard",
+  "/datapoints",
+  "/diff",
+  "/dpp",
+  "/esrs",
+  "/fec",
+  "/finance",
+  "/fournisseurs",
+  "/history",
+  "/imports",
+  "/ingest",
+  "/insights",
+  "/intelligence",
+  "/iro",
+  "/materialite",
+  "/nature",
+  "/pricing",
+  "/proof-twin",
+  "/qc",
+  "/reports",
+  "/resources",
+  "/review",
+  "/revue",
+  "/scopes",
+  "/securite",
+  "/sites-geo",
+  "/social",
+  "/upload",
+  "/vsme",
+  "/water/cockpit",
+  "/water/decision",
+];
+
+function isPathOrChild(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+export function isDemoProtectedPath(pathname: string): boolean {
+  if (pathname.startsWith("/api/")) {
+    return pathname !== "/api/auth/demo" && pathname !== "/api/csp-report";
+  }
+  return DEMO_PROTECTED_PREFIXES.some((prefix) => isPathOrChild(pathname, prefix));
+}
+
+function applySecurityHeaders(response: NextResponse): NextResponse {
 
   for (const [key, value] of Object.entries(securityHeaders)) {
     response.headers.set(key, value);
@@ -107,6 +162,21 @@ export function proxy() {
   response.headers.set("Content-Security-Policy", buildCsp());
 
   return response;
+}
+
+export function proxy(request: NextRequest) {
+  const demoSession = request.cookies.get(DEMO_SESSION_COOKIE)?.value;
+  if (demoSession && isDemoProtectedPath(request.nextUrl.pathname)) {
+    const response = request.nextUrl.pathname.startsWith("/api/")
+      ? NextResponse.json(
+          { error: "Cette route n'est pas disponible en mode démo.", code: "DEMO_SCOPE" },
+          { status: 403, headers: { "Cache-Control": "no-store" } },
+        )
+      : NextResponse.redirect(new URL("/demo", request.url));
+    return applySecurityHeaders(response);
+  }
+
+  return applySecurityHeaders(NextResponse.next());
 }
 
 export const config = {

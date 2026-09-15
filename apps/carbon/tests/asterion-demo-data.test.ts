@@ -29,8 +29,8 @@ describe("Asterion demo — invariants de données (fictif, déterministe)", () 
   it("le parcours a 10 étapes dont l'étape IA, et un mode réalisateur ~2 min", () => {
     expect(ASTERION_TOUR).toHaveLength(10);
     expect(ASTERION_TOUR.filter((s) => s.isAiStep)).toHaveLength(1);
-    // Chaque étape a un lien d'exploration.
-    for (const s of ASTERION_TOUR) expect(s.exploreHref).toMatch(/^\//);
+    // Aucun CTA ne doit sortir du parcours fictif vers une page métier réelle.
+    expect(ASTERION_TOUR.every((s) => !s.exploreHref)).toBe(true);
     // ~2 minutes (110–140 s).
     expect(DIRECTOR_TOTAL_MS).toBeGreaterThanOrEqual(110_000);
     expect(DIRECTOR_TOTAL_MS).toBeLessThanOrEqual(140_000);

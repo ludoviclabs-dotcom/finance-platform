@@ -339,6 +339,17 @@ export interface LoginResponse {
   preAuthToken?: string | null;
 }
 
+export interface DemoLoginResponse {
+  ok: true;
+  redirect: "/demo";
+}
+
+export interface DemoSessionStatusResponse {
+  ok: true;
+  isDemo: true;
+  user: AuthUser;
+}
+
 export interface TotpEnrollResponse {
   secret: string;
   otpauthUri: string;
@@ -470,27 +481,62 @@ export async function loginRequest(
 }
 
 /**
- * Session de démonstration produit (tenant Asterion, mode demo IA).
+ * Session de démonstration produit (données locales fictives uniquement).
  *
- * Aucun identifiant/mot de passe n'est envoyé ni embarqué côté client : le
- * backend (`POST /auth/demo`) provisionne le tenant démo et émet un JWT court
- * SANS refresh cookie (session non renouvelable, auto-expiration). Remplace
- * l'ancien bouton démo qui compilait un mot de passe en clair dans le bundle.
+ * Aucun identifiant/mot de passe ni JWT n'est envoyé au backend métier. Le
+ * Route Handler same-origin pose un cookie de session démo HttpOnly et renvoie
+ * la destination publique `/demo`.
  */
-export async function demoLoginRequest(signal?: AbortSignal): Promise<LoginResponse> {
-  const res = await fetch(`${API_BASE_URL}/auth/demo`, {
+export async function demoLoginRequest(signal?: AbortSignal): Promise<DemoLoginResponse> {
+  const res = await fetch("/api/auth/demo", {
     method: "POST",
     headers: { Accept: "application/json" },
     credentials: "include",
     signal,
   });
+  let errorMessage: string | null = null;
+  try {
+    const payload = (await res.clone().json()) as { error?: unknown };
+    if (typeof payload.error === "string") errorMessage = payload.error;
+  } catch {
+    // Les réponses non JSON retombent sur un message générique ci-dessous.
+  }
   if (res.status === 503) {
     throw new Error("Accès démo indisponible pour le moment.");
   }
-  if (!res.ok) {
-    throw new Error(`API ${res.status} on /auth/demo`);
+  if (res.status === 429) {
+    throw new Error("Trop de demandes d'accès démo. Réessayez dans quelques minutes.");
   }
-  return (await res.json()) as LoginResponse;
+  if (!res.ok) {
+    throw new Error(errorMessage ?? "Accès démo indisponible pour le moment.");
+  }
+  return (await res.json()) as DemoLoginResponse;
+}
+
+/** Vérifie l'état de la session démo sans exposer le JWT HttpOnly au client. */
+export async function getDemoSessionRequest(
+  signal?: AbortSignal,
+): Promise<DemoSessionStatusResponse | null> {
+  const res = await fetch("/api/auth/demo", {
+    method: "GET",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+    signal,
+  });
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error(`API ${res.status} on /api/auth/demo`);
+  return (await res.json()) as DemoSessionStatusResponse;
+}
+
+/** Efface le cookie démo HttpOnly avant un login réel ou à la déconnexion. */
+export async function clearDemoSessionRequest(signal?: AbortSignal): Promise<void> {
+  const res = await fetch("/api/auth/demo", {
+    method: "DELETE",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /api/auth/demo`);
 }
 
 // --- 2FA TOTP (T1.4) ---

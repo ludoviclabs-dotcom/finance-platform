@@ -32,6 +32,15 @@ const perDay = redis
     })
   : null;
 
+const demoPerHour = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(10, "3600 s"),
+      prefix: "rl:demo:hour",
+      analytics: false,
+    })
+  : null;
+
 function failOpen(): RateLimitResult {
   return { success: true, limit: 0, remaining: 0, reset: 0, retryAfterSeconds: 0 };
 }
@@ -54,6 +63,31 @@ export async function checkCopilotRateLimit(identifier: string): Promise<RateLim
       limit: worst.limit,
       remaining: Math.min(minRes.remaining, dayRes.remaining),
       reset: worst.reset,
+      retryAfterSeconds: Math.ceil(retryAfterMs / 1000),
+    };
+  } catch {
+    return failOpen();
+  }
+}
+
+/**
+ * Limite l'émission de sessions démo par adresse IP.
+ *
+ * La session ne crée aucun compte et n'est pas renouvelable ; cette limite
+ * borne néanmoins l'abus de l'endpoint public et reste fail-open si Redis
+ * n'est pas configuré, comme les autres limites de cette application.
+ */
+export async function checkDemoRateLimit(identifier: string): Promise<RateLimitResult> {
+  if (!demoPerHour) return failOpen();
+
+  try {
+    const result = await demoPerHour.limit(identifier);
+    const retryAfterMs = Math.max(0, result.reset - Date.now());
+    return {
+      success: result.success,
+      limit: result.limit,
+      remaining: result.remaining,
+      reset: result.reset,
       retryAfterSeconds: Math.ceil(retryAfterMs / 1000),
     };
   } catch {

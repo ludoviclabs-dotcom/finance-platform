@@ -223,17 +223,17 @@ export function useAuth() {
     [establishSession],
   );
 
-  // Session de démonstration produit : aucun secret client (POST /auth/demo).
+  // Session de démonstration produit : le JWT reste dans un cookie HttpOnly
+  // same-origin ; il n'est jamais exposé au bundle ni envoyé aux APIs métier.
   const loginDemo = useCallback(async (): Promise<LoginResult> => {
     try {
-      const res = await demoLoginRequest();
-      establishSession(res);
+      await demoLoginRequest();
       return { ok: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Accès démo indisponible.";
       return { ok: false, error: message };
     }
-  }, [establishSession]);
+  }, []);
 
   // Étape 2 du login : valide le code TOTP (ou un code de récupération).
   const verifyTotp = useCallback(

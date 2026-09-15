@@ -57,12 +57,10 @@ export function LoginClient({ safeNext }: LoginClientProps) {
         return result;
       }}
       onDemo={() => {
-        // Session démo sécurisée : aucun identifiant en clair dans le bundle.
-        // Le backend (POST /auth/demo) provisionne le tenant Asterion et émet
-        // un JWT court sans refresh cookie (auto-expiration). enterDemo gère
-        // loading/erreur et navigue vers `safeNext` (strict : jamais de faux
-        // succès si l'appel échoue).
-        void enterDemo(safeNext);
+        // Session démo sécurisée : aucun identifiant ni JWT en clair dans le
+        // bundle. Le Route Handler same-origin pose un cookie HttpOnly puis
+        // ouvre uniquement la surface publique `/demo`.
+        void enterDemo("/demo");
       }}
       demoLoading={demoLoading}
       demoError={demoError}

@@ -42,12 +42,8 @@ interface DemoShellProps {
   testId?: string;
   eyebrow?: string;
   title?: string;
-  /**
-   * Rend « Explorer dans l'application » comme une action contrôlée (assure
-   * la session démo avant de naviguer vers une page protégée) au lieu d'un
-   * simple lien. Défaut false : /demo/asterion-motion garde son lien direct
-   * historique (destinations déjà accessibles au tenant démo courant).
-   */
+  /** Rend une destination explicitement sûre comme une action contrôlée au
+   * lieu d'un lien direct. Les étapes sans destination n'affichent pas de CTA. */
   controlledExplore?: boolean;
 }
 
@@ -98,7 +94,7 @@ export function DemoShell({
     return () => clearTimeout(t);
   }, [mode, playing, current, step.durationMs, LAST]);
 
-  // Session démo sécurisée (active les liens d'exploration sur le tenant réel).
+  // Session démo sécurisée (uniquement pour les destinations explicitement sûres).
   const { auth, loginDemo } = useAuth();
   const { connected, loading: connecting, error: connectError, connect, enterDemo } =
     useDemoAccess(auth, loginDemo);

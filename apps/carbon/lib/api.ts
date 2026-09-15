@@ -344,6 +344,12 @@ export interface DemoLoginResponse {
   redirect: "/demo";
 }
 
+export interface DemoSessionStatusResponse {
+  ok: true;
+  isDemo: true;
+  user: AuthUser;
+}
+
 export interface TotpEnrollResponse {
   secret: string;
   otpauthUri: string;
@@ -505,6 +511,32 @@ export async function demoLoginRequest(signal?: AbortSignal): Promise<DemoLoginR
     throw new Error(errorMessage ?? "Accès démo indisponible pour le moment.");
   }
   return (await res.json()) as DemoLoginResponse;
+}
+
+/** Vérifie l'état de la session démo sans exposer le JWT HttpOnly au client. */
+export async function getDemoSessionRequest(
+  signal?: AbortSignal,
+): Promise<DemoSessionStatusResponse | null> {
+  const res = await fetch("/api/auth/demo", {
+    method: "GET",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+    signal,
+  });
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error(`API ${res.status} on /api/auth/demo`);
+  return (await res.json()) as DemoSessionStatusResponse;
+}
+
+/** Efface le cookie démo HttpOnly avant un login réel ou à la déconnexion. */
+export async function clearDemoSessionRequest(signal?: AbortSignal): Promise<void> {
+  const res = await fetch("/api/auth/demo", {
+    method: "DELETE",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+    signal,
+  });
+  if (!res.ok) throw new Error(`API ${res.status} on /api/auth/demo`);
 }
 
 // --- 2FA TOTP (T1.4) ---

@@ -7,8 +7,9 @@
  *
  * `onExplore` (optionnel) remplace le simple <Link> par un bouton contrôlé —
  * utilisé quand la destination est une page protégée et doit d'abord assurer
- * une session démo (cf. DemoShell `controlledExplore`). Sans `onExplore`
- * (défaut), le lien direct historique est inchangé.
+ * une session démo (cf. DemoShell `controlledExplore`). Une étape sans
+ * destination sûre n'affiche aucun CTA : une session démo ne doit jamais
+ * rebondir vers une page métier réelle.
  */
 
 import Link from "next/link";
@@ -67,11 +68,11 @@ export function DemoStepCard({
 
       {children}
 
-      {onExplore ? (
+      {step.exploreHref && onExplore ? (
         <div className="flex flex-col items-start gap-1.5">
           <button
             type="button"
-            onClick={() => onExplore(step.exploreHref)}
+            onClick={() => onExplore(step.exploreHref!)}
             disabled={exploreLoading}
             className="inline-flex items-center gap-1.5 rounded-lg border border-carbon-emerald/40 bg-carbon-emerald/10 px-3 py-1.5 text-sm font-medium text-carbon-emerald-light transition hover:bg-carbon-emerald/20 disabled:opacity-50"
             data-testid="demo-explore-link"
@@ -85,7 +86,7 @@ export function DemoStepCard({
             </p>
           )}
         </div>
-      ) : (
+      ) : step.exploreHref ? (
         <Link
           href={step.exploreHref}
           className="inline-flex items-center gap-1.5 rounded-lg border border-carbon-emerald/40 bg-carbon-emerald/10 px-3 py-1.5 text-sm font-medium text-carbon-emerald-light transition hover:bg-carbon-emerald/20"
@@ -94,7 +95,7 @@ export function DemoStepCard({
           Explorer dans l&apos;application
           <ArrowUpRight className="h-4 w-4" aria-hidden />
         </Link>
-      )}
+      ) : null}
     </div>
   );
 }

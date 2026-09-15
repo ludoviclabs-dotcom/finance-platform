@@ -8,7 +8,8 @@ vi.mock("@/lib/rate-limit", () => ({
   checkDemoRateLimit: checkDemoRateLimitMock,
 }));
 
-import { POST } from "@/app/api/auth/demo/route";
+import { DELETE, GET, POST } from "@/app/api/auth/demo/route";
+import { DEMO_SESSION_COOKIE } from "@/lib/demo/session";
 import { verifyBearerToken } from "@/lib/verify-jwt";
 
 describe("POST /api/auth/demo", () => {
@@ -74,6 +75,40 @@ describe("POST /api/auth/demo", () => {
       code: "RATE_LIMITED",
     });
     expect(response.headers.get("retry-after")).toBe("1");
+  });
+
+  it("expose uniquement l'état d'une session démo valide", async () => {
+    const issued = await POST(new Request("http://localhost:3003/api/auth/demo", { method: "POST" }));
+    const cookie = issued.headers.get("set-cookie") ?? "";
+    const token = cookie.match(new RegExp(`${DEMO_SESSION_COOKIE}=([^;]+)`))?.[1];
+
+    const response = await GET(
+      new Request("http://localhost:3003/api/auth/demo", {
+        headers: { Cookie: `${DEMO_SESSION_COOKIE}=${token}` },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      isDemo: true,
+      user: {
+        email: "demo-session@exemplia-industrie.invalid",
+        role: "viewer",
+        company_id: 0,
+        is_demo: true,
+      },
+    });
+  });
+
+  it("supprime le cookie démo lors d'un nettoyage explicite", async () => {
+    const response = DELETE();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+    expect(response.headers.get("set-cookie")).toMatch(
+      new RegExp(`${DEMO_SESSION_COOKIE}=;.*Max-Age=0`),
+    );
   });
 
   it("masque les erreurs internes avec une réponse 500 stable", async () => {

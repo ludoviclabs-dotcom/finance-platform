@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 import {
+  clearDemoSessionRequest,
   demoLoginRequest,
   fetchMe,
+  getDemoSessionRequest,
   getAuthToken,
   loginRequest,
   logoutRequest,
@@ -150,7 +152,25 @@ export function useAuth() {
       // Cas 2 : tenter une rotation silencieuse via le cookie refresh.
       const token = await silentRefresh();
       if (cancelled) return;
-      if (!token) return;
+      if (!token) {
+        // La session démo est volontairement HttpOnly : on demande seulement
+        // son état au Route Handler, jamais sa valeur au navigateur.
+        try {
+          const demo = await getDemoSessionRequest();
+          if (!cancelled && demo) {
+            setAuth({
+              status: "authenticated",
+              email: demo.user.email,
+              role: demo.user.role,
+              companyId: demo.user.company_id ?? 0,
+              isDemo: true,
+            });
+          }
+        } catch {
+          // Une session démo absente ou indisponible laisse l'état déconnecté.
+        }
+        return;
+      }
 
       // Le silentRefresh a déjà setAuth({authenticated}). On revalide quand
       // même via /auth/me pour détecter une révocation serveur immédiate.
@@ -204,9 +224,20 @@ export function useAuth() {
     [silentRefresh, scheduleRefresh],
   );
 
+  const clearDemoBeforeRealSession = useCallback(async (): Promise<string | null> => {
+    try {
+      await clearDemoSessionRequest();
+      return null;
+    } catch {
+      return "Connexion indisponible pour le moment. Réessayez.";
+    }
+  }, []);
+
   const login = useCallback(
     async (email: string, password: string): Promise<LoginResult> => {
       try {
+        const clearError = await clearDemoBeforeRealSession();
+        if (clearError) return { ok: false, error: clearError };
         const res = await loginRequest(email, password);
         // 2FA activée : on s'arrête à l'étape mot de passe et on remonte le
         // token pré-auth ; la session n'est pas encore établie.
@@ -220,7 +251,7 @@ export function useAuth() {
         return { ok: false, error: message };
       }
     },
-    [establishSession],
+    [clearDemoBeforeRealSession, establishSession],
   );
 
   // Session de démonstration produit : le JWT reste dans un cookie HttpOnly
@@ -228,6 +259,16 @@ export function useAuth() {
   const loginDemo = useCallback(async (): Promise<LoginResult> => {
     try {
       await demoLoginRequest();
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      setAuthToken(null);
+      setOnTokenExpired(null);
+      setAuth({
+        status: "authenticated",
+        email: "demo-session@exemplia-industrie.invalid",
+        role: "viewer",
+        companyId: 0,
+        isDemo: true,
+      });
       return { ok: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Accès démo indisponible.";
@@ -239,6 +280,8 @@ export function useAuth() {
   const verifyTotp = useCallback(
     async (preAuthToken: string, code: string): Promise<LoginResult> => {
       try {
+        const clearError = await clearDemoBeforeRealSession();
+        if (clearError) return { ok: false, error: clearError };
         const res = await verifyTotpRequest(preAuthToken, code);
         establishSession(res);
         return { ok: true };
@@ -247,7 +290,7 @@ export function useAuth() {
         return { ok: false, error: message };
       }
     },
-    [establishSession],
+    [clearDemoBeforeRealSession, establishSession],
   );
 
   // ---------------------------------------------------------------------------
@@ -256,6 +299,9 @@ export function useAuth() {
   const logout = useCallback(() => {
     if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     logoutRequest(); // best-effort — révoque le cookie côté serveur
+    void clearDemoSessionRequest().catch(() => {
+      // Le nettoyage est best-effort, comme la révocation backend.
+    });
     setAuthToken(null);
     setOnTokenExpired(null);
     setAuth({ status: "unauthenticated" });

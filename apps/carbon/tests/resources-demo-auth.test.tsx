@@ -23,9 +23,9 @@ vi.mock("next/link", () => ({
 
 import { DemoStepCard } from "@/components/demo/asterion/demo-step-card";
 import { LoginScreen } from "@/components/pages/login-screen";
-import { ASTERION_TOUR } from "@/lib/demo/asterion-motion-tour";
+import { ASTERION_TOUR, type TourStep } from "@/lib/demo/asterion-motion-tour";
 
-const step = ASTERION_TOUR[0];
+const step: TourStep = { ...ASTERION_TOUR[0], exploreHref: "/demo" };
 
 describe("DemoStepCard — lien d'exploration", () => {
   it("sans onExplore : lien direct historique (comportement asterion-motion inchangé)", () => {
@@ -63,6 +63,11 @@ describe("DemoStepCard — lien d'exploration", () => {
     );
     expect(html).toContain('data-testid="demo-explore-error"');
     expect(html).toContain("Accès démo indisponible.");
+  });
+
+  it("sans destination sûre : aucun CTA ne renvoie vers une page métier", () => {
+    const html = renderToStaticMarkup(<DemoStepCard step={ASTERION_TOUR[0]} />);
+    expect(html).not.toContain('data-testid="demo-explore-link"');
   });
 });
 

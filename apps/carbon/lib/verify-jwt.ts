@@ -37,6 +37,12 @@ export async function verifyBearerToken(authHeader: string | null): Promise<JwtP
   if (!authHeader?.startsWith("Bearer ")) return null;
   const token = authHeader.slice(7).trim();
   if (!token) return null;
+  return verifyJwtToken(token);
+}
+
+/** Vérifie un JWT déjà extrait d'un cookie ou d'un header. */
+export async function verifyJwtToken(token: string | null): Promise<JwtPayload | null> {
+  if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, getSecret(), { algorithms: ["HS256"] });
     return payload as unknown as JwtPayload;

@@ -28,6 +28,7 @@ import type { Material } from "@/lib/crm/dataLoader";
 import { getChinaShare, getChinaTier, type ChinaTier } from "@/lib/crm/dataLoader";
 import { computeCountryWeights, COUNTRY_LL, EUROPE_LL } from "@/lib/crm/countryWeights";
 import type { MxTheme } from "../MxThemeProvider";
+import { inFamily, type FamilyId } from "./families";
 
 // ── géométrie de la scène ────────────────────────────────────────────────────
 const R = 1.0;            // rayon du globe
@@ -58,27 +59,6 @@ const THEMES: Record<MxTheme, ThemeColors> = {
     labelOn: { high: "#1d2d3d", mid: "#1d2d3d", low: "#f2f2f3" },
   },
 };
-
-// ── familles de composants ───────────────────────────────────────────────────
-// Filtre par usage : les expressions portent sur main_uses + category, seuls
-// champs du snapshot qui décrivent la destination industrielle d'une matière.
-export const FAMILIES = [
-  { id: "all", label: "Toutes les matières", re: null as RegExp | null },
-  { id: "batt", label: "Batteries", re: /batterie|lithium|cathode|anode|électrolyte|accumulateur/i },
-  { id: "mag", label: "Aimants & moteurs", re: /aimant|moteur|ndfeb|turbine|éolien/i },
-  { id: "semi", label: "Semi-conducteurs", re: /semi-conduct|gaas|gan|puce|électronique|fibre optique|led|photovolta|optique/i },
-  { id: "energy", label: "Énergie & réseaux", re: /nucléaire|réseau|pile|hydrogène|photovolta|éolien|solaire|acier électrique/i },
-  { id: "def", label: "Défense & aérospatial", re: /défense|aéro|munition|militaire|satellite|blindage|superalliage|fusée/i },
-  { id: "met", label: "Métallurgie & alliages", re: /alliage|acier|aluminium|fonderie|réfractaire|soudure|inox|superalliage/i },
-] as const;
-
-type FamilyId = (typeof FAMILIES)[number]["id"];
-
-function inFamily(m: Material, familyId: FamilyId): boolean {
-  const f = FAMILIES.find(x => x.id === familyId);
-  if (!f || !f.re) return true;
-  return m.main_uses.some(u => f.re!.test(u)) || f.re.test(m.category);
-}
 
 // Symbole chimique affiché sur la face externe de la tuile. Le snapshot ne
 // porte pas de symbole : cette table le retrouve par nom français, et les

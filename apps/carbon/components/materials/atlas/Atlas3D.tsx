@@ -13,7 +13,7 @@ import { useReducedMotion } from "framer-motion";
 import type { Material } from "@/lib/crm/dataLoader";
 import { getChinaShare } from "@/lib/crm/dataLoader";
 import { useMxTheme } from "../MxThemeProvider";
-import { FAMILIES } from "./Atlas3DScene";
+import { FAMILIES, type FamilyId } from "./families";
 
 const Atlas3DScene = dynamic(() => import("./Atlas3DScene"), {
   ssr: false,
@@ -26,8 +26,6 @@ const Atlas3DScene = dynamic(() => import("./Atlas3DScene"), {
     </div>
   ),
 });
-
-type FamilyId = (typeof FAMILIES)[number]["id"];
 
 /**
  * Frappe le texte caractère par caractère. Sous prefers-reduced-motion, le

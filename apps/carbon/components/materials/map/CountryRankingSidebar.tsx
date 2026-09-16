@@ -67,8 +67,11 @@ export default function CountryRankingSidebar({ weights, selectedCountry, onSele
             return (
               <tr
                 key={c.country}
+                // Le clic sur la ligne entière est un confort de pointage ; la
+                // commande réelle est le bouton de la cellule « Pays », qui
+                // porte le focus et les sémantiques Entrée/Espace. Sans lui,
+                // sélectionner un pays redeviendrait impossible au clavier.
                 onClick={() => onSelectCountry(isOn ? null : c.country)}
-                aria-selected={isOn}
                 style={{
                   cursor: "pointer",
                   background: isOn ? "color-mix(in srgb, var(--color-accent) 12%, transparent)" : "transparent",
@@ -77,7 +80,22 @@ export default function CountryRankingSidebar({ weights, selectedCountry, onSele
                 <td style={{ fontSize: 12, fontWeight: 600, letterSpacing: ".08em", color: "var(--color-accent-700)", fontFeatureSettings: "'tnum' 1" }}>
                   {String(i + 1).padStart(2, "0")}
                 </td>
-                <td className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{c.country}</td>
+                <td>
+                  <button
+                    type="button"
+                    aria-pressed={isOn}
+                    // Le clic est déjà traité ici : le laisser remonter au <tr>
+                    // rejouerait la bascule et annulerait la sélection.
+                    onClick={event => {
+                      event.stopPropagation();
+                      onSelectCountry(isOn ? null : c.country);
+                    }}
+                    className="font-medium whitespace-nowrap overflow-hidden text-ellipsis w-full text-left"
+                    style={{ border: 0, background: "transparent", color: "inherit", font: "inherit", padding: 0, cursor: "pointer" }}
+                  >
+                    {c.country}
+                  </button>
+                </td>
                 <td>
                   <div style={{ height: 4, background: "var(--color-divider)" }}>
                     <div

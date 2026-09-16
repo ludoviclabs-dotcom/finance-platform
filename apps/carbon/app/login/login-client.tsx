@@ -24,6 +24,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoginScreen } from "@/components/pages/login-screen";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { demoEntryFor } from "@/lib/demo/session";
 import { useDemoAccess } from "@/lib/hooks/use-demo-access";
 
 const RESOURCES_DEMO_CONTEXT = {
@@ -44,6 +45,7 @@ export function LoginClient({ safeNext }: LoginClientProps) {
   const [exitingDemo, setExitingDemo] = useState(false);
   const [exitDemoError, setExitDemoError] = useState<string | null>(null);
 
+  const demoHref = demoEntryFor(safeNext);
   const demoContext = safeNext.startsWith("/resources") ? RESOURCES_DEMO_CONTEXT : null;
   const inDemoSession = ready && auth.status === "authenticated" && auth.isDemo;
 
@@ -78,8 +80,9 @@ export function LoginClient({ safeNext }: LoginClientProps) {
       onDemo={() => {
         // Session démo sécurisée : aucun identifiant ni JWT en clair dans le
         // bundle. Le Route Handler same-origin pose un cookie HttpOnly puis
-        // ouvre uniquement la surface publique `/demo`.
-        void enterDemo("/demo");
+        // ouvre uniquement une surface publique de démonstration (`/demo`, ou
+        // le parcours Asterion Ressources quand /resources était demandé).
+        void enterDemo(demoHref);
       }}
       demoLoading={demoLoading}
       demoError={demoError}
@@ -88,7 +91,7 @@ export function LoginClient({ safeNext }: LoginClientProps) {
         inDemoSession
           ? {
               onExit: () => void handleExitDemo(),
-              onResume: () => router.push("/demo"),
+              onResume: () => router.push(demoHref),
               exiting: exitingDemo,
               error: exitDemoError,
             }

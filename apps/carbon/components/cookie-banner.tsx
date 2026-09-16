@@ -4,9 +4,9 @@
  * Cookie banner RGPD — minimaliste, conforme.
  *
  * - Affiché tant que le visiteur n'a ni accepté ni refusé.
- * - Choix persisté dans localStorage sous `carbonco-cookie-consent`
- *   (valeur : "accepted" | "rejected" | "essential-only") — format et lecture
- *   centralisés dans components/consent/consent-store.ts.
+ * - Choix daté, persisté dans localStorage sous `carbonco-cookie-consent`
+ *   (format, lecture et durée de validité de 6 mois centralisés dans
+ *   components/consent/consent-store.ts) : la bannière revient à l'expiration.
  * - Seul « Tout accepter » active la mesure d'audience (ConsentedAnalytics),
  *   sans rechargement ; « Tout refuser » est présenté au même niveau.
  * - Réouvrable à tout moment (événement `carbonco:cookie-preferences-open`,
@@ -21,6 +21,7 @@ import { X } from "lucide-react";
 
 import {
   COOKIE_PREFERENCES_OPEN_EVENT,
+  readCookieConsentRecord,
   saveCookieConsent,
   type CookieConsent,
 } from "@/components/consent/consent-store";
@@ -56,6 +57,13 @@ function useReservedBottomSpace(ref: RefObject<HTMLElement | null>, active: bool
   }, [ref, active]);
 }
 
+const DATE_FORMAT = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Europe/Paris",
+});
+
 const BUTTON = "px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer";
 
 export function CookieBanner() {
@@ -81,6 +89,9 @@ export function CookieBanner() {
   }, [reopened]);
 
   if (!visible) return null;
+
+  // Lu au rendu : la bannière ne s'affiche que côté client (consent défini).
+  const expiresAt = consent ? readCookieConsentRecord()?.expiresAt : undefined;
 
   const choose = (value: CookieConsent) => () => {
     saveCookieConsent(value);
@@ -113,7 +124,8 @@ export function CookieBanner() {
           CarbonCo dépose uniquement les cookies essentiels au fonctionnement du
           service (authentification, sécurité). La mesure d&apos;audience (Vercel
           Web Analytics, Speed Insights) n&apos;est activée qu&apos;avec votre
-          accord. Vous pouvez modifier ce choix à tout moment.{" "}
+          accord. Votre choix est conservé 6 mois ; vous pouvez le modifier à
+          tout moment.{" "}
           <a
             href="/cookies"
             className="underline underline-offset-2 text-green-700 hover:text-green-800"
@@ -124,7 +136,8 @@ export function CookieBanner() {
         </p>
         {consent && (
           <p className="text-xs text-neutral-500 mb-3" data-testid="cookie-current-choice">
-            Choix actuel : {CURRENT_CHOICE_LABEL[consent]}.
+            Choix actuel : {CURRENT_CHOICE_LABEL[consent]}
+            {expiresAt && <>, valable jusqu&apos;au {DATE_FORMAT.format(expiresAt)}</>}.
           </p>
         )}
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">

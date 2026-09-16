@@ -87,7 +87,7 @@ def tenants(qa_schema):
                 company_ids.append(cid)
                 out[f"company_{key}"] = cid
                 for role in ("admin", "analyst"):
-                    email = f"{role}-{key}-{suffix}@qa.carbonco.test"
+                    email = f"{role}-{key}-{suffix}@qa.example.com"
                     cur.execute(
                         "INSERT INTO users (company_id, email, password_hash, role) "
                         "VALUES (%s, %s, %s, %s) RETURNING id",
@@ -141,7 +141,7 @@ class TestAdminTenantScoping:
         monkeypatch.delenv("PLATFORM_ADMIN_EMAILS", raising=False)
         admin_a, analyst_b = tenants["admin_a"], tenants["analyst_b"]
         create_elsewhere = client.post("/admin/users", headers=_auth(admin_a), json={
-            "company_id": tenants["company_b"], "email": f"x-{uuid.uuid4().hex[:6]}@qa.carbonco.test",
+            "company_id": tenants["company_b"], "email": f"x-{uuid.uuid4().hex[:6]}@qa.example.com",
             "password": STRONG_PASSWORD, "role": "admin",
         })
         assert create_elsewhere.status_code == 403
@@ -162,7 +162,7 @@ class TestAdminTenantScoping:
     def test_org_admin_manages_its_own_users(self, client, tenants, monkeypatch) -> None:
         monkeypatch.delenv("PLATFORM_ADMIN_EMAILS", raising=False)
         admin_a = tenants["admin_a"]
-        email = f"new-{uuid.uuid4().hex[:6]}@qa.carbonco.test"
+        email = f"new-{uuid.uuid4().hex[:6]}@qa.example.com"
         weak = client.post("/admin/users", headers=_auth(admin_a),
                            json={"email": email, "password": "Admin2024!"})
         assert weak.status_code == 422
@@ -214,9 +214,9 @@ class TestAdminTenantScoping:
         ids = {c["id"] for c in client.get("/admin/companies", headers=_auth(admin_a)).json()}
         assert {tenants["company_a"], tenants["company_b"]} <= ids
         # …mais une adresse de plateforme ne peut pas être créée par un admin ordinaire.
-        monkeypatch.setenv("PLATFORM_ADMIN_EMAILS", f"{admin_a['email']},root@qa.carbonco.test")
+        monkeypatch.setenv("PLATFORM_ADMIN_EMAILS", f"{admin_a['email']},root@qa.example.com")
         reserved = client.post("/admin/users", headers=_auth(tenants["admin_b"]),
-                               json={"email": "root@qa.carbonco.test", "password": STRONG_PASSWORD,
+                               json={"email": "root@qa.example.com", "password": STRONG_PASSWORD,
                                      "role": "admin"})
         assert reserved.status_code == 403
 
@@ -285,7 +285,7 @@ def test_review_inbox_filters_on_enum_statuses(client, tenants) -> None:
 # ---------------------------------------------------------------------------
 
 def test_totp_step_can_only_be_claimed_once(qa_schema) -> None:
-    email = f"totp-{uuid.uuid4().hex[:8]}@qa.carbonco.test"
+    email = f"totp-{uuid.uuid4().hex[:8]}@qa.example.com"
     assert totp_service._claim_step(email, 55_555) is True
     assert totp_service._claim_step(email, 55_555) is False
     with get_db() as conn:
@@ -305,7 +305,7 @@ def test_refreshed_token_keeps_uid(tenants) -> None:
 
 
 def test_new_audit_types_are_accepted_after_044(tenants) -> None:
-    log_event("2fa_disable", "2FA désactivée — test", user="qa@carbonco.test",
+    log_event("2fa_disable", "2FA désactivée — test", user="qa@example.com",
               company_id=tenants["company_a"])
     with get_db() as conn:
         with conn.cursor() as cur:

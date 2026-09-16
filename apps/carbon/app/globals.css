@@ -1547,3 +1547,167 @@ body {
 .mx-scrollbar-none::-webkit-scrollbar { display: none; }
 
 .mx-anchor { scroll-margin-top: 100px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MATERIALS — peau « Industry » (/materials refondue)
+   Système de design filaire : fond acier clair, un seul accent bleu acier,
+   Barlow Condensed sur Barlow, angles vifs, filets 1px et repères « + » aux
+   coins. Voir _ds/industry/readme.md dans le bundle Claude Design.
+
+   PORTÉE — ces jetons reprennent la nomenclature du système (`--color-bg`,
+   `--color-accent-700`…), qui recouvre des jetons globaux du site. Ils sont
+   donc scopés à [data-mx-skin="industry"], posé par MxThemeProvider sur le
+   seul sous-arbre de /materials (page sans chrome de site : ni header ni
+   footer marketing). Le bloc [data-mx] historique au-dessus reste intact pour
+   toute page qui ne demande pas cette peau.
+
+   Le thème clair est la valeur par défaut ici (l'inverse du bloc [data-mx]) ;
+   [data-mx-theme="sombre"] fournit la variante sombre.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-mx][data-mx-skin="industry"] {
+  --color-bg:          #f2f2f3;
+  --color-surface:     #e9e9ea;
+  --color-text:        #1d1f20;
+  --color-accent:      #5980a6;
+  --color-divider:     color-mix(in srgb, #1d1f20 16%, transparent);
+
+  --color-neutral-100: #f5f5f8;
+  --color-neutral-200: #e7e7ea;
+  --color-neutral-800: #424244;
+
+  --color-accent-100:  #eef6ff;
+  --color-accent-200:  #d6ebff;
+  --color-accent-300:  #b5d9fd;
+  --color-accent-400:  #94bce3;
+  --color-accent-500:  #749dc4;
+  --color-accent-600:  #597ea3;
+  --color-accent-700:  #416180;
+  --color-accent-800:  #2c455d;
+  --color-accent-900:  #1d2d3d;
+
+  --font-heading:      var(--font-barlow-condensed), "Barlow Condensed", system-ui, sans-serif;
+  --font-body:         var(--font-barlow), "Barlow", system-ui, sans-serif;
+
+  --shadow-md:         0 3px 10px color-mix(in srgb, #2b2b2d 16%, transparent);
+
+  /* Paliers de dépendance Chine — surchargent --mx-tier-* pour que
+     CHINA_TIER_META (lib/crm/chinaTier.ts) reste la source unique des couleurs
+     de palier, sans branche « si peau Industry » dans le TS. */
+  --mx-tier-high:      #2c455d;
+  --mx-tier-mid:       #749dc4;
+  --mx-tier-low:       #d6ebff;
+  --ink-on-high:       #f2f2f3;
+  --ink-on-mid:        #f2f2f3;
+  --ink-on-low:        #1d1f20;
+
+  --ink-70:            color-mix(in srgb, var(--color-text) 70%, transparent);
+  --ink-78:            color-mix(in srgb, var(--color-text) 78%, transparent);
+  --ink-55:            color-mix(in srgb, var(--color-text) 55%, transparent);
+
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  transition: background .3s, color .3s;
+}
+
+[data-mx][data-mx-skin="industry"][data-mx-theme="sombre"] {
+  --color-bg:          #1d2d3d;
+  --color-surface:     #2c455d;
+  --color-text:        #f2f2f3;
+  --color-accent:      #94bce3;
+  --color-accent-600:  #b5d9fd;
+  --color-accent-700:  #b5d9fd;
+  --color-accent-800:  #d6ebff;
+  --color-accent-100:  #2c455d;
+  --color-neutral-100: #2c455d;
+  --color-neutral-800: #f2f2f3;
+  --color-divider:     color-mix(in srgb, #f2f2f3 22%, transparent);
+
+  --mx-tier-high:      #d6ebff;
+  --mx-tier-mid:       #749dc4;
+  --mx-tier-low:       #416180;
+  --ink-on-high:       #1d2d3d;
+  --ink-on-mid:        #1d2d3d;
+  --ink-on-low:        #f2f2f3;
+
+  --shadow-md:         none;
+}
+
+/* — le cadre filaire : un rectangle à filet 1px et quatre repères « + ».
+     Préfixe `ind-` : les classes nues du système (.btn, .card, .table…)
+     entreraient en collision dans une feuille partagée avec tout le site. — */
+.ind-frame { position: relative; border: 1px solid var(--color-divider); border-radius: 0; }
+.ind-corner { position: absolute; width: 11px; height: 11px; color: var(--ink-55); }
+.ind-corner::before, .ind-corner::after { content: ""; position: absolute; background: currentColor; }
+.ind-corner::before { left: 5px; top: 0; width: 1px; height: 100%; }
+.ind-corner::after  { top: 5px; left: 0; width: 100%; height: 1px; }
+.ind-corner.tl { top: -6px; left: -6px; }
+.ind-corner.tr { top: -6px; right: -6px; }
+.ind-corner.bl { bottom: -6px; left: -6px; }
+.ind-corner.br { bottom: -6px; right: -6px; }
+
+/* — actions — */
+.ind-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; text-decoration: none;
+  font-family: var(--font-heading); font-weight: 600; font-size: 14px; line-height: 1.2;
+  color: var(--color-text); background: transparent;
+  border: 1px solid var(--color-divider); border-radius: 0;
+  padding: 6.8px 12.24px;
+}
+.ind-btn-primary { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-bg); }
+.ind-btn-primary:hover { background: var(--color-accent-600); border-color: var(--color-accent-600); }
+.ind-btn-primary:active { background: var(--color-accent-700); border-color: var(--color-accent-700); }
+.ind-btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.ind-btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
+.ind-btn-ghost { color: var(--color-accent-700); border-color: transparent; padding-inline: 3.4px; }
+.ind-btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+
+/* — contrôle segmenté, sur des <input type=radio> natifs — */
+.ind-seg { display: inline-flex; overflow: hidden; border: 1px solid var(--color-divider); border-radius: 0; }
+.ind-seg-opt { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; font-size: 13px; cursor: pointer; }
+.ind-seg-opt + .ind-seg-opt { border-left: 1px solid var(--color-divider); }
+.ind-seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.ind-seg-opt:has(input:checked) { background: var(--color-accent); color: var(--color-bg); }
+.ind-seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.ind-seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+/* — étiquettes — */
+.ind-tag { display: inline-flex; align-items: center; font-size: 11px; letter-spacing: .02em; padding: 3px 10px; border-radius: 0; }
+.ind-tag-accent { background: var(--color-accent-100); color: var(--color-accent-800); }
+.ind-tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
+.ind-tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent-700); }
+
+/* — tableau de données — */
+.ind-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ind-table th {
+  text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  padding: 6.8px; border-bottom: 1px solid var(--color-divider);
+}
+.ind-table td { padding: 6.8px; border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent); }
+.ind-table tbody tr:hover { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+
+/* — états d'interaction thémés (jamais le focus bleu par défaut) — */
+[data-mx][data-mx-skin="industry"] :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+[data-mx][data-mx-skin="industry"] ::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+[data-mx][data-mx-skin="industry"] a { color: var(--color-accent-700); text-decoration: none; }
+[data-mx][data-mx-skin="industry"] a:hover { color: var(--color-accent-600); text-decoration: underline; text-underline-offset: 3px; }
+
+/* — animations de la refonte — */
+@keyframes ind-reveal { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes ind-tile-in { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes ind-draw { to { stroke-dashoffset: 0; } }
+.ind-reveal { animation: ind-reveal .8s cubic-bezier(.16,1,.3,1) both; }
+.ind-tile-in { animation: ind-tile-in .6s cubic-bezier(.16,1,.3,1) both; }
+.ind-draw { animation: ind-draw 2.4s cubic-bezier(.16,1,.3,1) .6s forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ind-reveal, .ind-tile-in, .ind-draw { animation: none; }
+  /* Sans animation, `both`/`forwards` ne s'appliquent plus : on rétablit
+     explicitement l'état final, sinon le trait resterait invisible. */
+  .ind-draw { stroke-dashoffset: 0; }
+}

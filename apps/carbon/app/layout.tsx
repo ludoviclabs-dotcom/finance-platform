@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Manrope, JetBrains_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, Manrope, JetBrains_Mono, Barlow, Barlow_Condensed } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieBanner } from "@/components/cookie-banner";
 import { ConsentedAnalytics } from "@/components/consent/consented-analytics";
@@ -48,6 +48,25 @@ const manrope = Manrope({
   variable: "--font-manrope",
   display: "swap",
   preload: false, // secondary font, non-critical
+});
+
+// Barlow / Barlow Condensed — système de design « Industry » de /materials
+// refondue (cf. [data-mx-skin="industry"] dans globals.css). Non préchargées :
+// une seule page publique les consomme.
+const barlow = Barlow({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-barlow",
+  display: "swap",
+  preload: false,
+});
+
+const barlowCondensed = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-barlow-condensed",
+  display: "swap",
+  preload: false,
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -126,7 +145,7 @@ export default function RootLayout({
     <html
       lang="fr"
       data-theme="dark"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${manrope.variable} ${jetbrainsMono.variable} ${barlow.variable} ${barlowCondensed.variable}`}
       // `data-theme` est réécrit par THEME_INIT_SCRIPT avant la première peinture
       // (cf. <script> dans <head> ci-dessous) pour respecter la préférence stockée
       // dans localStorage ou `prefers-color-scheme`. Sans `suppressHydrationWarning`,

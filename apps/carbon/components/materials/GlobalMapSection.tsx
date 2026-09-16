@@ -3,54 +3,93 @@
 import { useMemo, useState } from "react";
 import type { Material } from "@/lib/crm/dataLoader";
 import { computeCountryWeights } from "@/lib/crm/countryWeights";
-import WorldMap from "./map/WorldMap";
+import { useMxTheme } from "./MxThemeProvider";
+import WorldMap, { type MapPalette } from "./map/WorldMap";
 import CountryRankingSidebar from "./map/CountryRankingSidebar";
+import { Frame } from "./industry/Frame";
+import { SectionKicker, SectionTitle, SectionLead } from "./industry/SectionKicker";
+
+// Une seule teinte acier, déclinée par thème : la rampe de poids va du pâle au
+// profond en clair, et s'inverse en sombre pour rester lisible sur le fond.
+const PALETTES: Record<"clair" | "sombre", MapPalette> = {
+  clair: {
+    base: "#e7e7ea", stroke: "#f2f2f3", high: "#2c455d", low: "#d6ebff",
+    flow: "#5980a6", hub: "#1d1f20", hubStroke: "#f2f2f3", selected: "#1d1f20",
+  },
+  sombre: {
+    base: "#2c455d", stroke: "#1d2d3d", high: "#d6ebff", low: "#416180",
+    flow: "#94bce3", hub: "#f2f2f3", hubStroke: "#1d2d3d", selected: "#f2f2f3",
+  },
+};
 
 export default function GlobalMapSection({ materials }: { materials: Material[] }) {
+  const { theme } = useMxTheme();
   const weights = useMemo(() => computeCountryWeights(materials), [materials]);
   const [showFlows, setShowFlows] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const palette = PALETTES[theme];
+
+  const legend = (
+    <div
+      className="absolute z-[4] flex items-center gap-2.5 flex-wrap"
+      style={{ left: 16, bottom: 12, fontSize: 12, color: "var(--ink-70)" }}
+    >
+      <span>Poids faible</span>
+      <div
+        style={{
+          width: 110,
+          height: 6,
+          background: `linear-gradient(90deg, ${palette.low}, ${palette.high})`,
+          border: "1px solid var(--color-divider)",
+        }}
+      />
+      <span>élevé</span>
+      {showFlows && (
+        <span className="ml-3 flex items-center gap-1.5">
+          <span style={{ width: 16, height: 0, borderTop: `1.5px dashed ${palette.flow}` }} />
+          flux vers l&apos;Europe
+        </span>
+      )}
+    </div>
+  );
 
   return (
-    <section id="carte" className="mx-anchor space-y-4">
-      <div className="flex items-end justify-between gap-4 flex-wrap">
+    <section id="carte" className="mx-anchor">
+      <SectionKicker>03 · Géographie de l&apos;approvisionnement</SectionKicker>
+
+      <div className="flex items-end justify-between gap-6 flex-wrap mb-8">
         <div>
-          <p
-            className="m-0 mb-1.5 flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.16em]"
-            style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-cyan)" }}
-          >
-            <span className="w-[22px] h-px" style={{ background: "var(--mx-cyan)" }} />
-            Géographie de l&apos;approvisionnement
-          </p>
-          <h2 className="m-0 font-bold text-2xl tracking-tight" style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-fg)" }}>
-            Cartographie mondiale
-          </h2>
-          <p className="mt-1.5 mb-0 text-[13px]" style={{ color: "var(--mx-muted)" }}>
-            Poids cumulé des pays producteurs sur les 34 matières critiques UE. Survoler ou cliquer un pays pour le détail.
-          </p>
+          <SectionTitle>Cartographie mondiale</SectionTitle>
+          <SectionLead>
+            Poids cumulé des pays producteurs sur les {materials.length} matières critiques UE. Survoler ou cliquer un
+            pays pour le détail.
+          </SectionLead>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowFlows(v => !v)}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] border text-xs font-semibold cursor-pointer"
-          style={{
-            borderColor: showFlows ? "color-mix(in srgb, var(--mx-cyan) 55%, transparent)" : "var(--mx-border-2)",
-            background: showFlows ? "color-mix(in srgb, var(--mx-cyan) 8%, var(--mx-card))" : "var(--mx-card)",
-            color: showFlows ? "var(--mx-cyan)" : "var(--mx-muted)",
-          }}
-        >
-          <span className="w-[7px] h-[7px] rounded-full" style={{ background: "var(--mx-cyan)" }} />
-          Flux vers l&apos;Europe
-        </button>
+        <div className="ind-seg" role="group" aria-label="Flux">
+          <label className="ind-seg-opt">
+            <input type="radio" name="mx-flows" checked={showFlows} onChange={() => setShowFlows(true)} />
+            Flux vers l&apos;Europe
+          </label>
+          <label className="ind-seg-opt">
+            <input type="radio" name="mx-flows" checked={!showFlows} onChange={() => setShowFlows(false)} />
+            Poids seuls
+          </label>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-stretch">
-        <WorldMap
-          weights={weights}
-          showFlows={showFlows}
-          selectedCountry={selectedCountry}
-          onSelectCountry={setSelectedCountry}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-[8fr_4fr] gap-12 items-start">
+        {/* aspect-ratio plutôt qu'une hauteur fixe : la projection se recale via
+            le ResizeObserver de WorldMap, la figure garde son cadrage 16/9. */}
+        <Frame as="figure" className="m-0" style={{ minHeight: 460, aspectRatio: "16 / 9" }}>
+          <WorldMap
+            weights={weights}
+            showFlows={showFlows}
+            selectedCountry={selectedCountry}
+            onSelectCountry={setSelectedCountry}
+            palette={palette}
+            legend={legend}
+          />
+        </Frame>
         <CountryRankingSidebar
           weights={weights}
           selectedCountry={selectedCountry}

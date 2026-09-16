@@ -52,6 +52,31 @@ export const COUNTRY_CODES: Record<string, CountryCodes> = {
   "Zimbabwe":       { iso2: "ZW", isoNumeric: "716" },
 };
 
+/**
+ * Centroïdes approximatifs (longitude, latitude) des pays producteurs, pour
+ * l'Atlas 3D : le globe place ses marqueurs et trace ses arcs à partir d'un
+ * point par pays, là où la carte 2D dispose de la géométrie topojson complète.
+ * « Europe » n'est pas un pays du snapshot mais la cible commune des flux.
+ */
+export const COUNTRY_LL: Record<string, [number, number]> = {
+  "Afrique du Sud": [25, -29],   "Algérie": [3, 28],          "Australie": [134, -25],
+  "Belgique": [4.5, 50.5],       "Brésil": [-52, -10],        "Canada": [-106, 56],
+  "Chili": [-71, -33],           "Chine": [104, 35],          "Corée du Sud": [128, 36],
+  "Espagne": [-3.7, 40],         "Etats-Unis": [-98, 39],     "France": [2.5, 46.5],
+  "Gabon": [11.6, -0.8],         "Guinée": [-11, 10],         "Inde": [78, 21],
+  "Indonésie": [118, -2],        "Italie": [12.5, 42.5],      "Japon": [138, 36],
+  "Kazakhstan": [67, 48],        "Laos": [103, 18],           "Madagascar": [47, -19],
+  "Maroc": [-6, 32],             "Mexique": [-102, 23.5],     "Mongolie": [104, 46.5],
+  "Mozambique": [35, -18],       "Myanmar": [96, 20],         "Norvège": [9, 61],
+  "Philippines": [122, 12],      "Pérou": [-75, -10],         "Qatar": [51.2, 25.3],
+  "RD Congo": [23.5, -3],        "Russie": [90, 60],          "Rwanda": [30, -2],
+  "Tadjikistan": [71, 39],       "Turquie": [35, 39],         "Ukraine": [31, 49],
+  "Vietnam": [106, 16],          "Zimbabwe": [30, -19],       "Europe": [8.5, 50.2],
+};
+
+/** Cible commune des flux d'approvisionnement tracés vers l'Europe. */
+export const EUROPE_LL: [number, number] = COUNTRY_LL["Europe"];
+
 export interface CountryWeight {
   country: string;
   iso2: string | null;

@@ -5,12 +5,11 @@ import Link from "next/link";
 import { useMxTheme } from "./MxThemeProvider";
 
 const SECTIONS = [
-  { id: "apercu", label: "Vue d'ensemble" },
+  { id: "pourquoi", label: "Pourquoi" },
+  { id: "chine", label: "Dépendance" },
   { id: "carte", label: "Cartographie" },
-  { id: "treemap", label: "Risque" },
-  { id: "analyse", label: "Analyse" },
+  { id: "risque", label: "Risque" },
   { id: "chaine", label: "Chaîne" },
-  { id: "matieres", label: "Matières" },
 ] as const;
 
 // Scroll-spy réel via IntersectionObserver (le prototype Claude Design ne
@@ -49,44 +48,60 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
 
   return (
     <div
-      className="sticky top-0 z-40 backdrop-blur-xl border-b"
+      className="sticky top-0 z-40 backdrop-blur-xl"
       style={{
-        background: "color-mix(in srgb, var(--mx-bg) 80%, transparent)",
-        borderColor: "var(--mx-border)",
+        background: "color-mix(in srgb, var(--color-bg) 86%, transparent)",
+        borderBottom: "1px solid var(--color-divider)",
       }}
     >
-      {/* Sous 640 px : badge « Intelligence » masqué et espacements réduits, pour
-          que les contrôles de droite tiennent dans l'écran (QA m-07). */}
-      <div className="max-w-[1280px] mx-auto px-5 md:px-7 h-14 flex items-center gap-3 sm:gap-4">
+      {/* Le rembourrage aligne la barre sur la colonne de contenu (1200px max)
+          tout en la gardant pleine largeur : même calcul que le conteneur,
+          répété ici parce que la barre est collante et vit hors de lui.
+          flex-wrap + row-gap : sous ~1000px les liens passent à la ligne au
+          lieu de comprimer la marque et l'interrupteur de thème (le point
+          laissé à vérifier par la session de design). */}
+      <div
+        className="flex items-center flex-wrap gap-x-4 gap-y-2"
+        style={{
+          padding: "12px max(clamp(20px,5vw,72px), calc((100% - 1200px) / 2 + clamp(20px,5vw,72px)))",
+        }}
+      >
         <Link
           href="/"
-          className="flex items-center gap-2.5 text-[16px] font-bold tracking-tight shrink-0"
-          style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-fg)" }}
+          className="flex items-baseline gap-2.5 whitespace-nowrap mr-auto"
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontWeight: 600,
+            fontSize: 18,
+            color: "var(--color-text)",
+          }}
         >
-          <span>
-            Carbon<span style={{ color: "var(--mx-em)" }}>&amp;</span>Co
-          </span>
+          Carbon&amp;Co
           <span
-            className="hidden sm:inline text-[8.5px] font-semibold uppercase tracking-[0.12em] rounded-[5px] border px-1.5 py-px opacity-85"
-            style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-em)", borderColor: "var(--mx-em)" }}
+            className="hidden sm:inline"
+            style={{
+              fontFamily: "var(--font-body)",
+              fontWeight: 500,
+              fontSize: 13,
+              letterSpacing: ".08em",
+              textTransform: "uppercase",
+              color: "var(--ink-70)",
+            }}
           >
-            Intelligence
+            Matières critiques
           </span>
         </Link>
 
-        <nav className="mx-scrollbar-none flex gap-1.5 overflow-x-auto flex-1 min-w-0">
+        <nav className="mx-scrollbar-none flex gap-4 overflow-x-auto min-w-0">
           {SECTIONS.map(s => {
             const isActive = activeSection === s.id;
             return (
               <a
                 key={s.id}
                 href={`#${s.id}`}
-                className="shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors"
-                style={{
-                  color: isActive ? "var(--mx-em)" : "var(--mx-muted)",
-                  background: isActive ? "color-mix(in srgb, var(--mx-em) 14%, transparent)" : "transparent",
-                  borderColor: isActive ? "color-mix(in srgb, var(--mx-em) 35%, transparent)" : "transparent",
-                }}
+                aria-current={isActive ? "location" : undefined}
+                className="shrink-0 whitespace-nowrap"
+                style={{ fontSize: 14, color: isActive ? "var(--color-accent-700)" : "inherit" }}
               >
                 {s.label}
               </a>
@@ -94,43 +109,42 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
           })}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <span
-            className="hidden sm:flex items-center gap-1.5 text-[10.5px] font-semibold tracking-[0.1em]"
-            style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-em)" }}
-          >
-            <span className="mx-pulse-dot w-1.5 h-1.5 rounded-full" style={{ background: "var(--mx-em)" }} />
-            SNAPSHOT {snapshotDateLabel}
-          </span>
-          <div
-            className="flex p-[3px] rounded-[9px] border"
-            style={{ borderColor: "var(--mx-border)", background: "var(--mx-card-2)" }}
-          >
-            <button
-              type="button"
-              onClick={() => setTheme("sombre")}
-              aria-pressed={theme === "sombre"}
-              className="px-2 sm:px-2.5 py-1 rounded-[7px] text-[11.5px] font-semibold cursor-pointer transition-colors"
-              style={{
-                color: theme === "sombre" ? "var(--mx-em)" : "var(--mx-muted)",
-                background: theme === "sombre" ? "color-mix(in srgb, var(--mx-em) 16%, transparent)" : "transparent",
-              }}
-            >
-              Sombre
-            </button>
-            <button
-              type="button"
-              onClick={() => setTheme("clair")}
-              aria-pressed={theme === "clair"}
-              className="px-2 sm:px-2.5 py-1 rounded-[7px] text-[11.5px] font-semibold cursor-pointer transition-colors"
-              style={{
-                color: theme === "clair" ? "var(--mx-em)" : "var(--mx-muted)",
-                background: theme === "clair" ? "color-mix(in srgb, var(--mx-em) 16%, transparent)" : "transparent",
-              }}
-            >
-              Clair
-            </button>
-          </div>
+        <span
+          className="hidden md:inline whitespace-nowrap"
+          style={{
+            fontSize: 12,
+            letterSpacing: ".08em",
+            textTransform: "uppercase",
+            fontWeight: 600,
+            color: "var(--color-accent-700)",
+            fontFeatureSettings: "'tnum' 1",
+          }}
+        >
+          Snapshot {snapshotDateLabel}
+        </span>
+
+        {/* Radios natives : choix unique, navigable au clavier sans script. */}
+        <div className="ind-seg" role="group" aria-label="Thème">
+          <label className="ind-seg-opt">
+            <input
+              type="radio"
+              name="mx-theme"
+              value="clair"
+              checked={theme === "clair"}
+              onChange={() => setTheme("clair")}
+            />
+            Clair
+          </label>
+          <label className="ind-seg-opt">
+            <input
+              type="radio"
+              name="mx-theme"
+              value="sombre"
+              checked={theme === "sombre"}
+              onChange={() => setTheme("sombre")}
+            />
+            Sombre
+          </label>
         </div>
       </div>
     </div>

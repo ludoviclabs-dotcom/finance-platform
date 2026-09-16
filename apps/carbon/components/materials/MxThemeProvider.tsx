@@ -10,6 +10,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 export type MxTheme = "sombre" | "clair";
+/** Peau visuelle du sous-arbre. "industry" = système filaire de /materials
+ *  refondue (jetons sous [data-mx-skin="industry"] dans globals.css). */
+export type MxSkin = "mx" | "industry";
 const STORAGE_KEY = "carbonco-materials-theme";
 
 interface MxThemeContextValue {
@@ -25,8 +28,17 @@ export function useMxTheme(): MxThemeContextValue {
   return ctx;
 }
 
-export function MxThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<MxTheme>("sombre");
+export function MxThemeProvider({
+  children,
+  skin = "mx",
+  defaultTheme = skin === "industry" ? "clair" : "sombre",
+}: {
+  children: ReactNode;
+  skin?: MxSkin;
+  /** La peau Industry est pensée clair d'abord ; la peau historique, sombre. */
+  defaultTheme?: MxTheme;
+}) {
+  const [theme, setThemeState] = useState<MxTheme>(defaultTheme);
 
   useEffect(() => {
     try {
@@ -48,7 +60,7 @@ export function MxThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <MxThemeContext.Provider value={{ theme, setTheme }}>
-      <div data-mx data-mx-theme={theme}>
+      <div data-mx data-mx-skin={skin} data-mx-theme={theme}>
         {children}
       </div>
     </MxThemeContext.Provider>

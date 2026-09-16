@@ -1,14 +1,16 @@
 "use client";
 
 /**
- * Classement des pays producteurs + animation "reveal loop" en boucle
- * infinie (3 phases : révélation séquentielle → pause avec glow sur #1 →
- * dissolution inversée) qui se met en pause au survol. Entièrement figée
- * (liste complète affichée statiquement) sous prefers-reduced-motion.
+ * Classement des pays producteurs, en regard de la carte.
+ *
+ * La version précédente rejouait en boucle une animation « révélation →
+ * pause avec halo sur le n°1 → dissolution ». La refonte la supprime : le
+ * tableau est statique et lisible d'emblée, la seule animation restante étant
+ * la croissance des barres à la première pose. Sélectionner une ligne pilote
+ * la carte (et réciproquement) et ouvre le détail de la matière sous le
+ * tableau.
  */
 
-import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
 import type { CountryWeight } from "@/lib/crm/countryWeights";
 
 interface Props {
@@ -18,120 +20,120 @@ interface Props {
 }
 
 const RANK_SIZE = 10;
-const REVEAL_STAGGER_MS = 130;
-const HOLD_MS = 3800;
-const DISSOLVE_STAGGER_MS = 70;
-const FLICKER_TICK_MS = 700;
-
-function delay(ms: number) {
-  return new Promise<void>(resolve => setTimeout(resolve, ms));
-}
+const DETAIL_SIZE = 6;
 
 export default function CountryRankingSidebar({ weights, selectedCountry, onSelectCountry }: Props) {
-  const prefersReducedMotion = useReducedMotion();
   const top = weights.slice(0, RANK_SIZE);
   const maxTotal = top[0]?.total || 1;
-
-  const [visibleCount, setVisibleCount] = useState(prefersReducedMotion ? RANK_SIZE : 0);
-  const [phase, setPhase] = useState<"in" | "hold" | "out">("in");
-  const [flicker, setFlicker] = useState<Record<number, 1 | -1>>({});
-  const hoveredRef = useRef(false);
-
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      setVisibleCount(RANK_SIZE);
-      return;
-    }
-    let cancelled = false;
-    const waitUnhover = async () => {
-      while (!cancelled && hoveredRef.current) await delay(150);
-    };
-
-    async function loop() {
-      while (!cancelled) {
-        await waitUnhover();
-        if (cancelled) return;
-        setPhase("in");
-        setVisibleCount(0);
-        setFlicker({});
-        await delay(350);
-        for (let i = 1; i <= RANK_SIZE; i++) {
-          await waitUnhover();
-          if (cancelled) return;
-          setVisibleCount(i);
-          await delay(REVEAL_STAGGER_MS);
-        }
-
-        setPhase("hold");
-        const holdUntil = Date.now() + HOLD_MS;
-        while (!cancelled && (Date.now() < holdUntil || hoveredRef.current)) {
-          await delay(FLICKER_TICK_MS);
-          if (cancelled) return;
-          if (hoveredRef.current) continue;
-          const a = 1 + Math.floor(Math.random() * (RANK_SIZE - 1));
-          const b = 1 + Math.floor(Math.random() * (RANK_SIZE - 1));
-          setFlicker({ [a]: Math.random() > 0.5 ? 1 : -1, [b]: Math.random() > 0.5 ? 1 : -1 });
-        }
-
-        await waitUnhover();
-        if (cancelled) return;
-        setPhase("out");
-        setFlicker({});
-        for (let i = RANK_SIZE - 1; i >= 0; i--) {
-          await waitUnhover();
-          if (cancelled) return;
-          setVisibleCount(i);
-          await delay(DISSOLVE_STAGGER_MS);
-        }
-        await delay(500);
-      }
-    }
-    loop();
-    return () => {
-      cancelled = true;
-    };
-  }, [prefersReducedMotion]);
-
-  const selected = weights.find(c => c.country === selectedCountry);
+  const selected = weights.find(w => w.country === selectedCountry) ?? null;
 
   return (
-    <div
-      className="rounded-2xl border p-5 flex flex-col gap-3"
-      style={{ borderColor: "var(--mx-border)", background: "var(--mx-card)", boxShadow: "var(--mx-shadow)" }}
-    >
-      {selected && (
-        <div
-          className="rounded-xl border p-3.5 flex flex-col gap-2"
-          style={{ borderColor: "color-mix(in srgb, var(--mx-cyan) 35%, var(--mx-border))", background: "var(--mx-card-2)" }}
+    <div>
+      <div className="flex items-baseline justify-between mb-2">
+        <h3
+          style={{
+            margin: 0,
+            fontFamily: "var(--font-heading)",
+            fontWeight: 600,
+            fontSize: 22,
+            lineHeight: "24px",
+            letterSpacing: ".02em",
+            textTransform: "uppercase",
+          }}
         >
-          <div className="flex items-center justify-between gap-2">
-            <p className="m-0 font-semibold text-[15px]" style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-fg)" }}>
+          Classement des pays
+        </h3>
+        <span style={{ fontSize: 12, color: "var(--ink-70)" }}>poids cumulé, pts</span>
+      </div>
+
+      <table className="ind-table" style={{ tableLayout: "fixed" }}>
+        <colgroup>
+          <col style={{ width: 36 }} />
+          <col style={{ width: "38%" }} />
+          <col />
+          <col style={{ width: 52 }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">№</th>
+            <th scope="col">Pays</th>
+            <th scope="col">Poids</th>
+            <th scope="col" style={{ textAlign: "right" }}>pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          {top.map((c, i) => {
+            const isOn = selectedCountry === c.country;
+            return (
+              <tr
+                key={c.country}
+                onClick={() => onSelectCountry(isOn ? null : c.country)}
+                aria-selected={isOn}
+                style={{
+                  cursor: "pointer",
+                  background: isOn ? "color-mix(in srgb, var(--color-accent) 12%, transparent)" : "transparent",
+                }}
+              >
+                <td style={{ fontSize: 12, fontWeight: 600, letterSpacing: ".08em", color: "var(--color-accent-700)", fontFeatureSettings: "'tnum' 1" }}>
+                  {String(i + 1).padStart(2, "0")}
+                </td>
+                <td className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{c.country}</td>
+                <td>
+                  <div style={{ height: 4, background: "var(--color-divider)" }}>
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${Math.max(2, (c.total / maxTotal) * 100)}%`,
+                        // Le premier est tracé à l'encre, les suivants à
+                        // l'accent : un seul repère de tête, pas une échelle
+                        // de couleurs de plus.
+                        background: i === 0 ? "var(--color-text)" : "var(--color-accent)",
+                        transition: "width .9s cubic-bezier(.16,1,.3,1)",
+                      }}
+                    />
+                  </div>
+                </td>
+                <td style={{ textAlign: "right", fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: 18, letterSpacing: ".02em", fontFeatureSettings: "'tnum' 1" }}>
+                  {Math.round(c.total)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {selected && (
+        <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--color-divider)" }}>
+          <div className="flex items-baseline justify-between gap-3">
+            <p
+              style={{
+                margin: 0,
+                fontFamily: "var(--font-heading)",
+                fontWeight: 600,
+                fontSize: 22,
+                lineHeight: "24px",
+                letterSpacing: ".02em",
+                textTransform: "uppercase",
+              }}
+            >
               {selected.country}
             </p>
-            <button
-              type="button"
-              onClick={() => onSelectCountry(null)}
-              aria-label="Fermer le détail pays"
-              className="border-none bg-transparent cursor-pointer text-sm p-0.5"
-              style={{ color: "var(--mx-subtle)" }}
-            >
-              ✕
+            <button type="button" className="ind-btn ind-btn-ghost" onClick={() => onSelectCountry(null)}>
+              Fermer
             </button>
           </div>
-          <p className="m-0" style={{ fontFamily: "var(--mx-font-mono)", fontSize: 11.5, color: "var(--mx-cyan)" }}>
+          <p style={{ margin: "2px 0 12px", fontSize: 13, color: "var(--color-accent-700)", fontWeight: 600, letterSpacing: ".04em", fontFeatureSettings: "'tnum' 1" }}>
             {selected.materials.length} matière(s) · poids cumulé {Math.round(selected.total)} pts
           </p>
-          <div className="flex flex-col gap-1.5">
-            {selected.materials.slice(0, 6).map(m => (
-              <div key={m.id} className="flex items-center gap-2.5 text-[12.5px]">
-                <span className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: "var(--mx-fg)" }}>
-                  {m.name_fr}
-                </span>
-                <div className="w-[70px] h-1 rounded-full overflow-hidden shrink-0" style={{ background: "var(--mx-chip)" }}>
-                  <div className="h-full rounded-full" style={{ width: `${m.share_pct}%`, background: "var(--mx-cyan)" }} />
+          <div className="flex flex-col gap-2">
+            {selected.materials.slice(0, DETAIL_SIZE).map(m => (
+              <div key={m.id} className="grid grid-cols-[minmax(0,1fr)_80px_44px] gap-3 items-center" style={{ fontSize: 14 }}>
+                <span className="whitespace-nowrap overflow-hidden text-ellipsis">{m.name_fr}</span>
+                <div style={{ height: 3, background: "var(--color-divider)" }}>
+                  <div style={{ height: "100%", width: `${m.share_pct}%`, background: "var(--color-accent)" }} />
                 </div>
-                <span className="w-9 text-right font-semibold" style={{ fontFamily: "var(--mx-font-mono)", fontSize: 11.5, color: "var(--mx-muted)" }}>
-                  {m.share_pct}%
+                <span style={{ textAlign: "right", fontWeight: 600, color: "var(--ink-70)", fontFeatureSettings: "'tnum' 1" }}>
+                  {m.share_pct} %
                 </span>
               </div>
             ))}
@@ -139,74 +141,7 @@ export default function CountryRankingSidebar({ weights, selectedCountry, onSele
         </div>
       )}
 
-      <div className="flex items-baseline justify-between">
-        <h3 className="m-0 flex items-center gap-2 font-semibold text-[14.5px]" style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-fg)" }}>
-          Classement des pays
-          <span className="mx-pulse-dot w-1.5 h-1.5 rounded-full" style={{ background: "var(--mx-cyan)" }} />
-        </h3>
-        <span style={{ fontSize: 11, color: "var(--mx-subtle)" }}>poids cumulé, pts</span>
-      </div>
-
-      <div
-        onMouseEnter={() => { hoveredRef.current = true; }}
-        onMouseLeave={() => { hoveredRef.current = false; }}
-        className="flex flex-col gap-1 overflow-y-auto"
-      >
-        {top.map((c, i) => {
-          const visible = i < visibleCount;
-          const delta = phase === "hold" ? (flicker[i] ?? 0) : 0;
-          const isTop = i === 0;
-          return (
-            <button
-              key={c.country}
-              type="button"
-              onClick={() => onSelectCountry(selectedCountry === c.country ? null : c.country)}
-              className="flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] border-none text-left cursor-pointer"
-              style={{
-                background: selectedCountry === c.country ? "var(--mx-card-2)" : "transparent",
-                outline: selectedCountry === c.country ? "1px solid color-mix(in srgb, var(--mx-cyan) 45%, transparent)" : "none",
-                opacity: visible ? 1 : 0,
-                transform: visible ? "none" : `translateX(${phase === "out" ? "22px" : "-22px"})`,
-                transition: "opacity .4s ease, transform .45s cubic-bezier(.16,1,.3,1), background .15s ease",
-                color: "var(--mx-fg)",
-              }}
-            >
-              <span className="w-4 font-semibold" style={{ fontFamily: "var(--mx-font-mono)", fontSize: 10.5, color: "var(--mx-subtle)" }}>
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span
-                className={`w-1.5 h-1.5 rounded-full shrink-0 ${isTop && phase === "hold" ? "mx-pulse-dot" : ""}`}
-                style={{ background: isTop ? "var(--mx-tier-high)" : "var(--mx-cyan)" }}
-              />
-              <span
-                className="text-[12.5px] font-medium shrink-0 w-20 overflow-hidden text-ellipsis whitespace-nowrap"
-              >
-                {c.country}
-              </span>
-              <div className="flex-1 h-[5px] rounded-full overflow-visible" style={{ background: "var(--mx-chip)" }}>
-                <div
-                  className={isTop && phase === "hold" ? "mx-row-glow" : ""}
-                  style={{
-                    height: "100%",
-                    width: visible ? `${Math.max(3, (c.total / maxTotal) * 100)}%` : "0%",
-                    background: isTop ? "var(--mx-tier-high)" : "var(--mx-cyan)",
-                    borderRadius: 5,
-                    transition: "width .55s cubic-bezier(.16,1,.3,1)",
-                  }}
-                />
-              </div>
-              <span className="w-[34px] text-right font-semibold" style={{ fontFamily: "var(--mx-font-mono)", fontSize: 11.5, color: "var(--mx-muted)" }}>
-                {visible ? Math.round(c.total) + delta : ""}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <p
-        className="mt-auto pt-2.5 border-t"
-        style={{ fontSize: 10.5, color: "var(--mx-subtle)", borderColor: "var(--mx-border)" }}
-      >
+      <p style={{ margin: "24px 0 0", fontSize: 13, lineHeight: "20px", color: "var(--ink-70)" }}>
         Stade de production agrégé — extraction, raffinage et transformation non distingués.
       </p>
     </div>

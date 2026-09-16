@@ -167,5 +167,11 @@ def ai_env(ai_schema):
             cur.execute("SET session_replication_role = replica")
             for table in (*_AI_TABLES, *_IRO_TABLES, *_EVIDENCE_TABLES):
                 cur.execute(f"DELETE FROM {table} WHERE company_id IN (%s, %s)", (cid_a, cid_b))
+            # audit_events : `review_decision_service.record` journalise
+            # 'ai_review_decision' (type élargi par 041). Sans cette purge, la
+            # ligne survit au module (companies supprimées en replica, donc pas
+            # de ON DELETE SET NULL) et le module suivant qui rejoue la
+            # contrainte étroite de 011 échoue en CheckViolation (QA m-17).
+            cur.execute("DELETE FROM audit_events WHERE company_id IN (%s, %s)", (cid_a, cid_b))
             cur.execute("DELETE FROM companies WHERE id IN (%s, %s)", (cid_a, cid_b))
             cur.execute("SET session_replication_role = origin")

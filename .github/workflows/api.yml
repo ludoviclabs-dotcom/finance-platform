@@ -162,8 +162,14 @@ jobs:
       # qu'immédiatement après `test_water_screening_api.py` comme avant
       # PR-10 — sans conséquence, chaque module DB-gated reconstruit lui-même
       # tout le schéma dont il a besoin (apply_upto est idempotent, CREATE
-      # TABLE IF NOT EXISTS), aucun module « normal » ne dépend de l'état
-      # laissé par le précédent.
+      # TABLE IF NOT EXISTS).
+      # Rapport QA m-17 : cette indépendance était FAUSSE — une ligne d'audit
+      # d'un type récent laissée par un module (ex. `ai_review_decision`) fait
+      # échouer le rejeu de 011 dans le module suivant. Dans l'ordre ci-dessous,
+      # `test_demo_seed.py` masquait le défaut en purgeant l'audit. Corrigé dans
+      # les fixtures (`_ai_review_fixtures.py`, `_migration_fixtures.py`) ; la
+      # même liste est rejouée en ordre alphabétique à l'étape suivante pour
+      # que toute nouvelle dépendance d'ordre casse la CI.
       - name: Tests PostgreSQL — ledger + Evidence Kernel + Source Admin + Procurement + Énergie + RLS non-superuser + Scope 3 + Moteur Scope 2 + CRMA + Wave 3 + Géospatial/Eau + Biodiversité/LEAP + IRO (PR-02B / PR-03 / PR-04 / PR-05A / PR-06A / PR-05B / PR-06B / PR-07 / Wave 3 / PR-08 / PR-09 / PR-10)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
@@ -215,6 +221,21 @@ jobs:
           tests/test_qa_2026_09_16_db.py
           tests/test_water_schema_not_ready.py
           tests/test_nature_schema_not_ready.py
+
+      # Rapport QA m-17 : même liste, ordre alphabétique (celui du testeur :
+      # 786 réussis / 73 erreurs avant correctif). Les modules
+      # `*_schema_not_ready.py` réinitialisent le schéma au milieu du lot :
+      # sans conséquence, chaque module suivant reconstruit le sien. La liste
+      # est lue dans l'étape précédente pour ne jamais diverger d'elle.
+      - name: Tests PostgreSQL — même liste en ordre alphabétique (indépendance des modules, QA m-17)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(grep -oE 'tests/test_[a-z0-9_]+\.py' ../../.github/workflows/api.yml | sort -u)
+          echo "${#files[@]} modules"
+          test "${#files[@]}" -ge 40
+          pytest -q "${files[@]}"
 
   security-audit:
     runs-on: ubuntu-latest

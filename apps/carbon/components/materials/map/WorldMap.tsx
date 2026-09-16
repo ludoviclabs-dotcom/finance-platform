@@ -7,6 +7,11 @@
  * statique importée en module (apps/carbon/lib/mapbox.ts est supprimé).
  * D3 possède entièrement le sous-arbre du conteneur ref — React ne touche
  * jamais son intérieur, seuls l'infobulle et les contrôles autour sont React.
+ *
+ * Les couleurs arrivent en prop (`palette`) au lieu d'être choisies ici selon
+ * le thème : la refonte /materials les prend de la peau « Industry » (une
+ * seule teinte acier), et le composant n'a pas à connaître les peaux. Il ne
+ * dessine plus non plus son propre cadre — l'appelant l'encadre.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -19,14 +24,31 @@ import type { Topology, GeometryCollection } from "topojson-specification";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import worldTopology from "world-atlas/countries-110m.json";
 
-import { useMxTheme } from "../MxThemeProvider";
 import type { CountryWeight } from "@/lib/crm/countryWeights";
+
+export interface MapPalette {
+  /** Pays sans production recensée. */
+  base: string;
+  /** Filet entre pays. */
+  stroke: string;
+  /** Bornes de la rampe de poids cumulé. */
+  low: string;
+  high: string;
+  /** Arcs de flux, pastille Europe, contour du pays sélectionné. */
+  flow: string;
+  hub: string;
+  hubStroke: string;
+  selected: string;
+}
 
 interface Props {
   weights: CountryWeight[];
   showFlows: boolean;
   selectedCountry: string | null;
   onSelectCountry: (country: string | null) => void;
+  palette: MapPalette;
+  /** Légende rendue dans le repère du conteneur (positionnée par l'appelant). */
+  legend?: React.ReactNode;
 }
 
 interface TooltipState {
@@ -65,8 +87,14 @@ function isoOf(feature: Feature<Geometry>): string | null {
   return feature.id != null ? String(feature.id).padStart(3, "0") : null;
 }
 
-export default function WorldMap({ weights, showFlows, selectedCountry, onSelectCountry }: Props) {
-  const { theme } = useMxTheme();
+export default function WorldMap({
+  weights,
+  showFlows,
+  selectedCountry,
+  onSelectCountry,
+  palette,
+  legend,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgNodeRef = useRef<SVGSVGElement | null>(null);
   const zoomBehaviorRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -88,6 +116,10 @@ export default function WorldMap({ weights, showFlows, selectedCountry, onSelect
 
   const maxWeight = Math.sqrt(weights[0]?.total ?? 1);
 
+  // La palette est un objet littéral recréé à chaque rendu du parent : la
+  // comparer par valeur évite de rejouer tout le rendu D3 sans raison.
+  const paletteKey = JSON.stringify(palette);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -100,7 +132,6 @@ export default function WorldMap({ weights, showFlows, selectedCountry, onSelect
     function render(el: HTMLDivElement) {
       const width = el.clientWidth || 860;
       const height = el.clientHeight || 460;
-      const dark = theme !== "clair";
 
       select(el).selectAll("*").remove();
 
@@ -119,12 +150,6 @@ export default function WorldMap({ weights, showFlows, selectedCountry, onSelect
       );
       const path = geoPath(projection);
 
-      const baseColor = dark ? "#152136" : "#E4EAF2";
-      const strokeColor = dark ? "rgba(255,255,255,.09)" : "#FFFFFF";
-      const highColor = dark ? "#E0655A" : "#C94F43";
-      const lowColor = dark ? "#33405A" : "#F2DCD2";
-      const cyanColor = dark ? "#22D3EE" : "#0891B2";
-
       const featByIso = new Map(features.map(f => [isoOf(f), f]));
 
       g.selectAll("path.mx-country")
@@ -134,11 +159,11 @@ export default function WorldMap({ weights, showFlows, selectedCountry, onSelect
         .attr("d", (f: GeoPermissibleObjects) => path(f))
         .attr("fill", f => {
           const c = byIsoNumeric.get(isoOf(f as Feature<Geometry>) ?? "");
-          return c ? lerpColor(lowColor, highColor, Math.sqrt(c.total) / maxWeight) : baseColor;
+          return c ? lerpColor(palette.low, palette.high, Math.sqrt(c.total) / maxWeight) : palette.base;
         })
         .attr("stroke", f => {
           const c = byIsoNumeric.get(isoOf(f as Feature<Geometry>) ?? "");
-          return c && c.country === selectedCountry ? "var(--mx-fg)" : strokeColor;
+          return c && c.country === selectedCountry ? palette.selected : palette.stroke;
         })
         .attr("stroke-width", f => {
           const c = byIsoNumeric.get(isoOf(f as Feature<Geometry>) ?? "");
@@ -195,26 +220,25 @@ export default function WorldMap({ weights, showFlows, selectedCountry, onSelect
             flowG.append("path")
               .attr("d", `M${origin[0]},${origin[1]} Q${curveX},${curveY} ${target[0]},${target[1]}`)
               .attr("fill", "none")
-              .attr("stroke", cyanColor)
+              .attr("stroke", palette.flow)
               .attr("stroke-width", strokeW)
               .attr("stroke-dasharray", "7 9")
               .attr("opacity", 0.55)
               .attr("class", "mx-flow");
-            flowG.append("circle").attr("cx", origin[0]).attr("cy", origin[1]).attr("r", 3).attr("fill", cyanColor);
+            flowG.append("circle").attr("cx", origin[0]).attr("cy", origin[1]).attr("r", 3).attr("fill", palette.flow);
             flowG.append("circle")
               .attr("cx", origin[0]).attr("cy", origin[1]).attr("r", 3)
-              .attr("fill", "none").attr("stroke", cyanColor).attr("stroke-width", 1)
+              .attr("fill", "none").attr("stroke", palette.flow).attr("stroke-width", 1)
               .attr("class", "mx-ping-ring")
               .style("animation-delay", `${i * 0.25}s`);
           });
 
-          const hubColor = dark ? "#34D399" : "#059669";
           flowG.append("circle")
             .attr("cx", target[0]).attr("cy", target[1]).attr("r", 4.5)
-            .attr("fill", hubColor).attr("stroke", dark ? "#06121E" : "#fff").attr("stroke-width", 1.5);
+            .attr("fill", palette.hub).attr("stroke", palette.hubStroke).attr("stroke-width", 1.5);
           flowG.append("circle")
             .attr("cx", target[0]).attr("cy", target[1]).attr("r", 4)
-            .attr("fill", "none").attr("stroke", hubColor).attr("stroke-width", 1.2)
+            .attr("fill", "none").attr("stroke", palette.hub).attr("stroke-width", 1.2)
             .attr("class", "mx-ping-ring");
         }
       }
@@ -244,7 +268,10 @@ export default function WorldMap({ weights, showFlows, selectedCountry, onSelect
       resizeObserver.disconnect();
       select(el).selectAll("*").remove();
     };
-  }, [features, byIsoNumeric, maxWeight, theme, showFlows, selectedCountry, weights, onSelectCountry]);
+    // `palette` est volontairement remplacé par `paletteKey` (comparaison par
+    // valeur) — cf. la note au-dessus de paletteKey.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [features, byIsoNumeric, maxWeight, paletteKey, showFlows, selectedCountry, weights, onSelectCountry]);
 
   const zoomBy = (factor: number) => {
     const svgNode = svgNodeRef.current;
@@ -253,70 +280,63 @@ export default function WorldMap({ weights, showFlows, selectedCountry, onSelect
     select(svgNode).transition().duration(250).call(zb.scaleBy, factor);
   };
 
+  const zoomButton: React.CSSProperties = {
+    width: 30,
+    height: 30,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 15,
+    lineHeight: 1,
+    cursor: "pointer",
+    border: "1px solid var(--color-divider)",
+    borderRadius: 0,
+    background: "var(--color-bg)",
+    color: "var(--color-text)",
+  };
+
   return (
-    <div
-      className="relative rounded-2xl border overflow-hidden"
-      style={{ borderColor: "var(--mx-border)", background: "var(--mx-card)", boxShadow: "var(--mx-shadow)", minHeight: 440 }}
-    >
+    <div className="relative w-full h-full" style={{ minHeight: 440 }}>
       <div ref={containerRef} className="absolute inset-0" />
 
       {tooltip && (
         <div
-          className="absolute z-10 pointer-events-none rounded-[10px] border px-3.5 py-2.5 text-xs max-w-[240px]"
+          className="absolute z-10 pointer-events-none"
           style={{
-            left: tooltip.x, top: tooltip.y,
-            background: "var(--mx-surface)", borderColor: "var(--mx-border-2)",
-            boxShadow: "0 10px 30px rgba(0,0,0,.35)", color: "var(--mx-fg)",
+            left: tooltip.x,
+            top: tooltip.y,
+            maxWidth: 240,
+            padding: "10px 14px",
+            fontSize: 12,
+            border: "1px solid var(--color-divider)",
+            background: "color-mix(in srgb, var(--color-bg) 92%, transparent)",
+            backdropFilter: "blur(6px)",
+            color: "var(--color-text)",
+            boxShadow: "var(--shadow-md)",
           }}
         >
           <p className="m-0 font-bold">{tooltip.country}</p>
-          <p className="m-0 mt-[3px] mb-1.5" style={{ fontFamily: "var(--mx-font-mono)", fontSize: 11, color: "var(--mx-cyan)" }}>
+          <p className="m-0 mt-[3px] mb-1.5" style={{ fontSize: 11, fontWeight: 600, color: "var(--color-accent-700)", fontFeatureSettings: "'tnum' 1" }}>
             {tooltip.materialsCount} matière(s) · {Math.round(tooltip.totalPts)} pts
           </p>
           <div className="flex flex-col gap-[3px]" style={{ fontSize: 11.5 }}>
             {tooltip.top.map(m => (
               <span key={m.name} className="flex justify-between gap-3.5">
                 <span>{m.name}</span>
-                <span style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-muted)" }}>{m.share}%</span>
+                <span style={{ fontWeight: 600, color: "var(--ink-70)", fontFeatureSettings: "'tnum' 1" }}>{m.share}%</span>
               </span>
             ))}
           </div>
-          <p className="m-0 mt-1.5" style={{ fontSize: "10.5px", color: "var(--mx-subtle)" }}>Cliquer pour le détail →</p>
+          <p className="m-0 mt-1.5" style={{ fontSize: "10.5px", color: "var(--ink-55)" }}>Cliquer pour le détail →</p>
         </div>
       )}
 
       <div className="absolute top-3.5 right-3.5 flex flex-col gap-1.5 z-[4]">
-        <button
-          type="button"
-          onClick={() => zoomBy(1.5)}
-          aria-label="Zoomer"
-          className="w-[30px] h-[30px] rounded-lg border flex items-center justify-center text-[15px] cursor-pointer leading-none"
-          style={{ borderColor: "var(--mx-border-2)", background: "var(--mx-surface)", color: "var(--mx-fg)" }}
-        >
-          +
-        </button>
-        <button
-          type="button"
-          onClick={() => zoomBy(1 / 1.5)}
-          aria-label="Dézoomer"
-          className="w-[30px] h-[30px] rounded-lg border flex items-center justify-center text-[15px] cursor-pointer leading-none"
-          style={{ borderColor: "var(--mx-border-2)", background: "var(--mx-surface)", color: "var(--mx-fg)" }}
-        >
-          −
-        </button>
+        <button type="button" onClick={() => zoomBy(1.5)} aria-label="Zoomer" style={zoomButton}>+</button>
+        <button type="button" onClick={() => zoomBy(1 / 1.5)} aria-label="Dézoomer" style={zoomButton}>−</button>
       </div>
 
-      <div className="absolute left-3.5 bottom-3 flex items-center gap-2 z-[4]" style={{ fontSize: "10.5px", color: "var(--mx-subtle)" }}>
-        <span>Poids faible</span>
-        <div className="w-[110px] h-1.5 rounded-full" style={{ background: "linear-gradient(90deg, var(--mx-card-2), var(--mx-tier-high))" }} />
-        <span>élevé</span>
-        {showFlows && (
-          <span className="ml-2.5 flex items-center gap-1.5">
-            <span className="w-3.5 h-0.5" style={{ background: "var(--mx-cyan)" }} />
-            flux d&apos;approvisionnement
-          </span>
-        )}
-      </div>
+      {legend}
     </div>
   );
 }

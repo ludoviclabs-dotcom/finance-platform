@@ -47,7 +47,7 @@ const LOCAL_STORAGE: TrackerRow[] = [
     duration: `${CONSENT_VALIDITY_MONTHS} mois`,
   },
   {
-    name: "carbonco-theme, carbonco-materials-theme, carbonco-wi-theme",
+    name: "carbonco-theme, carbonco-materials-theme, carbonco-materials-refonte-theme, carbonco-wi-theme",
     purpose: "Thème clair ou sombre que vous avez choisi.",
     duration: "Jusqu'à modification ou effacement par vous",
   },

@@ -37,10 +37,12 @@ const proofSignals = [
   },
 ];
 
+// Faits vérifiables dans ce dépôt (route, lien, sitemap). Rien ici n'est
+// mesuré en direct : l'état des services se consulte sur /status (QA m-09).
 const publicChecks = [
   "Route CarbonCo /proof publique et indexable",
-  "Lien direct vers la Proof Console NEURAL déjà en production",
-  "Sitemap CarbonCo mis à jour pour la découverte publique",
+  "Lien direct vers la Proof Console NEURAL, application distincte dont la disponibilité n'est pas suivie ici",
+  "Route /proof déclarée dans le sitemap CarbonCo",
 ];
 
 export default function ProofPage() {
@@ -93,11 +95,11 @@ export default function ProofPage() {
           <div className="rounded-[1.5rem] border border-emerald-400/15 bg-white/[0.06] p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between gap-4 border-b border-white/10 pb-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Statut public</p>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Points d&apos;accès publics</p>
                 <p className="mt-1 text-sm text-neutral-400">CarbonCo + NEURAL</p>
               </div>
-              <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-200">
-                Live-ready
+              <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-bold text-neutral-200">
+                Déclaratif
               </span>
             </div>
             <ul className="space-y-4">
@@ -108,6 +110,12 @@ export default function ProofPage() {
                 </li>
               ))}
             </ul>
+            <p className="mt-5 border-t border-white/10 pt-4 text-xs leading-relaxed text-neutral-400">
+              Ces informations sont déclaratives : aucune n&apos;est mesurée automatiquement.{" "}
+              <Link href="/status" className="font-semibold text-emerald-200 underline hover:text-white">
+                Consulter l&apos;état des services CarbonCo
+              </Link>
+            </p>
           </div>
         </div>
       </section>

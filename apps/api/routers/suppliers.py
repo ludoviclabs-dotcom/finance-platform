@@ -49,6 +49,7 @@ from models.procurement import (
 )
 from routers._errors import http_error, require_db
 from routers.auth import (
+    CronOrUser,
     get_current_user,
     require_admin,
     require_analyst,
@@ -121,15 +122,17 @@ def post_campaign(
     return campaigns_svc.create_campaign(payload, user.company_id, user.email)
 
 
-@router.post("/campaigns/reminders/run", dependencies=[Depends(require_cron_or_analyst)])
-def run_campaign_reminders() -> dict:
+@router.post("/campaigns/reminders/run")
+def run_campaign_reminders(caller: CronOrUser = Depends(require_cron_or_analyst)) -> dict:
     """Relances des campagnes actives (paliers J-14 / J-7 / deadline).
 
     Appelé par le cron quotidien (CRON_SERVICE_TOKEN) — notifications in-app
     systématiques, e-mails fournisseurs uniquement si EMAIL_ENABLED. Idempotent
-    palier par palier (anti-spam).
+    palier par palier (anti-spam). Déclenché par un utilisateur : sa seule
+    organisation.
     """
-    return campaigns_svc.run_campaign_reminders()
+    scope = None if caller.is_cron else {caller.user.company_id}
+    return campaigns_svc.run_campaign_reminders(company_ids=scope)
 
 
 @router.get("/campaigns/{campaign_id}")

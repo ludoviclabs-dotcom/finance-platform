@@ -1,4 +1,4 @@
-import { put, list, head } from "@vercel/blob";
+import { get, put } from "@vercel/blob";
 import {
   DatapointStateSchema,
   type DatapointState,
@@ -11,32 +11,24 @@ function statePathname(cid: string): string {
   return `workbooks/company-${cid}/datapoints/${STATE_FILENAME}`;
 }
 
-async function findExistingStateUrl(cid: string): Promise<string | null> {
-  const prefix = `workbooks/company-${cid}/datapoints/`;
-  const res = await list({ prefix, limit: 100 });
-  if (!res.blobs.length) return null;
-  const matches = res.blobs.filter((b) => b.pathname.endsWith(STATE_FILENAME));
-  if (!matches.length) return null;
-  matches.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
-  return matches[0].url;
+function emptyState(cid: string): DatapointState {
+  return { cid, updatedAt: new Date().toISOString(), datapoints: {} };
 }
 
+/**
+ * État des datapoints de l'organisation. Store PRIVÉ : lecture par le SDK
+ * (jeton du store), jamais par un fetch public — celui-ci échouait sur un
+ * store privé et faisait croire à un état vide. Seul l'état ABSENT donne un
+ * état vide ; une erreur de lecture remonte (sinon la sauvegarde suivante
+ * écraserait l'état réel par un état vide).
+ */
 export async function loadState(cid: string): Promise<DatapointState> {
-  const url = await findExistingStateUrl(cid);
-  if (!url) {
-    return { cid, updatedAt: new Date().toISOString(), datapoints: {} };
+  const result = await get(statePathname(cid), { access: "private", useCache: false });
+  if (!result || result.statusCode !== 200) {
+    return emptyState(cid);
   }
-  try {
-    const meta = await head(url);
-    const res = await fetch(meta.url, { cache: "no-store" });
-    if (!res.ok) {
-      throw new Error(`Lecture state.json échouée (${res.status})`);
-    }
-    const json = await res.json();
-    return DatapointStateSchema.parse(json);
-  } catch {
-    return { cid, updatedAt: new Date().toISOString(), datapoints: {} };
-  }
+  const json: unknown = await new Response(result.stream).json();
+  return DatapointStateSchema.parse(json);
 }
 
 export async function saveState(state: DatapointState): Promise<void> {
@@ -45,7 +37,7 @@ export async function saveState(state: DatapointState): Promise<void> {
     updatedAt: new Date().toISOString(),
   });
   await put(statePathname(state.cid), JSON.stringify(validated, null, 2), {
-    access: "public",
+    access: "private",
     allowOverwrite: true,
     contentType: "application/json",
     addRandomSuffix: false,

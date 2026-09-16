@@ -11,6 +11,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from db.database import db_available, get_db
+from utils.env import is_production
 
 router = APIRouter()
 
@@ -107,20 +108,38 @@ def _worker_status() -> str:
     return "inline"
 
 
+def overall_status(db: str, storage: str) -> str:
+    """« ok » seulement si aucune dépendance n'est en panne (M-06).
+
+    L'ancienne réponse valait toujours « ok », même base coupée : la page
+    publique /status affichait alors « Tous les services répondent ». Une base
+    absente n'est acceptable qu'hors production (développement, CI).
+    """
+    if db == "down" or storage == "down":
+        return "degraded"
+    if db == "not_configured" and is_production():
+        return "degraded"
+    return "ok"
+
+
 @router.get("/health", tags=["health"])
 async def health_check():
     """Liveness + état des dépendances (DB, stockage, worker).
 
-    Budget : < 1 s en nominal ; la sonde stockage est bornée à 5 s par appel
-    HTTP (3 appels max) si l'API Blob est dégradée.
+    HTTP 200 tant que le processus répond (liveness) ; `status` vaut
+    « degraded » si une dépendance est en panne. Budget : < 1 s en nominal ;
+    la sonde stockage est bornée à 5 s par appel HTTP (3 appels max) si l'API
+    Blob est dégradée.
     """
+    db = _db_status()
+    storage = await _storage_status()
     return {
-        "status": "ok",
+        "status": overall_status(db, storage),
         "service": "finance-platform-api",
         "version": _version(),
         "time": datetime.now(tz=timezone.utc).isoformat(),
-        "db": _db_status(),
-        "storage": await _storage_status(),
+        "db": db,
+        "storage": storage,
         "worker": _worker_status(),
     }
 

@@ -1,5 +1,15 @@
 "use client";
 
+/**
+ * /admin — gestion des organisations et des comptes.
+ *
+ * Les endpoints /admin/* sont tenant-scoped : un administrateur ne voit et ne
+ * gère que les comptes de SON organisation (GET /admin/companies ne renvoie
+ * que celle-ci). Créer / supprimer une organisation ou choisir un plan est
+ * réservé aux administrateurs de la plateforme (`platformAdmin` renvoyé par
+ * GET /auth/me) ; l'API répond 403 sinon, et l'UI masque ces actions.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
@@ -17,15 +27,18 @@ import {
 } from "lucide-react";
 import {
   fetchCompanies,
+  fetchMe,
   fetchUsers,
   createCompany,
   createUser,
   deleteUser,
   deleteCompany,
+  friendlyApiErrorMessage,
   type CompanyOut,
   type UserOut,
 } from "@/lib/api";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuthState } from "@/lib/hooks/auth-context";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { SectionTitle } from "@/components/ui/section-title";
 import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
 
@@ -41,15 +54,29 @@ const ROLE_COLORS: Record<string, string> = {
   viewer: "bg-slate-100 text-slate-600",
 };
 
+/** Messages présentables des refus d'administration (403 tenant-scoped). */
+function adminErrorMessage(err: unknown, fallback: string): string {
+  return friendlyApiErrorMessage(
+    err,
+    {
+      403: "Action réservée : vos droits ne couvrent que les comptes de votre organisation.",
+      404: "Élément introuvable (déjà supprimé ou hors de votre organisation).",
+      409: "Cet élément existe déjà (adresse email ou identifiant déjà utilisé).",
+      422: "Données invalides : vérifiez les champs saisis.",
+    },
+    fallback,
+  );
+}
+
 function fmtDate(iso: string) {
   if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
-  } catch { return iso; }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 // ---------------------------------------------------------------------------
-// Formulaire création entreprise
+// Formulaire création entreprise (administrateurs plateforme uniquement)
 // ---------------------------------------------------------------------------
 function CreateCompanyForm({ onCreated }: { onCreated: () => void }) {
   const [open, setOpen] = useState(false);
@@ -71,7 +98,7 @@ function CreateCompanyForm({ onCreated }: { onCreated: () => void }) {
       setOpen(false);
       onCreated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur création");
+      setError(adminErrorMessage(err, "Création de l'entreprise impossible pour le moment."));
     } finally {
       setLoading(false);
     }
@@ -91,7 +118,7 @@ function CreateCompanyForm({ onCreated }: { onCreated: () => void }) {
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-3 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-3">
-          {error && <p className="text-xs text-[var(--color-danger)]">{error}</p>}
+          {error && <p role="alert" className="text-xs text-[var(--color-danger)]">{error}</p>}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-[var(--color-foreground-muted)] mb-1">Nom *</label>
@@ -99,7 +126,7 @@ function CreateCompanyForm({ onCreated }: { onCreated: () => void }) {
                 required value={name}
                 onChange={(e) => { setName(e.target.value); if (!slug) setSlug(autoSlug(e.target.value)); }}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] focus:outline-none focus:border-carbon-emerald"
-                placeholder="Exemplia Industrie"
+                placeholder="Nom de l'organisation"
               />
             </div>
             <div>
@@ -144,26 +171,45 @@ function CreateCompanyForm({ onCreated }: { onCreated: () => void }) {
 // ---------------------------------------------------------------------------
 // Formulaire création user
 // ---------------------------------------------------------------------------
-function CreateUserForm({ companies, onCreated }: { companies: CompanyOut[]; onCreated: () => void }) {
+function CreateUserForm({
+  companies,
+  ownCompanyId,
+  platformAdmin,
+  onCreated,
+}: {
+  companies: CompanyOut[];
+  ownCompanyId: number | null;
+  platformAdmin: boolean;
+  onCreated: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("analyst");
-  const [companyId, setCompanyId] = useState<number>(companies[0]?.id ?? 1);
+  const [companyId, setCompanyId] = useState<number | null>(ownCompanyId ?? companies[0]?.id ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Hors administration plateforme, le compte est TOUJOURS créé dans
+  // l'organisation de l'administrateur : pas de sélecteur libre.
+  const ownCompany = companies.find((c) => c.id === ownCompanyId) ?? null;
+  const targetCompanyId = platformAdmin ? companyId : ownCompanyId;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (targetCompanyId === null) {
+      setError("Organisation introuvable pour ce compte administrateur.");
+      return;
+    }
     setLoading(true);
     try {
-      await createUser({ email, password, role, company_id: companyId });
+      await createUser({ email, password, role, company_id: targetCompanyId });
       setEmail(""); setPassword(""); setRole("analyst");
       setOpen(false);
       onCreated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur création");
+      setError(adminErrorMessage(err, "Création du compte impossible pour le moment."));
     } finally {
       setLoading(false);
     }
@@ -183,7 +229,7 @@ function CreateUserForm({ companies, onCreated }: { companies: CompanyOut[]; onC
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-3 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-3">
-          {error && <p className="text-xs text-[var(--color-danger)]">{error}</p>}
+          {error && <p role="alert" className="text-xs text-[var(--color-danger)]">{error}</p>}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-[var(--color-foreground-muted)] mb-1">Email *</label>
@@ -194,6 +240,7 @@ function CreateUserForm({ companies, onCreated }: { companies: CompanyOut[]; onC
             <div>
               <label className="block text-xs text-[var(--color-foreground-muted)] mb-1">Mot de passe *</label>
               <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 className="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] focus:outline-none focus:border-carbon-emerald"
                 placeholder="••••••••" />
             </div>
@@ -201,10 +248,19 @@ function CreateUserForm({ companies, onCreated }: { companies: CompanyOut[]; onC
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-[var(--color-foreground-muted)] mb-1">Entreprise</label>
-              <select value={companyId} onChange={(e) => setCompanyId(Number(e.target.value))}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] focus:outline-none focus:border-carbon-emerald">
-                {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              {platformAdmin ? (
+                <select
+                  value={companyId ?? ""}
+                  onChange={(e) => setCompanyId(Number(e.target.value))}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] focus:outline-none focus:border-carbon-emerald"
+                >
+                  {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              ) : (
+                <p className="px-3 py-2 text-sm rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-foreground)]">
+                  {ownCompany?.name ?? "Votre organisation"}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-xs text-[var(--color-foreground-muted)] mb-1">Rôle</label>
@@ -236,66 +292,92 @@ function CreateUserForm({ companies, onCreated }: { companies: CompanyOut[]; onC
 // ---------------------------------------------------------------------------
 // Page principale
 // ---------------------------------------------------------------------------
+type Feedback = { tone: "ok" | "error"; message: string };
+
 export default function AdminPage() {
-  const { auth } = useAuth();
+  // État d'auth fourni par le layout (un seul useAuth() par arbre).
+  const auth = useAuthState();
+  const confirm = useConfirm();
+  const isAdmin = auth.status === "authenticated" && auth.role === "admin";
+  const ownCompanyId = auth.status === "authenticated" ? auth.companyId : null;
+
+  const [platformAdmin, setPlatformAdmin] = useState(false);
   const [companies, setCompanies] = useState<CompanyOut[]>([]);
   const [users, setUsers] = useState<UserOut[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"companies" | "users">("companies");
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const [c, u] = await Promise.all([fetchCompanies(), fetchUsers()]);
-      setCompanies(c);
-      setUsers(u);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur chargement");
-    } finally {
-      setLoading(false);
+    const [me, c, u] = await Promise.allSettled([fetchMe(), fetchCompanies(), fetchUsers()]);
+    // Faute de réponse /auth/me exploitable, on retient le cas le plus
+    // restrictif : aucun geste inter-organisations.
+    setPlatformAdmin(me.status === "fulfilled" && me.value.platformAdmin === true);
+    if (c.status === "fulfilled") setCompanies(c.value);
+    if (u.status === "fulfilled") setUsers(u.value);
+    const failure = [c, u].find((r) => r.status === "rejected");
+    if (failure && failure.status === "rejected") {
+      setError(adminErrorMessage(failure.reason, "Chargement de l'administration impossible pour le moment."));
     }
+    setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (isAdmin) void load();
+  }, [isAdmin, load]);
 
-  const showFeedback = (msg: string) => {
-    setFeedback(msg);
-    setTimeout(() => setFeedback(null), 3000);
+  const showFeedback = (next: Feedback) => {
+    setFeedback(next);
+    setTimeout(() => setFeedback(null), 3500);
   };
 
-  const handleDeleteUser = async (id: number) => {
-    setDeletingId(id);
+  const handleDeleteUser = async (user: UserOut) => {
+    const ok = await confirm({
+      title: `Supprimer le compte ${user.email} ?`,
+      description: "L'utilisateur ne pourra plus se connecter. Cette action est définitive.",
+      confirmLabel: "Supprimer",
+      tone: "danger",
+    });
+    if (!ok) return;
+    setDeletingId(user.id);
     try {
-      await deleteUser(id);
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-      showFeedback("Utilisateur supprimé");
+      await deleteUser(user.id);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      showFeedback({ tone: "ok", message: "Utilisateur supprimé" });
     } catch (err) {
-      showFeedback(err instanceof Error ? err.message : "Erreur suppression");
+      showFeedback({ tone: "error", message: adminErrorMessage(err, "Suppression impossible pour le moment.") });
     } finally {
       setDeletingId(null);
     }
   };
 
-  const handleDeleteCompany = async (id: number) => {
-    setDeletingId(id);
+  const handleDeleteCompany = async (company: CompanyOut) => {
+    const ok = await confirm({
+      title: `Supprimer l'entreprise ${company.name} ?`,
+      description: "L'organisation et ses comptes utilisateurs seront supprimés. Cette action est définitive.",
+      confirmLabel: "Supprimer",
+      tone: "danger",
+    });
+    if (!ok) return;
+    setDeletingId(company.id);
     try {
-      await deleteCompany(id);
-      setCompanies((prev) => prev.filter((c) => c.id !== id));
-      setUsers((prev) => prev.filter((u) => u.company_id !== id));
-      showFeedback("Entreprise supprimée");
+      await deleteCompany(company.id);
+      setCompanies((prev) => prev.filter((c) => c.id !== company.id));
+      setUsers((prev) => prev.filter((u) => u.company_id !== company.id));
+      showFeedback({ tone: "ok", message: "Entreprise supprimée" });
     } catch (err) {
-      showFeedback(err instanceof Error ? err.message : "Erreur suppression");
+      showFeedback({ tone: "error", message: adminErrorMessage(err, "Suppression impossible pour le moment.") });
     } finally {
       setDeletingId(null);
     }
   };
 
   // Accès restreint aux admins
-  if (auth.status === "authenticated" && auth.role !== "admin") {
+  if (!isAdmin) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
@@ -311,21 +393,34 @@ export default function AdminPage() {
     <motion.div {...pageVariants} className="p-6 space-y-6 max-w-5xl mx-auto">
       <SectionTitle
         title="Administration"
-        subtitle="Gestion des entreprises et des utilisateurs — accès admin uniquement"
+        subtitle={
+          platformAdmin
+            ? "Gestion des organisations et des utilisateurs — administration de la plateforme"
+            : "Gestion des utilisateurs de votre organisation — accès admin uniquement"
+        }
       />
 
       {/* Feedback toast */}
       {feedback && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl bg-[var(--color-surface)] border border-carbon-emerald shadow-lg text-sm font-medium text-[var(--color-foreground)]">
-          <CheckCircle2 className="w-4 h-4 text-carbon-emerald" />
-          {feedback}
+        <div
+          role={feedback.tone === "error" ? "alert" : "status"}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl bg-[var(--color-surface)] border shadow-lg text-sm font-medium text-[var(--color-foreground)] ${
+            feedback.tone === "error" ? "border-[var(--color-danger)]" : "border-carbon-emerald"
+          }`}
+        >
+          {feedback.tone === "error" ? (
+            <AlertTriangle className="w-4 h-4 text-[var(--color-danger)]" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-carbon-emerald" />
+          )}
+          {feedback.message}
         </div>
       )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Entreprises", value: companies.length, icon: Building2, color: "text-emerald-500" },
+          { label: platformAdmin ? "Entreprises" : "Organisation", value: companies.length, icon: Building2, color: "text-emerald-500" },
           { label: "Utilisateurs", value: users.length, icon: Users, color: "text-violet-500" },
           { label: "Admins", value: users.filter((u) => u.role === "admin").length, icon: ShieldAlert, color: "text-red-500" },
           { label: "Actifs", value: users.filter((u) => u.is_active).length, icon: CheckCircle2, color: "text-cyan-500" },
@@ -351,12 +446,12 @@ export default function AdminPage() {
                 : "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-foreground-muted)] hover:border-carbon-emerald"
             }`}
           >
-            {tab === "companies" ? "Entreprises" : "Utilisateurs"}
+            {tab === "companies" ? (platformAdmin ? "Entreprises" : "Organisation") : "Utilisateurs"}
           </button>
         ))}
         <button
           type="button"
-          onClick={load}
+          onClick={() => void load()}
           disabled={loading}
           className="ml-auto inline-flex items-center gap-1 text-xs text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] cursor-pointer disabled:opacity-50"
         >
@@ -366,7 +461,7 @@ export default function AdminPage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-[var(--color-danger-bg)] bg-[var(--color-danger-bg)] p-4 flex items-center gap-2">
+        <div role="alert" className="rounded-xl border border-[var(--color-danger-bg)] bg-[var(--color-danger-bg)] p-4 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-[var(--color-danger)]" />
           <span className="text-xs text-[var(--color-danger)]">{error}</span>
         </div>
@@ -379,7 +474,14 @@ export default function AdminPage() {
           {/* ── Companies ── */}
           {activeTab === "companies" && (
             <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-4">
-              <CreateCompanyForm onCreated={load} />
+              {platformAdmin ? (
+                <CreateCompanyForm onCreated={() => void load()} />
+              ) : (
+                <p className="text-xs text-[var(--color-foreground-muted)]">
+                  La création, la suppression d&apos;organisations et le changement de plan sont réservés
+                  aux administrateurs de la plateforme.
+                </p>
+              )}
               <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
                 {companies.length === 0 ? (
                   <div className="p-10 text-center text-sm text-[var(--color-foreground-muted)]">Aucune entreprise.</div>
@@ -392,7 +494,7 @@ export default function AdminPage() {
                         <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--color-foreground-muted)]">Plan</th>
                         <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--color-foreground-muted)]">Users</th>
                         <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--color-foreground-muted)]">Créée</th>
-                        <th className="px-4 py-3" />
+                        {platformAdmin && <th className="px-4 py-3" />}
                       </tr>
                     </thead>
                     <tbody>
@@ -407,18 +509,21 @@ export default function AdminPage() {
                           </td>
                           <td className="px-4 py-3 text-[var(--color-foreground-muted)]">{c.user_count}</td>
                           <td className="px-4 py-3 text-[var(--color-foreground-subtle)] text-xs">{fmtDate(c.created_at)}</td>
-                          <td className="px-4 py-3">
-                            {c.id !== 1 && (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteCompany(c.id)}
-                                disabled={deletingId === c.id}
-                                className="p-1.5 rounded-lg text-[var(--color-foreground-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-bg)] transition cursor-pointer disabled:opacity-50"
-                              >
-                                {deletingId === c.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                              </button>
-                            )}
-                          </td>
+                          {platformAdmin && (
+                            <td className="px-4 py-3">
+                              {c.id !== 1 && c.id !== ownCompanyId && (
+                                <button
+                                  type="button"
+                                  onClick={() => void handleDeleteCompany(c)}
+                                  disabled={deletingId === c.id}
+                                  aria-label={`Supprimer l'entreprise ${c.name}`}
+                                  className="p-1.5 rounded-lg text-[var(--color-foreground-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-bg)] transition cursor-pointer disabled:opacity-50"
+                                >
+                                  {deletingId === c.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                </button>
+                              )}
+                            </td>
+                          )}
                         </motion.tr>
                       ))}
                     </tbody>
@@ -431,7 +536,12 @@ export default function AdminPage() {
           {/* ── Users ── */}
           {activeTab === "users" && (
             <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-4">
-              <CreateUserForm companies={companies} onCreated={load} />
+              <CreateUserForm
+                companies={companies}
+                ownCompanyId={ownCompanyId}
+                platformAdmin={platformAdmin}
+                onCreated={() => void load()}
+              />
               <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
                 {users.length === 0 ? (
                   <div className="p-10 text-center text-sm text-[var(--color-foreground-muted)]">Aucun utilisateur.</div>
@@ -468,8 +578,9 @@ export default function AdminPage() {
                           <td className="px-4 py-3">
                             <button
                               type="button"
-                              onClick={() => handleDeleteUser(u.id)}
+                              onClick={() => void handleDeleteUser(u)}
                               disabled={deletingId === u.id}
+                              aria-label={`Supprimer le compte ${u.email}`}
                               className="p-1.5 rounded-lg text-[var(--color-foreground-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-bg)] transition cursor-pointer disabled:opacity-50"
                             >
                               {deletingId === u.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}

@@ -806,6 +806,22 @@ def _probe_043(cur) -> bool:
     )
 
 
+def _probe_044(cur) -> bool:
+    """Durcissement auth : table d'anti-rejeu TOTP ET sa clé primaire (c'est
+    elle qui rend la réservation d'un pas atomique — une table sans cette clé
+    n'empêche aucun rejeu), plus l'élargissement d'audit_eventtype_check,
+    vérifié sur son CONTENU (nom réutilisé depuis 011, cf. _probe_041)."""
+    if not _table_exists(cur, "user_totp_used_steps"):
+        return False
+    if not _constraint_exists(cur, "user_totp_used_steps", "user_totp_used_steps_pkey"):
+        return False
+    return (
+        _constraint_definition_contains(cur, "audit_events", "audit_eventtype_check", "2fa_disable")
+        and _constraint_definition_contains(cur, "audit_events", "audit_eventtype_check", "admin_user_change")
+        and _constraint_definition_contains(cur, "audit_events", "audit_eventtype_check", "admin_company_change")
+    )
+
+
 MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "000": _probe_000,
     "001": _probe_001,
@@ -852,6 +868,7 @@ MIGRATION_OBJECT_PROBES: dict[str, Callable[[Cursor], bool]] = {
     "041": _probe_041,
     "042": _probe_042,
     "043": _probe_043,
+    "044": _probe_044,
 }
 
 

@@ -7,6 +7,9 @@
  * Vercel Analytics du projet.
  *
  * Choix de design :
+ *   - Aucun événement n'est transmis sans le drapeau
+ *     NEXT_PUBLIC_ENABLE_VERCEL_ANALYTICS=1 ET un opt-in « Tout accepter » lu
+ *     au moment de l'appel (components/consent/consent-store.ts).
  *   - Retourne une fonction stable via useCallback pour ne pas réinstancier les
  *     handlers à chaque render.
  *   - En mode dev, on log aussi la trace en console pour diagnostiquer
@@ -23,6 +26,8 @@
 
 import { useCallback } from "react";
 import { track as vercelTrack } from "@vercel/analytics";
+
+import { canSendAudienceEvent } from "@/components/consent/consent-store";
 
 export type AnalyticsEvent =
   | "demo_requested"
@@ -43,11 +48,12 @@ export interface AnalyticsProps {
 
 export function useAnalytics() {
   const track = useCallback((event: AnalyticsEvent, props?: AnalyticsProps) => {
-    // Vercel Analytics filtre les undefined et accepte les primitives.
-    // Cast safe : AnalyticsProps est compatible avec la signature attendue.
-    vercelTrack(event, props as Record<string, string | number | boolean | null>);
+    if (canSendAudienceEvent()) {
+      // Vercel Analytics filtre les undefined et accepte les primitives.
+      // Cast safe : AnalyticsProps est compatible avec la signature attendue.
+      vercelTrack(event, props as Record<string, string | number | boolean | null>);
+    }
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
       console.debug("[analytics]", event, props ?? {});
     }
   }, []);

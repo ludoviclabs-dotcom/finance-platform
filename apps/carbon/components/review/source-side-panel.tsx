@@ -25,6 +25,7 @@ import {
   TableProperties,
   X,
 } from "lucide-react";
+import { openTenantDocument } from "@/lib/blob/open-document";
 import type { SourceCitation } from "@/lib/esrs/schema";
 
 interface SourceSidePanelProps {
@@ -144,16 +145,15 @@ function CitationCard({
             {loc}
           </span>
         )}
-        <a
-          href={citation.blobUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={() => void openTenantDocument(citation.blobUrl)}
           className="flex-shrink-0 text-[var(--color-foreground-muted)] hover:text-carbon-emerald transition-colors"
           title="Ouvrir le document source"
           aria-label={`Ouvrir ${citation.filename}`}
         >
           <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+        </button>
       </div>
 
       {/* Snippet */}

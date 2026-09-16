@@ -336,6 +336,22 @@ MIGRATION_METADATA: dict[str, MigrationMeta] = {
             "Aucune donnée métier semée, aucun LLM."
         ),
     ),
+    "044": MigrationMeta(
+        requires_owner=False,
+        transactional=True,
+        note=(
+            "Durcissement de l'authentification (rapport QA 16/09/2026) : 1 table "
+            "neuve user_totp_used_steps (anti-rejeu TOTP, clé (user_email, "
+            "time_step) — même portée que user_totp 011 : aucune donnée de "
+            "tenant, lue avant session, donc sans RLS) + GRANT conditionnel + "
+            "UN élargissement de audit_eventtype_check (littéraux '2fa_disable', "
+            "'admin_user_change', 'admin_company_change' ; DROP+ADD sous le même "
+            "nom, geste identique à 011/012/040/041, sans privilège "
+            "propriétaire). Aucune donnée existante modifiée. Code tolérant à "
+            "l'absence de 044 (anti-rejeu inactif et journalisé, types d'audit "
+            "réécrits sous le type historique avec le type réel en meta)."
+        ),
+    ),
 }
 
 

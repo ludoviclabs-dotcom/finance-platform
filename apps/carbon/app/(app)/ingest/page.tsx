@@ -97,6 +97,21 @@ function formatDate(iso?: string): string {
 
 type DomainState = "fresh" | "stale" | "missing" | "error";
 
+/**
+ * Message lisible pour une erreur d'API : `POST /ingest` est réservé à
+ * l'administration de la plateforme en production (il relit les classeurs de
+ * DÉMONSTRATION du dépôt, jamais les données d'une organisation).
+ */
+function ingestErrorMessage(e: unknown): string {
+  const raw = e instanceof Error ? e.message : "";
+  if (/\b403\b/.test(raw)) {
+    return "Action réservée à l'administration de la plateforme. Les données de votre organisation proviennent de vos imports (page Import).";
+  }
+  if (/\b401\b/.test(raw)) return "Session expirée : reconnectez-vous.";
+  if (/\b503\b/.test(raw)) return "Service de données momentanément indisponible. Réessayez dans quelques instants.";
+  return "L'opération n'a pas abouti. Réessayez dans quelques instants.";
+}
+
 function domainState(s: CacheDomainStatus | undefined): DomainState {
   if (!s || !s.exists) return "missing";
   if (s.error) return "error";
@@ -164,7 +179,7 @@ export default function IngestPage() {
       const data = await fetchCacheStatus();
       setCache(data);
     } catch (e) {
-      setCacheError(e instanceof Error ? e.message : "Erreur inattendue");
+      setCacheError(ingestErrorMessage(e));
     } finally {
       setCacheLoading(false);
     }
@@ -183,19 +198,24 @@ export default function IngestPage() {
       setIngestResult(res);
       await loadCache();
     } catch (e) {
-      setIngestError(e instanceof Error ? e.message : "Erreur inattendue");
+      setIngestError(ingestErrorMessage(e));
     } finally {
       setIngesting(false);
     }
   };
 
   const handleInvalidate = async (domain?: DomainKey) => {
+    const scope = domain ? `du domaine « ${DOMAINS.find((d) => d.key === domain)?.label ?? domain} »` : "de tous les domaines";
+    // En base, un snapshot est une DONNÉE importée (pas un cache) : suppression explicite.
+    if (!window.confirm(`Supprimer les données importées ${scope} ? Cette action est définitive.`)) {
+      return;
+    }
     setInvalidating(domain ?? "all");
     try {
       await invalidateCache(domain);
       await loadCache();
     } catch (e) {
-      setCacheError(e instanceof Error ? e.message : "Erreur inattendue");
+      setCacheError(ingestErrorMessage(e));
     } finally {
       setInvalidating(null);
     }
@@ -227,7 +247,8 @@ export default function IngestPage() {
           Synchronisation des données
         </h1>
         <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
-          Recalcule les snapshots depuis les workbooks Excel maîtres et rafraîchit le cache.
+          État des données importées par votre organisation, domaine par domaine. Pour ajouter ou
+          mettre à jour vos chiffres, importez votre classeur depuis la page Import.
         </p>
       </div>
 
@@ -269,12 +290,12 @@ export default function IngestPage() {
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="font-display text-lg font-bold text-[var(--color-foreground)] mb-1">
-            Recalculer tous les snapshots
+            Recharger le jeu de démonstration
           </h2>
           <p className="text-sm text-[var(--color-foreground-muted)] mb-3">
-            Relit les 3 workbooks Excel (Carbone, ESG, Finance) depuis le serveur et régénère les 4
-            snapshots avec persistance en cache JSON. Les erreurs par domaine n&apos;interrompent pas
-            les autres.
+            Relit les classeurs de démonstration du serveur (carbone, ESG, finance) et régénère les 4
+            snapshots. Ces chiffres sont fictifs : en production, cette action est réservée à
+            l&apos;administration de la plateforme.
           </p>
           {ingestError && (
             <div className="mb-3 flex items-center gap-2 p-2 rounded-lg bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs">
@@ -297,7 +318,7 @@ export default function IngestPage() {
               ) : (
                 <>
                   <RefreshCw className="w-4 h-4" />
-                  Resynchroniser maintenant
+                  Recharger la démonstration
                 </>
               )}
             </button>
@@ -312,7 +333,7 @@ export default function IngestPage() {
               ) : (
                 <Trash2 className="w-4 h-4" />
               )}
-              Vider tout le cache
+              Supprimer toutes les données importées
             </button>
           </div>
           {ingestResult && (
@@ -419,7 +440,7 @@ export default function IngestPage() {
                     type="button"
                     onClick={() => handleInvalidate(d.key)}
                     disabled={ingesting || invalidating !== null || state === "missing"}
-                    title="Vider le cache de ce domaine"
+                    title="Supprimer les données importées de ce domaine"
                     className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-xs font-semibold text-[var(--color-foreground-muted)] hover:text-[var(--color-danger)] hover:border-[var(--color-danger)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {invalidating === d.key ? (
@@ -427,7 +448,7 @@ export default function IngestPage() {
                     ) : (
                       <Trash2 className="w-3 h-3" />
                     )}
-                    Vider
+                    Supprimer
                   </button>
                 </div>
               );

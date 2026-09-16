@@ -20,6 +20,9 @@ Cookies :
 
 from __future__ import annotations
 
+import os
+import secrets
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -40,9 +43,11 @@ from services.auth_service import (
     decode_token,
     ensure_demo_tenant,
     has_role,
+    is_platform_admin,
     revoke_refresh_token,
     rotate_refresh_token,
 )
+from utils.cors import is_allowed_origin
 
 router = APIRouter()
 
@@ -81,6 +86,12 @@ class TotpCodeRequest(BaseModel):
     code: str
 
 
+class TotpDisableRequest(BaseModel):
+    # Code TOTP courant OU code de récupération : une session volée (jeton
+    # d'accès seul) ne doit pas suffire à retirer le second facteur.
+    code: str
+
+
 class TotpEnrollResponse(BaseModel):
     secret: str
     otpauthUri: str
@@ -103,6 +114,10 @@ class RefreshResponse(BaseModel):
 
 class MeResponse(BaseModel):
     user: AuthUser
+    # Administrateur de la plateforme (toutes organisations) — distinct du rôle
+    # `admin`, limité à sa propre organisation. Sert uniquement à l'affichage :
+    # chaque route admin revérifie ce droit côté serveur.
+    platformAdmin: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -150,30 +165,67 @@ def require_admin(user: AuthUser = Depends(get_current_user)) -> AuthUser:
     return user
 
 
-def require_cron_or_analyst(request: Request) -> None:
+def require_platform_admin(user: AuthUser = Depends(require_admin)) -> AuthUser:
+    """Administrateur de la plateforme (PLATFORM_ADMIN_EMAILS) : données qui
+    n'appartiennent à aucune organisation cliente (candidatures partenaires…)."""
+    if not is_platform_admin(user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès refusé — réservé à l'administration de la plateforme.",
+        )
+    return user
+
+
+@dataclass(frozen=True)
+class CronOrUser:
+    """Appelant d'un endpoint périodique : le cron (toutes organisations) ou un
+    utilisateur analyste/admin (SA seule organisation)."""
+
+    user: AuthUser | None = None
+
+    @property
+    def is_cron(self) -> bool:
+        return self.user is None
+
+
+# Un secret de service trop court se devine : on refuse de s'y fier (le cron
+# échoue alors visiblement, plutôt que d'accepter un secret faible). 16 = le
+# minimum recommandé par Vercel pour CRON_SECRET.
+_MIN_SERVICE_TOKEN_LENGTH = 16
+
+
+def require_cron_or_analyst(request: Request) -> CronOrUser:
     """Autorise soit le token de service cron, soit un JWT analyst/admin.
 
-    Les endpoints périodiques (rappels BEGES, relances fournisseurs) sont
-    appelés par le cron Vercel sans contexte utilisateur : le route handler
-    front transmet `Authorization: Bearer <CRON_SERVICE_TOKEN>`. Le même
-    secret doit être défini côté API (env CRON_SERVICE_TOKEN). À défaut,
-    un JWT analyst permet le déclenchement manuel depuis l'app.
+    Les endpoints périodiques (évaluation des alertes, rappels BEGES, relances
+    fournisseurs) sont appelés par le cron Vercel sans contexte utilisateur :
+    le route handler front transmet `Authorization: Bearer <CRON_SERVICE_TOKEN>`.
+    Le même secret doit être défini côté API (env CRON_SERVICE_TOKEN, au moins
+    16 caractères). À défaut, un JWT analyst permet le déclenchement manuel
+    depuis l'app — limité alors à l'organisation de l'utilisateur.
     """
-    import os
-    import secrets as _secrets
-
     auth = request.headers.get("authorization") or ""
     token = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
     expected = os.environ.get("CRON_SERVICE_TOKEN") or ""
-    if expected and token and _secrets.compare_digest(token, expected):
-        return
+    if (
+        len(expected) >= _MIN_SERVICE_TOKEN_LENGTH
+        and token
+        and secrets.compare_digest(token.encode(), expected.encode())
+    ):
+        return CronOrUser()
     user = decode_token(token) if token else None
-    if user is None or not has_role(user, "analyst"):
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token de service cron ou JWT analyst requis.",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    if not has_role(user, "analyst"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès refusé — rôle analyst requis.",
+        )
+    return CronOrUser(user=user)
 
 
 # ---------------------------------------------------------------------------
@@ -224,6 +276,20 @@ def _clear_refresh_cookie(response: Response) -> None:
         secure=_is_prod(),
         samesite=_cookie_samesite(),
     )
+
+
+def _reject_foreign_origin(request: Request) -> None:
+    """Refuse un navigateur d'une origine non autorisée sur les routes qui
+    agissent via le cookie de rafraîchissement (SameSite=None).
+
+    CORS empêche une page tierce de LIRE la réponse, pas d'envoyer la requête :
+    sans ce contrôle, n'importe quel site pouvait faire tourner (donc
+    révoquer) la session d'un utilisateur connecté. Les appels sans en-tête
+    Origin (serveur à serveur, tests) ne sont pas concernés.
+    """
+    origin = request.headers.get("origin")
+    if origin is not None and not is_allowed_origin(origin):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Origine non autorisée.")
 
 
 # ---------------------------------------------------------------------------
@@ -315,6 +381,7 @@ async def refresh(request: Request, response: Response) -> RefreshResponse:
     Rotate refresh token: validate cookie → revoke old → issue new access + refresh tokens.
     The new refresh token is set as an httpOnly cookie.
     """
+    _reject_foreign_origin(request)
     raw_token = request.cookies.get(REFRESH_COOKIE)
     if not raw_token:
         raise HTTPException(
@@ -345,6 +412,7 @@ async def refresh(request: Request, response: Response) -> RefreshResponse:
 @router.post("/logout", status_code=204)
 async def logout(request: Request, response: Response) -> None:
     """Revoke refresh token and clear cookie."""
+    _reject_foreign_origin(request)
     raw_token = request.cookies.get(REFRESH_COOKIE)
     if raw_token:
         revoke_refresh_token(raw_token)
@@ -353,7 +421,7 @@ async def logout(request: Request, response: Response) -> None:
 
 @router.get("/me", response_model=MeResponse)
 async def me(user: AuthUser = Depends(get_current_user)) -> MeResponse:
-    return MeResponse(user=user)
+    return MeResponse(user=user, platformAdmin=is_platform_admin(user))
 
 
 # ---------------------------------------------------------------------------
@@ -403,7 +471,20 @@ async def totp_activate(body: TotpCodeRequest, user: AuthUser = Depends(get_curr
 
 
 @router.post("/totp/disable", status_code=204)
-async def totp_disable(user: AuthUser = Depends(get_current_user)) -> None:
+async def totp_disable(body: TotpDisableRequest, user: AuthUser = Depends(get_current_user)) -> None:
+    """Désactive la 2FA — exige un code TOTP courant ou un code de récupération.
+
+    Un jeton d'accès seul (session dérobée, poste resté ouvert) ne suffit pas à
+    retirer le second facteur. Rate-limité comme /auth/totp/verify.
+    """
+    if user.is_demo:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Action indisponible en session démo.")
+    if not totp_service.is_enabled(user.email):
+        raise HTTPException(status.HTTP_409_CONFLICT, detail="La double authentification n'est pas activée.")
+    if not totp_service.verify(user.email, body.code):
+        log_event(event_type="2fa_fail", title=f"2FA — échec de désactivation — {user.email}",
+                  status="warning", user=user.email, company_id=user.company_id)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Code de vérification invalide.")
     totp_service.disable(user.email, user.company_id)
-    log_event(event_type="2fa_fail", title=f"2FA désactivé — {user.email}", status="warning",
+    log_event(event_type="2fa_disable", title=f"2FA désactivée — {user.email}", status="warning",
               user=user.email, company_id=user.company_id)

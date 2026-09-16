@@ -12,9 +12,15 @@
  * lui-même : ce hook opterait son sous-arbre en rendu client (CSR bailout)
  * et exigerait une limite Suspense renvoyant un fallback vide dans le HTML
  * initial, ce qui casserait le rendu SSR du formulaire de connexion.
+ *
+ * Session de démonstration active (cookie cc_demo_session) : AUCUNE
+ * redirection automatique. Rediriger vers `safeNext` (/dashboard par défaut)
+ * renvoyait sur /demo via le proxy — boucle sans issue (M-16). On affiche à la
+ * place un bandeau « Quitter la démo » qui efface le cookie côté serveur, puis
+ * le formulaire de connexion habituel.
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoginScreen } from "@/components/pages/login-screen";
 import { useAuth } from "@/lib/hooks/use-auth";
@@ -32,17 +38,30 @@ interface LoginClientProps {
 }
 
 export function LoginClient({ safeNext }: LoginClientProps) {
-  const { auth, ready, login, loginDemo, verifyTotp } = useAuth();
+  const { auth, ready, login, loginDemo, exitDemo, verifyTotp } = useAuth();
   const { loading: demoLoading, error: demoError, enterDemo } = useDemoAccess(auth, loginDemo);
   const router = useRouter();
+  const [exitingDemo, setExitingDemo] = useState(false);
+  const [exitDemoError, setExitDemoError] = useState<string | null>(null);
 
   const demoContext = safeNext.startsWith("/resources") ? RESOURCES_DEMO_CONTEXT : null;
+  const inDemoSession = ready && auth.status === "authenticated" && auth.isDemo;
 
   useEffect(() => {
-    if (ready && auth.status === "authenticated") {
+    if (ready && auth.status === "authenticated" && !auth.isDemo) {
       router.replace(safeNext);
     }
-  }, [ready, auth.status, router, safeNext]);
+  }, [ready, auth, router, safeNext]);
+
+  const handleExitDemo = async () => {
+    setExitingDemo(true);
+    setExitDemoError(null);
+    const result = await exitDemo();
+    setExitingDemo(false);
+    if (!result.ok) {
+      setExitDemoError("error" in result ? result.error : "Impossible de quitter la démonstration.");
+    }
+  };
 
   return (
     <LoginScreen
@@ -65,6 +84,16 @@ export function LoginClient({ safeNext }: LoginClientProps) {
       demoLoading={demoLoading}
       demoError={demoError}
       demoContext={demoContext}
+      demoSession={
+        inDemoSession
+          ? {
+              onExit: () => void handleExitDemo(),
+              onResume: () => router.push("/demo"),
+              exiting: exitingDemo,
+              error: exitDemoError,
+            }
+          : null
+      }
     />
   );
 }

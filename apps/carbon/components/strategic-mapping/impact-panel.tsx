@@ -53,7 +53,7 @@ export function ImpactPanel({ financialGains, externalities }: Props) {
             onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               tab === t
-                ? "bg-[var(--color-primary)] text-white shadow-sm"
+                ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] shadow-sm"
                 : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
             }`}
           >

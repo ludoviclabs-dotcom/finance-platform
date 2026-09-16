@@ -4,12 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from db.tenant import get_company_id
 from models.carbon import CarbonSnapshotResponse, CarbonValidationResponse
+from routers._snapshots import serve_snapshot
 from services.carbon_service import (
-    CarbonServiceError,
     build_carbon_snapshot,
     validate_master_workbooks,
 )
-from services.snapshot_cache import read_snapshot, write_snapshot
 
 router = APIRouter()
 
@@ -26,15 +25,6 @@ async def validate() -> CarbonValidationResponse:
 
 @router.get("/snapshot", response_model=CarbonSnapshotResponse)
 async def snapshot(company_id: int = Depends(get_company_id)) -> CarbonSnapshotResponse:
-    """Return Carbon snapshot — served from cache if fresh, recalculated otherwise."""
-    cached = read_snapshot("carbon", company_id=company_id)
-    if cached:
-        return CarbonSnapshotResponse(**cached)
-    try:
-        result = build_carbon_snapshot(company_id=company_id)
-        write_snapshot("carbon", result, company_id=company_id)
-    except CarbonServiceError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Carbon snapshot failed: {exc}") from exc
-    return CarbonSnapshotResponse(**result)
+    """Dernier snapshot carbone importé par l'organisation (404 `no_snapshot` sinon)."""
+    data = serve_snapshot("carbon", company_id, lambda: build_carbon_snapshot(company_id=company_id))
+    return CarbonSnapshotResponse(**data)

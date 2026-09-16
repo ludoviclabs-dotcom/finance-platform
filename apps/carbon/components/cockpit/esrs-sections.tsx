@@ -23,9 +23,11 @@ export type EsrsStandard = {
   name: string;
   pillar: EsrsPillar;
   progress: number;
-  dp: number;
-  done: number;
-  missing: number;
+  /** Datapoints attendus / renseignés / manquants — `null` quand aucune
+   *  source réelle ne les fournit (affichés « — », jamais inventés). */
+  dp: number | null;
+  done: number | null;
+  missing: number | null;
   status: EsrsStatusKey;
   desc: string;
   owner: string;
@@ -38,10 +40,17 @@ export type EsrsTotals = {
   compliant: number;
   inProgress: number;
   notStarted: number;
-  dpDone: number;
-  dpTotal: number;
+  /** `null` : suivi des datapoints non disponible (affiché « — »). */
+  dpDone: number | null;
+  dpTotal: number | null;
   target: number;
 };
+
+/** Pourcentage de datapoints renseignés, `null` si le suivi n'existe pas. */
+function datapointPct(done: number | null, total: number | null): number | null {
+  if (done === null || total === null || total <= 0) return null;
+  return Math.round((done / total) * 100);
+}
 
 export type EsrsPillarSummary = {
   pillar: EsrsPillar;
@@ -251,7 +260,7 @@ export function EsrsHero({
   hovered: string | null;
   setHovered: (id: string | null) => void;
 }) {
-  const dpPct = totals.dpTotal > 0 ? Math.round((totals.dpDone / totals.dpTotal) * 100) : 0;
+  const dpPct = datapointPct(totals.dpDone, totals.dpTotal);
   const pills: Array<{ k: EsrsStatusKey; n: number }> = [
     { k: "compliant",   n: totals.compliant },
     { k: "in_progress", n: totals.inProgress },
@@ -280,11 +289,16 @@ export function EsrsHero({
         <div className="esrs-dp">
           <div className="esrs-dp-head">
             <span>Datapoints renseignés</span>
-            <strong className="cc-mono">{totals.dpDone}/{totals.dpTotal} · {dpPct}%</strong>
+            <strong className="cc-mono">
+              {dpPct === null ? "—" : `${totals.dpDone}/${totals.dpTotal} · ${dpPct}%`}
+            </strong>
           </div>
           <div className="esrs-dp-track">
-            <div className="esrs-dp-fill" style={{ width: `${dpPct}%` }} />
+            <div className="esrs-dp-fill" style={{ width: `${dpPct ?? 0}%` }} />
           </div>
+          {dpPct === null && (
+            <div className="cc-card-sub">Suivi des datapoints non disponible pour ces données.</div>
+          )}
         </div>
       </div>
 
@@ -393,7 +407,7 @@ function StandardRow({
 }) {
   const cfg = STATUS_CFG[s.status];
   const c = pillars[s.pillar].color;
-  const dpPct = s.dp > 0 ? Math.round((s.done / s.dp) * 100) : 0;
+  const dpPct = datapointPct(s.done, s.dp);
   const StatusIcon = s.status === "compliant" ? CheckCircle : s.status === "in_progress" ? RefreshCw : AlertTriangle;
   return (
     <div
@@ -411,7 +425,7 @@ function StandardRow({
           <div className="esrs-row-desc">{s.desc}</div>
         </div>
         <div className="esrs-row-dp">
-          <span className="cc-mono">{s.done}/{s.dp}</span>
+          <span className="cc-mono">{dpPct === null ? "—" : `${s.done}/${s.dp}`}</span>
           <span className="esrs-row-dp-l">datapoints</span>
         </div>
         <span className={`esrs-row-status ${cfg.cls}`}>
@@ -425,11 +439,17 @@ function StandardRow({
             <div className="esrs-exp-block">
               <div className="esrs-exp-t">Avancement datapoints</div>
               <div className="esrs-dp-track">
-                <div className="esrs-dp-fill" style={{ width: `${dpPct}%` }} />
+                <div className="esrs-dp-fill" style={{ width: `${dpPct ?? 0}%` }} />
               </div>
               <div className="esrs-exp-dp">
-                <strong className="cc-mono">{s.done}</strong> renseignés ·{" "}
-                <strong className="cc-mono">{s.missing}</strong> manquants
+                {dpPct === null ? (
+                  "Suivi des datapoints non disponible pour cette norme."
+                ) : (
+                  <>
+                    <strong className="cc-mono">{s.done}</strong> renseignés ·{" "}
+                    <strong className="cc-mono">{s.missing}</strong> manquants
+                  </>
+                )}
               </div>
             </div>
             <div className="esrs-exp-block">

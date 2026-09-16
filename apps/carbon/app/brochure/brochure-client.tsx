@@ -4,9 +4,13 @@
  * Brochure CarbonCo — 8 pages, imprimable et téléchargeable.
  *
  * Le rendu vise deux usages :
- *   1. Visualisation web (max-width A4 + ombres) — partageable par lien.
+ *   1. Visualisation web (largeur A4 au maximum + ombres) — partageable par
+ *      lien. Sous 210 mm de large, la page se réduit à la largeur de l'écran
+ *      et ses grilles s'empilent (QA 2026-09-16, m-07 : 794 px imposés
+ *      débordaient à 390 px).
  *   2. Impression / sauvegarde PDF par le navigateur (Cmd/Ctrl+P) avec
- *      pagination respectée grâce à @page + page-break-after.
+ *      pagination respectée grâce à @page + page-break-after ; les variantes
+ *      `print:` rétablissent la mise en page A4 d'origine.
  *
  * Aucun moteur PDF côté serveur : on s'appuie sur la fenêtre d'impression
  * du navigateur, ce qui élimine toute dépendance lourde et garantit que la
@@ -40,7 +44,7 @@ const PRINT_STYLE = `
   @media print {
     html, body { background: #ffffff !important; }
     .brochure-toolbar { display: none !important; }
-    .brochure-page { box-shadow: none !important; margin: 0 !important; page-break-after: always; }
+    .brochure-page { box-shadow: none !important; margin: 0 !important; width: 210mm !important; max-width: none !important; page-break-after: always; }
     .brochure-page:last-child { page-break-after: auto; }
   }
 `;
@@ -55,15 +59,8 @@ function Page({
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className="brochure-page bg-white shadow-2xl mx-auto my-8 p-12 print:my-0 print:shadow-none"
-      style={{
-        width: "210mm",
-        minHeight: "297mm",
-        boxSizing: "border-box",
-      }}
-    >
-      <header className="flex items-center justify-between mb-8 pb-4 border-b border-neutral-200">
+    <section className="brochure-page bg-white shadow-2xl mx-auto my-4 sm:my-8 w-full max-w-[210mm] p-5 sm:p-12 sm:min-h-[297mm] print:my-0 print:shadow-none print:p-12 print:min-h-[297mm]">
+      <header className="flex items-center justify-between gap-3 mb-8 pb-4 border-b border-neutral-200">
         <span className="text-xs font-extrabold tracking-tighter text-black">
           Carbon<span className="text-green-600">&amp;</span>Co
         </span>
@@ -72,13 +69,13 @@ function Page({
         </span>
       </header>
       {title && (
-        <h2 className="text-3xl font-extrabold tracking-tighter text-neutral-900 mb-6">
+        <h2 className="text-2xl sm:text-3xl print:text-3xl font-extrabold tracking-tighter text-neutral-900 mb-6">
           {title}
         </h2>
       )}
       <div className="text-neutral-700 leading-relaxed">{children}</div>
-      <footer className="mt-12 pt-4 border-t border-neutral-200 flex justify-between text-[10px] text-neutral-400">
-        <span>carbon-snowy-nine.vercel.app · {CONTACT_EMAIL}</span>
+      <footer className="mt-12 pt-4 border-t border-neutral-200 flex flex-wrap justify-between gap-x-4 gap-y-1 text-[10px] text-neutral-500">
+        <span className="break-all">carbon-snowy-nine.vercel.app · {CONTACT_EMAIL}</span>
         <span>Édition 2026</span>
       </footer>
     </section>
@@ -96,16 +93,16 @@ export function BrochureClient() {
 
       {/* Barre d'actions (masquée à l'impression) */}
       <div className="brochure-toolbar sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-neutral-200">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
               CarbonCo
             </p>
-            <h1 className="text-xl font-extrabold text-neutral-900">
+            <h1 className="text-lg sm:text-xl font-extrabold text-neutral-900">
               Brochure commerciale — 8 pages
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/"
               className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
@@ -123,203 +120,205 @@ export function BrochureClient() {
         </div>
       </div>
 
-      {/* Page 1 — couverture */}
-      <Page index="01">
-        <div className="flex flex-col items-center justify-center text-center min-h-[600px]">
-          <div className="text-xs font-bold uppercase tracking-[0.3em] text-green-600 mb-8">
-            Plateforme ESG & CSRD · Édition 2026
+      <div className="px-3 sm:px-6 print:p-0">
+        {/* Page 1 — couverture */}
+        <Page index="01">
+          <div className="flex flex-col items-center justify-center text-center py-6 sm:py-0 sm:min-h-[600px] print:min-h-[600px]">
+            <div className="text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-green-700 mb-8">
+              Plateforme ESG & CSRD · Édition 2026
+            </div>
+            <h1 className="text-4xl sm:text-6xl print:text-6xl font-extrabold tracking-tighter text-neutral-900 leading-[0.95] mb-6">
+              Du tableur au rapport
+              <br />
+              <span className="bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+                auditable.
+              </span>
+            </h1>
+            <p className="text-base sm:text-lg text-neutral-600 max-w-xl mb-10 sm:mb-12 leading-relaxed">
+              CarbonCo automatise la conformité ESRS, sécurise la traçabilité de
+              chaque chiffre et met en route votre reporting CSRD en moins de trois
+              semaines.
+            </p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-6 w-full max-w-3xl">
+              <div className="text-center">
+                <p className="text-2xl sm:text-3xl print:text-3xl font-extrabold text-green-700">3 sem.</p>
+                <p className="text-[10px] sm:text-xs text-neutral-500 uppercase tracking-wide sm:tracking-widest mt-1">Mise en route</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl sm:text-3xl print:text-3xl font-extrabold text-green-700">100 %</p>
+                <p className="text-[10px] sm:text-xs text-neutral-500 uppercase tracking-wide sm:tracking-widest mt-1">Datapoints tracés</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl sm:text-3xl print:text-3xl font-extrabold text-green-700">UE</p>
+                <p className="text-[10px] sm:text-xs text-neutral-500 uppercase tracking-wide sm:tracking-widest mt-1">Hébergement & IA</p>
+              </div>
+            </div>
           </div>
-          <h1 className="text-6xl font-extrabold tracking-tighter text-neutral-900 leading-[0.95] mb-6">
-            Du tableur au rapport
-            <br />
-            <span className="bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-              auditable.
-            </span>
-          </h1>
-          <p className="text-lg text-neutral-600 max-w-xl mb-12 leading-relaxed">
-            CarbonCo automatise la conformité ESRS, sécurise la traçabilité de
-            chaque chiffre et met en route votre reporting CSRD en moins de trois
-            semaines.
+        </Page>
+
+        {/* Page 2 — sommaire + positionnement */}
+        <Page index="02" title="Pourquoi CarbonCo">
+          <p className="mb-6">
+            Le règlement CSRD impose désormais à plus de 50 000 entreprises européennes de
+            publier un reporting de durabilité aussi rigoureux que leurs comptes financiers.
+            Les ETI se retrouvent face à un défi simple à formuler, complexe à exécuter :
+            <strong> produire un rapport ESRS auditable sans alourdir leurs équipes.</strong>
           </p>
-          <div className="grid grid-cols-3 gap-6 w-full max-w-3xl">
-            <div className="text-center">
-              <p className="text-3xl font-extrabold text-green-600">3 sem.</p>
-              <p className="text-xs text-neutral-500 uppercase tracking-widest mt-1">Mise en route</p>
+          <p className="mb-6">
+            CarbonCo répond à ce défi avec une plateforme conçue dès l&apos;origine pour la
+            traçabilité OTI : chaque donnée porte sa provenance, sa méthode et un hash
+            cryptographique de chaîne. Le résultat : un rapport que votre commissaire aux
+            comptes peut auditer ligne par ligne.
+          </p>
+          <h3 className="font-bold text-lg text-neutral-900 mt-8 mb-4">Sommaire</h3>
+          <ol className="space-y-2 text-sm">
+            <li>03 · Le produit en un coup d&apos;œil</li>
+            <li>04 · Architecture sécurité & conformité</li>
+            <li>05 · Scope 1 / 2 / 3 — couverture intégrale</li>
+            <li>06 · Calendrier CSRD & ESRS</li>
+            <li>07 · Tarifs et offres</li>
+            <li>08 · Comparatif et contact</li>
+          </ol>
+        </Page>
+
+        {/* Page 3 — produit en un coup d'œil */}
+        <Page index="03" title="Le produit en un coup d'œil">
+          <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4">
+            {[
+              { Comp: CollecteIllustration, t: "Collecte simplifiée",   d: "Import Excel + connecteurs API. Lignée préservée." },
+              { Comp: CalculIllustration,  t: "Calcul automatique",    d: "Facteurs ADEME · IPCC · DEFRA. Méthodes tracées." },
+              { Comp: AuditIllustration,   t: "Audit trail intégral",  d: "Hash SHA-256 à chaque écriture. Append-only." },
+              { Comp: RapportIllustration, t: "Rapport prêt OTI",      d: "PDF signé. Provenance et méthode incluses." },
+            ].map(({ Comp, t, d }) => (
+              <div key={t} className="rounded-2xl border border-neutral-200 p-4">
+                <Comp className="mb-2" />
+                <p className="font-bold text-sm text-neutral-900">{t}</p>
+                <p className="text-xs text-neutral-500 mt-0.5">{d}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8">
+            <ExcelToReportInfographic />
+          </div>
+        </Page>
+
+        {/* Page 4 — sécurité */}
+        <Page index="04" title="Architecture sécurité & conformité">
+          <p className="mb-6">
+            Vos données extra-financières sont aussi sensibles que vos données financières.
+            CarbonCo applique le même niveau d&apos;exigence : chiffrement AES-256 au repos,
+            TLS 1.3 en transit, audit trail immuable et hébergement entièrement européen.
+          </p>
+          <div className="my-6">
+            <SecurityArchitecture />
+          </div>
+          <h3 className="font-bold text-base text-neutral-900 mt-6 mb-4">
+            Conformité native et certifications
+          </h3>
+          <TrustBadges />
+        </Page>
+
+        {/* Page 5 — Scope 1/2/3 + illustrations */}
+        <Page index="05" title="Scope 1 · 2 · 3 — couverture intégrale">
+          <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-3 mb-6">
+            {[
+              { Comp: Scope1Illustration, t: "Scope 1", d: "Émissions directes (combustion, flotte, fluides)." },
+              { Comp: Scope2Illustration, t: "Scope 2", d: "Énergie achetée (électricité, chaleur, vapeur)." },
+              { Comp: Scope3Illustration, t: "Scope 3", d: "Chaîne de valeur (achats, transport, usage, fin de vie)." },
+            ].map(({ Comp, t, d }) => (
+              <div key={t} className="rounded-2xl border border-neutral-200 p-3">
+                <Comp className="mb-2" />
+                <p className="font-bold text-sm text-neutral-900">{t}</p>
+                <p className="text-xs text-neutral-500">{d}</p>
+              </div>
+            ))}
+          </div>
+          <ScopesInfographic />
+          <p className="mt-6 text-sm">
+            Le copilote IA propose en continu des hypothèses pour les postes Scope 3 les plus
+            difficiles à modéliser, en citant les références ESRS source.
+          </p>
+        </Page>
+
+        {/* Page 6 — calendrier CSRD */}
+        <Page index="06" title="Calendrier CSRD & ESRS">
+          <p className="mb-6">
+            La CSRD se déploie par vagues. Comprendre votre échéance est la première étape
+            pour cadrer un projet réaliste : périmètre, ressources, délai d&apos;audit.
+          </p>
+          <CsrdCalendarInfographic />
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4">
+            <div className="rounded-2xl bg-green-50 p-4 border border-green-200">
+              <OtiIllustration className="mb-2" />
+              <p className="text-xs text-neutral-700">
+                CarbonCo aligne sa roadmap sur les guidelines EFRAG 2025-2026 et fait évoluer
+                les datapoints au fil des publications.
+              </p>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-extrabold text-green-600">100 %</p>
-              <p className="text-xs text-neutral-500 uppercase tracking-widest mt-1">Datapoints tracés</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-extrabold text-green-600">UE</p>
-              <p className="text-xs text-neutral-500 uppercase tracking-widest mt-1">Hébergement & IA</p>
+            <div className="rounded-2xl bg-neutral-50 p-4 border border-neutral-200">
+              <p className="text-xs font-bold text-neutral-900 mb-1">À retenir</p>
+              <p className="text-xs text-neutral-600 leading-relaxed">
+                ESRS E1 (climat) reste prioritaire pour 2026 : c&apos;est le standard sur lequel
+                les commissaires aux comptes concentreront leurs travaux d&apos;assurance.
+              </p>
             </div>
           </div>
-        </div>
-      </Page>
+        </Page>
 
-      {/* Page 2 — sommaire + positionnement */}
-      <Page index="02" title="Pourquoi CarbonCo">
-        <p className="mb-6">
-          Le règlement CSRD impose désormais à plus de 50 000 entreprises européennes de
-          publier un reporting de durabilité aussi rigoureux que leurs comptes financiers.
-          Les ETI se retrouvent face à un défi simple à formuler, complexe à exécuter :
-          <strong> produire un rapport ESRS auditable sans alourdir leurs équipes.</strong>
-        </p>
-        <p className="mb-6">
-          CarbonCo répond à ce défi avec une plateforme conçue dès l&apos;origine pour la
-          traçabilité OTI : chaque donnée porte sa provenance, sa méthode et un hash
-          cryptographique de chaîne. Le résultat : un rapport que votre commissaire aux
-          comptes peut auditer ligne par ligne.
-        </p>
-        <h3 className="font-bold text-lg text-neutral-900 mt-8 mb-4">Sommaire</h3>
-        <ol className="space-y-2 text-sm">
-          <li>03 · Le produit en un coup d&apos;œil</li>
-          <li>04 · Architecture sécurité & conformité</li>
-          <li>05 · Scope 1 / 2 / 3 — couverture intégrale</li>
-          <li>06 · Calendrier CSRD & ESRS</li>
-          <li>07 · Tarifs et offres</li>
-          <li>08 · Comparatif et contact</li>
-        </ol>
-      </Page>
-
-      {/* Page 3 — produit en un coup d'œil */}
-      <Page index="03" title="Le produit en un coup d'œil">
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            { Comp: CollecteIllustration, t: "Collecte simplifiée",   d: "Import Excel + connecteurs API. Lignée préservée." },
-            { Comp: CalculIllustration,  t: "Calcul automatique",    d: "Facteurs ADEME · IPCC · DEFRA. Méthodes tracées." },
-            { Comp: AuditIllustration,   t: "Audit trail intégral",  d: "Hash SHA-256 à chaque écriture. Append-only." },
-            { Comp: RapportIllustration, t: "Rapport prêt OTI",      d: "PDF signé. Provenance et méthode incluses." },
-          ].map(({ Comp, t, d }) => (
-            <div key={t} className="rounded-2xl border border-neutral-200 p-4">
-              <Comp className="mb-2" />
-              <p className="font-bold text-sm text-neutral-900">{t}</p>
-              <p className="text-xs text-neutral-500 mt-0.5">{d}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-8">
-          <ExcelToReportInfographic />
-        </div>
-      </Page>
-
-      {/* Page 4 — sécurité */}
-      <Page index="04" title="Architecture sécurité & conformité">
-        <p className="mb-6">
-          Vos données extra-financières sont aussi sensibles que vos données financières.
-          CarbonCo applique le même niveau d&apos;exigence : chiffrement AES-256 au repos,
-          TLS 1.3 en transit, audit trail immuable et hébergement entièrement européen.
-        </p>
-        <div className="my-6">
-          <SecurityArchitecture />
-        </div>
-        <h3 className="font-bold text-base text-neutral-900 mt-6 mb-4">
-          Conformité native et certifications
-        </h3>
-        <TrustBadges />
-      </Page>
-
-      {/* Page 5 — Scope 1/2/3 + illustrations */}
-      <Page index="05" title="Scope 1 · 2 · 3 — couverture intégrale">
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {[
-            { Comp: Scope1Illustration, t: "Scope 1", d: "Émissions directes (combustion, flotte, fluides)." },
-            { Comp: Scope2Illustration, t: "Scope 2", d: "Énergie achetée (électricité, chaleur, vapeur)." },
-            { Comp: Scope3Illustration, t: "Scope 3", d: "Chaîne de valeur (achats, transport, usage, fin de vie)." },
-          ].map(({ Comp, t, d }) => (
-            <div key={t} className="rounded-2xl border border-neutral-200 p-3">
-              <Comp className="mb-2" />
-              <p className="font-bold text-sm text-neutral-900">{t}</p>
-              <p className="text-xs text-neutral-500">{d}</p>
-            </div>
-          ))}
-        </div>
-        <ScopesInfographic />
-        <p className="mt-6 text-sm">
-          Le copilote IA propose en continu des hypothèses pour les postes Scope 3 les plus
-          difficiles à modéliser, en citant les références ESRS source.
-        </p>
-      </Page>
-
-      {/* Page 6 — calendrier CSRD */}
-      <Page index="06" title="Calendrier CSRD & ESRS">
-        <p className="mb-6">
-          La CSRD se déploie par vagues. Comprendre votre échéance est la première étape
-          pour cadrer un projet réaliste : périmètre, ressources, délai d&apos;audit.
-        </p>
-        <CsrdCalendarInfographic />
-        <div className="mt-6 grid grid-cols-2 gap-4">
-          <div className="rounded-2xl bg-green-50 p-4 border border-green-200">
-            <OtiIllustration className="mb-2" />
-            <p className="text-xs text-neutral-700">
-              CarbonCo aligne sa roadmap sur les guidelines EFRAG 2025-2026 et fait évoluer
-              les datapoints au fil des publications.
-            </p>
+        {/* Page 7 — tarifs */}
+        <Page index="07" title="Tarifs et offres">
+          <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-4">
+            {[
+              { name: "Starter",    price: "490 €", target: "PME en reporting volontaire",      bullets: ["Scope 1 & 2", "ESRS E1", "1 utilisateur", "Export PDF"] },
+              { name: "Business",   price: "1 290 €", target: "ETI fournisseur grands comptes", bullets: ["Scope 1, 2 & 3", "Copilote IA", "5 utilisateurs", "API REST"], highlight: true },
+              { name: "Enterprise", price: "Sur devis", target: "Groupes multi-sites",          bullets: ["Multi-sites", "SSO + RBAC", "Support dédié", "Onboarding"] },
+            ].map((p) => (
+              <div
+                key={p.name}
+                className={`rounded-2xl border p-4 flex flex-col ${
+                  p.highlight ? "border-green-500 bg-green-50" : "border-neutral-200"
+                }`}
+              >
+                <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest">{p.name}</p>
+                <p className="mt-2 text-2xl font-extrabold text-neutral-900">{p.price}</p>
+                <p className="text-[11px] text-neutral-500 mt-1">/mois</p>
+                <p className="mt-3 text-xs text-neutral-600 leading-snug">{p.target}</p>
+                <ul className="mt-4 space-y-1.5 text-xs text-neutral-700 flex-1">
+                  {p.bullets.map((b) => (
+                    <li key={b} className="flex items-start gap-1.5">
+                      <span className="text-green-600 mt-0.5">✓</span>
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-          <div className="rounded-2xl bg-neutral-50 p-4 border border-neutral-200">
-            <p className="text-xs font-bold text-neutral-900 mb-1">À retenir</p>
-            <p className="text-xs text-neutral-600 leading-relaxed">
-              ESRS E1 (climat) reste prioritaire pour 2026 : c&apos;est le standard sur lequel
-              les commissaires aux comptes concentreront leurs travaux d&apos;assurance.
-            </p>
-          </div>
-        </div>
-      </Page>
+          <p className="mt-6 text-xs text-neutral-500">
+            Engagement mensuel ou annuel (−20 %) · Essai gratuit 14 jours · Résiliation à tout moment.
+          </p>
+        </Page>
 
-      {/* Page 7 — tarifs */}
-      <Page index="07" title="Tarifs et offres">
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { name: "Starter",    price: "490 €", target: "PME en reporting volontaire",      bullets: ["Scope 1 & 2", "ESRS E1", "1 utilisateur", "Export PDF"] },
-            { name: "Business",   price: "1 290 €", target: "ETI fournisseur grands comptes", bullets: ["Scope 1, 2 & 3", "Copilote IA", "5 utilisateurs", "API REST"], highlight: true },
-            { name: "Enterprise", price: "Sur devis", target: "Groupes multi-sites",          bullets: ["Multi-sites", "SSO + RBAC", "Support dédié", "Onboarding"] },
-          ].map((p) => (
-            <div
-              key={p.name}
-              className={`rounded-2xl border p-4 flex flex-col ${
-                p.highlight ? "border-green-500 bg-green-50" : "border-neutral-200"
-              }`}
+        {/* Page 8 — preuve d'abord & contact */}
+        <Page index="08" title="La preuve d'abord et contact">
+          <WhyProofFirst />
+          <div className="mt-8 rounded-2xl bg-neutral-900 text-white p-6 flex flex-col sm:flex-row print:flex-row sm:items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-widest text-green-400 font-bold mb-1">
+                Pour aller plus loin
+              </p>
+              <p className="font-bold text-lg break-all">{CONTACT_EMAIL}</p>
+              <p className="text-sm text-neutral-300">Réponse sous 24 h ouvrées · démo 30 min sur invitation.</p>
+            </div>
+            <a
+              href={`mailto:${CONTACT_EMAIL}?subject=Demande%20de%20d%C3%A9mo%20CarbonCo`}
+              className="shrink-0 self-start sm:self-auto px-5 py-3 rounded-lg bg-white text-neutral-900 text-sm font-semibold hover:bg-neutral-100 transition-colors"
             >
-              <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest">{p.name}</p>
-              <p className="mt-2 text-2xl font-extrabold text-neutral-900">{p.price}</p>
-              <p className="text-[11px] text-neutral-500 mt-1">/mois</p>
-              <p className="mt-3 text-xs text-neutral-600 leading-snug">{p.target}</p>
-              <ul className="mt-4 space-y-1.5 text-xs text-neutral-700 flex-1">
-                {p.bullets.map((b) => (
-                  <li key={b} className="flex items-start gap-1.5">
-                    <span className="text-green-600 mt-0.5">✓</span>
-                    {b}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <p className="mt-6 text-xs text-neutral-500">
-          Engagement mensuel ou annuel (−20 %) · Essai gratuit 14 jours · Résiliation à tout moment.
-        </p>
-      </Page>
-
-      {/* Page 8 — preuve d'abord & contact */}
-      <Page index="08" title="La preuve d'abord et contact">
-        <WhyProofFirst />
-        <div className="mt-8 rounded-2xl bg-neutral-900 text-white p-6 flex items-center justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-green-400 font-bold mb-1">
-              Pour aller plus loin
-            </p>
-            <p className="font-bold text-lg">{CONTACT_EMAIL}</p>
-            <p className="text-sm text-neutral-300">Réponse sous 24 h ouvrées · démo 30 min sur invitation.</p>
+              Demander une démo
+            </a>
           </div>
-          <a
-            href={`mailto:${CONTACT_EMAIL}?subject=Demande%20de%20d%C3%A9mo%20CarbonCo`}
-            className="px-5 py-3 rounded-lg bg-white text-neutral-900 text-sm font-semibold hover:bg-neutral-100 transition-colors"
-          >
-            Demander une démo
-          </a>
-        </div>
-      </Page>
+        </Page>
+      </div>
     </div>
   );
 }

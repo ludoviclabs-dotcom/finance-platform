@@ -8,7 +8,10 @@
 
 import { useState } from "react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+import { normalizeApiBaseUrl } from "@/lib/api-base-url";
+
+const API_BASE_URL =
+  normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL) ?? "http://localhost:8000";
 
 const CLIENT_RANGES = ["1 à 5 dossiers", "5 à 20 dossiers", "Plus de 20 dossiers"];
 

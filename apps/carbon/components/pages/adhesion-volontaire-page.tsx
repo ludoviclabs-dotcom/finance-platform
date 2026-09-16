@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Quote, Loader2, AlertTriangle, Download, ExternalLink } from "lucide-react";
 import { pageVariants, staggerContainer, staggerItem } from "@/lib/animations";
 import { useStrategicMapping } from "@/lib/hooks/use-strategic-mapping";
-import { API_BASE_URL } from "@/lib/api";
+import { downloadStrategicMappingExport, friendlyApiErrorMessage } from "@/lib/api";
 import type { MappingSegment, MappingPersona, MappingHorizon } from "@/lib/api";
 import { MappingHero } from "@/components/strategic-mapping/mapping-hero";
 import { InvestmentAndValueChain } from "@/components/strategic-mapping/investment-and-value-chain";
@@ -20,6 +20,24 @@ export function AdhesionVolontairePage() {
   const [horizon, setHorizon] = useState<MappingHorizon>("generic");
 
   const { data, loading, error } = useStrategicMapping({ segment, persona, horizon });
+  const [exporting, setExporting] = useState<"xlsx" | "pdf" | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  // Les exports sont tenant-scoped : un lien <a href> direct vers l'API
+  // partirait sans jeton (401). Téléchargement authentifié via lib/api.
+  const handleExport = async (format: "xlsx" | "pdf") => {
+    setExporting(format);
+    setExportError(null);
+    try {
+      await downloadStrategicMappingExport(format, { segment, persona, horizon });
+    } catch (err) {
+      setExportError(
+        friendlyApiErrorMessage(err, {}, "Export indisponible pour le moment. Réessayez."),
+      );
+    } finally {
+      setExporting(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -142,24 +160,31 @@ export function AdhesionVolontairePage() {
                 <ExternalLink className="w-3.5 h-3.5" />
                 Page publique
               </a>
-              <a
-                href={`${API_BASE_URL}/strategic-mapping/adhesion-volontaire/export.xlsx?segment=${segment}&persona=${persona}&horizon=${horizon}`}
-                download
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors shrink-0"
-              >
-                <Download className="w-3.5 h-3.5" />
-                .xlsx
-              </a>
-              <a
-                href={`${API_BASE_URL}/strategic-mapping/adhesion-volontaire/export.pdf?segment=${segment}&persona=${persona}&horizon=${horizon}`}
-                download
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors shrink-0"
-              >
-                <Download className="w-3.5 h-3.5" />
-                .pdf
-              </a>
+              {(["xlsx", "pdf"] as const).map((format) => (
+                <button
+                  key={format}
+                  type="button"
+                  onClick={() => void handleExport(format)}
+                  disabled={exporting !== null}
+                  aria-label={`Exporter le mapping au format ${format.toUpperCase()}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {exporting === format ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  .{format}
+                </button>
+              ))}
             </div>
           </div>
+          {exportError && (
+            <p role="alert" className="mt-2 flex items-center gap-2 text-xs text-red-400">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              {exportError}
+            </p>
+          )}
         </motion.div>
 
       </motion.div>

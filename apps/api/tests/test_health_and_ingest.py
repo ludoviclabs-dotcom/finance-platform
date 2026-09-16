@@ -18,8 +18,11 @@ class TestHealth:
 
 
 class TestCacheStatus:
-    def test_cache_status_accessible(self, client: TestClient) -> None:
-        resp = client.get("/ingest/status")
+    def test_cache_status_requires_token(self, client: TestClient) -> None:
+        assert client.get("/ingest/status").status_code == 401
+
+    def test_cache_status_accessible(self, client: TestClient, viewer_token: str) -> None:
+        resp = client.get("/ingest/status", headers=auth(viewer_token))
         assert resp.status_code == 200
         assert "domains" in resp.json()
 

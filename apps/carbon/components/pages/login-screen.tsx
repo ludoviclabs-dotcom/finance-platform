@@ -2,12 +2,24 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Leaf, ArrowRight, Eye, EyeOff, Shield, Lock, CheckCircle, AlertCircle } from "lucide-react";
+import { Leaf, ArrowRight, Eye, EyeOff, Shield, Lock, CheckCircle, AlertCircle, LogOut } from "lucide-react";
+
+import { SERVICE_UNAVAILABLE_MESSAGE } from "@/lib/api";
 
 interface DemoContext {
   title: string;
   description: string;
   demoLabel: string;
+}
+
+/** Session de démonstration active dans ce navigateur (cookie HttpOnly). */
+interface DemoSessionNotice {
+  /** Efface la session démo côté serveur, puis réaffiche le formulaire. */
+  onExit: () => void;
+  /** Retour à l'espace de démonstration. */
+  onResume: () => void;
+  exiting: boolean;
+  error: string | null;
 }
 
 interface LoginScreenProps {
@@ -26,6 +38,8 @@ interface LoginScreenProps {
   demoError?: string | null;
   /** Contexte affiché quand `next` cible une page protégée (ex. /resources). */
   demoContext?: DemoContext | null;
+  /** Non nul quand une session démo est active : bandeau « Quitter la démo » à la place du formulaire. */
+  demoSession?: DemoSessionNotice | null;
 }
 
 export function LoginScreen({
@@ -35,6 +49,7 @@ export function LoginScreen({
   demoLoading = false,
   demoError = null,
   demoContext = null,
+  demoSession = null,
 }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,6 +74,10 @@ export function LoginScreen({
       } else if (!result.ok) {
         setError(result.error ?? "Erreur de connexion.");
       }
+    } catch {
+      // Filet de sécurité : une erreur inattendue ne laisse jamais le
+      // formulaire sans message.
+      setError(SERVICE_UNAVAILABLE_MESSAGE);
     } finally {
       setLoading(false);
     }
@@ -73,6 +92,8 @@ export function LoginScreen({
       if (!result.ok) {
         setError(result.error ?? "Code invalide.");
       }
+    } catch {
+      setError(SERVICE_UNAVAILABLE_MESSAGE);
     } finally {
       setLoading(false);
     }
@@ -217,6 +238,10 @@ export function LoginScreen({
             </p>
           </div>
 
+          {demoSession ? (
+            <DemoSessionBanner session={demoSession} />
+          ) : (
+          <>
           {/* Titre formulaire */}
           <div className="mb-8">
             <h2 className="font-display text-2xl font-bold text-white mb-1">
@@ -411,6 +436,8 @@ export function LoginScreen({
             </div>
           </>
           )}
+          </>
+          )}
 
           {/* Trust signals */}
           <div className="mt-6 flex items-center justify-center gap-6 flex-wrap">
@@ -428,6 +455,61 @@ export function LoginScreen({
             </div>
           </div>
         </motion.div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Bandeau affiché à la place du formulaire quand ce navigateur porte une
+ * session de démonstration : on ne redirige plus automatiquement (M-16), on
+ * propose explicitement de la quitter ou d'y revenir.
+ */
+function DemoSessionBanner({ session }: { session: DemoSessionNotice }) {
+  return (
+    <div
+      className="rounded-2xl border border-amber-400/30 bg-amber-400/10 backdrop-blur-xl p-8"
+      data-testid="login-demo-session"
+      role="region"
+      aria-labelledby="login-demo-session-title"
+    >
+      <h2 id="login-demo-session-title" className="font-display text-2xl font-bold text-white mb-2">
+        Vous êtes dans une session de démonstration
+      </h2>
+      <p className="text-sm text-white/60 mb-6">
+        Ce navigateur utilise l&apos;espace de démonstration (données fictives). Quittez la démo pour
+        vous connecter à votre compte CarbonCo.
+      </p>
+      {session.error && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="mb-4 flex items-center gap-2 p-3 rounded-xl bg-red-500/15 border border-red-500/30"
+        >
+          <AlertCircle className="w-4 h-4 text-red-300 flex-shrink-0" />
+          <span className="text-xs text-red-200">{session.error}</span>
+        </div>
+      )}
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button
+          type="button"
+          onClick={session.onExit}
+          disabled={session.exiting}
+          data-testid="login-demo-exit"
+          className="flex-1 py-3 rounded-xl bg-gradient-esg text-white font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-400"
+        >
+          <LogOut className="w-4 h-4" aria-hidden="true" />
+          {session.exiting ? "Sortie en cours…" : "Quitter la démo"}
+        </button>
+        <button
+          type="button"
+          onClick={session.onResume}
+          disabled={session.exiting}
+          className="flex-1 py-3 rounded-xl border border-white/20 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-white/10 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          Revenir à la démo
+          <ArrowRight className="w-4 h-4" aria-hidden="true" />
+        </button>
       </div>
     </div>
   );

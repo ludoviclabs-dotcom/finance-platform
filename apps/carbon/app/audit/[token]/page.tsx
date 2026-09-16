@@ -10,7 +10,9 @@
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+import { normalizeApiBaseUrl } from "@/lib/api-base-url";
+
+const API = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL) ?? "";
 
 type Kpi = {
   code: string;

@@ -185,8 +185,15 @@ export function QualityPanel() {
       </div>
 
       <p className="mt-4 text-[10px] text-[var(--color-foreground-subtle)]">
-        Facteurs : {display.fe_versions.length ? display.fe_versions.join(", ") : "—"} · Chaîne :{" "}
-        {display.chain_ok ? "intègre" : "rompue"}
+        {isDemo ? (
+          // Jamais d'attestation d'intégrité ni de version de facteurs sur des données fictives.
+          "Démonstration : versions de facteurs et chaîne de preuve non évaluées."
+        ) : (
+          <>
+            Facteurs : {display.fe_versions.length ? display.fe_versions.join(", ") : "—"} · Chaîne :{" "}
+            {display.chain_ok ? "intègre" : "rompue"}
+          </>
+        )}
       </p>
     </div>
   );

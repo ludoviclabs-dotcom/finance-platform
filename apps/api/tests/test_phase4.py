@@ -14,16 +14,19 @@ def auth(token: str) -> dict:
 # ---------------------------------------------------------------------------
 
 class TestSuppliers:
-    def test_list_suppliers_accessible(self, client: TestClient) -> None:
-        resp = client.get("/suppliers")
-        # Mode /tmp : GET sans auth → entreprise 1 par défaut (DEFAULT_COMPANY_ID)
+    def test_list_suppliers_requires_token(self, client: TestClient) -> None:
+        # Plus de repli anonyme sur l'organisation n°1 (rapport QA 16/09/2026).
+        assert client.get("/suppliers").status_code == 401
+
+    def test_list_suppliers_accessible(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get("/suppliers", headers=auth(analyst_token))
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data, list)
         assert len(data) >= 20  # 20 fournisseurs démo
 
-    def test_scope3_summary(self, client: TestClient) -> None:
-        resp = client.get("/suppliers/scope3")
+    def test_scope3_summary(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get("/suppliers/scope3", headers=auth(analyst_token))
         assert resp.status_code == 200
         data = resp.json()
         assert "total_suppliers" in data
@@ -54,14 +57,14 @@ class TestSuppliers:
         assert data["name"] == "Test Fournisseur CI"
         assert data["status"] == "active"
 
-    def test_get_supplier_detail(self, client: TestClient) -> None:
-        resp = client.get("/suppliers/1")
+    def test_get_supplier_detail(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get("/suppliers/1", headers=auth(analyst_token))
         assert resp.status_code == 200
         data = resp.json()
         assert "name" in data
 
-    def test_get_nonexistent_supplier(self, client: TestClient) -> None:
-        resp = client.get("/suppliers/99999")
+    def test_get_nonexistent_supplier(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get("/suppliers/99999", headers=auth(analyst_token))
         assert resp.status_code == 404
 
     def test_create_token_requires_auth(self, client: TestClient) -> None:
@@ -128,10 +131,11 @@ class TestMaterialite:
         assert "finance" in data["sectors"]
         assert "issues" in data
 
-    def test_score_with_preset_sector(self, client: TestClient) -> None:
+    def test_score_with_preset_sector(self, client: TestClient, analyst_token: str) -> None:
         resp = client.post(
             "/materialite/score",
             json={"positions": [], "sector": "tech"},
+            headers=auth(analyst_token),
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -143,9 +147,10 @@ class TestMaterialite:
         assert len(data["narrative"]) > 50
         assert data["sector"] == "tech"
 
-    def test_score_with_custom_positions(self, client: TestClient) -> None:
+    def test_score_with_custom_positions(self, client: TestClient, analyst_token: str) -> None:
         resp = client.post(
             "/materialite/score",
+            headers=auth(analyst_token),
             json={
                 "positions": [
                     {"code": "CC-1", "x": 4.0, "y": 4.5},
@@ -177,8 +182,8 @@ class TestMaterialite:
         )
         assert resp.status_code == 204
 
-    def test_get_positions(self, client: TestClient) -> None:
-        resp = client.get("/materialite/positions")
+    def test_get_positions(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get("/materialite/positions", headers=auth(analyst_token))
         assert resp.status_code == 200
         assert isinstance(resp.json(), list)
 

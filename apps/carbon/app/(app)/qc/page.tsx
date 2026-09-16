@@ -183,9 +183,14 @@ export default function QcPage() {
   ];
 
   const loading = esgSnap.status === "loading" || financeSnap.status === "loading";
+  // « Aucune donnée importée » n'est pas une erreur de chargement : message neutre.
   const errors: string[] = [
-    esgSnap.status === "error" ? `ESG : ${esgSnap.error}` : null,
-    financeSnap.status === "error" ? `Finance : ${financeSnap.error}` : null,
+    esgSnap.status === "error" && !esgSnap.empty ? `ESG : ${esgSnap.error}` : null,
+    financeSnap.status === "error" && !financeSnap.empty ? `Finance : ${financeSnap.error}` : null,
+  ].filter((x): x is string => x !== null);
+  const notImported: string[] = [
+    esgSnap.status === "error" && esgSnap.empty ? "ESG" : null,
+    financeSnap.status === "error" && financeSnap.empty ? "Finance" : null,
   ].filter((x): x is string => x !== null);
 
   if (loading) {
@@ -217,6 +222,13 @@ export default function QcPage() {
 
       {/* Provenance integrity (Phase 2) */}
       <ProvenanceIntegrityCard />
+
+      {notImported.length > 0 && (
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-xs text-[var(--color-foreground-muted)]">
+          Aucune donnée importée pour : {notImported.join(", ")}. Les contrôles de ces domaines
+          apparaîtront après l&apos;import de vos classeurs.
+        </div>
+      )}
 
       {/* Errors */}
       {errors.length > 0 && (

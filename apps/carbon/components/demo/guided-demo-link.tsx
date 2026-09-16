@@ -8,6 +8,9 @@
  * dans un coin libre (bas-gauche — le header cinématique occupe le haut, le
  * CTA de fin de parcours est centré). Authentifie silencieusement via
  * POST /auth/demo (session démo, aucun secret client) avant de rediriger.
+ *
+ * Tant que la bannière cookies est affichée, le bouton remonte au-dessus
+ * d'elle (`--cookie-banner-offset`) au lieu d'être masqué (QA m-06).
  */
 
 import { useCallback } from "react";
@@ -15,6 +18,10 @@ import { ArrowRight, FlaskConical } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useDemoAccess } from "@/lib/hooks/use-demo-access";
+
+/** 1rem du bord, + encoche éventuelle, + hauteur de la bannière cookies si affichée. */
+const GUIDED_LINK_BOTTOM =
+  "calc(1rem + env(safe-area-inset-bottom, 0px) + var(--cookie-banner-offset, 0px))";
 
 export function GuidedDemoLink() {
   const { auth, loginDemo } = useAuth();
@@ -33,7 +40,8 @@ export function GuidedDemoLink() {
       disabled={loading}
       data-testid="guided-demo-link"
       aria-label="Voir la démo guidée — cockpit Asterion Motion"
-      className="fixed bottom-4 left-4 z-[70] inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur-sm transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+      style={{ bottom: GUIDED_LINK_BOTTOM }}
+      className="fixed left-4 z-[70] inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur-sm transition-[color,background-color,bottom] motion-reduce:transition-none hover:bg-white/10 hover:text-white disabled:opacity-50"
     >
       <FlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
       {loading ? "Ouverture…" : "Voir la démo guidée"}

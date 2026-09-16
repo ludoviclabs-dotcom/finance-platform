@@ -21,6 +21,7 @@ import {
 import { SectionTitle } from "@/components/ui/section-title";
 import { ValidatorPanel } from "@/components/datapoints/validator-panel";
 import { getAuthToken } from "@/lib/api";
+import { openTenantDocument } from "@/lib/blob/open-document";
 import type {
   EsrsDatapointDef,
   ExtractedDatapoint,
@@ -572,14 +573,15 @@ export function DatapointsPage() {
                           {s.page ? ` · p.${s.page}` : ""}
                           {s.sheet ? ` · ${s.sheet}` : ""}
                         </span>
-                        <a
-                          href={s.blobUrl}
-                          target="_blank"
-                          rel="noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => void openTenantDocument(s.blobUrl)}
                           className="text-[var(--color-foreground-muted)] hover:text-carbon-emerald-light"
+                          title="Ouvrir le document source"
+                          aria-label={`Ouvrir ${s.filename}`}
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
+                        </button>
                       </div>
                       <p className="text-xs text-[var(--color-foreground-muted)] leading-relaxed whitespace-pre-wrap">
                         {s.snippet}

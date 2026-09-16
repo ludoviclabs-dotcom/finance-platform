@@ -11,7 +11,16 @@
 
 import registry from "@/data/feature-status.json";
 
-export type FeatureStatus = "live" | "beta" | "planifie";
+/**
+ * - `live`         : disponible ET vérifiable en production aujourd'hui.
+ * - `verification` : livré dans le code, mais la disponibilité en production
+ *                    n'a pas pu être confirmée au dernier contrôle (dépend de
+ *                    l'API authentifiée ou d'une tâche planifiée). Repasse
+ *                    `live` une fois la vérification concluante (QA M-08).
+ * - `beta`         : accessible mais encore en validation.
+ * - `planifie`     : sur la roadmap, non développé.
+ */
+export type FeatureStatus = "live" | "verification" | "beta" | "planifie";
 export type IntegrationStatus = FeatureStatus | "roadmap";
 export type IntegrationSection = "disponible" | "imports-fichiers" | "roadmap";
 
@@ -25,6 +34,11 @@ export interface Feature {
   preuve?: string;
   /** Lien public vers la fonctionnalité quand elle a une page dédiée (ex. /materials). */
   href?: string;
+  /**
+   * Date ISO du dernier contrôle concluant en production. Exigée (par test)
+   * pour toute feature `live` adossée à l'API (`preuve` sous apps/api/).
+   */
+  verifie_le?: string;
 }
 
 export interface EsrsRow {
@@ -50,6 +64,17 @@ const FEATURES = registry.features as Feature[];
 const ESRS = registry.esrs as EsrsRow[];
 const INTEGRATIONS = registry.integrations as Integration[];
 
+const MOIS = [
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+];
+
+/** Date ISO `YYYY-MM-DD` → français long (ex. « 13 juin 2026 »), sans fuseau horaire. */
+function formatIsoDateFr(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d} ${MOIS[m - 1]} ${y}`;
+}
+
 /** Date de dernière mise à jour du registre (ISO `YYYY-MM-DD`). */
 export function lastUpdate(): string {
   return registry.derniere_maj;
@@ -57,12 +82,17 @@ export function lastUpdate(): string {
 
 /** Date de dernière mise à jour formatée en français long (ex. « 13 juin 2026 »). */
 export function lastUpdateLabel(): string {
-  const [y, m, d] = registry.derniere_maj.split("-").map(Number);
-  const mois = [
-    "janvier", "février", "mars", "avril", "mai", "juin",
-    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
-  ];
-  return `${d} ${mois[m - 1]} ${y}`;
+  return formatIsoDateFr(registry.derniere_maj);
+}
+
+/** Date du dernier contrôle de disponibilité des statuts (ISO `YYYY-MM-DD`). */
+export function lastVerification(): string {
+  return registry.derniere_verification;
+}
+
+/** Date du dernier contrôle de disponibilité, en français long. */
+export function lastVerificationLabel(): string {
+  return formatIsoDateFr(registry.derniere_verification);
 }
 
 /** Toutes les features (ordre du registre). */
@@ -91,6 +121,7 @@ export function esrsRows(): EsrsRow[] {
 export function esrsCounts(): Record<FeatureStatus, number> {
   return {
     live: ESRS.filter((r) => r.statut === "live").length,
+    verification: ESRS.filter((r) => r.statut === "verification").length,
     beta: ESRS.filter((r) => r.statut === "beta").length,
     planifie: ESRS.filter((r) => r.statut === "planifie").length,
   };
@@ -113,6 +144,7 @@ export function allIntegrations(): Integration[] {
 /** Libellés FR courts des statuts (pour badges/légendes). */
 export const STATUS_LABEL: Record<IntegrationStatus, string> = {
   live: "Disponible",
+  verification: "En cours de vérification",
   beta: "Beta",
   planifie: "Planifié",
   roadmap: "Roadmap",

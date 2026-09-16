@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { readTenantBlob } from "@/lib/blob/private-blob";
 import { requireRole, verifyBearerToken } from "@/lib/verify-jwt";
 import { parseDocument } from "@/lib/rag/parsers";
 import { chunkSegments } from "@/lib/rag/chunker";
@@ -29,14 +30,11 @@ type IngestFileResult = {
   detail?: string;
 };
 
-async function fetchBuffer(url: string): Promise<{ buffer: ArrayBuffer; mimeType: string }> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Téléchargement Blob échoué (${res.status})`);
-  }
-  const buffer = await res.arrayBuffer();
-  const mimeType = res.headers.get("content-type") ?? "application/octet-stream";
-  return { buffer, mimeType };
+/** Pièce de l'organisation, lue dans le store privé — jamais un fetch d'URL
+ * arbitraire fournie par le client (SSRF). */
+async function fetchBuffer(ref: string, cid: string): Promise<{ buffer: ArrayBuffer; mimeType: string }> {
+  const blob = await readTenantBlob(ref, cid);
+  return { buffer: blob.buffer, mimeType: blob.contentType };
 }
 
 function chunkId(cid: string, blobUrl: string, idx: number): string {
@@ -70,7 +68,7 @@ export async function POST(req: NextRequest) {
 
   for (const doc of body.documents) {
     try {
-      const { buffer, mimeType } = await fetchBuffer(doc.blobUrl);
+      const { buffer, mimeType } = await fetchBuffer(doc.blobUrl, cid);
       const effectiveMime = doc.mimeType || mimeType;
       const segments = await parseDocument(doc.filename, effectiveMime, buffer);
       if (segments.length === 0) {

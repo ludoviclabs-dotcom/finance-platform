@@ -20,9 +20,13 @@ import {
   Download,
 } from "lucide-react";
 import {
+  ApiError,
+  friendlyApiErrorMessage,
   getAuthToken,
   ingestUploaded,
+  isNetworkError,
   previewExcel,
+  SERVICE_UNAVAILABLE_MESSAGE,
   templateDownloadUrl,
   validateExcel,
   type ExcelPreviewResponse,
@@ -41,11 +45,13 @@ interface DomainFile {
   file: File | null;
   status: "idle" | "ok" | "error";
   detail?: string;
-  url?: string;
   preview?: ExcelPreviewResponse;
   validation?: ExcelValidateResponse;
   previewing?: boolean;
   validating?: boolean;
+  /** Message présentable quand l'aperçu ou la validation n'a pas pu être obtenu. */
+  previewError?: string;
+  validationError?: string;
 }
 
 interface UploadResult {
@@ -53,10 +59,37 @@ interface UploadResult {
   files: Array<{
     domain: string;
     status: "ok" | "error";
-    url?: string;
+    /** Chemin dans le stockage privé — jamais d'URL publique. */
+    pathname?: string;
     filename?: string;
     detail?: string;
   }>;
+}
+
+/** Les excel/* exigent un rôle analyste : message dédié au 403. */
+const ANALYST_REQUIRED_MESSAGE =
+  "Votre rôle ne permet pas l'import de classeurs (rôle analyste ou administrateur requis).";
+
+function excelStepError(err: unknown, fallback: string): string {
+  return friendlyApiErrorMessage(err, { 403: ANALYST_REQUIRED_MESSAGE }, fallback);
+}
+
+/** Message présentable pour une réponse /api/upload inexploitable. */
+function uploadFailureMessage(status: number): string {
+  if (status === 401) return "Votre session a expiré. Reconnectez-vous pour envoyer vos fichiers.";
+  if (status === 403) return ANALYST_REQUIRED_MESSAGE;
+  if (status === 413) return "Fichiers trop volumineux (10 Mo maximum par classeur).";
+  if (status === 429) return "Trop de requêtes. Réessayez dans quelques instants.";
+  return "Envoi impossible pour le moment. Réessayez dans quelques instants.";
+}
+
+function isUploadResult(value: unknown): value is UploadResult {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Array.isArray((value as { files?: unknown }).files) &&
+    typeof (value as { status?: unknown }).status === "string"
+  );
 }
 
 // 5 steps: 0=Sélection 1=Prévisualisation 2=Validation 3=Upload 4=Résultat
@@ -231,6 +264,14 @@ function PreviewPanel({ state, domain }: { state: DomainFile; domain: (typeof DO
       </div>
     );
   }
+  if (state.previewError) {
+    return (
+      <div role="alert" className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400">
+        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+        <span>{state.previewError}</span>
+      </div>
+    );
+  }
   if (!pr) return null;
 
   return (
@@ -303,6 +344,14 @@ function ValidationPanel({ state }: { state: DomainFile }) {
     return (
       <div className="flex items-center gap-2 p-4 text-xs text-[var(--color-foreground-muted)]">
         <Loader2 className="w-4 h-4 animate-spin" /> Validation en cours…
+      </div>
+    );
+  }
+  if (state.validationError) {
+    return (
+      <div role="alert" className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400">
+        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+        <span>{state.validationError}</span>
       </div>
     );
   }
@@ -400,9 +449,22 @@ export default function UploadPage() {
       DOMAINS.filter((d) => files[d.key].file).map(async (d) => {
         try {
           const pr = await previewExcel(files[d.key].file!, d.key);
-          setFiles((prev) => ({ ...prev, [d.key]: { ...prev[d.key], previewing: false, preview: pr } }));
-        } catch {
-          setFiles((prev) => ({ ...prev, [d.key]: { ...prev[d.key], previewing: false } }));
+          setFiles((prev) => ({
+            ...prev,
+            [d.key]: { ...prev[d.key], previewing: false, preview: pr, previewError: undefined },
+          }));
+        } catch (err) {
+          setFiles((prev) => ({
+            ...prev,
+            [d.key]: {
+              ...prev[d.key],
+              previewing: false,
+              previewError: excelStepError(
+                err,
+                "Aperçu indisponible pour ce fichier. Vous pouvez tout de même poursuivre vers la validation.",
+              ),
+            },
+          }));
         }
       }),
     );
@@ -423,9 +485,22 @@ export default function UploadPage() {
       DOMAINS.filter((d) => files[d.key].file).map(async (d) => {
         try {
           const val = await validateExcel(files[d.key].file!, d.key);
-          setFiles((prev) => ({ ...prev, [d.key]: { ...prev[d.key], validating: false, validation: val } }));
-        } catch {
-          setFiles((prev) => ({ ...prev, [d.key]: { ...prev[d.key], validating: false } }));
+          setFiles((prev) => ({
+            ...prev,
+            [d.key]: { ...prev[d.key], validating: false, validation: val, validationError: undefined },
+          }));
+        } catch (err) {
+          setFiles((prev) => ({
+            ...prev,
+            [d.key]: {
+              ...prev[d.key],
+              validating: false,
+              validationError: excelStepError(
+                err,
+                "Validation de structure indisponible pour ce fichier. Réessayez dans quelques instants.",
+              ),
+            },
+          }));
         }
       }),
     );
@@ -449,7 +524,19 @@ export default function UploadPage() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: fd,
       });
-      const data: UploadResult = await res.json();
+      let payload: unknown = null;
+      try {
+        payload = await res.json();
+      } catch {
+        payload = null; // page d'erreur non JSON (limite de taille, passerelle…)
+      }
+      if (!isUploadResult(payload)) {
+        // 401/403/413/5xx : pas de détail par fichier exploitable. Le détail
+        // technique éventuel n'est jamais montré tel quel.
+        setUploadError(uploadFailureMessage(res.status));
+        return;
+      }
+      const data = payload;
       setUploadResult(data);
 
       setFiles((prev) => {
@@ -457,7 +544,7 @@ export default function UploadPage() {
         for (const r of data.files) {
           const k = r.domain as DomainKey;
           if (next[k]) {
-            next[k] = { ...next[k], status: r.status, detail: r.detail, url: r.url };
+            next[k] = { ...next[k], status: r.status, detail: r.detail };
           }
         }
         return next;
@@ -465,7 +552,7 @@ export default function UploadPage() {
 
       setStep(4);
     } catch (e) {
-      setUploadError(e instanceof Error ? e.message : "Erreur réseau");
+      setUploadError(isNetworkError(e) ? SERVICE_UNAVAILABLE_MESSAGE : uploadFailureMessage(0));
     } finally {
       setUploading(false);
     }
@@ -488,7 +575,15 @@ export default function UploadPage() {
       setIngestDone(true);
       router.push("/dashboard");
     } catch (e) {
-      setIngestError(e instanceof Error ? e.message : "Erreur inattendue");
+      // Erreur structurée de l'API (classeur invalide…) : message métier
+      // français déjà composé par ingestUploaded. Sinon : message générique.
+      const detail = e instanceof Error ? (e as Error & { detail?: unknown }).detail : undefined;
+      const structured = !(e instanceof ApiError) && typeof detail === "object" && detail !== null;
+      setIngestError(
+        structured
+          ? (e as Error).message
+          : excelStepError(e, "Calcul du snapshot impossible pour le moment. Réessayez dans quelques instants."),
+      );
     } finally {
       setIngesting(false);
     }
@@ -685,20 +780,47 @@ export default function UploadPage() {
       {/* ── Step 3 : Upload en cours ── */}
       {step === 3 && (
         <div className="flex flex-col items-center justify-center py-16 gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-carbon-emerald/15 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-carbon-emerald animate-spin" />
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-semibold text-[var(--color-foreground)]">Upload en cours…</p>
-            <p className="text-xs text-[var(--color-foreground-muted)] mt-1">
-              Envoi de {selectedCount} fichier{selectedCount > 1 ? "s" : ""} vers Vercel Blob
-            </p>
-          </div>
-          {uploadError && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              {uploadError}
-            </div>
+          {uploading || !uploadError ? (
+            <>
+              <div className="w-16 h-16 rounded-2xl bg-carbon-emerald/15 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-carbon-emerald animate-spin" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold text-[var(--color-foreground)]">Upload en cours…</p>
+                <p className="text-xs text-[var(--color-foreground-muted)] mt-1">
+                  Envoi de {selectedCount} fichier{selectedCount > 1 ? "s" : ""} vers le stockage sécurisé
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div
+                role="alert"
+                className="flex items-center gap-2 p-3 rounded-xl bg-[var(--color-danger-bg)] text-[var(--color-danger)] text-xs"
+              >
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                {uploadError}
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadError(null);
+                    setStep(2);
+                  }}
+                  className="px-4 py-2.5 rounded-xl border border-[var(--color-border)] text-sm font-semibold text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer"
+                >
+                  Retour
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleUpload()}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:opacity-90 transition-all cursor-pointer"
+                >
+                  <RefreshCw className="w-4 h-4" /> Réessayer l&apos;envoi
+                </button>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -738,8 +860,10 @@ export default function UploadPage() {
                       {r.detail && (
                         <p className="text-xs text-[var(--color-danger)]">{r.detail}</p>
                       )}
-                      {r.url && (
-                        <p className="text-[10px] text-[var(--color-foreground-subtle)] font-mono truncate">{r.url}</p>
+                      {r.status === "ok" && (
+                        <p className="text-[10px] text-[var(--color-foreground-subtle)] truncate">
+                          {r.filename ? `${r.filename} · ` : ""}archivé en accès privé
+                        </p>
                       )}
                     </div>
                     {r.status === "ok" ? (

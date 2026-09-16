@@ -31,8 +31,8 @@ class TestAlertRulesCrud:
         yield self._rid
         client.delete(f"/alerts/rules/{self._rid}", headers=auth(analyst_token))
 
-    def test_create_rule_fields(self, client: TestClient) -> None:
-        resp = client.get("/alerts/rules")
+    def test_create_rule_fields(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get("/alerts/rules", headers=auth(analyst_token))
         rules = resp.json()
         match = next((r for r in rules if r["id"] == self._rid), None)
         assert match is not None
@@ -40,8 +40,11 @@ class TestAlertRulesCrud:
         assert match["operator"] == "gt"
         assert match["threshold"] == pytest.approx(500.0)
 
-    def test_list_rules_accessible_without_token(self, client: TestClient) -> None:
-        resp = client.get("/alerts/rules")
+    def test_list_rules_requires_token(self, client: TestClient, viewer_token: str) -> None:
+        # Les règles sont des données tenant : plus de repli anonyme sur
+        # l'organisation n°1 (rapport QA 16/09/2026).
+        assert client.get("/alerts/rules").status_code == 401
+        resp = client.get("/alerts/rules", headers=auth(viewer_token))
         assert resp.status_code == 200
         assert isinstance(resp.json(), list)
 
@@ -91,8 +94,11 @@ class TestAlertEvaluate:
 
 
 class TestAlertHistory:
-    def test_history_accessible(self, client: TestClient) -> None:
-        resp = client.get("/alerts/history")
+    def test_history_requires_token(self, client: TestClient) -> None:
+        assert client.get("/alerts/history").status_code == 401
+
+    def test_history_accessible(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get("/alerts/history", headers=auth(analyst_token))
         assert resp.status_code == 200
         data = resp.json()
         assert "alerts" in data

@@ -91,8 +91,10 @@ export async function POST(req: NextRequest) {
     try {
       const ts = new Date().toISOString().replace(/[:.]/g, "-");
       const pathname = `workbooks/company-${payload.cid}/docs/${safeBaseName(file.name)}-${ts}${e}`;
+      // Store PRIVÉ : l'URL renvoyée n'est lisible qu'avec le jeton du store
+      // (routes serveur authentifiées, cf. lib/blob/private-blob.ts).
       const blob = await put(pathname, file, {
-        access: "public",
+        access: "private",
         allowOverwrite: false,
         addRandomSuffix: true,
       });
@@ -105,10 +107,11 @@ export async function POST(req: NextRequest) {
         size: file.size,
       });
     } catch (err) {
+      console.error("[api/rag/upload] échec de stockage :", err);
       results.push({
         status: "error",
         filename: file.name,
-        detail: err instanceof Error ? err.message : "Erreur upload",
+        detail: "Le document n'a pas pu être enregistré. Réessayez dans quelques instants.",
       });
     }
   }

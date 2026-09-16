@@ -1,10 +1,8 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/index.py": {
-      "includeFiles": "{main.py,routers/**,services/**,models/**,utils/**,data/**,db/**,middleware/**}"
+    "main.py": {
+      "excludeFiles": "{tests/**,scripts/**}"
     }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index" }
-  ]
+  }
 }

@@ -101,10 +101,13 @@ function ProtoBar({ label, badge, badgeColor = "emerald" }: { label: string; bad
 }
 
 function ProtoSources() {
-  const connectors: { logo: "xls" | "sap" | "api"; name: string; sub: string; status: "ok" | "sync" | "beta" }[] = [
+  // Aucun connecteur OAuth tiers n'est livré (registre /integrations) : les
+  // connecteurs énergie et ERP apparaissent comme feuille de route, sans
+  // pastille « sync » ni promesse de temps réel (QA m-09).
+  const connectors: { logo: "xls" | "sap" | "api"; name: string; sub: string; status: "ok" | "roadmap" }[] = [
     { logo: "xls", name: "Factures énergie 2024", sub: "12 fichiers · 4 sites", status: "ok" },
-    { logo: "api", name: "EDF Pro · compteurs", sub: "temps réel · OAuth 2.0", status: "sync" },
-    { logo: "sap", name: "Achats fournisseurs", sub: "S/4 HANA · prochainement", status: "beta" },
+    { logo: "api", name: "EDF Pro · compteurs", sub: "connecteur OAuth · feuille de route", status: "roadmap" },
+    { logo: "sap", name: "Achats fournisseurs", sub: "S/4 HANA · feuille de route", status: "roadmap" },
   ];
   const logoStyles: Record<string, string> = {
     xls: "bg-gradient-to-br from-[#107C41] to-[#0E6B38] text-[13px]",
@@ -113,9 +116,8 @@ function ProtoSources() {
   };
   const logoLabels: Record<string, string> = { xls: "XLS", sap: "SAP", api: "API" };
   const statusStyles: Record<string, string> = {
-    ok: "text-emerald-600 bg-emerald-50 border-emerald-200",
-    sync: "text-sky-700 bg-sky-50 border-sky-200",
-    beta: "text-slate-700 bg-slate-50 border-slate-200",
+    ok: "text-emerald-700 bg-emerald-50 border-emerald-200",
+    roadmap: "text-slate-700 bg-slate-50 border-slate-200",
   };
   return (
     <div className="px-3.5 py-3.5 flex flex-col gap-2 text-left">
@@ -134,12 +136,6 @@ function ProtoSources() {
           <span
             className={`flex-none font-mono text-[9.5px] font-semibold tracking-[0.06em] uppercase border rounded-full px-2 py-[3px] ${statusStyles[c.status]}`}
           >
-            {c.status === "sync" && (
-              <span
-                className="how-live-dot inline-block w-[5px] h-[5px] rounded-full bg-sky-700 mr-1.5 align-middle"
-                style={{ boxShadow: "0 0 0 3px rgba(3,105,161,.2)" }}
-              />
-            )}
             {c.status}
           </span>
         </div>
@@ -320,7 +316,7 @@ const STEPS = [
     desc: "Import Excel structuré, API énergie, fournisseurs. Connecteurs ERP SAP, Oracle et Sage en roadmap.",
     tags: ["Excel · CSV", "API énergie", "SAP · Oracle"],
     meta: "Support technique inclus · Import guidé pas à pas",
-    protoBar: { label: "/sources", badge: "3 actives" },
+    protoBar: { label: "/sources", badge: "1 active" },
     proto: <ProtoSources />,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7">

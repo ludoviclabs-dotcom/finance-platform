@@ -55,15 +55,19 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
         borderColor: "var(--mx-border)",
       }}
     >
-      <div className="max-w-[1280px] mx-auto px-5 md:px-7 h-14 flex items-center gap-4">
+      {/* Sous 640 px : badge « Intelligence » masqué et espacements réduits, pour
+          que les contrôles de droite tiennent dans l'écran (QA m-07). */}
+      <div className="max-w-[1280px] mx-auto px-5 md:px-7 h-14 flex items-center gap-3 sm:gap-4">
         <Link
           href="/"
           className="flex items-center gap-2.5 text-[16px] font-bold tracking-tight shrink-0"
           style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-fg)" }}
         >
-          Carbon<span style={{ color: "var(--mx-em)" }}>&amp;</span>Co
+          <span>
+            Carbon<span style={{ color: "var(--mx-em)" }}>&amp;</span>Co
+          </span>
           <span
-            className="text-[8.5px] font-semibold uppercase tracking-[0.12em] rounded-[5px] border px-1.5 py-px opacity-85"
+            className="hidden sm:inline text-[8.5px] font-semibold uppercase tracking-[0.12em] rounded-[5px] border px-1.5 py-px opacity-85"
             style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-em)", borderColor: "var(--mx-em)" }}
           >
             Intelligence
@@ -90,7 +94,7 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
           })}
         </nav>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <span
             className="hidden sm:flex items-center gap-1.5 text-[10.5px] font-semibold tracking-[0.1em]"
             style={{ fontFamily: "var(--mx-font-mono)", color: "var(--mx-em)" }}
@@ -106,7 +110,7 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
               type="button"
               onClick={() => setTheme("sombre")}
               aria-pressed={theme === "sombre"}
-              className="px-2.5 py-1 rounded-[7px] text-[11.5px] font-semibold cursor-pointer transition-colors"
+              className="px-2 sm:px-2.5 py-1 rounded-[7px] text-[11.5px] font-semibold cursor-pointer transition-colors"
               style={{
                 color: theme === "sombre" ? "var(--mx-em)" : "var(--mx-muted)",
                 background: theme === "sombre" ? "color-mix(in srgb, var(--mx-em) 16%, transparent)" : "transparent",
@@ -118,7 +122,7 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
               type="button"
               onClick={() => setTheme("clair")}
               aria-pressed={theme === "clair"}
-              className="px-2.5 py-1 rounded-[7px] text-[11.5px] font-semibold cursor-pointer transition-colors"
+              className="px-2 sm:px-2.5 py-1 rounded-[7px] text-[11.5px] font-semibold cursor-pointer transition-colors"
               style={{
                 color: theme === "clair" ? "var(--mx-em)" : "var(--mx-muted)",
                 background: theme === "clair" ? "color-mix(in srgb, var(--mx-em) 16%, transparent)" : "transparent",

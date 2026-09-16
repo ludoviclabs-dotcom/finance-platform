@@ -7,6 +7,10 @@
  * URI otpauth à ajouter dans une application d'authentification, puis
  * confirmation par code → 8 codes de récupération affichés une seule fois) et de
  * la DÉSACTIVER. Branche les endpoints /auth/totp/* déjà disponibles côté API.
+ *
+ * La désactivation exige le code courant de l'application (ou un code de
+ * récupération) : un jeton de session seul ne suffit plus à retirer le second
+ * facteur (POST /auth/totp/disable {code}).
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -20,6 +24,8 @@ import {
 } from "lucide-react";
 
 import {
+  ApiError,
+  friendlyApiErrorMessage,
   totpActivateRequest,
   totpDisableRequest,
   totpEnrollRequest,
@@ -27,12 +33,28 @@ import {
   type TotpEnrollResponse,
 } from "@/lib/api";
 
-type Phase = "loading" | "disabled" | "enrolling" | "recovery" | "enabled";
+type Phase = "loading" | "disabled" | "enrolling" | "recovery" | "enabled" | "confirm-disable";
+
+/** Message présentable pour un refus de désactivation. */
+function disableErrorMessage(err: unknown): string {
+  return friendlyApiErrorMessage(
+    err,
+    {
+      401: "Code refusé. Saisissez le code affiché par votre application ou un code de récupération non utilisé.",
+      403: "La double authentification ne peut pas être modifiée depuis cette session.",
+      409: "La double authentification n'est déjà plus active sur votre compte.",
+      422: "Saisissez le code à 6 chiffres de votre application ou un code de récupération.",
+      429: "Trop de tentatives. Patientez quelques minutes avant de réessayer.",
+    },
+    "Échec de la désactivation. Réessayez dans quelques instants.",
+  );
+}
 
 export default function SecuritePage() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [enroll, setEnroll] = useState<TotpEnrollResponse | null>(null);
   const [code, setCode] = useState("");
+  const [disableCode, setDisableCode] = useState("");
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -76,22 +98,41 @@ export default function SecuritePage() {
       setCode("");
       setPhase("recovery");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Code invalide.");
+      setError(
+        err instanceof ApiError
+          ? friendlyApiErrorMessage(err, {}, "Activation impossible pour le moment. Réessayez.")
+          : err instanceof Error && !(err instanceof TypeError)
+            ? err.message
+            : "Activation impossible pour le moment. Réessayez dans quelques instants.",
+      );
     } finally {
       setBusy(false);
     }
   };
 
-  const disable = async () => {
+  const confirmDisable = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const submitted = disableCode.trim();
+    if (!submitted) {
+      setError("Saisissez le code à 6 chiffres de votre application ou un code de récupération.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      await totpDisableRequest();
+      await totpDisableRequest(submitted);
       setEnroll(null);
       setRecoveryCodes([]);
+      setDisableCode("");
       setPhase("disabled");
-    } catch {
-      setError("Échec de la désactivation.");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        // Déjà désactivée ailleurs : on resynchronise l'écran sur l'état réel.
+        setDisableCode("");
+        loadStatus();
+        return;
+      }
+      setError(disableErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -146,14 +187,68 @@ export default function SecuritePage() {
             </p>
             <button
               type="button"
-              onClick={disable}
+              onClick={() => {
+                setError(null);
+                setDisableCode("");
+                setPhase("confirm-disable");
+              }}
               disabled={busy}
               className="mt-5 inline-flex items-center gap-2 rounded-lg border border-[var(--color-danger)]/40 px-4 py-2 text-sm font-semibold text-[var(--color-danger)] hover:bg-[var(--color-danger)]/5 disabled:opacity-50"
             >
-              {busy && <Loader2 className="w-4 h-4 animate-spin" aria-hidden />}
               Désactiver la 2FA
             </button>
           </div>
+        )}
+
+        {phase === "confirm-disable" && (
+          <form onSubmit={confirmDisable} noValidate>
+            <p className="text-sm font-medium text-[var(--color-foreground)]">
+              Confirmez la désactivation de la double authentification
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
+              Par sécurité, saisissez le code actuellement affiché par votre application
+              d&apos;authentification, ou l&apos;un de vos codes de récupération.
+            </p>
+            <label htmlFor="totp-disable-code" className="mt-4 block text-sm font-medium text-[var(--color-foreground)]">
+              Code de vérification
+            </label>
+            <input
+              id="totp-disable-code"
+              name="otp"
+              inputMode="text"
+              autoCapitalize="characters"
+              autoComplete="one-time-code"
+              autoFocus
+              maxLength={14}
+              value={disableCode}
+              onChange={(e) => setDisableCode(e.target.value)}
+              placeholder="123456 ou code de récupération"
+              aria-invalid={Boolean(error)}
+              className="mt-2 w-64 max-w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-2 text-center text-lg tracking-[0.2em] focus:outline-none focus:border-carbon-emerald"
+            />
+            <div className="mt-5 flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={busy || disableCode.trim().length === 0}
+                className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-danger)]/40 bg-[var(--color-danger)]/5 px-4 py-2 text-sm font-semibold text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 disabled:opacity-50"
+              >
+                {busy && <Loader2 className="w-4 h-4 animate-spin" aria-hidden />}
+                Confirmer la désactivation
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPhase("enabled");
+                  setDisableCode("");
+                  setError(null);
+                }}
+                disabled={busy}
+                className="text-sm text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] disabled:opacity-50"
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
         )}
 
         {phase === "disabled" && (

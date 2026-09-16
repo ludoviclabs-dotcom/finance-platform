@@ -7,6 +7,7 @@ import { getChinaShare, getChinaTier, isChinaConcentrated, hasRenderableHistory 
 import { CHINA_TIER_META } from "@/lib/crm/chinaTier";
 import { DataStatusBadge } from "@/components/ui/data-status-badge";
 import Sparkline from "./Sparkline";
+import { displaySearchQuery, materialMatchesQuery } from "./materials-search";
 
 interface Props { materials: Material[] }
 
@@ -31,11 +32,16 @@ export default function MaterialsGrid({ materials }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const reduceMotion = useReducedMotion();
 
-  const filtered = useMemo(() => materials.filter(m => {
-    const q = search.toLowerCase();
-    const matchSearch = !q || m.name_fr.toLowerCase().includes(q) || m.main_uses.some(u => u.toLowerCase().includes(q));
-    return matchSearch && matchesFilter(m, filter);
-  }), [materials, search, filter]);
+  // Requête normalisée (espaces, casse, accents) : voir ./materials-search.
+  const filtered = useMemo(
+    () => materials.filter(m => materialMatchesQuery(m, search) && matchesFilter(m, filter)),
+    [materials, search, filter],
+  );
+  const shownQuery = displaySearchQuery(search);
+  const resetSearch = () => {
+    setSearch("");
+    setFilter("Toutes");
+  };
 
   return (
     <section id="matieres" className="mx-anchor space-y-4">
@@ -47,22 +53,25 @@ export default function MaterialsGrid({ materials }: Props) {
           </p>
           <h2 className="m-0 font-bold text-2xl tracking-tight" style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-fg)" }}>
             Toutes les matières critiques{" "}
-            <span className="text-[15px] font-medium" style={{ color: "var(--mx-subtle)" }}>({filtered.length}/{materials.length})</span>
+            <span className="text-[15px] font-medium" style={{ color: "var(--mx-subtle)" }} aria-live="polite">({filtered.length}/{materials.length})</span>
           </h2>
         </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2.5">
         <input
+          type="search"
           value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Rechercher une matière ou un usage…"
-          className="flex-1 min-w-[260px] rounded-[10px] border px-4 py-2.5 text-[13px] focus:outline-none"
+          aria-label="Rechercher une matière ou un usage"
+          data-testid="materials-search"
+          className="flex-1 min-w-0 sm:min-w-[260px] rounded-[10px] border px-4 py-2.5 text-[13px] focus:outline-none"
           style={{ background: "var(--mx-card)", borderColor: "var(--mx-border)", color: "var(--mx-fg)" }}
         />
         <div className="flex gap-2 flex-wrap">
           {FILTERS.map(f => (
             <button
-              key={f} type="button" onClick={() => setFilter(f)}
+              key={f} type="button" onClick={() => setFilter(f)} aria-pressed={filter === f}
               className="px-4 py-2.5 rounded-[10px] text-[12.5px] font-semibold border cursor-pointer transition-colors"
               style={filter === f
                 ? { background: "var(--mx-fg)", color: "var(--mx-bg)", borderColor: "var(--mx-fg)" }
@@ -74,7 +83,33 @@ export default function MaterialsGrid({ materials }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(252px, 1fr))" }}>
+      {filtered.length === 0 && (
+        <div
+          role="status"
+          data-testid="materials-empty"
+          className="rounded-[14px] border p-6 flex flex-col items-center gap-3 text-center"
+          style={{ borderColor: "var(--mx-border)", background: "var(--mx-card)" }}
+        >
+          <p className="m-0 text-sm" style={{ color: "var(--mx-fg)" }}>
+            {shownQuery
+              ? `Aucune matière ne correspond à « ${shownQuery} »${filter !== "Toutes" ? ` avec le filtre « ${filter} »` : ""}.`
+              : `Aucune matière ne correspond au filtre « ${filter} ».`}
+          </p>
+          <p className="m-0 text-xs" style={{ color: "var(--mx-subtle)" }}>
+            La recherche porte sur le nom des matières et leurs usages, sans tenir compte des accents ni des majuscules.
+          </p>
+          <button
+            type="button"
+            onClick={resetSearch}
+            className="px-4 py-2 rounded-[10px] text-[12.5px] font-semibold border cursor-pointer transition-colors"
+            style={{ background: "var(--mx-fg)", color: "var(--mx-bg)", borderColor: "var(--mx-fg)" }}
+          >
+            {filter !== "Toutes" ? "Réinitialiser la recherche et le filtre" : "Réinitialiser la recherche"}
+          </button>
+        </div>
+      )}
+
+      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(252px, 100%), 1fr))" }}>
         {filtered.map((m, i) => {
           const china = getChinaShare(m);
           const tierColor = CHINA_TIER_META[getChinaTier(china)].colorVar;

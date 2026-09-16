@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
+
 import { useVsmeSnapshot } from "@/lib/hooks/use-vsme-snapshot";
 import {
   Leaf,
   Users,
   Shield,
   AlertTriangle,
+  Info,
   Loader2,
   CheckCircle,
   Clock,
@@ -125,6 +128,26 @@ export default function VsmePage() {
         <div className="flex flex-col items-center gap-3 text-[var(--color-foreground-muted)]">
           <Loader2 className="w-8 h-8 animate-spin text-carbon-emerald" />
           <span className="text-sm">Chargement des indicateurs VSME…</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Aucune donnée importée : état vide, pas une panne.
+  if (snap.status === "error" && snap.empty) {
+    return (
+      <div className="p-6">
+        <div className="max-w-lg mx-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 flex items-start gap-3">
+          <Info className="w-5 h-5 text-[var(--color-foreground-muted)] mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-[var(--color-foreground)] mb-1">
+              Aucun indicateur VSME importé
+            </p>
+            <p className="text-xs text-[var(--color-foreground-muted)]">{snap.error}</p>
+            <Link href="/vsme/completude" className="mt-3 inline-block text-xs font-semibold text-carbon-emerald hover:underline">
+              Renseigner les datapoints VSME
+            </Link>
+          </div>
         </div>
       </div>
     );

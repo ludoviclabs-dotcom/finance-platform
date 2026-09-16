@@ -9,6 +9,7 @@
  * quotas Voyage AI (rate limit) et Upstash Vector (write capacity).
  */
 
+import { readTenantBlob } from "@/lib/blob/private-blob";
 import { inngest } from "@/lib/queue/client";
 import { updateItem } from "@/lib/queue/job-tracker";
 import { parseDocument } from "@/lib/rag/parsers";
@@ -26,14 +27,10 @@ function chunkId(cid: string, blobUrl: string, idx: number): string {
   return `${cid}_${hash}_${idx}`;
 }
 
-async function fetchBuffer(url: string): Promise<{ buffer: ArrayBuffer; mimeType: string }> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Téléchargement Blob échoué (${res.status})`);
-  }
-  const buffer = await res.arrayBuffer();
-  const mimeType = res.headers.get("content-type") ?? "application/octet-stream";
-  return { buffer, mimeType };
+/** Pièce de l'organisation, lue dans le store privé (cf. lib/blob/private-blob.ts). */
+async function fetchBuffer(ref: string, cid: string): Promise<{ buffer: ArrayBuffer; mimeType: string }> {
+  const blob = await readTenantBlob(ref, cid);
+  return { buffer: blob.buffer, mimeType: blob.contentType };
 }
 
 export const ragDocumentIngest = inngest.createFunction(
@@ -64,7 +61,7 @@ export const ragDocumentIngest = inngest.createFunction(
     try {
       // 1. Fetch + parse (peut être lent pour PDF gros)
       const { segments, effectiveMime } = await step.run("fetch-and-parse", async () => {
-        const { buffer, mimeType: detectedMime } = await fetchBuffer(blobUrl);
+        const { buffer, mimeType: detectedMime } = await fetchBuffer(blobUrl, cid);
         const effective = mimeType || detectedMime;
         const segs = await parseDocument(filename, effective, buffer);
         if (segs.length === 0) {

@@ -43,7 +43,7 @@ function NeuralBadge() {
         </svg>
       </div>
       <div className="leading-tight">
-        <div className="text-[12px] font-bold tracking-tight text-[#0F172A]">NEURAL Actif</div>
+        <div className="text-[12px] font-bold tracking-tight text-[#0F172A]">Copilote NEURAL</div>
         <div className={`text-[10.5px] ${styles.fontMono} text-neutral-500`}>v2.4 · ESRS native</div>
       </div>
     </div>
@@ -86,7 +86,8 @@ function ReportPill() {
       </svg>
       <div className="leading-tight">
         <div className="text-[12px] font-bold">Rapport E1 généré</div>
-        <div className={`text-[10.5px] ${styles.fontMono} opacity-80`}>il y a 3 minutes</div>
+        {/* Aucune horloge derrière cette pastille : libellé illustratif (QA m-09). */}
+        <div className={`text-[10.5px] ${styles.fontMono} opacity-80`}>Exemple illustratif</div>
       </div>
     </div>
   );
@@ -151,9 +152,9 @@ export function HeroStage() {
             </div>
             <div className="bg-white/80 backdrop-blur rounded-lg px-3 py-2 border border-[#E5E2D9] text-right">
               <div className={`${styles.fontMono} text-[9.5px] tracking-[0.25em] uppercase text-neutral-500`}>
-                Dernière analyse
+                Aperçu
               </div>
-              <div className={`${styles.fontMono} text-[11px] text-neutral-800`}>14:32 · UTC+1</div>
+              <div className={`${styles.fontMono} text-[11px] text-neutral-800`}>Données fictives</div>
             </div>
           </div>
         </div>

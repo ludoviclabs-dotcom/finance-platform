@@ -8,26 +8,48 @@ code de récupération) -> disable. Le rate-limit est désactivé en test
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 import pyotp
+import pytest
 from fastapi.testclient import TestClient
 
+from services import totp_service
+
 ADMIN = {"email": "admin@carbonco.fr", "password": "Admin2024!"}
+FROZEN = datetime(2026, 9, 16, 12, 0, 15, tzinfo=timezone.utc)
 
 
 def _auth(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_totp_full_flow(client: TestClient, admin_token: str):
+class _FrozenDatetime(datetime):
+    @classmethod
+    def now(cls, tz=None):  # type: ignore[override]
+        return FROZEN if tz else FROZEN.replace(tzinfo=None)
+
+
+@pytest.fixture()
+def frozen_clock(monkeypatch):
+    """Horloge serveur figée : chaque étape du flux utilise un pas RFC 6238
+    distinct (t-30 s, t, t+30 s), tous dans la fenêtre de tolérance ±1."""
+    monkeypatch.setattr(totp_service, "datetime", _FrozenDatetime)
+
+
+def _code(totp: pyotp.TOTP, offset_steps: int) -> str:
+    return totp.at(FROZEN + timedelta(seconds=30 * offset_steps))
+
+
+def test_totp_full_flow(client: TestClient, admin_token: str, frozen_clock):
     # 1. Enrôlement (secret pending)
     enroll = client.post("/auth/totp/enroll", headers=_auth(admin_token))
     assert enroll.status_code == 200, enroll.text
-    secret = enroll.json()["secret"]
+    totp = pyotp.TOTP(enroll.json()["secret"])
     assert enroll.json()["otpauthUri"].startswith("otpauth://totp/")
 
     # 2. Activation avec un code valide -> 8 codes de récupération
-    code = pyotp.TOTP(secret).now()
-    act = client.post("/auth/totp/activate", json={"code": code}, headers=_auth(admin_token))
+    act = client.post("/auth/totp/activate", json={"code": _code(totp, 0)}, headers=_auth(admin_token))
     assert act.status_code == 200, act.text
     recovery = act.json()["recoveryCodes"]
     assert len(recovery) == 8
@@ -43,8 +65,11 @@ def test_totp_full_flow(client: TestClient, admin_token: str):
     pre = login.json()["preAuthToken"]
     assert pre
 
-    # 5. Vérification avec le code TOTP -> session émise
-    verify = client.post("/auth/totp/verify", json={"preAuthToken": pre, "code": pyotp.TOTP(secret).now()})
+    # 5. Anti-rejeu (RFC 6238 §5.2) : le code déjà accepté à l'activation est refusé…
+    replay = client.post("/auth/totp/verify", json={"preAuthToken": pre, "code": _code(totp, 0)})
+    assert replay.status_code == 401
+    # … un code d'un autre pas de la fenêtre ouvre la session
+    verify = client.post("/auth/totp/verify", json={"preAuthToken": pre, "code": _code(totp, 1)})
     assert verify.status_code == 200, verify.text
     assert verify.json()["accessToken"]
 
@@ -60,26 +85,36 @@ def test_totp_full_flow(client: TestClient, admin_token: str):
     reuse = client.post("/auth/totp/verify", json={"preAuthToken": pre3, "code": recovery[0]})
     assert reuse.status_code == 401
 
-    # 7. Désactivation -> login redevient simple
-    disable = client.post("/auth/totp/disable", headers=_auth(admin_token))
+    # 7. Le jeton pré-auth n'ouvre JAMAIS l'API (B-02)
+    assert client.get("/auth/me", headers=_auth(pre3)).status_code == 401
+
+    # 8. Désactivation : un jeton d'accès seul ne suffit pas (M-13)
+    assert client.post("/auth/totp/disable", headers=_auth(admin_token)).status_code == 422
+    valid = {_code(totp, k) for k in (-1, 0, 1)}
+    wrong = next(c for c in ("000000", "111111", "222222", "333333") if c not in valid)
+    bad = client.post("/auth/totp/disable", json={"code": wrong}, headers=_auth(admin_token))
+    assert bad.status_code == 401
+    disable = client.post("/auth/totp/disable", json={"code": _code(totp, -1)}, headers=_auth(admin_token))
     assert disable.status_code == 204
     assert client.get("/auth/totp/status", headers=_auth(admin_token)).json()["enabled"] is False
     final = client.post("/auth/login", json=ADMIN)
     assert final.json().get("accessToken")
     assert final.json()["requiresTotp"] is False
 
+    # 9. Plus rien à désactiver
+    again = client.post("/auth/totp/disable", json={"code": _code(totp, 1)}, headers=_auth(admin_token))
+    assert again.status_code == 409
 
-def test_invalid_code_rejected(client: TestClient, admin_token: str):
+
+def test_invalid_code_rejected(client: TestClient, admin_token: str, frozen_clock):
     enroll = client.post("/auth/totp/enroll", headers=_auth(admin_token))
-    secret = enroll.json()["secret"]
-    bad = client.post("/auth/totp/activate", json={"code": "000000"}, headers=_auth(admin_token))
-    # 000000 ne correspond presque jamais au secret -> 400 (sauf collision improbable)
-    assert bad.status_code in (400, 200)
-    # nettoyage
-    if bad.status_code == 200:
-        client.post("/auth/totp/disable", headers=_auth(admin_token))
+    totp = pyotp.TOTP(enroll.json()["secret"])
+    valid = {_code(totp, k) for k in (-1, 0, 1)}
+    wrong = next(c for c in ("000000", "111111", "222222", "333333") if c not in valid)
+    bad = client.post("/auth/totp/activate", json={"code": wrong}, headers=_auth(admin_token))
+    assert bad.status_code == 400
     # un secret existe mais non activé : le statut reste désactivé
-    _ = secret
+    assert client.get("/auth/totp/status", headers=_auth(admin_token)).json()["enabled"] is False
 
 
 def test_totp_rate_rule_configured():

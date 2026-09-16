@@ -13,6 +13,9 @@ from typing import Any
 from openpyxl import load_workbook
 from openpyxl.workbook.workbook import Workbook
 
+from services.carbon import workbook_totals
+from utils.safe_formula import UnsafeFormulaError, safe_eval
+
 _logger = logging.getLogger(__name__)
 
 
@@ -330,6 +333,21 @@ def _replace_excel_equals(expr: str) -> str:
     return re.sub(r"(?<![<>=])=(?!=)", "==", expr)
 
 
+def _excel_power_to_python(expr: str) -> str:
+    """`^` (puissance Excel) → `**`, hors littéraux texte."""
+    parts = expr.split('"')
+    for i in range(0, len(parts), 2):
+        parts[i] = parts[i].replace("^", "**")
+    return '"'.join(parts)
+
+
+def _safe_evaluate(expr: str) -> Any:
+    try:
+        return safe_eval(_excel_power_to_python(expr))
+    except UnsafeFormulaError as exc:
+        raise CarbonServiceError(f"Formule non évaluable : {exc}") from exc
+
+
 def _looks_like_condition(expr: str) -> bool:
     stripped = expr.strip()
     if stripped.startswith(("IF(", "SUM(")):
@@ -443,7 +461,7 @@ def _evaluate_condition(
         return repr(value)
 
     prepared = CELL_REF_RE.sub(repl, prepared)
-    return bool(eval(prepared, {"__builtins__": {}}, {}))
+    return bool(_safe_evaluate(prepared))
 
 
 def _evaluate_excel_formula(
@@ -460,8 +478,12 @@ def _evaluate_excel_formula(
         if len(args) != 3:
             raise CarbonServiceError(f"Unsupported IF formula: {formula}")
         condition = _evaluate_condition(workbook, sheet_name, args[0], cache, stack)
-        branch = args[1] if condition else args[2]
-        return _evaluate_excel_value(workbook, sheet_name, branch, cache, stack)
+        branch = (args[1] if condition else args[2]).strip()
+        if len(branch) >= 2 and branch.startswith('"') and branch.endswith('"'):
+            return branch[1:-1]
+        # Une branche est une expression (référence, calcul, fonction) : elle
+        # doit être évaluée, pas renvoyée telle quelle sous forme de texte.
+        return _evaluate_excel_value(workbook, sheet_name, "=" + branch, cache, stack)
 
     if expr.startswith(("SUM(", "MAX(", "MIN(")) and expr.endswith(")"):
         function_name = expr[:3]
@@ -517,7 +539,7 @@ def _evaluate_excel_formula(
 
     prepared = CELL_REF_RE.sub(repl, prepared)
     prepared = prepared.replace("TRUE", "True").replace("FALSE", "False")
-    return eval(prepared, {"__builtins__": {}}, {})
+    return _safe_evaluate(prepared)
 
 
 def _evaluate_excel_value(
@@ -609,6 +631,69 @@ finally {{
     if not stdout:
         return {}
     return json.loads(stdout)
+
+
+def _get_nested(source: dict[str, Any], path: str) -> Any:
+    current: Any = source
+    for part in path.split("."):
+        current = current.get(part) if isinstance(current, dict) else None
+    return current
+
+
+def _as_float(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _make_cell_reader(workbook_values: Workbook, workbook_formulas: Workbook):
+    """Lecteur de cellule pour le recalcul serveur : valeur en cache si le
+    classeur a été enregistré par un tableur, sinon formule évaluée (moteur
+    sûr). Une formule non évaluable lève UnresolvedCell."""
+    cache: dict[tuple[str, str], Any] = {}
+
+    def read(sheet: str, ref: str) -> Any:
+        value = _get_cell_value(workbook_values, sheet, ref)
+        if value is not None:
+            return value
+        raw = _get_cell_value(workbook_formulas, sheet, ref)
+        if isinstance(raw, str) and raw.startswith("="):
+            try:
+                return _evaluate_formula_cell(workbook_formulas, sheet, ref, cache, set())
+            except (CarbonServiceError, KeyError, ValueError, TypeError) as exc:
+                raise workbook_totals.UnresolvedCell(
+                    f"{sheet}!{ref} : valeur non calculée — ouvrez le classeur dans Excel ou "
+                    "LibreOffice puis enregistrez-le avant l'import"
+                ) from exc
+        return raw
+
+    return read
+
+
+# Champs recomposés par le serveur à partir des lignes de détail (M-02) : les
+# cellules de total du classeur ne font plus foi.
+_SERVER_COMPUTED_FIELDS = frozenset({
+    "carbon.scope1Tco2e", "carbon.scope2LbTco2e", "carbon.scope2MbTco2e",
+    "carbon.scope3Tco2e", "carbon.totalS123Tco2e",
+    "carbon.intensityRevenueTco2ePerMEur", "carbon.intensityFteTco2ePerFte",
+    "carbon.shareScope1Pct", "carbon.shareScope2Pct", "carbon.shareScope3Pct",
+    "energy.consumptionMWh", "energy.renewableSharePct",
+    "taxonomy.turnoverAlignedPct", "taxonomy.capexAlignedPct", "taxonomy.opexAlignedPct",
+    "cbam.estimatedCostEur",
+})
+
+_FIELD_LABELS_FR = {
+    "company.name": "raison sociale (Paramètres!B4)",
+    "company.reportingYear": "année de reporting (Paramètres!B7)",
+    "company.revenueNetEur": "chiffre d'affaires net (Paramètres!B9)",
+    "carbon.totalS123Tco2e": "total des émissions",
+    "carbon.intensityRevenueTco2ePerMEur": "intensité carbone par M€ de CA (CA requis)",
+    "energy.renewableSharePct": "part d'énergie renouvelable (feuille Energie)",
+    "taxonomy.turnoverAlignedPct": "part de CA aligné taxonomie (CA requis)",
+}
 
 
 def _set_nested(target: dict[str, Any], path: str, value: Any) -> None:
@@ -768,18 +853,22 @@ def _build_snapshot_from_workbooks(
             if fallback is not None:
                 source_kind = "fallback_cell"
                 value = _get_cell_value(workbook_values, fallback[0], fallback[1])
+        if value is None and field_path in _SERVER_COMPUTED_FIELDS:
+            # Recomposé plus bas depuis le détail : inutile d'évaluer le total.
+            _set_nested(snapshot_data, field_path, None)
+            continue
         if value is None:
             try:
                 source_kind = "formula_eval"
                 value = _evaluate_contract_key(workbook_formulas, contract_key)
             except Exception as exc:
-                warnings.append(f"Formula evaluation failed for {contract_key}: {exc}")
+                warnings.append(f"Formule non évaluable pour {contract_key} : {exc}")
         if value is None:
             missing_contract_keys.add(contract_key)
         normalized = _normalize_value(value)
         _set_nested(snapshot_data, field_path, normalized)
         if normalized is not None and source_kind == "fallback_cell":
-            warnings.append(f"Fallback cell used for {contract_key}")
+            warnings.append(f"Plage nommée {contract_key} absente : cellule de repli utilisée")
         elif normalized is not None and source_kind == "formula_eval":
             formula_eval_keys.add(contract_key)
 
@@ -805,26 +894,56 @@ def _build_snapshot_from_workbooks(
 
     if formula_eval_keys:
         warnings.append(
-            "Formula evaluation fallback used for calculated workbook cells: "
+            "Valeurs recalculées par CarbonCo (classeur enregistré sans résultats de calcul) : "
             + ", ".join(sorted(formula_eval_keys))
         )
 
-    if snapshot_data["company"].get("name") is None:
-        snapshot_data["company"]["name"] = "Entreprise non renseignee"
+    # ── M-02 : agrégats recomposés depuis les lignes de détail ────────────
+    company = snapshot_data["company"]
+    totals = workbook_totals.compute_totals(
+        _make_cell_reader(workbook_values, workbook_formulas),
+        revenue_eur=_as_float(company.get("revenueNetEur")),
+        fte=_as_float(company.get("fte")),
+        capex_eur=_as_float(company.get("capexTotalEur")),
+        opex_eur=_as_float(company.get("opexEligibleTaxoEur")),
+    )
+    failures.extend(totals.failures)
+    warnings.extend(totals.warnings)
+    for field_path in _SERVER_COMPUTED_FIELDS - set(totals.values):
+        # Recalcul impossible : les totaux inscrits dans le classeur ne font
+        # pas foi (ils étaient figés dans l'ancien modèle) — jamais repris.
+        _set_nested(snapshot_data, field_path, None)
+    mismatched = sorted(
+        field_path
+        for field_path, computed in totals.values.items()
+        if workbook_totals.differs(_get_nested(snapshot_data, field_path), computed)
+    )
+    for field_path, computed in totals.values.items():
+        _set_nested(snapshot_data, field_path, computed)
+    if mismatched:
         warnings.append(
-            "Company name is empty in Paramètres!B4, default placeholder used in snapshot."
+            "Les totaux inscrits dans le classeur ne correspondent pas au détail des postes "
+            "(modèle antérieur au 16/09/2026 ?) : valeurs recalculées par CarbonCo pour "
+            + ", ".join(mismatched) + "."
+        )
+    if source_label == "upload" and totals.values.get("carbon.totalS123Tco2e") == 0:
+        failures.append(
+            "Aucune émission calculée : renseignez les données d'activité "
+            "(feuilles Scope_1, Scope_2, Scope_3) avant l'import."
         )
 
+    if snapshot_data["company"].get("name") is None:
+        snapshot_data["company"]["name"] = "Entreprise non renseignée"
+        warnings.append("Raison sociale absente (Paramètres!B4).")
+
     for field_path, contract_key in SNAPSHOT_FIELD_TO_KEY.items():
-        normalized = snapshot_data
-        for part in field_path.split("."):
-            normalized = normalized.get(part) if isinstance(normalized, dict) else None
-        if normalized is None:
-            message = f"Missing snapshot value for {field_path} via {contract_key}"
+        if _get_nested(snapshot_data, field_path) is None:
+            label = _FIELD_LABELS_FR.get(field_path, field_path)
             if field_path in REQUIRED_SNAPSHOT_FIELDS:
-                failures.append(message)
-            else:
-                warnings.append(message)
+                failures.append(f"Donnée obligatoire manquante : {label}.")
+            elif field_path not in _SERVER_COMPUTED_FIELDS:
+                # Un champ recalculé manquant est déjà expliqué par le recalcul.
+                warnings.append(f"Donnée non renseignée : {label} ({contract_key}).")
 
     validation_status = "ok"
     if failures:

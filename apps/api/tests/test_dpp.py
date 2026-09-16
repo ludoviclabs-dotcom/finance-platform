@@ -11,11 +11,10 @@ def auth(token: str) -> dict:
 
 
 class TestDppList:
-    def test_list_unauthenticated_ok(self, client: TestClient) -> None:
-        """List is accessible without token (company_id defaults to 1)."""
+    def test_list_requires_token(self, client: TestClient) -> None:
+        """Plus de repli anonyme sur l'organisation n°1 (rapport QA 16/09/2026)."""
         resp = client.get("/dpp/products")
-        assert resp.status_code == 200
-        assert isinstance(resp.json(), list)
+        assert resp.status_code == 401
 
     def test_list_with_token(self, client: TestClient, analyst_token: str) -> None:
         resp = client.get("/dpp/products", headers=auth(analyst_token))
@@ -44,8 +43,8 @@ class TestDppCrud:
         yield self._id
         client.delete(f"/dpp/products/{self._id}", headers=auth(analyst_token))
 
-    def test_create_returns_product(self, client: TestClient) -> None:
-        resp = client.get(f"/dpp/products/{self._id}")
+    def test_create_returns_product(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get(f"/dpp/products/{self._id}", headers=auth(analyst_token))
         assert resp.status_code == 200
         data = resp.json()
         assert data["name"] == "Test Produit CI"
@@ -74,7 +73,7 @@ class TestDppCrud:
         pid = resp.json()["id"]
         del_resp = client.delete(f"/dpp/products/{pid}", headers=auth(analyst_token))
         assert del_resp.status_code == 204
-        get_resp = client.get(f"/dpp/products/{pid}")
+        get_resp = client.get(f"/dpp/products/{pid}", headers=auth(analyst_token))
         assert get_resp.status_code == 404
 
     def test_viewer_cannot_create(self, client: TestClient, viewer_token: str) -> None:
@@ -93,6 +92,6 @@ class TestDppCrud:
         )
         assert resp.status_code == 400
 
-    def test_get_nonexistent_product(self, client: TestClient) -> None:
-        resp = client.get("/dpp/products/999999")
+    def test_get_nonexistent_product(self, client: TestClient, analyst_token: str) -> None:
+        resp = client.get("/dpp/products/999999", headers=auth(analyst_token))
         assert resp.status_code == 404

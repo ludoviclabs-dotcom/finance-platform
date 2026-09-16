@@ -27,7 +27,8 @@ export default function ChinaDependencyWidget({ materials }: Props) {
         <p className="m-0 mt-[3px] text-[11.5px]" style={{ color: "var(--mx-subtle)" }}>Sur les {materials.length} matières critiques UE — stade agrégé</p>
       </div>
 
-      <div className="flex items-center gap-5">
+      {/* Anneau + paliers : les paliers passent sous l'anneau sur écran étroit (QA m-07). */}
+      <div className="flex flex-wrap items-center gap-5">
         <MxScoreRing value={materials.length === 0 ? 0 : dominated / materials.length} size={118} strokeWidth={11} color="var(--mx-tier-high)">
           <span className="font-bold text-2xl" style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-tier-high)", fontVariantNumeric: "tabular-nums" }}>
             <AnimatedCounter value={pct} suffix="%" />
@@ -35,7 +36,7 @@ export default function ChinaDependencyWidget({ materials }: Props) {
           <span className="text-[9.5px]" style={{ color: "var(--mx-subtle)" }}>dominance</span>
         </MxScoreRing>
 
-        <div className="flex-1 flex flex-col gap-2.5">
+        <div className="flex-1 min-w-[9.5rem] flex flex-col gap-2.5">
           {tiers.map(t => (
             <div key={t.tier} className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2">

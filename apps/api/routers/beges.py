@@ -21,6 +21,7 @@ from fastapi.responses import StreamingResponse
 from db.database import db_available, get_db
 from db.tenant import get_company_id
 from routers.auth import (
+    CronOrUser,
     get_current_user,
     require_admin,
     require_analyst,
@@ -37,7 +38,18 @@ from services.beges_filings_service import (
 router = APIRouter()
 
 
-def _company_info(company_id: int) -> tuple[str, int | None, str]:
+def _number_or_none(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return float(str(value).replace(",", ".").replace(" ", ""))
+    except ValueError:
+        return None
+
+
+def _company_info(company_id: int) -> tuple[str, float | None, str]:
+    """Nom, effectif et pays de l'organisation, depuis SES données importées :
+    effectif du bilan carbone (Paramètres), à défaut du profil VSME."""
     name, fte, country = "Organisation", None, "FR"
     if db_available():
         try:
@@ -49,19 +61,16 @@ def _company_info(company_id: int) -> tuple[str, int | None, str]:
                         name = row["name"]
         except Exception:
             pass
-    try:
-        from services.snapshot_cache import read_snapshot
-        snap = read_snapshot("vsme", company_id=company_id)
-        if snap:
-            prof = snap.get("profile", {}) or {}
-            fte = prof.get("etp")
-            country = prof.get("pays") or "FR"
-            try:
-                fte = int(fte) if fte is not None else None
-            except (TypeError, ValueError):
-                fte = None
-    except Exception:
-        pass
+    from services.snapshot_cache import read_snapshot
+
+    carbon = read_snapshot("carbon", company_id=company_id) or {}
+    fte = _number_or_none((carbon.get("company") or {}).get("fte"))
+    vsme = read_snapshot("vsme", company_id=company_id) or {}
+    profile = vsme.get("profile") or {}
+    if fte is None:
+        fte = _number_or_none(profile.get("etp"))
+    if isinstance(profile.get("pays"), str) and profile["pays"].strip():
+        country = profile["pays"].strip()
     return name, fte, country
 
 
@@ -127,12 +136,14 @@ def beges_delete_filing(
         raise HTTPException(status_code=404, detail="Dépôt introuvable")
 
 
-@router.post("/reminders/run", dependencies=[Depends(require_cron_or_analyst)])
-def beges_run_reminders() -> dict[str, Any]:
+@router.post("/reminders/run")
+def beges_run_reminders(caller: CronOrUser = Depends(require_cron_or_analyst)) -> dict[str, Any]:
     """Émet les rappels d'échéance dus (paliers J-180 / J-30 / échéance atteinte).
 
     Appelé par le cron quotidien (CRON_SERVICE_TOKEN) — parcourt TOUTES les
-    organisations ayant un dépôt enregistré. Idempotent au jour le jour : un
-    palier déjà notifié ne l'est pas deux fois.
+    organisations ayant un dépôt enregistré. Déclenché par un utilisateur :
+    sa seule organisation. Idempotent au jour le jour : un palier déjà notifié
+    ne l'est pas deux fois.
     """
-    return beges_filings_service.run_reminders()
+    scope = None if caller.is_cron else {caller.user.company_id}
+    return beges_filings_service.run_reminders(company_ids=scope)

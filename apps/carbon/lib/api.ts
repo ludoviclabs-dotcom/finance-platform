@@ -3,11 +3,23 @@
  *
  * Talks to the FastAPI backend (apps/api) to fetch the normalized Carbon
  * snapshot built from the three master Excel workbooks. Pages should
- * degrade gracefully to mocks from lib/data.ts when the API is unreachable.
+ * degrade gracefully to mocks from lib/data.ts when the API is unreachable —
+ * except for a missing snapshot (ApiError code `no_snapshot`), which is an
+ * empty state, never demo data. Errors are thrown as `ApiError`; UI copy comes
+ * from `friendlyApiErrorMessage`, never from raw technical messages.
  */
 
+import { normalizeApiBaseUrl } from "@/lib/api-base-url";
+import { normalizeBegesEligibility, type BegesEligibility } from "@/lib/beges-eligibility";
+
+export type { BegesEligibility, BegesEligibilityStatus } from "@/lib/beges-eligibility";
+
+// `process.env.NEXT_PUBLIC_API_BASE_URL` doit rester écrit en toutes lettres :
+// Next ne l'injecte dans le bundle client que sous cette forme littérale.
+// Normalisé (blancs et « / » finaux retirés) : la valeur de production se
+// termine par un « \n ».
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+  normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL) ?? "http://localhost:8000";
 
 // ---------------------------------------------------------------------------
 // Response types — mirror apps/api/models/carbon.py (snapshot v1)
@@ -361,6 +373,9 @@ export interface TotpStatusResponse {
 
 export interface MeResponse {
   user: AuthUser;
+  /** Administrateur de la plateforme (toutes organisations). Le rôle `admin`
+   * seul ne vaut que pour l'organisation de l'utilisateur ; absent = `false`. */
+  platformAdmin?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -396,6 +411,150 @@ function authHeaders(): Record<string, string> {
 }
 
 // ---------------------------------------------------------------------------
+// Erreurs typées — jamais de message technique brut côté UI
+// ---------------------------------------------------------------------------
+
+/** Code métier renvoyé par les snapshots quand l'organisation n'a rien importé. */
+export const NO_SNAPSHOT_CODE = "no_snapshot";
+
+/** État vide présenté à la place d'un snapshot absent (jamais de données de démo). */
+export const NO_SNAPSHOT_MESSAGE =
+  "Aucune donnée importée — importez votre bilan depuis la page Import.";
+
+/** Message générique quand l'API est injoignable, bloquée ou en erreur 5xx. */
+export const SERVICE_UNAVAILABLE_MESSAGE =
+  "Service momentanément indisponible. Réessayez dans quelques instants.";
+
+/**
+ * Erreur HTTP des fetchers génériques (apiGet / apiSend / téléchargements).
+ *
+ * `message` reste « API <status> on <path> » : des appelants testent encore
+ * cette chaîne. Le code métier (`detail.error`, ex. « no_snapshot ») et le
+ * message lisible de l'API sont exposés à part, pour que l'UI choisisse un
+ * état dédié (état vide, droits insuffisants…) plutôt qu'une erreur brute.
+ */
+export class ApiError extends Error {
+  readonly status: number;
+  readonly path: string;
+  /** `detail.error` (ou `code`) renvoyé par l'API, sinon `null`. */
+  readonly code: string | null;
+  /** Message lisible renvoyé par l'API (`detail.message` ou `detail`), sinon `null`. */
+  readonly detail: string | null;
+
+  constructor(
+    status: number,
+    path: string,
+    opts: { code?: string | null; detail?: string | null } = {},
+  ) {
+    super(`API ${status} on ${path}`);
+    this.name = "ApiError";
+    this.status = status;
+    this.path = path;
+    this.code = opts.code ?? null;
+    this.detail = opts.detail ?? null;
+  }
+}
+
+function nonEmptyText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+/**
+ * Extrait code + message d'un corps d'erreur. Formes rencontrées :
+ * `{detail: {error, message}}` (FastAPI, erreurs métier), `{detail: "…"}`
+ * (HTTPException simple), `{detail: [...]}` (validation 422, ignorée ici) et
+ * `{error, code}` (Route Handlers Next).
+ */
+export function parseApiErrorPayload(payload: unknown): { code: string | null; detail: string | null } {
+  if (!payload || typeof payload !== "object") return { code: null, detail: null };
+  const body = payload as { detail?: unknown; error?: unknown; code?: unknown; message?: unknown };
+  const nested = body.detail;
+  if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+    const d = nested as { error?: unknown; code?: unknown; message?: unknown };
+    return {
+      code: nonEmptyText(d.error) ?? nonEmptyText(d.code),
+      detail: nonEmptyText(d.message),
+    };
+  }
+  return {
+    code: nonEmptyText(body.code),
+    detail: nonEmptyText(nested) ?? nonEmptyText(body.message) ?? nonEmptyText(body.error),
+  };
+}
+
+async function toApiError(res: Response, path: string): Promise<ApiError> {
+  let payload: unknown = null;
+  try {
+    payload = await res.json();
+  } catch {
+    // Corps absent ou non JSON : seul le statut HTTP est exploitable.
+  }
+  return new ApiError(res.status, path, parseApiErrorPayload(payload));
+}
+
+/** Snapshot absent (organisation sans import) : à traiter comme un état vide. */
+export function isNoSnapshotError(err: unknown): boolean {
+  return err instanceof ApiError && err.code === NO_SNAPSHOT_CODE;
+}
+
+/** `fetch` rejette avec un TypeError quand l'API est injoignable (réseau, DNS, CORS, CSP). */
+export function isNetworkError(err: unknown): boolean {
+  return err instanceof TypeError;
+}
+
+/** Annulation (AbortController) ou délai dépassé (AbortSignal.timeout). */
+export function isAbortError(err: unknown): boolean {
+  if (typeof err !== "object" || err === null) return false;
+  const name = (err as { name?: unknown }).name;
+  return name === "AbortError" || name === "TimeoutError";
+}
+
+/**
+ * Message français présentable pour une erreur d'appel API. `overrides`
+ * remplace le message d'un statut HTTP précis (ex. `{ 403: "…" }`).
+ */
+export function friendlyApiErrorMessage(
+  err: unknown,
+  overrides: Partial<Record<number, string>> = {},
+  fallback = "Une erreur est survenue. Réessayez.",
+): string {
+  if (err instanceof ApiError) {
+    const custom = overrides[err.status];
+    if (custom) return custom;
+    if (err.status === 401) return "Votre session a expiré. Reconnectez-vous.";
+    if (err.status === 403) return "Accès refusé : vos droits ne permettent pas cette action.";
+    if (err.status === 404) return "Élément introuvable.";
+    if (err.status === 413) return "Fichier trop volumineux.";
+    if (err.status === 422) return "Données invalides : vérifiez votre saisie.";
+    if (err.status === 429) return "Trop de requêtes. Réessayez dans quelques instants.";
+    if (err.status >= 500) return SERVICE_UNAVAILABLE_MESSAGE;
+    return fallback;
+  }
+  if (isNetworkError(err) || isAbortError(err)) return SERVICE_UNAVAILABLE_MESSAGE;
+  return fallback;
+}
+
+/** Nom de fichier annoncé par `Content-Disposition` (si l'en-tête est exposé). */
+function filenameFromDisposition(header: string | null): string | null {
+  const match = header?.match(/filename="?([^";]+)"?/);
+  return match ? match[1] : null;
+}
+
+/** Déclenche le téléchargement d'un blob puis libère l'URL objet. */
+function saveBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  // Révocation différée : certains navigateurs annulent un téléchargement
+  // dont l'URL objet est révoquée dans la même tâche que le clic.
+  setTimeout(() => URL.revokeObjectURL(url), 1_000);
+}
+
+// ---------------------------------------------------------------------------
 // Fetchers — avec retry automatique sur 401 (rotation silencieuse)
 // ---------------------------------------------------------------------------
 
@@ -426,7 +585,7 @@ async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
     signal,
   });
   if (!res.ok) {
-    throw new Error(`API ${res.status} on ${path}`);
+    throw await toApiError(res, path);
   }
   return (await res.json()) as T;
 }
@@ -449,35 +608,108 @@ async function apiSend<T>(
     signal,
   });
   if (!res.ok) {
-    throw new Error(`API ${res.status} on ${path}`);
+    throw await toApiError(res, path);
   }
   if (res.status === 204) return null;
   return (await res.json()) as T;
+}
+
+/**
+ * Télécharge un fichier protégé : fetch authentifié (Bearer + rotation sur
+ * 401), puis téléchargement via une URL objet révoquée ensuite. Remplace les
+ * liens `<a href>` directs vers l'API, qui partent sans en-tête Authorization
+ * et reçoivent donc un 401 sur les exports tenant-scoped.
+ */
+export async function downloadAuthenticatedFile(
+  path: string,
+  filename: string,
+  options: { method?: "GET" | "POST"; signal?: AbortSignal } = {},
+): Promise<void> {
+  const res = await _fetchWithRetry(`${API_BASE_URL}${path}`, {
+    method: options.method ?? "GET",
+    headers: { ...authHeaders() },
+    signal: options.signal,
+  });
+  if (!res.ok) {
+    throw await toApiError(res, path);
+  }
+  saveBlob(await res.blob(), filename);
 }
 
 // ---------------------------------------------------------------------------
 // Auth endpoints
 // ---------------------------------------------------------------------------
 
+/** Délai maximal d'une étape de connexion : au-delà, l'API est jugée injoignable. */
+const AUTH_REQUEST_TIMEOUT_MS = 15_000;
+
+/**
+ * fetch des étapes de connexion (mot de passe, code 2FA). Sans délai borné,
+ * une API injoignable laissait le bouton sur « Connexion… » indéfiniment, sans
+ * aucun message. Toute panne réseau (TypeError « Failed to fetch », blocage
+ * CSP/CORS, délai dépassé) devient le message générique d'indisponibilité ;
+ * seule une annulation voulue par l'appelant est propagée telle quelle.
+ */
+async function authFetch(path: string, init: RequestInit, signal?: AbortSignal): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AUTH_REQUEST_TIMEOUT_MS);
+  const forwardAbort = () => controller.abort();
+  signal?.addEventListener("abort", forwardAbort);
+  try {
+    return await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      credentials: "include", // reçoit / envoie le cookie cc_refresh
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (signal?.aborted) throw err;
+    throw new Error(SERVICE_UNAVAILABLE_MESSAGE);
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", forwardAbort);
+  }
+}
+
+/** Statuts non nominaux communs aux étapes de connexion (hors 401, propre à chaque étape). */
+function authStatusError(status: number, invalidInputMessage: string): Error {
+  if (status === 429) {
+    return new Error("Trop de tentatives de connexion. Patientez quelques minutes avant de réessayer.");
+  }
+  if (status >= 500) return new Error(SERVICE_UNAVAILABLE_MESSAGE);
+  if (status === 400 || status === 422) return new Error(invalidInputMessage);
+  return new Error("Connexion impossible pour le moment. Réessayez dans quelques instants.");
+}
+
+async function readLoginResponse(res: Response): Promise<LoginResponse> {
+  try {
+    return (await res.json()) as LoginResponse;
+  } catch {
+    // 200 non JSON (page d'erreur d'un intermédiaire) : même traitement qu'une panne.
+    throw new Error(SERVICE_UNAVAILABLE_MESSAGE);
+  }
+}
+
 export async function loginRequest(
   email: string,
   password: string,
   signal?: AbortSignal
 ): Promise<LoginResponse> {
-  const res = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ email, password }),
-    credentials: "include", // reçoit le cookie cc_refresh
+  const res = await authFetch(
+    "/auth/login",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ email, password }),
+    },
     signal,
-  });
+  );
   if (res.status === 401) {
     throw new Error("Email ou mot de passe incorrect.");
   }
   if (!res.ok) {
-    throw new Error(`API ${res.status} on /auth/login`);
+    throw authStatusError(res.status, "Saisissez une adresse email valide et votre mot de passe.");
   }
-  return (await res.json()) as LoginResponse;
+  return readLoginResponse(res);
 }
 
 /**
@@ -547,16 +779,20 @@ export async function verifyTotpRequest(
   code: string,
   signal?: AbortSignal,
 ): Promise<LoginResponse> {
-  const res = await fetch(`${API_BASE_URL}/auth/totp/verify`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ preAuthToken, code }),
-    credentials: "include",
+  const res = await authFetch(
+    "/auth/totp/verify",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ preAuthToken, code }),
+    },
     signal,
-  });
+  );
   if (res.status === 401) throw new Error("Code invalide ou expiré.");
-  if (!res.ok) throw new Error(`API ${res.status} on /auth/totp/verify`);
-  return (await res.json()) as LoginResponse;
+  if (!res.ok) {
+    throw authStatusError(res.status, "Saisissez le code à 6 chiffres ou un code de récupération.");
+  }
+  return readLoginResponse(res);
 }
 
 /** Statut 2FA de l'utilisateur courant. */
@@ -582,18 +818,48 @@ export async function totpActivateRequest(code: string): Promise<string[]> {
     body: JSON.stringify({ code }),
   });
   if (res.status === 400 || res.status === 401) throw new Error("Code invalide.");
-  if (!res.ok) throw new Error(`API ${res.status} on /auth/totp/activate`);
+  if (!res.ok) throw await toApiError(res, "/auth/totp/activate");
   const data = (await res.json()) as { recoveryCodes: string[] };
   return data.recoveryCodes;
 }
 
-/** Désactive le TOTP de l'utilisateur courant. */
-export async function totpDisableRequest(): Promise<void> {
-  const res = await _fetchWithRetry(`${API_BASE_URL}/auth/totp/disable`, {
-    method: "POST",
-    headers: { ...authHeaders() },
-  });
-  if (!res.ok && res.status !== 204) throw new Error(`API ${res.status} on /auth/totp/disable`);
+/**
+ * Désactive le TOTP de l'utilisateur courant. L'API exige le code courant de
+ * l'application (ou un code de récupération) : un jeton d'accès seul ne suffit
+ * pas à retirer le second facteur.
+ *
+ * Pas de `_fetchWithRetry` ici : un 401 « code invalide » n'est PAS un jeton
+ * expiré. Le rejouer relancerait une rotation inutile et consommerait une
+ * seconde tentative de la limite anti-force brute. Seul un 401 qui désigne le
+ * jeton (« Token manquant » / « Token invalide ou expiré ») est rejoué.
+ *
+ * Lève une `ApiError` : 401 code refusé, 403 session démo, 409 2FA déjà
+ * inactive, 422 code absent, 429 trop de tentatives.
+ */
+export async function totpDisableRequest(code: string): Promise<void> {
+  const path = "/auth/totp/disable";
+  const send = (token: string | null) =>
+    fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ code }),
+      credentials: "include",
+    });
+
+  let res = await send(_authToken);
+  if (res.status === 401) {
+    const err = await toApiError(res, path);
+    const tokenRejected = /token|jeton/i.test(err.detail ?? "");
+    if (!tokenRejected || !_onTokenExpired) throw err;
+    const freshToken = await _onTokenExpired();
+    if (!freshToken) throw err;
+    res = await send(freshToken);
+  }
+  if (!res.ok) throw await toApiError(res, path);
 }
 
 export async function refreshTokenRequest(signal?: AbortSignal): Promise<LoginResponse> {
@@ -827,32 +1093,29 @@ export type BegesPoste = { code: string; label: string; value: number };
 export type BegesCategory = { code: number; label: string; total: number; postes: BegesPoste[] };
 export type BegesStatus = {
   breakdown: { standard: string; total: number; categories: BegesCategory[] };
-  eligibility: { status: string; label: string };
+  /** Normalisé (statuts historiques `volontaire` / `obligatoire_om` inclus). */
+  eligibility: BegesEligibility;
   scope_totals: { S1: number; S2: number; S3: Record<string, number> };
 };
 
-export function fetchBegesStatus(signal?: AbortSignal): Promise<BegesStatus> {
-  return apiGet<BegesStatus>("/beges/status", signal);
+export async function fetchBegesStatus(signal?: AbortSignal): Promise<BegesStatus> {
+  const raw = await apiGet<Omit<BegesStatus, "eligibility"> & { eligibility?: unknown }>(
+    "/beges/status",
+    signal,
+  );
+  return { ...raw, eligibility: normalizeBegesEligibility(raw.eligibility) };
 }
 
 export async function downloadBegesReport(signal?: AbortSignal): Promise<void> {
-  const res = await _fetchWithRetry(`${API_BASE_URL}/beges/export`, {
+  const path = "/beges/export";
+  const res = await _fetchWithRetry(`${API_BASE_URL}${path}`, {
     method: "POST",
     headers: { ...authHeaders() },
     signal,
   });
-  if (!res.ok) throw new Error(`API ${res.status} on /beges/export`);
+  if (!res.ok) throw await toApiError(res, path);
   const blob = await res.blob();
-  const cd = res.headers.get("Content-Disposition") ?? "";
-  const match = cd.match(/filename="([^"]+)"/);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = match ? match[1] : "beges.zip";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  saveBlob(blob, filenameFromDisposition(res.headers.get("Content-Disposition")) ?? "beges.zip");
 }
 
 // --- Campagnes de collecte fournisseurs (T7.3) ---
@@ -1190,7 +1453,9 @@ export interface CompanyCreate {
 }
 
 export interface UserCreate {
-  company_id: number;
+  /** Organisation cible. Un admin d'organisation ne peut créer des comptes que
+   * dans la sienne (l'API répond 403 sinon) ; seul un admin plateforme choisit. */
+  company_id?: number;
   email: string;
   password: string;
   role?: string;
@@ -1526,7 +1791,7 @@ export async function previewExcel(
     body: fd,
     signal,
   });
-  if (!res.ok) throw new Error(`Preview failed: ${res.status}`);
+  if (!res.ok) throw await toApiError(res, "/excel/preview");
   return (await res.json()) as ExcelPreviewResponse;
 }
 
@@ -1544,7 +1809,7 @@ export async function validateExcel(
     body: fd,
     signal,
   });
-  if (!res.ok) throw new Error(`Validation failed: ${res.status}`);
+  if (!res.ok) throw await toApiError(res, "/excel/validate");
   return (await res.json()) as ExcelValidateResponse;
 }
 
@@ -1579,7 +1844,8 @@ export interface IngestUploadedError {
     | "invalid_workbook"
     | "invalid_workbook_structure"
     | "empty_workbook"
-    | "snapshot_validation_failed";
+    | "snapshot_validation_failed"
+    | "snapshot_not_saved";
   message: string;
   named_ranges_missing?: string[];
   sheets_missing?: string[];
@@ -1607,7 +1873,7 @@ export async function ingestUploaded(
     try {
       payload = await res.json();
     } catch {
-      throw new Error(`Ingest failed: ${res.status}`);
+      throw new ApiError(res.status, "/excel/ingest-uploaded");
     }
     const detail = (payload as { detail?: IngestUploadedError }).detail;
     if (detail && typeof detail === "object" && "error" in detail) {
@@ -1621,7 +1887,7 @@ export async function ingestUploaded(
       (err as Error & { detail: IngestUploadedError }).detail = detail;
       throw err;
     }
-    throw new Error(`Ingest failed: ${res.status}`);
+    throw new ApiError(res.status, "/excel/ingest-uploaded", parseApiErrorPayload(payload));
   }
   return (await res.json()) as IngestUploadedResponse;
 }
@@ -2167,6 +2433,24 @@ export function fetchAiContext(
   return apiGet<AiContextResponse>(`/strategic-mapping/adhesion-volontaire/ai-context${query}`, signal);
 }
 
+/** Export Excel / PDF du mapping stratégique — téléchargement authentifié (tenant-scoped). */
+export function downloadStrategicMappingExport(
+  format: "xlsx" | "pdf",
+  params: Required<StrategicMappingParams>,
+  signal?: AbortSignal,
+): Promise<void> {
+  const qs = new URLSearchParams({
+    segment: params.segment,
+    persona: params.persona,
+    horizon: params.horizon,
+  });
+  return downloadAuthenticatedFile(
+    `/strategic-mapping/adhesion-volontaire/export.${format}?${qs.toString()}`,
+    `value-mapping-esg-${params.segment}-${params.persona}.${format}`,
+    { signal },
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Report PDF — server-side generation
 // ---------------------------------------------------------------------------
@@ -2334,12 +2618,17 @@ export function fetchSupplierAnswers(supplierId: number): Promise<SupplierAnswer
   return apiGet<SupplierAnswer[]>(`/suppliers/${supplierId}/answers`);
 }
 
-export function fetchQuestionnaire(token: string): Promise<PublicQuestionnaireContext> {
-  return apiGet<PublicQuestionnaireContext>(`/suppliers/public/q/${token}`);
+export function fetchQuestionnaire(token: string, signal?: AbortSignal): Promise<PublicQuestionnaireContext> {
+  return apiGet<PublicQuestionnaireContext>(`/suppliers/public/q/${encodeURIComponent(token)}`, signal);
 }
 
 export function submitQuestionnaire(token: string, payload: SupplierAnswerCreate): Promise<SupplierAnswer> {
-  return apiSend<SupplierAnswer>("POST", `/suppliers/public/q/${token}`, undefined, payload) as Promise<SupplierAnswer>;
+  return apiSend<SupplierAnswer>(
+    "POST",
+    `/suppliers/public/q/${encodeURIComponent(token)}`,
+    undefined,
+    payload,
+  ) as Promise<SupplierAnswer>;
 }
 
 // ---------------------------------------------------------------------------

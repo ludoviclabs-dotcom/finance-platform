@@ -143,6 +143,9 @@ export function CarbonVerifyCard({
                 ? "fixed inset-x-0 bottom-0 z-40 rounded-t-3xl"
                 : "w-full max-w-lg rounded-2xl",
             ].join(" ")}
+            // Bottom sheet : posé au-dessus de la bannière cookies tant qu'elle
+            // est affichée, pour garder le CTA atteignable (QA m-06).
+            style={isMobile ? { bottom: "var(--cookie-banner-offset, 0px)" } : undefined}
             initial={cardInitial}
             animate={cardAnimate}
             exit={cardExit}

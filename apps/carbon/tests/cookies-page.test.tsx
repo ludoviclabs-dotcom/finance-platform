@@ -38,6 +38,14 @@ function declaredStorageKeys(): Map<string, string> {
       for (const match of source.matchAll(/const STORAGE_KEY = "([^"]+)"/g)) {
         keys.set(match[1], relative(ROOT, file));
       }
+      // Un composant peut porter plusieurs clés — MxThemeProvider en déclare
+      // une par peau dans une table. Sans cette passe, ses clés échappaient au
+      // scan et pouvaient atterrir en production sans être déclarées ici.
+      for (const table of source.matchAll(/const STORAGE_KEYS\b[^=]*=\s*\{([\s\S]*?)\}/g)) {
+        for (const entry of table[1].matchAll(/"([^"]+)"/g)) {
+          keys.set(entry[1], relative(ROOT, file));
+        }
+      }
     }
   }
   return keys;
@@ -56,7 +64,7 @@ describe("/cookies — fidèle au site", () => {
 
   it("liste chaque clé de stockage local utilisée par le code", () => {
     const keys = declaredStorageKeys();
-    expect(keys.size).toBeGreaterThanOrEqual(4);
+    expect(keys.size).toBeGreaterThanOrEqual(5);
     for (const [key, file] of keys) {
       expect(text, `${key} (${file}) absent de /cookies`).toContain(key);
     }

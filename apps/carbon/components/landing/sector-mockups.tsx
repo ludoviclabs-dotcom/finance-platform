@@ -170,11 +170,11 @@ const SECTORS: SectorData[] = [
     },
     audit: {
       events: [
-        { time: "Il y a 4 min", action: "Calcul Scope 1 figé", hash: "7a3f9c…", sev: "ok" },
-        { time: "Il y a 12 min", action: "Datapoint E1.6 validé", hash: "4e2b1a…", sev: "ok" },
-        { time: "Il y a 38 min", action: "Anomalie facture EDF résolue", hash: "d91c44…", sev: "warn" },
-        { time: "Il y a 1 h", action: "Manifest racine signé", hash: "fe88ab…", sev: "ok" },
-        { time: "Il y a 3 h", action: "Import SAP terminé · 78 datapoints", hash: "0a4421…", sev: "ok" },
+        { time: "12 déc · 16:56", action: "Calcul Scope 1 figé", hash: "7a3f9c…", sev: "ok" },
+        { time: "12 déc · 16:48", action: "Datapoint E1.6 validé", hash: "4e2b1a…", sev: "ok" },
+        { time: "12 déc · 16:22", action: "Anomalie facture EDF résolue", hash: "d91c44…", sev: "warn" },
+        { time: "12 déc · 16:00", action: "Manifest racine signé", hash: "fe88ab…", sev: "ok" },
+        { time: "12 déc · 14:00", action: "Import SAP terminé · 78 datapoints", hash: "0a4421…", sev: "ok" },
       ],
     },
     rapports: {
@@ -254,11 +254,11 @@ const SECTORS: SectorData[] = [
     },
     audit: {
       events: [
-        { time: "Il y a 6 min", action: "Calcul Scope 3 voyages figé", hash: "8c2e15…", sev: "ok" },
-        { time: "Il y a 22 min", action: "Datapoint S1.10 validé", hash: "3b9f47…", sev: "ok" },
-        { time: "Il y a 1 h", action: "Sync Concur · 42 voyages", hash: "a6e1c2…", sev: "ok" },
-        { time: "Il y a 2 h", action: "AWS API — anomalie corrigée", hash: "5d8f30…", sev: "warn" },
-        { time: "Il y a 4 h", action: "Manifest racine signé", hash: "cc4a78…", sev: "ok" },
+        { time: "12 déc · 16:54", action: "Calcul Scope 3 voyages figé", hash: "8c2e15…", sev: "ok" },
+        { time: "12 déc · 16:38", action: "Datapoint S1.10 validé", hash: "3b9f47…", sev: "ok" },
+        { time: "12 déc · 16:00", action: "Sync Concur · 42 voyages", hash: "a6e1c2…", sev: "ok" },
+        { time: "12 déc · 15:00", action: "AWS API — anomalie corrigée", hash: "5d8f30…", sev: "warn" },
+        { time: "12 déc · 13:00", action: "Manifest racine signé", hash: "cc4a78…", sev: "ok" },
       ],
     },
     rapports: {
@@ -338,11 +338,11 @@ const SECTORS: SectorData[] = [
     },
     audit: {
       events: [
-        { time: "Il y a 8 min", action: "Calcul matières agricoles figé", hash: "9d4f0a…", sev: "ok" },
-        { time: "Il y a 18 min", action: "Datapoint E4.3 validé", hash: "2b7c91…", sev: "ok" },
-        { time: "Il y a 45 min", action: "Sync Sage · 64 datapoints", hash: "e1a5f3…", sev: "ok" },
-        { time: "Il y a 1 h", action: "API partenaire — délai dépassé", hash: "7f2e88…", sev: "warn" },
-        { time: "Il y a 3 h", action: "Manifest racine signé", hash: "b4d602…", sev: "ok" },
+        { time: "12 déc · 16:52", action: "Calcul matières agricoles figé", hash: "9d4f0a…", sev: "ok" },
+        { time: "12 déc · 16:42", action: "Datapoint E4.3 validé", hash: "2b7c91…", sev: "ok" },
+        { time: "12 déc · 16:15", action: "Sync Sage · 64 datapoints", hash: "e1a5f3…", sev: "ok" },
+        { time: "12 déc · 16:00", action: "API partenaire — délai dépassé", hash: "7f2e88…", sev: "warn" },
+        { time: "12 déc · 14:00", action: "Manifest racine signé", hash: "b4d602…", sev: "ok" },
       ],
     },
     rapports: {
@@ -664,7 +664,7 @@ function DatapointsPane({ s }: { s: SectorData }) {
 function AuditPane({ s }: { s: SectorData }) {
   return (
     <>
-      <PaneHead title="Audit trail — événements récents" sub="Chaîne SHA-256 · append-only · vérifiable" />
+      <PaneHead title="Audit trail — exemple d'événements" sub="Chaîne SHA-256 · append-only · vérifiable" />
       <ul className="list-none p-0 m-0 flex flex-col gap-3 relative">
         <span className="absolute left-1 top-1.5 bottom-1.5 w-px bg-gradient-to-b from-neutral-200 to-neutral-100" aria-hidden="true" />
         {s.audit.events.map((e, i) => (

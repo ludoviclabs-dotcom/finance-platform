@@ -4,21 +4,30 @@
    ESRS / CSRD — Cockpit CarbonCo (refonte)
    Hero : jauge de conformité 270° + radar de couverture + barres par pilier ·
    Priorités : 3 normes qui bloquent l'objectif · Liste groupée par pilier ·
-   Live data via useEsgSnapshot avec fallback démo.
+   Données réelles via useEsgSnapshot (matrice de matérialité).
+
+   Chaque chiffre provient de l'API : sans snapshot ESG (404 `no_snapshot`) ou
+   sans enjeu rattaché à une norme, la page affiche un état vide — plus de
+   repli sur un jeu de démonstration, ni de compteurs de datapoints codés en
+   dur (257/378), ni d'échéances inventées (« E1 · 15j / CSRD · 45j »).
    ════════════════════════════════════════════════════════════════════════════ */
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, Info } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, FileSpreadsheet, Loader2 } from "lucide-react";
 
-import { esrsStandards } from "@/lib/data";
 import { useEsgSnapshot } from "@/lib/hooks/use-esg-snapshot";
-import type { MaterialiteIssue } from "@/lib/api";
 
 import {
   EsrsHero, EsrsPriorities, StandardsList,
   type EsrsStandard, type EsrsTotals, type EsrsPillarMap, type EsrsPillar, type EsrsPillarSummary,
-  type EsrsStatusKey, type EsrsMaterialIssue,
 } from "@/components/cockpit/esrs-sections";
+import {
+  deriveEsrsStandards,
+  hasEsrsData,
+  summarizeEsrs,
+  type EsrsStandardId,
+} from "@/components/cockpit/esrs-derivation";
 
 /* ─── Palette piliers ESRS (cohérente avec le design cockpit) ─────────────── */
 const PILLARS: EsrsPillarMap = {
@@ -28,8 +37,9 @@ const PILLARS: EsrsPillarMap = {
   GEN: { label: "Général",       color: "#22D3EE" },
 };
 
-/* ─── Métadonnées par norme : description, action, pilote ────────────────── */
-const STANDARD_META: Record<string, {
+/* ─── Métadonnées par norme : description, piste d'action, pilote suggéré ──
+   Pistes génériques : aucune quantité propre à l'organisation n'y figure. */
+const STANDARD_META: Record<EsrsStandardId, {
   code: string;
   name: string;
   pillar: EsrsPillar;
@@ -39,7 +49,7 @@ const STANDARD_META: Record<string, {
 }> = {
   "ESRS E1": { code: "E1", name: "Changement climatique",      pillar: "E",   desc: "Atténuation, adaptation au changement climatique, énergie.", owner: "Dir. RSE",  action: "Finaliser le plan de transition climat (E1-1)." },
   "ESRS E2": { code: "E2", name: "Pollution",                  pillar: "E",   desc: "Pollution de l'air, de l'eau, des sols, substances préoccupantes.", owner: "Dir. Ops", action: "Compléter l'inventaire des substances préoccupantes." },
-  "ESRS E3": { code: "E3", name: "Eau & ressources marines",   pillar: "E",   desc: "Consommation d'eau, rejets, écosystèmes marins.", owner: "Dir. Ops", action: "Mesurer la consommation d'eau sur 3 sites manquants." },
+  "ESRS E3": { code: "E3", name: "Eau & ressources marines",   pillar: "E",   desc: "Consommation d'eau, rejets, écosystèmes marins.", owner: "Dir. Ops", action: "Mesurer la consommation d'eau de chaque site." },
   "ESRS E4": { code: "E4", name: "Biodiversité",               pillar: "E",   desc: "Impacts, dépendances, zones sensibles à la biodiversité.", owner: "Dir. RSE", action: "Cartographier les zones sensibles proches des sites." },
   "ESRS E5": { code: "E5", name: "Économie circulaire",        pillar: "E",   desc: "Flux de ressources, déchets, recyclage et réemploi.", owner: "Dir. Ops", action: "Tracer les flux de déchets par catégorie." },
   "ESRS S1": { code: "S1", name: "Effectifs propres",          pillar: "S",   desc: "Conditions de travail, égalité, santé & sécurité.", owner: "DRH", action: "Vérifier les indicateurs d'égalité salariale." },
@@ -51,38 +61,37 @@ const STANDARD_META: Record<string, {
   "ESRS 2":  { code: "2",  name: "Informations générales",     pillar: "GEN", desc: "Stratégie, gouvernance, gestion des impacts (IRO).", owner: "Dir. RSE", action: "Compléter la description de la gouvernance ESG." },
 };
 
-const DEFAULT_DP: Record<string, { dp: number; done: number }> = {
-  "ESRS E1": { dp: 48, done: 41 },
-  "ESRS E2": { dp: 32, done: 23 },
-  "ESRS E3": { dp: 28, done: 17 },
-  "ESRS E4": { dp: 36, done: 16 },
-  "ESRS E5": { dp: 24, done: 13 },
-  "ESRS S1": { dp: 52, done: 47 },
-  "ESRS S2": { dp: 30, done: 12 },
-  "ESRS S3": { dp: 22, done: 7  },
-  "ESRS S4": { dp: 20, done: 7  },
-  "ESRS G1": { dp: 26, done: 20 },
-  "ESRS 1":  { dp: 18, done: 17 },
-  "ESRS 2":  { dp: 42, done: 37 },
-};
+const STANDARD_IDS_COUNT = Object.keys(STANDARD_META).length;
 
 const TARGET = 80;
 
-function classifyStatus(progress: number): EsrsStatusKey {
-  if (progress >= 80) return "compliant";
-  if (progress >= 40) return "in_progress";
-  return "not_started";
-}
+/* ─── États non nominaux ─────────────────────────────────────────────────── */
 
-function normalizeNorme(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  const trimmed = raw.trim().toUpperCase();
-  if (!trimmed) return null;
-  const match = trimmed.match(/(E1|E2|E3|E4|E5|S1|S2|S3|S4|G1)/);
-  if (match) return `ESRS ${match[1]}`;
-  if (trimmed.includes("ESRS 1") || trimmed === "ESRS1") return "ESRS 1";
-  if (trimmed.includes("ESRS 2") || trimmed === "ESRS2") return "ESRS 2";
-  return null;
+function EsrsNotice({
+  tone,
+  title,
+  children,
+}: {
+  tone: "empty" | "error";
+  title: string;
+  children: React.ReactNode;
+}) {
+  const Icon = tone === "error" ? AlertTriangle : FileSpreadsheet;
+  return (
+    <div
+      className="cc-card flex flex-col items-center gap-3 px-6 py-12 text-center"
+      role={tone === "error" ? "alert" : "status"}
+      data-testid={tone === "error" ? "esrs-error" : "esrs-empty"}
+    >
+      <Icon
+        className="h-8 w-8"
+        style={{ color: tone === "error" ? "var(--cc-amber)" : "var(--cc-em)" }}
+        aria-hidden="true"
+      />
+      <h2 className="cc-card-title">{title}</h2>
+      <div className="max-w-md text-sm text-[var(--cc-muted)]">{children}</div>
+    </div>
+  );
 }
 
 /* ─── Composant principal ───────────────────────────────────────────────── */
@@ -92,104 +101,45 @@ export function ESRSPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const esgSnap = useEsgSnapshot();
-  const isLive = esgSnap.status === "ready";
-  const esgError = esgSnap.status === "error" ? esgSnap.error : null;
 
-  // ── Standards (live ou démo) ────────────────────────────────────────
-  const standards: EsrsStandard[] = useMemo(() => {
-    if (esgSnap.status === "ready") {
-      const issues = esgSnap.data.materialite.issues ?? [];
-      const buckets = new Map<string, MaterialiteIssue[]>();
-      for (const issue of issues) {
-        const normId = normalizeNorme(issue.normeEsrs);
-        if (!normId) continue;
-        const existing = buckets.get(normId);
-        if (existing) existing.push(issue);
-        else buckets.set(normId, [issue]);
-      }
-      const numOrNull = (v: unknown): number | null =>
-        typeof v === "number" && Number.isFinite(v) ? v : null;
-      return Object.entries(STANDARD_META).map(([id, meta]) => {
-        const bucket = buckets.get(id) ?? [];
-        const total = bucket.length;
-        const materiels = bucket.filter((i) => i.materiel === true).length;
-        const scored = bucket
-          .map((i) => numOrNull(i.scoreImpactTotal) ?? numOrNull(i.scoreImpact))
-          .filter((v): v is number => v !== null);
-        let progress = 0;
-        if (scored.length > 0) {
-          const avg = scored.reduce((s, v) => s + v, 0) / scored.length;
-          progress = Math.min(100, Math.round((avg / 5) * 100));
-        } else if (total > 0) {
-          progress = Math.round((materiels / total) * 100);
-        }
-        const dpFallback = DEFAULT_DP[id] ?? { dp: total || 0, done: materiels };
+  // ── Standards (données réelles uniquement) ─────────────────────────
+  const derived = useMemo(
+    () => (esgSnap.status === "ready" ? deriveEsrsStandards(esgSnap.data.materialite?.issues ?? []) : []),
+    [esgSnap],
+  );
+  // « Live » seulement si l'API a répondu ET que la matrice rattache au
+  // moins un enjeu à une norme : une réponse vide n'est pas une conformité à 0 %.
+  const isLive = esgSnap.status === "ready" && hasEsrsData(derived);
+
+  const standards: EsrsStandard[] = useMemo(
+    () =>
+      derived.map((d) => {
+        const meta = STANDARD_META[d.id];
         return {
-          id,
+          id: d.id,
           code: meta.code,
           name: meta.name,
           pillar: meta.pillar,
-          progress,
-          dp: dpFallback.dp,
-          done: dpFallback.done,
-          missing: Math.max(0, dpFallback.dp - dpFallback.done),
-          status: classifyStatus(progress),
+          progress: d.progress,
+          // Aucun endpoint ne fournit le suivi des datapoints par norme.
+          dp: null,
+          done: null,
+          missing: null,
+          status: d.status,
           desc: meta.desc,
           owner: meta.owner,
           action: meta.action,
-          materialIssues: bucket
-            .filter((i) => i.materiel === true)
-            .slice(0, 6)
-            .map<EsrsMaterialIssue>((i) => ({
-              code: i.code,
-              label: i.label ?? i.code,
-              score: numOrNull(i.scoreImpactTotal) ?? numOrNull(i.scoreImpact) ?? 0,
-            })),
+          materialIssues: d.materialIssues,
         };
-      });
-    }
-    // Fallback démo
-    return esrsStandards.map<EsrsStandard>((s) => {
-      const meta = STANDARD_META[s.id] ?? {
-        code: s.id.replace("ESRS ", ""),
-        name: s.name,
-        pillar: "GEN" as EsrsPillar,
-        desc: s.description,
-        owner: "—",
-        action: "—",
-      };
-      const dp = DEFAULT_DP[s.id] ?? { dp: s.dataPoints, done: s.completedPoints };
-      return {
-        id: s.id,
-        code: meta.code,
-        name: meta.name,
-        pillar: meta.pillar,
-        progress: s.progress,
-        dp: dp.dp,
-        done: dp.done,
-        missing: Math.max(0, dp.dp - dp.done),
-        status: classifyStatus(s.progress),
-        desc: meta.desc,
-        owner: meta.owner,
-        action: meta.action,
-        materialIssues: [],
-      };
-    });
-  }, [esgSnap]);
+      }),
+    [derived],
+  );
 
   // ── Totaux & résumé par pilier ──────────────────────────────────────
   const totals: EsrsTotals = useMemo(() => {
-    const n = standards.length;
-    return {
-      avg: n > 0 ? Math.round(standards.reduce((a, s) => a + s.progress, 0) / n) : 0,
-      compliant: standards.filter((s) => s.status === "compliant").length,
-      inProgress: standards.filter((s) => s.status === "in_progress").length,
-      notStarted: standards.filter((s) => s.status === "not_started").length,
-      dpDone: standards.reduce((a, s) => a + s.done, 0),
-      dpTotal: standards.reduce((a, s) => a + s.dp, 0),
-      target: TARGET,
-    };
-  }, [standards]);
+    const summary = summarizeEsrs(derived);
+    return { ...summary, dpDone: null, dpTotal: null, target: TARGET };
+  }, [derived]);
 
   const pillarSummary: EsrsPillarSummary[] = useMemo(() => {
     return (Object.keys(PILLARS) as EsrsPillar[]).map((p) => {
@@ -209,85 +159,92 @@ export function ESRSPage() {
           <div className="min-w-0">
             <h1 className="font-display font-bold text-2xl leading-tight">ESRS / CSRD</h1>
             <div className="flex items-center gap-2 text-xs text-[var(--cc-subtle)] mt-1">
-              <span className="cc-live-dot" />
+              {isLive && <span className="cc-live-dot" />}
               <span>
-                Conformité réglementaire · {standards.length} norme{standards.length > 1 ? "s" : ""}{" "}
-                · {totals.avg}% global
+                Conformité réglementaire · {STANDARD_IDS_COUNT} normes
+                {isLive ? ` · ${totals.avg}% global` : ""}
               </span>
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-2 flex-wrap">
-            <div className="cc-dl-chip warn" title="Rapport ESRS E1">
-              <span className="cc-dl-dot" />
-              <span className="cc-dl-days">E1 · 15j</span>
-            </div>
-            <div className="cc-dl-chip alert" title="Dépôt CSRD">
-              <span className="cc-dl-dot" />
-              <span className="cc-dl-days">CSRD · 45j</span>
-            </div>
-          </div>
         </div>
 
-        {/* Banners */}
-        {isLive && (
-          <div className="flex items-center gap-2 text-xs text-[var(--cc-muted)]">
-            <span className="cc-live-dot" />
-            <span>Données live — dérivées de la matrice de matérialité ESG</span>
+        {esgSnap.status === "loading" && (
+          <div className="flex items-center gap-2 py-10 text-sm text-[var(--cc-muted)]" role="status">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            Chargement de la matrice de matérialité…
           </div>
         )}
-        {esgError && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-700">
-              <span className="font-semibold">Snapshot ESG indisponible.</span>{" "}
-              Affichage des données de démonstration. <span className="opacity-70">({esgError})</span>
-            </div>
-          </div>
-        )}
-        {!isLive && !esgError && esgSnap.status !== "loading" && (
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700">
-            <Info className="w-4 h-4 flex-shrink-0" />
-            <p className="text-xs flex-1">
-              <strong>Données de démonstration</strong> — les taux de progression affichés sont fictifs.
-              Complétez votre{" "}
-              <a href="/materialite" className="underline font-semibold hover:text-blue-900">
-                matrice de matérialité
-              </a>{" "}
-              pour voir votre conformité ESRS réelle.
+
+        {esgSnap.status === "error" && esgSnap.empty && (
+          <EsrsNotice tone="empty" title="Aucune donnée ESG importée">
+            <p>{esgSnap.error}</p>
+            <p className="mt-3">
+              <Link href="/upload" className="font-semibold underline text-[var(--cc-em)]">
+                Importer mes données
+              </Link>
             </p>
-          </div>
+          </EsrsNotice>
         )}
 
-        {/* Hero conformité */}
-        <EsrsHero
-          standards={standards}
-          totals={totals}
-          pillars={PILLARS}
-          pillarSummary={pillarSummary}
-          hovered={hovered}
-          setHovered={setHovered}
-        />
+        {esgSnap.status === "error" && !esgSnap.empty && (
+          <EsrsNotice tone="error" title="Conformité ESRS indisponible">
+            <p>{esgSnap.error}</p>
+          </EsrsNotice>
+        )}
 
-        {/* Priorités de conformité */}
-        <EsrsPriorities
-          standards={standards}
-          pillars={PILLARS}
-          onOpen={setExpanded}
-        />
+        {esgSnap.status === "ready" && !isLive && (
+          <EsrsNotice tone="empty" title="Matrice de matérialité non renseignée">
+            <p>
+              Votre snapshot ESG ne rattache encore aucun enjeu à une norme ESRS : la conformité ne
+              peut pas être calculée.
+            </p>
+            <p className="mt-3">
+              <Link href="/materialite" className="font-semibold underline text-[var(--cc-em)]">
+                Compléter la matrice de matérialité
+              </Link>
+            </p>
+          </EsrsNotice>
+        )}
 
-        {/* Liste des normes groupée par pilier */}
-        <StandardsList
-          standards={standards}
-          pillars={PILLARS}
-          hovered={hovered}
-          setHovered={setHovered}
-          expanded={expanded}
-          setExpanded={setExpanded}
-        />
+        {isLive && (
+          <>
+            <div className="flex items-center gap-2 text-xs text-[var(--cc-muted)]">
+              <span className="cc-live-dot" />
+              <span>Données réelles — dérivées de votre matrice de matérialité ESG</span>
+            </div>
 
-        <div className="text-center text-[11px] text-[var(--cc-subtle)] font-mono py-2">
-          Conformité ESRS dérivée de la matrice de matérialité · objectif {TARGET}%
-        </div>
+            {/* Hero conformité */}
+            <EsrsHero
+              standards={standards}
+              totals={totals}
+              pillars={PILLARS}
+              pillarSummary={pillarSummary}
+              hovered={hovered}
+              setHovered={setHovered}
+            />
+
+            {/* Priorités de conformité */}
+            <EsrsPriorities
+              standards={standards}
+              pillars={PILLARS}
+              onOpen={setExpanded}
+            />
+
+            {/* Liste des normes groupée par pilier */}
+            <StandardsList
+              standards={standards}
+              pillars={PILLARS}
+              hovered={hovered}
+              setHovered={setHovered}
+              expanded={expanded}
+              setExpanded={setExpanded}
+            />
+
+            <div className="text-center text-[11px] text-[var(--cc-subtle)] font-mono py-2">
+              Conformité ESRS dérivée de la matrice de matérialité · objectif {TARGET}%
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

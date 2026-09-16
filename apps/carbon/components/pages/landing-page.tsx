@@ -1,9 +1,9 @@
 "use client";
 
 import { CONTACT_EMAIL } from "@/lib/site-url";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   PremiumDashboardMockup,
   PREMIUM_DASHBOARD_HOTSPOTS,
@@ -23,6 +23,7 @@ import { useAnalytics } from "@/lib/hooks/use-analytics";
 import { Reveal } from "@/components/ui/reveal";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { EnvironmentalIntelligence } from "../landing/environmental-intelligence";
+import { CookiePreferencesButton } from "@/components/consent/cookie-preferences-button";
 import {
   NavResourcesMenu,
   NavResourcesMobileGroup,
@@ -564,6 +565,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Menu"
             aria-expanded={mobileMenuOpen}
+            aria-controls="landing-mobile-menu"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {mobileMenuOpen
@@ -573,7 +575,16 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
           </button>
         </div>
 
-        <div className="lg:hidden overflow-hidden transition-all duration-300 ease-in-out" style={{ maxHeight: mobileMenuOpen ? 620 : 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)" }}>
+        {/* Hauteur bornée à l'écran visible (sous l'en-tête, au-dessus de la bannière
+            cookies) et défilement interne : les derniers liens restent atteignables.
+            `inert` retire le menu replié de l'ordre de tabulation. */}
+        <div
+          id="landing-mobile-menu"
+          className="landing-mobile-menu lg:hidden transition-[max-height] duration-300 ease-in-out"
+          data-open={mobileMenuOpen ? "true" : "false"}
+          inert={!mobileMenuOpen}
+          style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)" }}
+        >
           <div className="flex flex-col px-8 pb-6 pt-2 border-t border-neutral-100">
             {NAV_LINKS.map(({ href, label }) => (
               href === RESOURCES_MENU_SLOT ? (
@@ -799,7 +810,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                   color: "blue", icon: (
                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
                   ),
-                  title: "Dashboard ESG temps réel",
+                  title: "Dashboard ESG unifié",
                   desc: "Visualisez vos KPIs carbone et gouvernance sur un tableau de bord unifié. Règles d'alerte configurables par seuil.",
                   highlights: ["Scope 1, 2 & 3", "Comparatif indicatif", "Alertes par seuil"],
                 },
@@ -1281,6 +1292,7 @@ export function LandingPage({ onEnterApp, materialsStats }: LandingPageProps) {
                 <li><a href="/brochure" className="text-sm text-neutral-500 hover:text-black transition-colors">Brochure (imprimable)</a></li>
                 <li><a href="/mentions-legales" className="text-sm text-neutral-500 hover:text-black transition-colors">Mentions légales</a></li>
                 <li><a href="/confidentialite" className="text-sm text-neutral-500 hover:text-black transition-colors">Confidentialité</a></li>
+                <li><CookiePreferencesButton className="text-sm text-neutral-500 hover:text-black transition-colors cursor-pointer text-left" /></li>
                 <li><a href="/cgu" className="text-sm text-neutral-500 hover:text-black transition-colors">CGU</a></li>
                 <li><a href={`mailto:${CONTACT_EMAIL}`} className="text-sm text-neutral-500 hover:text-black transition-colors">Contact</a></li>
               </ul>

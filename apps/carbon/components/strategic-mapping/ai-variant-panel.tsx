@@ -165,7 +165,7 @@ export function AiVariantPanel({ segment, persona, horizon }: AiVariantPanelProp
                       type="button"
                       onClick={handleGenerate}
                       disabled={streaming}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-primary)] text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:opacity-90 disabled:opacity-50 transition-opacity"
                     >
                       <Sparkles className="w-4 h-4" />
                       Générer la variante

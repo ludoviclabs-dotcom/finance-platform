@@ -263,7 +263,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     plan = runner.build_plan()
 
     versions = [i.file.version for i in plan.items]
-    assert len(versions) == 44
+    assert len(versions) == 45
     assert versions == sorted(versions, key=lambda v: (int(v[:3]), v[3:]))
     assert "008b" in versions
     assert "028" in versions
@@ -282,6 +282,7 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     assert "041" in versions
     assert "042" in versions
     assert "043" in versions
+    assert "044" in versions
 
     actions = {i.file.version: i.action for i in plan.items}
     assert actions["027"] == "blocked_manual"
@@ -307,6 +308,9 @@ def test_build_plan_against_real_migrations_directory(monkeypatch):
     # 042/043 (Module 2, tables neuves uniquement) : jamais requires_owner.
     assert actions["042"] == "apply"
     assert actions["043"] == "apply"
+    # 044 (durcissement auth) : table neuve + élargissement d'une CHECK déjà
+    # pratiqué par 041 sans privilège propriétaire.
+    assert actions["044"] == "apply"
     assert plan.has_blocking_issues is True
 
 
@@ -541,14 +545,13 @@ def test_build_plan_detects_040_pending_on_baselined_ledger(monkeypatch):
 def test_build_plan_detects_043_pending_on_baselined_ledger(monkeypatch):
     """043 doit apparaître 'apply' quand le ledger est baseliné sur tout le
     reste — expositions & moteur d'assessment (Module 2 / PR-M2B), tables neuves
-    seulement, jamais requires_owner. 043 est la DERNIÈRE version réelle du
-    dossier."""
+    seulement, jamais requires_owner."""
     runner = MigrationRunner()
     files = runner.discover_migrations()
     baselined = {
         f.version: _record(version=f.version, status="baseline", checksum=f.checksum_sha256)
         for f in files
-        if f.version != "043"
+        if f.version not in ("043", "044")
     }
     monkeypatch.setattr(runner, "load_records", lambda: baselined)
     plan = runner.build_plan()
@@ -557,7 +560,29 @@ def test_build_plan_detects_043_pending_on_baselined_ledger(monkeypatch):
     assert actions["043"] == "apply"
     assert all(actions[v] == "skip" for v in baselined)
     assert plan.has_blocking_issues is False
-    assert [i.file.version for i in plan.items][-1] == "043"
+    assert [i.file.version for i in plan.items][-2:] == ["043", "044"]
+
+
+# ── Rapport QA 16/09/2026 : migration 044 (durcissement auth) — table neuve +
+#    élargissement de audit_eventtype_check ; 044 est la DERNIÈRE version réelle ──
+def test_build_plan_detects_044_pending_on_baselined_ledger(monkeypatch):
+    """044 doit apparaître 'apply' (jamais requires_owner) quand le ledger est
+    baseliné sur tout le reste. 044 est la DERNIÈRE version réelle du dossier."""
+    runner = MigrationRunner()
+    files = runner.discover_migrations()
+    baselined = {
+        f.version: _record(version=f.version, status="baseline", checksum=f.checksum_sha256)
+        for f in files
+        if f.version != "044"
+    }
+    monkeypatch.setattr(runner, "load_records", lambda: baselined)
+    plan = runner.build_plan()
+
+    actions = {i.file.version: i.action for i in plan.items}
+    assert actions["044"] == "apply"
+    assert all(actions[v] == "skip" for v in baselined)
+    assert plan.has_blocking_issues is False
+    assert [i.file.version for i in plan.items][-1] == "044"
 
 
 # ── PR-02C : apply_plan — gardes pré-connexion (aucune DB requise) ────────

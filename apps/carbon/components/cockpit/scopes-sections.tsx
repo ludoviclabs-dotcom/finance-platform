@@ -32,7 +32,8 @@ export type ScopeData = {
   share: number;
   color: string;
   icon: "factory" | "zap" | "truck";
-  sbti: { status: "ok" | "warn" | "alert"; text: string };
+  /** « none » : aucune trajectoire renseignée (jamais un statut inventé). */
+  sbti: { status: "ok" | "warn" | "alert" | "none"; text: string };
   spark: number[];
   categories: { name: string; value: number }[];
 };
@@ -74,7 +75,8 @@ export function enrichCats(
   const shades = meta[scope.id].shades;
   return scope.categories.map((c, i) => ({
     name: c.name,
-    value: c.value,
+    // Valeur non finie ou négative → 0 : totaux, parts et tris restent définis.
+    value: Number.isFinite(c.value) && c.value > 0 ? c.value : 0,
     scopeId: scope.id,
     scopeName: scope.name,
     color: shades[i % shades.length],
@@ -85,17 +87,27 @@ export function enrichCats(
 /* ─── ScopesHero : empreinte totale + composition ────────────────────────── */
 
 export function ScopesHero({
-  scopes, total, revenue, deltaPct = -5.8, postesCount,
+  scopes, total, revenue, intensity: intensityOverride, deltaPct, postesCount,
 }: {
   scopes: ScopeData[];
   total: number;
-  revenue: number;
+  /** CA en M€ ; null si inconnu (intensité affichée « — »). */
+  revenue: number | null;
+  /** Intensité déjà calculée par le serveur (tCO₂e / M€), prioritaire. */
+  intensity?: number | null;
+  /** Variation vs N-1 : n'est affichée que si une valeur réelle existe. */
   deltaPct?: number;
-  postesCount: number;
+  /** Nombre de postes : masqué si le détail par poste n'est pas disponible. */
+  postesCount?: number;
 }) {
   const totalAnim = useCountUp(total, 1300, [total]);
-  const intensity = revenue > 0 ? (total / revenue).toFixed(1) : "—";
-  const ly = total / (1 + deltaPct / 100);
+  const intensityValue =
+    typeof intensityOverride === "number" && Number.isFinite(intensityOverride)
+      ? intensityOverride
+      : revenue && revenue > 0 ? total / revenue : null;
+  const intensity = intensityValue === null ? "—" : intensityValue.toFixed(1);
+  const hasDelta = typeof deltaPct === "number" && Number.isFinite(deltaPct);
+  const ly = hasDelta ? total / (1 + (deltaPct as number) / 100) : total;
   const saved = Math.max(0, Math.round(ly - total));
   return (
     <section className="cc-card sc-hero">
@@ -104,25 +116,35 @@ export function ScopesHero({
         <div className="sc-hero-metric">
           <span className="sc-hero-num">{fmt(totalAnim)}</span>
           <span className="sc-hero-unit">tCO₂e</span>
-          <span className={`cc-delta ${deltaPct < 0 ? "down" : "up"}`}>
-            {deltaPct < 0 ? "▼" : "▲"} {Math.abs(deltaPct).toFixed(1)} %
-          </span>
+          {hasDelta && (
+            <span className={`cc-delta ${(deltaPct as number) < 0 ? "down" : "up"}`}>
+              {(deltaPct as number) < 0 ? "▼" : "▲"} {Math.abs(deltaPct as number).toFixed(1)} %
+            </span>
+          )}
         </div>
         <div className="sc-hero-stats">
           <div className="sc-stat">
             <span className="sc-stat-v cc-mono">{intensity}</span>
             <span className="sc-stat-l">tCO₂e / M€ de CA</span>
           </div>
-          <div className="sc-stat-sep" />
-          <div className="sc-stat">
-            <span className="sc-stat-v cc-mono">−{fmt(saved)}</span>
-            <span className="sc-stat-l">t évitées vs N-1</span>
-          </div>
-          <div className="sc-stat-sep" />
-          <div className="sc-stat">
-            <span className="sc-stat-v cc-mono">{postesCount}</span>
-            <span className="sc-stat-l">postes d&apos;émission</span>
-          </div>
+          {hasDelta && (
+            <>
+              <div className="sc-stat-sep" />
+              <div className="sc-stat">
+                <span className="sc-stat-v cc-mono">−{fmt(saved)}</span>
+                <span className="sc-stat-l">t évitées vs N-1</span>
+              </div>
+            </>
+          )}
+          {typeof postesCount === "number" && (
+            <>
+              <div className="sc-stat-sep" />
+              <div className="sc-stat">
+                <span className="sc-stat-v cc-mono">{postesCount}</span>
+                <span className="sc-stat-l">postes d&apos;émission</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
       <div className="sc-hero-r">
@@ -179,7 +201,7 @@ export function ScopeTiles({
   selected: ScopeSelected;
   setSelected: (s: ScopeSelected) => void;
 }) {
-  const sbtiCls = { ok: "ok", warn: "warn", alert: "alert" } as const;
+  const sbtiCls = { ok: "ok", warn: "warn", alert: "alert", none: "" } as const;
   return (
     <section className="sc-tiles">
       <button
@@ -228,37 +250,88 @@ export function ScopeTiles({
 
 /* ─── Treemap binary split (sans dépendance) ─────────────────────────────── */
 
-type TreemapItem = EnrichedCategory & { x: number; y: number; w: number; h: number };
+export type TreemapItem = EnrichedCategory & { x: number; y: number; w: number; h: number };
 
-function splitTreemap(
-  items: EnrichedCategory[],
+type WeightedItem = { item: EnrichedCategory; weight: number };
+
+/** Valeur exploitable : non finie (NaN, ±Infinity) ou négative → 0. */
+function sanitizeValue(v: number): number {
+  return Number.isFinite(v) && v > 0 ? v : 0;
+}
+
+/** Dimension exploitable du conteneur (non finie ou négative → 0). */
+function sanitizeLength(v: number): number {
+  return Number.isFinite(v) && v > 0 ? v : 0;
+}
+
+function layoutPartition(
+  items: WeightedItem[],
   x: number, y: number, w: number, h: number,
   out: TreemapItem[],
 ) {
   if (items.length === 0) return;
   if (items.length === 1) {
-    out.push({ ...items[0], x, y, w, h });
+    out.push({ ...items[0].item, x, y, w, h });
     return;
   }
-  const total = items.reduce((a, b) => a + b.value, 0);
+  const total = items.reduce((a, b) => a + b.weight, 0);
+  // Coupure après le premier élément qui franchit la moitié du total, bornée
+  // à n − 2 : la partition droite n'est jamais vide, donc chaque appel
+  // récursif porte sur strictement moins d'éléments (terminaison garantie).
   let acc = 0;
-  let i = 0;
-  for (; i < items.length - 1; i++) {
-    if (acc + items[i].value > total / 2) break;
-    acc += items[i].value;
+  let cut = 0;
+  for (; cut < items.length - 2; cut++) {
+    if (acc + items[cut].weight > total / 2) break;
+    acc += items[cut].weight;
   }
-  const a = items.slice(0, i + 1);
-  const b = items.slice(i + 1);
-  const aSum = a.reduce((s, v) => s + v.value, 0);
+  const a = items.slice(0, cut + 1);
+  const b = items.slice(cut + 1);
+  const ratio = a.reduce((s, v) => s + v.weight, 0) / total;
   if (w >= h) {
-    const aw = w * (aSum / total);
-    splitTreemap(a, x, y, aw, h, out);
-    splitTreemap(b, x + aw, y, w - aw, h, out);
+    const aw = w * ratio;
+    layoutPartition(a, x, y, aw, h, out);
+    layoutPartition(b, x + aw, y, w - aw, h, out);
   } else {
-    const ah = h * (aSum / total);
-    splitTreemap(a, x, y, w, ah, out);
-    splitTreemap(b, x, y + ah, w, h - ah, out);
+    const ah = h * ratio;
+    layoutPartition(a, x, y, w, ah, out);
+    layoutPartition(b, x, y + ah, w, h - ah, out);
   }
+}
+
+/**
+ * Treemap « binary split » : surfaces proportionnelles aux valeurs, somme des
+ * surfaces = surface du conteneur dès que le total est > 0.
+ *
+ * Fonction totale (B-05 : récursion infinie → « Maximum call stack size
+ * exceeded » sur /scopes pour [0,0,0], [5,0,0], [NaN,1] ou deux valeurs
+ * égales) : valeurs non finies ou négatives ramenées à 0 ; postes à 0 exclus
+ * du pavage (aucune surface à dessiner — ils restent dans la liste de détail) ;
+ * découpe toujours en deux partitions non vides.
+ */
+export function splitTreemap(
+  items: EnrichedCategory[],
+  x: number, y: number, w: number, h: number,
+): TreemapItem[] {
+  const out: TreemapItem[] = [];
+  const positive = items
+    .map((item) => ({ item: { ...item, value: sanitizeValue(item.value) }, weight: sanitizeValue(item.value) }))
+    .filter((entry) => entry.weight > 0);
+  if (positive.length === 0) return out;
+  // Normalisation par le maximum : poids ∈ ]0, 1], leur somme ne peut pas
+  // déborder vers Infinity même avec des valeurs proches de Number.MAX_VALUE.
+  const max = Math.max(...positive.map((entry) => entry.weight));
+  const weighted = positive
+    .map((entry) => ({ ...entry, weight: entry.weight / max }))
+    .sort((p, q) => q.weight - p.weight);
+  layoutPartition(
+    weighted,
+    Number.isFinite(x) ? x : 0,
+    Number.isFinite(y) ? y : 0,
+    sanitizeLength(w),
+    sanitizeLength(h),
+    out,
+  );
+  return out;
 }
 
 export function Treemap({
@@ -270,9 +343,17 @@ export function Treemap({
   setHovered: (n: string | null) => void;
   height?: number;
 }) {
-  const sorted = [...items].sort((a, b) => b.value - a.value);
-  const rects: TreemapItem[] = [];
-  splitTreemap(sorted, 0, 0, 100, 100, rects);
+  const rects = splitTreemap(items, 0, 0, 100, 100);
+  if (rects.length === 0) {
+    return (
+      <div
+        className="sc-treemap flex items-center justify-center text-sm text-[var(--cc-muted)]"
+        style={{ height }}
+      >
+        Aucune émission à représenter pour ce périmètre.
+      </div>
+    );
+  }
   return (
     <div className="sc-treemap" style={{ height }}>
       {rects.map((r) => {

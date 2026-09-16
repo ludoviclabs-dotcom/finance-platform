@@ -57,6 +57,32 @@
   --color-danger-strong:  #991B1B;
   --color-success-strong: #065F46;
 
+  /* ── Action principale & accent ─────────────────────────────────────────── */
+  /* `--color-primary` était employé (~80 occurrences : /value-mapping-esg,
+     strategic-mapping, /nature, adhésion volontaire, safe-markdown) sans être
+     défini nulle part : les boutons à fond primaire et texte blanc
+     devenaient blanc sur blanc. On le définit ici, une seule fois.
+     Clair : émeraude profonde #047857 (même valeur que `--cc-em-deep`), car
+     l'émeraude de marque #059669 ne donne que 3,77:1 avec du blanc ; #047857
+     atteint 5,48:1, en fond de bouton comme en texte sur fond blanc.
+     `--color-primary-foreground` est la couleur du texte posé SUR ce fond. */
+  --color-primary:            #047857;
+  --color-primary-foreground: #FFFFFF;
+  /* Accent secondaire (mode audit, dégradés) — cyan de la palette cockpit,
+     assombri pour tenir 5,36:1 en texte sur blanc. */
+  --color-accent:             #0E7490;
+
+  /* ── Alias hérités (conventions de nommage shadcn) ──────────────────────── */
+  /* Référencés par de nombreux écrans sans jamais avoir été définis : le texte
+     « muted » héritait de la couleur du parent et les fonds restaient
+     transparents. Ils pointent désormais vers les jetons sémantiques
+     ci-dessus ; `--color-muted` est une teinte de fond employée avec une
+     opacité (/10 à /40), d'où une valeur plus soutenue que les surfaces. */
+  --color-muted-foreground: var(--color-foreground-muted);
+  --color-bg:               var(--color-background);
+  --color-surface-muted:    #F1F5F9;
+  --color-muted:            #CBD5E1;
+
   /* ── Radius ─────────────────────────────────────────────────────────────── */
   --radius-sm:   0.25rem;
   --radius:      0.375rem;
@@ -88,6 +114,19 @@
 
   --color-border:            #1E3A2F;
   --color-border-strong:     #2D5240;
+
+  /* Sombre : l'émeraude claire de la palette (`--cc-em`) se lit à 9,3:1 sur le
+     fond et 7,6:1 sur les surfaces ; le texte des boutons passe alors en vert
+     très sombre (7,9:1 sur #34D399) au lieu du blanc (1,9:1). */
+  --color-primary:            #34D399;
+  --color-primary-foreground: #022C22;
+  --color-accent:             #22D3EE;
+
+  /* Alias redéclarés ici pour suivre le thème sur l'élément qui le porte. */
+  --color-muted-foreground: var(--color-foreground-muted);
+  --color-bg:               var(--color-background);
+  --color-surface-muted:    #293548;
+  --color-muted:            #334155;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -167,6 +206,31 @@ h1, h2, h3 {
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
+}
+
+/* ─── Bannière cookies : espace réservé (QA m-06) ────────────────────────── */
+/* Tant que la bannière est affichée, components/cookie-banner.tsx publie sa
+   hauteur dans `--cookie-banner-offset` (absente sinon → 0). La fin de page
+   peut alors défiler au-dessus d'elle au lieu d'être masquée ; les éléments
+   fixés en bas (lien « démo guidée ») et le menu mobile s'en servent aussi. */
+body {
+  padding-bottom: var(--cookie-banner-offset, 0px);
+}
+
+/* ─── Menu mobile de la landing (QA m-06) ────────────────────────────────── */
+/* Borné à la hauteur visible sous l'en-tête (5rem) et au-dessus de la bannière
+   cookies, avec défilement interne : les derniers liens restent atteignables
+   quelle que soit la hauteur de l'écran. */
+.landing-mobile-menu {
+  max-height: 0;
+  overflow: hidden;
+}
+.landing-mobile-menu[data-open="true"] {
+  max-height: calc(100vh - 5rem - var(--cookie-banner-offset, 0px));
+  max-height: calc(100dvh - 5rem - var(--cookie-banner-offset, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ─── CarbonCo gradients ──────────────────────────────────────────────────── */

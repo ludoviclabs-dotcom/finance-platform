@@ -11,15 +11,17 @@ from db.tenant import get_company_id
 from routers.auth import require_admin
 from services import ingest_jobs
 from services.audit_service import log_event
-from services.auth_service import AuthUser
+from services.auth_service import AuthUser, is_platform_admin
 from services.carbon_service import build_carbon_snapshot
 from services.esg_service import build_esg_snapshot, build_vsme_snapshot, emit_esg_facts
 from services.finance_service import build_finance_snapshot, emit_finance_facts
 from services.snapshot_cache import (
+    SnapshotStoreError,
     cache_status,
     invalidate,
     write_snapshot,
 )
+from utils.env import is_production
 
 logger = logging.getLogger(__name__)
 
@@ -117,13 +119,28 @@ def run_ingest_sync(company_id: int) -> tuple[list[IngestDomainResult], bool]:
 
 
 @router.post("/ingest", response_model=IngestResponse, status_code=202)
-async def ingest(company_id: int = Depends(get_company_id)) -> IngestResponse:
+async def ingest(user: AuthUser = Depends(require_admin)) -> IngestResponse:
     """Lance une ingestion. Crée un job suivable via GET /ingests/{id}.
+
+    Recalcule les snapshots depuis les classeurs MAÎTRES du dépôt — un jeu de
+    démonstration, pas les données du client. Réservé aux admins ; en
+    production, aux seuls administrateurs de la plateforme (sinon le compte
+    d'un client recevait des chiffres fictifs présentés comme les siens). Les
+    données d'une organisation arrivent par POST /excel/ingest-uploaded.
 
     WORKER_MODE=worker (+ procrastinate + DATABASE_URL_DIRECT) → job déféré,
     réponse immédiate (< 1 s, statut pending). Sinon (défaut « inline ») →
     exécution synchrone, le job est néanmoins journalisé (statut done|failed).
     """
+    if is_production() and not is_platform_admin(user):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "La synchronisation depuis les classeurs de démonstration est désactivée. "
+                "Importez votre classeur depuis la page Import."
+            ),
+        )
+    company_id = user.company_id
     job_id = ingest_jobs.create_job(company_id)
 
     if os.environ.get("WORKER_MODE") == "worker":
@@ -163,7 +180,10 @@ async def ingest_job_status(
 @router.get("/ingest/status", response_model=CacheStatusResponse)
 async def ingest_status(company_id: int = Depends(get_company_id)) -> CacheStatusResponse:
     """Return cache age and staleness for all 4 domains."""
-    return CacheStatusResponse(domains=cache_status(company_id=company_id))
+    try:
+        return CacheStatusResponse(domains=cache_status(company_id=company_id))
+    except SnapshotStoreError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 # ---------------------------------------------------------------------------
@@ -188,5 +208,7 @@ async def invalidate_cache(
             status="ok",
             company_id=user.company_id,
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail="Invalidation du cache impossible.") from exc

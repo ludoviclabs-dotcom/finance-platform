@@ -9,7 +9,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+import { normalizeApiBaseUrl } from "@/lib/api-base-url";
+
+const API = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL) ?? "";
 
 type Recompute = {
   status: string; // authentic | altered | unknown | invalid | error

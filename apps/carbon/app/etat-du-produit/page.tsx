@@ -5,13 +5,14 @@ import Link from "next/link";
 import {
   featuresByStatus,
   lastUpdateLabel,
+  lastVerificationLabel,
   type FeatureStatus,
 } from "@/lib/feature-registry";
 
 export const metadata: Metadata = {
   title: "État du produit — CarbonCo",
   description:
-    "Ce que CarbonCo fait aujourd'hui, ce qui est en Beta et ce qui est planifié. Transparence totale sur les fonctionnalités disponibles.",
+    "Ce que CarbonCo fait aujourd'hui, ce qui est en cours de vérification, en Beta ou planifié. Statuts revus au dernier contrôle de disponibilité.",
 };
 
 // Présentation par statut (couleurs, intitulé, sous-titre). Les DONNÉES (features)
@@ -21,6 +22,8 @@ const STATUS_META: Array<{
   status: FeatureStatus;
   label: string;
   subtitle: string;
+  /** Lien d'accompagnement optionnel sous le sous-titre. */
+  link?: { href: string; label: string };
   color: string;
   bg: string;
   border: string;
@@ -29,11 +32,24 @@ const STATUS_META: Array<{
   {
     status: "live",
     label: "🟢 Disponible aujourd'hui",
-    subtitle: "Ces fonctionnalités sont en production et utilisables pour un rapport CSRD réel.",
+    subtitle:
+      "Accessibles aujourd'hui en production : leur disponibilité a été confirmée lors du dernier contrôle.",
     color: "text-emerald-700",
     bg: "bg-emerald-50",
     border: "border-emerald-200",
     dot: "bg-emerald-500",
+  },
+  {
+    // Statut neutre : ni « disponible » (non confirmé), ni incident déclaré.
+    status: "verification",
+    label: "⏳ En cours de vérification",
+    subtitle:
+      `Livrées dans le code, mais leur disponibilité en production n'a pas pu être confirmée lors du dernier contrôle (${lastVerificationLabel()}) : elles dépendent de l'API authentifiée ou d'une tâche planifiée quotidienne. Elles repasseront « Disponible » après une vérification concluante.`,
+    link: { href: "/status", label: "Consulter l'état des services →" },
+    color: "text-slate-700",
+    bg: "bg-slate-50",
+    border: "border-slate-200",
+    dot: "bg-slate-400",
   },
   {
     status: "beta",
@@ -67,7 +83,8 @@ export default function EtatDuProduitPage() {
           </h1>
           <p className="text-lg text-neutral-400 max-w-2xl leading-relaxed">
             Pas de vaporware. Pas de fausses promesses. Voici exactement ce que CarbonCo fait aujourd&apos;hui,
-            ce qui est en cours de stabilisation, et ce qui est sur la roadmap.
+            ce qui attend une vérification en production, ce qui est en cours de stabilisation, et ce qui
+            est sur la roadmap.
           </p>
         </div>
       </div>
@@ -76,13 +93,22 @@ export default function EtatDuProduitPage() {
       <div className="max-w-4xl mx-auto px-8 md:px-16 py-16 space-y-16">
         {STATUS_META.map((section) => {
           const features = featuresByStatus(section.status);
+          if (features.length === 0) return null;
           return (
             <div key={section.status}>
               <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold mb-3 ${section.bg} ${section.border} ${section.color}`}>
                 <span className={`w-2 h-2 rounded-full ${section.dot}`} />
                 {section.label}
               </div>
-              <p className="text-neutral-500 text-sm mb-8">{section.subtitle}</p>
+              <p className={`text-neutral-500 text-sm ${section.link ? "mb-2" : "mb-8"}`}>{section.subtitle}</p>
+              {section.link && (
+                <Link
+                  href={section.link.href}
+                  className="inline-block mb-8 text-sm font-semibold text-emerald-700 hover:underline"
+                >
+                  {section.link.label}
+                </Link>
+              )}
 
               <div className="space-y-4">
                 {features.map((feature) => (
@@ -114,14 +140,17 @@ export default function EtatDuProduitPage() {
         {/* Footer note */}
         <div className="pt-8 border-t border-neutral-200">
           <p className="text-sm text-neutral-400 leading-relaxed">
-            Cette page est mise à jour à chaque sprint (toutes les 2 semaines).
+            Cette page reflète le registre des statuts produit, daté ci-dessous.
             Si une fonctionnalité que vous attendez n&apos;est pas dans la liste planifiée,{" "}
             <a href={`mailto:${CONTACT_EMAIL}`} className="text-emerald-600 hover:underline">
               contactez-nous
             </a>{" "}
             — les demandes clients remontent directement dans la priorisation de la roadmap.
           </p>
-          <p className="text-xs text-neutral-300 mt-3">Dernière mise à jour : {lastUpdateLabel()}</p>
+          <p className="text-xs text-neutral-500 mt-3">
+            Dernière mise à jour : {lastUpdateLabel()} · Dernière vérification des statuts :{" "}
+            {lastVerificationLabel()}
+          </p>
         </div>
       </div>
     </div>

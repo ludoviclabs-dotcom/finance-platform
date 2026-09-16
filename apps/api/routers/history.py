@@ -12,11 +12,12 @@ import json
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from db.database import db_available, get_db
-from services.snapshot_cache import DEFAULT_COMPANY_ID, read_snapshot_history
+from db.tenant import get_company_id
+from services.snapshot_cache import read_snapshot_history
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ class SnapshotVersionDetail(BaseModel):
 async def get_history(
     domain: str,
     limit: int = Query(default=10, ge=1, le=50),
+    company_id: int = Depends(get_company_id),
 ) -> SnapshotHistoryResponse:
     """Return the N most recent snapshot versions for a domain."""
     if domain not in VALID_DOMAINS:
@@ -64,7 +66,7 @@ async def get_history(
             entries=[],
         )
 
-    entries_raw = read_snapshot_history(domain, company_id=DEFAULT_COMPANY_ID, limit=limit)
+    entries_raw = read_snapshot_history(domain, company_id=company_id, limit=limit)
     entries = [SnapshotHistoryEntry(**e) for e in entries_raw]
 
     return SnapshotHistoryResponse(
@@ -78,6 +80,7 @@ async def get_history(
 async def get_snapshot_version(
     domain: str,
     entry_id: int,
+    company_id: int = Depends(get_company_id),
 ) -> SnapshotVersionDetail:
     """Return the full snapshot data for a specific historical version."""
     if domain not in VALID_DOMAINS:
@@ -87,7 +90,7 @@ async def get_snapshot_version(
         raise HTTPException(status_code=503, detail="Historique non disponible — PostgreSQL non configuré.")
 
     try:
-        with get_db() as conn:
+        with get_db(company_id=company_id) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
@@ -95,12 +98,12 @@ async def get_snapshot_version(
                     FROM snapshots
                     WHERE id = %s AND company_id = %s AND domain = %s
                     """,
-                    (entry_id, DEFAULT_COMPANY_ID, domain),
+                    (entry_id, company_id, domain),
                 )
                 row = cur.fetchone()
     except Exception as exc:
         logger.error("Erreur lecture snapshot version %s : %s", entry_id, exc)
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail="Lecture de l'historique impossible.") from exc
 
     if not row:
         raise HTTPException(status_code=404, detail=f"Version {entry_id} introuvable pour le domaine {domain}.")

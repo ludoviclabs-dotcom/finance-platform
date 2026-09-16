@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Leaf, LogOut, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { NAV_GROUPS, isNavItemActive } from "@/lib/nav-config";
+import { useAuthState } from "@/lib/hooks/auth-context";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -15,7 +16,11 @@ interface SidebarProps {
   onMobileClose?: () => void;
 }
 
-const ESG_SCORE = 62;
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Administrateur",
+  analyst: "Analyste",
+  viewer: "Lecteur",
+};
 
 export function Sidebar({
   collapsed,
@@ -27,8 +32,14 @@ export function Sidebar({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const pathname = usePathname();
 
-  const circumference = 2 * Math.PI * 16;
-  const dashOffset = circumference - (ESG_SCORE / 100) * circumference;
+  // Carte utilisateur : le compte réellement connecté (plus de persona fictif
+  // « Marie Leclerc · Exemplia Industrie » affiché à tous les utilisateurs).
+  const auth = useAuthState();
+  const userEmail = auth.status === "authenticated" ? auth.email : null;
+  const userLabel = userEmail ?? "Compte CarbonCo";
+  const roleLabel =
+    auth.status === "authenticated" ? ROLE_LABELS[auth.role] ?? auth.role : "Session";
+  const initials = userEmail ? userEmail.charAt(0).toUpperCase() : "?";
 
   // Sur mobile on ignore le collapsed (toujours affiché en pleine largeur drawer)
   const effectiveCollapsed = collapsed;
@@ -85,53 +96,44 @@ export function Sidebar({
         {/* User card */}
         <div className={`border-b border-[var(--color-border)] ${collapsed ? "px-2 py-3" : "px-4 py-3"}`}>
           {collapsed ? (
-            <div className="flex justify-center">
+            <div className="flex justify-center" title={userLabel}>
               <div className="w-8 h-8 rounded-full bg-carbon-emerald/20 flex items-center justify-center">
-                <span className="text-xs font-bold text-carbon-emerald-light">ML</span>
+                <span className="text-xs font-bold text-carbon-emerald-light">{initials}</span>
               </div>
             </div>
           ) : (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3">
               <div className="relative flex-shrink-0">
                 <div className="w-9 h-9 rounded-full bg-carbon-emerald/20 flex items-center justify-center">
-                  <span className="text-xs font-bold text-carbon-emerald-light">ML</span>
+                  <span className="text-xs font-bold text-carbon-emerald-light">{initials}</span>
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[var(--color-success)] border-2 border-[var(--color-surface)]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[var(--color-foreground)] truncate">Marie Leclerc</p>
-                <p className="text-xs text-[var(--color-foreground-muted)] truncate">Resp. RSE · Exemplia Industrie</p>
+                <p className="text-sm font-semibold text-[var(--color-foreground)] truncate" title={userLabel}>
+                  {userLabel}
+                </p>
+                <p className="text-xs text-[var(--color-foreground-muted)] truncate">{roleLabel}</p>
               </div>
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-carbon-emerald/15 text-carbon-emerald-light whitespace-nowrap">
-                Business
-              </span>
             </motion.div>
           )}
         </div>
 
-        {/* Score ESG */}
+        {/* Score ESG : aucune valeur codée en dur — le score réel (dérivé de la
+            matrice de matérialité) est consultable sur le tableau de bord et /esrs. */}
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="mx-3 mt-3 mb-1 p-3 rounded-xl bg-[var(--color-background)] border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-[var(--color-foreground-muted)] uppercase tracking-wide">Score ESG</span>
-              <span className="text-sm font-extrabold text-carbon-emerald-light">{ESG_SCORE}/100</span>
+              <span className="text-sm font-extrabold text-[var(--color-foreground-muted)]">—/100</span>
             </div>
-            <div className="flex items-center gap-3">
-              <svg className="w-12 h-12 flex-shrink-0 -rotate-90" viewBox="0 0 40 40">
-                <circle cx="20" cy="20" r="16" fill="none" stroke="var(--color-border)" strokeWidth="4" />
-                <circle cx="20" cy="20" r="16" fill="none" stroke="#059669" strokeWidth="4"
-                  strokeDasharray={circumference} strokeDashoffset={dashOffset}
-                  strokeLinecap="round" style={{ transition: "stroke-dashoffset 1s ease" }} />
-              </svg>
-              <div className="flex-1">
-                <div className="h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden">
-                  <div className="h-full rounded-full bg-gradient-to-r from-[#059669] to-[#0891b2]"
-                    style={{ width: `${ESG_SCORE}%`, transition: "width 1s ease" }} />
-                </div>
-                <p className="text-[10px] text-[var(--color-foreground-subtle)] mt-1">Objectif : 80 · +18 pts</p>
-              </div>
-            </div>
+            <Link
+              href="/esrs"
+              onClick={() => onMobileClose?.()}
+              className="text-[10px] text-[var(--color-foreground-subtle)] underline hover:text-[var(--color-foreground)]"
+            >
+              Voir la conformité ESRS
+            </Link>
           </motion.div>
         )}
 

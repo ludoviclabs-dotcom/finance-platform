@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import logging
 from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -32,7 +32,12 @@ from pydantic import BaseModel
 
 from db.database import db_available, get_db
 from db.tenant import get_company_id
-from routers.auth import get_current_user, require_analyst
+from routers.auth import (
+    CronOrUser,
+    get_current_user,
+    require_analyst,
+    require_cron_or_analyst,
+)
 from services import alerts_service
 from services.auth_service import AuthUser
 
@@ -221,14 +226,66 @@ def delete_rule(rule_id: int, company_id: int = Depends(get_company_id),
 # Evaluate
 # ---------------------------------------------------------------------------
 
+# Le cron Vercel peut livrer deux fois la même exécution (livraison « best
+# effort », doc Vercel) : une règle déjà déclenchée depuis moins de 20 h n'est
+# pas re-notifiée par le cron. Un déclenchement manuel reste toujours évalué.
+CRON_REFIRE_GUARD_HOURS = 20
+
+
 @router.post("/evaluate")
-def evaluate_rules(company_id: int = Depends(get_company_id),
-                   _: Any = Depends(require_analyst)) -> dict:
+def evaluate_rules(caller: CronOrUser = Depends(require_cron_or_analyst)) -> dict:
     """Évalue les règles actives (modes absolute/delta_pct/missing) et persiste
-    les notifications déclenchées. La comparaison N-1 lit le snapshot précédent."""
+    les notifications déclenchées. La comparaison N-1 lit le snapshot précédent.
+
+    Cron (CRON_SERVICE_TOKEN) : toutes les organisations ayant des règles
+    actives. Utilisateur analyste/admin : sa seule organisation.
+    """
+    if not caller.is_cron:
+        return _evaluate_company(caller.user.company_id)
+
+    evaluated = fired = 0
+    alerts: list[dict[str, Any]] = []
+    companies = 0
+    for company_id in _all_company_ids():
+        result = _evaluate_company(company_id, refire_guard_hours=CRON_REFIRE_GUARD_HOURS)
+        if result["evaluated"]:
+            companies += 1
+        evaluated += result["evaluated"]
+        fired += result["fired"]
+        alerts.extend({**a, "company_id": company_id} for a in result["alerts"])
+    return {"evaluated": evaluated, "fired": fired, "companies": companies, "alerts": alerts}
+
+
+def _all_company_ids() -> list[int]:
+    """Organisations à parcourir (companies n'a pas de RLS ; les règles sont
+    ensuite lues sous contexte tenant, seule lecture visible sous RLS)."""
+    if not db_available():
+        return sorted({r["company_id"] for r in _MEM_RULES})
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM companies ORDER BY id")
+            return [r["id"] for r in cur.fetchall()]
+
+
+def _recently_fired(rule: dict[str, Any], hours: int) -> bool:
+    raw = rule.get("last_fired_at")
+    if not raw:
+        return False
+    try:
+        fired_at = datetime.fromisoformat(str(raw))
+    except ValueError:
+        return False
+    if fired_at.tzinfo is None:
+        fired_at = fired_at.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) - fired_at < timedelta(hours=hours)
+
+
+def _evaluate_company(company_id: int, refire_guard_hours: int | None = None) -> dict:
     from services.snapshot_cache import read_snapshot, read_snapshot_versions
 
     rules = [r for r in list_rules(company_id) if r.get("is_active")]
+    if refire_guard_hours is not None:
+        rules = [r for r in rules if not _recently_fired(r, refire_guard_hours)]
     domains = {r["domain"] for r in rules}
 
     current: dict[str, dict] = {}
@@ -254,7 +311,7 @@ def evaluate_rules(company_id: int = Depends(get_company_id),
         ev["fired_at"] = now
         title, body = alerts_service.format_notification(ev)
         _persist_notification(company_id, ev, title, body)
-        _MEM_HISTORY.appendleft(ev)
+        _MEM_HISTORY.appendleft({**ev, "company_id": company_id})
         _update_last_fired(company_id, ev.get("rule_id"))
         rule = next((r for r in rules if r.get("id") == ev.get("rule_id")), None)
         if rule and rule.get("channel") == "email" and rule.get("destination"):
@@ -384,5 +441,8 @@ def archive_notification(notif_id: int, user: AuthUser = Depends(get_current_use
 
 @router.get("/history")
 def alert_history(company_id: int = Depends(get_company_id), limit: int = 20) -> dict:
-    events = list(_MEM_HISTORY)[:limit]
-    return {"total": len(_MEM_HISTORY), "limit": limit, "alerts": events}
+    # L'historique en mémoire est commun au process : il DOIT être filtré par
+    # organisation (il exposait jusqu'ici les déclenchements de tous les tenants).
+    own = [e for e in _MEM_HISTORY if e.get("company_id") == company_id]
+    events = [{k: v for k, v in e.items() if k != "company_id"} for e in own[:limit]]
+    return {"total": len(own), "limit": limit, "alerts": events}

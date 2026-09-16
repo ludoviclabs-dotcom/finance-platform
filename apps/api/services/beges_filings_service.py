@@ -288,16 +288,19 @@ def get_schedule(company_id: int, today: date | None = None) -> BegesSchedule:
 # ---------------------------------------------------------------------------
 
 def _companies_with_filings() -> list[tuple[int, str]]:
-    """(company_id, name) des organisations ayant au moins un dépôt enregistré."""
+    """(company_id, name) des organisations — le filtre « au moins un dépôt »
+    est fait par `run_reminders` via `list_filings`, sous contexte tenant.
+
+    Une jointure companies ⨝ beges_filings SANS contexte tenant ne voit aucune
+    ligne sous RLS (rôle applicatif non propriétaire) : les rappels ne
+    partaient jamais en production. companies n'a pas de RLS.
+    """
     if _db_available():
         try:
             from db.database import get_db
-            with get_db() as conn:  # companies n'a pas de RLS
+            with get_db() as conn:
                 with conn.cursor() as cur:
-                    cur.execute(
-                        "SELECT DISTINCT c.id, c.name FROM companies c "
-                        "JOIN beges_filings f ON f.company_id = c.id"
-                    )
+                    cur.execute("SELECT id, name FROM companies ORDER BY id")
                     return [(r["id"], r["name"]) for r in cur.fetchall()]
         except Exception as exc:
             logger.warning("_companies_with_filings DB error: %s", exc)
@@ -329,8 +332,14 @@ def _mark_stage(filing_id: int, company_id: int, stage: str) -> None:
             f["reminder_stage"] = stage
 
 
-def run_reminders(today: date | None = None) -> dict[str, Any]:
-    """Parcourt toutes les organisations et émet les rappels d'échéance dus.
+def run_reminders(
+    today: date | None = None, company_ids: set[int] | None = None,
+) -> dict[str, Any]:
+    """Parcourt les organisations et émet les rappels d'échéance dus.
+
+    `company_ids=None` : toutes les organisations (appel du cron). Sinon, les
+    seules organisations listées (déclenchement manuel par un utilisateur, qui
+    ne doit agir que sur la sienne).
 
     Persiste chaque rappel dans le centre de notifications in-app (pattern
     alerts, les deux modes DB / in-memory sont gérés par _persist_notification).
@@ -346,6 +355,8 @@ def run_reminders(today: date | None = None) -> dict[str, Any]:
     notified: list[dict[str, Any]] = []
 
     for company_id, company_name in _companies_with_filings():
+        if company_ids is not None and company_id not in company_ids:
+            continue
         filings = [f.model_dump() for f in list_filings(company_id)]
         if not filings:
             continue

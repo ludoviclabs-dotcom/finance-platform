@@ -102,7 +102,7 @@ def test_positions_avec_justification(client, analyst_token):
     )
     assert save.status_code == 204
 
-    positions = client.get("/materialite/positions").json()
+    positions = client.get("/materialite/positions", headers=_auth(analyst_token)).json()
     assert positions[0]["justification"] == "Site industriel gaz-intensif."
 
     # Re-sauvegarde SANS justification → l'existante est conservée (COALESCE)
@@ -111,7 +111,7 @@ def test_positions_avec_justification(client, analyst_token):
         json={"positions": [{"code": "CC-1", "x": 3.0, "y": 3.0}]},
         headers=_auth(analyst_token),
     )
-    positions = client.get("/materialite/positions").json()
+    positions = client.get("/materialite/positions", headers=_auth(analyst_token)).json()
     assert positions[0]["x"] == 3.0
     assert positions[0]["justification"] == "Site industriel gaz-intensif."
 
@@ -145,13 +145,13 @@ def test_assessment_gel_listing_detail_export(client, analyst_token):
         json={"positions": [{"code": "CC-1", "x": 0.5, "y": 0.5}]},
         headers=_auth(analyst_token),
     )
-    detail = client.get(f"/materialite/assessments/{assessment_id}").json()
+    detail = client.get(f"/materialite/assessments/{assessment_id}", headers=_auth(analyst_token)).json()
     frozen_cc1 = next(i for i in detail["result"]["issues"] if i["code"] == "CC-1")
     assert frozen_cc1["x"] == 4.0
     assert frozen_cc1["justification"] == "Énergie de procédé majoritaire."
 
     # Listing
-    listing = client.get("/materialite/assessments").json()
+    listing = client.get("/materialite/assessments", headers=_auth(analyst_token)).json()
     assert len(listing) == 1
     assert listing[0]["label"] == "Évaluation 2026"
 
@@ -177,7 +177,7 @@ def test_assessment_gel_listing_detail_export(client, analyst_token):
 
 
 def test_assessment_inconnu_404(client, analyst_token):
-    assert client.get("/materialite/assessments/999").status_code == 404
+    assert client.get("/materialite/assessments/999", headers=_auth(analyst_token)).status_code == 404
     assert (
         client.post("/materialite/assessments/999/export", headers=_auth(analyst_token)).status_code
         == 404

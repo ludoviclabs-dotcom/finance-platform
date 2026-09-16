@@ -4,79 +4,70 @@
  * ROI Calculator CarbonCo.
  *
  * Calcule un ROI annuel comparant un reporting CSRD réalisé "à la main"
- * (Excel + consultant externe) versus avec CarbonCo.
- *
- * Hypothèses de calcul (transparentes, affichables sur demande) :
- *   - Coût manuel = (jours-homme internes × TJM 600€) + consultant externe (50% du budget interne)
+ * (Excel + consultant externe) versus avec CarbonCo. Le calcul et les
+ * hypothèses affichées vivent dans ./roi-model (fonctions pures, testées) :
+ *   - Coût manuel = (jours-homme internes × TJM) + consultant externe éventuel
  *   - Jours-homme internes = base secteur × multiplicateur sites × multiplicateur scope3
- *   - Coût CarbonCo = forfait annuel selon plan détecté (FTE)
+ *   - Coût CarbonCo = forfait annuel selon l'effectif + jours-homme restants × TJM
+ * Un écart négatif est présenté comme un surcoût, jamais comme une économie.
  *
  * Le composant ne stocke rien et n'envoie rien à un serveur — calcul 100 % côté client.
  *
  * Accessibilité :
  *   - Chaque champ a un htmlFor explicite via useId (labels associés sans nesting).
+ *   - Les champs numériques annoncent leurs bornes et leur erreur de saisie
+ *     (aria-describedby / aria-invalid).
  *   - Le bloc résultat est annoncé via aria-live="polite" pour les lecteurs d'écran
  *     lors d'un changement de valeur.
  */
 
 import { useId, useMemo, useState } from "react";
 
-type Sector = "industrie" | "services" | "agro" | "btp" | "distribution";
-type Scope3Complexity = "simple" | "medium" | "complex";
+import {
+  clampInteger,
+  commitIntegerInput,
+  computeRoi,
+  describeRoi,
+  formatEuros,
+  formatInteger,
+  FTE_BOUNDS,
+  parseIntegerInput,
+  roiAssumptions,
+  SCOPE3_LABELS,
+  SECTOR_LABELS,
+  SITES_BOUNDS,
+  type IntegerBounds,
+  type RoiInputs,
+  type RoiTone,
+  type Scope3Complexity,
+  type Sector,
+} from "./roi-model";
 
-interface Inputs {
-  fte: number;          // effectif total
-  sites: number;        // nombre de sites/établissements
-  sector: Sector;
-  scope3: Scope3Complexity;
-  hasConsultant: boolean;
-}
-
-const SECTOR_BASE_DAYS: Record<Sector, number> = {
-  industrie: 75,
-  services: 45,
-  agro: 80,
-  btp: 65,
-  distribution: 55,
+const TONE_STYLES: Record<RoiTone, { box: string; kicker: string; amount: string; divider: string }> = {
+  positive: {
+    box: "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200",
+    kicker: "text-green-700",
+    amount: "text-green-700",
+    divider: "bg-green-200",
+  },
+  warning: {
+    box: "bg-amber-50 border-amber-200",
+    kicker: "text-amber-800",
+    amount: "text-amber-800",
+    divider: "bg-amber-200",
+  },
+  neutral: {
+    box: "bg-neutral-50 border-neutral-200",
+    kicker: "text-neutral-600",
+    amount: "text-neutral-900",
+    divider: "bg-neutral-200",
+  },
 };
 
-const SCOPE3_MULT: Record<Scope3Complexity, number> = {
-  simple: 1.0,
-  medium: 1.4,
-  complex: 1.85,
-};
-
-const SECTOR_LABELS: Record<Sector, string> = {
-  industrie: "Industrie",
-  services: "Services",
-  agro: "Agroalimentaire",
-  btp: "BTP / Construction",
-  distribution: "Distribution",
-};
-
-const SCOPE3_LABELS: Record<Scope3Complexity, string> = {
-  simple: "Simple — peu de fournisseurs, produits homogènes",
-  medium: "Modéré — chaîne de valeur classique",
-  complex: "Complexe — multi-pays, multi-produits, services tiers",
-};
-
-// Plans CarbonCo (en € / an)
-function carbonCoPrice(fte: number): { plan: string; price: number } {
-  if (fte <= 100) return { plan: "Starter", price: 490 * 12 };
-  if (fte <= 500) return { plan: "Business", price: 1290 * 12 };
-  return { plan: "Enterprise (estimation)", price: 2900 * 12 };
-}
-
-const TJM_INTERNAL = 600;          // €/jour
-const CONSULTANT_RATIO = 0.5;      // 50 % du budget interne
-const CARBONCO_DAYS_REDUCTION = 0.6; // -60 % de jours-homme
-
-function format(n: number): string {
-  return n.toLocaleString("fr-FR", { maximumFractionDigits: 0 });
-}
+const ASSUMPTIONS = roiAssumptions();
 
 export function RoiCalculator() {
-  const [inputs, setInputs] = useState<Inputs>({
+  const [inputs, setInputs] = useState<RoiInputs>({
     fte: 250,
     sites: 4,
     sector: "industrie",
@@ -84,32 +75,9 @@ export function RoiCalculator() {
     hasConsultant: true,
   });
 
-  const result = useMemo(() => {
-    const baseDays = SECTOR_BASE_DAYS[inputs.sector];
-    const sitesMult = 1 + Math.log10(Math.max(1, inputs.sites)) * 0.4;
-    const days = Math.round(baseDays * sitesMult * SCOPE3_MULT[inputs.scope3]);
-    const internalCost = days * TJM_INTERNAL;
-    const consultantCost = inputs.hasConsultant ? Math.round(internalCost * CONSULTANT_RATIO) : 0;
-    const manualTotal = internalCost + consultantCost;
-
-    const carbonCo = carbonCoPrice(inputs.fte);
-    const reducedDays = Math.round(days * (1 - CARBONCO_DAYS_REDUCTION));
-    const reducedInternalCost = reducedDays * TJM_INTERNAL;
-    const carbonTotal = carbonCo.price + reducedInternalCost;
-
-    const savings = manualTotal - carbonTotal;
-    const savingsPct = Math.round((savings / manualTotal) * 100);
-
-    return {
-      days,
-      reducedDays,
-      manualTotal,
-      carbonTotal,
-      savings,
-      savingsPct,
-      planName: carbonCo.plan,
-    };
-  }, [inputs]);
+  const result = useMemo(() => computeRoi(inputs), [inputs]);
+  const summary = describeRoi(result);
+  const tone = TONE_STYLES[summary.tone];
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 md:p-8">
@@ -128,37 +96,19 @@ export function RoiCalculator() {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Inputs */}
         <div className="space-y-5">
-          <Field label="Effectif total (FTE)">
-            {(id) => (
-              <input
-                id={id}
-                type="number"
-                min={10}
-                max={5000}
-                value={inputs.fte}
-                onChange={(e) =>
-                  setInputs((s) => ({ ...s, fte: Math.max(10, parseInt(e.target.value) || 0) }))
-                }
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none"
-              />
-            )}
-          </Field>
+          <IntegerField
+            label="Effectif total (ETP)"
+            value={inputs.fte}
+            bounds={FTE_BOUNDS}
+            onCommit={(fte) => setInputs((s) => ({ ...s, fte }))}
+          />
 
-          <Field label="Nombre de sites / établissements">
-            {(id) => (
-              <input
-                id={id}
-                type="number"
-                min={1}
-                max={100}
-                value={inputs.sites}
-                onChange={(e) =>
-                  setInputs((s) => ({ ...s, sites: Math.max(1, parseInt(e.target.value) || 0) }))
-                }
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none"
-              />
-            )}
-          </Field>
+          <IntegerField
+            label="Nombre de sites / établissements"
+            value={inputs.sites}
+            bounds={SITES_BOUNDS}
+            onCommit={(sites) => setInputs((s) => ({ ...s, sites }))}
+          />
 
           <Field label="Secteur">
             {(id) => (
@@ -211,42 +161,50 @@ export function RoiCalculator() {
 
         {/* Résultat — annoncé via aria-live aux lecteurs d'écran lors du recalcul */}
         <div
-          className="rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-5"
+          className={`rounded-xl border p-5 ${tone.box}`}
           role="region"
           aria-label="Estimation ROI annuelle"
           aria-live="polite"
+          data-testid="roi-result"
+          data-outcome={result.outcome}
         >
-          <p className="text-xs font-bold uppercase tracking-widest text-green-700 mb-3">
+          <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${tone.kicker}`}>
             Estimation annuelle
           </p>
 
           <Row label="Jours-homme internes (manuel)" value={`${result.days} j`} />
-          <Row label="Jours-homme internes (CarbonCo)" value={`${result.reducedDays} j`} good />
-          <Divider />
-          <Row label="Coût manuel total" value={`${format(result.manualTotal)} €`} />
+          {/* Aucun vert dans un bloc de surcoût : le signal « favorable » ne
+              doit pas contredire la conclusion affichée dessous. */}
+          <Row
+            label="Jours-homme internes (CarbonCo)"
+            value={`${result.reducedDays} j`}
+            good={result.outcome === "saving"}
+          />
+          <Divider className={tone.divider} />
+          <Row label="Coût manuel total" value={formatEuros(result.manualTotal)} />
           <Row
             label={`Coût CarbonCo (${result.planName})`}
-            value={`${format(result.carbonTotal)} €`}
-            good
+            value={formatEuros(result.carbonTotal)}
+            good={result.outcome === "saving"}
           />
-          <Divider />
+          <Divider className={tone.divider} />
           <div className="mt-3">
-            <p className="text-xs text-neutral-500">Économie annuelle estimée</p>
-            <p className="text-3xl font-extrabold text-green-700">
-              {format(result.savings)} €
-              <span className="text-base font-normal text-neutral-500 ml-2">
-                ({result.savingsPct}%)
-              </span>
+            <p className="text-xs text-neutral-600">{summary.label}</p>
+            <p className={`text-3xl font-extrabold ${tone.amount}`} data-testid="roi-amount">
+              {summary.amount}
             </p>
+            <p className="text-sm text-neutral-600">{summary.detail}</p>
+            {summary.note && (
+              <p className="mt-2 text-xs leading-relaxed text-amber-900">{summary.note}</p>
+            )}
           </div>
 
-          <details className="mt-4 text-xs text-neutral-500">
-            <summary className="cursor-pointer hover:text-neutral-700">Hypothèses</summary>
+          <details className="mt-4 text-xs text-neutral-600">
+            <summary className="cursor-pointer hover:text-neutral-800">Hypothèses</summary>
             <ul className="mt-2 space-y-1 ml-4 list-disc">
-              <li>TJM interne 600 € (charges chargées comprises).</li>
-              <li>Base sectorielle calibrée sur retours d&apos;expérience ETI 2024-2025.</li>
-              <li>Réduction CarbonCo : −60 % de jours-homme la 2e année (−40 % la 1re).</li>
-              <li>Forfait annuel CarbonCo selon FTE (Starter/Business/Enterprise).</li>
+              {ASSUMPTIONS.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
             </ul>
           </details>
         </div>
@@ -273,17 +231,76 @@ function Field({
   );
 }
 
+/**
+ * Champ entier à état texte contrôlé (QA m-04) : un champ vidé reste vide
+ * (plus de « 10 » réinjecté qui transformait la saisie « 500 » en 10500),
+ * « 1e3 » est signalé au lieu d'être lu 1, et la valeur est bornée à la
+ * sortie du champ. Le calcul suit la saisie dès qu'elle est un entier valide.
+ */
+function IntegerField({
+  label,
+  value,
+  bounds,
+  onCommit,
+}: {
+  label: string;
+  value: number;
+  bounds: IntegerBounds;
+  onCommit: (value: number) => void;
+}) {
+  const id = useId();
+  const hintId = `${id}-hint`;
+  const [text, setText] = useState(() => formatInteger(value));
+  const invalid = parseIntegerInput(text).kind === "invalid";
+
+  return (
+    <div className="block">
+      <label htmlFor={id} className="block text-sm font-semibold text-neutral-700 mb-1.5">
+        {label}
+      </label>
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        value={text}
+        aria-invalid={invalid || undefined}
+        aria-describedby={hintId}
+        onChange={(e) => {
+          const next = e.target.value;
+          setText(next);
+          const parsed = parseIntegerInput(next);
+          if (parsed.kind === "ok") onCommit(clampInteger(parsed.value, bounds));
+        }}
+        onBlur={() => {
+          const committed = commitIntegerInput(text, bounds, value);
+          setText(formatInteger(committed));
+          if (committed !== value) onCommit(committed);
+        }}
+        className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none ${
+          invalid ? "border-amber-600 focus:border-amber-700" : "border-neutral-300 focus:border-green-500"
+        }`}
+      />
+      <p id={hintId} className={`mt-1 text-xs ${invalid ? "text-amber-800" : "text-neutral-500"}`}>
+        {invalid
+          ? "Chiffres uniquement (ex. 250) — la dernière valeur valide est conservée."
+          : `Entre ${formatInteger(bounds.min)} et ${formatInteger(bounds.max)}.`}
+      </p>
+    </div>
+  );
+}
+
 function Row({ label, value, good }: { label: string; value: string; good?: boolean }) {
   return (
-    <div className="flex items-baseline justify-between py-1.5">
+    <div className="flex items-baseline justify-between gap-3 py-1.5">
       <span className="text-xs text-neutral-600">{label}</span>
-      <span className={`text-sm font-bold ${good ? "text-green-700" : "text-neutral-900"}`}>
+      <span className={`text-sm font-bold whitespace-nowrap ${good ? "text-green-700" : "text-neutral-900"}`}>
         {value}
       </span>
     </div>
   );
 }
 
-function Divider() {
-  return <div className="h-px bg-green-200 my-2" />;
+function Divider({ className }: { className: string }) {
+  return <div className={`h-px my-2 ${className}`} />;
 }

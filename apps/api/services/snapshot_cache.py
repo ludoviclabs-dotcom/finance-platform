@@ -1,13 +1,20 @@
 """
 snapshot_cache.py — Lecture-écriture des snapshots de domaine.
 
-Stratégie double :
-  - Si PostgreSQL disponible (DATABASE_URL) → stockage en table `snapshots`
-    avec historique versionné (24 versions max par domaine × company)
-  - Sinon → fallback /tmp JSON (comportement Phase 1 inchangé)
+Deux modes, jamais mélangés :
+  - PostgreSQL configuré (DATABASE_URL) → table `snapshots`, historique
+    versionné (24 versions max par domaine × organisation), sous RLS : chaque
+    accès pose le contexte tenant. Un snapshot en base est une DONNÉE importée
+    par l'organisation : il n'expire pas. Une erreur d'écriture ou de lecture
+    REMONTE à l'appelant.
+  - Sans base (développement, CI) → fichiers JSON sous CARBONCO_CACHE_DIR,
+    cloisonnés par organisation, avec une durée de vie (cache de calcul).
 
-Tous les appels externes utilisent les mêmes fonctions (read_snapshot,
-write_snapshot, cache_status, invalidate) — aucun routeur n'est modifié.
+Historique du correctif B-04 : l'écriture PostgreSQL lisait `row[0]` sur un
+RealDictCursor (KeyError), l'exception était avalée et le snapshot partait
+dans un fichier /tmp GLOBAL, commun à toutes les organisations — l'API
+répondait 200 alors que rien n'était enregistré, et une lecture en échec
+pouvait servir le snapshot d'une autre organisation.
 """
 
 from __future__ import annotations
@@ -27,14 +34,21 @@ logger = logging.getLogger(__name__)
 CACHE_TTL_SECONDS = int(os.environ.get("CARBONCO_CACHE_TTL", "3600"))
 MAX_HISTORY_PER_DOMAIN = int(os.environ.get("CARBONCO_SNAPSHOT_HISTORY", "24"))
 
-# Entreprise par défaut (avant multi-tenant complet)
+# Valeur par défaut historique des signatures — les routes passent toujours
+# le company_id issu du jeton.
 DEFAULT_COMPANY_ID = 1
+
+DOMAINS = ("carbon", "vsme", "esg", "finance")
 
 _DEFAULT_CACHE_DIR = Path(os.environ.get("CARBONCO_CACHE_DIR", "/tmp/carbonco_snapshots"))
 
 
+class SnapshotStoreError(RuntimeError):
+    """Échec de persistance/lecture d'un snapshot en base."""
+
+
 # ---------------------------------------------------------------------------
-# Helpers /tmp (fallback)
+# Helpers fichiers (mode sans base uniquement)
 # ---------------------------------------------------------------------------
 
 def _cache_dir() -> Path:
@@ -43,8 +57,26 @@ def _cache_dir() -> Path:
     return d
 
 
-def _cache_path(domain: str) -> Path:
-    return _cache_dir() / f"{domain}.json"
+def _cache_path(domain: str, company_id: int) -> Path:
+    if domain not in DOMAINS:
+        raise ValueError(f"Domaine de snapshot inconnu : {domain}")
+    company_dir = _cache_dir() / f"company_{int(company_id)}"
+    company_dir.mkdir(parents=True, exist_ok=True)
+    return company_dir / f"{domain}.json"
+
+
+def _iso(value: Any) -> str | None:
+    if value is None:
+        return None
+    return value.isoformat() if hasattr(value, "isoformat") else str(value)
+
+
+def _as_datetime(value: Any) -> datetime:
+    if isinstance(value, str):
+        value = datetime.fromisoformat(value)
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value
 
 
 # ---------------------------------------------------------------------------
@@ -58,14 +90,15 @@ def write_snapshot(
     *,
     source: str = "ingest",
 ) -> dict[str, Any] | None:
-    """Persist a snapshot. Writes to PostgreSQL if available, else /tmp JSON.
+    """Persiste un snapshot.
 
-    Returns a small dict with {id, version, generatedAt, source} when PG is
-    used, or None when falling back to /tmp JSON.
+    Base configurée → {id, version, generatedAt, source} ; lève
+    SnapshotStoreError si l'écriture échoue (jamais de succès simulé).
+    Sans base → fichier cloisonné par organisation, retourne None.
     """
     if db_available():
         return _write_pg(domain, data, company_id, source)
-    _write_file(domain, data)
+    _write_file(domain, data, company_id)
     return None
 
 
@@ -74,17 +107,22 @@ def _write_pg(
     data: dict[str, Any],
     company_id: int,
     source: str,
-) -> dict[str, Any] | None:
+) -> dict[str, Any]:
     try:
         with get_db(company_id=company_id) as conn:
             with conn.cursor() as cur:
-                # Calculer le prochain numéro de version
+                # Sérialise les écritures concurrentes d'une même organisation
+                # sur un même domaine (sinon deux versions identiques).
                 cur.execute(
-                    "SELECT COALESCE(MAX(version), 0) + 1 FROM snapshots WHERE company_id = %s AND domain = %s",
+                    "SELECT pg_advisory_xact_lock(hashtext(%s), %s)",
+                    (f"snapshots:{domain}", int(company_id)),
+                )
+                cur.execute(
+                    "SELECT COALESCE(MAX(version), 0) + 1 AS next_version "
+                    "FROM snapshots WHERE company_id = %s AND domain = %s",
                     (company_id, domain),
                 )
-                row = cur.fetchone()
-                next_version = row[0] if row else 1
+                next_version = cur.fetchone()["next_version"]
 
                 cur.execute(
                     """
@@ -101,8 +139,6 @@ def _write_pg(
                     ),
                 )
                 inserted = cur.fetchone()
-                inserted_id = inserted["id"] if inserted else None
-                inserted_at = inserted["generated_at"] if inserted else None
 
                 # Purger les anciens snapshots au-delà de MAX_HISTORY_PER_DOMAIN
                 cur.execute(
@@ -112,31 +148,31 @@ def _write_pg(
                       AND id NOT IN (
                           SELECT id FROM snapshots
                           WHERE company_id = %s AND domain = %s
-                          ORDER BY generated_at DESC
+                          ORDER BY generated_at DESC, id DESC
                           LIMIT %s
                       )
                     """,
                     (company_id, domain, company_id, domain, MAX_HISTORY_PER_DOMAIN),
                 )
-        return {
-            "id": inserted_id,
-            "version": next_version,
-            "generatedAt": inserted_at.isoformat() if hasattr(inserted_at, "isoformat") else str(inserted_at) if inserted_at else None,
-            "source": source,
-        }
     except Exception as exc:
-        logger.warning("Écriture PostgreSQL échouée pour %s, fallback /tmp : %s", domain, exc)
-        _write_file(domain, data)
-        return None
+        logger.error("Écriture du snapshot %s (company %s) échouée : %s", domain, company_id, exc)
+        raise SnapshotStoreError(f"Enregistrement du snapshot {domain} impossible.") from exc
+    return {
+        "id": inserted["id"],
+        "version": next_version,
+        "generatedAt": _iso(inserted["generated_at"]),
+        "source": source,
+    }
 
 
-def _write_file(domain: str, data: dict[str, Any]) -> None:
+def _write_file(domain: str, data: dict[str, Any], company_id: int) -> None:
     payload = {
         "_cachedAt": datetime.now(timezone.utc).isoformat(),
         "_domain": domain,
+        "_companyId": int(company_id),
         "data": data,
     }
-    path = _cache_path(domain)
+    path = _cache_path(domain, company_id)
     path.write_text(json.dumps(payload, ensure_ascii=False, default=str), encoding="utf-8")
 
 
@@ -145,13 +181,15 @@ def _write_file(domain: str, data: dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 
 def read_snapshot(domain: str, company_id: int = DEFAULT_COMPANY_ID) -> dict[str, Any] | None:
-    """
-    Return the latest cached snapshot for *domain* if within TTL.
-    Returns None if absent or stale.
+    """Dernier snapshot de l'organisation pour *domain*, ou None.
+
+    Base : dernier snapshot enregistré, sans expiration (lève
+    SnapshotStoreError en cas d'erreur). Sans base : fichier de l'organisation
+    s'il a moins de CACHE_TTL_SECONDS.
     """
     if db_available():
         return _read_pg(domain, company_id)
-    return _read_file(domain)
+    return _read_file(domain, company_id)
 
 
 def _read_pg(domain: str, company_id: int) -> dict[str, Any] | None:
@@ -160,40 +198,34 @@ def _read_pg(domain: str, company_id: int) -> dict[str, Any] | None:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT data, generated_at
+                    SELECT data
                     FROM snapshots
                     WHERE company_id = %s AND domain = %s
-                    ORDER BY generated_at DESC
+                    ORDER BY generated_at DESC, id DESC
                     LIMIT 1
                     """,
                     (company_id, domain),
                 )
                 row = cur.fetchone()
-        if not row:
-            return None
-        generated_at = row["generated_at"]
-        if isinstance(generated_at, str):
-            generated_at = datetime.fromisoformat(generated_at)
-        age = time.time() - generated_at.timestamp()
-        if age > CACHE_TTL_SECONDS:
-            return None
-        data = row["data"]
-        return data if isinstance(data, dict) else json.loads(data)
     except Exception as exc:
-        logger.warning("Lecture PostgreSQL échouée pour %s, fallback /tmp : %s", domain, exc)
-        return _read_file(domain)
+        logger.error("Lecture du snapshot %s (company %s) échouée : %s", domain, company_id, exc)
+        raise SnapshotStoreError(f"Lecture du snapshot {domain} impossible.") from exc
+    if not row:
+        return None
+    data = row["data"]
+    return data if isinstance(data, dict) else json.loads(data)
 
 
-def _read_file(domain: str) -> dict[str, Any] | None:
-    path = _cache_path(domain)
+def _read_file(domain: str, company_id: int) -> dict[str, Any] | None:
+    path = _cache_path(domain, company_id)
     if not path.exists():
         return None
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
-        cached_at_str = payload.get("_cachedAt", "")
-        cached_at = datetime.fromisoformat(cached_at_str)
-        age = time.time() - cached_at.timestamp()
-        if age > CACHE_TTL_SECONDS:
+        if payload.get("_companyId") != int(company_id):
+            return None
+        cached_at = _as_datetime(payload.get("_cachedAt", ""))
+        if time.time() - cached_at.timestamp() > CACHE_TTL_SECONDS:
             return None
         return payload["data"]
     except Exception:
@@ -220,26 +252,26 @@ def read_snapshot_history(
                     SELECT id, version, generated_at, source, data
                     FROM snapshots
                     WHERE company_id = %s AND domain = %s
-                    ORDER BY generated_at DESC
+                    ORDER BY generated_at DESC, id DESC
                     LIMIT %s
                     """,
                     (company_id, domain, limit),
                 )
                 rows = cur.fetchall()
-        result = []
-        for row in rows:
-            data = row["data"]
-            result.append({
-                "id": row["id"],
-                "version": row["version"],
-                "generatedAt": row["generated_at"].isoformat() if hasattr(row["generated_at"], "isoformat") else str(row["generated_at"]),
-                "source": row["source"],
-                "summary": _snapshot_summary(domain, data if isinstance(data, dict) else json.loads(data)),
-            })
-        return result
     except Exception as exc:
-        logger.warning("Erreur lecture historique snapshots : %s", exc)
-        return []
+        logger.error("Lecture de l'historique %s (company %s) échouée : %s", domain, company_id, exc)
+        raise SnapshotStoreError(f"Lecture de l'historique {domain} impossible.") from exc
+    result = []
+    for row in rows:
+        data = row["data"]
+        result.append({
+            "id": row["id"],
+            "version": row["version"],
+            "generatedAt": _iso(row["generated_at"]),
+            "source": row["source"],
+            "summary": _snapshot_summary(domain, data if isinstance(data, dict) else json.loads(data)),
+        })
+    return result
 
 
 def read_snapshot_versions(
@@ -256,18 +288,18 @@ def read_snapshot_versions(
             with conn.cursor() as cur:
                 cur.execute(
                     "SELECT data FROM snapshots WHERE company_id = %s AND domain = %s "
-                    "ORDER BY generated_at DESC LIMIT %s",
+                    "ORDER BY generated_at DESC, id DESC LIMIT %s",
                     (company_id, domain, limit),
                 )
                 rows = cur.fetchall()
-        out: list[dict[str, Any]] = []
-        for row in rows:
-            d = row["data"]
-            out.append(d if isinstance(d, dict) else json.loads(d))
-        return out
     except Exception as exc:
-        logger.warning("Erreur lecture versions snapshot : %s", exc)
-        return []
+        logger.error("Lecture des versions %s (company %s) échouée : %s", domain, company_id, exc)
+        raise SnapshotStoreError(f"Lecture des versions {domain} impossible.") from exc
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        d = row["data"]
+        out.append(d if isinstance(d, dict) else json.loads(d))
+    return out
 
 
 def _snapshot_summary(domain: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -305,55 +337,56 @@ def _snapshot_summary(domain: str, data: dict[str, Any]) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 def cache_status(company_id: int = DEFAULT_COMPANY_ID) -> dict[str, Any]:
-    """Return age and existence info for all domain caches."""
-    domains = ["carbon", "vsme", "esg", "finance"]
+    """Existence et âge du dernier snapshot de chaque domaine pour l'organisation.
+
+    En base, un snapshot importé n'est jamais « périmé » (stale=False) : c'est
+    une donnée, pas un cache de calcul.
+    """
     result: dict[str, Any] = {}
 
     if db_available():
         try:
-            with get_db() as conn:
+            with get_db(company_id=company_id) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         """
                         SELECT DISTINCT ON (domain)
-                            domain, generated_at
+                            domain, generated_at, source
                         FROM snapshots
                         WHERE company_id = %s
-                        ORDER BY domain, generated_at DESC
+                        ORDER BY domain, generated_at DESC, id DESC
                         """,
                         (company_id,),
                     )
-                    rows = {r["domain"]: r["generated_at"] for r in cur.fetchall()}
-
-            for domain in domains:
-                if domain not in rows:
-                    result[domain] = {"exists": False}
-                    continue
-                generated_at = rows[domain]
-                if isinstance(generated_at, str):
-                    generated_at = datetime.fromisoformat(generated_at)
-                age_s = int(time.time() - generated_at.timestamp())
-                result[domain] = {
-                    "exists": True,
-                    "cachedAt": generated_at.isoformat(),
-                    "ageSeconds": age_s,
-                    "stale": age_s > CACHE_TTL_SECONDS,
-                }
-            return result
+                    rows = {r["domain"]: r for r in cur.fetchall()}
         except Exception as exc:
-            logger.warning("Erreur cache_status PostgreSQL, fallback /tmp : %s", exc)
+            logger.error("cache_status (company %s) échoué : %s", company_id, exc)
+            raise SnapshotStoreError("Lecture de l'état des snapshots impossible.") from exc
 
-    # Fallback fichiers
-    for domain in domains:
-        path = _cache_path(domain)
+        for domain in DOMAINS:
+            row = rows.get(domain)
+            if row is None:
+                result[domain] = {"exists": False}
+                continue
+            generated_at = _as_datetime(row["generated_at"])
+            result[domain] = {
+                "exists": True,
+                "cachedAt": generated_at.isoformat(),
+                "ageSeconds": int(time.time() - generated_at.timestamp()),
+                "stale": False,
+                "source": row.get("source"),
+            }
+        return result
+
+    for domain in DOMAINS:
+        path = _cache_path(domain, company_id)
         if not path.exists():
             result[domain] = {"exists": False}
             continue
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
             cached_at_str = payload.get("_cachedAt", "")
-            cached_at = datetime.fromisoformat(cached_at_str)
-            age_s = int(time.time() - cached_at.timestamp())
+            age_s = int(time.time() - _as_datetime(cached_at_str).timestamp())
             result[domain] = {
                 "exists": True,
                 "cachedAt": cached_at_str,
@@ -370,23 +403,23 @@ def cache_status(company_id: int = DEFAULT_COMPANY_ID) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 def invalidate(domain: str | None = None, company_id: int = DEFAULT_COMPANY_ID) -> None:
-    """Delete cache for one or all domains (keeps history in PG, purges /tmp)."""
-    domains = [domain] if domain else ["carbon", "vsme", "esg", "finance"]
+    """Supprime le(s) snapshot(s) de l'organisation pour un ou tous les domaines."""
+    domains = [domain] if domain else list(DOMAINS)
+    for d in domains:
+        if d not in DOMAINS:
+            raise ValueError(f"Domaine de snapshot inconnu : {d}")
 
     if db_available():
-        try:
-            with get_db() as conn:
-                with conn.cursor() as cur:
-                    for d in domains:
-                        cur.execute(
-                            "DELETE FROM snapshots WHERE company_id = %s AND domain = %s",
-                            (company_id, d),
-                        )
-        except Exception as exc:
-            logger.warning("Erreur invalidation PostgreSQL : %s", exc)
+        with get_db(company_id=company_id) as conn:
+            with conn.cursor() as cur:
+                for d in domains:
+                    cur.execute(
+                        "DELETE FROM snapshots WHERE company_id = %s AND domain = %s",
+                        (company_id, d),
+                    )
+        return
 
-    # Toujours purger les fichiers /tmp aussi
     for d in domains:
-        p = _cache_path(d)
+        p = _cache_path(d, company_id)
         if p.exists():
             p.unlink()

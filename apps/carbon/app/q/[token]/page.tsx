@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { CheckCircle, Leaf, Loader2, AlertTriangle, Building2 } from "lucide-react";
+import { use, useEffect, useState } from "react";
+import { CheckCircle, Leaf, Loader2, AlertTriangle, Building2, RefreshCw } from "lucide-react";
 import {
   type PublicQuestionnaireContext,
   type SupplierAnswerCreate,
+  ApiError,
   fetchQuestionnaire,
+  isAbortError,
   submitQuestionnaire,
 } from "@/lib/api";
 
@@ -14,20 +16,52 @@ import {
 // ---------------------------------------------------------------------------
 
 interface Props {
-  params: { token: string };
+  // Next 16 : `params` est une Promise, y compris pour une page client. La
+  // lire comme un objet donnait `token === undefined` (B-06 : appel à
+  // /suppliers/public/q/undefined) — on la déballe avec `use()`.
+  params: Promise<{ token: string }>;
 }
 
 type PageState =
   | { kind: "loading" }
-  | { kind: "error"; message: string }
+  /** Lien inconnu ou malformé (API 404). */
+  | { kind: "invalid" }
+  /** API injoignable ou en erreur : le lien n'est pas en cause, on propose de réessayer. */
+  | { kind: "unavailable"; message: string }
   | { kind: "expired" }
   | { kind: "already_answered" }
   | { kind: "form"; ctx: PublicQuestionnaireContext }
   | { kind: "success" };
 
+const UNAVAILABLE_MESSAGE =
+  "Le service est momentanément indisponible. Votre lien reste valable : réessayez dans quelques instants.";
+
+/** État d'erreur présentable — jamais de message technique brut (« API 404 … »). */
+function stateForLoadError(err: unknown): PageState {
+  if (err instanceof ApiError) {
+    if (err.status === 410) return { kind: "expired" };
+    if (err.status === 404 || err.status === 400 || err.status === 422) return { kind: "invalid" };
+    if (err.status === 429) {
+      return { kind: "unavailable", message: "Trop de requêtes. Réessayez dans quelques instants." };
+    }
+  }
+  return { kind: "unavailable", message: UNAVAILABLE_MESSAGE };
+}
+
+function messageForSubmitError(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 422) {
+      return "Votre réponse n'a pas pu être enregistrée : vérifiez les valeurs saisies puis réessayez.";
+    }
+    if (err.status === 429) return "Trop de requêtes. Patientez quelques instants avant de renvoyer.";
+  }
+  return "Envoi impossible pour le moment. Vos réponses sont conservées sur cette page : réessayez dans quelques instants.";
+}
+
 export default function QuestionnairePage({ params }: Props) {
-  const { token } = params;
+  const { token } = use(params);
   const [state, setState] = useState<PageState>({ kind: "loading" });
+  const [attempt, setAttempt] = useState(0);
   const [form, setForm] = useState<SupplierAnswerCreate>({
     has_sbti: false,
     has_iso14001: false,
@@ -37,7 +71,13 @@ export default function QuestionnairePage({ params }: Props) {
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchQuestionnaire(token)
+    if (!token) {
+      setState({ kind: "invalid" });
+      return;
+    }
+    const controller = new AbortController();
+    setState({ kind: "loading" });
+    fetchQuestionnaire(token, controller.signal)
       .then((ctx) => {
         if (ctx.already_answered) {
           setState({ kind: "already_answered" });
@@ -45,14 +85,12 @@ export default function QuestionnairePage({ params }: Props) {
           setState({ kind: "form", ctx });
         }
       })
-      .catch((err: Error) => {
-        if (err.message.includes("410") || err.message.includes("expiré")) {
-          setState({ kind: "expired" });
-        } else {
-          setState({ kind: "error", message: err.message });
-        }
+      .catch((err: unknown) => {
+        if (controller.signal.aborted || isAbortError(err)) return;
+        setState(stateForLoadError(err));
       });
-  }, [token]);
+    return () => controller.abort();
+  }, [token, attempt]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,7 +100,12 @@ export default function QuestionnairePage({ params }: Props) {
       await submitQuestionnaire(token, form);
       setState({ kind: "success" });
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Erreur lors de la soumission");
+      // Lien expiré ou révoqué entre l'ouverture et l'envoi : écran dédié.
+      if (err instanceof ApiError && (err.status === 410 || err.status === 404)) {
+        setState(err.status === 410 ? { kind: "expired" } : { kind: "invalid" });
+      } else {
+        setFormError(messageForSubmitError(err));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -118,15 +161,39 @@ export default function QuestionnairePage({ params }: Props) {
     );
   }
 
-  if (state.kind === "error") {
+  if (state.kind === "invalid") {
     return (
-      <PublicShell title="Erreur">
+      <PublicShell title="Lien invalide">
         <div className="text-center py-8">
           <AlertTriangle className="w-12 h-12 mx-auto text-[var(--color-danger)] mb-4" />
           <h2 className="font-display text-xl font-bold text-[var(--color-foreground)] mb-2">
-            Lien invalide
+            Ce lien n&apos;est pas valide
           </h2>
-          <p className="text-sm text-[var(--color-foreground-muted)]">{state.message}</p>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            Vérifiez que l&apos;adresse a été copiée en entier, ou demandez un nouveau lien à votre
+            donneur d&apos;ordre.
+          </p>
+        </div>
+      </PublicShell>
+    );
+  }
+
+  if (state.kind === "unavailable") {
+    return (
+      <PublicShell title="Service indisponible">
+        <div className="text-center py-8">
+          <AlertTriangle className="w-12 h-12 mx-auto text-amber-500 mb-4" />
+          <h2 className="font-display text-xl font-bold text-[var(--color-foreground)] mb-2">
+            Questionnaire momentanément inaccessible
+          </h2>
+          <p className="text-sm text-[var(--color-foreground-muted)] max-w-sm mx-auto">{state.message}</p>
+          <button
+            type="button"
+            onClick={() => setAttempt((n) => n + 1)}
+            className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-carbon-emerald text-white text-sm font-semibold hover:bg-emerald-600 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" /> Réessayer
+          </button>
         </div>
       </PublicShell>
     );
@@ -291,7 +358,7 @@ export default function QuestionnairePage({ params }: Props) {
         </section>
 
         {formError && (
-          <p className="text-sm text-[var(--color-danger)] bg-[var(--color-danger-bg)] p-3 rounded-lg">
+          <p role="alert" className="text-sm text-[var(--color-danger)] bg-[var(--color-danger-bg)] p-3 rounded-lg">
             {formError}
           </p>
         )}

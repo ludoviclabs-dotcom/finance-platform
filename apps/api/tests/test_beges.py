@@ -48,11 +48,33 @@ class TestEligibility:
     def test_obligatoire_fr_500(self) -> None:
         assert beges.eligibility(600, "FR")["status"] == "obligatoire"
 
-    def test_volontaire_small(self) -> None:
-        assert beges.eligibility(50, "FR")["status"] == "volontaire"
+    def test_sous_seuil_small(self) -> None:
+        assert beges.eligibility(50, "FR")["status"] == "sous_seuil"
+
+    def test_unknown_headcount_is_not_voluntary(self) -> None:
+        # M-03 : effectif inconnu → aucune conclusion, jamais « volontaire ».
+        elig = beges.eligibility(None, "FR")
+        assert elig["status"] == "indetermine"
+        assert elig["periodicity_years"] is None
+
+    def test_between_thresholds_depends_on_overseas(self) -> None:
+        assert beges.eligibility(300, "FR")["status"] == "indetermine"
+        assert beges.eligibility(300, "FR", overseas=False)["status"] == "sous_seuil"
+        assert beges.eligibility(300, "FR", overseas=True)["status"] == "obligatoire_outre_mer"
+
+    def test_legal_basis_and_notes(self) -> None:
+        elig = beges.eligibility(600, "France")
+        assert elig["status"] == "obligatoire"
+        assert elig["periodicity_years"] == 4
+        assert "L229-25" in elig["legal_basis"]
+        assert any("L. 232-6-3" in n for n in elig["notes"])
+        assert any("50 000" in n for n in elig["notes"])
+
+    def test_foreign_entity_is_undetermined(self) -> None:
+        assert beges.eligibility(900, "DE")["status"] == "indetermine"
 
     def test_outremer_250(self) -> None:
-        assert beges.eligibility(300, "GP")["status"] == "obligatoire_om"
+        assert beges.eligibility(300, "GP")["status"] == "obligatoire_outre_mer"
 
 
 class TestRenderers:

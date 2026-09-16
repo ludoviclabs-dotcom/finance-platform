@@ -18,6 +18,10 @@ os.environ.setdefault("DATABASE_URL", "")
 # Désactiver le rate limit en tests (évite les cascades 429 entre tests qui
 # enchaînent beaucoup de login/auth — pré-existant, pas un bug produit).
 os.environ.setdefault("RATE_LIMIT_DISABLED", "1")
+# Comptes de développement (admin/demo/viewer @carbonco.fr) : ensemencés en base
+# sur opt-in explicite uniquement (jamais hors développement) — les tests
+# DB-gated du job `migration-tests` s'y connectent via les fixtures *_token.
+os.environ.setdefault("CARBONCO_SEED_DEV_ACCOUNTS", "1")
 
 from main import app  # noqa: E402
 

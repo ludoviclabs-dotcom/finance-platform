@@ -276,7 +276,7 @@ def inbox(
             cur.execute(
                 """
                 SELECT * FROM datapoint_reviews
-                WHERE company_id = %s AND status = ANY(%s)
+                WHERE company_id = %s AND status = ANY(%s::datapoint_status[])
                 ORDER BY
                   CASE status
                     WHEN 'proposed'  THEN 1

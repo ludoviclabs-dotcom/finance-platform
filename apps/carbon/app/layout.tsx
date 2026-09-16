@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk, Manrope, JetBrains_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieBanner } from "@/components/cookie-banner";
+import { ConsentedAnalytics } from "@/components/consent/consented-analytics";
 import { THEME_INIT_SCRIPT } from "@/components/ui/theme-toggle";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteUrl, CONTACT_EMAIL } from "@/lib/site-url";
@@ -152,9 +151,9 @@ export default function RootLayout({
           {children}
           <CookieBanner />
         </ToastProvider>
-        {/* Vercel Analytics & Speed Insights — Core Web Vitals + events */}
-        <Analytics />
-        <SpeedInsights />
+        {/* Vercel Analytics & Speed Insights — jamais chargés par défaut :
+            drapeau d'environnement ET opt-in « Tout accepter » requis. */}
+        <ConsentedAnalytics />
       </body>
     </html>
   );

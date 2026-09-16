@@ -20,18 +20,30 @@ import {
   esrsCounts,
   integrationsBySection,
   lastUpdate,
+  lastVerification,
+  lastVerificationLabel,
+  STATUS_LABEL,
 } from "../lib/feature-registry";
 
 const ROOT = resolve(__dirname, "..");
-const FEATURE_STATUSES = ["live", "beta", "planifie"];
-const INTEGRATION_STATUSES = ["live", "beta", "planifie", "roadmap"];
+const FEATURE_STATUSES = ["live", "verification", "beta", "planifie"];
+const INTEGRATION_STATUSES = [...FEATURE_STATUSES, "roadmap"];
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const INTEGRATION_SECTIONS = ["disponible", "imports-fichiers", "roadmap"];
 
 describe("Feature registry — intégrité du JSON", () => {
   it("derniere_maj est une date ISO valide (YYYY-MM-DD)", () => {
-    expect(registry.derniere_maj).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(registry.derniere_maj).toMatch(ISO_DATE);
     expect(Number.isNaN(Date.parse(registry.derniere_maj))).toBe(false);
     expect(lastUpdate()).toBe(registry.derniere_maj);
+  });
+
+  it("derniere_verification est une date ISO valide, antérieure ou égale à derniere_maj", () => {
+    expect(registry.derniere_verification).toMatch(ISO_DATE);
+    expect(Number.isNaN(Date.parse(registry.derniere_verification))).toBe(false);
+    expect(registry.derniere_verification <= registry.derniere_maj).toBe(true);
+    expect(lastVerification()).toBe(registry.derniere_verification);
+    expect(lastVerificationLabel()).toMatch(/^\d{1,2} [a-zéû]+ \d{4}$/);
   });
 
   it("les ids de features sont uniques", () => {
@@ -45,9 +57,47 @@ describe("Feature registry — intégrité du JSON", () => {
     }
   });
 
-  it("toute feature 'live' cite une preuve (chemin repo)", () => {
+  it("toute feature 'live' ou 'verification' cite une preuve (chemin repo)", () => {
+    for (const f of [...featuresByStatus("live"), ...featuresByStatus("verification")]) {
+      expect(f.preuve, `feature ${f.statut} ${f.id} sans preuve`).toBeTruthy();
+    }
+  });
+
+  it("aucune feature adossée à l'API n'est 'live' sans contrôle de production daté (QA M-08)", () => {
+    // Le 2026-09-16, 11 features s'affichaient « en production » alors que l'API
+    // était indisponible. Une feature dont la preuve vit dans apps/api/ ne peut
+    // revenir à 'live' qu'avec la date d'un contrôle concluant (verifie_le).
     for (const f of featuresByStatus("live")) {
-      expect(f.preuve, `feature live ${f.id} sans preuve`).toBeTruthy();
+      if (!f.preuve?.startsWith("apps/api/")) continue;
+      expect(f.verifie_le, `feature live ${f.id} adossée à l'API sans verifie_le`).toMatch(ISO_DATE);
+      expect(f.verifie_le! >= registry.derniere_verification, `contrôle de ${f.id} antérieur au dernier contrôle`).toBe(true);
+    }
+  });
+
+  it("les features dépendant de l'API ou de la tâche quotidienne sont en vérification", () => {
+    const expected = [
+      "import-excel",
+      "calcul-ges",
+      "dashboard-provenance",
+      "export-pdf",
+      "export-excel-audit",
+      "double-materialite",
+      "copilote-neural",
+      "multi-utilisateurs-roles",
+      "auth-jwt",
+      "alertes-anomalies",
+    ];
+    const byId = new Map(allFeatures().map((f) => [f.id, f.statut]));
+    for (const id of expected) {
+      expect(byId.get(id), id).toBe("verification");
+    }
+    // Seule reste 'live' la page publique statique /materials, vérifiable sans API.
+    expect(featuresByStatus("live").map((f) => f.id)).toEqual(["materiaux-critiques"]);
+  });
+
+  it("chaque statut a un libellé FR", () => {
+    for (const status of INTEGRATION_STATUSES) {
+      expect(STATUS_LABEL[status as keyof typeof STATUS_LABEL], status).toBeTruthy();
     }
   });
 
@@ -68,9 +118,9 @@ describe("Feature registry — intégrité du JSON", () => {
     }
   });
 
-  it("toute intégration 'live' cite une preuve", () => {
-    for (const i of allIntegrations().filter((x) => x.statut === "live")) {
-      expect(i.preuve, `integ live ${i.id} sans preuve`).toBeTruthy();
+  it("toute intégration 'live' ou 'verification' cite une preuve", () => {
+    for (const i of allIntegrations().filter((x) => x.statut === "live" || x.statut === "verification")) {
+      expect(i.preuve, `integ ${i.statut} ${i.id} sans preuve`).toBeTruthy();
     }
   });
 
@@ -85,7 +135,7 @@ describe("Feature registry — intégrité du JSON", () => {
 
   it("les helpers de comptage sont cohérents avec le JSON", () => {
     const counts = esrsCounts();
-    expect(counts.live + counts.beta + counts.planifie).toBe(esrsRows().length);
+    expect(counts.live + counts.verification + counts.beta + counts.planifie).toBe(esrsRows().length);
     const sections = integrationsBySection();
     const total =
       sections.disponible.length +

@@ -50,6 +50,35 @@ def _resolve(snapshot: dict[str, Any], path: str | None) -> Any:
     return cur
 
 
+_BOOLEAN_TOKENS = {"o", "n", "oui", "non", "true", "false", "vrai", "faux", "yes", "no", "1", "0"}
+
+
+def _usable_auto_value(dp: dict[str, Any], val: Any) -> bool:
+    """Une valeur issue du snapshot ne compte comme renseignée que si elle a le
+    TYPE attendu par le datapoint.
+
+    Garde-fou M-01 : un classeur dont les plages nommées pointaient sur la
+    colonne des libellés faisait passer « Effectifs (ETP) » pour une valeur, et
+    la complétude affichait 100 % pour une organisation sans aucune donnée.
+    """
+    if val is None or (isinstance(val, str) and not val.strip()):
+        return False
+    kind = dp.get("type")
+    if kind == "quantitatif":
+        if isinstance(val, bool):
+            return False
+        if isinstance(val, (int, float)):
+            return val == val  # exclut NaN
+        try:
+            float(str(val).strip().replace(",", ".").replace("\u202f", "").replace(" ", ""))
+            return True
+        except ValueError:
+            return False
+    if kind == "booleen":
+        return isinstance(val, bool) or str(val).strip().lower() in _BOOLEAN_TOKENS
+    return True
+
+
 def map_datapoints(snapshot: dict[str, Any], overrides: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     """Fonction PURE : statut/valeur/source de chaque datapoint. Testable sans DB.
 
@@ -67,7 +96,7 @@ def map_datapoints(snapshot: dict[str, Any], overrides: dict[str, dict[str, Any]
             status, value, source = "manuel", ov["value"], "manuel"
         else:
             val = _resolve(snapshot, dp.get("snapshot"))
-            if val not in (None, ""):
+            if _usable_auto_value(dp, val):
                 section = (dp.get("snapshot") or ".").split(".")[0]
                 status, value, source = "auto", val, AUTO_SOURCE_BY_SECTION.get(section, "auto")
             else:
@@ -111,11 +140,17 @@ def completeness(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _snapshot_dict(company_id: int) -> dict[str, Any]:
+    """Snapshot VSME de l'organisation. En base : ses seules données importées
+    (jamais le classeur maître de démonstration, qui n'est pas SA donnée) ;
+    sans base (développement) : repli sur le classeur maître."""
+    from services.snapshot_cache import read_snapshot
+
+    cached = read_snapshot("vsme", company_id=company_id)
+    if cached:
+        return cached
+    if db_available():
+        return {}
     try:
-        from services.snapshot_cache import read_snapshot
-        cached = read_snapshot("vsme", company_id=company_id)
-        if cached:
-            return cached
         from services.esg_service import build_vsme_snapshot
         return build_vsme_snapshot().model_dump()
     except Exception as exc:  # pragma: no cover - best effort

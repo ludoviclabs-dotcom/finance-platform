@@ -10,7 +10,6 @@ const INK = "#0F172A";
 const SLATE = "#475569";
 const FOREST = "#14532D";
 const EMERALD = "#059669";
-const EMERALD_LIGHT = "#34D399";
 const CYAN = "#0891B2";
 const VIOLET = "#7C3AED";
 const AMBER = "#D97706";
@@ -102,7 +101,7 @@ export function CsrdCalendarInfographic({ className = "" }: InfoProps) {
       {milestones.map((m, i) => {
         const cx = 110 + i * 200;
         return (
-          <g key={m.year}>
+          <g key={`${m.year}-${m.label}`}>
             <line x1={cx} y1="180" x2={cx} y2={i % 2 === 0 ? 130 : 230} stroke={m.color} strokeWidth="2" strokeDasharray="3 3" />
             <circle cx={cx} cy="180" r="9" fill={m.color} />
             <circle cx={cx} cy="180" r="4" fill={PAPER} />

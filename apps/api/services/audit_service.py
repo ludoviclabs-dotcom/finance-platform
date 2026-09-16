@@ -46,7 +46,23 @@ AuditEventType = Literal[
     # la visibilité plateforme (valeur dédiée, filtrable). Constrainte SQL élargie
     # par la migration 041 (geste DROP+ADD 011/012/040).
     "ai_review_decision",
+    # Durcissement auth (migration 044) : désactivation 2FA — auparavant
+    # journalisée à tort sous `2fa_fail` — et gestes d'administration des
+    # comptes/organisations, désormais tracés.
+    "2fa_disable",
+    "admin_user_change",
+    "admin_company_change",
 ]
+
+# Tant que la migration 044 n'a pas élargi audit_eventtype_check, un type
+# récent est refusé par la base : on réécrit alors l'événement sous le type
+# historique le plus proche en conservant le type réel dans `meta`, plutôt que
+# de le perdre dans le repli /tmp (éphémère en serverless).
+_PRE_044_EVENT_TYPE = {
+    "2fa_disable": "2fa_fail",
+    "admin_user_change": "validation",
+    "admin_company_change": "validation",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -142,6 +158,12 @@ def _log_pg(
             "user": user,
         }
     except Exception as exc:
+        legacy_type = _PRE_044_EVENT_TYPE.get(event_type)
+        if legacy_type and getattr(exc, "pgcode", None) == "23514":  # check_violation
+            return _log_pg(
+                legacy_type, title, detail, status,
+                {**(meta or {}), "event_type": event_type}, user, company_id, now,
+            )
         logger.warning("Écriture audit PostgreSQL échouée, fallback /tmp : %s", exc)
         return _log_file(event_type, title, detail, status, meta, user, now)
 

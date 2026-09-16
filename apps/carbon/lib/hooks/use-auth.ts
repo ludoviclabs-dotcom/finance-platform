@@ -13,6 +13,7 @@ import {
   refreshTokenRequest,
   setAuthToken,
   setOnTokenExpired,
+  SERVICE_UNAVAILABLE_MESSAGE,
   verifyTotpRequest,
 } from "@/lib/api";
 
@@ -37,6 +38,18 @@ interface InMemorySession {
   companyId: number;
   isDemo: boolean;
   expiresAt: number;
+}
+
+/**
+ * Les requêtes d'authentification de lib/api ne lèvent que des `Error` au
+ * message présentable. Un TypeError (réseau imprévu, réponse de forme
+ * inattendue) ou un SyntaxError (corps non JSON) n'a pas de message
+ * montrable : il devient le message de repli.
+ */
+function presentableAuthError(err: unknown, fallback = SERVICE_UNAVAILABLE_MESSAGE): string {
+  if (err instanceof TypeError || err instanceof SyntaxError) return fallback;
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
 }
 
 function sessionFromResponse(res: Awaited<ReturnType<typeof loginRequest>>): InMemorySession {
@@ -247,8 +260,7 @@ export function useAuth() {
         establishSession(res);
         return { ok: true };
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Erreur de connexion.";
-        return { ok: false, error: message };
+        return { ok: false, error: presentableAuthError(err) };
       }
     },
     [clearDemoBeforeRealSession, establishSession],
@@ -271,9 +283,27 @@ export function useAuth() {
       });
       return { ok: true };
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Accès démo indisponible.";
-      return { ok: false, error: message };
+      return { ok: false, error: presentableAuthError(err, "Accès démo indisponible pour le moment.") };
     }
+  }, []);
+
+  // Quitte une session de démonstration : le cookie HttpOnly n'est effaçable
+  // que côté serveur (DELETE /api/auth/demo). L'état local ne repasse à
+  // « déconnecté » qu'une fois l'effacement confirmé, pour ne jamais afficher
+  // un formulaire de connexion alors que la session démo reste active.
+  const exitDemo = useCallback(async (): Promise<LoginResult> => {
+    try {
+      await clearDemoSessionRequest();
+    } catch {
+      return {
+        ok: false,
+        error: "Impossible de quitter la démonstration pour le moment. Réessayez dans quelques instants.",
+      };
+    }
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    setAuthToken(null);
+    setAuth({ status: "unauthenticated" });
+    return { ok: true };
   }, []);
 
   // Étape 2 du login : valide le code TOTP (ou un code de récupération).
@@ -286,8 +316,7 @@ export function useAuth() {
         establishSession(res);
         return { ok: true };
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Code invalide.";
-        return { ok: false, error: message };
+        return { ok: false, error: presentableAuthError(err) };
       }
     },
     [clearDemoBeforeRealSession, establishSession],
@@ -307,5 +336,5 @@ export function useAuth() {
     setAuth({ status: "unauthenticated" });
   }, []);
 
-  return { auth, ready, login, loginDemo, verifyTotp, logout };
+  return { auth, ready, login, loginDemo, exitDemo, verifyTotp, logout };
 }

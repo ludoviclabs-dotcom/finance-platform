@@ -4,10 +4,11 @@
  * dur : passez un `status` issu du registre, ou un `featureId` que le badge
  * résout lui-même.
  *
- * Statuts : live (vert) · beta (ambre) · planifie (gris) · roadmap (gris-bleu).
+ * Statuts : live (vert) · verification (neutre, sablier) · beta (ambre) ·
+ * planifie (gris) · roadmap (gris-bleu).
  */
 
-import { CheckCircle2, CircleDashed, FlaskConical, Map } from "lucide-react";
+import { CheckCircle2, CircleDashed, FlaskConical, Hourglass, Map } from "lucide-react";
 
 import {
   getFeature,
@@ -31,6 +32,11 @@ const STATUS_CONFIG: Record<
   live: {
     cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
     Icon: CheckCircle2,
+  },
+  // Ni vert (non confirmé), ni rouge (pas un incident déclaré) : neutre.
+  verification: {
+    cls: "bg-slate-100 text-slate-700 border-slate-300",
+    Icon: Hourglass,
   },
   beta: {
     cls: "bg-amber-50 text-amber-700 border-amber-200",

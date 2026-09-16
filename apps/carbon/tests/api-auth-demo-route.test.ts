@@ -10,7 +10,7 @@ vi.mock("@/lib/rate-limit", () => ({
 
 import { DELETE, GET, POST } from "@/app/api/auth/demo/route";
 import { DEMO_SESSION_COOKIE } from "@/lib/demo/session";
-import { verifyBearerToken } from "@/lib/verify-jwt";
+import { verifyBearerToken, verifyJwtToken } from "@/lib/verify-jwt";
 
 describe("POST /api/auth/demo", () => {
   beforeEach(() => {
@@ -49,13 +49,15 @@ describe("POST /api/auth/demo", () => {
 
     const token = cookie.match(/cc_demo_session=([^;]+)/)?.[1];
     expect(token).toBeTruthy();
-    await expect(verifyBearerToken(`Bearer ${token}`)).resolves.toMatchObject({
+    await expect(verifyJwtToken(token ?? null)).resolves.toMatchObject({
       sub: "demo-session@exemplia-industrie.invalid",
       role: "viewer",
       cid: 0,
       demo: true,
       scope: "demo",
     });
+    // Le cookie démo n'est jamais un jeton d'accès pour les routes /api/*.
+    await expect(verifyBearerToken(`Bearer ${token}`)).resolves.toBeNull();
   });
 
   it("renvoie 429 quand la limite IP est atteinte", async () => {

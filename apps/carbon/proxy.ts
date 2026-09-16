@@ -43,19 +43,44 @@ const securityHeaders: Record<string, string> = {
  *    les call stacks via eval() (uniquement en dev, jamais en prod).
  *  - connect-src ajoute ws://localhost:* + http://localhost:* pour la
  *    WebSocket de hot-reload Turbopack et les fetchs vers le dev server.
- *  En prod le CSP reste byte-identique à l'historique.
+ *
+ * Branche preview (VERCEL_ENV === "preview") : ouvre la barre d'outils Vercel
+ * (commentaires de preview), selon la liste de la doc Vercel « Using a Content
+ * Security Policy » (vercel.com/docs/vercel-toolbar/managing-toolbar) :
+ * https://vercel.live en script/connect/frame/style/font-src,
+ * wss://ws-us3.pusher.com en connect-src, https://assets.vercel.com en
+ * font-src (img-src autorise déjà tout https:, data: et blob:).
+ *
+ * En production le CSP reste byte-identique à l'historique : aucune de ces
+ * ouvertures n'y est ajoutée.
  *
  * Durcissement futur (P3) : nonce + 'strict-dynamic' après bascule en rendu
  * dynamique via `export const dynamic = 'force-dynamic'` sur les pages clés.
  */
 export function buildCsp(): string {
   const isDev = process.env.NODE_ENV === "development";
+  const isPreview = process.env.VERCEL_ENV === "preview";
+  const VERCEL_TOOLBAR = "https://vercel.live";
 
   const scriptSrc = [
     "'self'",
     "'unsafe-inline'",
     "https://va.vercel-scripts.com",
     isDev ? "'unsafe-eval'" : null,
+    isPreview ? VERCEL_TOOLBAR : null,
+  ]
+    .filter((v): v is string => Boolean(v))
+    .join(" ");
+
+  const styleSrc = ["'self'", "'unsafe-inline'", isPreview ? VERCEL_TOOLBAR : null]
+    .filter((v): v is string => Boolean(v))
+    .join(" ");
+
+  const fontSrc = [
+    "'self'",
+    "data:",
+    isPreview ? VERCEL_TOOLBAR : null,
+    isPreview ? "https://assets.vercel.com" : null,
   ]
     .filter((v): v is string => Boolean(v))
     .join(" ");
@@ -75,6 +100,8 @@ export function buildCsp(): string {
     "https://*.ingest.de.sentry.io",
     isDev ? "ws://localhost:*" : null,
     isDev ? "http://localhost:*" : null,
+    isPreview ? VERCEL_TOOLBAR : null,
+    isPreview ? "wss://ws-us3.pusher.com" : null,
   ]
     .filter((v): v is string => Boolean(v))
     .join(" ");
@@ -82,10 +109,12 @@ export function buildCsp(): string {
   return [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
-    "style-src 'self' 'unsafe-inline'",
+    `style-src ${styleSrc}`,
     "img-src 'self' data: blob: https:",
-    "font-src 'self' data:",
+    `font-src ${fontSrc}`,
     `connect-src ${connectSrc}`,
+    // frame-src absent en production (repli sur default-src 'self').
+    isPreview ? `frame-src 'self' ${VERCEL_TOOLBAR}` : null,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -100,11 +129,18 @@ export function buildCsp(): string {
     .join("; ");
 }
 
+/**
+ * Pages protégées à l'identique uniquement (sans leurs sous-chemins).
+ * `/audit` est le journal authentifié ; `/audit/<token>` est le lien PUBLIC
+ * remis à un auditeur invité (app/audit/[token], hors groupe `(app)`), qui
+ * doit rester accessible même si le navigateur porte une session démo.
+ */
+const DEMO_PROTECTED_EXACT = ["/audit"];
+
 const DEMO_PROTECTED_PREFIXES = [
   "/actions",
   "/admin",
   "/alerts",
-  "/audit",
   "/baselines",
   "/beges",
   "/consolidation",
@@ -149,8 +185,12 @@ function isPathOrChild(pathname: string, prefix: string): boolean {
 
 export function isDemoProtectedPath(pathname: string): boolean {
   if (pathname.startsWith("/api/")) {
+    // `/api/auth/demo` reste joignable en session démo : c'est lui qui la
+    // consulte (GET) et la termine (DELETE — « Quitter la démo » sur /login).
     return pathname !== "/api/auth/demo" && pathname !== "/api/csp-report";
   }
+  const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  if (DEMO_PROTECTED_EXACT.includes(normalized)) return true;
   return DEMO_PROTECTED_PREFIXES.some((prefix) => isPathOrChild(pathname, prefix));
 }
 

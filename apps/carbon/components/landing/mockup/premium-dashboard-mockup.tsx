@@ -3,12 +3,15 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from "react";
 import styles from "./premium-dashboard-mockup.module.css";
+import { nextHotspotIndex, resolveMockupShortcut } from "./mockup-shortcuts";
 import { DEMO, demoTotal, fmtFr, demoScopes, demoPostes } from "@/lib/demo-data";
 
 interface Hotspot {
@@ -28,7 +31,7 @@ const HOTSPOTS: Hotspot[] = [
     targetId: "card-scopes",
     label: "Scopes 1, 2, 3",
     description:
-      "Visualisation en temps réel de vos émissions par scope selon le GHG Protocol. Ventilation automatique par poste et site.",
+      "Visualisation de vos émissions par scope selon le GHG Protocol. Ventilation automatique par poste et site.",
     number: "01",
     side: "left",
     color: "#16a34a",
@@ -345,6 +348,7 @@ const DETAIL_RENDERERS: Record<string, () => ReactNode> = {
 export function PremiumDashboardMockup() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const shortcutsHintId = useId();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const activeHotspot = useMemo(
@@ -358,40 +362,41 @@ export function PremiumDashboardMockup() {
 
   const handleReset = useCallback(() => setActiveId(null), []);
 
-  /* Keyboard navigation */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      // Ignore when typing in form fields
-      const tgt = e.target as HTMLElement | null;
-      if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.isContentEditable)) {
-        return;
-      }
-      if (e.key === "Escape") {
-        if (activeId !== null) {
-          e.preventDefault();
-          handleReset();
-        }
-        return;
-      }
-      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-        const idx = activeId ? HOTSPOTS.findIndex((h) => h.id === activeId) : -1;
-        const dir = e.key === "ArrowRight" ? 1 : -1;
-        const next = (idx + dir + HOTSPOTS.length) % HOTSPOTS.length;
-        setActiveId(HOTSPOTS[next].id);
+  /* Keyboard navigation — écouteur posé sur l'aperçu (et non sur `window`) :
+     il ne réagit que lorsque le focus est dans l'aperçu, et le garde ignore
+     champs éditables et combinaisons de touches (QA m-11). */
+  const handleKeyDown = useCallback(
+    (e: ReactKeyboardEvent<HTMLDivElement>) => {
+      const action = resolveMockupShortcut(
+        {
+          key: e.key,
+          altKey: e.altKey,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          shiftKey: e.shiftKey,
+          defaultPrevented: e.isDefaultPrevented() || e.nativeEvent.defaultPrevented,
+          isComposing: e.nativeEvent.isComposing,
+          target: e.target,
+        },
+        HOTSPOTS.length,
+      );
+      if (!action) return;
+      if (action.type === "reset") {
+        if (activeId === null) return;
         e.preventDefault();
+        handleReset();
         return;
       }
-      if (/^[1-5]$/.test(e.key)) {
-        const target = HOTSPOTS[Number(e.key) - 1];
-        if (target) {
-          setActiveId(target.id);
-          e.preventDefault();
-        }
+      e.preventDefault();
+      if (action.type === "jump") {
+        setActiveId(HOTSPOTS[action.index].id);
+        return;
       }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [activeId, handleReset]);
+      const current = activeId ? HOTSPOTS.findIndex((h) => h.id === activeId) : -1;
+      setActiveId(HOTSPOTS[nextHotspotIndex(current, action.direction, HOTSPOTS.length)].id);
+    },
+    [activeId, handleReset],
+  );
 
   /* Bezier connection lines (rebuild on resize + active change) */
   useEffect(() => {
@@ -532,7 +537,21 @@ export function PremiumDashboardMockup() {
   const detailNode = activeId ? DETAIL_RENDERERS[activeId]?.() : null;
 
   return (
-    <div ref={wrapRef} className={cx(styles.mockupWrap, activeId && styles.mockupWrapFocus)}>
+    // tabIndex={-1} : hors de l'ordre de tabulation (les hotspots y sont déjà),
+    // mais un clic dans l'aperçu lui donne le focus et active les raccourcis.
+    <div
+      ref={wrapRef}
+      className={cx(styles.mockupWrap, activeId && styles.mockupWrapFocus)}
+      role="group"
+      aria-label="Aperçu interactif du dashboard (données fictives)"
+      aria-describedby={shortcutsHintId}
+      tabIndex={-1}
+      onKeyDown={handleKeyDown}
+    >
+      <p id={shortcutsHintId} className="sr-only">
+        Quand l&apos;aperçu a le focus : flèches gauche et droite pour passer d&apos;une zone à
+        l&apos;autre, Échap pour revenir à la vue globale, touches 1 à 5 pour un accès direct.
+      </p>
       <span className={`${styles.deco} ${styles.deco1}`} />
       <span className={`${styles.deco} ${styles.deco2}`} />
       <span className={`${styles.deco} ${styles.deco3}`} />
@@ -616,7 +635,7 @@ export function PremiumDashboardMockup() {
                   Bilan GES — {activeHotspot ? activeHotspot.label : "Vue globale"}
                 </div>
                 <div className={styles.hSub}>
-                  Année 2025 · GHG Protocol · Mise à jour il y a 4 min
+                  Année 2025 · GHG Protocol · Exemple illustratif
                 </div>
               </div>
               {activeHotspot ? (
@@ -892,7 +911,7 @@ export function PremiumDashboardMockup() {
       ))}
 
       <div className={styles.hint} aria-hidden="true">
-        ← → naviguer · Esc revenir · 1-5 accès direct
+        Cliquez l&apos;aperçu : ← → naviguer · Esc revenir · 1-5 accès direct
       </div>
     </div>
   );

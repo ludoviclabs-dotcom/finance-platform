@@ -28,6 +28,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from db.database import db_available, get_db
+from utils.env import is_production
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,11 @@ _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 VALID_ROLES = {"admin", "analyst", "viewer"}
 
+# Seul type de jeton accepté comme jeton d'accès. Les autres jetons signés avec
+# le même secret (pré-auth TOTP `totp_pending`, session démo du front `demo`)
+# portent un autre `scope` et ne doivent JAMAIS ouvrir l'API.
+ACCESS_TOKEN_SCOPE = "access"
+
 
 class AuthUser(BaseModel):
     email: str
@@ -82,26 +88,40 @@ class AuthUser(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Demo users fallback (no database)
+# Comptes de développement (mots de passe PUBLICS, présents dans le dépôt)
 # ---------------------------------------------------------------------------
+# Ils servent aux tests et au développement local. Ils ne doivent ouvrir
+# AUCUNE session sur un environnement hébergé : `is_production()` est
+# fail-secure (preview Vercel incluse). En production :
+#   - le repli en mémoire (sans base) est désactivé ;
+#   - l'ensemencement en base n'a jamais lieu ;
+#   - toute connexion présentant l'un de ces mots de passe est refusée, même
+#     si un compte a été créé avec avant ce correctif.
 
-_DEMO_USERS: dict[str, dict] = {
-    "demo@carbonco.fr": {
-        "password_hash": _pwd_context.hash("CarbonCo2024!"),
-        "role": "analyst",
-        "company_id": 1,
-    },
-    "admin@carbonco.fr": {
-        "password_hash": _pwd_context.hash("Admin2024!"),
-        "role": "admin",
-        "company_id": 1,
-    },
-    "viewer@carbonco.fr": {
-        "password_hash": _pwd_context.hash("Viewer2024!"),
-        "role": "viewer",
-        "company_id": 1,
-    },
+_DEV_ACCOUNTS: dict[str, dict] = {
+    "demo@carbonco.fr": {"password": "CarbonCo2024!", "role": "analyst", "company_id": 1},
+    "admin@carbonco.fr": {"password": "Admin2024!", "role": "admin", "company_id": 1},
+    "viewer@carbonco.fr": {"password": "Viewer2024!", "role": "viewer", "company_id": 1},
 }
+_PUBLIC_DEV_PASSWORDS = frozenset(a["password"] for a in _DEV_ACCOUNTS.values())
+
+# Hachés à la demande : trois bcrypt au chargement du module coûtaient ~1 s de
+# démarrage à froid en production, pour des comptes qui n'y servent jamais.
+_DEV_HASHES: dict[str, str] = {}
+
+
+def _dev_accounts_allowed() -> bool:
+    return not is_production()
+
+
+def _dev_password_hash(email: str) -> str:
+    if email not in _DEV_HASHES:
+        _DEV_HASHES[email] = _pwd_context.hash(_DEV_ACCOUNTS[email]["password"])
+    return _DEV_HASHES[email]
+
+
+def is_public_dev_password(password: str) -> bool:
+    return password in _PUBLIC_DEV_PASSWORDS
 
 
 # ---------------------------------------------------------------------------
@@ -112,18 +132,17 @@ _DEMO_USERS_SEEDED: bool = False
 
 
 def _ensure_default_users() -> None:
-    """Seed demo users (idempotent — ON CONFLICT DO NOTHING).
+    """Ensemence les comptes de développement en base (idempotent).
 
-    Anciennement gated sur `count == 0`, ce qui empêchait le seed dès qu'un
-    admin existait déjà (cas prod après `seed_admin.py`). Le bouton "Accès
-    démo (sans compte)" du login restait donc cassé sur prod.
-
-    On garantit maintenant que les comptes démo sont présents sur le premier
-    appel `authenticate()` du process (warm function instance). Le flag
-    module-level évite de rejouer les INSERTs à chaque login.
+    Double garde : jamais hors développement (`is_production()` fail-secure),
+    et uniquement sur opt-in explicite `CARBONCO_SEED_DEV_ACCOUNTS=1` — une API
+    déployée ailleurs sans VERCEL_ENV ni ENV ne doit pas créer de comptes aux
+    mots de passe publics. Le flag module-level évite de rejouer les INSERTs.
     """
     global _DEMO_USERS_SEEDED
     if _DEMO_USERS_SEEDED or not db_available():
+        return
+    if not _dev_accounts_allowed() or os.environ.get("CARBONCO_SEED_DEV_ACCOUNTS") != "1":
         return
     try:
         with get_db() as conn:
@@ -145,14 +164,14 @@ def _ensure_default_users() -> None:
                     return
                 company_id = row["id"] if isinstance(row, dict) else row[0]
 
-                for email, data in _DEMO_USERS.items():
+                for email, data in _DEV_ACCOUNTS.items():
                     cur.execute(
                         """
                         INSERT INTO users (company_id, email, password_hash, role)
                         VALUES (%s, %s, %s, %s)
                         ON CONFLICT (email) DO NOTHING
                         """,
-                        (company_id, email, data["password_hash"], data["role"]),
+                        (company_id, email, _dev_password_hash(email), data["role"]),
                     )
         _DEMO_USERS_SEEDED = True
     except Exception as exc:
@@ -192,6 +211,13 @@ def _update_last_login(user_id: int) -> None:
 def authenticate(email: str, password: str) -> Optional[AuthUser]:
     """Verify credentials and return AuthUser or None."""
     normalized = email.strip().lower()
+    dev_allowed = _dev_accounts_allowed()
+
+    if not dev_allowed and is_public_dev_password(password):
+        # Mot de passe publié dans le dépôt : refusé quel que soit le compte,
+        # y compris un compte ensemencé avec avant ce correctif.
+        logger.warning("Connexion refusée : mot de passe public de développement (%s)", normalized)
+        return None
 
     if db_available():
         _ensure_default_users()
@@ -210,16 +236,19 @@ def authenticate(email: str, password: str) -> Optional[AuthUser]:
             user_id=record["id"],
         )
 
-    # Fallback demo users
-    record = _DEMO_USERS.get(normalized)
-    if record is None:
+    # Sans base : comptes de développement en mémoire, jamais en production.
+    if not dev_allowed:
+        logger.error("Connexion impossible : base de données non configurée en production.")
         return None
-    if not _pwd_context.verify(password, record["password_hash"]):
+    account = _DEV_ACCOUNTS.get(normalized)
+    if account is None:
+        return None
+    if not _pwd_context.verify(password, _dev_password_hash(normalized)):
         return None
     return AuthUser(
         email=normalized,
-        role=record["role"],
-        company_id=record["company_id"],
+        role=account["role"],
+        company_id=account["company_id"],
     )
 
 
@@ -234,6 +263,7 @@ def create_access_token(user: AuthUser) -> tuple[str, datetime]:
         "sub": user.email,
         "role": user.role,
         "cid": user.company_id,
+        "scope": ACCESS_TOKEN_SCOPE,
         "exp": expires_at,
     }
     if user.user_id is not None:
@@ -243,23 +273,40 @@ def create_access_token(user: AuthUser) -> tuple[str, datetime]:
 
 
 def decode_token(token: str) -> Optional[AuthUser]:
-    """Decode and validate a JWT access token."""
+    """Décode et valide un JWT d'ACCÈS.
+
+    Refuse tout jeton sans `exp`, et tout jeton dont le `scope` n'est pas
+    `access` : le jeton pré-auth TOTP (`totp_pending`) contient aussi sub/role/
+    cid, et la session démo du front (`demo`) est signée avec le même secret —
+    sans ce contrôle, l'un comme l'autre valaient un jeton d'accès complet.
+    Les claims sont validés strictement (rôle connu, cid entier) : un jeton mal
+    formé est refusé plutôt que complété par des valeurs par défaut.
+    """
     try:
-        payload = jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM],
+            options={"require_exp": True},
+        )
     except JWTError:
         return None
+    if payload.get("scope") != ACCESS_TOKEN_SCOPE:
+        return None
     email = payload.get("sub")
-    role = payload.get("role", "analyst")
-    company_id = payload.get("cid", 1)
+    role = payload.get("role")
+    company_id = payload.get("cid")
     uid_raw = payload.get("uid")
-    if not isinstance(email, str):
+    if not isinstance(email, str) or not email:
+        return None
+    if role not in VALID_ROLES:
+        return None
+    if isinstance(company_id, bool) or not isinstance(company_id, int):
         return None
     try:
         user_id = int(uid_raw) if uid_raw is not None else None
     except (TypeError, ValueError):
         user_id = None
     return AuthUser(
-        email=email, role=role, company_id=int(company_id), user_id=user_id,
+        email=email, role=role, company_id=company_id, user_id=user_id,
         is_demo=payload.get("demo") is True,
     )
 
@@ -336,6 +383,7 @@ def create_demo_access_token(user: AuthUser) -> tuple[str, datetime]:
         "role": "analyst",
         "cid": user.company_id,
         "demo": True,
+        "scope": ACCESS_TOKEN_SCOPE,
         "exp": expires_at,
     }
     if user.user_id is not None:
@@ -364,7 +412,10 @@ def create_pre_auth_token(user: AuthUser) -> str:
 def decode_pre_auth_token(token: str) -> Optional[AuthUser]:
     """Décode un token pré-auth. None si invalide/expiré ou mauvais scope."""
     try:
-        payload = jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM],
+            options={"require_exp": True},
+        )
     except JWTError:
         return None
     if payload.get("scope") != "totp_pending":
@@ -456,7 +507,7 @@ def rotate_refresh_token(raw_token: str, user_agent: str | None = None) -> tuple
                 cur.execute(
                     """
                     SELECT rt.id, rt.expires_at, rt.revoked,
-                           u.email, u.role, u.company_id, u.is_active
+                           u.id AS user_id, u.email, u.role, u.company_id, u.is_active
                     FROM refresh_tokens rt
                     JOIN users u ON u.id = rt.user_id
                     WHERE rt.token_hash = %s
@@ -485,10 +536,13 @@ def rotate_refresh_token(raw_token: str, user_agent: str | None = None) -> tuple
                     (row["id"],),
                 )
 
+                # `user_id` conservé : sans lui, le jeton rafraîchi perdait le
+                # claim `uid` et cassait la traçabilité des revues et des gels.
                 user = AuthUser(
                     email=row["email"],
                     role=row["role"],
                     company_id=row["company_id"],
+                    user_id=row["user_id"],
                 )
 
         # Créer un nouveau refresh token (hors transaction pour éviter deadlock)
@@ -528,3 +582,23 @@ def has_role(user: AuthUser, minimum_role: str) -> bool:
     user_level = ROLE_HIERARCHY.get(user.role, 0)
     required_level = ROLE_HIERARCHY.get(minimum_role, 99)
     return user_level >= required_level
+
+
+def platform_admin_emails() -> frozenset[str]:
+    raw = os.environ.get("PLATFORM_ADMIN_EMAILS", "")
+    return frozenset(e.strip().lower() for e in raw.split(",") if e.strip())
+
+
+def is_platform_admin(user: AuthUser) -> bool:
+    """Administrateur de la PLATEFORME (toutes organisations).
+
+    Le rôle `admin` ne vaut QUE pour l'organisation de l'utilisateur. Les
+    gestes inter-organisations (lister/créer/supprimer une organisation,
+    changer un plan, gérer les comptes d'une autre organisation) exigent en
+    plus que l'e-mail figure dans PLATFORM_ADMIN_EMAILS (liste séparée par des
+    virgules). Liste vide par défaut : personne n'a ce droit (fail-secure).
+    Jamais pour une session démo.
+    """
+    if user.is_demo or user.role != "admin":
+        return False
+    return user.email.strip().lower() in platform_admin_emails()

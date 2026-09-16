@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Bell, Search, RefreshCw, Download, X, ChevronRight, LogOut, Menu } from "lucide-react";
 
 import { AuditModeToggle } from "@/components/ui/audit-mode-toggle";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { fetchNotifications, type AlertNotification } from "@/lib/api";
+import { useBegesDeadline } from "@/lib/hooks/use-beges-deadline";
+import { formatRelativeTimeFr } from "@/lib/relative-time";
 
 interface HeaderProps {
   title: string;
@@ -15,23 +19,69 @@ interface HeaderProps {
   onMobileMenuClick?: () => void;
 }
 
-const NOTIFICATIONS = [
-  { id: 1, type: "alert" as const,   text: "Seuil Scope 3 dépassé de 12 %",         time: "il y a 5 min" },
-  { id: 2, type: "ok" as const,      text: "Import ERP SAP terminé — 1 842 lignes", time: "il y a 23 min" },
-  { id: 3, type: "info" as const,    text: "Rapport CSRD Q2 disponible",            time: "il y a 2 h" },
-];
-
 const PERIODS = ["Ce mois", "Ce trimestre", "Cette année"] as const;
 type Period = typeof PERIODS[number];
+
+/** Nombre de notifications listées dans le menu déroulant. */
+const NOTIFICATION_PREVIEW = 5;
+
+type NotificationsState =
+  | { status: "loading" }
+  | { status: "ready"; unread: number; items: AlertNotification[] }
+  | { status: "error" };
+
+/**
+ * Centre de notifications de l'en-tête : notifications réelles de
+ * l'organisation (GET /alerts/notifications), plus aucune notification de
+ * démonstration affichée à un compte réel.
+ */
+function useHeaderNotifications(enabled: boolean) {
+  const [state, setState] = useState<NotificationsState>({ status: "loading" });
+
+  const load = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const res = await fetchNotifications(false, signal);
+      if (signal?.aborted) return;
+      setState({
+        status: "ready",
+        unread: res.unread,
+        items: res.notifications.slice(0, NOTIFICATION_PREVIEW),
+      });
+    } catch {
+      if (!signal?.aborted) setState({ status: "error" });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  }, [enabled, load]);
+
+  return { state, reload: load };
+}
 
 export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobileMenuClick }: HeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [period, setPeriod] = useState<Period>("Ce mois");
   const [refreshing, setRefreshing] = useState(false);
+  // En-tête authentifié (onLogout fourni) : données de l'organisation.
+  const signedIn = Boolean(onLogout);
+  const { state: notifications, reload: reloadNotifications } = useHeaderNotifications(signedIn);
+  const begesDeadline = useBegesDeadline(signedIn);
+
+  const unread = notifications.status === "ready" ? notifications.unread : 0;
 
   const handleRefresh = () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1200);
+  };
+
+  const toggleNotifications = () => {
+    // Rafraîchit la liste à l'ouverture (nouvelles alertes depuis le montage).
+    if (!notifOpen && signedIn) void reloadNotifications();
+    setNotifOpen(!notifOpen);
   };
 
   useEffect(() => {
@@ -65,7 +115,7 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
               <div className="cc-top-fresh">
                 <span className="cc-live-dot" aria-hidden="true" />
                 <span className="truncate">
-                  {subtitle} · Données au{" "}
+                  {subtitle} · Consulté le{" "}
                   <strong>{new Date().toLocaleDateString("fr-FR")}</strong>
                 </span>
               </div>
@@ -112,14 +162,18 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
           <div className="relative">
             <button
               type="button"
-              onClick={() => setNotifOpen((v) => !v)}
-              aria-label={`Notifications — ${NOTIFICATIONS.length} non lues`}
+              onClick={toggleNotifications}
+              aria-label={
+                unread > 0 ? `Notifications — ${unread} non lue${unread > 1 ? "s" : ""}` : "Notifications"
+              }
               aria-expanded={notifOpen}
               aria-haspopup="true"
               className="cc-icon-btn"
             >
               <Bell className="w-4 h-4" aria-hidden="true" />
-              <span className="cc-notif-c" aria-hidden="true">{NOTIFICATIONS.length}</span>
+              {unread > 0 && (
+                <span className="cc-notif-c" aria-hidden="true">{unread > 99 ? "99+" : unread}</span>
+              )}
             </button>
 
             {notifOpen && (
@@ -138,19 +192,43 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
                       <X className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </div>
-                  {NOTIFICATIONS.map((n) => (
-                    <button key={n.id} type="button" className="cc-dropdown-row">
-                      <span className={`cc-dropdown-pip ${n.type}`} aria-hidden="true" />
-                      <div className="flex-1 min-w-0">
-                        <p className="cc-dropdown-txt">{n.text}</p>
-                        <p className="cc-dropdown-time">{n.time}</p>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[var(--cc-subtle)] flex-shrink-0 mt-1" aria-hidden="true" />
-                    </button>
-                  ))}
-                  <button type="button" className="cc-dropdown-foot w-full">
+                  {notifications.status === "loading" && (
+                    <p className="cc-dropdown-row cc-dropdown-time">Chargement…</p>
+                  )}
+                  {notifications.status === "error" && (
+                    <p className="cc-dropdown-row cc-dropdown-time">
+                      Notifications indisponibles pour le moment.
+                    </p>
+                  )}
+                  {notifications.status === "ready" && notifications.items.length === 0 && (
+                    <p className="cc-dropdown-row cc-dropdown-time">Aucune notification.</p>
+                  )}
+                  {notifications.status === "ready" &&
+                    notifications.items.map((n) => (
+                      <Link
+                        key={n.id}
+                        href="/alerts"
+                        onClick={() => setNotifOpen(false)}
+                        className="cc-dropdown-row"
+                      >
+                        <span className={`cc-dropdown-pip ${n.read_at ? "info" : "alert"}`} aria-hidden="true" />
+                        <div className="flex-1 min-w-0">
+                          <p className="cc-dropdown-txt">{n.title}</p>
+                          <p className="cc-dropdown-time">
+                            {formatRelativeTimeFr(n.fired_at) ?? ""}
+                            {n.read_at ? "" : " · non lue"}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-[var(--cc-subtle)] flex-shrink-0 mt-1" aria-hidden="true" />
+                      </Link>
+                    ))}
+                  <Link
+                    href="/alerts"
+                    onClick={() => setNotifOpen(false)}
+                    className="cc-dropdown-foot w-full block text-center"
+                  >
                     Voir toutes les notifications
-                  </button>
+                  </Link>
                 </div>
               </>
             )}
@@ -192,7 +270,7 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
         </div>
       </div>
 
-      {/* Ligne secondaire : période + échéances */}
+      {/* Ligne secondaire : période + échéance réelle (BEGES) si connue */}
       <div className="cc-subtop hidden sm:flex">
         <span className="cc-subtop-l" id="period-label">Période</span>
         <div
@@ -213,16 +291,19 @@ export function Header({ title, subtitle, onLogout, userEmail, demoHint, onMobil
             </button>
           ))}
         </div>
-        <div className="cc-dl-chips hidden md:flex ml-auto" aria-live="polite">
-          <div className="cc-dl-chip warn" title="Rapport ESRS E1">
-            <span className="cc-dl-dot" aria-hidden="true" />
-            <span>Rapport E1 · 15j</span>
+        {begesDeadline && (
+          <div className="cc-dl-chips hidden md:flex ml-auto" aria-live="polite">
+            <Link
+              href="/beges"
+              className={`cc-dl-chip ${begesDeadline.level}`}
+              title={begesDeadline.title}
+              aria-label={begesDeadline.title}
+            >
+              <span className="cc-dl-dot" aria-hidden="true" />
+              <span>{begesDeadline.chipText}</span>
+            </Link>
           </div>
-          <div className="cc-dl-chip alert" title="Dépôt CSRD (iXBRL)">
-            <span className="cc-dl-dot" aria-hidden="true" />
-            <span>CSRD · 45j</span>
-          </div>
-        </div>
+        )}
       </div>
     </header>
   );

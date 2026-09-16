@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   fetchStrategicMapping,
+  friendlyApiErrorMessage,
   type MappingHorizon,
   type MappingPersona,
   type MappingSegment,
@@ -51,7 +52,9 @@ export function useStrategicMapping(
       })
       .catch((err: unknown) => {
         if (err instanceof Error && err.name === "AbortError") return;
-        setError(err instanceof Error ? err.message : "Erreur inconnue");
+        setError(
+          friendlyApiErrorMessage(err, {}, "Mapping stratégique indisponible pour le moment."),
+        );
         setLoading(false);
       });
   }, [filters.segment, filters.persona, filters.horizon]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -69,6 +69,8 @@ from routers import (
     water,
     water_intelligence,
 )
+from services.snapshot_cache import SnapshotStoreError
+from utils.cors import allowed_origin_regex, allowed_origins
 from utils.env import is_production
 
 logger = logging.getLogger(__name__)
@@ -142,6 +144,16 @@ def _maybe_run_startup_migrations() -> None:
 async def startup_event() -> None:
     _maybe_run_startup_migrations()
 
+@app.exception_handler(SnapshotStoreError)
+async def snapshot_store_error_handler(_: Request, exc: SnapshotStoreError) -> JSONResponse:
+    """Base indisponible pour les snapshots : 503 explicite (jamais un repli
+    silencieux sur des données d'une autre organisation, ni un 500 opaque)."""
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": str(exc)},
+    )
+
+
 # ---------------------------------------------------------------------------
 # Body size limiter — reject uploads > 10 MB before they hit route handlers
 # ---------------------------------------------------------------------------
@@ -156,21 +168,13 @@ async def limit_body_size(request: Request, call_next):
     return await call_next(request)
 
 # ---------------------------------------------------------------------------
-# CORS — dynamic origin validation
+# CORS — origines autorisées (utils/cors.py, M-15)
 # ---------------------------------------------------------------------------
-# 1. Explicit origins from env var (comma-separated), fallback to localhost
-# 2. Any https://*.vercel.app origin is always accepted (preview deploys)
+# Liste explicite (production du front + ALLOWED_ORIGINS ; localhost hors
+# production) et URL de preview du seul projet front de l'équipe Vercel.
+# allow_credentials=True impose une politique stricte : toute origine
+# acceptée peut rafraîchir la session d'un utilisateur connecté.
 # ---------------------------------------------------------------------------
-_default_origins = "http://localhost:3000,http://localhost:3001"
-_explicit_origins = [
-    o.strip()
-    for o in os.environ.get("ALLOWED_ORIGINS", _default_origins).split(",")
-    if o.strip()
-]
-
-# CORSMiddleware: explicit list + regex scoped to our Vercel projects only.
-# allow_origin_regex lets us keep allow_credentials=True (unlike origins=["*"]).
-# Pattern matches: carbon-*, finance-platform-*, neural-* preview URLs.
 
 # ---------------------------------------------------------------------------
 # Request logger — logs JSON structurés par requête
@@ -194,8 +198,8 @@ app.add_middleware(RateLimitMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_explicit_origins,
-    allow_origin_regex=r"^https://(carbon|finance-platform|neural)[a-z0-9\-]*\.vercel\.app$",
+    allow_origins=allowed_origins(),
+    allow_origin_regex=allowed_origin_regex(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

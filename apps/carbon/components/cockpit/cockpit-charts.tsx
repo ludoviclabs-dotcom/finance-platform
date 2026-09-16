@@ -407,6 +407,9 @@ export function Sparkline({
   data, color, w = 96, h = 30,
 }: { data: number[]; color: string; w?: number; h?: number }) {
   const ref = useRef<SVGSVGElement>(null);
+  // Une tendance exige au moins deux points : sans historique réel, rien à tracer
+  // (Math.max() d'un tableau vide donne -Infinity → chemins SVG invalides).
+  if (data.length < 2) return null;
   const max = Math.max(...data);
   const min = Math.min(...data);
   const x = (i: number) => (w * i) / (data.length - 1);

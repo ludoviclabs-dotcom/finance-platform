@@ -19,6 +19,13 @@
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
 
+import {
+  displayedHash,
+  hashPanelHeading,
+  isSha256Hex,
+  resolveHashVerdict,
+} from "../verify-verdict";
+
 interface VerifyPageProps {
   params: Promise<{ hash: string }>;
 }
@@ -59,8 +66,11 @@ async function fetchVerify(hash: string): Promise<VerifyApiResponse | null> {
 
 export default async function VerifyHashPage({ params }: VerifyPageProps) {
   const { hash } = await params;
-  const invalid = hash.length !== 64 || !/^[0-9a-f]{64}$/i.test(hash);
+  const invalid = !isSha256Hex(hash);
   const apiRes = invalid ? null : await fetchVerify(hash.toLowerCase());
+  // L'intitulé du bloc suit le verdict : jamais « vérifiée » pour une
+  // empreinte inconnue, mal formée ou non contrôlée (QA m-10).
+  const verdict = resolveHashVerdict(hash, apiRes);
 
   return (
     <main className="min-h-screen bg-[var(--color-background)] py-12 px-4">
@@ -85,14 +95,18 @@ export default async function VerifyHashPage({ params }: VerifyPageProps) {
 
         {/* Hash input pane */}
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 mb-6">
-          <div className="text-xs uppercase tracking-wide font-semibold text-[var(--color-foreground-muted)] mb-2">
-            Hash vérifié
+          <div
+            className="text-xs uppercase tracking-wide font-semibold text-[var(--color-foreground-muted)] mb-2"
+            data-testid="verify-hash-heading"
+            data-verdict={verdict}
+          >
+            {hashPanelHeading(verdict)}
           </div>
           <code
             className="block font-mono text-xs break-all bg-[var(--color-surface-muted)] p-3 rounded"
             data-testid="verify-hash-display"
           >
-            {hash}
+            {displayedHash(hash)}
           </code>
         </div>
 

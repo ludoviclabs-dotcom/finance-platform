@@ -97,8 +97,9 @@ export default function CriticalityTreemap({ materials }: Props) {
             Surface proportionnelle au score de risque (estimé). Couleur selon la part chinoise de production. Cliquer une tuile pour la fiche.
           </p>
         </div>
-        <div className="flex items-center gap-4.5">
-          <div className="flex gap-3.5 text-[11.5px]" style={{ color: "var(--mx-muted)" }}>
+        {/* Légende + bascule : passent à la ligne sur mobile (QA m-07). */}
+        <div className="flex flex-wrap items-center gap-x-4.5 gap-y-2.5 min-w-0">
+          <div className="flex flex-wrap gap-x-3.5 gap-y-1 text-[11.5px]" style={{ color: "var(--mx-muted)" }}>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-[3px]" style={{ background: "var(--mx-tier-high)" }} />Chine ≥ 50%</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-[3px]" style={{ background: "var(--mx-tier-mid)" }} />20–49%</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-[3px]" style={{ background: "var(--mx-tier-low)" }} />&lt; 20%</span>
@@ -156,7 +157,7 @@ export default function CriticalityTreemap({ materials }: Props) {
           style={{ borderColor: "color-mix(in srgb, var(--mx-amber) 30%, var(--mx-border))", background: "linear-gradient(130deg, color-mix(in srgb, var(--mx-amber) 5%, transparent), transparent 50%), var(--mx-card)", boxShadow: "var(--mx-shadow)" }}
         >
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5">
               <h3 className="m-0 font-bold text-[19px]" style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-fg)" }}>{selected.name_fr}</h3>
               <span
                 className="font-semibold text-[10px] px-2.5 py-0.5 rounded-full"
@@ -167,7 +168,7 @@ export default function CriticalityTreemap({ materials }: Props) {
               <button type="button" onClick={() => setSelectedId(null)} className="ml-auto border-none bg-transparent cursor-pointer text-[15px] p-0.5" style={{ color: "var(--mx-subtle)" }} aria-label="Fermer le détail">✕</button>
             </div>
             <p className="m-0 text-xs" style={{ color: "var(--mx-subtle)" }}>{selected.category}</p>
-            <div className="flex gap-6 mt-2">
+            <div className="flex flex-wrap gap-x-6 gap-y-3 mt-2">
               <div>
                 <p className="m-0 font-bold text-2xl" style={{ fontFamily: "var(--mx-font-display)", color: "var(--mx-amber)" }}>{(selected.carbonco_supply_risk_score ?? 0).toFixed(1)}</p>
                 <p className="m-0 mt-0.5 text-[11px]" style={{ color: "var(--mx-subtle)" }}>score de risque /10</p>

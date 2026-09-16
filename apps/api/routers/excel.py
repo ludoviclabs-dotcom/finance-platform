@@ -19,7 +19,7 @@ from services.carbon_service import (
     build_carbon_snapshot_from_bytes,
     get_workbook_paths,
 )
-from services.snapshot_cache import write_snapshot
+from services.snapshot_cache import SnapshotStoreError, write_snapshot
 from utils.excel_reader import (
     CorruptFileError,
     ExcelReader,
@@ -53,20 +53,33 @@ _EXCEL_MIMES = {
     "application/vnd.ms-excel",
 }
 
-# Named ranges expected per domain workbook
+# Structure attendue par domaine — la MÊME que celle qu'exige l'import
+# (M-12) : l'ancien validateur attendait un autre modèle (« Bilan GES »,
+# plages `scope1_tco2e`…) et rejetait le classeur officiel servi par
+# GET /excel/template, obligeant à importer « avec warnings ».
 _EXPECTED_NAMED_RANGES: dict[str, list[str]] = {
-    "carbon": ["company_name", "reporting_year", "scope1_tco2e", "scope2_lb_tco2e",
-               "scope3_tco2e", "energie_mwh", "enr_pct"],
-    "esg": ["raison_sociale", "score_esg_global", "enjeux_evalues"],
-    "finance": ["prix_ets", "capex_decarb_s12", "score_esg_investisseur"],
+    "carbon": _REQUIRED_CC_RANGES_CARBON,
+    "esg": ["CC_ESG_Score_Global", "CC_VSME_BP1_Raison_Sociale"],
+    "finance": ["CC_FIN_CA_Net", "CC_FIN_Exposition_Totale"],
 }
 
-# Sheets expected per domain
 _EXPECTED_SHEETS: dict[str, list[str]] = {
-    "carbon": ["Bilan GES", "Energie", "Taxonomie"],
-    "esg": ["VSME", "Materialite", "Scores ESG"],
-    "finance": ["Finance Climat", "SFDR PAI", "Benchmark"],
+    domain: sorted(sheets) for domain, sheets in REQUIRED_SHEETS.items()
 }
+
+# Feuilles propres à chaque classeur, pour la détection automatique du domaine.
+_DOMAIN_MARKER_SHEETS: dict[str, set[str]] = {
+    "carbon": {"Synthese_GES", "Scope_1", "Paramètres"},
+    "esg": {"VSME_Reporting", "Materialite", "Synthese_ESG"},
+    "finance": {"Finance_Climat", "SFDR_Report", "DPP_Produits"},
+}
+
+
+def _detect_domain(sheet_names: set[str]) -> str | None:
+    for domain, markers in _DOMAIN_MARKER_SHEETS.items():
+        if markers & sheet_names:
+            return domain
+    return None
 
 
 def _check_mime(file: UploadFile) -> None:
@@ -85,6 +98,7 @@ def _check_mime(file: UploadFile) -> None:
 @router.post("/upload")
 async def upload_excel(
     file: UploadFile = File(..., description="Excel file (.xlsx)"),
+    _: AuthUser = Depends(require_analyst),
 ) -> dict[str, Any]:
     _check_mime(file)
     try:
@@ -121,6 +135,7 @@ class PreviewResponse(BaseModel):
 async def preview_excel(
     file: UploadFile = File(...),
     domain: str | None = None,
+    _: AuthUser = Depends(require_analyst),
 ) -> PreviewResponse:
     """
     Read workbook metadata + first rows of each sheet for preview.
@@ -128,13 +143,15 @@ async def preview_excel(
     """
     _check_mime(file)
     contents = await file.read()
+    check_upload_bytes(contents, file.filename)  # taille / magic bytes / zip-bomb
     try:
         # Need read_only=False to access named_ranges + dimensions
         from openpyxl import load_workbook as _load
 
         wb = _load(io.BytesIO(contents), read_only=False, data_only=True)
     except Exception as exc:
-        raise HTTPException(status_code=422, detail=f"Fichier illisible : {exc}") from exc
+        logger.info("Prévisualisation impossible : %s", exc)
+        raise HTTPException(status_code=422, detail="Fichier illisible : ce n'est pas un classeur Excel valide.") from exc
 
     # Named ranges (openpyxl 3.1+: defined_names est un DefinedNameDict itérable comme dict)
     named_ranges = list(wb.defined_names) if hasattr(wb, "defined_names") else []
@@ -177,13 +194,8 @@ async def preview_excel(
     wb.close()
 
     # Auto-detect domain from sheet names
-    detected: str | None = None
     if not domain:
-        sheet_set = set(wb.sheetnames) if hasattr(wb, "sheetnames") else set()
-        for d, expected in _EXPECTED_SHEETS.items():
-            if any(s in sheet_set for s in expected):
-                detected = d
-                break
+        detected = _detect_domain(set(wb.sheetnames))
     else:
         detected = domain if domain in _EXPECTED_SHEETS else None
 
@@ -223,18 +235,19 @@ class ValidateResponse(BaseModel):
 async def validate_excel(
     file: UploadFile = File(...),
     domain: str | None = None,
+    _: AuthUser = Depends(require_analyst),
 ) -> ValidateResponse:
     """
-    Validate workbook structure before ingest:
-    - Check expected sheets are present
-    - Check expected named ranges exist
-    - Check non-empty file
-    - Warn on unusually small files
+    Contrôle structurel avant import, avec les MÊMES règles que l'import :
+    - feuilles et plages nommées requises manquantes → erreur (l'import
+      les refuserait) ;
+    - fichier vide / trop petit.
     """
     _check_mime(file)
     issues: list[ValidationIssue] = []
 
     contents = await file.read()
+    check_upload_bytes(contents, file.filename)
     if len(contents) < 512:
         issues.append(ValidationIssue(level="error", message="Fichier trop petit — probablement vide ou corrompu."))
         return ValidateResponse(
@@ -253,7 +266,10 @@ async def validate_excel(
 
         wb = _load(io.BytesIO(contents), read_only=False, data_only=True)
     except Exception as exc:
-        issues.append(ValidationIssue(level="error", message=f"Fichier illisible : {exc}"))
+        logger.info("Validation impossible : %s", exc)
+        issues.append(ValidationIssue(
+            level="error", message="Fichier illisible : ce n'est pas un classeur Excel valide.",
+        ))
         return ValidateResponse(
             filename=file.filename or "", domain=domain, status="error",
             issues=issues,
@@ -262,13 +278,12 @@ async def validate_excel(
         )
 
     # Auto-detect domain
-    effective_domain = domain
-    if not effective_domain:
-        sheet_set = set(wb.sheetnames)
-        for d, expected_sheets in _EXPECTED_SHEETS.items():
-            if any(s in sheet_set for s in expected_sheets):
-                effective_domain = d
-                break
+    effective_domain = domain or _detect_domain(set(wb.sheetnames))
+    if effective_domain is None:
+        issues.append(ValidationIssue(
+            level="error",
+            message="Classeur non reconnu : utilisez le modèle officiel téléchargeable depuis la page Import.",
+        ))
 
     # Named ranges (openpyxl 3.1+: defined_names est un DefinedNameDict itérable comme dict)
     named_ranges_found: list[str] = list(wb.defined_names) if hasattr(wb, "defined_names") else []
@@ -276,8 +291,8 @@ async def validate_excel(
     named_ranges_missing = [n for n in expected_nr if n not in named_ranges_found]
     for missing in named_ranges_missing:
         issues.append(ValidationIssue(
-            level="warning",
-            message=f"Plage nommée manquante : '{missing}'",
+            level="error",
+            message=f"Plage nommée manquante : '{missing}' — le classeur ne suit pas le modèle officiel.",
             field=missing,
         ))
 
@@ -287,8 +302,8 @@ async def validate_excel(
     sheets_missing = [s for s in expected_sh if s not in sheets_found]
     for missing in sheets_missing:
         issues.append(ValidationIssue(
-            level="warning",
-            message=f"Feuille attendue manquante : '{missing}'",
+            level="error",
+            message=f"Feuille attendue manquante : '{missing}' — le classeur ne suit pas le modèle officiel.",
             sheet=missing,
         ))
 
@@ -332,7 +347,9 @@ async def read_cell(
     file: UploadFile = File(...),
     sheet: str = "Sheet1",
     cell: str = "A1",
+    _: AuthUser = Depends(require_analyst),
 ) -> dict[str, Any]:
+    reader = None
     try:
         reader = await ExcelReader.from_upload(file)
         value = reader.get_cell(sheet, cell)
@@ -343,10 +360,8 @@ async def read_cell(
     except InvalidRangeError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     finally:
-        try:
+        if reader is not None:
             reader.close()
-        except Exception:
-            pass
     return {"sheet": sheet, "cell": cell, "value": value}
 
 
@@ -355,7 +370,9 @@ async def read_range(
     file: UploadFile = File(...),
     sheet: str = "Sheet1",
     range_str: str = "A1:D10",
+    _: AuthUser = Depends(require_analyst),
 ) -> dict[str, Any]:
+    reader = None
     try:
         reader = await ExcelReader.from_upload(file)
         data = reader.get_range_as_dicts(sheet, range_str)
@@ -366,10 +383,8 @@ async def read_range(
     except InvalidRangeError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     finally:
-        try:
+        if reader is not None:
             reader.close()
-        except Exception:
-            pass
     return {"sheet": sheet, "range": range_str, "row_count": len(data), "data": data}
 
 
@@ -469,7 +484,10 @@ async def ingest_uploaded(
         )
     except CarbonServiceError as exc:
         logger.error("Carbon snapshot build failed for user %s: %s", user.email, exc)
-        raise HTTPException(status_code=500, detail=f"Échec du calcul snapshot : {exc}") from exc
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "snapshot_build_failed", "message": f"Calcul impossible : {exc}"},
+        ) from exc
 
     if snapshot["validation"]["status"] == "failed":
         raise HTTPException(
@@ -482,12 +500,19 @@ async def ingest_uploaded(
             },
         )
 
-    write_result = write_snapshot(
-        "carbon",
-        snapshot,
-        company_id=company_id,
-        source="user_upload",
-    )
+    try:
+        write_result = write_snapshot(
+            "carbon",
+            snapshot,
+            company_id=company_id,
+            source="user_upload",
+        )
+    except SnapshotStoreError as exc:
+        # Jamais de 200 sans enregistrement (B-04).
+        raise HTTPException(
+            status_code=503,
+            detail={"error": "snapshot_not_saved", "message": "L'import n'a pas pu être enregistré. Réessayez."},
+        ) from exc
 
     carbon_kpis = snapshot.get("carbon", {}) or {}
     return IngestUploadedResponse(

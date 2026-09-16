@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import {
   esrsRows,
   esrsCounts,
   getFeature,
   lastUpdateLabel,
+  lastVerificationLabel,
   type FeatureStatus,
 } from "@/lib/feature-registry";
 
 export const metadata: Metadata = {
   title: "Couverture ESRS — CarbonCo",
   description:
-    "Ce que CarbonCo couvre vraiment : matrice complète des standards ESRS avec statut réel (Live / Beta / Planifié).",
+    "Ce que CarbonCo couvre vraiment : matrice complète des standards ESRS avec statut réel (Live / En vérification / Beta / Planifié).",
 };
 
 // Présentation par statut. Les DONNÉES (lignes ESRS) proviennent exclusivement
@@ -22,6 +24,12 @@ const STATUS_CONFIG: Record<FeatureStatus, { label: string; color: string; bg: s
     color: "text-emerald-700",
     bg: "bg-emerald-50 border-emerald-200",
     dot: "bg-emerald-500",
+  },
+  verification: {
+    label: "En vérification",
+    color: "text-slate-700",
+    bg: "bg-slate-100 border-slate-300",
+    dot: "bg-slate-400",
   },
   beta: {
     label: "Beta",
@@ -36,6 +44,11 @@ const STATUS_CONFIG: Record<FeatureStatus, { label: string; color: string; bg: s
     dot: "bg-neutral-300",
   },
 };
+
+/** Accord en nombre à la française : 0 et 1 au singulier. */
+function countStandards(n: number): string {
+  return `${n} ${n > 1 ? "standards" : "standard"}`;
+}
 
 function StatusBadge({ status }: { status: FeatureStatus }) {
   const cfg = STATUS_CONFIG[status];
@@ -68,15 +81,22 @@ export default function CouverturePage() {
           <div className="flex flex-wrap gap-4 mt-10">
             <div className="flex items-center gap-2 text-sm text-neutral-300">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <strong className="text-white">{counts.live} standards</strong> disponibles aujourd&apos;hui
+              <strong className="text-white">{countStandards(counts.live)}</strong>{" "}
+              {counts.live > 1 ? "disponibles aujourd'hui" : "disponible aujourd'hui"}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-neutral-300">
+              <span className="w-2 h-2 rounded-full bg-slate-400" />
+              <strong className="text-white">{countStandards(counts.verification)}</strong>{" "}
+              en cours de vérification
             </div>
             <div className="flex items-center gap-2 text-sm text-neutral-300">
               <span className="w-2 h-2 rounded-full bg-amber-400" />
-              <strong className="text-white">{counts.beta} standards</strong> en Beta
+              <strong className="text-white">{countStandards(counts.beta)}</strong> en Beta
             </div>
             <div className="flex items-center gap-2 text-sm text-neutral-300">
               <span className="w-2 h-2 rounded-full bg-neutral-400" />
-              <strong className="text-white">{counts.planifie} standards</strong> planifiés
+              <strong className="text-white">{countStandards(counts.planifie)}</strong>{" "}
+              {counts.planifie > 1 ? "planifiés" : "planifié"}
             </div>
           </div>
         </div>
@@ -101,7 +121,7 @@ export default function CouverturePage() {
               <tr className="border-b-2 border-neutral-200">
                 <th className="text-left py-3 pr-6 font-bold text-neutral-500 uppercase tracking-widest text-xs w-28">Standard</th>
                 <th className="text-left py-3 pr-6 font-bold text-neutral-500 uppercase tracking-widest text-xs">Description</th>
-                <th className="text-left py-3 pr-6 font-bold text-neutral-500 uppercase tracking-widest text-xs w-28">Statut</th>
+                <th className="text-left py-3 pr-6 font-bold text-neutral-500 uppercase tracking-widest text-xs w-36">Statut</th>
                 <th className="text-left py-3 font-bold text-neutral-500 uppercase tracking-widest text-xs w-40">Exports</th>
               </tr>
             </thead>
@@ -146,7 +166,19 @@ export default function CouverturePage() {
           <ul className="space-y-2 text-sm text-neutral-600">
             <li className="flex items-start gap-2">
               <span className="text-emerald-500 font-bold mt-0.5">▸</span>
-              <span><strong className="text-black">Live</strong> : collecte, calcul et export disponibles en production — utilisables pour un rapport CSRD réel.</span>
+              <span><strong className="text-black">Live</strong> : collecte, calcul et export disponibles en production, et confirmés lors du dernier contrôle.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-slate-400 font-bold mt-0.5">▸</span>
+              <span>
+                <strong className="text-black">En vérification</strong> : collecte, calcul et export livrés dans le code,
+                mais leur disponibilité en production n&apos;a pas pu être confirmée lors du dernier contrôle
+                ({lastVerificationLabel()}) — ils dépendent de l&apos;API authentifiée.{" "}
+                <Link href="/status" className="font-semibold text-emerald-700 underline hover:text-emerald-800">
+                  Consulter l&apos;état des services
+                </Link>
+                .
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-amber-500 font-bold mt-0.5">▸</span>
@@ -158,7 +190,9 @@ export default function CouverturePage() {
             </li>
           </ul>
           <p className="mt-4 text-xs text-neutral-400">
-            Dernière mise à jour : {lastUpdateLabel()} · Facteurs d&apos;émission ADEME Base Empreinte® · Référentiel EFRAG 2024
+            Dernière mise à jour : {lastUpdateLabel()} · Dernière vérification des statuts :{" "}
+            {lastVerificationLabel()}
+            {" · Facteurs d'émission ADEME Base Empreinte® · Référentiel EFRAG 2024"}
           </p>
         </div>
       </div>

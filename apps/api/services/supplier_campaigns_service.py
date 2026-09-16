@@ -684,12 +684,16 @@ def _mark_campaign_stage(campaign_id: int, company_id: int, stage: str) -> None:
             c["reminder_stage"] = stage
 
 
-def run_campaign_reminders(today: date | None = None) -> dict[str, Any]:
+def run_campaign_reminders(
+    today: date | None = None, company_ids: set[int] | None = None,
+) -> dict[str, Any]:
     """Relances des campagnes actives à deadline (J-14 / J-7 / deadline).
 
     Pour chaque palier atteint : notification in-app à l'organisation (état de
     la collecte) + e-mail de relance aux fournisseurs n'ayant pas répondu
     (uniquement si EMAIL_ENABLED — sinon in-app seul, zéro dépendance).
+    `company_ids=None` : toutes les organisations (cron) ; sinon seulement
+    celles listées (déclenchement manuel par un utilisateur).
     """
     from routers.alerts import _persist_notification
     from services.alerts_service import email_enabled, send_email
@@ -699,6 +703,8 @@ def run_campaign_reminders(today: date | None = None) -> dict[str, Any]:
     notified: list[dict[str, Any]] = []
 
     for campaign in _active_campaigns_all_companies():
+        if company_ids is not None and campaign["company_id"] not in company_ids:
+            continue
         checked += 1
         days = (campaign["deadline"] - today).days
         stage = campaign_reminder_needed(campaign.get("reminder_stage", ""), days)

@@ -75,7 +75,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements-dev.txt
       - name: Tests (pytest — mode /tmp, sans Neon)
         run: pytest -q
       - name: Block A — validation des classeurs masters
@@ -105,7 +105,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements-dev.txt
       # PR-02B : ledger + sondes. PR-03 : Evidence Kernel — migration 028
       # réellement appliquée (via les fixtures `build_evidence_kernel_db`)
       # + RLS globale/tenant, triggers d'immutabilité, licence, idempotence.
@@ -153,6 +153,10 @@ jobs:
       # transactionnelle du graveur ne tournerait JAMAIS (elle est skippée sans
       # DATABASE_URL), et un graveur non exercé contre un vrai PostgreSQL n'est
       # pas un graveur prouvé — cf. le défaut anti-IDOR de la Wave E.
+      # Rapport QA du 16/09/2026 : `test_qa_2026_09_16_db.py` est un module
+      # DB-gated NORMAL (borne 044, montage idempotent, aucun reset) — il purge
+      # à son démarrage puis à sa fin les types d'audit élargis, pour que les
+      # modules suivants puissent rejouer la contrainte étroite de 011.
       # `test_water_schema_not_ready.py` se retrouve de ce fait après
       # `test_nature_ledger.py`/`test_nature_assess_prepare.py` plutôt
       # qu'immédiatement après `test_water_screening_api.py` comme avant
@@ -208,6 +212,7 @@ jobs:
           tests/test_ai_review_ledger.py
           tests/test_demo_seed.py
           tests/test_water_staging_writer.py
+          tests/test_qa_2026_09_16_db.py
           tests/test_water_schema_not_ready.py
           tests/test_nature_schema_not_ready.py
 

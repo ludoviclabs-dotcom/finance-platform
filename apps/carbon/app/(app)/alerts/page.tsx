@@ -24,6 +24,7 @@ import {
   evaluateAlerts,
   fetchAlertHistory,
   fetchNotifications,
+  friendlyApiErrorMessage,
   markNotificationRead,
   archiveNotification,
   type AlertRuleOut,
@@ -506,6 +507,7 @@ export default function AlertsPage() {
 
   const [evaluating, setEvaluating] = useState(false);
   const [evalResult, setEvalResult] = useState<{ evaluated: number; fired: number; alerts: AlertFired[] } | null>(null);
+  const [evalError, setEvalError] = useState<string | null>(null);
 
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [history, setHistory] = useState<AlertFired[]>([]);
@@ -568,13 +570,22 @@ export default function AlertsPage() {
   const handleEvaluate = async () => {
     setEvaluating(true);
     setEvalResult(null);
+    setEvalError(null);
     try {
       const result = await evaluateAlerts();
       setEvalResult(result);
       // reload rules to get updated last_fired_at
       load();
     } catch (e) {
-      setEvalResult({ evaluated: 0, fired: 0, alerts: [] });
+      // Un échec n'est jamais présenté comme « Aucune alerte » : l'évaluation
+      // n'a pas eu lieu.
+      setEvalError(
+        friendlyApiErrorMessage(
+          e,
+          { 403: "L'évaluation manuelle est réservée aux rôles analyste et administrateur." },
+          "Évaluation impossible pour le moment. Réessayez.",
+        ),
+      );
     } finally {
       setEvaluating(false);
     }
@@ -644,9 +655,10 @@ export default function AlertsPage() {
             Évaluation automatique programmée
           </h3>
           <p className="text-xs text-[var(--color-foreground-muted)] mb-2">
-            Toutes les règles actives sont évaluées chaque jour à <strong>06:00 UTC</strong>{" "}
-            (Vercel Cron). Les déclenchements sont enregistrés dans l&apos;historique ci-dessous
-            et envoyés au canal configuré (webhook ou email).
+            Les règles actives sont évaluées automatiquement une fois par jour (entre{" "}
+            <strong>06:00 et 07:00 UTC</strong>). Vous pouvez aussi lancer une évaluation
+            manuelle. Les déclenchements sont enregistrés dans l&apos;historique ci-dessous et
+            envoyés au canal configuré (webhook ou email).
           </p>
           <p className="text-[11px] text-[var(--color-foreground-subtle)]">
             Endpoint : <code className="px-1 py-0.5 rounded bg-[var(--color-surface-raised)] font-mono">GET /api/cron/evaluate-alerts</code>
@@ -677,6 +689,11 @@ export default function AlertsPage() {
           {evalResult && evalResult.fired > 0 && (
             <div className="mb-3 space-y-2">
               {evalResult.alerts.map((a, i) => <FiredRow key={i} alert={a} />)}
+            </div>
+          )}
+          {evalError && (
+            <div role="alert" className="mb-3 flex items-center gap-2 text-xs font-semibold text-[var(--color-danger)]">
+              <AlertTriangle className="w-4 h-4" /> {evalError}
             </div>
           )}
           <button type="button" onClick={handleEvaluate} disabled={evaluating}

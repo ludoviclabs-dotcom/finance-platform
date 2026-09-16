@@ -4,11 +4,21 @@
    Tableau de bord ESG — Cockpit CarbonCo (refonte)
    Hero trajectoire + score conformité · scopes expandables · NEURAL unifié ·
    répartition + benchmark · ESRS heat + activité + sources · drawer copilote.
+
+   Deux modes, décidés sur le CONTENU du snapshot consolidé (un total S1+S2+S3
+   nul est une organisation sans données, pas une donnée réelle) :
+   - démonstration : jeu fictif de la maquette, étiqueté comme tel, sans
+     aucune revendication d'intégrité ou de vérification ;
+   - réel : chiffres de l'API ; toute visualisation sans source réelle
+     (série mensuelle, bridge, benchmark…) cède la place à un encart explicatif.
+   Dans les deux modes, le score ESRS, les échéances et l'activité viennent de
+   l'API (ou affichent un état vide), et la veille réglementaire est sourcée.
    ════════════════════════════════════════════════════════════════════════════ */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, FlaskConical, Info } from "lucide-react";
 
 import { SkeletonCard, SkeletonChart, SkeletonRow } from "@/components/ui/skeleton";
 import { KpiProvenanceDrawer } from "@/components/ui/kpi-provenance-drawer";
@@ -17,6 +27,8 @@ import { ReviewStatusBadge } from "@/components/ui/review-status-badge";
 import { useAuditMode } from "@/lib/hooks/use-audit-mode";
 import { useReviewStatusBatch } from "@/lib/hooks/use-review-status";
 import { useConsolidatedSnapshot } from "@/lib/hooks/use-consolidated-snapshot";
+import { useAudit } from "@/lib/hooks/use-audit";
+import { useBegesDeadline } from "@/lib/hooks/use-beges-deadline";
 import { ResourcesAccessCard } from "@/components/dashboard/resources-access-card";
 import { ChainBadge } from "@/components/ui/chain-badge";
 import { QualityPanel } from "@/components/ui/quality-panel";
@@ -28,54 +40,67 @@ import { pageVariants } from "@/lib/animations";
 import {
   Hero, ScopeStrip, NeuralPanel, AnalyticsRow, BridgeRow, SourcesRow, CopilotDrawer, RegBanner,
   type ScopeRow, type NeuralItem, type Suggestion, type Benchmark,
-  type EsrsState, type ActivityRow, type Connector, type Deadline,
+  type ActivityRow, type Connector, type Deadline, type HeroTrajectory,
 } from "@/components/cockpit/cockpit-sections";
-import type { ScopesOn, MonthPoint, WaterfallStep } from "@/components/cockpit/cockpit-charts";
+import type { ScopesOn, WaterfallStep } from "@/components/cockpit/cockpit-charts";
+import {
+  REGULATORY_NOTES,
+  auditEventsToActivity,
+  buildEsrsCockpitState,
+  hasLiveCarbon,
+  scopeShares,
+} from "@/components/cockpit/dashboard-model";
 
-/* ─── Données statiques pour le cockpit (rejouent celles de la maquette) ── */
+/* ─── Jeu de démonstration (rejoue celui de la maquette, entreprise fictive) ── */
 /* Objectif SBTi 2030 : −42 % vs la base 2023 du bridge (11 200 tCO₂e). */
-const TARGET_EMISSIONS = 6500;
+const DEMO_TARGET_EMISSIONS = 6500;
+const DEMO_DELTA_PCT = -5.8;
+const DEMO_COMPANY = "Exemplia Industrie (entreprise fictive)";
 
 const SCOPE_META: Record<1 | 2 | 3, {
   desc: string;
   color: string;
   icon: ScopeRow["icon"];
   label: string;
-  share: number;
-  sbti: ScopeRow["sbti"];
-  spark: number[];
 }> = {
   1: {
     desc: "Combustion fixe, flotte véhicules, réfrigérants, procédés",
     color: "#34D399",
     icon: "factory",
     label: "Émissions directes",
-    share: 13,
-    sbti: { status: "ok", text: "SBTi ✓ on-track" },
-    spark: [112, 107, 121, 102, 97, 93, 88, 91, 100, 104, 110, 115],
   },
   2: {
     desc: "Électricité, chauffage urbain, vapeur",
     color: "#22D3EE",
     icon: "zap",
     label: "Énergie achetée",
-    share: 9,
-    sbti: { status: "warn", text: "SBTi ⚠ à surveiller" },
-    spark: [81, 78, 86, 74, 71, 69, 67, 65, 71, 72, 76, 80],
   },
   3: {
     desc: "Achats, transport amont/aval, déplacements, déchets, usage produits",
     color: "#A78BFA",
     icon: "truck",
     label: "Chaîne de valeur",
-    share: 78,
+  },
+};
+
+/** Éléments de maquette propres à la démonstration (aucune source réelle). */
+const DEMO_SCOPE_EXTRAS: Record<1 | 2 | 3, { sbti: NonNullable<ScopeRow["sbti"]>; spark: number[] }> = {
+  1: {
+    sbti: { status: "ok", text: "SBTi ✓ on-track" },
+    spark: [112, 107, 121, 102, 97, 93, 88, 91, 100, 104, 110, 115],
+  },
+  2: {
+    sbti: { status: "warn", text: "SBTi ⚠ à surveiller" },
+    spark: [81, 78, 86, 74, 71, 69, 67, 65, 71, 72, 76, 80],
+  },
+  3: {
     sbti: { status: "alert", text: "SBTi ✗ hors-piste" },
     spark: [685, 654, 725, 624, 594, 564, 544, 534, 584, 604, 634, 674],
   },
 };
 
 /* Bridge 2023 → 2025 (maquette) : 11 200 − 1 250 − 680 − 520 − 100 + 900 = 9 550. */
-const WATERFALL: WaterfallStep[] = [
+const DEMO_WATERFALL: WaterfallStep[] = [
   { label: "Base 2023",       value: 11200, kind: "base"  },
   { label: "Énergie verte",   value: -1250, kind: "delta" },
   { label: "Efficacité",      value:  -680, kind: "delta" },
@@ -85,27 +110,7 @@ const WATERFALL: WaterfallStep[] = [
   { label: "Total 2025",      value:     0, kind: "total" },
 ];
 
-const ESRS_DATA: EsrsState = {
-  score: 62,
-  target: 80,
-  compliant: 8,
-  inProgress: 3,
-  notStarted: 1,
-  radial: [
-    { k: "E1", label: "Climat",        v: 85 },
-    { k: "E2", label: "Pollution",     v: 72 },
-    { k: "E3", label: "Eau",           v: 60 },
-    { k: "E4", label: "Biodiv.",       v: 45 },
-    { k: "E5", label: "Écon. circ.",   v: 55 },
-    { k: "S1", label: "Effectifs",     v: 90 },
-    { k: "S2", label: "Chaîne val.",   v: 40 },
-    { k: "S3", label: "Communautés",   v: 30 },
-    { k: "S4", label: "Consomm.",      v: 35 },
-    { k: "G1", label: "Gouvernance",   v: 78 },
-  ],
-};
-
-const BENCHMARK_DATA: Benchmark = {
+const DEMO_BENCHMARK: Benchmark = {
   intensity: { you: 42, sector: 58 },
   radar: [
     { axis: "Scope 1", you: 13, sector: 30 },
@@ -120,7 +125,7 @@ const BENCHMARK_DATA: Benchmark = {
   ],
 };
 
-const NEURAL_ITEMS: NeuralItem[] = [
+const DEMO_NEURAL_ITEMS: NeuralItem[] = [
   {
     id: "opp-1", type: "opportunité",
     // 7 420 / 9 550 = 78 % (part du Scope 3 dans le total) ; 2 680 / 7 420 = 36 %
@@ -145,7 +150,7 @@ const NEURAL_ITEMS: NeuralItem[] = [
   },
 ];
 
-const SUGGESTIONS: Suggestion[] = [
+const DEMO_SUGGESTIONS: Suggestion[] = [
   {
     id: 1, title: "Optimiser la flotte véhicules", impact: "high",
     saving: "−114 tCO₂e/an", scope: "Scope 1",
@@ -163,20 +168,49 @@ const SUGGESTIONS: Suggestion[] = [
   },
 ];
 
-const CONNECTORS: Connector[] = [
-  { id: "sap",        label: "ERP / SAP",         status: "connected", glyph: "SAP" },
-  { id: "gsuite",     label: "Google Workspace",  status: "idle",      glyph: "GW"  },
-  { id: "accounting", label: "Comptabilité",      status: "idle",      glyph: "€"   },
-  { id: "fleet",      label: "Fleet Manager",     status: "idle",      glyph: "FM"  },
-  { id: "cloud",      label: "AWS / Azure / GCP", status: "idle",      glyph: "☁"   },
-  { id: "csv",        label: "Import CSV",        status: "idle",      glyph: "CSV" },
+/** Pistes génériques pour une organisation réelle : aucun gain chiffré inventé. */
+const LIVE_SUGGESTIONS: Suggestion[] = [
+  {
+    id: 1, title: "Flotte de véhicules", scope: "Scope 1",
+    desc: "Étudier le remplacement progressif des véhicules thermiques par des motorisations bas-carbone.",
+  },
+  {
+    id: 2, title: "Électricité renouvelable", scope: "Scope 2",
+    desc: "Évaluer un contrat de fourniture d'électricité d'origine renouvelable pour vos sites.",
+  },
+  {
+    id: 3, title: "Déplacements domicile-travail", scope: "Scope 3",
+    desc: "Mesurer l'effet d'une politique de télétravail ou de mobilité douce.",
+  },
 ];
 
-const DEADLINES: Deadline[] = [
-  { label: "Rapport ESRS E1",   days: 15, level: "warn"  },
-  { label: "Dépôt CSRD (iXBRL)", days: 45, level: "alert" },
-  { label: "Revue auditeur Q2",  days: 68, level: "info"  },
+/* Catalogue de connecteurs : aucun n'est présenté comme « connecté » tant
+   qu'aucune intégration réelle n'existe pour l'organisation. */
+const CONNECTORS: Connector[] = [
+  { id: "sap",        label: "ERP / SAP",         status: "idle", glyph: "SAP" },
+  { id: "gsuite",     label: "Google Workspace",  status: "idle", glyph: "GW"  },
+  { id: "accounting", label: "Comptabilité",      status: "idle", glyph: "€"   },
+  { id: "fleet",      label: "Fleet Manager",     status: "idle", glyph: "FM"  },
+  { id: "cloud",      label: "AWS / Azure / GCP", status: "idle", glyph: "☁"   },
+  { id: "csv",        label: "Import CSV",        status: "idle", glyph: "CSV" },
 ];
+
+/** Insight calculé sur les émissions réelles (aucune valeur supposée). */
+function liveInsights(scope3Share: number): NeuralItem[] {
+  if (scope3Share < 50) return [];
+  return [
+    {
+      id: "live-scope3",
+      type: "opportunité",
+      title: `Le Scope 3 pèse ${scope3Share} % de vos émissions`,
+      desc: "La chaîne de valeur est votre premier levier : un questionnaire fournisseurs permet de fiabiliser ses principaux postes.",
+      metric: `${scope3Share} %`,
+      metricLabel: "des émissions totales",
+      cta: "Lancer le questionnaire",
+      time: "",
+    },
+  ];
+}
 
 /* ─── Composant principal ───────────────────────────────────────────────── */
 export function DashboardPage() {
@@ -184,45 +218,41 @@ export function DashboardPage() {
   const [scopesOn, setScopesOn] = useState<ScopesOn>({ s1: true, s2: true, s3: true });
 
   const consolidated = useConsolidatedSnapshot();
+  const audit = useAudit({ limit: 20 });
+  const begesDeadline = useBegesDeadline();
   const loading = consolidated.status === "loading";
-  const carbonError = consolidated.status === "error" ? consolidated.error : null;
+  // Snapshot absent (`empty`) : pas une panne — mode démonstration étiqueté.
+  const carbonError =
+    consolidated.status === "error" && !consolidated.empty ? consolidated.error : null;
 
-  // Live data avec fallback démo
-  const liveCarbon = consolidated.status === "ready" ? consolidated.data.carbon : null;
+  const snapshot = consolidated.status === "ready" ? consolidated.data : null;
+  const isLive = hasLiveCarbon(snapshot);
+  const liveCarbon = isLive && snapshot ? snapshot.carbon : null;
+
   const liveCompanyName =
-    consolidated.status === "ready" &&
-    consolidated.data.company.name &&
-    consolidated.data.company.name !== "Entreprise non renseignee"
-      ? consolidated.data.company.name
+    snapshot?.company.name && snapshot.company.name !== "Entreprise non renseignee"
+      ? snapshot.company.name
       : null;
 
-  const pick = (live: number | null | undefined, fallback: number) =>
-    typeof live === "number" && live > 0 ? live : fallback;
+  // Totaux : réels (un poste absent vaut 0) ou jeu de démonstration.
+  const scopeTotals: [number, number, number] = liveCarbon
+    ? [
+        liveCarbon.scope1Tco2e ?? 0,
+        liveCarbon.scope2LbTco2e ?? 0,
+        liveCarbon.scope3Tco2e ?? 0,
+      ]
+    : [scopeDetails[0].total, scopeDetails[1].total, scopeDetails[2].total];
+  const totalValue = liveCarbon?.totalS123Tco2e ?? scopeTotals[0] + scopeTotals[1] + scopeTotals[2];
+  const shares = scopeShares(scopeTotals);
 
-  const scope1Value = pick(liveCarbon?.scope1Tco2e,   scopeDetails[0].total);
-  const scope2Value = pick(liveCarbon?.scope2LbTco2e, scopeDetails[1].total);
-  const scope3Value = pick(liveCarbon?.scope3Tco2e,   scopeDetails[2].total);
-  const totalValue = pick(
-    liveCarbon?.totalS123Tco2e,
-    scope1Value + scope2Value + scope3Value,
-  );
+  // ESRS : matrice de matérialité réelle ou « — » (jamais de score codé en dur).
+  const esrsState = useMemo(() => buildEsrsCockpitState(snapshot?.rawEsg ?? null), [snapshot]);
 
-  const isLive =
-    consolidated.status === "ready" &&
-    liveCarbon !== null &&
-    (liveCarbon.totalS123Tco2e ?? 0) > 0;
-
-  // ESG score (live ou démo)
-  const liveEsg = consolidated.status === "ready" ? consolidated.data.esg : null;
-  const esrsState: EsrsState = {
-    ...ESRS_DATA,
-    score: typeof liveEsg?.scoreGlobal === "number" && Number.isFinite(liveEsg.scoreGlobal)
-      ? Math.round(liveEsg.scoreGlobal)
-      : ESRS_DATA.score,
-  };
-
-  // Trend total
-  const deltaTotalCo2 = consolidated.status === "ready" ? consolidated.data.deltas?.totalS123Tco2ePct ?? null : null;
+  // Variation vs N-1 : réelle, ou valeur de démonstration hors données réelles.
+  const liveDelta = snapshot?.deltas?.totalS123Tco2ePct;
+  const deltaPct = isLive
+    ? typeof liveDelta === "number" && Number.isFinite(liveDelta) ? liveDelta : null
+    : DEMO_DELTA_PCT;
 
   // Provenance & audit
   const { enabled: auditModeEnabled } = useAuditMode();
@@ -264,56 +294,86 @@ export function DashboardPage() {
   }
 
   // ─── Données dérivées pour les composants cockpit ─────────────────────
-  const monthly: MonthPoint[] = monthlyEmissions.map((m) => ({
-    m: m.month, s1: m.scope1, s2: m.scope2, s3: m.scope3,
+  const trajectory: HeroTrajectory | null = isLive
+    ? null
+    : {
+        monthly: monthlyEmissions.map((m) => ({ m: m.month, s1: m.scope1, s2: m.scope2, s3: m.scope3 })),
+        target: DEMO_TARGET_EMISSIONS,
+        targetLabel: (
+          <>Objectif SBTi 2030 · <strong className="cc-mono cc-em-txt">−42 %</strong> vs 2023</>
+        ),
+      };
+
+  const scopes: ScopeRow[] = ([1, 2, 3] as const).map((id, index) => ({
+    id,
+    name: `Scope ${id}`,
+    total: scopeTotals[index],
+    share: shares[index],
+    ...SCOPE_META[id],
+    // Tendance, position SBTi, série et ventilation : démonstration seulement.
+    trend: isLive ? null : scopeDetails[index].trend,
+    sbti: isLive ? null : DEMO_SCOPE_EXTRAS[id].sbti,
+    spark: isLive ? null : DEMO_SCOPE_EXTRAS[id].spark,
+    categories: isLive
+      ? null
+      : scopeDetails[index].categories.map((c) => ({ name: c.name, value: c.value })),
   }));
 
-  const scopes: ScopeRow[] = [
-    {
-      id: 1, name: "Scope 1", total: scope1Value,
-      trend: scopeDetails[0].trend,
-      categories: scopeDetails[0].categories.map((c) => ({ name: c.name, value: c.value })),
-      ...SCOPE_META[1],
-    },
-    {
-      id: 2, name: "Scope 2", total: scope2Value,
-      trend: scopeDetails[1].trend,
-      categories: scopeDetails[1].categories.map((c) => ({ name: c.name, value: c.value })),
-      ...SCOPE_META[2],
-    },
-    {
-      id: 3, name: "Scope 3", total: scope3Value,
-      trend: scopeDetails[2].trend,
-      categories: scopeDetails[2].categories.map((c) => ({ name: c.name, value: c.value })),
-      ...SCOPE_META[3],
-    },
-  ];
+  // Activité : journal d'audit réel ; en démonstration, jeu fictif sans
+  // aucune mention de validation ou de vérification.
+  const activity: ActivityRow[] = isLive
+    ? audit.status === "ready" ? auditEventsToActivity(audit.events) : []
+    : recentActivity
+        .filter((a) => a.type !== "validation")
+        .map((a) => ({ id: a.id, type: a.type, title: a.title, desc: a.description, time: a.time }));
+  const activityNotice = !isLive
+    ? undefined
+    : audit.status === "loading"
+      ? "Chargement du journal d'audit…"
+      : audit.status === "error"
+        ? "Journal d'audit indisponible pour le moment."
+        : undefined;
 
-  const activity: ActivityRow[] = recentActivity.map((a) => ({
-    id: a.id, type: a.type, title: a.title, desc: a.description, time: a.time,
-  }));
+  const deadlines: Deadline[] = begesDeadline
+    ? [{
+        label: "Renouvellement BEGES",
+        days: begesDeadline.days,
+        level: begesDeadline.level,
+        href: "/beges",
+      }]
+    : [];
 
-  const companyName = liveCompanyName ?? "Exemplia Industrie";
+  const companyLabel = isLive ? liveCompanyName ?? "Votre organisation" : DEMO_COMPANY;
 
   return (
     <motion.div {...pageVariants} className="cc-app space-y-0">
       <div className="px-6 pt-4 pb-6 space-y-4">
 
-        {/* Chaîne d'intégrité (ouvre le cockpit, comme la maquette) */}
-        <ChainBadge />
+        {/* Chaîne d'intégrité — uniquement sur données réelles : jamais de
+            revendication de vérification à côté de chiffres fictifs. */}
+        {isLive ? (
+          <ChainBadge />
+        ) : (
+          <div
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--cc-border)] bg-[var(--cc-surface-2)] px-3 py-1.5 text-xs font-semibold text-[var(--cc-muted)]"
+            data-testid="demo-state-badge"
+            role="status"
+          >
+            <FlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
+            Démonstration · aucune vérification d&apos;intégrité sur ces chiffres
+          </div>
+        )}
 
-        {/* Bandeau réglementaire EFRAG */}
-        <RegBanner
-          note={{ src: "EFRAG", date: "15/03/26", text: "Nouvelles guidelines ESRS E1-6 · Scope 3 cat. 15 précisé." }}
-        />
+        {/* Veille réglementaire (faits datés et sourcés) */}
+        <RegBanner notes={REGULATORY_NOTES} />
 
-        {/* Bandeau erreur API Carbon (préserve les diagnostics existants) */}
+        {/* Bandeau erreur API Carbon (message présentable, jamais technique) */}
         {carbonError && (
           <div className="flex items-center gap-2 p-3 rounded-xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/5">
             <AlertTriangle className="w-4 h-4 text-[var(--color-warning)] flex-shrink-0" />
             <p className="text-xs text-[var(--color-foreground-muted)]">
-              Impossible de charger le snapshot Carbon en direct — affichage de données d&apos;exemple.{" "}
-              <span className="opacity-60">({carbonError})</span>
+              Impossible de charger vos données en direct — affichage de données de démonstration
+              (chiffres fictifs). <span className="opacity-60">{carbonError}</span>
             </p>
           </div>
         )}
@@ -326,7 +386,7 @@ export function DashboardPage() {
             <p className="flex-1 text-xs text-[var(--cc-muted)]">
               <strong className="text-[var(--cc-fg)]">Données de démonstration</strong> — chiffres
               fictifs. Pour vos données réelles, importez votre classeur via{" "}
-              <a href="/upload" className="font-semibold underline text-[var(--cc-em)]">Import de données</a>.
+              <Link href="/upload" className="font-semibold underline text-[var(--cc-em)]">Import de données</Link>.
             </p>
           </div>
         )}
@@ -339,12 +399,11 @@ export function DashboardPage() {
             « Tableau de bord · Vue d'ensemble ESG », comme dans la maquette) */}
         <Hero
           totalEmissions={totalValue}
-          target2025={TARGET_EMISSIONS}
-          monthly={monthly}
+          trajectory={trajectory}
           esrs={esrsState}
           scopesOn={scopesOn}
           setScopesOn={setScopesOn}
-          deltaPct={deltaTotalCo2 ?? -5.8}
+          deltaPct={deltaPct}
         />
 
         {/* Strip scopes */}
@@ -380,40 +439,51 @@ export function DashboardPage() {
         )}
 
         {/* Donut + radar benchmark */}
-        <AnalyticsRow scopes={scopes} benchmark={BENCHMARK_DATA} />
+        <AnalyticsRow scopes={scopes} benchmark={isLive ? null : DEMO_BENCHMARK} />
 
         {/* Preuve & qualité (score audit, couverture de pièces, méthodes) */}
         <QualityPanel />
 
         {/* Bridge des leviers 2023 → 2025 + heatmap ESRS (cf. maquette) */}
-        <BridgeRow esrs={esrsState} waterfall={WATERFALL} />
+        <BridgeRow
+          esrs={esrsState}
+          waterfall={isLive ? null : { title: "Variation des émissions 2023 → 2025", steps: DEMO_WATERFALL }}
+        />
 
         {/* Scope 3 par catégorie (15 postes, filtrable) */}
         <Scope3Panel />
 
         {/* NEURAL unifié — clôt la séquence de la maquette */}
         <NeuralPanel
-          items={NEURAL_ITEMS}
-          suggestions={SUGGESTIONS}
+          key={isLive ? "live" : "demo"}
+          items={isLive ? liveInsights(shares[2]) : DEMO_NEURAL_ITEMS}
+          suggestions={isLive ? LIVE_SUGGESTIONS : DEMO_SUGGESTIONS}
+          subtitle={isLive ? "calculé à partir de vos émissions importées" : undefined}
           onOpenCopilot={() => setCopilotOpen(true)}
         />
 
         {/* Hors maquette, conservés : activité, connecteurs/échéances, accès
             au module Ressources stratégiques. */}
-        <SourcesRow activity={activity} connectors={CONNECTORS} deadlines={DEADLINES} />
+        <SourcesRow
+          activity={activity}
+          activityNotice={activityNotice}
+          connectors={CONNECTORS}
+          deadlines={deadlines}
+        />
 
         <ResourcesAccessCard />
 
         <div className="text-center text-[11px] text-[var(--color-foreground-subtle)] font-mono py-2">
-          {companyName} · données de démonstration, chiffres fictifs
+          {companyLabel} ·{" "}
+          {isLive ? "données issues de vos imports" : "données de démonstration, chiffres fictifs"}
         </div>
       </div>
 
-      {/* Drawer copilote (slide-in droit) */}
+      {/* Drawer copilote (slide-in droit) — salutation neutre, sans persona */}
       <CopilotDrawer
         open={copilotOpen}
         onClose={() => setCopilotOpen(false)}
-        scope3SharePct={scopes.find((s) => s.id === 3)?.share}
+        scope3SharePct={shares[2]}
       />
 
       {/* Drawer provenance (préservé) */}

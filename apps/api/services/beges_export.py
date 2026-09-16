@@ -38,13 +38,77 @@ def _data() -> dict[str, Any]:
         return json.load(f)
 
 
-def eligibility(fte: int | None, country: str = "FR") -> dict[str, Any]:
-    """Statut d'éligibilité BEGES (pur)."""
-    if fte and fte > 500 and (country or "FR").upper() == "FR":
-        return {"status": "obligatoire", "label": "Obligatoire tous les 4 ans (> 500 salariés en métropole)"}
-    if fte and fte > 250:
-        return {"status": "obligatoire_om", "label": "Obligatoire tous les 4 ans si > 250 salariés en outre-mer"}
-    return {"status": "volontaire", "label": "Démarche volontaire (sous les seuils réglementaires)"}
+BEGES_LEGAL_BASIS = (
+    "Code de l'environnement, art. L229-25 (rédaction issue de la loi n° 2025-391 "
+    "du 30 avril 2025) et art. R229-46"
+)
+_BEGES_NOTES = (
+    "Effectif calculé selon l'article L. 1111-2 du code du travail ; sont concernées les "
+    "personnes morales de droit privé ayant leur siège en France ou y disposant d'un "
+    "établissement stable (art. R229-46).",
+    "Le bilan est accompagné d'un plan de transition (objectifs, moyens et actions) et rendu public.",
+    "Dispense : les entreprises soumises au rapport de durabilité (art. L. 232-6-3 et "
+    "L. 233-28-4 du code de commerce) qui y publient un bilan d'émissions et un plan de "
+    "transition sont dispensées du BEGES.",
+    "Manquement à l'établissement ou à la transmission : amende administrative jusqu'à "
+    "50 000 €, 100 000 € en cas de récidive.",
+)
+_FRANCE = {"FR", "FRA", "FRANCE"}
+# Régions et départements d'outre-mer (codes ISO 3166-1) : Guadeloupe,
+# Martinique, Guyane, La Réunion, Mayotte.
+_DROM = {"GP", "MQ", "GF", "RE", "YT"}
+
+
+def eligibility(
+    fte: float | None, country: str | None = "FR", overseas: bool | None = None,
+) -> dict[str, Any]:
+    """Statut d'assujettissement au BEGES réglementaire (pur).
+
+    Art. L229-25 : personnes morales de droit privé employant plus de 500
+    personnes, ou plus de 250 dans les régions et départements d'outre-mer ;
+    mise à jour tous les 4 ans. Un effectif inconnu ne permet PAS de conclure :
+    l'ancienne version affichait alors « démarche volontaire » (M-03).
+    """
+    base = {"legal_basis": BEGES_LEGAL_BASIS, "notes": list(_BEGES_NOTES)}
+    normalized_country = (country or "").strip().upper()
+    if normalized_country in _DROM:
+        overseas = True
+    elif normalized_country and normalized_country not in _FRANCE:
+        return {
+            **base, "status": "indetermine", "periodicity_years": None,
+            "label": "Obligation française : vérifier l'assujettissement de l'entité établie en France.",
+        }
+    if fte is None:
+        return {
+            **base, "status": "indetermine", "periodicity_years": None,
+            "label": "Effectif non renseigné : assujettissement non déterminé "
+                     "(seuils : plus de 500 salariés, plus de 250 en outre-mer).",
+        }
+    if fte > 500:
+        return {
+            **base, "status": "obligatoire", "periodicity_years": 4,
+            "label": "Obligatoire — plus de 500 salariés : bilan mis à jour tous les 4 ans.",
+        }
+    if fte > 250:
+        if overseas is False:
+            return {
+                **base, "status": "sous_seuil", "periodicity_years": None,
+                "label": "Non assujettie (500 salariés ou moins en métropole) — démarche volontaire possible.",
+            }
+        if overseas is True:
+            return {
+                **base, "status": "obligatoire_outre_mer", "periodicity_years": 4,
+                "label": "Obligatoire — plus de 250 salariés en outre-mer : bilan mis à jour tous les 4 ans.",
+            }
+        return {
+            **base, "status": "indetermine", "periodicity_years": None,
+            "label": "Obligatoire si l'entreprise est établie dans une région ou un département "
+                     "d'outre-mer (plus de 250 salariés) ; sinon non assujettie.",
+        }
+    return {
+        **base, "status": "sous_seuil", "periodicity_years": None,
+        "label": "Non assujettie (250 salariés ou moins) — démarche volontaire possible.",
+    }
 
 
 def ventilate(scope_totals: dict[str, Any]) -> dict[str, Any]:
@@ -143,6 +207,8 @@ def build_beges_pdf(*, company_name: str, breakdown: dict[str, Any], elig: dict[
     pdf.set_text_color(100, 116, 139)
     pdf.cell(0, 6, _p(f"{breakdown['standard']} — Généré le {generated_at}"), new_x="LMARGIN", new_y="NEXT")
     pdf.cell(0, 6, _p(f"Éligibilité : {elig['label']}"), new_x="LMARGIN", new_y="NEXT")
+    if elig.get("legal_basis"):
+        pdf.multi_cell(0, 5, _p(f"Base légale : {elig['legal_basis']}"), new_x="LMARGIN", new_y="NEXT")
     pdf.cell(0, 6, _p(f"Total : {breakdown['total']} tCO2e"), new_x="LMARGIN", new_y="NEXT")
     pdf.set_text_color(0, 0, 0)
     pdf.ln(3)

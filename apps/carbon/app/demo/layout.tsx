@@ -19,9 +19,11 @@ export default function DemoLayout({
   return (
     // Scène plein écran : fixée, fond sombre #070909, texte blanc.
     // zIndex 60 pour passer au-dessus du chrome applicatif.
+    // Le padding bas réserve la hauteur de la bannière cookies tant qu'elle
+    // est affichée : la fin de la scène défile au-dessus d'elle (QA m-06).
     <div
       className="fixed inset-0 overflow-y-auto bg-[#070909] text-white"
-      style={{ zIndex: 60 }}
+      style={{ zIndex: 60, paddingBottom: "var(--cookie-banner-offset, 0px)" }}
     >
       {children}
     </div>

@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from db.database import db_available, get_db
-from routers.auth import require_admin
+from routers.auth import require_platform_admin
 from services.auth_service import AuthUser
 
 logger = logging.getLogger(__name__)
@@ -145,8 +145,9 @@ def partner_apply(payload: PartnerApplyRequest) -> dict[str, Any]:
 
 
 @router.get("/applications", response_model=list[PartnerApplicationOut])
-def list_applications(_: AuthUser = Depends(require_admin)) -> list[PartnerApplicationOut]:
-    """Pipeline des candidatures (admin uniquement — donnée plateforme)."""
+def list_applications(_: AuthUser = Depends(require_platform_admin)) -> list[PartnerApplicationOut]:
+    """Pipeline des candidatures — donnée PLATEFORME : réservée aux
+    administrateurs de la plateforme, jamais aux admins d'une organisation."""
     if db_available():
         try:
             with get_db() as conn:
@@ -165,7 +166,7 @@ def list_applications(_: AuthUser = Depends(require_admin)) -> list[PartnerAppli
 def patch_application(
     application_id: int,
     payload: ApplicationPatch,
-    _: AuthUser = Depends(require_admin),
+    _: AuthUser = Depends(require_platform_admin),
 ) -> PartnerApplicationOut:
     if db_available():
         try:

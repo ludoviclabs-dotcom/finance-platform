@@ -64,7 +64,7 @@ class TestHighestAppliedVersion:
     def test_a_bound_above_the_repo_caps_at_the_real_highest_file(self) -> None:
         """Le même critère que `apply_upto` : demander 999 n'applique — et ne
         rapporte — que ce qui existe réellement sur disque."""
-        assert _highest_applied_version("999") == _highest_applied_version("043")
+        assert _highest_applied_version("999") == _highest_applied_version("044")
 
     def test_a_low_bound_resolves_to_itself(self) -> None:
         assert _highest_applied_version("001") == "001"

@@ -138,11 +138,11 @@ const CAPABILITIES = [
 function Navbar({ onCta }: { onCta: () => void }) {
   return (
     <nav className="fixed top-0 inset-x-0 z-50 bg-[var(--color-background)]/80 backdrop-blur-md border-b border-[var(--color-border)]">
-      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-        <span className="font-display font-bold text-[var(--color-foreground)] tracking-tight">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+        <span className="font-display font-bold text-[var(--color-foreground)] tracking-tight whitespace-nowrap">
           Carbon <span className="text-[var(--color-primary)]">&</span> Co
         </span>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <Link
             href="/"
             className="text-sm text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] transition-colors"
@@ -152,10 +152,11 @@ function Navbar({ onCta }: { onCta: () => void }) {
           <button
             type="button"
             onClick={onCta}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:opacity-90 transition-opacity"
           >
-            Accéder à la plateforme
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span className="sm:hidden">Plateforme</span>
+            <span className="hidden sm:inline">Accéder à la plateforme</span>
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -202,7 +203,7 @@ function HeroSection({ onCta }: { onCta: () => void }) {
           <button
             type="button"
             onClick={onCta}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity shadow-lg shadow-[var(--color-primary)]/20"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:opacity-90 transition-opacity shadow-lg shadow-[var(--color-primary)]/20"
           >
             Accéder au mapping complet
             <ArrowRight className="w-4 h-4" />
@@ -342,25 +343,36 @@ function BeforeAfterSection() {
         </Reveal>
 
         <div className="space-y-3">
-          {/* Header */}
-          <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 px-4 text-xs font-semibold text-[var(--color-foreground-muted)] uppercase tracking-wide">
+          {/* Header — colonnes affichées à partir de 640 px ; en dessous, chaque
+              carte porte ses propres libellés (plus de débordement horizontal). */}
+          <div
+            className="hidden sm:grid grid-cols-3 gap-4 px-4 text-xs font-semibold text-[var(--color-foreground-muted)] uppercase tracking-wide"
+            aria-hidden="true"
+          >
             <span>Domaine</span>
             <span>Avant</span>
             <span>Après</span>
           </div>
           {BEFORE_AFTER.map((item, i) => (
             <Reveal key={item.category} delay={i * 0.06}>
-              <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-4 items-center">
-                <span className="text-sm font-semibold text-[var(--color-foreground)]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-4 sm:items-center">
+                <span className="min-w-0 break-words text-sm font-semibold text-[var(--color-foreground)]">
                   {item.category}
                 </span>
-                <div className="flex gap-2 items-start">
-                  <span className="text-red-400 mt-0.5 shrink-0 text-base leading-none">✗</span>
-                  <span className="text-sm text-[var(--color-foreground-muted)]">{item.before}</span>
+                <div className="flex min-w-0 gap-2 items-start">
+                  <span className="text-red-400 mt-0.5 shrink-0 text-base leading-none" aria-hidden="true">✗</span>
+                  <span className="min-w-0 break-words text-sm text-[var(--color-foreground-muted)]">
+                    {/* Libellé visible sous 640 px, lu par les lecteurs d'écran au-delà. */}
+                    <span className="block text-xs font-semibold uppercase tracking-wide sm:sr-only">Avant</span>
+                    {item.before}
+                  </span>
                 </div>
-                <div className="flex gap-2 items-start">
-                  <CheckCircle2 className="w-4 h-4 text-[var(--color-primary)] mt-0.5 shrink-0" />
-                  <span className="text-sm text-[var(--color-foreground)]">{item.after}</span>
+                <div className="flex min-w-0 gap-2 items-start">
+                  <CheckCircle2 className="w-4 h-4 text-[var(--color-primary)] mt-0.5 shrink-0" aria-hidden="true" />
+                  <span className="min-w-0 break-words text-sm text-[var(--color-foreground)]">
+                    <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)] sm:sr-only">Après</span>
+                    {item.after}
+                  </span>
                 </div>
               </div>
             </Reveal>
@@ -407,7 +419,7 @@ function CapabilitiesSection({ onCta }: { onCta: () => void }) {
           <button
             type="button"
             onClick={onCta}
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity shadow-lg shadow-[var(--color-primary)]/20"
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:opacity-90 transition-opacity shadow-lg shadow-[var(--color-primary)]/20"
           >
             Voir le mapping complet avec vos données
             <ArrowRight className="w-4 h-4" />

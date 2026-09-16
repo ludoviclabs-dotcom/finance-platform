@@ -1,6 +1,21 @@
+/**
+ * POST /api/upload — archive les classeurs Excel du client dans Vercel Blob.
+ *
+ * Les pièces client ne doivent jamais être joignables par simple URL : dépôt
+ * en `access: "private"` (le store du projet est configuré en Private), et la
+ * réponse ne renvoie aucune URL de blob — seulement le chemin de stockage.
+ * Une lecture ultérieure passera par une route serveur authentifiée
+ * (`get(pathname, { access: "private" })`), jamais par un fetch public.
+ *
+ * Les échecs de stockage sont journalisés côté serveur (console.error) et
+ * traduits en messages présentables (./upload-errors).
+ */
+
 import { put } from "@vercel/blob";
 import { type NextRequest, NextResponse } from "next/server";
 import { requireRole, verifyBearerToken } from "@/lib/verify-jwt";
+
+import { describeBlobUploadError, STORAGE_NOT_CONFIGURED_MESSAGE } from "./upload-errors";
 
 // Domain → expected filename pattern
 const DOMAIN_FILENAMES: Record<string, string> = {
@@ -42,15 +57,26 @@ export async function POST(req: NextRequest) {
   const results: Array<{
     domain: string;
     status: "ok" | "error";
-    url?: string;
+    /** Chemin dans le store privé (jamais d'URL publique). */
+    pathname?: string;
     filename?: string;
     detail?: string;
   }> = [];
 
+  // Sans jeton, chaque `put` échouerait avec « Vercel Blob: No token found… » :
+  // on journalise une fois et on répond un message présentable.
+  const storageConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  if (!storageConfigured) {
+    console.error("[api/upload] BLOB_READ_WRITE_TOKEN is not configured — uploads are disabled.");
+  }
+
   for (const domain of Object.keys(DOMAIN_FILENAMES)) {
     const file = formData.get(domain);
-    if (!file || !(file instanceof File)) {
-      results.push({ domain, status: "error", detail: "Fichier manquant" });
+    // Domaine non envoyé : l'import partiel est permis (un seul classeur a pu
+    // changer), ce n'est pas une erreur à afficher.
+    if (file === null) continue;
+    if (!(file instanceof File)) {
+      results.push({ domain, status: "error", detail: "Fichier invalide" });
       continue;
     }
 
@@ -84,24 +110,37 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
+    if (!storageConfigured) {
+      results.push({ domain, status: "error", detail: STORAGE_NOT_CONFIGURED_MESSAGE });
+      continue;
+    }
+
     try {
       // Scoping multi-tenant : chaque company a son propre namespace
       // Horodatage pour éviter les collisions et désactiver l'écrasement silencieux
       const ts = new Date().toISOString().replace(/[:.]/g, "-");
       const pathname = `workbooks/company-${payload.cid}/${domain}/${DOMAIN_FILENAMES[domain]}-${ts}.xlsx`;
       const blob = await put(pathname, file, {
-        access: "public",
+        access: "private",
         allowOverwrite: false,
         addRandomSuffix: true,
       });
-      results.push({ domain, status: "ok", url: blob.url, filename: file.name });
+      results.push({ domain, status: "ok", pathname: blob.pathname, filename: file.name });
     } catch (e) {
+      console.error(`[api/upload] Blob upload failed for domain "${domain}":`, e);
       results.push({
         domain,
         status: "error",
-        detail: e instanceof Error ? e.message : "Erreur upload",
+        detail: describeBlobUploadError(e),
       });
     }
+  }
+
+  if (results.length === 0) {
+    return NextResponse.json(
+      { status: "error", files: [], error: "Aucun fichier reçu." },
+      { status: 400 },
+    );
   }
 
   const allOk = results.every((r) => r.status === "ok");

@@ -5,6 +5,10 @@
  * ventilation 6 catégories / 22 postes (total BEGES = total GHG), export ZIP
  * (PDF + Excel auditable), checklist de dépôt ADEME, suivi des dépôts déclarés
  * et échéance de renouvellement (+4 ans, rappels in-app J-180 / J-30 / échéance).
+ *
+ * Éligibilité : statut, libellé, base légale et notes proviennent de l'API
+ * (normalisés par lib/beges-eligibility). Un statut « indetermine » (effectif
+ * non renseigné) n'est jamais présenté comme une démarche volontaire.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -14,7 +18,10 @@ import {
   downloadBegesReport,
   fetchBegesFilings,
   fetchBegesStatus,
+  friendlyApiErrorMessage,
   recordBegesFiling,
+  type BegesEligibility,
+  type BegesEligibilityStatus,
   type BegesFilingsResponse,
   type BegesStatus,
 } from "@/lib/api";
@@ -24,14 +31,60 @@ function fmt(v: number): string {
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR");
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("fr-FR");
 }
 
-const ELIG_TONE: Record<string, string> = {
+const ELIG_TONE: Record<BegesEligibilityStatus, string> = {
   obligatoire: "bg-amber-50 border-amber-200 text-amber-800",
-  obligatoire_om: "bg-amber-50 border-amber-200 text-amber-800",
-  volontaire: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  obligatoire_outre_mer: "bg-amber-50 border-amber-200 text-amber-800",
+  sous_seuil: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  indetermine: "bg-neutral-50 border-neutral-200 text-neutral-700",
 };
+
+const ELIG_STATUS_LABEL: Record<BegesEligibilityStatus, string> = {
+  obligatoire: "Obligatoire",
+  obligatoire_outre_mer: "Obligatoire (outre-mer)",
+  sous_seuil: "Sous les seuils",
+  indetermine: "Indéterminée",
+};
+
+function EligibilityCard({ eligibility }: { eligibility: BegesEligibility }) {
+  return (
+    <div
+      className={`rounded-2xl border p-4 mb-8 text-sm ${ELIG_TONE[eligibility.status]}`}
+      data-testid="beges-eligibility"
+      data-status={eligibility.status}
+    >
+      <p>
+        <strong>Éligibilité : {ELIG_STATUS_LABEL[eligibility.status]}</strong>
+        {" — "}
+        {eligibility.label}
+      </p>
+      {(eligibility.periodicityYears !== null || eligibility.legalBasis) && (
+        <p className="mt-1 text-xs opacity-80">
+          {eligibility.periodicityYears !== null &&
+            `Périodicité : tous les ${eligibility.periodicityYears} ans`}
+          {eligibility.periodicityYears !== null && eligibility.legalBasis && " · "}
+          {eligibility.legalBasis && `Base légale : ${eligibility.legalBasis}`}
+        </p>
+      )}
+      {eligibility.status === "indetermine" && (
+        <p className="mt-2 text-xs">
+          L&apos;effectif de votre organisation n&apos;est pas connu : renseignez-le pour déterminer si
+          le bilan est obligatoire.
+        </p>
+      )}
+      {eligibility.notes.length > 0 && (
+        <ul className="mt-2 space-y-1 text-xs list-disc list-inside opacity-90">
+          {eligibility.notes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 const SCHEDULE_TONE: Record<string, string> = {
   aucun_bilan: "bg-neutral-50 border-neutral-200 text-neutral-600",
@@ -75,8 +128,14 @@ function FilingsSection() {
       setAdemeRef("");
       setFiledAt("");
       reload();
-    } catch {
-      setFormError("Enregistrement impossible — réessayez.");
+    } catch (err) {
+      setFormError(
+        friendlyApiErrorMessage(
+          err,
+          { 403: "La déclaration d'un dépôt est réservée aux rôles analyste et administrateur." },
+          "Enregistrement impossible — réessayez.",
+        ),
+      );
     } finally {
       setSaving(false);
     }
@@ -196,18 +255,28 @@ function FilingsSection() {
 
 export default function BegesPage() {
   const [data, setData] = useState<BegesStatus | null>(null);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     const ctrl = new AbortController();
     fetchBegesStatus(ctrl.signal)
       .then(setData)
-      .catch(() => setError(true));
+      .catch((err: unknown) => {
+        if (ctrl.signal.aborted) return;
+        setError(friendlyApiErrorMessage(err, {}, "Réessayez dans quelques instants."));
+      });
     return () => ctrl.abort();
   }, []);
 
-  if (error) return <div className="p-8 text-sm text-red-600">Impossible de charger le bilan BEGES.</div>;
+  if (error) {
+    return (
+      <div role="alert" className="p-8 text-sm text-red-600">
+        Impossible de charger le bilan BEGES. {error}
+      </div>
+    );
+  }
   if (!data) return <div className="p-8 text-sm text-neutral-400">Chargement…</div>;
 
   return (
@@ -219,27 +288,39 @@ export default function BegesPage() {
             {data.breakdown.standard} · Total {fmt(data.breakdown.total)} tCO2e
           </p>
         </div>
-        <button
-          onClick={async () => {
-            setBusy(true);
-            try {
-              await downloadBegesReport();
-            } catch {
-              /* ignore */
-            } finally {
-              setBusy(false);
-            }
-          }}
-          disabled={busy}
-          className="shrink-0 px-4 py-2 rounded-full bg-black text-white text-sm font-semibold hover:scale-105 transition-transform disabled:opacity-40"
-        >
-          {busy ? "Génération…" : "Exporter (PDF + Excel)"}
-        </button>
+        <div className="shrink-0 text-right">
+          <button
+            onClick={async () => {
+              setBusy(true);
+              setExportError(null);
+              try {
+                await downloadBegesReport();
+              } catch (err) {
+                setExportError(
+                  friendlyApiErrorMessage(
+                    err,
+                    { 403: "L'export est réservé aux rôles analyste et administrateur." },
+                    "Export impossible pour le moment. Réessayez.",
+                  ),
+                );
+              } finally {
+                setBusy(false);
+              }
+            }}
+            disabled={busy}
+            className="px-4 py-2 rounded-full bg-black text-white text-sm font-semibold hover:scale-105 transition-transform disabled:opacity-40"
+          >
+            {busy ? "Génération…" : "Exporter (PDF + Excel)"}
+          </button>
+          {exportError && (
+            <p role="alert" className="mt-2 max-w-xs text-xs text-red-600">
+              {exportError}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className={`rounded-2xl border p-4 mb-8 text-sm ${ELIG_TONE[data.eligibility.status] ?? ELIG_TONE.volontaire}`}>
-        <strong>Éligibilité :</strong> {data.eligibility.label}
-      </div>
+      <EligibilityCard eligibility={data.eligibility} />
 
       <FilingsSection />
 

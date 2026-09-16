@@ -64,7 +64,7 @@ def test_apply_honeypot_silencieux(client):
     assert partners._MEM_APPLICATIONS == []
 
 
-def test_pipeline_admin(client, admin_token, analyst_token):
+def test_pipeline_admin(client, admin_token, analyst_token, monkeypatch):
     client.post(
         "/partners/apply",
         json={"cabinet_name": "Cabinet Pipeline", "email": "pipe@line.fr"},
@@ -73,6 +73,10 @@ def test_pipeline_admin(client, admin_token, analyst_token):
     # Analyst → interdit ; anonyme → 401
     assert client.get("/partners/applications").status_code == 401
     assert client.get("/partners/applications", headers=_auth(analyst_token)).status_code == 403
+    # Donnée plateforme : un admin d'ORGANISATION n'y a pas accès (rapport QA 16/09/2026).
+    monkeypatch.delenv("PLATFORM_ADMIN_EMAILS", raising=False)
+    assert client.get("/partners/applications", headers=_auth(admin_token)).status_code == 403
+    monkeypatch.setenv("PLATFORM_ADMIN_EMAILS", "admin@carbonco.fr")
 
     listing = client.get("/partners/applications", headers=_auth(admin_token))
     assert listing.status_code == 200

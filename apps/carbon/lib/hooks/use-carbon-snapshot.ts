@@ -7,7 +7,8 @@ export type SnapshotState = Generic<CarbonSnapshot>;
 
 /**
  * Fetches the Carbon snapshot from the backend on mount.
- * Pages should fall back to mocks from lib/data.ts when status === "error".
+ * `status === "error" && empty` : aucune donnée importée (API 404
+ * `no_snapshot`) — afficher un état vide, pas les mocks de lib/data.ts.
  */
 export function useCarbonSnapshot(): SnapshotState {
   return useApiSnapshot(fetchCarbonSnapshot);

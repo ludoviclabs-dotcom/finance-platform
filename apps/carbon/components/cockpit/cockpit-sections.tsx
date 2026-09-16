@@ -2,14 +2,19 @@
 
 /* CarbonCo Cockpit — sections de contenu (Hero, ScopeStrip, NeuralPanel, AnalyticsRow,
    BridgeRow, SourcesRow). L'ordre et les libellés suivent la maquette « Refonte
-   CarbonCo » (frame 1a). */
+   CarbonCo » (frame 1a).
 
-import { useState, type MouseEvent } from "react";
+   Toute valeur sans source réelle est optionnelle (`null`) : le composant
+   affiche alors un « — » ou un encart explicatif à la même place, jamais un
+   chiffre de maquette présenté comme une donnée de l'organisation. */
+
+import { useState, type MouseEvent, type ReactNode } from "react";
+import Link from "next/link";
 import {
   AlertTriangle, ArrowRight, X, ChevronDown, TrendingDown,
   Factory, Zap, Truck, FileText, Sparkles, CheckCircle, Bot,
   Upload, Database, PieChart, Radar, BarChart3, LayoutGrid, Gauge, MessageCircle, Flag,
-  Lightbulb,
+  Lightbulb, ExternalLink,
 } from "lucide-react";
 import {
   TrajectoryChart, ScoreRing, TargetGauge, ScopeDonut, RadarChart, Sparkline, CategoryBars,
@@ -24,13 +29,17 @@ export type ScopeRow = {
   label: string;
   desc: string;
   total: number;
-  trend: number;
+  /** Variation annuelle en % — `null` sans historique réel. */
+  trend: number | null;
   share: number;
   color: string;
   icon: "factory" | "zap" | "truck";
-  sbti: { status: "ok" | "warn" | "alert"; text: string };
-  spark: number[];
-  categories: { name: string; value: number }[];
+  /** Position vs trajectoire SBTi — `null` sans évaluation réelle. */
+  sbti: { status: "ok" | "warn" | "alert"; text: string } | null;
+  /** Série mensuelle — `null` sans série réelle. */
+  spark: number[] | null;
+  /** Répartition par poste — `null` sans ventilation réelle. */
+  categories: { name: string; value: number }[] | null;
 };
 export type NeuralItem = {
   id: string;
@@ -46,46 +55,71 @@ export type Suggestion = {
   id: number;
   title: string;
   desc: string;
-  impact: "high" | "medium";
+  impact?: "high" | "medium";
   scope: string;
-  saving: string;
+  /** Gain estimé — omis quand aucun calcul ne l'étaye. */
+  saving?: string;
 };
-export type RegulatoryNote = { src: string; date: string; text: string };
+export type RegulatoryNote = {
+  src: string;
+  date: string;
+  text: string;
+  /** Lien vers la source officielle. */
+  href?: string;
+  hrefLabel?: string;
+};
 export type Benchmark = {
   intensity: { you: number; sector: number };
   radar: { axis: string; you: number; sector: number }[];
   rows: { label: string; you: string; sector: string; status: "top" | "warn"; tag: string }[];
 };
 export type EsrsState = {
-  score: number;
+  /** Score de conformité 0-100, `null` quand il ne peut pas être calculé. */
+  score: number | null;
   target: number;
   compliant: number;
   inProgress: number;
   notStarted: number;
+  /** Avancement par norme (vide sans données réelles). */
   radial: { k: string; label: string; v: number }[];
 };
 export type ActivityRow = {
-  id: number;
+  id: number | string;
   type: "upload" | "validation" | "alert" | "report";
   title: string;
   desc: string;
   time: string;
 };
 export type Connector = { id: string; label: string; status: "connected" | "idle"; glyph: string };
-export type Deadline = { label: string; days: number; level: "warn" | "alert" | "info" };
+export type Deadline = { label: string; days: number; level: "warn" | "alert" | "info"; href?: string };
+
+/** Encart affiché à la place d'une visualisation sans donnée réelle. */
+function CardPlaceholder({ height, children }: { height?: number; children: ReactNode }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--cc-border)] px-4 text-center text-xs text-[var(--cc-muted)]"
+      style={{ minHeight: height }}
+      data-testid="cockpit-placeholder"
+    >
+      {children}
+    </div>
+  );
+}
 
 /* ─── Regulatory banner ──────────────────────────────────────────────────── */
-export function RegBanner({ note, onAction }: { note: RegulatoryNote; onAction?: () => void }) {
+function RegNoteRow({ note }: { note: RegulatoryNote }) {
   const [open, setOpen] = useState(true);
   if (!open) return null;
   return (
-    <div className="cc-reg">
+    <div className="cc-reg" data-testid="reg-note">
       <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ color: "var(--cc-amber)" }} />
       <span className="cc-reg-src">{note.src} · {note.date}</span>
       <span className="cc-reg-txt">{note.text}</span>
-      <button className="cc-reg-cta" onClick={onAction}>
-        Voir l&apos;impact <ArrowRight className="w-3.5 h-3.5" />
-      </button>
+      {note.href && (
+        <a className="cc-reg-cta" href={note.href} target="_blank" rel="noopener noreferrer">
+          {note.hrefLabel ?? "Source"} <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      )}
       <button className="cc-reg-x" onClick={() => setOpen(false)} aria-label="Masquer">
         <X className="w-3.5 h-3.5" />
       </button>
@@ -93,32 +127,50 @@ export function RegBanner({ note, onAction }: { note: RegulatoryNote; onAction?:
   );
 }
 
+/** Veille réglementaire : uniquement des faits datés et sourcés. */
+export function RegBanner({ notes }: { notes: RegulatoryNote[] }) {
+  if (notes.length === 0) return null;
+  return (
+    <div className="space-y-2">
+      {notes.map((note) => (
+        <RegNoteRow key={`${note.src}-${note.date}`} note={note} />
+      ))}
+    </div>
+  );
+}
+
 /* ─── Hero : trajectoire + score conformité ─────────────────────────────── */
+
+/** Trajectoire mensuelle et objectif — uniquement quand une série existe. */
+export type HeroTrajectory = {
+  monthly: MonthPoint[];
+  /** Objectif annuel (tCO₂e) et libellé de sa référence. */
+  target: number;
+  targetLabel: ReactNode;
+};
+
 export function Hero({
   totalEmissions,
-  target2025,
-  monthly,
+  trajectory,
   esrs,
   scopesOn,
   setScopesOn,
-  deltaPct = -5.8,
+  deltaPct,
 }: {
   totalEmissions: number;
-  target2025: number;
-  monthly: MonthPoint[];
+  trajectory: HeroTrajectory | null;
   esrs: EsrsState;
   scopesOn: ScopesOn;
   setScopesOn: (fn: (s: ScopesOn) => ScopesOn) => void;
-  deltaPct?: number;
+  /** Variation vs N-1 en % — pastille masquée si `null`. */
+  deltaPct: number | null;
 }) {
   const total = useCountUp(totalEmissions, 1300);
-  const remaining = totalEmissions - target2025;
   const legend: { k: keyof ScopesOn; c: string; label: string }[] = [
     { k: "s1", c: "#34D399", label: "Scope 1" },
     { k: "s2", c: "#22D3EE", label: "Scope 2" },
     { k: "s3", c: "#A78BFA", label: "Scope 3" },
   ];
-  const targetMonthly = target2025 / 12;
   const onSpotlight = (e: MouseEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     const r = el.getBoundingClientRect();
@@ -135,56 +187,102 @@ export function Hero({
             <div className="cc-hero-metric">
               <span className="cc-hero-num">{fmt(total)}</span>
               <span className="cc-hero-unit">tCO₂e</span>
-              <span className={`cc-delta ${deltaPct < 0 ? "down" : "up"}`}>
-                {deltaPct < 0 ? "▼" : "▲"} {Math.abs(deltaPct).toFixed(1)} %
-              </span>
+              {deltaPct !== null && Number.isFinite(deltaPct) && (
+                <span className={`cc-delta ${deltaPct < 0 ? "down" : "up"}`}>
+                  {deltaPct < 0 ? "▼" : "▲"} {Math.abs(deltaPct).toFixed(1)} %
+                </span>
+              )}
             </div>
-            <div className="cc-hero-sub">12 mois glissants · émissions S1+S2+S3 consolidées</div>
+            <div className="cc-hero-sub">
+              {trajectory
+                ? "12 mois glissants · émissions S1+S2+S3 consolidées"
+                : "Émissions S1+S2+S3 consolidées · dernier import"}
+            </div>
           </div>
-          <div className="cc-hero-legend">
-            {legend.map((l) => (
-              <button
-                key={l.k}
-                className={`cc-legend-b ${scopesOn[l.k] ? "" : "off"}`}
-                onClick={() => setScopesOn((s) => ({ ...s, [l.k]: !s[l.k] }))}
-              >
-                <i style={{ background: l.c }} />{l.label}
-              </button>
-            ))}
-          </div>
+          {trajectory && (
+            <div className="cc-hero-legend">
+              {legend.map((l) => (
+                <button
+                  key={l.k}
+                  className={`cc-legend-b ${scopesOn[l.k] ? "" : "off"}`}
+                  onClick={() => setScopesOn((s) => ({ ...s, [l.k]: !s[l.k] }))}
+                >
+                  <i style={{ background: l.c }} />{l.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        <TrajectoryChart
-          data={monthly}
-          scopesOn={scopesOn}
-          height={210}
-          targetMonthly={targetMonthly}
-        />
+        {trajectory ? (
+          <>
+            <TrajectoryChart
+              data={trajectory.monthly}
+              scopesOn={scopesOn}
+              height={210}
+              targetMonthly={trajectory.target / 12}
+            />
 
-        <div className="cc-hero-foot">
-          <div className="cc-hero-target-row">
-            <span>Objectif SBTi 2030 · <strong className="cc-mono cc-em-txt">−42 %</strong> vs 2023</span>
-            <span>Reste <strong className="cc-mono cc-warn-txt">{fmt(Math.max(0, remaining))}</strong> tCO₂e à réduire</span>
-          </div>
-          <TargetGauge current={totalEmissions} target={target2025} max={Math.max(target2025 * 1.4, totalEmissions * 1.15)} />
-        </div>
+            <div className="cc-hero-foot">
+              <div className="cc-hero-target-row">
+                <span>{trajectory.targetLabel}</span>
+                <span>Reste <strong className="cc-mono cc-warn-txt">{fmt(Math.max(0, totalEmissions - trajectory.target))}</strong> tCO₂e à réduire</span>
+              </div>
+              <TargetGauge
+                current={totalEmissions}
+                target={trajectory.target}
+                max={Math.max(trajectory.target * 1.4, totalEmissions * 1.15)}
+              />
+            </div>
+          </>
+        ) : (
+          <CardPlaceholder height={210}>
+            <TrendingDown className="h-5 w-5" aria-hidden="true" />
+            <span>Trajectoire mensuelle et objectif de réduction non disponibles pour vos données.</span>
+          </CardPlaceholder>
+        )}
       </div>
 
       {/* Score conformité */}
       <div className="cc-card cc-hero-score">
         <div className="cc-eyebrow"><Gauge className="w-3.5 h-3.5" /> Score de conformité ESRS</div>
-        <div className="cc-score-ring-wrap">
-          <ScoreRing value={esrs.score} target={esrs.target} size={138} />
-        </div>
-        <div className="cc-score-legend">
-          <div><span className="cc-pip ok" />{esrs.compliant} conformes</div>
-          <div><span className="cc-pip warn" />{esrs.inProgress} en cours</div>
-          <div><span className="cc-pip muted" />{esrs.notStarted} non démarré</div>
-        </div>
-        <div className="cc-score-goal">
-          <Flag className="w-3.5 h-3.5" style={{ color: "var(--cc-em)" }} />
-          <span>Objectif : <strong>{esrs.target}</strong> · +{Math.max(0, esrs.target - esrs.score)} pts nécessaires</span>
-        </div>
+        {esrs.score !== null ? (
+          <>
+            <div className="cc-score-ring-wrap">
+              <ScoreRing value={esrs.score} target={esrs.target} size={138} />
+            </div>
+            <div className="cc-score-legend">
+              <div><span className="cc-pip ok" />{esrs.compliant} conformes</div>
+              <div><span className="cc-pip warn" />{esrs.inProgress} en cours</div>
+              <div><span className="cc-pip muted" />{esrs.notStarted} non démarré</div>
+            </div>
+            <div className="cc-score-goal">
+              <Flag className="w-3.5 h-3.5" style={{ color: "var(--cc-em)" }} />
+              <span>Objectif : <strong>{esrs.target}</strong> · +{Math.max(0, esrs.target - esrs.score)} pts nécessaires</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="cc-score-ring-wrap" data-testid="esrs-score-empty">
+              <div className="cc-ring" style={{ width: 138, height: 138 }}>
+                <svg width={138} height={138} aria-hidden="true">
+                  <circle cx={69} cy={69} r={63.5} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={11} />
+                </svg>
+                <div className="cc-ring-c">
+                  <div className="cc-ring-v">—</div>
+                  <div className="cc-ring-l">/ 100</div>
+                </div>
+              </div>
+            </div>
+            <p className="cc-score-legend">
+              Score non calculé : aucune matrice de matérialité ESG importée.
+            </p>
+            <Link href="/esrs" className="cc-score-goal">
+              <Flag className="w-3.5 h-3.5" style={{ color: "var(--cc-em)" }} />
+              <span>Voir la conformité ESRS</span>
+            </Link>
+          </>
+        )}
       </div>
     </section>
   );
@@ -215,7 +313,7 @@ export function ScopeStrip({ scopes }: { scopes: ScopeRow[] }) {
                 <div className="cc-scope-name">{s.name}</div>
                 <div className="cc-scope-label">{s.label}</div>
               </div>
-              <Sparkline data={s.spark} color={s.color} />
+              {s.spark && <Sparkline data={s.spark} color={s.color} />}
               <ChevronDown className={`w-4 h-4 cc-scope-chev ${isOpen ? "rot" : ""}`} />
             </button>
 
@@ -226,17 +324,25 @@ export function ScopeStrip({ scopes }: { scopes: ScopeRow[] }) {
               <span className={`cc-scope-share ${s.share >= 50 ? "is-major" : ""}`}>{s.share} %</span>
             </div>
 
-            <div className="cc-scope-tags">
-              <span className={`cc-trend ${s.trend < 0 ? "down" : "up"}`}>
-                {s.trend < 0 ? "−" : "+"}{fmt(Math.abs(s.trend), Number.isInteger(s.trend) ? 0 : 1)} %
-              </span>
-              <span className={`cc-sbti ${s.sbti.status}`}>{s.sbti.text}</span>
-            </div>
+            {(s.trend !== null || s.sbti) && (
+              <div className="cc-scope-tags">
+                {s.trend !== null && (
+                  <span className={`cc-trend ${s.trend < 0 ? "down" : "up"}`}>
+                    {s.trend < 0 ? "−" : "+"}{fmt(Math.abs(s.trend), Number.isInteger(s.trend) ? 0 : 1)} %
+                  </span>
+                )}
+                {s.sbti && <span className={`cc-sbti ${s.sbti.status}`}>{s.sbti.text}</span>}
+              </div>
+            )}
 
             <div className="cc-scope-drawer" style={{ maxHeight: isOpen ? 480 : 0 }}>
               <div className="cc-scope-drawer-in">
                 <div className="cc-scope-desc">{s.desc}</div>
-                <CategoryBars categories={s.categories} color={s.color} />
+                {s.categories ? (
+                  <CategoryBars categories={s.categories} color={s.color} />
+                ) : (
+                  <p className="cc-card-sub">Ventilation par poste non disponible dans vos imports.</p>
+                )}
               </div>
             </div>
           </div>
@@ -273,14 +379,21 @@ export function NeuralPanel({
   items: initial,
   suggestions,
   onOpenCopilot,
+  subtitle,
 }: {
   items: NeuralItem[];
   suggestions: Suggestion[];
   onOpenCopilot: () => void;
+  /** Provenance des signaux (par défaut : générés par IA, à valider). */
+  subtitle?: string;
 }) {
   const [items, setItems] = useState(initial);
+  const [dismissed, setDismissed] = useState(0);
   const [tab, setTab] = useState<"insights" | "actions">("insights");
-  const dismiss = (id: string) => setItems((p) => p.filter((i) => i.id !== id));
+  const dismiss = (id: string) => {
+    setItems((p) => p.filter((i) => i.id !== id));
+    setDismissed((n) => n + 1);
+  };
 
   return (
     <section className="cc-card cc-neural">
@@ -290,7 +403,8 @@ export function NeuralPanel({
           <div>
             <div className="cc-neural-title">NEURAL <span className="cc-neural-by">· Copilote CarbonCo</span></div>
             <div className="cc-neural-sub">
-              {items.length} insights proactifs · généré par IA — à valider RSE
+              {items.length} insight{items.length > 1 ? "s" : ""} proactif{items.length > 1 ? "s" : ""} ·{" "}
+              {subtitle ?? "généré par IA — à valider RSE"}
             </div>
           </div>
         </div>
@@ -347,7 +461,9 @@ export function NeuralPanel({
           })}
           {items.length === 0 && (
             <div className="cc-neural-empty">
-              <CheckCircle className="w-5 h-5" /> Tous les signaux ont été traités.
+              <CheckCircle className="w-5 h-5" />
+              {/* « Traités » seulement si des signaux ont réellement été écartés. */}
+              {dismissed > 0 ? "Tous les signaux ont été traités." : "Aucun signal pour le moment."}
             </div>
           )}
         </div>
@@ -359,11 +475,13 @@ export function NeuralPanel({
               <div className="cc-sugg-body">
                 <div className="cc-sugg-top">
                   <span className="cc-sugg-title">{sg.title}</span>
-                  <span className={`cc-sugg-impact ${sg.impact === "high" ? "high" : "med"}`}>
-                    {sg.impact === "high" ? "Impact fort" : "Impact moyen"}
-                  </span>
+                  {sg.impact && (
+                    <span className={`cc-sugg-impact ${sg.impact === "high" ? "high" : "med"}`}>
+                      {sg.impact === "high" ? "Impact fort" : "Impact moyen"}
+                    </span>
+                  )}
                   <span className="cc-sugg-scope">{sg.scope}</span>
-                  <span className="cc-sugg-save">{sg.saving}</span>
+                  {sg.saving && <span className="cc-sugg-save">{sg.saving}</span>}
                 </div>
                 <div className="cc-sugg-desc">{sg.desc}</div>
               </div>
@@ -380,7 +498,7 @@ export function NeuralPanel({
 export function AnalyticsRow({
   scopes,
   benchmark,
-}: { scopes: ScopeRow[]; benchmark: Benchmark }) {
+}: { scopes: ScopeRow[]; benchmark: Benchmark | null }) {
   const [active, setActive] = useState<ScopeRow["id"] | null>(null);
   const donutItems = scopes.map((s) => ({ id: s.id, name: s.name, total: s.total, color: s.color }));
   return (
@@ -412,32 +530,41 @@ export function AnalyticsRow({
       <div className="cc-card cc-bench">
         <div className="cc-card-head">
           <div className="cc-eyebrow"><Radar className="w-3.5 h-3.5" /> Benchmark sectoriel</div>
-          <span className="cc-bench-int">
-            Intensité <strong>{benchmark.intensity.you}</strong>{" "}
-            <i>/ {benchmark.intensity.sector} secteur</i> tCO₂e/M€
-          </span>
+          {benchmark && (
+            <span className="cc-bench-int">
+              Intensité <strong>{benchmark.intensity.you}</strong>{" "}
+              <i>/ {benchmark.intensity.sector} secteur</i> tCO₂e/M€
+            </span>
+          )}
         </div>
-        <div className="cc-bench-body">
-          <RadarChart data={benchmark.radar} size={220} />
-          <div className="cc-bench-rows">
-            <div className="cc-bench-key">
-              <span><i className="cc-key-you" /> Vous</span>
-              <span><i className="cc-key-sec" /> Secteur</span>
-            </div>
-            {benchmark.rows.map((r) => (
-              <div key={r.label} className="cc-bench-row">
-                <div>
-                  <div className="cc-bench-row-label">{r.label}</div>
-                  <div className="cc-bench-row-vals">
-                    <strong className={r.status === "top" ? "cc-em-txt" : ""}>{r.you}</strong>
-                    <span>vs {r.sector}</span>
-                  </div>
-                </div>
-                <span className={`cc-bench-tag ${r.status === "top" ? "top" : "warn"}`}>{r.tag}</span>
+        {benchmark ? (
+          <div className="cc-bench-body">
+            <RadarChart data={benchmark.radar} size={220} />
+            <div className="cc-bench-rows">
+              <div className="cc-bench-key">
+                <span><i className="cc-key-you" /> Vous</span>
+                <span><i className="cc-key-sec" /> Secteur</span>
               </div>
-            ))}
+              {benchmark.rows.map((r) => (
+                <div key={r.label} className="cc-bench-row">
+                  <div>
+                    <div className="cc-bench-row-label">{r.label}</div>
+                    <div className="cc-bench-row-vals">
+                      <strong className={r.status === "top" ? "cc-em-txt" : ""}>{r.you}</strong>
+                      <span>vs {r.sector}</span>
+                    </div>
+                  </div>
+                  <span className={`cc-bench-tag ${r.status === "top" ? "top" : "warn"}`}>{r.tag}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <CardPlaceholder height={220}>
+            <Radar className="h-5 w-5" aria-hidden="true" />
+            <span>Comparaison sectorielle non disponible pour vos données.</span>
+          </CardPlaceholder>
+        )}
       </div>
     </section>
   );
@@ -468,18 +595,26 @@ export function BridgeRow({
   waterfall,
 }: {
   esrs: EsrsState;
-  waterfall: WaterfallStep[];
+  /** Décomposition par levier avec son libellé de période, `null` sans données. */
+  waterfall: { title: string; steps: WaterfallStep[] } | null;
 }) {
   return (
     <section className="cc-bridge">
       <div className="cc-card cc-wf-card">
         <div className="cc-card-head">
           <div className="cc-eyebrow">
-            <BarChart3 className="w-3.5 h-3.5" /> Variation des émissions 2023 → 2025
+            <BarChart3 className="w-3.5 h-3.5" /> {waterfall?.title ?? "Variation des émissions"}
           </div>
           <span className="cc-card-note">bridge par levier</span>
         </div>
-        <WaterfallChart steps={waterfall} height={210} />
+        {waterfall ? (
+          <WaterfallChart steps={waterfall.steps} height={210} />
+        ) : (
+          <CardPlaceholder height={210}>
+            <BarChart3 className="h-5 w-5" aria-hidden="true" />
+            <span>Décomposition des variations par levier non disponible pour vos données.</span>
+          </CardPlaceholder>
+        )}
       </div>
 
       <div className="cc-card cc-esrs-heat">
@@ -488,21 +623,31 @@ export function BridgeRow({
             <LayoutGrid className="w-3.5 h-3.5" /> Conformité ESRS · heatmap
           </div>
         </div>
-        <div className="cc-heat-grid">
-          {esrs.radial.map((e) => (
-            <div key={e.k} className="cc-heat-cell" title={`${e.k} ${e.label} · ${e.v} %`}>
-              <div
-                className="cc-heat-ring"
-                style={{
-                  background: `conic-gradient(${heatColor(e.v)} ${e.v * 3.6}deg, rgba(255,255,255,0.07) 0deg)`,
-                }}
-              >
-                <span>{e.k}</span>
+        {esrs.radial.length > 0 ? (
+          <div className="cc-heat-grid">
+            {esrs.radial.map((e) => (
+              <div key={e.k} className="cc-heat-cell" title={`${e.k} ${e.label} · ${e.v} %`}>
+                <div
+                  className="cc-heat-ring"
+                  style={{
+                    background: `conic-gradient(${heatColor(e.v)} ${e.v * 3.6}deg, rgba(255,255,255,0.07) 0deg)`,
+                  }}
+                >
+                  <span>{e.k}</span>
+                </div>
+                <div className="cc-heat-l">{e.label}</div>
               </div>
-              <div className="cc-heat-l">{e.label}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <CardPlaceholder height={160}>
+            <LayoutGrid className="h-5 w-5" aria-hidden="true" />
+            <span>Avancement par norme disponible dès l&apos;import de votre matrice de matérialité.</span>
+            <Link href="/esrs" className="font-semibold underline text-[var(--cc-em)]">
+              Voir ESRS / CSRD
+            </Link>
+          </CardPlaceholder>
+        )}
       </div>
     </section>
   );
@@ -511,10 +656,13 @@ export function BridgeRow({
 /* ─── SourcesRow : activité récente + connecteurs/échéances ─────────────── */
 export function SourcesRow({
   activity,
+  activityNotice,
   connectors,
   deadlines,
 }: {
   activity: ActivityRow[];
+  /** Remplace le message « aucune activité » (chargement, indisponibilité). */
+  activityNotice?: string;
   connectors: Connector[];
   deadlines: Deadline[];
 }) {
@@ -541,6 +689,11 @@ export function SourcesRow({
               </div>
             );
           })}
+          {activity.length === 0 && (
+            <p className="cc-card-sub" data-testid="activity-empty">
+              {activityNotice ?? "Aucune activité récente dans le journal d'audit."}
+            </p>
+          )}
         </div>
       </div>
 
@@ -549,13 +702,31 @@ export function SourcesRow({
           <div className="cc-eyebrow"><Database className="w-3.5 h-3.5" /> Sources &amp; échéances</div>
         </div>
         <div className="cc-dl-list">
-          {deadlines.map((d) => (
-            <div key={d.label} className={`cc-dl-row ${d.level}`}>
-              <span className="cc-dl-rdot" />
-              <span className="cc-dl-rlabel">{d.label}</span>
-              <span className="cc-dl-rdays">{d.days} j</span>
-            </div>
-          ))}
+          {deadlines.map((d) => {
+            const row = (
+              <>
+                <span className="cc-dl-rdot" />
+                <span className="cc-dl-rlabel">{d.label}</span>
+                <span className="cc-dl-rdays">{d.days < 0 ? "dépassée" : `${d.days} j`}</span>
+              </>
+            );
+            return d.href ? (
+              <Link key={d.label} href={d.href} className={`cc-dl-row ${d.level}`}>
+                {row}
+              </Link>
+            ) : (
+              <div key={d.label} className={`cc-dl-row ${d.level}`}>{row}</div>
+            );
+          })}
+          {deadlines.length === 0 && (
+            <p className="cc-card-sub" data-testid="deadlines-empty">
+              Aucune échéance connue.{" "}
+              <Link href="/beges" className="underline">
+                Déclarez votre dernier dépôt BEGES
+              </Link>{" "}
+              pour suivre son renouvellement.
+            </p>
+          )}
         </div>
         <div className="cc-conn-grid">
           {connectors.map((c) => (
@@ -575,11 +746,12 @@ export function SourcesRow({
 export function CopilotDrawer({
   open,
   onClose,
-  userFirstName = "Marie",
-  scope3SharePct = 78,
+  userFirstName,
+  scope3SharePct,
 }: {
   open: boolean;
   onClose: () => void;
+  /** Prénom de l'utilisateur connecté s'il est connu — jamais un persona fictif. */
   userFirstName?: string;
   /** Part du Scope 3 dans le total — passée par l'appelant pour rester en
    *  phase avec la carte Scope 3 et le donut plutôt que de figer un chiffre
@@ -620,9 +792,14 @@ export function CopilotDrawer({
           <div className="cc-chat-msg">
             <div className="cc-chat-av"><Sparkles className="w-3.5 h-3.5" /></div>
             <div className="cc-chat-bubble">
-              Bonjour {userFirstName} 👋 J&apos;ai analysé vos données. Votre{" "}
-              <strong>Scope 3</strong> ({scope3SharePct} %) reste le principal levier. Je peux vous aider à le réduire,
-              suivre votre conformité ESRS, ou pré-rédiger un rapport.
+              Bonjour{userFirstName ? ` ${userFirstName}` : ""} 👋{" "}
+              {typeof scope3SharePct === "number" && scope3SharePct > 0 ? (
+                <>
+                  Votre <strong>Scope 3</strong> représente {scope3SharePct} % des émissions affichées.{" "}
+                </>
+              ) : null}
+              Je peux vous aider à identifier des leviers de réduction, suivre votre conformité ESRS,
+              ou pré-rédiger un rapport.
             </div>
           </div>
         </div>

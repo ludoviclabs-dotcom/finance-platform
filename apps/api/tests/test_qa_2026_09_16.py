@@ -197,6 +197,30 @@ class TestPlatformAdmin:
         monkeypatch.setenv("PLATFORM_ADMIN_EMAILS", "a@org1.fr")
         assert _target_company(admin, 2) == 2
 
+    def test_org_admin_cannot_manage_platform_admin_account(self, monkeypatch) -> None:
+        from fastapi import HTTPException
+
+        from routers.admin import _load_manageable_user
+
+        monkeypatch.setenv("PLATFORM_ADMIN_EMAILS", "ops@carbonco.fr")
+        row = {"id": 9, "email": "OPS@carbonco.fr", "company_id": 1}
+
+        class _Cur:
+            def execute(self, *_a) -> None:
+                pass
+
+            def fetchone(self) -> dict:
+                return row
+
+        org_admin = AuthUser(email="a@org1.fr", role="admin", company_id=1)
+        with pytest.raises(HTTPException) as exc:
+            _load_manageable_user(_Cur(), org_admin, 9)
+        assert exc.value.status_code == 403
+        platform = AuthUser(email="ops@carbonco.fr", role="admin", company_id=1)
+        assert _load_manageable_user(_Cur(), platform, 9) is row
+        row["email"] = "user@org1.fr"
+        assert _load_manageable_user(_Cur(), org_admin, 9) is row
+
     @pytest.mark.parametrize("password,ok", [
         ("Admin2024!", False),                      # mot de passe public
         ("court1A!", False),
@@ -839,6 +863,20 @@ class TestTotpReplayAndAudit:
         monkeypatch.setattr(totp_service, "db_available", lambda: True)
         monkeypatch.setattr(totp_service, "get_db", missing_table)
         assert totp_service._claim_step("u@x.fr", 1) is True
+
+    def test_claim_failure_in_db_rejects_the_code(self, monkeypatch, tmp_path) -> None:
+        """Base disponible mais réservation en échec : refus, jamais de repli /tmp."""
+        from services import totp_service
+
+        @contextmanager
+        def broken(*_a, **_k):
+            raise RuntimeError("connection reset")
+            yield  # pragma: no cover
+
+        monkeypatch.setenv("CARBONCO_CACHE_DIR", str(tmp_path))
+        monkeypatch.setattr(totp_service, "db_available", lambda: True)
+        monkeypatch.setattr(totp_service, "get_db", broken)
+        assert totp_service._claim_step("u@x.fr", 5) is False
 
     def test_new_audit_types_fall_back_before_044(self, monkeypatch) -> None:
         from services import audit_service

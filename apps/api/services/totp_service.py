@@ -254,7 +254,10 @@ def _claim_step(email: str, step: int) -> bool:
                     )
                     _used_steps_table_missing_logged = True
                 return True
-            logger.warning("TOTP claim_step PG échoué, fallback /tmp : %s", exc)
+            # Fail-closed : un magasin /tmp propre à l'instance ne connaît pas
+            # les pas déjà consommés en base — le code est refusé.
+            logger.warning("TOTP claim_step PG échoué, code refusé : %s", exc)
+            return False
     data = _load()
     rec = data.setdefault(email, {})
     used = [int(s) for s in rec.get("used_steps", [])]

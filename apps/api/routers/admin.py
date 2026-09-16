@@ -350,6 +350,19 @@ def _load_visible_user(cur, admin: AuthUser, user_id: int):  # type: ignore[no-u
     return row
 
 
+def _load_manageable_user(cur, admin: AuthUser, user_id: int):  # type: ignore[no-untyped-def]
+    """Utilisateur modifiable/supprimable par cet admin.
+
+    Un compte listé dans PLATFORM_ADMIN_EMAILS n'est géré que par un admin de
+    la plateforme : sinon un admin d'organisation pourrait en changer le mot
+    de passe et hériter des droits inter-organisations.
+    """
+    row = _load_visible_user(cur, admin, user_id)
+    if str(row["email"]).strip().lower() in platform_admin_emails() and not is_platform_admin(admin):
+        raise HTTPException(status_code=403, detail="Ce compte est réservé à l'administration de la plateforme.")
+    return row
+
+
 def _other_active_admins(cur, company_id: int, user_id: int) -> int:  # type: ignore[no-untyped-def]
     cur.execute(
         "SELECT COUNT(*) AS n FROM users "
@@ -427,7 +440,7 @@ async def patch_user(user_id: int, body: UserPatch, admin: AuthUser = Depends(re
 
     with get_db() as conn:
         with conn.cursor() as cur:
-            current = _load_visible_user(cur, admin, user_id)
+            current = _load_manageable_user(cur, admin, user_id)
             updates: dict = {}
             if body.role is not None:
                 updates["role"] = body.role
@@ -475,7 +488,7 @@ async def delete_user(user_id: int, admin: AuthUser = Depends(require_admin)) ->
         raise HTTPException(status_code=409, detail="Vous ne pouvez pas supprimer votre propre compte.")
     with get_db() as conn:
         with conn.cursor() as cur:
-            current = _load_visible_user(cur, admin, user_id)
+            current = _load_manageable_user(cur, admin, user_id)
             if current["email"] == admin.email:
                 raise HTTPException(status_code=409, detail="Vous ne pouvez pas supprimer votre propre compte.")
             if (

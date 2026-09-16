@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { loginAsTestUser, logout, TEST_EMAIL, TEST_PASSWORD } from "../fixtures/auth";
+import { SANS_API } from "../fixtures/tags";
 
 test.describe("Authentification", () => {
   test("login avec credentials valides → redirection dashboard", async ({ page }) => {
@@ -27,7 +28,7 @@ test.describe("Authentification", () => {
     await expect(page).not.toHaveURL(/\/dashboard/);
   });
 
-  test("accès direct /dashboard sans session → redirection /login", async ({ page }) => {
+  test("accès direct /dashboard sans session → redirection /login", { tag: SANS_API }, async ({ page }) => {
     // Navigation directe sans login préalable
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login/, { timeout: 8_000 });
@@ -53,7 +54,7 @@ test.describe("Authentification", () => {
     await expect(page).toHaveURL(/\/login/, { timeout: 8_000 });
   });
 
-  test("champs email et password présents sur la page login", async ({ page }) => {
+  test("champs email et password présents sur la page login", { tag: SANS_API }, async ({ page }) => {
     await page.goto("/login");
 
     await expect(page.locator("#login-email")).toBeVisible();
@@ -61,7 +62,7 @@ test.describe("Authentification", () => {
     await expect(page.locator('button[type="submit"]')).toBeVisible();
   });
 
-  test("toggle visibilité mot de passe fonctionne", async ({ page }) => {
+  test("toggle visibilité mot de passe fonctionne", { tag: SANS_API }, async ({ page }) => {
     await page.goto("/login");
 
     const passwordInput = page.locator("#login-password");
@@ -79,6 +80,9 @@ test.describe("Authentification", () => {
 });
 
 test.describe("Sécurité — headers & CSP", () => {
+  // Projet `avec-api` : sans NEXT_PUBLIC_API_BASE_URL, le front replie sur
+  // http://localhost:8000, hors `connect-src` — la violation relevée serait un
+  // artefact d'environnement, pas un défaut de la CSP de production.
   test("page login ne contient pas de violations CSP console", async ({ page }) => {
     const cspViolations: string[] = [];
 
@@ -97,7 +101,7 @@ test.describe("Sécurité — headers & CSP", () => {
     expect(cspViolations).toHaveLength(0);
   });
 
-  test("réponse /login contient header x-frame-options ou CSP frame-ancestors", async ({ page }) => {
+  test("réponse /login contient header x-frame-options ou CSP frame-ancestors", { tag: SANS_API }, async ({ page }) => {
     const response = await page.goto("/login");
     const headers = response?.headers() ?? {};
 

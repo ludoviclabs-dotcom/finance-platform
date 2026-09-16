@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { loginAsTestUser } from "../fixtures/auth";
+import { SANS_API } from "../fixtures/tags";
 
 test.describe("Navigation post-login", () => {
   test.beforeEach(async ({ page }) => {
@@ -50,7 +51,7 @@ test.describe("Navigation post-login", () => {
   });
 });
 
-test.describe("Pages publiques (sans auth)", () => {
+test.describe("Pages publiques (sans auth)", { tag: SANS_API }, () => {
   test("/login est accessible sans session", async ({ page }) => {
     const res = await page.goto("/login");
     expect(res?.status()).toBeLessThan(400);

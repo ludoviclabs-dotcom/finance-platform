@@ -755,7 +755,13 @@ export async function getDemoSessionRequest(
     credentials: "include",
     signal,
   });
-  if (res.status === 401) return null;
+  if (res.status === 401) {
+    // Corps jamais lu = requête jamais terminée pour le navigateur : chaque
+    // page publique garderait une connexion ouverte (et `networkidle` ne
+    // serait jamais atteint en E2E). On le libère explicitement.
+    await res.body?.cancel().catch(() => {});
+    return null;
+  }
   if (!res.ok) throw new Error(`API ${res.status} on /api/auth/demo`);
   return (await res.json()) as DemoSessionStatusResponse;
 }

@@ -12,8 +12,9 @@
  */
 
 import { expect, test } from "@playwright/test";
+import { SANS_API } from "../fixtures/tags";
 
-test.describe("Cockpit /demo/asterion-motion", () => {
+test.describe("Cockpit /demo/asterion-motion", { tag: SANS_API }, () => {
   test.beforeEach(async ({ page }) => {
     // Émule prefers-reduced-motion : rendu stabilisé (état final immédiat) — teste
     // aussi le chemin d'accessibilité requis, et évite les faux « not stable »

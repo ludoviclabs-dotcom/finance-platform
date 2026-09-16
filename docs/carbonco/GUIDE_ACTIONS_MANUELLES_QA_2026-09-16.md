@@ -17,7 +17,7 @@ jusqu'au lendemain matin pour voir passer le cron planifié (étape 7). Les
 |---|---|---|
 | `GET https://carbonco-api-ludovics-projects-159c139c.vercel.app/health` | HTTP 200, `"status":"ok"`, `"db":"ok"`, `"storage":"ok"`, `"version":"31fe37b14a9d"` | **B-01 corrigé en production** : l'API ne répond plus 404, et elle tourne bien sur le commit de fusion de la PR #182. |
 | `GET …/health/schema` | `"schema_version":"043"`, `"up_to_date":false`, `"pending_count":1` | La migration **044** est la seule en attente → étape 4. |
-| Workflow GitHub « E2E Tests » (`e2e.yml`) | Annulé à chaque exécution depuis juillet 2026 (délai de 20 min dépassé) | Voir l'étape 10 (décision à prendre, non bloquante). |
+| Workflow GitHub « E2E Tests » (`e2e.yml`) | Annulé à chaque exécution depuis juillet 2026 (délai de 20 min dépassé) | Option 2 appliquée par PR dédiée (étape 10) ; activer le périmètre complet reste facultatif. |
 
 ---
 
@@ -346,34 +346,42 @@ n'apparaissent pas.
 
 ---
 
-## Étape 10 — (Décision) La suite e2e historique ne termine jamais
+## Étape 10 — La suite e2e historique ne termine jamais (option 2 appliquée)
 
 **Constat :** le workflow **E2E Tests** (`e2e.yml`, déclenché à chaque push
-sur `master`) exécute 138 tests Playwright, et la plupart échouent. Le job est
-coupé au bout de 20 minutes, et c'est le cas à chaque exécution depuis juillet
-2026 (dernier essai : 16/09/2026, 15:06 UTC).
+sur `master`) exécutait 138 tests Playwright, et la plupart échouaient. Le job
+était coupé au bout de 20 minutes, et c'était le cas à chaque exécution depuis
+juillet 2026 (dernier essai : 16/09/2026, 15:06 UTC).
 
-**Cause :** le dépôt ne définit pas les secrets `E2E_API_URL`,
-`UPSTASH_REDIS_REST_URL` ni `UPSTASH_REDIS_REST_TOKEN`. Les tests authentifiés
-tournent donc sans API.
+**Cause :** le dépôt ne définit pas le secret `E2E_API_URL`, et le front était
+construit sans `NEXT_PUBLIC_API_BASE_URL`. Les tests authentifiés tournaient
+donc sans API. (`UPSTASH_REDIS_REST_*` manquent aussi, mais le rate limit est
+en fail-open : ce n'est pas bloquant.)
 
 Pour le vérifier : GitHub → **Settings** → **Secrets and variables** →
 **Actions**. Seuls `AUTH_JWT_SECRET`, `E2E_USER_EMAIL`, `E2E_USER_PASSWORD` et
 `NEURAL_CRON_SECRET` y figurent.
 
-**Options :**
+**Décision appliquée (option 2, sans supprimer de test) :** la suite est
+partagée en deux projets Playwright (`apps/carbon/playwright.config.ts`,
+étiquette `@sans-api`) :
 
-1. **Garder la suite** : il faut une API de test joignable depuis GitHub
-   Actions, une base de test et un compte dédié, puis déclarer ces secrets.
-   Comptez environ une demi-journée, hors de ce guide.
-2. **La réduire** : ne garder sur `master` que les specs publiques. Le
-   workflow **E2E public** (`e2e-public.yml`) tourne déjà sur les PR. Les
-   specs authentifiées passeraient alors en déclenchement manuel. Cette
-   modification peut être faite par une PR dédiée.
+- `sans-api` (61 tests : pages publiques, démo fictive, redirections,
+  en-têtes) est joué à **chaque** push sur `master`. Il dure environ 1 à
+  2 minutes sur un build de production.
+- `avec-api` (77 tests : vrai compte, données de l'API) ne tourne que si les
+  secrets `E2E_API_URL` **et** `E2E_USER_PASSWORD` existent. Sinon, l'étape
+  est sautée et une annotation l'indique dans le résumé du run.
 
-Les deux specs mises à jour (03 et 18) passent en local sur un build de
-production. Leurs parties « démo » et « pages publiques » n'ont besoin ni
-d'API ni de compte.
+La justification complète figure en tête de `.github/workflows/e2e.yml`.
+En local, `npm run e2e` joue toujours les 138 tests.
+
+**Pour aller plus loin (facultatif) :** il faut une API de test joignable
+depuis GitHub Actions, sur un domaine autorisé par la CSP (`*.vercel.app`),
+avec une base de test et un compte dédié. Créez ensuite le secret
+`E2E_API_URL`, puis relancez le workflow à la main (**Actions** → **E2E
+Tests** → **Run workflow**). Comptez environ une demi-journée, hors de ce
+guide.
 
 ---
 

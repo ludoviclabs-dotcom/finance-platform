@@ -10,8 +10,9 @@
  */
 
 import { test, expect } from "@playwright/test";
+import { SANS_API } from "../fixtures/tags";
 
-test.describe("Phase 3.B — Page publique /verify (sans auth)", () => {
+test.describe("Phase 3.B — Page publique /verify (sans auth)", { tag: SANS_API }, () => {
   test("/verify (sans hash) affiche le formulaire de saisie", async ({ page }) => {
     await page.goto("/verify");
     await page.waitForLoadState("networkidle");

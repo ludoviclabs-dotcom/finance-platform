@@ -7,17 +7,19 @@
  *   B. Entrée sidebar : un utilisateur authentifié voit l'entrée "Demo Studio"
  *      (groupe "Démonstration", badge "DÉMO"), cliquable, menant au cockpit.
  *
- * L'authentification utilise le bouton "Accès démo (sans compte)" existant du
- * login (POST /auth/demo) — aucun identifiant secret requis, contrairement aux
- * specs qui dépendent de E2E_USER_EMAIL/E2E_USER_PASSWORD.
+ * A est public (projet Playwright `sans-api`). B exige un vrai compte
+ * (E2E_USER_PASSWORD, projet `avec-api`) : depuis la PR #181, la session démo
+ * est isolée et renvoie vers /demo, sans sidebar applicative.
  *
  * Ne modifie ni /demo (démo cinématique) ni 13-demo.spec.ts.
  */
 
 import { expect, test } from "@playwright/test";
+import { loginAsTestUser } from "../fixtures/auth";
+import { SANS_API } from "../fixtures/tags";
 
 test.describe("Demo Studio — double entrée", () => {
-  test("entrée publique : 'Voir la démo guidée' sur /demo mène au cockpit", async ({ page }) => {
+  test("entrée publique : 'Voir la démo guidée' sur /demo mène au cockpit", { tag: SANS_API }, async ({ page }) => {
     await page.goto("/demo");
     await page.getByTestId("guided-demo-link").click();
     await expect(page).toHaveURL(/\/demo\/asterion-motion/, { timeout: 15_000 });
@@ -25,10 +27,7 @@ test.describe("Demo Studio — double entrée", () => {
   });
 
   test("entrée sidebar : 'Demo Studio' visible et fonctionnelle pour un utilisateur authentifié", async ({ page }) => {
-    // Authentification via la session démo existante (aucun secret requis).
-    await page.goto("/login");
-    await page.getByRole("button", { name: /Accès démo/i }).click();
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15_000 });
+    await loginAsTestUser(page);
 
     // Groupe "Démonstration" séparé des modules métier, badge "DÉMO" visible.
     const demoLink = page.getByRole("link", { name: /Demo Studio/i });

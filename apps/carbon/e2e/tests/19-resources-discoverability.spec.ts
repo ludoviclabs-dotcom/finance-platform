@@ -8,22 +8,19 @@
  *      guidée, sans écraser Demo Studio.
  *   C. Raccourci d'accès sur le tableau de bord.
  *
- * Authentification via la session démo existante (bouton « Accès démo », POST
- * /auth/demo) — aucun secret requis, même motif que 15-demo-studio-nav.spec.ts.
- * Ne modifie ni /demo/asterion-motion ni les specs existantes.
+ * Authentification par le compte de test (E2E_USER_PASSWORD) : depuis la PR
+ * #181, la session démo est isolée et renvoie vers /demo — elle n'ouvre plus
+ * ni /dashboard ni la sidebar applicative que ces tests inspectent. Projet
+ * Playwright `avec-api` (compte + backend requis).
  */
 
 import { expect, test } from "@playwright/test";
 
-async function signInDemo(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.getByRole("button", { name: /Accès démo/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15_000 });
-}
+import { loginAsTestUser } from "../fixtures/auth";
 
 test.describe("Ressources — découvrabilité", () => {
   test("entrée sidebar visible, badge BETA, active sur /resources", async ({ page }) => {
-    await signInDemo(page);
+    await loginAsTestUser(page);
 
     const link = page.getByRole("link", { name: /Ressources stratégiques/i });
     await expect(link).toBeVisible();
@@ -45,7 +42,7 @@ test.describe("Ressources — découvrabilité", () => {
   });
 
   test("accessible au clavier (focus + Entrée)", async ({ page }) => {
-    await signInDemo(page);
+    await loginAsTestUser(page);
     const link = page.getByRole("link", { name: /Ressources stratégiques/i });
     await link.focus();
     await expect(link).toBeFocused();
@@ -54,7 +51,7 @@ test.describe("Ressources — découvrabilité", () => {
   });
 
   test("fonctionne sidebar réduite (tooltip natif)", async ({ page }) => {
-    await signInDemo(page);
+    await loginAsTestUser(page);
     // Réduire la sidebar : le libellé disparaît, le title (tooltip) prend le relais.
     await page.getByRole("button", { name: /Réduire/i }).click();
     const link = page.getByRole("link", { name: /Ressources stratégiques/i });
@@ -64,7 +61,7 @@ test.describe("Ressources — découvrabilité", () => {
   });
 
   test("entrée Démo Ressources mène à la séquence guidée (Demo Studio préservé)", async ({ page }) => {
-    await signInDemo(page);
+    await loginAsTestUser(page);
 
     await expect(page.getByRole("link", { name: /Demo Studio/i })).toBeVisible();
     const demoResources = page.getByRole("link", { name: /Démo Ressources/i });
@@ -74,7 +71,7 @@ test.describe("Ressources — découvrabilité", () => {
   });
 
   test("raccourci d'accès sur le tableau de bord", async ({ page }) => {
-    await signInDemo(page);
+    await loginAsTestUser(page);
     const card = page.getByTestId("dashboard-resources-card");
     await expect(card).toBeVisible();
     await card.getByTestId("dashboard-resources-cta").click();

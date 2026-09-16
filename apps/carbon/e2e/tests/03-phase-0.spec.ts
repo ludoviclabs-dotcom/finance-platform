@@ -17,6 +17,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { test, expect } from "@playwright/test";
+import { SANS_API } from "../fixtures/tags";
 
 type FeatureStatus = "live" | "verification" | "beta" | "planifie";
 
@@ -72,7 +73,7 @@ const FORBIDDEN_CLAIMS = [
 
 // ─── Test 1 : Homepage — 0 mention interdite ────────────────────────────────
 
-test.describe("Phase 0 — Homepage sans claims faux", () => {
+test.describe("Phase 0 — Homepage sans claims faux", { tag: SANS_API }, () => {
   test("la page d'accueil se charge et ne contient aucune mention interdite", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
@@ -112,7 +113,7 @@ test.describe("Phase 0 — Homepage sans claims faux", () => {
 
 // ─── Test 2 : Page /couverture ────────────────────────────────────────────────
 
-test.describe("Phase 0 — Page /couverture", () => {
+test.describe("Phase 0 — Page /couverture", { tag: SANS_API }, () => {
   test("la page /couverture est accessible et affiche le tableau ESRS", async ({ page }) => {
     const response = await page.goto("/couverture");
     expect(response?.status()).toBeLessThan(400);
@@ -147,7 +148,7 @@ test.describe("Phase 0 — Page /couverture", () => {
 
 // ─── Test 3 : Page /etat-du-produit ──────────────────────────────────────────
 
-test.describe("Phase 0 — Page /etat-du-produit", () => {
+test.describe("Phase 0 — Page /etat-du-produit", { tag: SANS_API }, () => {
   test("la page /etat-du-produit affiche une section par statut présent dans le registre", async ({ page }) => {
     const response = await page.goto("/etat-du-produit");
     expect(response?.status()).toBeLessThan(400);
@@ -190,7 +191,7 @@ test.describe("Phase 0 — Page /etat-du-produit", () => {
 
 // ─── Test 4 : Pages archivées → jamais affichées ─────────────────────────────
 
-test.describe("Phase 0 — Pages archivées jamais affichées", () => {
+test.describe("Phase 0 — Pages archivées jamais affichées", { tag: SANS_API }, () => {
   for (const archivedRoute of ["/social", "/dpp", "/finance"]) {
     test(`${archivedRoute} : 404, ou renvoi vers /login pour un visiteur`, async ({ page }) => {
       // Les pages appellent notFound(), mais elles vivent sous le layout (app)
@@ -215,7 +216,7 @@ function siteFooter(page: import("@playwright/test").Page) {
   return page.locator("footer").filter({ has: page.locator("a[href='/couverture']") });
 }
 
-test.describe("Phase 0 — Footer contient les liens de transparence", () => {
+test.describe("Phase 0 — Footer contient les liens de transparence", { tag: SANS_API }, () => {
   test("le footer contient un lien vers /couverture", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");

@@ -9,21 +9,18 @@
  * ou en `schema_not_ready` selon l'environnement — on vérifie alors qu'un état
  * explicite est rendu, jamais un blanc.
  *
- * Auth via la session démo (POST /auth/demo, aucun secret requis), comme
- * 15-demo-studio-nav.spec.ts et 19-resources-discoverability.spec.ts.
+ * Auth par le compte de test (E2E_USER_PASSWORD) : la session démo, isolée
+ * depuis la PR #181, n'ouvre plus /resources ni /dashboard. Projet Playwright
+ * `avec-api` (compte + backend requis).
  */
 
 import { expect, test } from "@playwright/test";
 
-async function signInDemo(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.getByRole("button", { name: /Accès démo/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15_000 });
-}
+import { loginAsTestUser } from "../fixtures/auth";
 
 test.describe("Refonte Ressources — surfaces", () => {
   test("/resources rend un état explicite, et les chiffres-clés si peuplé", async ({ page }) => {
-    await signInDemo(page);
+    await loginAsTestUser(page);
     await page.goto("/resources");
     await page.waitForLoadState("networkidle");
 
@@ -43,7 +40,7 @@ test.describe("Refonte Ressources — surfaces", () => {
   });
 
   test("/resources/assessments : au plus une ligne par ressource", async ({ page }) => {
-    await signInDemo(page);
+    await loginAsTestUser(page);
     await page.goto("/resources/assessments");
     await page.waitForLoadState("networkidle");
 
@@ -59,7 +56,7 @@ test.describe("Refonte Ressources — surfaces", () => {
   });
 
   test("fiche ressource : la vue tableau accompagne toujours la carte pays", async ({ page }) => {
-    await signInDemo(page);
+    await loginAsTestUser(page);
     await page.goto("/resources");
     await page.waitForLoadState("networkidle");
 
@@ -77,7 +74,7 @@ test.describe("Refonte Ressources — surfaces", () => {
   });
 
   test("tableau de bord : Preuve & Qualité et Scope 3 interactifs", async ({ page }) => {
-    await signInDemo(page);
+    await loginAsTestUser(page);
     await page.goto("/dashboard");
     await page.waitForLoadState("networkidle");
 

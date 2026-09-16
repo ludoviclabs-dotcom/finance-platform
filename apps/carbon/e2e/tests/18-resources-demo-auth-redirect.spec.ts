@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { TEST_EMAIL, TEST_PASSWORD } from "../fixtures/auth";
+import { SANS_API } from "../fixtures/tags";
 
 /**
  * Parcours d'accès au cockpit Ressources stratégiques (/resources) depuis
@@ -36,7 +37,7 @@ async function startDemoFromLogin(page: Page, url = "/login") {
   await page.getByTestId("login-demo-button").click();
 }
 
-test.describe("Redirection préservée vers /login", () => {
+test.describe("Redirection préservée vers /login", { tag: SANS_API }, () => {
   test("visite non authentifiée de /resources → /login?next=%2Fresources", async ({ page }) => {
     await page.goto("/resources");
     await expect(page).toHaveURL(/\/login\?next=%2Fresources/, { timeout: 8_000 });
@@ -61,7 +62,7 @@ test.describe("Redirection préservée vers /login", () => {
   });
 });
 
-test.describe("Bannière contextuelle sur /login", () => {
+test.describe("Bannière contextuelle sur /login", { tag: SANS_API }, () => {
   test("next=/resources affiche le contexte Ressources stratégiques", async ({ page }) => {
     await openLogin(page, "/login?next=%2Fresources");
     await expect(page.getByTestId("login-demo-context")).toBeVisible();
@@ -80,7 +81,7 @@ test.describe("Bannière contextuelle sur /login", () => {
   });
 });
 
-test.describe("Accès démo → surface de démonstration adaptée", () => {
+test.describe("Accès démo → surface de démonstration adaptée", { tag: SANS_API }, () => {
   test("depuis /login?next=/resources → parcours /demo/asterion-resources, session démo posée", async ({
     page,
     context,
@@ -118,7 +119,7 @@ test.describe("Accès démo → surface de démonstration adaptée", () => {
   });
 });
 
-test.describe("Anti-open-redirect — next malveillant sans effet sur la démo", () => {
+test.describe("Anti-open-redirect — next malveillant sans effet sur la démo", { tag: SANS_API }, () => {
   for (const [label, next] of [
     ["URL externe absolue", "https%3A%2F%2Fevil.example"],
     ["protocol-relative (//)", "%2F%2Fevil.example"],
@@ -132,7 +133,7 @@ test.describe("Anti-open-redirect — next malveillant sans effet sur la démo",
   }
 });
 
-test.describe("Démonstration isolée — jamais le cockpit réel", () => {
+test.describe("Démonstration isolée — jamais le cockpit réel", { tag: SANS_API }, () => {
   test("/demo/asterion-resources reste public, sans lien vers l'application", async ({ page }) => {
     await page.goto("/demo/asterion-resources");
     await expect(page.getByTestId("demo-asterion-resources")).toBeVisible();

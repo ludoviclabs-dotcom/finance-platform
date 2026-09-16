@@ -12,6 +12,7 @@
 
 import { test, expect } from "@playwright/test";
 import { loginAsTestUser } from "../fixtures/auth";
+import { SANS_API } from "../fixtures/tags";
 
 test.describe("Phase 4 — Fournisseurs", () => {
   test.beforeEach(async ({ page }) => {
@@ -86,9 +87,10 @@ test.describe("Phase 4 — Questionnaire public /q/[token]", () => {
     await expect(page.locator("text=/Lien invalide|introuvable/i")).toBeVisible({ timeout: 8_000 });
   });
 
-  test("La page /q/ affiche le branding CarbonCo", async ({ page }) => {
+  test("La page /q/ affiche le branding CarbonCo", { tag: SANS_API }, async ({ page }) => {
     // Même avec token invalide, le shell est visible
     await page.goto("/q/deadbeefdeadbeefdeadbeefdeadbeef");
-    await expect(page.locator("text=CarbonCo")).toBeVisible({ timeout: 5_000 });
+    // Texte exact : la bannière cookies mentionne aussi « CarbonCo ».
+    await expect(page.getByText("CarbonCo", { exact: true }).first()).toBeVisible({ timeout: 5_000 });
   });
 });

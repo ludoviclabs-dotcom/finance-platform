@@ -1,3 +1,36 @@
+# E2E CarbonCo sur master — deux périmètres, un seul job.
+#
+# ## Pourquoi ce découpage (décision du 16/09/2026)
+#
+# De juillet à septembre 2026, chaque exécution de ce workflow a été ANNULÉE
+# par `timeout-minutes` : la suite complète (138 tests, 1 worker, retries=1)
+# tournait sans backend ni compte. Le dépôt ne définit pas `E2E_API_URL`, et
+# le front était construit sans `NEXT_PUBLIC_API_BASE_URL` : chaque test
+# authentifié échouait, était rejoué, et la file de `×F` dépassait 20 minutes.
+# Un workflow toujours annulé n'est plus un signal.
+#
+# La suite est donc partitionnée en deux projets Playwright disjoints
+# (apps/carbon/playwright.config.ts, étiquette `@sans-api`) :
+#
+#   * `sans-api` — 61 tests : pages publiques, démo fictive, redirections vers
+#     /login, anti-open-redirect, en-têtes de sécurité. Ils n'ont besoin que de
+#     `next build && next start` (+ AUTH_JWT_SECRET pour la session démo).
+#     Joués à CHAQUE push : c'est le signal garanti de ce workflow (~1-2 min).
+#   * `avec-api` — 77 tests : login réel, données servies par l'API. Joués
+#     SEULEMENT si les secrets `E2E_API_URL` et `E2E_USER_PASSWORD` existent
+#     tous les deux ; sinon l'étape est sautée avec une annotation explicite,
+#     jamais en silence. `E2E_API_URL` est alors injectée au build dans
+#     `NEXT_PUBLIC_API_BASE_URL`, faute de quoi le front appellerait
+#     localhost:8000 et ces tests n'auraient aucun sens.
+#
+# Aucun test n'a été supprimé : `npm run e2e` exécute toujours les 138 tests.
+# Pour activer le périmètre complet en CI, il suffit de créer les deux secrets
+# (backend joignable depuis GitHub Actions + compte de test dédié), puis de
+# relancer via `workflow_dispatch`.
+#
+# Complément, pas doublon : `e2e-public.yml` joue `e2e/public` (surface Water,
+# matrice d'appareils) sur les PR, sans aucun secret.
+
 name: E2E Tests
 
 on:
@@ -6,13 +39,16 @@ on:
     paths:
       - "apps/carbon/**"
       - ".github/workflows/e2e.yml"
-  # Manuel pour lancer sur PR si besoin
+  # Manuel : utile après avoir créé les secrets du périmètre `avec-api`.
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: apps/carbon
@@ -42,22 +78,47 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
 
+      # Le périmètre `avec-api` n'est joué que si le backend ET le compte de
+      # test sont configurés. Les valeurs ne sont jamais affichées.
+      - name: Périmètre E2E
+        id: scope
+        run: |
+          if [ -n "$E2E_API_URL" ] && [ -n "$E2E_USER_PASSWORD" ]; then
+            echo "avec_api=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "avec_api=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=E2E avec API non exécutés::Secrets E2E_API_URL et/ou E2E_USER_PASSWORD absents : seul le projet Playwright 'sans-api' est joué. Voir l'en-tête de .github/workflows/e2e.yml."
+          fi
+
       - name: Build Next.js
         run: npm run build
         env:
-          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
+          # Vide si le secret n'existe pas : lib/api-base-url traite une
+          # valeur vide comme absente (repli localhost:8000, jamais appelé
+          # par le périmètre `sans-api`).
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.E2E_API_URL }}
 
       - name: Start Next.js server
         run: npm run start -- --port 3003 &
-        env:
-          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
 
       - name: Wait for server
         run: npx wait-on http://localhost:3003 --timeout 30000
 
-      - name: Run E2E tests
-        run: npm run e2e
+      - name: E2E sans API (pages publiques, démo, redirections)
+        timeout-minutes: 10
+        run: npx playwright test --project=sans-api
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/sans-api
 
+      - name: E2E avec API (compte de test + backend)
+        if: ${{ !cancelled() && steps.scope.outputs.avec_api == 'true' }}
+        timeout-minutes: 15
+        run: npx playwright test --project=avec-api
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/avec-api
+
+      # `always()` : même après un dépassement de délai, le rapport partiel
+      # est le seul moyen de savoir quel test bloquait.
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
@@ -65,3 +126,4 @@ jobs:
           name: playwright-report
           path: apps/carbon/playwright-report/
           retention-days: 7
+          if-no-files-found: ignore

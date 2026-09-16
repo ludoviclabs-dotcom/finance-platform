@@ -11,11 +11,12 @@
  */
 
 import { test, expect } from "@playwright/test";
+import { SANS_API } from "../fixtures/tags";
 
 /** Identique à DEMO_HASH_FULL (apps/carbon/components/demo/demo-types.ts). */
 const DEMO_HASH = "9f23a1b2c3d4e5f60718293a4b5c6d7e8f9012a3b4c5d6e7f80912a3b4c5d6e7f";
 
-test.describe("Démo cinématique /demo", () => {
+test.describe("Démo cinématique /demo", { tag: SANS_API }, () => {
   test("le lien 'Voir la démo en 2 min' depuis l'accueil mène à /demo", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");

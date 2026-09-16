@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { SANS_API } from "../fixtures/tags";
 
 /**
  * PR-M2D — séquence « Dépendances industrielles étendues » (/demo/asterion-resources).
@@ -6,7 +7,7 @@ import { expect, test } from "@playwright/test";
  * (état final stabilisé + chemin a11y). La séquence Asterion Motion existante
  * (/demo/asterion-motion) n'est pas touchée.
  */
-test.describe("Séquence /demo/asterion-resources (Module 2)", () => {
+test.describe("Séquence /demo/asterion-resources (Module 2)", { tag: SANS_API }, () => {
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/demo/asterion-resources");

@@ -51,6 +51,40 @@ def apply_ddl_inline(conn) -> None:
     conn.commit()
 
 
+#: 011 repose la version ÉTROITE de `audit_eventtype_check` (DROP + ADD) ;
+#: 012/040/041/044 ne font ensuite qu'élargir la liste sous le même nom.
+_NARROW_AUDIT_CHECK_VERSION = 11
+_AUDIT_CHECK_RE = re.compile(
+    r"ADD CONSTRAINT audit_eventtype_check CHECK \(event_type IN \((?P<types>.*?)\)\)",
+    re.DOTALL,
+)
+
+
+def _purge_audit_types_rejected_by_011(conn) -> None:
+    """Retire les lignes d'audit qu'un rejeu de 011 refuserait.
+
+    `apply_upto` rejoue 011 avant ses élargissements : une ligne d'un type
+    récent (`ai_review_decision`, `materiality_decision`, `2fa_disable`…)
+    laissée par un module précédent fait échouer ce rejeu en CheckViolation,
+    donc la fixture de schéma du module suivant — ses tests passent alors en
+    ERROR selon l'ordre d'exécution (QA m-17). Artefact de fixture uniquement :
+    le vrai runner n'applique 011 qu'une fois. Liste lue dans le fichier 011
+    réel ; aucune ligne concernée = DELETE sans effet.
+    """
+    (path,) = MIGRATIONS_DIR.glob("011_*.sql")
+    match = _AUDIT_CHECK_RE.search(path.read_text(encoding="utf-8"))
+    if match is None:
+        raise RuntimeError(f"audit_eventtype_check introuvable dans {path.name}")
+    allowed = re.findall(r"'([^']+)'", match.group("types"))
+    with conn.cursor() as cur:
+        cur.execute("SELECT to_regclass('public.audit_events') IS NOT NULL AS present")
+        if cur.fetchone()["present"]:
+            cur.execute(
+                "DELETE FROM audit_events WHERE NOT (event_type = ANY(%s))", (allowed,)
+            )
+    conn.commit()
+
+
 def apply_upto(conn, max_version: str | None) -> None:
     """Applique les fichiers dont le préfixe numérique est <= `max_version`, en ordre croissant.
 
@@ -62,6 +96,8 @@ def apply_upto(conn, max_version: str | None) -> None:
     if max_version is None:
         return
     limit = int(max_version[:3])
+    if limit >= _NARROW_AUDIT_CHECK_VERSION:
+        _purge_audit_types_rejected_by_011(conn)
     for path in sorted(MIGRATIONS_DIR.glob("*.sql"), key=_sort_key):
         num = int(path.name[:3])
         if num <= limit:

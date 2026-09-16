@@ -36,14 +36,20 @@ import {
   COOKIE_CONSENT_CHANGE_EVENT,
   COOKIE_CONSENT_STORAGE_KEY,
   COOKIE_PREFERENCES_OPEN_EVENT,
+  CONSENT_VALIDITY_MONTHS,
+  consentExpiresAt,
   dropWithoutConsent,
   MEASUREMENT_FLAGS,
   openCookiePreferences,
   parseCookieConsent,
   readCookieConsent,
+  readCookieConsentRecord,
+  redactSensitiveUrl,
   resolveMeasurementFlags,
   saveCookieConsent,
+  serializeCookieConsent,
   subscribeCookieConsent,
+  type CookieConsent,
 } from "@/components/consent/consent-store";
 import { ConsentedAnalytics } from "@/components/consent/consented-analytics";
 
@@ -58,6 +64,13 @@ function memoryStorage(initial: Record<string, string> = {}) {
   };
 }
 
+/** Valeur telle qu'écrite par la bannière, datée de maintenant (par défaut). */
+const stored = (choice: CookieConsent, at: number = Date.now()) => serializeCookieConsent(choice, at);
+const storedChoice = (raw: string | null | undefined) =>
+  raw ? (JSON.parse(raw) as { choice: string }).choice : raw;
+
+const DAY = 24 * 60 * 60 * 1000;
+
 const brokenStorage = {
   getItem: () => {
     throw new Error("SecurityError");
@@ -68,22 +81,91 @@ const brokenStorage = {
 };
 
 afterEach(() => {
+  vi.useRealTimers();
   // Réinitialise l'éventuel choix « volatil » entre deux tests.
   saveCookieConsent("rejected", memoryStorage());
   window.localStorage.clear();
 });
 
 describe("parseCookieConsent — format stocké par la bannière", () => {
-  it("reconnaît exactement les trois valeurs écrites par la bannière", () => {
-    expect(parseCookieConsent("accepted")).toBe("accepted");
-    expect(parseCookieConsent("rejected")).toBe("rejected");
-    expect(parseCookieConsent("essential-only")).toBe("essential-only");
+  it("reconnaît exactement les trois choix écrits par la bannière", () => {
+    expect(parseCookieConsent(stored("accepted"))).toBe("accepted");
+    expect(parseCookieConsent(stored("rejected"))).toBe("rejected");
+    expect(parseCookieConsent(stored("essential-only"))).toBe("essential-only");
   });
 
   it("rejette toute autre valeur (absente, altérée, autre type)", () => {
-    for (const raw of [null, undefined, "", "ACCEPTED", " accepted", "true", "1", '{"analytics":true}', 1, true, {}]) {
+    const now = new Date().toISOString();
+    for (const raw of [
+      null, undefined, "", "true", "1", '{"analytics":true}', "{", 1, true, {},
+      JSON.stringify({ choice: "ACCEPTED", savedAt: now }),
+      JSON.stringify({ choice: "accepted" }),
+      JSON.stringify({ choice: "accepted", savedAt: "hier" }),
+      JSON.stringify({ choice: "accepted", savedAt: 1 }),
+    ]) {
       expect(parseCookieConsent(raw), `valeur ${JSON.stringify(raw)}`).toBeNull();
     }
+  });
+
+  it("l'ancien format sans date n'est plus un choix valable (bannière reproposée)", () => {
+    for (const legacy of ["accepted", "rejected", "essential-only"]) {
+      expect(parseCookieConsent(legacy)).toBeNull();
+    }
+  });
+});
+
+describe("durée de validité — 6 mois (recommandation CNIL n° 2020-092)", () => {
+  const savedAt = Date.UTC(2026, 8, 16, 10, 0, 0); // 16 septembre 2026, 10:00 UTC
+
+  it("vaut 6 mois calendaires, pour le consentement comme pour le refus", () => {
+    expect(CONSENT_VALIDITY_MONTHS).toBe(6);
+    const expiresAt = Date.UTC(2027, 2, 16, 10, 0, 0); // 16 mars 2027
+    for (const choice of ["accepted", "rejected", "essential-only"] as const) {
+      expect(parseCookieConsent(stored(choice, savedAt), expiresAt - 1)).toBe(choice);
+      expect(parseCookieConsent(stored(choice, savedAt), expiresAt)).toBeNull();
+    }
+  });
+
+  it("ramène l'échéance au dernier jour du mois quand le jour n'existe pas", () => {
+    expect(consentExpiresAt(new Date(Date.UTC(2026, 7, 31))).toISOString()).toBe("2027-02-28T00:00:00.000Z");
+    expect(consentExpiresAt(new Date(Date.UTC(2027, 7, 31))).toISOString()).toBe("2028-02-29T00:00:00.000Z");
+    expect(consentExpiresAt(new Date(Date.UTC(2026, 11, 31))).toISOString()).toBe("2027-06-30T00:00:00.000Z");
+  });
+
+  it("refuse un choix daté dans le futur (au-delà d'un jour de décalage d'horloge)", () => {
+    expect(parseCookieConsent(stored("accepted", savedAt + 2 * DAY), savedAt)).toBeNull();
+    expect(parseCookieConsent(stored("accepted", savedAt + DAY / 2), savedAt)).toBe("accepted");
+  });
+
+  it("expose la date de fin de validité du choix lu", () => {
+    const storage = memoryStorage({ [COOKIE_CONSENT_STORAGE_KEY]: stored("rejected", savedAt) });
+    const record = readCookieConsentRecord(storage, savedAt + DAY);
+    expect(record?.choice).toBe("rejected");
+    expect(record?.expiresAt.toISOString()).toBe("2027-03-16T10:00:00.000Z");
+    expect(readCookieConsent(storage, Date.UTC(2027, 2, 17))).toBeNull();
+  });
+});
+
+describe("redactSensitiveUrl — aucun jeton vers la mesure d'audience", () => {
+  it("masque le jeton des liens fournisseur et des partages d'audit", () => {
+    expect(redactSensitiveUrl("https://carbonco.fr/q/abc123secret")).toBe("https://carbonco.fr/q/[token]");
+    expect(redactSensitiveUrl("https://carbonco.fr/audit/tok-42/export?x=1")).toBe(
+      "https://carbonco.fr/audit/[token]/export?x=1",
+    );
+    expect(redactSensitiveUrl("/q/abc123secret")).toBe("/q/[token]");
+  });
+
+  it("retire les paramètres token et code, garde le reste", () => {
+    expect(redactSensitiveUrl("https://carbonco.fr/login?token=s3cr3t&next=%2Fdashboard")).toBe(
+      "https://carbonco.fr/login?next=%2Fdashboard",
+    );
+    expect(redactSensitiveUrl("/verify/abc?code=123456")).toBe("/verify/abc");
+  });
+
+  it("laisse intactes les autres URL", () => {
+    expect(redactSensitiveUrl("https://carbonco.fr/tarifs")).toBe("https://carbonco.fr/tarifs");
+    expect(redactSensitiveUrl("https://carbonco.fr/q")).toBe("https://carbonco.fr/q");
+    expect(redactSensitiveUrl("/produit/carbon")).toBe("/produit/carbon");
   });
 });
 
@@ -102,7 +184,7 @@ describe("allowsAudienceMeasurement — opt-in strict", () => {
 
 describe("lecture / écriture du choix", () => {
   it("lit la clé historique de la bannière", () => {
-    const storage = memoryStorage({ [COOKIE_CONSENT_STORAGE_KEY]: "essential-only" });
+    const storage = memoryStorage({ [COOKIE_CONSENT_STORAGE_KEY]: stored("essential-only") });
     expect(COOKIE_CONSENT_STORAGE_KEY).toBe("carbonco-cookie-consent");
     expect(readCookieConsent(storage)).toBe("essential-only");
     expect(storage.getItem).toHaveBeenCalledWith("carbonco-cookie-consent");
@@ -113,20 +195,23 @@ describe("lecture / écriture du choix", () => {
     expect(readCookieConsent(null)).toBeNull();
   });
 
-  it("écrit la valeur brute et prévient la page sans rechargement", () => {
+  it("écrit le choix daté et prévient la page sans rechargement", () => {
     const storage = memoryStorage();
     const listener = vi.fn();
     window.addEventListener(COOKIE_CONSENT_CHANGE_EVENT, listener);
-    saveCookieConsent("accepted", storage);
+    saveCookieConsent("accepted", storage, Date.UTC(2026, 8, 16));
     window.removeEventListener(COOKIE_CONSENT_CHANGE_EVENT, listener);
 
-    expect(storage.data.get(COOKIE_CONSENT_STORAGE_KEY)).toBe("accepted");
+    expect(JSON.parse(storage.data.get(COOKIE_CONSENT_STORAGE_KEY) ?? "null")).toEqual({
+      choice: "accepted",
+      savedAt: "2026-09-16T00:00:00.000Z",
+    });
     expect(listener).toHaveBeenCalledTimes(1);
     expect((listener.mock.calls[0][0] as CustomEvent).detail).toBe("accepted");
   });
 
   it("si le stockage échoue, le dernier choix vaut pour la page (y compris un retrait)", () => {
-    const stale = memoryStorage({ [COOKIE_CONSENT_STORAGE_KEY]: "accepted" });
+    const stale = memoryStorage({ [COOKIE_CONSENT_STORAGE_KEY]: stored("accepted") });
     saveCookieConsent("rejected", brokenStorage);
     // Le « rejected » de la page prime sur l'« accepted » resté en stockage.
     expect(readCookieConsent(stale)).toBe("rejected");
@@ -149,10 +234,39 @@ describe("subscribeCookieConsent — réactivité", () => {
     const unsubscribe = subscribeCookieConsent(onChange);
     window.dispatchEvent(new StorageEvent("storage", { key: "carbonco-theme", newValue: "dark" }));
     expect(onChange).not.toHaveBeenCalled();
-    window.dispatchEvent(new StorageEvent("storage", { key: COOKIE_CONSENT_STORAGE_KEY, newValue: "rejected" }));
+    window.dispatchEvent(new StorageEvent("storage", { key: COOKIE_CONSENT_STORAGE_KEY, newValue: stored("rejected") }));
     window.dispatchEvent(new StorageEvent("storage", { key: null }));
     expect(onChange).toHaveBeenCalledTimes(2);
     unsubscribe();
+  });
+
+  it("prévient l'abonné quand le choix courant expire (onglet resté ouvert)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.UTC(2027, 2, 15, 10, 0, 0));
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("accepted", Date.UTC(2026, 8, 16, 10, 0, 0)));
+    const onChange = vi.fn();
+    const unsubscribe = subscribeCookieConsent(onChange);
+    expect(readCookieConsent()).toBe("accepted");
+
+    vi.advanceTimersByTime(DAY - 1);
+    expect(onChange).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(readCookieConsent()).toBeNull();
+    unsubscribe();
+  });
+
+  it("réarme sans notifier quand l'échéance dépasse la limite d'un minuteur", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.UTC(2026, 8, 16, 10, 0, 0));
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("rejected"));
+    const onChange = vi.fn();
+    const unsubscribe = subscribeCookieConsent(onChange);
+    vi.advanceTimersByTime(30 * DAY);
+    expect(onChange).not.toHaveBeenCalled();
+    unsubscribe();
+    vi.advanceTimersByTime(200 * DAY);
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it("openCookiePreferences émet l'événement de réouverture de la bannière", () => {
@@ -192,12 +306,21 @@ describe("drapeaux d'environnement (QA m-08 : 404 sur /_vercel/insights/script.j
     expect(canSendAudienceEvent(off, "accepted")).toBe(false);
   });
 
-  it("le filtre beforeSend écarte tout envoi après un retrait", () => {
+  it("le filtre beforeSend écarte tout envoi après un retrait ou une expiration", () => {
     const event = { type: "pageview", url: "https://example.test/" };
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, "accepted");
-    expect(dropWithoutConsent(event)).toBe(event);
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, "rejected");
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("accepted"));
+    expect(dropWithoutConsent(event)).toEqual(event);
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("rejected"));
     expect(dropWithoutConsent(event)).toBeNull();
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("accepted", Date.now() - 200 * DAY));
+    expect(dropWithoutConsent(event)).toBeNull();
+  });
+
+  it("le filtre beforeSend masque les jetons présents dans l'URL", () => {
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("accepted"));
+    const event = { type: "vital" as const, url: "https://example.test/q/jeton-fournisseur", route: "/q/[token]" };
+    expect(dropWithoutConsent(event)).toEqual({ ...event, url: "https://example.test/q/[token]" });
+    expect(event.url).toBe("https://example.test/q/jeton-fournisseur");
   });
 });
 
@@ -205,7 +328,7 @@ const ALL_ON = { analytics: true, speedInsights: true };
 
 describe("ConsentedAnalytics", () => {
   it("n'injecte rien au rendu serveur, quel que soit l'environnement", () => {
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, "accepted");
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("accepted"));
     expect(renderToStaticMarkup(<ConsentedAnalytics flags={ALL_ON} />)).toBe("");
   });
 
@@ -265,7 +388,7 @@ describe("bannière + mesure d'audience — sans rechargement", () => {
 
     await act(async () => button(m.container, "Tout refuser").click());
 
-    expect(window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY)).toBe("rejected");
+    expect(storedChoice(window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY))).toBe("rejected");
     expect(banner(m.container)).toBeNull();
     expect(trackers(m.container)).toBe(0);
     expect(offset()).toBe("");
@@ -280,7 +403,7 @@ describe("bannière + mesure d'audience — sans rechargement", () => {
       </>,
     );
     await act(async () => button(m.container, "Essentiels uniquement").click());
-    expect(window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY)).toBe("essential-only");
+    expect(storedChoice(window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY))).toBe("essential-only");
     expect(trackers(m.container)).toBe(0);
     await unmount(m);
   });
@@ -301,7 +424,7 @@ describe("bannière + mesure d'audience — sans rechargement", () => {
   });
 
   it("un drapeau absent garde l'outil éteint même après acceptation", async () => {
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, "accepted");
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("accepted"));
     const m = await mount(<ConsentedAnalytics flags={{ analytics: true, speedInsights: false }} />);
     expect(m.container.querySelectorAll('[data-testid="vercel-analytics"]').length).toBe(1);
     expect(m.container.querySelectorAll('[data-testid="speed-insights"]').length).toBe(0);
@@ -309,7 +432,7 @@ describe("bannière + mesure d'audience — sans rechargement", () => {
   });
 
   it("la bannière se rouvre, affiche le choix courant et permet le retrait", async () => {
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, "accepted");
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("accepted"));
     const m = await mount(
       <>
         <CookieBanner />
@@ -321,7 +444,9 @@ describe("bannière + mesure d'audience — sans rechargement", () => {
 
     await act(async () => openCookiePreferences());
     expect(banner(m.container)).not.toBeNull();
-    expect(m.container.textContent).toContain("Choix actuel : mesure d'audience acceptée.");
+    expect(m.container.textContent).toMatch(
+      /Choix actuel : mesure d'audience acceptée, valable jusqu'au \d{1,2} \S+ \d{4}\./,
+    );
     expect(document.activeElement).toBe(banner(m.container));
 
     await act(async () => button(m.container, "Tout refuser").click());
@@ -330,12 +455,26 @@ describe("bannière + mesure d'audience — sans rechargement", () => {
     await unmount(m);
   });
 
+  it("un choix expiré fait revenir la bannière et coupe la mesure", async () => {
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("accepted", Date.now() - 190 * DAY));
+    const m = await mount(
+      <>
+        <CookieBanner />
+        <ConsentedAnalytics flags={ALL_ON} />
+      </>,
+    );
+    expect(banner(m.container)).not.toBeNull();
+    expect(m.container.textContent).not.toContain("Choix actuel");
+    expect(trackers(m.container)).toBe(0);
+    await unmount(m);
+  });
+
   it("suit un retrait fait dans un autre onglet", async () => {
-    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, "accepted");
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("accepted"));
     const m = await mount(<ConsentedAnalytics flags={ALL_ON} />);
     expect(trackers(m.container)).toBe(2);
     await act(async () => {
-      window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, "rejected");
+      window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, stored("rejected"));
       window.dispatchEvent(new StorageEvent("storage", { key: COOKIE_CONSENT_STORAGE_KEY }));
     });
     expect(trackers(m.container)).toBe(0);

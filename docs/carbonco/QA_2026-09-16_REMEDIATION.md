@@ -15,6 +15,11 @@ depuis le code).
 
 ## 1. Actions d'exploitation (à faire, dans cet ordre)
 
+> Procédure détaillée (menus exacts, durées, résultats attendus, dépannage) :
+> [GUIDE_ACTIONS_MANUELLES_QA_2026-09-16.md](GUIDE_ACTIONS_MANUELLES_QA_2026-09-16.md).
+> Constaté le 16/09/2026 à 18:53 (Paris) : `/health` répond 200 sur le commit
+> `31fe37b` (B-01 corrigé en production) ; `/health/schema` → 043, 044 en attente.
+
 | # | Où | Action | Pourquoi |
 |---|---|---|---|
 | 1 | GitHub → workflow **DB Migrate** | Appliquer la migration **044** (`plan` puis `apply`, approbation humaine) | Anti-rejeu TOTP en base + nouveaux types d'audit. Le code tolère son absence (anti-rejeu inactif et journalisé, types d'audit réécrits), mais la protection n'est complète qu'après 044. |
@@ -65,7 +70,7 @@ depuis le code).
 | **m-02** | Anti-rejeu TOTP (RFC 6238 §5.2) : un pas de temps accepté ne l'est qu'une fois (table `user_totp_used_steps`, migration 044 ; fichier en développement). La persistance TOTP ne se replie plus silencieusement sur `/tmp` en cas d'erreur de base (fail-closed). |
 | **m-03** | Le jeton rafraîchi conserve `uid`. |
 | **m-15** | `pytest` retiré des dépendances d'exécution (il était embarqué dans la fonction de production) ; `requirements-dev.txt` cohérent ; jobs CI concernés mis à jour. |
-| **m-17** | Non reproduit sans PostgreSQL local ; `build_full_db` suit désormais 044 ; le nouveau module DB-gated purge ses types d'audit élargis pour ne pas casser les modules suivants. |
+| **m-17** | Cause : liste CI lancée en ordre alphabétique → `test_ai_review_ledger.py` laisse 2 lignes d'audit `ai_review_decision` ; le rejeu de 011 (contrainte étroite) échoue ensuite dans les fixtures de `test_claim_links` (6), `test_crma_article24` (20), `test_crma_exposure` (24), `test_crma_reference` (23) = **73 erreurs** ; en ordre CI, `test_demo_seed.py` masquait le défaut. Correctif : purge de l'audit dans `ai_env` et, avant tout rejeu de 011, purge des types que 011 refuse (`_migration_fixtures.py`). La CI rejoue la liste en ordre alphabétique (voir §5). |
 
 ---
 
@@ -105,4 +110,14 @@ depuis le code).
 | **m-13, m-14, m-20** | URL d'API normalisée ; CSP `vercel.live` en preview seulement ; erreurs de connexion visibles. |
 | Front B-02 | `verifyBearerToken` (routes `/api/*`) exige un jeton `scope: access` avec `exp`. |
 
-Reliquats connus : page `/cookies` à réécrire (elle ne décrit pas encore la bannière), expiration du consentement à 6 mois (recommandation CNIL n° 2020-092) non implémentée, specs e2e `03-phase-0` et `18-resources-demo-auth-redirect` à mettre à jour, `npm ci` requis localement (`three` absent du `node_modules`).
+## 5. Reliquats traités après la fusion de la PR #182
+
+| Sujet | Correctif | Preuve |
+|---|---|---|
+| Page `/cookies` | Réécrite : bannière et opt-in, cookies réels (`cc_refresh` 30 jours, `cc_demo_session` 2 heures), clés de stockage local, outils de mesure (sans cookie, chargés seulement après « Tout accepter »), références (art. 82 loi 78-17, délibérations CNIL 2020-091 et 2020-092). Bouton « Gérer mes cookies » sur la page. | `tests/cookies-page.test.tsx` (la page cite chaque clé `localStorage` déclarée dans le code) |
+| Durée du consentement | Choix daté (`{"choice","savedAt"}`), valable 6 mois calendaires, consentement **et** refus : CNIL, recommandation 2020-092, version consolidée du 16/01/2026, partie « S'agissant de la conservation des choix ». Choix non daté (ancien format) reproposé une fois ; choix daté dans le futur rejeté ; un onglet resté ouvert coupe la mesure à l'échéance. La bannière affiche la date de fin de validité. | `tests/cookie-consent.test.tsx` (34 tests) |
+| Jetons dans la mesure d'audience | `beforeSend` masque `/q/<jeton>`, `/audit/<jeton>` et les paramètres `token`/`code` avant tout envoi à Vercel. | idem |
+| Spec e2e `03-phase-0` | Statuts lus dans `data/feature-status.json` (plus de « ESRS E1 = Live » codé en dur), plans VSME/Business/Enterprise, attente de la garde cliente sur les pages archivées, pied de page ciblé. | Playwright local sur build de production : 27 réussis, 1 ignoré (compte de test requis) |
+| Spec e2e `18-resources-demo-auth-redirect` | Alignée sur la démo isolée (PR #181) : la démo n'ouvre jamais le cockpit réel ; depuis `/login?next=/resources`, le bouton démo ouvre `/demo/asterion-resources` (`demoEntryFor`, `lib/demo/session.ts`) ; « Quitter la démo » / « Revenir à la démo » couverts. | idem + `tests/resources-demo-auth.test.tsx` |
+| m-17 (ordre des tests base de données) | Voir la ligne m-17 du §2 : fuite de lignes d'audit corrigée dans les fixtures ; nouvelle étape du job `migration-tests` qui rejoue les 46 modules en ordre alphabétique (scénario du testeur). | CI de la PR (PostgreSQL 16) |
+| Suite e2e historique (`e2e.yml`) | **Constat, non corrigé** : annulée à chaque exécution depuis juillet (délai de 20 min), faute de secrets `E2E_API_URL`/Upstash. Décision à prendre (guide, étape 10). | Journal de l'exécution du 16/09/2026 à 15:06 UTC |

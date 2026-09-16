@@ -24,6 +24,7 @@ vi.mock("next/link", () => ({
 import { DemoStepCard } from "@/components/demo/asterion/demo-step-card";
 import { LoginScreen } from "@/components/pages/login-screen";
 import { ASTERION_TOUR, type TourStep } from "@/lib/demo/asterion-motion-tour";
+import { DEMO_HOME, DEMO_RESOURCES_TOUR, demoEntryFor } from "@/lib/demo/session";
 
 const step: TourStep = { ...ASTERION_TOUR[0], exploreHref: "/demo" };
 
@@ -120,5 +121,21 @@ describe("LoginScreen — contexte d'accès démo", () => {
     );
     expect(html).toContain('data-testid="login-demo-error"');
     expect(html).toContain("Accès démo indisponible pour le moment.");
+  });
+});
+
+describe("demoEntryFor — destination du bouton démo de /login", () => {
+  it("ouvre le parcours Asterion Ressources quand /resources était demandé", () => {
+    expect(DEMO_RESOURCES_TOUR).toBe("/demo/asterion-resources");
+    for (const next of ["/resources", "/resources/silicon-metal", "/resources?tab=exposures"]) {
+      expect(demoEntryFor(next), next).toBe(DEMO_RESOURCES_TOUR);
+    }
+  });
+
+  it("ouvre l'accueil de la démo dans tous les autres cas", () => {
+    expect(DEMO_HOME).toBe("/demo");
+    for (const next of ["/dashboard", "/", "/resourcesx", "/iro", "/demo"]) {
+      expect(demoEntryFor(next), next).toBe(DEMO_HOME);
+    }
   });
 });

@@ -281,6 +281,10 @@ export default function WorldMap({
   };
 
   const zoomButton: React.CSSProperties = {
+    // Police de bouton du navigateur, comme dans la maquette (qui ne la fixe
+    // pas) : ses « + » et « − » y sont plus grands et plus nets qu'en Barlow.
+    // Déclarée avant la taille, que le raccourci `font` réinitialise.
+    font: "-webkit-small-control",
     width: 30,
     height: 30,
     display: "flex",
@@ -296,7 +300,12 @@ export default function WorldMap({
   };
 
   return (
-    <div className="relative w-full h-full" style={{ minHeight: 440 }}>
+    // 440px de haut, la hauteur que la maquette affiche réellement : le ratio
+    // 16/9 qu'elle déclare ne parvient jamais au composant (son runtime garde
+    // l'attribut `style` pour l'hôte). Et un ratio accompagné d'une hauteur
+    // minimale se reporte en largeur minimale (460 × 16/9 = 818px) : la carte
+    // débordait de sa colonne. Plafonnée en vw pour les écrans étroits.
+    <div className="relative overflow-hidden" style={{ minHeight: "min(440px, 75vw)" }}>
       <div ref={containerRef} className="absolute inset-0" />
 
       {tooltip && (

@@ -8,7 +8,7 @@
  * choix global.
  */
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 
 export type MxTheme = "sombre" | "clair";
 /** Peau visuelle du sous-arbre. "industry" = système filaire de /materials
@@ -43,11 +43,15 @@ export function MxThemeProvider({
   children,
   skin = "mx",
   defaultTheme = skin === "industry" ? "clair" : "sombre",
+  style,
 }: {
   children: ReactNode;
   skin?: MxSkin;
   /** La peau Industry est pensée clair d'abord ; la peau historique, sombre. */
   defaultTheme?: MxTheme;
+  /** Style de la racine — la peau Industry y reçoit ses familles de police
+   *  (--font-barlow*) : ses jetons --font-* se résolvent sur ce même élément. */
+  style?: CSSProperties;
 }) {
   const [theme, setThemeState] = useState<MxTheme>(defaultTheme);
   const storageKey = STORAGE_KEYS[skin];
@@ -72,7 +76,7 @@ export function MxThemeProvider({
 
   return (
     <MxThemeContext.Provider value={{ theme, setTheme }}>
-      <div data-mx data-mx-skin={skin} data-mx-theme={theme}>
+      <div data-mx data-mx-skin={skin} data-mx-theme={theme} style={style}>
         {children}
       </div>
     </MxThemeContext.Provider>

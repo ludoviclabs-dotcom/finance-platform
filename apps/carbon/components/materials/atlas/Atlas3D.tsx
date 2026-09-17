@@ -22,7 +22,7 @@ const Atlas3DScene = dynamic(() => import("./Atlas3DScene"), {
       className="absolute inset-0 grid place-items-center"
       style={{ fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--ink-70)" }}
     >
-      Chargement de l&apos;atlas…
+      Chargement de l’atlas…
     </div>
   ),
 });
@@ -228,7 +228,7 @@ export default function Atlas3D({ materials }: { materials: Material[] }) {
       >
         Glisser pour tourner · survoler ou cliquer une matière
         <br />
-        Points : pays producteurs · arcs : flux vers l&apos;Europe
+        Points : pays producteurs · arcs : flux vers l’Europe
       </div>
     </>
   );

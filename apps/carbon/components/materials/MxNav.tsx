@@ -12,6 +12,8 @@ const SECTIONS = [
   { id: "chaine", label: "Chaîne" },
 ] as const;
 
+const NAV_GAP = 13.6;
+
 // Scroll-spy réel via IntersectionObserver (le prototype Claude Design ne
 // peut pas s'appuyer dessus dans son bac à sable de prévisualisation et
 // utilise un polling manuel — ce n'est pas une contrainte du navigateur réel).
@@ -48,9 +50,10 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
 
   return (
     <div
-      className="sticky top-0 z-40 backdrop-blur-xl"
+      className="sticky top-0 z-40"
       style={{
         background: "color-mix(in srgb, var(--color-bg) 86%, transparent)",
+        backdropFilter: "blur(12px)",
         borderBottom: "1px solid var(--color-divider)",
       }}
     >
@@ -59,10 +62,13 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
           répété ici parce que la barre est collante et vit hors de lui.
           flex-wrap + row-gap : sous ~1000px les liens passent à la ligne au
           lieu de comprimer la marque et l'interrupteur de thème (le point
-          laissé à vérifier par la session de design). */}
+          laissé à vérifier par la session de design). L'écart de 13,6px est
+          le --space-4 que la barre `.nav` du système met entre ses éléments. */}
       <div
-        className="flex items-center flex-wrap gap-x-4 gap-y-2"
+        className="flex items-center flex-wrap"
         style={{
+          columnGap: NAV_GAP,
+          rowGap: 8,
           padding: "12px max(clamp(20px,5vw,72px), calc((100% - 1200px) / 2 + clamp(20px,5vw,72px)))",
         }}
       >
@@ -74,6 +80,9 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
             fontWeight: 600,
             fontSize: 18,
             color: "var(--color-text)",
+            // La marque de la maquette n'est pas un lien : pas de soulignement
+            // au survol, qui la ferait lire comme un lien de navigation.
+            textDecoration: "none",
           }}
         >
           Carbon&amp;Co
@@ -92,7 +101,7 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
           </span>
         </Link>
 
-        <nav className="mx-scrollbar-none flex gap-4 overflow-x-auto min-w-0">
+        <nav className="mx-scrollbar-none flex overflow-x-auto min-w-0" style={{ gap: NAV_GAP }}>
           {SECTIONS.map(s => {
             const isActive = activeSection === s.id;
             return (

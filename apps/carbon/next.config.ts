@@ -5,6 +5,23 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  experimental: {
+    /*
+      Cache disque de build Turbopack désactivé (actif par défaut dans
+      Next 16.3.5). Relu depuis `.next/cache`, que Vercel restaure d'un
+      déploiement à l'autre, il ressert une ancienne version de
+      `app/globals.css` : la PR #185 est partie en production sans aucune
+      règle de la peau « Industry » de /materials, alors que les utilitaires
+      Tailwind des nouveaux composants, eux, étaient bien générés.
+
+      Reproduit en local avec Next 16.3.5 : un build sans cache contient les
+      règles ; un build qui reprend le cache d'un build antérieur ne les
+      contient pas, et le build suivant non plus — l'écart ne se résorbe pas
+      tout seul. À réactiver seulement quand un build repris du cache
+      reflète une modification de globals.css.
+    */
+    turbopackFileSystemCacheForBuild: false,
+  },
   async redirects() {
     return [
       // Guide renommé après l'Omnibus (T0.3.5) — préserve le SEO de l'ancienne URL.

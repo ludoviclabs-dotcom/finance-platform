@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useReducedMotion } from "framer-motion";
 import type { Material } from "@/lib/crm/dataLoader";
 import { getChinaShare, getChinaTier, type ChinaTier } from "@/lib/crm/dataLoader";
 import { CHINA_TIER_META } from "@/lib/crm/chinaTier";
+import { usePrefersReducedMotion } from "@/lib/hooks/use-prefers-reduced-motion";
 import { Frame } from "./industry/Frame";
 
 interface Props { materials: Material[] }
@@ -40,8 +40,9 @@ function useCountUp(target: number, enabled: boolean): number {
 }
 
 export default function ChinaDependencyWidget({ materials }: Props) {
-  const prefersReducedMotion = useReducedMotion();
-  const animate = !prefersReducedMotion;
+  // Faux pendant l'hydratation, comme au serveur : le compteur part de 0 des
+  // deux côtés. La vraie préférence arrive au rendu suivant.
+  const animate = !usePrefersReducedMotion();
 
   const tiers = TIER_ORDER.map(tier => ({
     tier,
@@ -56,13 +57,16 @@ export default function ChinaDependencyWidget({ materials }: Props) {
 
   // L'anneau se remplit depuis zéro peu après le montage : la transition CSS
   // n'a lieu que si la valeur initiale rendue est bien 0 (un dasharray posé
-  // directement à sa valeur finale ne transite pas).
-  const [filled, setFilled] = useState(!animate);
+  // directement à sa valeur finale ne transite pas). Sans animation, il est
+  // plein d'emblée — `filled` ne suffit pas : son état initial est fixé
+  // pendant l'hydratation, avant que la préférence ne soit connue.
+  const [filled, setFilled] = useState(false);
   useEffect(() => {
     if (!animate) return;
     const id = setTimeout(() => setFilled(true), 300);
     return () => clearTimeout(id);
   }, [animate]);
+  const ringFilled = filled || !animate;
 
   const headerCell: React.CSSProperties = {
     padding: "12px 24px",
@@ -95,7 +99,7 @@ export default function ChinaDependencyWidget({ materials }: Props) {
 
       {/* 4fr/8fr au-delà de lg ; empilé en dessous, où le filet vertical entre
           l'anneau et les paliers devient un filet horizontal. */}
-      <div className="grid grid-cols-1 lg:grid-cols-[4fr_8fr] items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] items-stretch">
         <div
           className="flex flex-col items-center justify-center gap-3 border-b lg:border-b-0 lg:border-r"
           style={{ padding: "36px 24px", borderColor: "var(--color-divider)" }}
@@ -110,7 +114,7 @@ export default function ChinaDependencyWidget({ materials }: Props) {
                 fill="none"
                 stroke="var(--color-accent)"
                 strokeWidth={6}
-                strokeDasharray={`${((filled ? fraction : 0) * RING_CIRCUMFERENCE).toFixed(1)} ${RING_CIRCUMFERENCE.toFixed(1)}`}
+                strokeDasharray={`${((ringFilled ? fraction : 0) * RING_CIRCUMFERENCE).toFixed(1)} ${RING_CIRCUMFERENCE.toFixed(1)}`}
                 transform="rotate(-90 98 98)"
                 style={{ transition: animate ? "stroke-dasharray 1.4s cubic-bezier(.16,1,.3,1)" : "none" }}
               />

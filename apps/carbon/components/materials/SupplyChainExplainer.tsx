@@ -1,5 +1,5 @@
 import { Pickaxe, Factory, Wrench, BatteryCharging, Car, type LucideIcon } from "lucide-react";
-import { Reveal } from "@/components/ui/reveal";
+import { Section } from "./industry/Section";
 import { SectionKicker, SectionTitle } from "./industry/SectionKicker";
 
 // Frise pédagogique de la chaîne de valeur — les 5 étapes et pays associés
@@ -44,11 +44,11 @@ const STEPS: { icon: LucideIcon; step: string; label: string; desc: string; risk
   },
 ];
 
-export default function SupplyChainExplainer() {
+export default function SupplyChainExplainer({ revealDelay }: { revealDelay?: number }) {
   return (
-    <section id="chaine" className="mx-anchor">
+    <Section id="chaine" revealDelay={revealDelay} paddingBottom={72}>
       <SectionKicker>05 · De la mine au produit fini</SectionKicker>
-      <SectionTitle>La chaîne d&apos;approvisionnement mondiale</SectionTitle>
+      <SectionTitle>La chaîne d’approvisionnement mondiale</SectionTitle>
       <p style={{ margin: "8px 0 0", fontSize: 15, lineHeight: "24px", maxWidth: "64ch", color: "var(--ink-78)" }}>
         Chaque maillon est un point de vulnérabilité stratégique. La Chine domine les maillons intermédiaires — les
         plus critiques et les plus difficiles à dupliquer.
@@ -82,53 +82,54 @@ export default function SupplyChainExplainer() {
           {STEPS.map((s, i) => {
             const Icon = s.icon;
             return (
-              <Reveal key={s.step} delay={0.5 + i * 0.18}>
-                <div className="flex flex-col gap-5">
-                  <div className="flex justify-center relative z-10">
-                    <div
-                      className="relative flex items-center justify-center"
-                      style={{
-                        width: 40, height: 40,
-                        background: "var(--color-bg)",
-                        border: "1px solid var(--color-text)",
-                        color: "var(--color-text)",
-                      }}
-                    >
-                      <i className="ind-corner tl" />
-                      <Icon width={20} height={20} strokeWidth={1.5} aria-hidden="true" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: ".08em", color: "var(--color-accent-700)", fontFeatureSettings: "'tnum' 1" }}>
-                      {s.step}
-                    </span>
-                    <h4
-                      style={{
-                        margin: 0,
-                        fontFamily: "var(--font-heading)",
-                        fontWeight: 600,
-                        fontSize: 22,
-                        lineHeight: "24px",
-                        letterSpacing: ".02em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {s.label}
-                    </h4>
-                    <p style={{ margin: 0, fontSize: 14, lineHeight: "20px", color: "var(--ink-78)" }}>{s.desc}</p>
-                    <p style={{ margin: 0, fontSize: 13, lineHeight: "20px", color: "var(--color-accent-700)" }}>▲ {s.risk}</p>
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {s.countries.map(c => (
-                        <span key={c} className="ind-tag ind-tag-neutral">{c}</span>
-                      ))}
-                    </div>
+              // Entrée échelonnée jouée au chargement, aux retards de la maquette.
+              <div key={s.step} className="ind-reveal flex flex-col gap-5" style={{ animationDelay: `${0.5 + i * 0.18}s` }}>
+                {/* Nœud sans repères « + » : la maquette n'en trace pas ici (son
+                    <i class="corner"> n'est pas l'enfant direct d'un
+                    .blueprint, la règle qui dessine la croix ne s'y applique pas). */}
+                <div className="flex justify-center relative z-10">
+                  <div
+                    className="relative flex items-center justify-center"
+                    style={{
+                      width: 40, height: 40,
+                      background: "var(--color-bg)",
+                      border: "1px solid var(--color-text)",
+                      color: "var(--color-text)",
+                    }}
+                  >
+                    <Icon width={20} height={20} strokeWidth={1.5} aria-hidden="true" />
                   </div>
                 </div>
-              </Reveal>
+                <div className="flex flex-col gap-2">
+                  <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: ".08em", color: "var(--color-accent-700)", fontFeatureSettings: "'tnum' 1" }}>
+                    {s.step}
+                  </span>
+                  <h4
+                    style={{
+                      margin: 0,
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 600,
+                      fontSize: 22,
+                      lineHeight: "24px",
+                      letterSpacing: ".02em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {s.label}
+                  </h4>
+                  <p style={{ margin: 0, fontSize: 14, lineHeight: "20px", color: "var(--ink-78)" }}>{s.desc}</p>
+                  <p style={{ margin: 0, fontSize: 13, lineHeight: "20px", color: "var(--color-accent-700)" }}>▲ {s.risk}</p>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {s.countries.map(c => (
+                      <span key={c} className="ind-tag ind-tag-neutral">{c}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
       </div>
-    </section>
+    </Section>
   );
 }

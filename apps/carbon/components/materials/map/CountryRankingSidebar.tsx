@@ -46,13 +46,11 @@ export default function CountryRankingSidebar({ weights, selectedCountry, onSele
         <span style={{ fontSize: 12, color: "var(--ink-70)" }}>poids cumulé, pts</span>
       </div>
 
+      {/* Quatre colonnes égales : c'est ce que la maquette affiche. Son
+          <colgroup> (36px / 38 % / auto / 52px) n'atteint jamais le DOM rendu
+          par son runtime, et la table fixe répartit alors la largeur à parts
+          égales — noms longs tronqués compris (« Afrique d… »). */}
       <table className="ind-table" style={{ tableLayout: "fixed" }}>
-        <colgroup>
-          <col style={{ width: 36 }} />
-          <col style={{ width: "38%" }} />
-          <col />
-          <col style={{ width: 52 }} />
-        </colgroup>
         <thead>
           <tr>
             <th scope="col">№</th>
@@ -90,8 +88,10 @@ export default function CountryRankingSidebar({ weights, selectedCountry, onSele
                       event.stopPropagation();
                       onSelectCountry(isOn ? null : c.country);
                     }}
-                    className="font-medium whitespace-nowrap overflow-hidden text-ellipsis w-full text-left"
-                    style={{ border: 0, background: "transparent", color: "inherit", font: "inherit", padding: 0, cursor: "pointer" }}
+                    className="whitespace-nowrap overflow-hidden text-ellipsis w-full text-left"
+                    // `font: inherit` en ligne remettait la graisse à 400 malgré
+                    // `font-medium` : la graisse 500 de la maquette est posée après.
+                    style={{ border: 0, background: "transparent", color: "inherit", font: "inherit", fontWeight: 500, padding: 0, cursor: "pointer" }}
                   >
                     {c.country}
                   </button>
@@ -136,7 +136,12 @@ export default function CountryRankingSidebar({ weights, selectedCountry, onSele
             >
               {selected.country}
             </p>
-            <button type="button" className="ind-btn ind-btn-ghost" onClick={() => onSelectCountry(null)}>
+            <button
+              type="button"
+              className="ind-btn ind-btn-ghost"
+              onClick={() => onSelectCountry(null)}
+              style={{ padding: "0 6px" }}
+            >
               Fermer
             </button>
           </div>

@@ -2,16 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useReducedMotion } from "framer-motion";
 import type { Material } from "@/lib/crm/dataLoader";
 import { getChinaShare, getChinaTier } from "@/lib/crm/dataLoader";
 import { CHINA_TIER_META } from "@/lib/crm/chinaTier";
 import { squarify } from "@/lib/crm/squarify";
 import { Frame } from "./industry/Frame";
+import { Section } from "./industry/Section";
 import { SectionKicker, SectionTitle, SectionLead } from "./industry/SectionKicker";
 import Atlas3D from "./atlas/Atlas3D";
 
-interface Props { materials: Material[] }
+interface Props {
+  materials: Material[];
+  revealDelay?: number;
+}
 
 type View = "treemap" | "bars" | "3d";
 
@@ -32,13 +35,16 @@ const LEAD: Record<View, string> = {
   bars:
     "Les 34 matières classées par score de risque (estimé). Teinte selon la part chinoise de production.",
   "3d":
-    "Atlas 3D — l'anneau des matières autour du globe des producteurs. Glisser pour tourner, cliquer une matière pour sa fiche.",
+    "Atlas 3D — l’anneau des matières autour du globe des producteurs. Glisser pour tourner, cliquer une matière pour sa fiche.",
 };
 
 /** Dimensions internes du cadre du treemap, mesurées pour poser les tuiles. */
 function useMeasuredBox(active: boolean) {
   const ref = useRef<HTMLElement>(null);
-  const [box, setBox] = useState({ w: 1198, h: TREEMAP_H - 2 });
+  // Valeur servie avant la mesure : celle du cadre en bureau (colonne de
+  // 1056px, moins les filets et la marge de mesure ci-dessous). Plus large,
+  // les tuiles du HTML prérendu débordaient du cadre jusqu'à l'hydratation.
+  const [box, setBox] = useState({ w: 1052, h: TREEMAP_H - 4 });
 
   useEffect(() => {
     const el = ref.current;
@@ -58,9 +64,7 @@ function useMeasuredBox(active: boolean) {
   return { ref, box };
 }
 
-export default function CriticalityTreemap({ materials }: Props) {
-  const prefersReducedMotion = useReducedMotion();
-  const animate = !prefersReducedMotion;
+export default function CriticalityTreemap({ materials, revealDelay }: Props) {
   const [view, setView] = useState<View>("treemap");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { ref: treeRef, box } = useMeasuredBox(view === "treemap");
@@ -78,12 +82,12 @@ export default function CriticalityTreemap({ materials }: Props) {
   );
 
   return (
-    <section id="risque" className="mx-anchor">
+    <Section id="risque" revealDelay={revealDelay}>
       <SectionKicker>04 · Score CarbonCo</SectionKicker>
 
       <div className="flex items-end justify-between gap-6 flex-wrap mb-8">
         <div>
-          <SectionTitle>Risque d&apos;approvisionnement</SectionTitle>
+          <SectionTitle>Risque d’approvisionnement</SectionTitle>
           <SectionLead>{LEAD[view]}</SectionLead>
         </div>
         <div className="flex items-center gap-6 flex-wrap">
@@ -134,8 +138,14 @@ export default function CriticalityTreemap({ materials }: Props) {
                 key={m.id}
                 type="button"
                 onClick={() => toggle(m.id)}
+                aria-pressed={isOn}
                 title={`${m.name_fr} — score ${m.carbonco_supply_risk_score}`}
-                className={animate ? "ind-tile-in" : undefined}
+                // Contour de sélection et de survol portés par .ind-tile : en
+                // ligne, ils masqueraient le survol de la maquette. L'entrée
+                // .ind-tile-in s'efface d'elle-même sous prefers-reduced-motion
+                // (globals.css) ; la décider ici en JS faisait différer le HTML
+                // du serveur et celui de l'hydratation.
+                className="ind-tile ind-tile-in"
                 style={{
                   position: "absolute",
                   left: t.x, top: t.y, width: t.w, height: t.h,
@@ -148,9 +158,7 @@ export default function CriticalityTreemap({ materials }: Props) {
                   padding: 0,
                   textAlign: "left",
                   font: "inherit",
-                  outline: isOn ? "1px solid var(--color-text)" : "none",
-                  outlineOffset: -1,
-                  animationDelay: animate ? `${0.15 + i * 0.03}s` : undefined,
+                  animationDelay: `${0.15 + i * 0.03}s`,
                 }}
               >
                 <span
@@ -187,17 +195,21 @@ export default function CriticalityTreemap({ materials }: Props) {
                 key={m.id}
                 type="button"
                 onClick={() => toggle(m.id)}
-                className="grid grid-cols-[28px_minmax(0,110px)_minmax(0,1fr)_40px] sm:grid-cols-[28px_150px_minmax(0,1fr)_40px] gap-3 items-center text-left"
+                aria-pressed={selectedId === m.id}
+                // Fond de survol porté par .ind-row (un fond en ligne le masquerait).
+                className="ind-row grid grid-cols-[28px_minmax(0,110px)_minmax(0,1fr)_40px] sm:grid-cols-[28px_150px_minmax(0,1fr)_40px] gap-3 items-center text-left"
                 style={{
                   padding: "8px 0", border: 0,
                   borderBottom: "1px solid color-mix(in srgb, var(--color-text) 8%, transparent)",
-                  background: "transparent", color: "inherit", font: "inherit", cursor: "pointer",
+                  color: "inherit", font: "inherit", cursor: "pointer",
                 }}
               >
                 <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: ".08em", color: "var(--color-accent-700)", fontFeatureSettings: "'tnum' 1" }}>
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{m.name_fr}</span>
+                <span className="whitespace-nowrap overflow-hidden text-ellipsis" style={{ fontSize: 14, fontWeight: 500 }}>
+                  {m.name_fr}
+                </span>
                 <div style={{ height: 12, background: "var(--color-divider)" }}>
                   <div
                     style={{
@@ -225,7 +237,7 @@ export default function CriticalityTreemap({ materials }: Props) {
           <p style={{ margin: "16px 0 0", fontSize: 13, lineHeight: "20px", color: "var(--ink-70)", maxWidth: "80ch" }}>
             Anneau des {materials.length} matières autour du globe : hauteur proportionnelle au score de risque, teinte
             selon la part chinoise. Cliquer une matière fait pivoter le globe vers ses producteurs et trace les flux
-            vers l&apos;Europe ; les filtres en haut à gauche isolent les matières par famille de composants.
+            vers l’Europe ; les filtres en haut à gauche isolent les matières par famille de composants.
           </p>
         </>
       )}
@@ -235,7 +247,7 @@ export default function CriticalityTreemap({ materials }: Props) {
       {selected && view !== "3d" && (
         <Frame className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr_1fr]" style={{ marginTop: 32 }}>
           <div className="border-b md:border-b-0 md:border-r" style={{ padding: 24, borderColor: "var(--color-divider)" }}>
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
               <h3
                 style={{
                   margin: 0, fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: 32,
@@ -252,12 +264,13 @@ export default function CriticalityTreemap({ materials }: Props) {
                 className="ind-btn ind-btn-ghost ml-auto"
                 onClick={() => setSelectedId(null)}
                 aria-label="Fermer le détail"
+                style={{ padding: "0 6px" }}
               >
                 ✕
               </button>
             </div>
             <p style={{ margin: "4px 0 20px", fontSize: 13, color: "var(--ink-70)" }}>{selected.category}</p>
-            <div className="flex flex-wrap gap-6">
+            <div className="grid grid-cols-[repeat(3,auto)] justify-start gap-6">
               <div>
                 <p style={{ margin: 0, fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: 40, lineHeight: "40px", letterSpacing: ".02em", fontFeatureSettings: "'tnum' 1" }}>
                   {(selected.carbonco_supply_risk_score ?? 0).toFixed(1)}
@@ -320,6 +333,6 @@ export default function CriticalityTreemap({ materials }: Props) {
           </div>
         </Frame>
       )}
-    </section>
+    </Section>
   );
 }

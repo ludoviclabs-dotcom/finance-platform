@@ -7,6 +7,7 @@ import { useMxTheme } from "./MxThemeProvider";
 import WorldMap, { type MapPalette } from "./map/WorldMap";
 import CountryRankingSidebar from "./map/CountryRankingSidebar";
 import { Frame } from "./industry/Frame";
+import { Section } from "./industry/Section";
 import { SectionKicker, SectionTitle, SectionLead } from "./industry/SectionKicker";
 
 // Une seule teinte acier, déclinée par thème : la rampe de poids va du pâle au
@@ -22,7 +23,7 @@ const PALETTES: Record<"clair" | "sombre", MapPalette> = {
   },
 };
 
-export default function GlobalMapSection({ materials }: { materials: Material[] }) {
+export default function GlobalMapSection({ materials, revealDelay }: { materials: Material[]; revealDelay?: number }) {
   const { theme } = useMxTheme();
   const weights = useMemo(() => computeCountryWeights(materials), [materials]);
   const [showFlows, setShowFlows] = useState(true);
@@ -47,15 +48,15 @@ export default function GlobalMapSection({ materials }: { materials: Material[] 
       {showFlows && (
         <span className="ml-3 flex items-center gap-1.5">
           <span style={{ width: 16, height: 0, borderTop: `1.5px dashed ${palette.flow}` }} />
-          flux vers l&apos;Europe
+          flux vers l’Europe
         </span>
       )}
     </div>
   );
 
   return (
-    <section id="carte" className="mx-anchor">
-      <SectionKicker>03 · Géographie de l&apos;approvisionnement</SectionKicker>
+    <Section id="carte" revealDelay={revealDelay}>
+      <SectionKicker>03 · Géographie de l’approvisionnement</SectionKicker>
 
       <div className="flex items-end justify-between gap-6 flex-wrap mb-8">
         <div>
@@ -68,7 +69,7 @@ export default function GlobalMapSection({ materials }: { materials: Material[] 
         <div className="ind-seg" role="group" aria-label="Flux">
           <label className="ind-seg-opt">
             <input type="radio" name="mx-flows" checked={showFlows} onChange={() => setShowFlows(true)} />
-            Flux vers l&apos;Europe
+            Flux vers l’Europe
           </label>
           <label className="ind-seg-opt">
             <input type="radio" name="mx-flows" checked={!showFlows} onChange={() => setShowFlows(false)} />
@@ -77,10 +78,11 @@ export default function GlobalMapSection({ materials }: { materials: Material[] 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[8fr_4fr] gap-12 items-start">
-        {/* aspect-ratio plutôt qu'une hauteur fixe : la projection se recale via
-            le ResizeObserver de WorldMap, la figure garde son cadrage 16/9. */}
-        <Frame as="figure" className="m-0" style={{ minHeight: 460, aspectRatio: "16 / 9" }}>
+      {/* minmax(0, …) comme dans la maquette : avec de simples `8fr 4fr`, la
+          largeur minimale de la carte (460px de haut × 16/9 = 818px) gonflait
+          sa colonne et écrasait le classement à 190px. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)] gap-12 items-start">
+        <Frame as="figure" className="m-0">
           <WorldMap
             weights={weights}
             showFlows={showFlows}
@@ -96,6 +98,6 @@ export default function GlobalMapSection({ materials }: { materials: Material[] 
           onSelectCountry={setSelectedCountry}
         />
       </div>
-    </section>
+    </Section>
   );
 }

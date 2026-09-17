@@ -1586,8 +1586,11 @@ body {
   --color-accent-800:  #2c455d;
   --color-accent-900:  #1d2d3d;
 
-  --font-heading:      var(--font-barlow-condensed), "Barlow Condensed", system-ui, sans-serif;
-  --font-body:         var(--font-barlow), "Barlow", system-ui, sans-serif;
+  /* Pile de la maquette : la police web, puis system-ui. --font-barlow* ne
+     portent que la famille web next/font, posée en ligne sur cette même
+     racine (components/materials/industry/fonts.ts, via MxThemeProvider). */
+  --font-heading:      var(--font-barlow-condensed, "Barlow Condensed"), system-ui, sans-serif;
+  --font-body:         var(--font-barlow, "Barlow"), system-ui, sans-serif;
 
   --shadow-md:         0 3px 10px color-mix(in srgb, #2b2b2d 16%, transparent);
 
@@ -1610,6 +1613,10 @@ body {
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 24px;
+  /* La maquette pose `text-wrap: pretty` sur le body : sans lui, les
+     paragraphes courts finissent sur un mot orphelin et ne coupent pas aux
+     mêmes endroits. */
+  text-wrap: pretty;
   transition: background .3s, color .3s;
 }
 
@@ -1659,6 +1666,9 @@ body {
   padding: 6.8px 12.24px;
 }
 .ind-btn-primary { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-bg); }
+/* Même renfort que la maquette : un bouton-lien survolé ne doit pas prendre
+   la couleur de survol des liens, qui se confond avec son propre fond. */
+[data-mx] .ind-btn-primary { color: var(--color-bg); }
 .ind-btn-primary:hover { background: var(--color-accent-600); border-color: var(--color-accent-600); }
 .ind-btn-primary:active { background: var(--color-accent-700); border-color: var(--color-accent-700); }
 .ind-btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
@@ -1691,11 +1701,25 @@ body {
 .ind-table td { padding: 6.8px; border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent); }
 .ind-table tbody tr:hover { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
 
+/* — survols : la maquette les pose en `style-hover`, qui passe devant les
+     styles en ligne ; les propriétés concernées restent donc hors du `style`
+     React des tuiles et des lignes — */
+.ind-tile[aria-pressed="true"],
+.ind-tile:hover { z-index: 2; outline: 1px solid var(--color-text); outline-offset: -1px; }
+.ind-row:hover { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+
+/* — ancres : le filet de la barre collante ne doit pas masquer le surtitre — */
+.ind-anchor { scroll-margin-top: 80px; }
+
 /* — états d'interaction thémés (jamais le focus bleu par défaut) — */
 [data-mx][data-mx-skin="industry"] :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 [data-mx][data-mx-skin="industry"] ::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
-[data-mx][data-mx-skin="industry"] a { color: var(--color-accent-700); text-decoration: none; }
-[data-mx][data-mx-skin="industry"] a:hover { color: var(--color-accent-600); text-decoration: underline; text-underline-offset: 3px; }
+/* Liens : spécificité d'un simple `a`, comme dans la maquette. Écrits
+   `[data-mx][data-mx-skin="industry"] a`, ils l'emportaient sur `.ind-btn` et
+   repeignaient le texte des boutons-liens (le bouton principal devenait
+   illisible). */
+:where([data-mx][data-mx-skin="industry"]) a { color: var(--color-accent-700); text-decoration: none; }
+:where([data-mx][data-mx-skin="industry"]) a:hover { color: var(--color-accent-600); text-decoration: underline; text-underline-offset: 3px; }
 
 /* — animations de la refonte — */
 @keyframes ind-reveal { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
@@ -1705,8 +1729,19 @@ body {
 .ind-tile-in { animation: ind-tile-in .6s cubic-bezier(.16,1,.3,1) both; }
 .ind-draw { animation: ind-draw 2.4s cubic-bezier(.16,1,.3,1) .6s forwards; }
 
+/* Pulsation des points de la carte, telle que la maquette la dessine : le
+   cercle grandit d'un bloc (trait compris) au lieu de voir son rayon passer
+   de 3 à 15. */
+@keyframes ind-ping { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(3.4); opacity: 0; } }
+[data-mx-skin="industry"] .mx-ping-ring { animation-name: ind-ping; transform-box: fill-box; transform-origin: center; }
+
 @media (prefers-reduced-motion: reduce) {
-  .ind-reveal, .ind-tile-in, .ind-draw { animation: none; }
+  /* Les flux et pulsations de la carte sont repris ici : la coupure générale
+     de .mx-flow / .mx-ping-ring (plus haut dans ce fichier) précède leur
+     définition et, à spécificité égale, reste sans effet. */
+  .ind-reveal, .ind-tile-in, .ind-draw,
+  [data-mx-skin="industry"] .mx-flow,
+  [data-mx-skin="industry"] .mx-ping-ring { animation: none; }
   /* Sans animation, `both`/`forwards` ne s'appliquent plus : on rétablit
      explicitement l'état final, sinon le trait resterait invisible. */
   .ind-draw { stroke-dashoffset: 0; }

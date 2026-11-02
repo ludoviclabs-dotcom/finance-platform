@@ -43,7 +43,11 @@ concurrency:
 jobs:
   public:
     name: Surface publique Water Intelligence
-    runs-on: ubuntu-latest
+    # Image épinglée : `ubuntu-latest` pointe désormais sur ubuntu 26.04, que
+    # Playwright 1.59 ne prend pas en charge (`playwright install --with-deps`
+    # échoue : « does not support chromium on ubuntu26.04-x64 »). À repasser
+    # sur `ubuntu-latest` après une montée de Playwright qui supporte 26.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     defaults:
       run:

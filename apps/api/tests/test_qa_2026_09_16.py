@@ -14,8 +14,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
+import jwt
 from fastapi.testclient import TestClient
-from jose import jwt
 from openpyxl import load_workbook
 
 from services import auth_service

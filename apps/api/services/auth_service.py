@@ -23,7 +23,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from jose import JWTError, jwt
+import jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
@@ -285,9 +285,9 @@ def decode_token(token: str) -> Optional[AuthUser]:
     try:
         payload = jwt.decode(
             token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM],
-            options={"require_exp": True},
+            options={"require": ["exp"]},
         )
-    except JWTError:
+    except jwt.PyJWTError:
         return None
     if payload.get("scope") != ACCESS_TOKEN_SCOPE:
         return None
@@ -414,9 +414,9 @@ def decode_pre_auth_token(token: str) -> Optional[AuthUser]:
     try:
         payload = jwt.decode(
             token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM],
-            options={"require_exp": True},
+            options={"require": ["exp"]},
         )
-    except JWTError:
+    except jwt.PyJWTError:
         return None
     if payload.get("scope") != "totp_pending":
         return None

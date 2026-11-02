@@ -1,5 +1,9 @@
 # Acceptation temporaire de risque — GHSA-f88m-g3jw-g9cj (sharp / libvips)
 
+> **CLOS le 2026-11-02** — entrée retirée de l'allowlist de
+> `.github/workflows/frontend.yml` : next 16.4.4 exige `sharp@^0.35.5` ; l'arbre résout `sharp@0.35.5`, hors plage vulnérable.
+> Le reste du document est conservé pour l'historique.
+
 **Statut : ACCEPTÉ TEMPORAIREMENT** · Dernière réévaluation : **2026-07-23** (PR #137)
 · Prochaine réévaluation : **2026-10-23** (ou plus tôt si next publie un `sharp>=0.35.0`).
 

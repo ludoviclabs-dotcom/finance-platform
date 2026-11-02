@@ -1,5 +1,9 @@
 # Acceptation temporaire de risque — GHSA-mh99-v99m-4gvg (brace-expansion)
 
+> **CLOS le 2026-11-02** — entrée retirée de l'allowlist de
+> `.github/workflows/frontend.yml` : l'arbre résout `brace-expansion` 5.0.12 / 2.1.7 / 1.1.21, qu'`npm audit` ne signale plus.
+> Le reste du document est conservé pour l'historique.
+
 **Statut : ACCEPTÉ TEMPORAIREMENT** · Décision : **2026-07-25** (PR #156)
 · Responsable de la revue : **Ludo (mainteneur du dépôt)**
 · Prochaine réévaluation : **2026-08-08** (ou plus tôt si un des événements

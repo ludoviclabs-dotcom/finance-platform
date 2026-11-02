@@ -12,6 +12,7 @@ import { describe, it, expect } from "vitest";
 import { getMaterials } from "@/lib/crm/dataLoader";
 import {
   blocForCountry,
+  collectNumericProvenances,
   collectProvenances,
   getActorsForLayer,
   getRoboticsDataset,
@@ -57,18 +58,10 @@ describe("Intégrité du snapshot", () => {
 describe("Provenance — aucune valeur chiffrée sans source externe", () => {
   it("chaque chiffre (chiffres clés, projections, volumes, capacités, coût matériel) est sourcé, jamais « manual »", async () => {
     const ds = await getRoboticsDataset();
-    const numeric = [
-      ...ds.key_figures.map(k => ({ path: `key_figures.${k.id}`, p: k.provenance })),
-      ...ds.projections.map(p => ({ path: `projections.${p.id}`, p: p.provenance })),
-      ...ds.bom.map(b => ({ path: `bom.${b.id}`, p: b.provenance })),
-      ...ds.oems.flatMap(o => [
-        ...(o.volume ? [{ path: `oems.${o.actor_id}.volume`, p: o.volume.provenance }] : []),
-        ...(o.capacity ? [{ path: `oems.${o.actor_id}.capacity`, p: o.capacity.provenance }] : []),
-      ]),
-    ];
+    const numeric = collectNumericProvenances(ds);
     expect(numeric.length).toBeGreaterThan(0);
-    for (const { path, p } of numeric) {
-      expect(p.data_quality, `${path} ne peut pas être une saisie éditoriale`).not.toBe("manual");
+    for (const { path, provenance } of numeric) {
+      expect(provenance.data_quality, `${path} ne peut pas être une saisie éditoriale`).not.toBe("manual");
     }
   });
 
@@ -203,5 +196,17 @@ describe("summarizeRobotics — indicateurs dérivés, aucun chiffre en dur", ()
     expect(s.externalSources).toBeLessThan(s.sources);
     expect(s.verifiedPct).toBeGreaterThanOrEqual(0);
     expect(s.verifiedPct).toBeLessThanOrEqual(100);
+  });
+
+  it("le taux de valeurs chiffrées vérifiées ne compte que les valeurs chiffrées", async () => {
+    const ds = await getRoboticsDataset();
+    const s = summarizeRobotics(ds);
+    const volumes = ds.oems.filter(o => o.volume).length;
+    const capacities = ds.oems.filter(o => o.capacity).length;
+    expect(s.values).toBe(ds.key_figures.length + ds.projections.length + ds.bom.length + volumes + capacities);
+    // Les acteurs, couches, goulots et alliances sourcés n'entrent pas au dénominateur.
+    expect(s.values).toBeLessThan(collectProvenances(ds).filter(p => p.provenance.data_quality !== "manual").length);
+    const verified = collectNumericProvenances(ds).filter(p => p.provenance.data_quality === "verified").length;
+    expect(s.verifiedPct).toBe(Math.round((verified / s.values) * 100));
   });
 });

@@ -477,9 +477,25 @@ export interface RoboticsSummary {
   verifiedPct: number;
 }
 
+// Provenances des seules valeurs CHIFFRÉES : chiffres clés, projections,
+// postes de coût, volumes et capacités des constructeurs. Les acteurs, couches,
+// goulots et alliances portent des faits sourcés, pas des chiffres : les compter
+// gonflerait le taux de « valeurs chiffrées vérifiées » affiché par la page.
+export function collectNumericProvenances(ds: RoboticsDataset): { path: string; provenance: Provenance }[] {
+  return [
+    ...ds.key_figures.map(k => ({ path: `key_figures.${k.id}`, provenance: k.provenance })),
+    ...ds.projections.map(p => ({ path: `projections.${p.id}`, provenance: p.provenance })),
+    ...ds.bom.map(b => ({ path: `bom.${b.id}`, provenance: b.provenance })),
+    ...ds.oems.flatMap(o => [
+      ...(o.volume ? [{ path: `oems.${o.actor_id}.volume`, provenance: o.volume.provenance }] : []),
+      ...(o.capacity ? [{ path: `oems.${o.actor_id}.capacity`, provenance: o.capacity.provenance }] : []),
+    ]),
+  ];
+}
+
 // Indicateurs de tête — TOUS calculés depuis le jeu, aucun chiffre en dur.
 export function summarizeRobotics(ds: RoboticsDataset): RoboticsSummary {
-  const provenances = collectProvenances(ds).filter(p => p.provenance.data_quality !== "manual");
+  const provenances = collectNumericProvenances(ds);
   const verified = provenances.filter(p => p.provenance.data_quality === "verified").length;
   return {
     layers: ds.layers.length,

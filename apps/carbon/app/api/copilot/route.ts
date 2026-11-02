@@ -4,7 +4,12 @@ import { checkCopilotRateLimit } from "@/lib/rate-limit";
 import { verifyBearerToken } from "@/lib/verify-jwt";
 import { isLiveAi, demoStreamResponse } from "@/lib/ai/provider";
 import { buildDemoCopilotAnswer } from "@/lib/ai/demo-copilot";
-import { COMPANY_ALIAS, pseudonymizeContext } from "@/lib/ai/pseudonymize";
+import {
+  COMPANY_ALIAS,
+  collectIdentifyingValues,
+  pseudonymizeContext,
+  pseudonymizeMessages,
+} from "@/lib/ai/pseudonymize";
 
 export const maxDuration = 60;
 
@@ -282,7 +287,10 @@ export async function POST(req: Request) {
     return demoStreamResponse(buildDemoCopilotAnswer(messages, tools ?? null));
   }
 
-  // Pseudonymisation avant tout envoi au modèle (cf. /trust/sub-processors).
+  // Pseudonymisation avant tout envoi au modèle (cf. /trust/sub-processors) :
+  // le contexte structuré, et le texte des messages, où l'utilisateur peut
+  // avoir tapé la raison sociale ou un identifiant.
+  const knownIdentifiers = collectIdentifyingValues(tools, snapshots);
   const system = buildSystemPrompt(
     tools ? pseudonymizeContext(tools) : null,
     snapshots ? pseudonymizeContext(snapshots) : null,
@@ -292,7 +300,7 @@ export async function POST(req: Request) {
   const result = streamText({
     model: "anthropic/claude-sonnet-4.6",
     system,
-    messages: await convertToModelMessages(messages),
+    messages: await convertToModelMessages(pseudonymizeMessages(messages, knownIdentifiers)),
   });
 
   return result.toUIMessageStreamResponse();

@@ -25,7 +25,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyBearerToken, requireRole } from "@/lib/verify-jwt";
-import { loadState, upsertExtraction } from "@/lib/datapoints/store";
+import { updateDatapoint } from "@/lib/datapoints/store";
 import { findDatapoint, type ExtractedDatapoint } from "@/lib/esrs/schema";
 
 export const runtime = "nodejs";
@@ -104,12 +104,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 6. Chargement du state pour ce tenant
+  // 6-9. Lecture-modification-écriture du datapoint : la décision est
+  //      calculée sur l'état fraîchement relu, et l'écriture est rejouée si un
+  //      autre relecteur a écrit entre-temps (aucune décision perdue).
   const cid = String(payload.cid);
-  const state = await loadState(cid);
-  const existing = state.datapoints[body.datapointId];
+  const now = new Date().toISOString();
+  const actor = payload.sub;
 
-  if (!existing) {
+  const updated = await updateDatapoint(cid, body.datapointId, (existing) =>
+    existing ? applyReview(existing, body, actor, now) : null,
+  );
+
+  if (!updated) {
     return NextResponse.json(
       {
         error: `Datapoint ${body.datapointId} non trouvé dans le state (pas encore extrait)`,
@@ -118,10 +124,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 7. Construction du datapoint mis à jour
-  const now = new Date().toISOString();
-  const actor = payload.sub;
+  // 10. Réponse
+  return NextResponse.json({
+    datapointId: body.datapointId,
+    action: body.action,
+    status: updated.status,
+    value: updated.value,
+    validatedBy: actor,
+    reviewedAt: now,
+    label: definition.label_fr,
+    standard: definition.standard,
+  });
+}
 
+// ---------------------------------------------------------------------------
+// Application d'une décision de revue
+// ---------------------------------------------------------------------------
+
+function applyReview(
+  existing: ExtractedDatapoint,
+  body: ReviewActionBody,
+  actor: string,
+  now: string,
+): ExtractedDatapoint {
   let updated: ExtractedDatapoint;
 
   switch (body.action) {
@@ -156,8 +181,8 @@ export async function POST(req: NextRequest) {
       break;
   }
 
-  // 8. Historique append-only : la décision s'ajoute aux précédentes
-  updated = {
+  // Historique append-only : la décision s'ajoute aux précédentes
+  return {
     ...updated,
     reviewHistory: [
       ...(existing.reviewHistory ?? []),
@@ -172,19 +197,4 @@ export async function POST(req: NextRequest) {
       },
     ],
   };
-
-  // 9. Persistance dans Vercel Blob
-  await upsertExtraction(cid, updated);
-
-  // 10. Réponse
-  return NextResponse.json({
-    datapointId: body.datapointId,
-    action: body.action,
-    status: updated.status,
-    value: updated.value,
-    validatedBy: actor,
-    reviewedAt: now,
-    label: definition.label_fr,
-    standard: definition.standard,
-  });
 }

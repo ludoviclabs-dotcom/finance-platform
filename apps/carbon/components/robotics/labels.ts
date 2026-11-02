@@ -1,7 +1,8 @@
 // Libellés et formats d'affichage de /robotics. Séparés du chargeur
 // (lib/robotics/dataLoader.ts), qui reste libre de toute présentation.
 import type { DataQuality } from "@/lib/crm/dataLoader";
-import type { BlocId, SegmentId, SourceKind } from "@/lib/robotics/dataLoader";
+import { countryLabelFr } from "@/lib/iso3166";
+import type { Actor, BlocId, SegmentId, SourceKind } from "@/lib/robotics/dataLoader";
 
 export const BLOC_ORDER: readonly BlocId[] = ["us", "cn", "eu", "as", "other"];
 
@@ -21,6 +22,14 @@ export const BLOC_SHORT: Record<BlocId, string> = {
   as: "JP·KR·TW",
   other: "Autres",
 };
+
+// Le bloc « Autres » se nomme par les pays de ses acteurs dans la couche
+// (Lynas : Australie) plutôt que par un libellé générique.
+export function blocDisplayName(bloc: BlocId, layerActors: readonly Actor[]): string {
+  if (bloc !== "other") return BLOC_LABEL[bloc];
+  const countries = [...new Set(layerActors.filter(a => a.bloc === "other").flatMap(a => a.countries))];
+  return countries.length > 0 ? countries.map(countryLabelFr).join(", ") : BLOC_LABEL.other;
+}
 
 export const SEGMENT_ORDER: readonly SegmentId[] = ["amont", "milieu", "mecatronique", "aval"];
 

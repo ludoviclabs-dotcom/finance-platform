@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { BLOG_ARTICLES } from "@/lib/blog-articles";
 import { PRODUCT_MODULES } from "@/lib/product-modules";
+import { getRoboticsDataset } from "@/lib/robotics/dataLoader";
 import { siteUrl } from "@/lib/site-url";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteUrl();
   const now = new Date();
 
@@ -28,6 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     */
     { url: `${baseUrl}/materials`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/water`, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${baseUrl}/robotics`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/integrations`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${baseUrl}/blog`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/aide`, changeFrequency: "monthly", priority: 0.8 },
@@ -50,6 +52,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(a.date),
     changeFrequency: "monthly",
     priority: 0.7,
+  }));
+
+  // —— Fiches des couches de la chaîne robotique ——
+  const roboticsPages: MetadataRoute.Sitemap = (await getRoboticsDataset()).layers.map((l) => ({
+    url: `${baseUrl}/robotics/${l.id}`,
+    changeFrequency: "monthly",
+    priority: 0.6,
   }));
 
   // —— Pages produit par module ——
@@ -75,7 +84,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/ai-act`, changeFrequency: "monthly", priority: 0.6 },
   ];
 
-  return [...corePages, ...blogPages, ...productPages, ...legalPages, ...trustPages].map((entry) => ({
+  return [...corePages, ...roboticsPages, ...blogPages, ...productPages, ...legalPages, ...trustPages].map((entry) => ({
     lastModified: now,
     ...entry,
   }));

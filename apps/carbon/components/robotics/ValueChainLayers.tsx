@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Material } from "@/lib/crm/dataLoader";
-import { countryLabelFr } from "@/lib/iso3166";
 import {
   getActorsForLayer,
   getKeyFigure,
@@ -10,7 +9,7 @@ import {
   type RoboticsDataset,
 } from "@/lib/robotics/dataLoader";
 import { Frame } from "@/components/materials/industry/Frame";
-import { BLOC_LABEL, SEGMENT_DESC, SEGMENT_LABEL, SEGMENT_ORDER, formatIsoDate } from "./labels";
+import { SEGMENT_DESC, SEGMENT_LABEL, SEGMENT_ORDER, blocDisplayName, formatIsoDate } from "./labels";
 
 const ACTOR_PREVIEW = 5;
 
@@ -19,13 +18,7 @@ function LayerCard({ ds, layer, materials }: { ds: RoboticsDataset; layer: Layer
   const linked = resolveLayerMaterials(layer, materials);
   const rationale = new Map(layer.material_links.map(l => [l.material_id, l.rationale]));
   const figures = layer.key_figure_ids.map(id => getKeyFigure(ds, id));
-  // Le bloc « Autres » se nomme par les pays de ses acteurs (Lynas : Australie)
-  // plutôt que par un libellé générique.
-  const blocName = (b: BlocId) =>
-    b === "other"
-      ? [...new Set(actors.filter(a => a.bloc === "other").flatMap(a => a.countries))].map(countryLabelFr).join(", ") ||
-        BLOC_LABEL.other
-      : BLOC_LABEL[b];
+  const blocName = (b: BlocId) => blocDisplayName(b, actors);
 
   return (
     <Frame as="section" className="ind-anchor flex flex-col gap-3" style={{ padding: 20 }} id={`couche-${layer.id}`}>
@@ -44,7 +37,9 @@ function LayerCard({ ds, layer, materials }: { ds: RoboticsDataset; layer: Layer
             textTransform: "uppercase",
           }}
         >
-          {layer.name}
+          <Link href={`/robotics/${layer.id}`} style={{ color: "var(--color-text)" }}>
+            {layer.name}
+          </Link>
         </h4>
       </div>
 
@@ -76,6 +71,10 @@ function LayerCard({ ds, layer, materials }: { ds: RoboticsDataset; layer: Layer
           ))}
         </ul>
       )}
+
+      <Link href={`/robotics/${layer.id}`} style={{ fontSize: 13, marginTop: linked.length > 0 ? 0 : "auto" }}>
+        Fiche de la couche →
+      </Link>
 
       {linked.length > 0 && (
         <div className="flex flex-col gap-1.5" style={{ marginTop: "auto", paddingTop: 8, borderTop: "1px solid var(--color-divider)" }}>

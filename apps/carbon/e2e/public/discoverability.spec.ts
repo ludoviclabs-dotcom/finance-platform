@@ -103,8 +103,8 @@ test.describe("découvrabilité depuis la page d’accueil", () => {
   });
 });
 
-test.describe("menu Ressources", () => {
-  test("ouvre, expose les deux modules et se ferme avec Échap", async ({ page }) => {
+test.describe("menu Dépendances", () => {
+  test("ouvre, expose les trois modules et se ferme avec Échap", async ({ page }) => {
     await page.goto("/");
 
     if (await isDesktopNav(page)) {
@@ -116,6 +116,7 @@ test.describe("menu Ressources", () => {
       const panel = page.locator('[data-testid="nav-resources-panel"]');
       await expect(panel.locator('a[href="/materials"]')).toBeVisible();
       await expect(panel.locator('a[href="/water"]')).toBeVisible();
+      await expect(panel.locator('a[href="/robotics"]')).toBeVisible();
 
       await page.keyboard.press("Escape");
       await expect(panel).toHaveCount(0);
@@ -129,6 +130,7 @@ test.describe("menu Ressources", () => {
       await expect(group).toBeVisible();
       await expect(group.locator('a[href="/materials"]')).toBeVisible();
       await expect(group.locator('a[href="/water"]')).toBeVisible();
+      await expect(group.locator('a[href="/robotics"]')).toBeVisible();
     }
   });
 
@@ -157,11 +159,12 @@ test.describe("menu Ressources", () => {
 });
 
 test.describe("autres points d’entrée", () => {
-  test("le pied de page mène aux deux modules", async ({ page }) => {
+  test("le pied de page mène aux trois modules", async ({ page }) => {
     await page.goto("/");
     const footer = page.locator("footer");
     await expect(footer.locator('a[href="/water"]')).toHaveCount(1);
     await expect(footer.locator('a[href="/materials"]')).toHaveCount(1);
+    await expect(footer.locator('a[href="/robotics"]')).toHaveCount(1);
   });
 
   test("le sitemap déclare la surface publique, jamais les cockpits", async ({ page }) => {
@@ -170,6 +173,7 @@ test.describe("autres points d’entrée", () => {
     const xml = await page.content();
     expect(xml).toMatch(/<loc>[^<]*\/water<\/loc>/);
     expect(xml).toContain("/materials");
+    expect(xml).toMatch(/<loc>[^<]*\/robotics<\/loc>/);
     // Les cockpits authentifiés n'ont rien à faire dans un plan de site public.
     expect(xml).not.toContain("/water/cockpit");
     expect(xml).not.toContain("/water/decision");

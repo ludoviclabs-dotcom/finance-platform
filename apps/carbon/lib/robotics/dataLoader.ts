@@ -242,6 +242,27 @@ export function getActorsForLayer(ds: RoboticsDataset, layerId: string): Actor[]
   return ds.actors.filter(a => a.layer_ids.includes(layerId));
 }
 
+export function getChokepointsForLayer(ds: RoboticsDataset, layerId: string): Chokepoint[] {
+  return ds.chokepoints.filter(c => c.layer_ids.includes(layerId));
+}
+
+export function getBomForLayer(ds: RoboticsDataset, layerId: string): BomItem[] {
+  return ds.bom.filter(b => b.layer_ids.includes(layerId));
+}
+
+// Pont retour, de la fiche /materials vers les couches qui consomment la
+// matière, dans l'ordre de lecture de la chaîne.
+export function getLayersForMaterial(
+  ds: RoboticsDataset,
+  materialId: string,
+): { layer: Layer; rationale: string }[] {
+  return layersInReadingOrder(ds).flatMap(layer =>
+    layer.material_links
+      .filter(link => link.material_id === materialId)
+      .map(link => ({ layer, rationale: link.rationale })),
+  );
+}
+
 // Couches triées dans l'ordre de lecture (amont → aval), pas par numéro : le
 // dossier numérote les couches par ancienneté, l'ordre d'affichage les regroupe
 // par segment (les batteries, couche 7, se lisent en amont).

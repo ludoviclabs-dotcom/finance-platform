@@ -60,9 +60,9 @@ const NAV_LINKS = [
   { href: "#features", label: "Fonctionnalités" },
   { href: "/produit", label: "Produit" },
   // « Métaux critiques » n'est plus un lien de premier niveau : il rejoint
-  // « Eau & risques hydriques » sous « Ressources ». La barre perd une entrée
-  // au lieu d'en gagner une — elle débordait déjà à neuf.
-  { href: RESOURCES_MENU_SLOT, label: "Ressources" },
+  // « Eau & risques hydriques » et la robotique sous « Dépendances ». La barre
+  // perd une entrée au lieu d'en gagner une — elle débordait déjà à neuf.
+  { href: RESOURCES_MENU_SLOT, label: "Dépendances" },
   { href: "/proof", label: "Preuve" },
   { href: "#how", label: "Comment ça marche" },
   { href: "#pricing", label: "Tarifs" },
@@ -1277,6 +1277,7 @@ export function LandingPage({ onEnterApp, materialsStats, esrsDatapointCount = 1
                 <li><a href="/integrations" className="text-sm text-neutral-500 hover:text-black transition-colors">Sources &amp; intégrations</a></li>
                 <li><Link href="/materials" className="text-sm text-neutral-500 hover:text-black transition-colors">Métaux critiques</Link></li>
                 <li><Link href="/water" className="text-sm text-neutral-500 hover:text-black transition-colors">Eau &amp; risques hydriques</Link></li>
+                <li><Link href="/robotics" className="text-sm text-neutral-500 hover:text-black transition-colors">Robotique &amp; IA physique</Link></li>
                 <li><a href="/etat-du-produit" className="text-sm text-neutral-500 hover:text-black transition-colors">État du produit</a></li>
               </ul>
             </div>

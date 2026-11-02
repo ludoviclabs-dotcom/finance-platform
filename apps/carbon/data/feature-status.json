@@ -389,6 +389,18 @@
       "preuve": "apps/carbon/app/materials/page.tsx"
     },
     {
+      "id": "robotique-ia-physique",
+      "label": "Chaîne de valeur des robots humanoïdes (robotique & IA physique)",
+      "description": "Module d'exploration : la chaîne de valeur mondiale des humanoïdes en 12 couches, de la mine aux modèles d'IA — blocs qui dominent chaque couche, acteurs, coût matériel, goulots d'étranglement et contrôles à l'export. Chaque couche renvoie aux matières critiques qu'elle consomme (pont avec la cartographie des matières). Chaque chiffre est relié à une source datée ; données de contexte non normatives, sans cours ni conseil en investissement.",
+      "statut": "verification",
+      "normes": [
+        "ESRS E5"
+      ],
+      "tag": "Module d'exploration",
+      "href": "/robotics",
+      "preuve": "apps/carbon/app/robotics/page.tsx"
+    },
+    {
       "id": "intelligence-sources",
       "label": "Registre des sources & provenance (intelligence)",
       "description": "Console interne de gestion des sources externes : registre, releases immuables (checksum SHA-256), licences évaluées et fraîcheur. Le snapshot de démonstration /materials y est migré en source+release auditable (observations estimées). Migration byte-fidèle prouvée par un rapport de parité.",

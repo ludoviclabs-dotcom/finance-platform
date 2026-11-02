@@ -13,8 +13,8 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import pytest
 import jwt
+import pytest
 from fastapi.testclient import TestClient
 from openpyxl import load_workbook
 

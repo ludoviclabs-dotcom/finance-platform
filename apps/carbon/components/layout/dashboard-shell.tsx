@@ -49,10 +49,10 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/actions":     { title: "Leviers de réduction", subtitle: "MACC & plan de transition" },
   "/imports":     { title: "Imports fichiers",    subtitle: "AWS · GCP · Qonto" },
   "/diff":        { title: "Multi-exercices",     subtitle: "Diff & réponses questionnaires" },
-  "/esrs":        { title: "ESRS / CSRD",      subtitle: "Conformité réglementaire" },
+  "/esrs":        { title: "ESRS / CSRD",      subtitle: "Couverture ESRS" },
   "/materialite": { title: "Double matérialité", subtitle: "Impacts × Risques × Opportunités" },
   "/proof-twin":  { title: "ProofTwin",         subtitle: "Chaîne de preuve carbone vérifiable" },
-  "/datapoints":  { title: "Datapoints CSRD",   subtitle: "Extraction LLM-RAG · ESRS Set 2" },
+  "/datapoints":  { title: "Datapoints CSRD",   subtitle: "Extraction LLM-RAG · référentiel ESRS simplifié (avis EFRAG 2025)" },
   "/revue":       { title: "Inbox de validation", subtitle: "Workflow proposé → validé → figé" },
   "/qc":          { title: "Contrôles qualité", subtitle: "Intégrité + drill-down" },
   "/social":      { title: "Social",           subtitle: "Effectifs, diversité, sécurité" },
@@ -67,7 +67,7 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   "/iro":         { title: "Registre IRO", subtitle: "Impacts, risques, opportunités · double matérialité" },
   "/resources":   { title: "Ressources stratégiques", subtitle: "Dépendances industrielles · concentration · risque ≠ confiance" },
   "/resources/exposures":   { title: "Expositions ressources", subtitle: "Ponts achats · énergie · eau · nomenclature" },
-  "/resources/assessments": { title: "Assessments ressources", subtitle: "Runs immuables · CarbonCo Resource Exposure Score" },
+  "/resources/assessments": { title: "Assessments ressources", subtitle: "Runs en ajout seul · CarbonCo Resource Exposure Score" },
   "/resources/methodology": { title: "Méthodologie ressources", subtitle: "CC-RESOURCE-EXPOSURE · méthode CarbonCo non officielle" },
 };
 

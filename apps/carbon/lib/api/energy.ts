@@ -363,7 +363,7 @@ export function approveScope2Run(runId: number): Promise<Scope2RunEnvelope> {
   return energyPost<Scope2RunEnvelope>(`/energy/scope2/runs/${runId}/approve`, {});
 }
 
-/** URL de téléchargement de l'Evidence Pack (ZIP signé). Le téléchargement passe
+/** URL de téléchargement de l'Evidence Pack (manifeste + empreintes SHA-256). Le téléchargement passe
  *  par une requête authentifiée — pas d'URL signée permanente (contrats §3). */
 export async function downloadScope2EvidencePack(runId: number): Promise<Blob> {
   const res = await fetch(`${API_BASE_URL}/energy/scope2/runs/${runId}/evidence-pack`, {

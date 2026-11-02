@@ -1,8 +1,9 @@
 /**
  * POST /api/datapoints/export-ixbrl
  *
- * Génère un document iXBRL ESEF conforme EFRAG taxonomie 2024-12-04 à partir
- * des datapoints validés (ou extraits si allowDraft=true) du tenant courant.
+ * Génère un document iXBRL (bêta) qui suit la taxonomie XBRL ESRS de l'EFRAG
+ * (2024-12-04) à partir des datapoints validés (ou extraits si allowDraft=true)
+ * du tenant courant.
  *
  * Body :
  *   {

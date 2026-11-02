@@ -15,7 +15,7 @@ import { fetchCopilotTools, getAuthToken, ragSearch, type CopilotToolsBundle, ty
 
 const quickPrompts = [
   { label: "Bilan carbone Scope 1, 2 et 3", icon: "🏭" },
-  { label: "Conformité ESRS / CSRD", icon: "📋" },
+  { label: "Couverture ESRS / CSRD", icon: "📋" },
   { label: "Coût CBAM estimé", icon: "🌍" },
   { label: "Alignement Taxonomie UE", icon: "🌿" },
   { label: "Enjeux matériels prioritaires", icon: "⚖️" },

@@ -9,10 +9,7 @@ interface MethodologyModalProps {
 }
 
 const SOURCES = [
-  { name: "ADEME Base Carbone 2024", scope: "Facteurs d'émission France", badge: "Officiel", color: "bg-blue-50 text-blue-700 border-blue-200" },
-  { name: "IEA Emissions Factors 2024", scope: "Réseau électrique mondial", badge: "International", color: "bg-purple-50 text-purple-700 border-purple-200" },
-  { name: "Ecoinvent 3.9", scope: "Cycle de vie produits & matières", badge: "Référence", color: "bg-orange-50 text-orange-700 border-orange-200" },
-  { name: "Boavizta Cloud Impacts", scope: "Infrastructure numérique", badge: "Open Source", color: "bg-green-50 text-green-700 border-green-200" },
+  { name: "ADEME Base Empreinte®", scope: "Facteurs d'émission versionnés — identifiant et version conservés par calcul", badge: "Officiel", color: "bg-blue-50 text-blue-700 border-blue-200" },
 ];
 
 const PERIMETER = [
@@ -102,7 +99,7 @@ export function MethodologyModal({ open, onClose }: MethodologyModalProps) {
 
                 {/* Conformité */}
                 <section>
-                  <h3 className="text-xs font-bold text-[var(--color-foreground-muted)] uppercase tracking-wider mb-3">Badges de conformité</h3>
+                  <h3 className="text-xs font-bold text-[var(--color-foreground-muted)] uppercase tracking-wider mb-3">Référentiels suivis</h3>
                   <div className="grid grid-cols-3 gap-3">
                     {[
                       { label: "ESRS E1", desc: "Changement climatique", ok: true },
@@ -115,7 +112,7 @@ export function MethodologyModal({ open, onClose }: MethodologyModalProps) {
                       <div key={b.label} className={`rounded-lg p-2.5 border text-center ${b.ok ? "bg-[var(--color-success)]/5 border-[var(--color-success)]/20" : "bg-[var(--color-background)] border-[var(--color-border)]"}`}>
                         <div className={`text-xs font-bold mb-0.5 ${b.ok ? "text-[var(--color-success)]" : "text-[var(--color-foreground-subtle)]"}`}>{b.label}</div>
                         <div className="text-[10px] text-[var(--color-foreground-muted)]">{b.desc}</div>
-                        <div className={`text-[10px] mt-1 font-semibold ${b.ok ? "text-[var(--color-success)]" : "text-[var(--color-foreground-subtle)]"}`}>{b.ok ? "✓ Conforme" : "En cours"}</div>
+                        <div className={`text-[10px] mt-1 font-semibold ${b.ok ? "text-[var(--color-success)]" : "text-[var(--color-foreground-subtle)]"}`}>{b.ok ? "✓ Couvert" : "En cours"}</div>
                       </div>
                     ))}
                   </div>
@@ -128,7 +125,7 @@ export function MethodologyModal({ open, onClose }: MethodologyModalProps) {
                     <div>
                       <p className="text-xs font-bold text-amber-800 mb-1">Disclaimer EU AI Act — usage responsable</p>
                       <p className="text-xs text-amber-700 leading-relaxed">
-                        Les suggestions et analyses générées par NEURAL sont des recommandations d&apos;aide à la décision. Elles doivent être validées par un expert avant tout usage dans un rapport officiel. La classification du système au regard du règlement UE 2024/1689 (EU AI Act) est en cours d&apos;évaluation — non auditée à ce jour. L&apos;application générale de l&apos;AI Act intervient le 2 août 2026.
+                        Les suggestions et analyses générées par NEURAL sont des recommandations d&apos;aide à la décision. Elles doivent être validées par un expert avant tout usage dans un rapport officiel. La classification du système au regard du règlement UE 2024/1689 (EU AI Act) est en cours d&apos;évaluation — non auditée à ce jour. L&apos;AI Act s&apos;applique de façon générale depuis le 2 août 2026 ; NEURAL relève des obligations de transparence de l&apos;article 50 (voir /ai-act).
                       </p>
                     </div>
                   </div>

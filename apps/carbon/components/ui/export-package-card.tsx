@@ -77,8 +77,8 @@ export function ExportPackageCard() {
             Export auditable
           </h3>
           <p className="text-xs text-[var(--color-foreground-muted)] mt-1">
-            Génère un ZIP signé (manifest SHA-256) contenant l&apos;historique
-            vérifiable de vos KPIs, prêt à partager avec un auditeur.
+            Génère un ZIP avec manifeste et empreintes SHA-256 contenant l&apos;historique
+            vérifiable de vos KPIs : un dossier de preuves pour le vérificateur (CAC ou OTI).
           </p>
         </div>
       </div>

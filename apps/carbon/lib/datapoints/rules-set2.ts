@@ -1,12 +1,14 @@
 /**
- * Corpus de règles ESRS Set 2 — basé sur les guidances EFRAG IG-2 (2024) et
- * EFRAG IG-3 (2025), simplifié post-Omnibus mars 2026.
+ * Corpus de règles du référentiel ESRS (avis technique EFRAG 2025, alignement
+ * sur le règlement délégué (UE) 2026/1563 à venir) — basé sur les guidances
+ * EFRAG IG-2 (2024) et IG-3 (2025), simplifié post-Omnibus mars 2026.
  *
  * Chaque règle est déclarative : elle référence des datapoint IDs définis
  * dans `lib/esrs-set2.json` et utilise les fabriques de `validator.ts`.
  *
  * Catégories couvertes :
- *   1. E1 climat : Scope 2 LB ≥ MB, total GHG = Σ scopes, intensité GHG, % renouvelable
+ *   1. E1 climat : Scope 2 MB > LB (information, attendu avec le mix résiduel),
+ *      total GHG = Σ scopes (location- ou market-based), intensité GHG, % renouvelable
  *   2. E5 économie circulaire : waste_total = diverted + directed
  *   3. E3 eau : water_consumption ≤ withdrawal
  *   4. Bornes pourcentages : 0 ≤ % ≤ 100 sur tous les datapoints en %
@@ -28,28 +30,81 @@ import { ESRS_SET2 } from "@/lib/esrs/schema";
 
 // ─── 1. Règles cohérence E1 climat ──────────────────────────────────────────
 
-const E1_RULES: Rule[] = [
-  ruleGte({
-    id: "E1-scope2-LB-gte-MB",
+/**
+ * Total GES ≈ Scope 1 + Scope 2 + Scope 3 (±2 %), le Scope 2 pouvant être pris
+ * en location-based OU en market-based : l'ESRS E1-6 demande les deux totaux et
+ * le classeur publie le total réglementaire en location-based
+ * (api/services/carbon/workbook_totals.py). La règle passe si le total colle à
+ * l'une des deux bases et ne se déclenche que s'il ne correspond à aucune.
+ */
+function totalGhgMatchesEitherBasis(): Rule {
+  const id = "E1-total-GHG-equals-sum-scopes";
+  const tolerancePct = 2;
+  return {
+    id,
     description:
-      "ESRS E1-6 : la valeur location-based doit être ≥ market-based (les contrats verts réduisent uniquement le market-based).",
+      "ESRS E1-6 : émissions GES totales ≈ Scope 1 + Scope 2 (location-based ou market-based) + Scope 3 (tolérance ±2 %).",
+    severity: "error",
+    scope: "datapoint",
+    standards: ["E1"],
+    evaluate: (ctx) => {
+      const total = ctx.num("E1-6_total_ghg");
+      const s1 = ctx.num("E1-6_scope1_gross");
+      const s3 = ctx.num("E1-6_scope3_total");
+      if (total === null || s1 === null || s3 === null) return [];
+      const bases = [
+        { label: "market-based", s2: ctx.num("E1-6_scope2_market_based") },
+        { label: "location-based", s2: ctx.num("E1-6_scope2_location_based") },
+      ].filter((b): b is { label: string; s2: number } => b.s2 !== null);
+      if (bases.length === 0) return [];
+      const sums = bases.map((b) => ({ ...b, sum: s1 + b.s2 + s3 }));
+      const delta = (sum: number) => (sum === 0 ? (total === 0 ? 0 : 100) : ((total - sum) / sum) * 100);
+      if (sums.some((b) => Math.abs(delta(b.sum)) <= tolerancePct)) return [];
+      const closest = sums.reduce((a, b) => (Math.abs(delta(b.sum)) < Math.abs(delta(a.sum)) ? b : a));
+      return [
+        {
+          ruleId: id,
+          severity: "error",
+          scope: "datapoint",
+          datapointIds: [
+            "E1-6_total_ghg",
+            "E1-6_scope1_gross",
+            "E1-6_scope2_location_based",
+            "E1-6_scope2_market_based",
+            "E1-6_scope3_total",
+          ],
+          message: `E1-6_total_ghg (${total}) ne correspond à aucune somme des scopes : ${sums
+            .map((b) => `${b.sum.toFixed(2)} avec le scope 2 ${b.label}`)
+            .join(", ")} — tolérance ±${tolerancePct} %.`,
+          suggestion:
+            "Recalculer le total avec le scope 2 location-based et avec le scope 2 market-based, et publier les deux totaux comme le demande l'ESRS E1-6.",
+          computed: { expected: closest.sum, actual: total, deltaPct: delta(closest.sum) },
+        },
+      ];
+    },
+  };
+}
+
+const E1_RULES: Rule[] = [
+  // Scope 2 : un market-based supérieur au location-based n'est PAS une erreur.
+  // Sans garantie d'origine ni contrat d'achat direct, le market-based applique
+  // le mix résiduel, plus carboné que la moyenne du réseau (GHG Protocol Scope 2
+  // Guidance 2015 ; ESRS E1-6 demande les deux chiffres). Information seulement,
+  // sans effet sur le score d'audit.
+  ruleGte({
+    id: "E1-scope2-MB-above-LB",
+    description:
+      "ESRS E1-6 : signale un Scope 2 market-based supérieur au location-based, attendu en l'absence d'instruments contractuels (mix résiduel).",
     a: "E1-6_scope2_location_based",
     b: "E1-6_scope2_market_based",
-    severity: "error",
+    severity: "info",
     standards: ["E1"],
     message: (a, b) =>
-      `Scope 2 location-based (${a} tCO₂e) doit être ≥ Scope 2 market-based (${b} tCO₂e). Les contrats d'achat d'électricité verte ne peuvent réduire que le market-based.`,
+      `Scope 2 market-based (${b} tCO₂e) supérieur au location-based (${a} tCO₂e) : c'est attendu sans garanties d'origine ni contrat d'achat direct, car le market-based applique alors le mix résiduel.`,
+    suggestion:
+      "Vérifier que les garanties d'origine, PPA ou offres vertes détenus sont bien saisis ; publier les deux chiffres côte à côte.",
   }),
-  ruleSumWithinTolerance({
-    id: "E1-total-GHG-equals-sum-scopes",
-    description:
-      "ESRS E1-6 : émissions GES totales ≈ Scope 1 + Scope 2 (market-based) + Scope 3 (tolérance ±2 %).",
-    target: "E1-6_total_ghg",
-    components: ["E1-6_scope1_gross", "E1-6_scope2_market_based", "E1-6_scope3_total"],
-    tolerancePct: 2,
-    severity: "error",
-    standards: ["E1"],
-  }),
+  totalGhgMatchesEitherBasis(),
   ruleSumWithinTolerance({
     id: "E1-energy-total-equals-renewable-plus-non-renewable",
     description:

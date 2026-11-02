@@ -4,15 +4,29 @@ import Link from "next/link";
 import { LegalLayout, Section } from "@/components/legal/legal-layout";
 
 export const metadata: Metadata = {
-  title: "Conformité AI Act — CarbonCo",
+  title: "NEURAL et l'AI Act — CarbonCo",
   description:
-    "Position de CarbonCo vis-à-vis du règlement européen sur l'intelligence artificielle (AI Act). Classification du copilote NEURAL, supervision humaine, journal d'usage.",
+    "Position de CarbonCo vis-à-vis du règlement (UE) 2024/1689 sur l'intelligence artificielle, modifié par le règlement (UE) 2026/1744 : classification du copilote NEURAL, transparence (article 50), supervision humaine.",
   alternates: { canonical: "/ai-act" },
 };
 
+/**
+ * Calendrier d'application du règlement (UE) 2024/1689, tel que modifié par le
+ * règlement (UE) 2026/1744 (« Omnibus numérique »). Source : dossier de maîtrise
+ * CSRD, état du droit au 2 novembre 2026.
+ */
+const CALENDAR = [
+  { date: "2 février 2025", what: "Pratiques interdites ; maîtrise de l'IA (article 4)", us: "Concerné : formation de nos utilisateurs" },
+  { date: "2 août 2025", what: "Modèles d'IA à usage général", us: "Obligations portées par Anthropic, fournisseur du modèle" },
+  { date: "2 août 2026", what: "Application générale, dont la transparence (article 50)", us: "Concerné" },
+  { date: "2 décembre 2026", what: "Article 50(2) pour les systèmes déjà sur le marché avant le 2 août 2026", us: "Concerné : marquage des contenus générés" },
+  { date: "2 décembre 2027", what: "Systèmes à haut risque de l'annexe III (reporté par 2026/1744)", us: "Non concerné" },
+  { date: "2 août 2028", what: "Systèmes à haut risque de l'annexe I (produits réglementés)", us: "Non concerné" },
+] as const;
+
 export default function AiActPage() {
   return (
-    <LegalLayout title="Conformité AI Act" lastUpdated="28 mai 2026">
+    <LegalLayout title="NEURAL et l'AI Act" lastUpdated="2 novembre 2026">
       <Section title="Périmètre">
         <p>
           Cette page décrit la position de CarbonCo vis-à-vis du{" "}
@@ -22,119 +36,168 @@ export default function AiActPage() {
             rel="noopener noreferrer"
           >
             règlement (UE) 2024/1689 sur l'intelligence artificielle
-          </a>
-          {" "}(« AI Act »), entré en vigueur le 1<sup>er</sup> août 2024 et applicable par
-          paliers jusqu'en 2027.
+          </a>{" "}
+          (« AI Act »), entré en vigueur le 1<sup>er</sup> août 2024 et modifié par le{" "}
+          <a
+            href="https://eur-lex.europa.eu/eli/reg/2026/1744/oj/eng"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            règlement (UE) 2026/1744
+          </a>{" "}
+          (« Omnibus numérique »), qui a notamment reporté les obligations des systèmes à haut
+          risque.
         </p>
         <p>
           CarbonCo intègre un copilote IA nommé <strong>NEURAL</strong>, fondé sur les modèles
           de langage d'Anthropic (Claude). NEURAL répond à des questions sur les obligations
-          ESRS / CSRD, cite les articles sources et aide à interpréter des données métier. Il
-          ne prend pas de décision automatisée à la place de l'utilisateur et n'attribue pas
-          de score d'éligibilité, de crédit, de risque ou de sanction.
+          ESRS / CSRD, cite les textes sources et aide à interpréter des données métier. Il ne
+          prend pas de décision automatisée à la place de l'utilisateur et n'attribue pas de
+          score d'éligibilité, de crédit, de risque ou de sanction.
         </p>
       </Section>
 
-      <Section title="Classification envisagée">
+      <Section title="Calendrier qui nous concerne">
+        <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
+          <table className="w-full text-sm">
+            <thead className="bg-[var(--color-surface-muted)] text-left text-xs uppercase tracking-wider text-[var(--color-foreground-muted)]">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Date</th>
+                <th className="px-4 py-3 font-semibold">Ce qui s'applique</th>
+                <th className="px-4 py-3 font-semibold">Pour NEURAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {CALENDAR.map((row) => (
+                <tr key={row.date} className="border-t border-[var(--color-border)] align-top">
+                  <td className="px-4 py-3 font-mono text-xs whitespace-nowrap text-[var(--color-foreground-muted)]">{row.date}</td>
+                  <td className="px-4 py-3 text-[var(--color-foreground)]">{row.what}</td>
+                  <td
+                    className={`px-4 py-3 text-xs font-semibold ${
+                      row.us.startsWith("Non") ? "text-[var(--color-foreground-subtle)]" : "text-[var(--color-success)]"
+                    }`}
+                  >
+                    {row.us}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section title="Classification retenue">
         <p>
-          Sur la base de l'analyse interne, le copilote NEURAL relève de la catégorie{" "}
-          <strong>« système d'IA à risque limité »</strong> au sens des articles 50 et
-          suivants de l'AI Act. Cette qualification s'appuie sur trois éléments :
+          Sur la base de notre analyse interne, NEURAL est un système d'IA soumis aux{" "}
+          <strong>obligations de transparence de l'article 50</strong>, et non un système à haut
+          risque :
         </p>
         <ul className="ml-5 list-disc space-y-1">
           <li>
-            NEURAL n'est pas un système à <em>haut risque</em> au sens de l'annexe III (pas de
-            scoring crédit, pas d'évaluation RH, pas de décision administrative automatisée).
+            L'aide à la rédaction et à l'interprétation d'un rapport de durabilité ne relève
+            d'aucun des domaines de l'annexe III (pas de scoring de crédit, pas d'évaluation RH,
+            pas de décision administrative automatisée).
           </li>
           <li>
-            NEURAL est explicitement identifié comme une IA à chaque interaction (mention
-            visible dans l'interface, obligation de transparence article 50).
+            NEURAL ne calcule aucun chiffre publié : il rédige à partir de chiffres calculés et
+            tracés par le moteur de CarbonCo, qu'il cite. Ses sorties (textes, citations,
+            recommandations) restent des propositions, validées par un humain avant tout usage
+            dans un rapport ou une décision.
           </li>
           <li>
-            Les sorties (chiffres, citations, recommandations) sont restituées comme assistance
-            et doivent être validées par un utilisateur humain avant tout usage en rapport
-            officiel ou décision d'entreprise.
+            NEURAL ne cote pas et ne décide pas la matérialité : il peut proposer une liste
+            d'impacts, risques et opportunités ; les échelles, les seuils et les décisions
+            restent humains et tracés.
           </li>
         </ul>
         <p>
-          Cette classification peut évoluer si les fonctionnalités de NEURAL s'étendent (par
-          exemple à l'automatisation de la matérialité ou à la priorisation des risques). Toute
-          évolution sera tracée dans cette page.
+          Si nous automatisions un jour la cotation de matérialité ou la priorisation des
+          risques, nous referions cette analyse. Toute évolution sera tracée sur cette page.
+        </p>
+      </Section>
+
+      <Section title="Ce que nous appliquons">
+        <ul className="ml-5 list-disc space-y-2">
+          <li>
+            <strong>Article 4 — maîtrise de l'IA.</strong> Depuis le règlement 2026/1744, il
+            s'agit de « prendre des mesures pour favoriser » cette maîtrise : nous documentons
+            les limites du copilote (hallucinations possibles, absence de calcul) pour nos
+            utilisateurs et nos pilotes.
+          </li>
+          <li>
+            <strong>Article 50(1) — information de l'utilisateur.</strong> Le copilote est
+            présenté comme une IA dans l'interface, avec le modèle utilisé. Une mention sous
+            chaque réponse générée est en cours de généralisation à toutes les surfaces.
+          </li>
+          <li>
+            <strong>Article 50(2) — marquage lisible par machine.</strong> En cours de
+            déploiement avant le 2 décembre 2026 : chaque texte généré portera, dans nos données
+            et nos exports, une marque d'origine IA (modèle, date, statut de validation humaine).
+          </li>
+        </ul>
+        <p>
+          Côté client, l'article 50(4) (textes publiés pour informer le public) joue a priori
+          peu : le rapport de durabilité est relu et arrêté par la direction, qui en porte la
+          responsabilité éditoriale.
         </p>
       </Section>
 
       <Section title="Supervision humaine">
-        <p>
-          NEURAL est conçu pour assister, pas pour décider. Chaque sortie inclut systématiquement :
-        </p>
+        <p>NEURAL est conçu pour assister, pas pour décider :</p>
         <ul className="ml-5 list-disc space-y-1">
           <li>
-            <strong>Citations sources ESRS</strong> permettant à l'utilisateur de vérifier la
-            cohérence de la réponse avec le texte réglementaire (corpus EFRAG, ADEME).
+            <strong>Citations sources</strong> (corpus EFRAG, ADEME) permettant de vérifier la
+            cohérence d'une réponse avec le texte réglementaire.
           </li>
           <li>
             <strong>Mention d'incertitude</strong> lorsque le copilote ne dispose pas de
-            données fiables (par exemple sur des sujets sectoriels ou des données futures).
+            données fiables.
           </li>
           <li>
-            <strong>Validation explicite</strong> par l'utilisateur avant l'intégration dans
-            un rapport, un export ou un document soumis à un commissaire aux comptes.
+            <strong>Validation explicite</strong> par l'utilisateur avant l'intégration d'une
+            proposition dans un datapoint, un rapport ou un export.
           </li>
         </ul>
       </Section>
 
       <Section title="Journal d'usage IA">
         <p>
-          Toute invocation du copilote NEURAL est tracée dans un journal d'audit auquel
-          accèdent les administrateurs du tenant. Ce journal contient :
-        </p>
-        <ul className="ml-5 list-disc space-y-1">
-          <li>Identifiant utilisateur (pseudonymisé pour les exports externes)</li>
-          <li>Horodatage de l'invocation</li>
-          <li>Type de prompt (catégorie : explication ESRS, interprétation données, etc.)</li>
-          <li>Datapoint ou rapport concerné, le cas échéant</li>
-          <li>Indicateur de validation utilisateur (acceptée / rejetée / modifiée)</li>
-        </ul>
-        <p>
-          Ce journal est exportable au format JSON pour permettre une revue indépendante par
-          un OTI (Organisme Tiers Indépendant) ou un audit interne.
-        </p>
-      </Section>
-
-      <Section title="Devoirs du déployeur (article 26)">
-        <p>
-          L'entreprise cliente qui déploie CarbonCo dans son organisation est considérée comme{" "}
-          <strong>« déployeur »</strong> au sens de l'article 26 de l'AI Act. À ce titre, elle
-          doit notamment :
-        </p>
-        <ul className="ml-5 list-disc space-y-1">
-          <li>
-            Informer ses utilisateurs internes (collaborateurs, sous-traitants ESG) que les
-            sorties marquées « NEURAL » sont générées par un système d'IA.
-          </li>
-          <li>
-            S'assurer que les données ESG saisies dans CarbonCo sont conformes à sa politique
-            interne de gouvernance de la donnée.
-          </li>
-          <li>
-            Conserver les journaux d'usage pertinents en cas de contrôle d'une autorité de
-            marché ou d'un commissaire aux comptes.
-          </li>
-        </ul>
-        <p>
-          CarbonCo met à disposition les outils de journalisation et d'export nécessaires pour
-          faciliter ces obligations.
+          <strong>En cours de déploiement (décembre 2026).</strong> Les propositions de
+          datapoints extraites par l'IA conservent déjà leur passage source et leur validation.
+          Nous étendons la journalisation à toutes les sorties du copilote : modèle, version de
+          prompt, empreinte de l'entrée et de la sortie, horodatage, décision humaine (acceptée,
+          modifiée, rejetée), dans un journal en ajout seul consultable par les administrateurs
+          du tenant et exportable pour le vérificateur.
         </p>
       </Section>
 
       <Section title="Modèles fondateurs et fournisseur en amont">
         <p>
           NEURAL repose sur les modèles Claude d'Anthropic (PBC, États-Unis), accédés via{" "}
-          <strong>Vercel AI Gateway</strong> en zone Union européenne. Anthropic est considéré
-          comme <em>fournisseur</em> du modèle fondateur ; CarbonCo est <em>fournisseur</em> du
-          système d'IA spécifique (copilote NEURAL) intégrant ce modèle dans un contexte ESG /
-          CSRD. Les obligations de transparence (article 50) et de documentation technique
-          (annexe IV) sont assumées par CarbonCo pour la couche applicative.
+          <strong>Vercel AI Gateway</strong> ; les modèles sont hébergés aux États-Unis.
+          Anthropic est le <em>fournisseur</em> du modèle d'IA à usage général et porte les
+          obligations attachées depuis le 2 août 2025 ; CarbonCo est le <em>fournisseur</em> du
+          système d'IA spécifique (le copilote NEURAL) et assume les obligations de
+          transparence de l'article 50 pour sa couche applicative.
+        </p>
+        <p>
+          Notre documentation technique s'inspire volontairement de la structure de l'annexe IV
+          du règlement, qui ne s'impose qu'aux systèmes à haut risque.
+        </p>
+      </Section>
+
+      <Section title="Questions fréquentes">
+        <p>
+          <strong>Votre copilote est-il un système à haut risque ?</strong> Non : l'aide à la
+          rédaction d'un rapport ESG ne relève d'aucun domaine de l'annexe III. Nous appliquons
+          les obligations de transparence de l'article 50, et chaque sortie est validée par un
+          humain avant usage.
+        </p>
+        <p>
+          <strong>Un texte rédigé par l'IA dans notre rapport pose-t-il problème à notre
+          auditeur ?</strong> Pas si chaque phrase renvoie à des chiffres tracés et si un humain
+          l'a validée. Ce qui poserait problème, c'est un chiffre produit par l'IA : chez
+          CarbonCo, l'IA ne calcule jamais, elle rédige à partir de calculs vérifiables.
         </p>
       </Section>
 

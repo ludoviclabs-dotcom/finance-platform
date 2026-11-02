@@ -5,7 +5,8 @@ import { BLOG_ARTICLES } from "@/lib/blog-articles";
 export const metadata: Metadata = {
   title: "Blog CSRD & ESG — CarbonCo",
   description:
-    "Articles fondateurs sur la CSRD, ESRS, Scope 1/2/3, audit OTI et taxonomie verte. " +
+    "Décryptages de la CSRD, des ESRS 2026, de la norme volontaire (VS), des Scopes 1/2/3, " +
+    "de la vérification par un CAC ou un OTI et de la Taxonomie verte. " +
     "Une lecture par semaine pour les équipes RSE et DAF.",
   alternates: { canonical: "/blog" },
 };

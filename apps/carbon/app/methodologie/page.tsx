@@ -59,7 +59,8 @@ export default function MethodologiePage() {
         <p className="text-lg text-neutral-600 max-w-2xl mb-12 leading-relaxed">
           Chaque chiffre publié par CarbonCo porte sa source, sa méthode de calcul, son auteur et
           une empreinte cryptographique. Cette page décrit comment, sans jargon — pour que votre
-          auditeur (OTI, expert-comptable, DAF) puisse la reproduire.
+          vérificateur (commissaire aux comptes ou OTI), votre expert-comptable ou votre DAF
+          puisse la reproduire.
         </p>
 
         <Block kicker="01 · Calcul" title="Méthode de calcul des émissions">
@@ -105,9 +106,9 @@ export default function MethodologiePage() {
           </p>
         </Block>
 
-        <Block kicker="04 · Preuve" title="Chaîne de preuve SHA-256 (inviolable)">
+        <Block kicker="04 · Preuve" title="Chaîne de preuve SHA-256 (modification détectable)">
           <p>
-            Chaque donnée consolidée est un <strong>événement signé</strong> : on calcule un hash
+            Chaque donnée consolidée est un <strong>événement chaîné</strong> : on calcule un hash
             SHA-256 chaîné à l&apos;événement précédent (<code className="font-mono text-[13px]">hash = SHA256(hash_précédent | société | code | valeur | unité | facteur | source | date)</code>,
             valeur formatée à 6 décimales, premier maillon = <code className="font-mono text-[13px]">GENESIS</code>).
             Modifier rétroactivement une valeur casse la chaîne et devient détectable.
@@ -119,6 +120,19 @@ export default function MethodologiePage() {
             Le hash global est imprimé en pied de chaque page du PDF et se vérifie publiquement sur{" "}
             <Link href="/verify" className="text-green-700 underline">/verify</Link> — sans compte,
             sans outil propriétaire.
+          </p>
+          <h3 className="text-lg font-bold text-neutral-900 pt-2">
+            Ce que l&apos;empreinte prouve et ne prouve pas
+          </h3>
+          <p>
+            L&apos;empreinte prouve l&apos;<strong>intégrité</strong> et l&apos;<strong>ordre</strong>{" "}
+            des données depuis leur capture : toute modification ultérieure devient détectable
+            (tamper-evident). Elle ne l&apos;empêche pas, et elle ne prouve ni l&apos;
+            <strong>exactitude</strong> (une valeur mal saisie reste fausse, même parfaitement
+            chaînée) ni l&apos;<strong>exhaustivité</strong> (une donnée jamais saisie
+            n&apos;apparaît dans aucune chaîne). Ces deux points relèvent des rapprochements avec
+            les pièces sources et la comptabilité, que le vérificateur conduit. L&apos;empreinte
+            n&apos;est pas non plus une signature : elle n&apos;identifie pas son auteur.
           </p>
         </Block>
 
@@ -147,14 +161,14 @@ sha256sum -c CHECKSUMS.sha256
 #   https://.../verify/<hash>`}
           </pre>
           <p>
-            Aucune confiance en CarbonCo n&apos;est requise : la preuve se vérifie avec des outils
+            Aucun outil CarbonCo n&apos;est requis : l&apos;intégrité se vérifie avec des outils
             standards.
           </p>
         </Block>
 
         <div className="rounded-2xl bg-neutral-50 border border-neutral-200 p-6 text-sm text-neutral-600">
-          Les référentiels mobilisés (GHG Protocol, EFRAG/VSME, ADEME Base Empreinte®, BEGES v5) sont
-          publics. Voir aussi{" "}
+          Les référentiels mobilisés (GHG Protocol, ESRS, norme volontaire VS ex-VSME, ADEME Base
+          Empreinte®, BEGES v5) sont publics. Voir aussi{" "}
           <Link href="/couverture" className="text-green-700 underline">la couverture standard par standard</Link>{" "}
           et{" "}
           <Link href="/etat-du-produit" className="text-green-700 underline">l&apos;état du produit</Link>.

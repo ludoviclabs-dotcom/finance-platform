@@ -164,7 +164,7 @@ function ProtoNeural() {
   const factors = [
     { label: "Électricité FR", src: "ADEME 2024", val: "0.052 kgCO₂e/kWh" },
     { label: "Gaz naturel", src: "Base Empreinte®", val: "0.227 kgCO₂e/kWh" },
-    { label: "Diesel B7", src: "Ecoinvent 3.9", val: "2.514 kgCO₂e/L" },
+    { label: "Diesel B7", src: "Base Empreinte®", val: "2.514 kgCO₂e/L" },
   ];
   return (
     <div className="px-3.5 py-3.5 flex flex-col gap-2.5 text-left">
@@ -259,7 +259,7 @@ function ProtoReport() {
         <div className="font-bold text-[13px] text-slate-900 mb-0.5 pr-12" style={{ fontFamily: "var(--font-display, var(--font-sans))" }}>
           Rapport CSRD · ESRS E1
         </div>
-        <div className="font-mono text-[10px] text-slate-400 tracking-[0.04em] mb-2.5">Exercice 2024 · v.1.3 · signé OTI</div>
+        <div className="font-mono text-[10px] text-slate-400 tracking-[0.04em] mb-2.5">Exercice 2024 · v.1.3 · ESRS 2023 + quick fix</div>
         <div className="h-[5px] bg-neutral-100 rounded-full my-1.5" style={{ width: "100%" }} />
         <div className="h-[5px] bg-neutral-100 rounded-full my-1.5" style={{ width: "80%" }} />
         <div className="h-[5px] bg-neutral-100 rounded-full my-1.5" style={{ width: "60%" }} />
@@ -329,8 +329,8 @@ const STEPS = [
   {
     num: "02",
     title: "NEURAL analyse & structure",
-    desc: "Notre copilote détecte les anomalies, enrichit vos données avec les facteurs ADEME / IEA et calcule vos scores ESRS.",
-    tags: ["ADEME 2024", "Facteurs IEA", "Ecoinvent 3.9"],
+    desc: "Le moteur applique les facteurs ADEME Base Empreinte® versionnés et calcule vos indicateurs ; NEURAL signale les anomalies, sans jamais produire un chiffre.",
+    tags: ["Base Empreinte®", "Facteur versionné", "Scope 2 LB + MB"],
     meta: "Détection d'anomalies · Audit trail automatique",
     protoBar: { label: "NEURAL · copilote", badge: "Analyse" },
     proto: <ProtoNeural />,
@@ -343,10 +343,10 @@ const STEPS = [
   },
   {
     num: "03",
-    title: "Rapports prêts pour l'audit",
-    desc: "Exportez en PDF, Excel ou format commissaire aux comptes — avec audit trail complet et signature électronique.",
-    tags: ["CSRD · ESRS", "XBRL", "Compatible OTI"],
-    meta: "Signature électronique · Versioning intégré",
+    title: "Dossier de preuves pour le vérificateur",
+    desc: "Exportez en PDF, Excel ou iXBRL (bêta), avec l'audit trail complet et le manifeste d'empreintes que votre CAC ou votre OTI remonte jusqu'à la source.",
+    tags: ["CSRD · ESRS", "iXBRL bêta", "Dossier CAC / OTI"],
+    meta: "Empreinte SHA-256 · Versioning intégré",
     protoBar: { label: "rapport-csrd-2024.pdf", badge: "Validé" },
     proto: <ProtoReport />,
     icon: (
@@ -395,7 +395,7 @@ export function HowItWorksSection({ onEnterApp }: { onEnterApp: () => void }) {
             </span>
           </h2>
           <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto text-pretty">
-            De l&apos;onboarding à votre premier rapport CSRD prêt pour l&apos;audit — en moins d&apos;une semaine.
+            De l&apos;onboarding à votre premier projet de rapport CSRD documenté — en moins d&apos;une semaine.
           </p>
         </Reveal>
 

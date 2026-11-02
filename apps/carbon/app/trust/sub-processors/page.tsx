@@ -23,11 +23,11 @@ const SUB_PROCESSORS: SubProcessor[] = [
   {
     name: "Vercel Inc.",
     role: "Hébergement application Next.js, CDN mondial, fonctions serverless, AI Gateway",
-    region: "Siège US (Californie) · CDN edge mondial · AI Gateway zone UE",
+    region: "Fonctions exécutées à Francfort (fra1) · CDN edge mondial · siège US (Californie)",
     transferOutsideEU: "Oui — CCT",
     legalBasis: "Clauses Contractuelles Types (CCT) de la Commission européenne",
     notes:
-      "Les données métier (rapports, datapoints) transitent par le CDN mais sont stockées sur Neon EU. Les fonctions sont exécutées par défaut en région US sauf configuration Edge EU explicite.",
+      "Les fonctions serverless de l'application et de l'API sont fixées en région fra1 (vercel.json). Les données métier (rapports, datapoints) transitent par le CDN mais sont stockées sur Neon EU. Vercel reste une société américaine : les CCT couvrent les accès éventuels depuis les États-Unis.",
   },
   {
     name: "Neon (Databricks)",
@@ -40,12 +40,12 @@ const SUB_PROCESSORS: SubProcessor[] = [
   },
   {
     name: "Upstash, Inc.",
-    role: "Cache Redis (rate-limiting, sessions) et base vectorielle Upstash Vector (corpus RAG ESRS du copilote NEURAL)",
+    role: "Cache Redis (rate-limiting, sessions) et base vectorielle Upstash Vector (corpus RAG du copilote NEURAL)",
     region: "Frankfurt (eu-central-1), Union européenne",
     transferOutsideEU: "Non",
     legalBasis: "RGPD article 28 (DPA Upstash, région EU configurée)",
     notes:
-      "Le corpus vectoriel ne contient que des extraits de référentiels publics (ESRS, EFRAG, ADEME). Aucune donnée métier client n'y est indexée.",
+      "Le corpus vectoriel contient deux espaces séparés : les extraits de référentiels publics (ESRS, EFRAG, ADEME), et, par tenant, les extraits des documents que vous importez pour l'extraction de datapoints (espace de noms dédié à votre entreprise).",
   },
   {
     name: "Vercel Blob",
@@ -58,13 +58,31 @@ const SUB_PROCESSORS: SubProcessor[] = [
   },
   {
     name: "Anthropic PBC",
-    role: "Modèles de langage Claude utilisés par le copilote NEURAL (prompts, complétions)",
-    region: "Accès via Vercel AI Gateway en zone UE — modèles hébergés US",
+    role: "Modèles de langage Claude utilisés par le copilote NEURAL et par l'extraction de datapoints (prompts, complétions)",
+    region: "Copilote via Vercel AI Gateway, extraction via l'API Anthropic — modèles hébergés aux États-Unis",
     transferOutsideEU: "Conditionnel",
     legalBasis:
       "CCT via Vercel AI Gateway · politique zero-retention Anthropic pour clients enterprise (les prompts ne sont pas utilisés pour l'entraînement)",
     notes:
-      "Les prompts envoyés à Anthropic sont pseudonymisés côté CarbonCo : pas de noms d'entreprises clients, pas d'identifiants utilisateurs, pas de PII. Les datapoints ESG anonymisés peuvent transiter pour l'interprétation.",
+      "Le copilote reçoit vos indicateurs chiffrés avec un alias d'entreprise, sans raison sociale ni identifiant utilisateur. L'extraction de datapoints envoie des extraits des documents que vous importez : ils peuvent contenir le nom de votre entreprise ou d'autres informations que vous y avez mises.",
+  },
+  {
+    name: "Voyage AI",
+    role: "Calcul des embeddings (représentations vectorielles) du corpus RAG et des extraits de documents importés",
+    region: "États-Unis",
+    transferOutsideEU: "Oui — CCT",
+    legalBasis: "Clauses Contractuelles Types (CCT) de la Commission européenne",
+    notes:
+      "Reçoit le texte des extraits à indexer et des questions posées au copilote, renvoie des vecteurs. Les vecteurs sont stockés chez Upstash (Francfort).",
+  },
+  {
+    name: "Stripe Payments Europe",
+    role: "Paiement des abonnements (page de paiement et portail client)",
+    region: "Dublin (Union européenne) · groupe US",
+    transferOutsideEU: "Conditionnel",
+    legalBasis: "RGPD article 28 (DPA Stripe) · CCT pour les entités du groupe hors UE",
+    notes:
+      "Aucune souscription n'est ouverte à ce jour. Stripe ne reçoit que les données de facturation saisies sur sa page de paiement, jamais de données ESG.",
   },
   {
     name: "Inngest",
@@ -94,7 +112,7 @@ const TRANSFER_BADGE: Record<SubProcessor["transferOutsideEU"], string> = {
 
 export default function SubProcessorsPage() {
   return (
-    <LegalLayout title="Sous-traitants ultérieurs" lastUpdated="13 juin 2026">
+    <LegalLayout title="Sous-traitants ultérieurs" lastUpdated="2 novembre 2026">
       <Section title="Périmètre">
         <p>
           Cette page liste l'ensemble des sous-traitants ultérieurs au sens de l'article 28
@@ -182,7 +200,7 @@ export default function SubProcessorsPage() {
           </li>
           <li>
             <Link href="/ai-act" className="underline">
-              Conformité AI Act
+              NEURAL et l&apos;AI Act
             </Link>
           </li>
         </ul>

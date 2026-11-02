@@ -41,7 +41,7 @@ test.describe("Phase 4 — Copilote IA", () => {
 
   test("Les quick prompts sont visibles", async ({ page }) => {
     await expect(page.locator("text=/Bilan carbone/i")).toBeVisible();
-    await expect(page.locator("text=/Conformité ESRS/i")).toBeVisible();
+    await expect(page.locator("text=/Couverture ESRS/i")).toBeVisible();
     await expect(page.locator("text=/Plan SBTi/i")).toBeVisible();
   });
 

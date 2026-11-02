@@ -82,7 +82,7 @@ const RECORD_TOOL = {
 function buildPrompt(def: EsrsDatapointDef, chunks: RagSearchResult[]): string {
   const lines: string[] = [];
   lines.push(
-    "Tu extrais un datapoint réglementaire ESRS Set 2 depuis des extraits de documents internes.",
+    "Tu extrais un datapoint réglementaire du référentiel ESRS simplifié (avis EFRAG 2025) depuis des extraits de documents internes.",
     "Règles strictes :",
     "1. N'invente jamais une valeur. Si l'information n'est pas explicitement présente dans les extraits, retourne value=null avec confidence<=0.3.",
     "2. La valeur doit être strictement compatible avec le type attendu (number, text, boolean, enum).",

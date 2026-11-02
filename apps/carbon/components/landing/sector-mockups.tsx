@@ -173,7 +173,7 @@ const SECTORS: SectorData[] = [
         { time: "12 déc · 16:56", action: "Calcul Scope 1 figé", hash: "7a3f9c…", sev: "ok" },
         { time: "12 déc · 16:48", action: "Datapoint E1.6 validé", hash: "4e2b1a…", sev: "ok" },
         { time: "12 déc · 16:22", action: "Anomalie facture EDF résolue", hash: "d91c44…", sev: "warn" },
-        { time: "12 déc · 16:00", action: "Manifest racine signé", hash: "fe88ab…", sev: "ok" },
+        { time: "12 déc · 16:00", action: "Empreinte racine du manifeste calculée", hash: "fe88ab…", sev: "ok" },
         { time: "12 déc · 14:00", action: "Import SAP terminé · 78 datapoints", hash: "0a4421…", sev: "ok" },
       ],
     },
@@ -258,7 +258,7 @@ const SECTORS: SectorData[] = [
         { time: "12 déc · 16:38", action: "Datapoint S1.10 validé", hash: "3b9f47…", sev: "ok" },
         { time: "12 déc · 16:00", action: "Sync Concur · 42 voyages", hash: "a6e1c2…", sev: "ok" },
         { time: "12 déc · 15:00", action: "AWS API — anomalie corrigée", hash: "5d8f30…", sev: "warn" },
-        { time: "12 déc · 13:00", action: "Manifest racine signé", hash: "cc4a78…", sev: "ok" },
+        { time: "12 déc · 13:00", action: "Empreinte racine du manifeste calculée", hash: "cc4a78…", sev: "ok" },
       ],
     },
     rapports: {
@@ -342,7 +342,7 @@ const SECTORS: SectorData[] = [
         { time: "12 déc · 16:42", action: "Datapoint E4.3 validé", hash: "2b7c91…", sev: "ok" },
         { time: "12 déc · 16:15", action: "Sync Sage · 64 datapoints", hash: "e1a5f3…", sev: "ok" },
         { time: "12 déc · 16:00", action: "API partenaire — délai dépassé", hash: "7f2e88…", sev: "warn" },
-        { time: "12 déc · 14:00", action: "Manifest racine signé", hash: "b4d602…", sev: "ok" },
+        { time: "12 déc · 14:00", action: "Empreinte racine du manifeste calculée", hash: "b4d602…", sev: "ok" },
       ],
     },
     rapports: {
@@ -368,13 +368,13 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 const STATUS_LABEL: Record<TabId, { sev: "ok" | "warn"; text: string; extra: string[] }> = {
-  dashboard: { sev: "ok", text: "Statut OTI · prêt", extra: ["100 % des datapoints tracés", "0 alerte critique", "export PDF disponible"] },
+  dashboard: { sev: "ok", text: "Dossier vérificateur complet", extra: ["100 % des datapoints tracés", "0 alerte critique", "export PDF disponible"] },
   scopes: { sev: "ok", text: "Scopes 1·2·3 figés", extra: ["méthodes ADEME", "audit trail SHA-256"] },
   esrs: { sev: "ok", text: "ESRS — couverture suivie", extra: ["datapoints couverts à jour"] },
   materialite: { sev: "ok", text: "Double matérialité validée", extra: ["CSO · 12 déc 2025"] },
   datapoints: { sev: "warn", text: "Datapoints — 22 en attente", extra: ["relance fournisseurs"] },
-  audit: { sev: "ok", text: "Audit trail signé", extra: ["Merkle root vérifié"] },
-  rapports: { sev: "ok", text: "Rapports CSRD prêts à signer", extra: ["format iXBRL + PDF"] },
+  audit: { sev: "ok", text: "Audit trail chaîné", extra: ["chaîne vérifiée"] },
+  rapports: { sev: "ok", text: "Projets de rapports prêts à valider", extra: ["PDF + iXBRL bêta"] },
 };
 
 /* ============================================================
@@ -444,7 +444,7 @@ function DashboardPane({ s }: { s: SectorData }) {
             {s.total}
             <em className="text-[11px] not-italic font-medium text-neutral-600">tCO₂e</em>
           </strong>
-          <span className="text-[10px] text-neutral-500 mt-0.5">Vérifié OTI ready · audit trail SHA-256</span>
+          <span className="text-[10px] text-neutral-500 mt-0.5">Journal chaîné SHA-256 · source de chaque chiffre</span>
         </div>
         <div className="flex flex-col gap-1.5 min-w-0">
           <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-500">Poste principal</span>
@@ -693,7 +693,7 @@ function AuditPane({ s }: { s: SectorData }) {
 function RapportsPane({ s }: { s: SectorData }) {
   return (
     <>
-      <PaneHead title="Rapports CSRD — prêts à signer" sub="Format iXBRL + PDF · audit trail inclus" />
+      <PaneHead title="Rapports CSRD — prêts à valider" sub="PDF + iXBRL bêta · audit trail inclus" />
       <ul className="list-none p-0 m-0 flex flex-col gap-2">
         {s.rapports.list.map((r) => (
           <li

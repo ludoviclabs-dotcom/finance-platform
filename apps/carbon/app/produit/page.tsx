@@ -15,7 +15,7 @@ import { PRODUCT_MODULES } from "@/lib/product-modules";
 export const metadata: Metadata = {
   title: "Modules produit — CarbonCo",
   description:
-    "Les 8 modules de la plateforme CarbonCo : collecte, calcul, audit trail, rapport, Scope 1/2/3 et préparation OTI. Une page dédiée par module.",
+    "Les 8 modules de la plateforme CarbonCo : collecte, calcul GES, audit trail, projet de rapport ESRS, Scope 1/2/3 et espace vérificateur. Ce qui existe et ce qui arrive, module par module.",
   alternates: { canonical: "/produit" },
 };
 
@@ -52,8 +52,9 @@ export default function ProductIndexPage() {
           8 modules, une plateforme.
         </h1>
         <p className="text-lg text-neutral-600 max-w-2xl mb-6 leading-relaxed">
-          Chaque module est conçu pour s&apos;intégrer aux autres et offrir une couverture
-          complète du reporting CSRD/ESRS, sans empilement d&apos;outils.
+          Structurez, calculez et documentez votre reporting ESRS, du fichier source au
+          datapoint publié. Chaque module dit ce qu&apos;il fait aujourd&apos;hui et ce qui reste
+          en feuille de route.
         </p>
 
         <Link
@@ -88,9 +89,17 @@ export default function ProductIndexPage() {
                   {m.title}
                 </h2>
                 <p className="text-sm text-neutral-600 leading-relaxed">{m.pitch}</p>
-                <p className="mt-4 text-xs font-semibold text-green-700">
-                  Découvrir le module →
-                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                  <span className="rounded-full bg-emerald-50 text-emerald-800 px-2 py-0.5">
+                    {m.proofs.length} disponibles
+                  </span>
+                  <span className="rounded-full border border-dashed border-neutral-300 text-neutral-500 px-2 py-0.5">
+                    {m.roadmap.length} en feuille de route
+                  </span>
+                  <span className="ml-auto text-green-700 transition-transform duration-200 group-hover:translate-x-1">
+                    Découvrir le module →
+                  </span>
+                </div>
               </Link>
             );
           })}

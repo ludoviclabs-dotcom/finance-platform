@@ -189,7 +189,7 @@ export function DemoStaticSnapshot() {
                 className={`${BADGE_BASE} ${DEMO_TONE_CLASSES.green} flex items-center gap-2`}
               >
                 <span aria-hidden="true">●</span>
-                NEURAL Actif · v2.4 · ESRS native
+                NEURAL Actif · v2.4 · ESRS 2026
               </p>
             </div>
           </section>
@@ -431,7 +431,7 @@ export function DemoStaticSnapshot() {
           </section>
 
           {/* ──────────────────────────────────────────────────────────────────
-             PHASE 5 — Journal de preuve (chaîne d'événements signés).
+             PHASE 5 — Journal de preuve (chaîne d'événements chaînés par empreinte).
              ────────────────────────────────────────────────────────────────── */}
           <section
             id={phaseAnchorId(5)}
@@ -504,7 +504,7 @@ export function DemoStaticSnapshot() {
               ))}
             </div>
 
-            {/* Chaîne de preuve — 5 blocs signés (mini-hash visibles). */}
+            {/* Chaîne de preuve — 5 blocs chaînés (mini-hash visibles). */}
             <div className="space-y-3">
               <p className={KICKER}>Chaîne de preuve</p>
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">

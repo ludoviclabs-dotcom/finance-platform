@@ -117,7 +117,7 @@ export function ComplianceGauge({
         <div className="esrs-gauge-v" style={{ color: statusColor }}>
           {Math.round(v)}<span>%</span>
         </div>
-        <div className="esrs-gauge-l">conformité</div>
+        <div className="esrs-gauge-l">couverture</div>
       </div>
     </div>
   );
@@ -269,7 +269,7 @@ export function EsrsHero({
   return (
     <section className="esrs-hero">
       <div className="cc-card esrs-gauge-card">
-        <div className="cc-eyebrow"><CheckCircle className="w-3.5 h-3.5" /> Conformité CSRD globale</div>
+        <div className="cc-eyebrow"><CheckCircle className="w-3.5 h-3.5" /> Couverture ESRS globale</div>
         <ComplianceGauge value={totals.avg} target={totals.target} />
         <div className="esrs-gauge-goal">
           <span className="esrs-goal-dot" /> Objectif {totals.target}% ·{" "}
@@ -355,7 +355,7 @@ export function EsrsPriorities({
         <div className="cc-neural-brand">
           <div className="cc-neural-orb"><Sparkles className="w-3.5 h-3.5" /></div>
           <div>
-            <div className="cc-neural-title">Priorités de conformité</div>
+            <div className="cc-neural-title">Priorités de couverture</div>
             <div className="cc-neural-sub">3 normes concentrent l&apos;essentiel de l&apos;écart vers l&apos;objectif</div>
           </div>
         </div>

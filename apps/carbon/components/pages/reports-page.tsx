@@ -231,7 +231,7 @@ export function ReportsPage() {
         </div>
       </div>
 
-      {/* ── Export iXBRL ESEF (Phase 2) ── */}
+      {/* ── Export iXBRL (bêta) (Phase 2) ── */}
       <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-rose-500/5 p-6">
         <div className="flex items-start gap-4 mb-4">
           <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
@@ -240,16 +240,18 @@ export function ReportsPage() {
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <h2 className="font-display text-lg font-bold text-[var(--color-foreground)]">
-                Export ESEF iXBRL
+                Export iXBRL (bêta)
               </h2>
               <span className="text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Audit-grade
+                Contrôles de cohérence
               </span>
             </div>
             <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed">
-              Document XHTML conforme <strong>EFRAG taxonomie 2024-12-04</strong> couvrant E1-E5,
-              S1-S4, G1 (107 datapoints obligatoires du référentiel ESRS). Prêt pour soumission auditeur (ISAE
-              3000) ou dépôt ESEF.
+              Document XHTML selon la <strong>taxonomie XBRL ESRS de l&apos;EFRAG (2024)</strong> couvrant
+              E1-E5, S1-S4, G1 (107 datapoints obligatoires du référentiel ESRS simplifié, avis EFRAG 2025).
+              Aucun dépôt balisé de l&apos;état de durabilité n&apos;est exigé à ce jour : la directive (UE)
+              2026/470 l&apos;a suspendu jusqu&apos;à l&apos;adoption de l&apos;acte délégué. Ce fichier sert au
+              contrôle de cohérence de vos données.
             </p>
           </div>
         </div>
@@ -294,7 +296,7 @@ export function ReportsPage() {
         {[
           { label: "Rapports générés", value: "12", sub: "cette année" },
           { label: "Pages produites", value: "486", sub: "total cumulé" },
-          { label: "Conformité audit", value: "98%", sub: "taux de validation" },
+          { label: "Taux de validation", value: "98%", sub: "datapoints validés" },
         ].map((stat) => (
           <motion.div
             key={stat.label}

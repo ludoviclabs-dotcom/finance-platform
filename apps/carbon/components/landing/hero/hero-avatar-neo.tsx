@@ -52,7 +52,7 @@ const INITIAL_ANGLES = [0.4, 2.5, 4.6];
 
 const ANNOTATIONS: { top: string; left?: string; right?: string; tick?: number; label: string }[] = [
   { top: "0.6%", left: "52.9%", tick: 20, label: "DONNÉES MÉTIER · ZONE UE" },
-  { top: "28%", left: "81.2%", tick: 16, label: "NEURAL v2.4 · ESRS NATIVE" },
+  { top: "28%", left: "81.2%", tick: 16, label: "NEURAL v2.4 · ESRS 2026" },
   { top: "69.7%", right: "22.9%", label: "MOTEUR GES · SCOPES 1–3" },
   { top: "88%", left: "78.2%", tick: 14, label: "FLUX · EFRAG · GHG · ADEME" },
 ];

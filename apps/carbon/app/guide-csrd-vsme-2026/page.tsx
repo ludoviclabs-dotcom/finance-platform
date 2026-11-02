@@ -18,8 +18,8 @@ import { PrintButton } from "./print-button";
 export const metadata: Metadata = {
   title: "CSRD & VSME après l'Omnibus (2026) — guide pratique | CarbonCo",
   description:
-    "Le guide pratique CarbonCo après la directive Omnibus : qui reste soumis à la CSRD, " +
-    "pourquoi le standard volontaire VSME devient le langage de la chaîne de valeur, et 12 points " +
+    "Le guide pratique CarbonCo après la directive (UE) 2026/470 (Omnibus I) : qui reste soumis à la CSRD, " +
+    "pourquoi la norme volontaire (VS, ex-VSME) devient le langage de la chaîne de valeur, et 12 points " +
     "opérationnels pour produire un reporting auditable.",
   alternates: { canonical: "/guide-csrd-vsme-2026" },
 };
@@ -50,13 +50,13 @@ const POINTS: { num: string; title: string; body: string }[] = [
     num: "03",
     title: "Réaliser une analyse de double matérialité documentée",
     body:
-      "Conforme ESRS 1 §3 : 6 à 10 enjeux matériels priorisés, scoring justifié sur impact + financier, parties prenantes consultées (3 externes minimum), arbitrage gouvernance acté en COMEX ou comité ESG.",
+      "Selon ESRS 1, chapitre 3 : 6 à 10 enjeux matériels priorisés, scoring justifié sur impact + financier, parties prenantes consultées (3 externes minimum), arbitrage gouvernance acté en COMEX ou comité ESG. Les ESRS 2026 admettent une approche descendante (top-down).",
   },
   {
     num: "04",
     title: "Cartographier les datapoints obligatoires",
     body:
-      "Entité soumise à la CSRD : prioriser les datapoints matériels parmi le référentiel ESRS (réduit d'environ 60 % par l'Omnibus). Reporting VSME volontaire : le socle est bien plus léger (modules Basic B1-B11). Pour chaque datapoint : équipe propriétaire, système source, fréquence, méthode de calcul.",
+      "Entité soumise à la CSRD : prioriser les datapoints matériels parmi les ESRS 2026 (règlement délégué (UE) 2026/1563), qui réduisent d'environ 61 % les points obligatoires. Reporting volontaire selon la norme volontaire (VS, ex-VSME) : le socle est bien plus léger (modules Basic B1-B11). Pour chaque datapoint : équipe propriétaire, système source, fréquence, méthode de calcul.",
   },
   {
     num: "05",
@@ -74,13 +74,13 @@ const POINTS: { num: string; title: string; body: string }[] = [
     num: "07",
     title: "Définir la chaîne de responsabilité auditeur",
     body:
-      "Chaque datapoint a un propriétaire métier, avec validation formelle par un valideur distinct (séparation des rôles). Workflow d'approbation tracé. L'auditeur (OTI pour la CSRD, ou banque/donneur d'ordre pour le VSME) vérifiera la séparation saisie/validation.",
+      "Chaque datapoint a un propriétaire métier, avec validation formelle par un valideur distinct (séparation des rôles). Workflow d'approbation tracé. Le vérificateur (commissaire aux comptes ou OTI inscrit à la H2A pour la CSRD) ou le destinataire d'un rapport selon la norme volontaire (banque, donneur d'ordre) vérifiera la séparation saisie/validation.",
   },
   {
     num: "08",
     title: "Choisir un outil avec audit trail cryptographique",
     body:
-      "Hash SHA-256 chaîné, lignée préservée, hébergement UE, export PDF signé incluant la justification méthodologique. Un Excel partagé ne passe ni l'assurance limitée CSRD ni une revue VSME exigeante.",
+      "Journal en ajout seul chaîné par empreinte SHA-256 (toute modification devient détectable), lignée préservée, données stockées en UE, export PDF avec empreinte vérifiable incluant la justification méthodologique. L'empreinte prouve l'intégrité, pas l'exactitude ni l'exhaustivité : les rapprochements restent nécessaires. Un Excel partagé se défend mal en assurance limitée CSRD comme devant une revue exigeante.",
   },
   {
     num: "09",
@@ -137,12 +137,12 @@ export default function GuidePage() {
             CSRD &amp; VSME après l&apos;Omnibus.
           </h1>
           <p className="text-lg text-neutral-600 leading-relaxed">
-            Qui reste soumis à la CSRD, pourquoi le standard volontaire VSME devient le langage de
-            la chaîne de valeur, et 12 points opérationnels pour produire un reporting auditable.
-            Conçu pour les DAF et responsables ESG de PME et d&apos;ETI.
+            Qui reste soumis à la CSRD, pourquoi la norme volontaire (VS, ex-VSME) devient le
+            langage de la chaîne de valeur, et 12 points opérationnels pour produire un reporting
+            auditable. Conçu pour les DAF et responsables ESG de PME et d&apos;ETI.
           </p>
           <div className="mt-6 flex items-center gap-4 text-xs text-neutral-500">
-            <span>Juin 2026</span>
+            <span>État du droit au 2 novembre 2026</span>
             <span>·</span>
             <span>20 minutes de lecture</span>
             <span>·</span>
@@ -153,34 +153,43 @@ export default function GuidePage() {
         {/* Intro — contexte réglementaire (annexe A.1) */}
         <section className="mb-10">
           <p className="text-base text-neutral-800 leading-relaxed">
-            Depuis la directive Omnibus (en vigueur depuis mars 2026), seules les entreprises de plus
-            de <strong>1 000 salariés</strong> réalisant plus de <strong>450 M€</strong> de chiffre
-            d&apos;affaires restent soumises à la CSRD — environ 10 000 entreprises dans l&apos;UE,
-            avec de premiers rapports attendus en 2028 sur l&apos;exercice 2027.
+            Depuis le 18 mars 2026, la directive (UE) 2026/470 du 24 février 2026
+            (« Omnibus I ») réserve la CSRD aux entreprises de plus de{" "}
+            <strong>1 000 salariés et</strong> de plus de <strong>450 M€</strong> de chiffre
+            d&apos;affaires net, deux critères cumulatifs : environ 90 % d&apos;entreprises en moins
+            dans le champ, selon l&apos;ordre de grandeur cité par les cabinets. Les nouvelles
+            entreprises concernées publieront en 2028 sur l&apos;exercice 2027. En France, la loi
+            de transposition est en cours d&apos;examen (échéance : 19 mars 2027).
           </p>
           <p className="mt-3 text-base text-neutral-800 leading-relaxed">
-            Pour toutes les autres, la pression ne disparaît pas : elle change de canal. Banques,
-            assureurs et donneurs d&apos;ordre exigent des données ESG structurées, et le standard
-            volontaire <strong>VSME</strong> — dont l&apos;adoption par acte délégué est attendue à
-            l&apos;été 2026 — devient le langage commun de la chaîne de valeur. En France, le bilan
-            d&apos;émissions de GES (<strong>BEGES</strong>) reste par ailleurs obligatoire pour les
-            entreprises de plus de 500 salariés.
+            Pour toutes les autres, la pression change de canal : banques, assureurs et donneurs
+            d&apos;ordre demandent des données ESG structurées. La <strong>norme volontaire</strong>{" "}
+            (ex-VSME), adoptée par le règlement délégué (UE) 2026/1560 et en vigueur depuis le
+            24 septembre 2026, devient leur langage commun ; à partir de l&apos;exercice 2027, un
+            donneur d&apos;ordre soumis à la CSRD ne pourra plus exiger d&apos;une entreprise de
+            1 000 salariés ou moins davantage que ses points « nécessaires », pour son propre
+            rapport. Enfin, le <strong>BEGES</strong> reste obligatoire en France au-delà de
+            500 salariés, et les entreprises qui sortent de la CSRD perdent la dispense prévue par
+            la loi n° 2025-391 du 30 avril 2025 : leur bilan redevient dû tous les quatre ans.
           </p>
           <p className="mt-3 text-base text-neutral-800 leading-relaxed">
-            Que vous restiez soumis à la CSRD ou que vous prépariez un rapport VSME volontaire, les
-            12 chantiers ci-dessous sont les plus structurants à verrouiller pour produire des
-            chiffres opposables à un auditeur.
+            Que vous restiez soumis à la CSRD ou que vous prépariez un rapport volontaire selon la
+            norme VS, les 12 chantiers ci-dessous sont les plus structurants à verrouiller pour
+            produire des chiffres opposables à un auditeur.
           </p>
           <aside className="mt-5 rounded-xl border border-green-200 bg-green-50 p-4">
             <p className="text-xs font-bold uppercase tracking-widest text-green-700 mb-1">
-              Mise à jour · juillet 2026
+              Mise à jour · 2 novembre 2026
             </p>
             <p className="text-sm text-neutral-800 leading-relaxed">
-              Le projet d&apos;acte délégué publié le 6 mai 2026 rebaptise le VSME en
-              « <strong>VS</strong> » (Voluntary Standard), allège ses datapoints et rend opposable
-              le « value chain cap » (aucun donneur d&apos;ordre ne peut exiger plus que ce standard
-              d&apos;un fournisseur de moins de 1 000 salariés). Texte final attendu mi-juillet 2026,
-              application aux exercices 2027 avec anticipation possible dès 2026.{" "}
+              La norme volontaire a été adoptée le 3 juillet 2026 (règlement délégué (UE)
+              2026/1560, JOUE du 21 septembre 2026, en vigueur le 24 septembre 2026). Elle classe
+              chaque point en « nécessaire », « nécessaire si applicable », « volontaire » ou
+              « information sectorielle à considérer ». Le plafond de la chaîne de valeur
+              s&apos;applique aux exercices ouverts à compter du 1er janvier 2027, pour la seule
+              collecte faite au titre du reporting CSRD : les demandes d&apos;une banque, d&apos;un
+              contrat ou du devoir de vigilance n&apos;en relèvent pas. Les ESRS 2026 (règlement
+              délégué (UE) 2026/1563) entrent en vigueur le 10 novembre 2026.{" "}
               <Link href="/blog/vsme-devient-vs-2026" className="text-green-700 font-semibold hover:underline">
                 Notre analyse détaillée →
               </Link>

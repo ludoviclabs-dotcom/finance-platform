@@ -1,5 +1,5 @@
 /**
- * Datapoints Validator — moteur de règles ESRS Set 2.
+ * Datapoints Validator — moteur de règles du référentiel ESRS (avis EFRAG 2025, alignement 2026/1563 à venir).
  *
  * Vérifie cohérence et complétude d'un état datapoints :
  *  - Inégalités entre datapoints (Scope 2 LB >= Scope 2 MB)
@@ -30,7 +30,7 @@ export type Severity = "error" | "warning" | "info";
 export type RuleScope = "datapoint" | "standard" | "global";
 
 export interface ValidationFinding {
-  /** Identifiant stable de la règle (ex: "E1-scope2-LB-gte-MB"). */
+  /** Identifiant stable de la règle (ex: "E1-scope2-MB-above-LB"). */
   ruleId: string;
   severity: Severity;
   scope: RuleScope;
@@ -78,7 +78,7 @@ export interface ValidationReport {
   findings: ValidationFinding[];
   /** Compteurs par sévérité, utile pour badge UI. */
   counts: { error: number; warning: number; info: number };
-  /** Score audit-grade 0-100 (100 = aucun error/warning, complétude obligatoire 100 %). */
+  /** Score d'audit 0-100 (100 = aucun error/warning, complétude obligatoire 100 %). */
   auditScore: number;
 }
 
@@ -121,7 +121,9 @@ function deltaPct(actual: number, expected: number): number {
 
 /**
  * `a >= b`. Trigger si les deux sont extraits ET a < b.
- * Cas d'usage : Scope 2 location-based >= Scope 2 market-based.
+ * Cas d'usage : consommation d'eau ≤ prélèvements. Ne PAS l'utiliser pour
+ * imposer Scope 2 location-based ≥ market-based : sans instrument contractuel,
+ * le market-based applique le mix résiduel et dépasse souvent le location-based.
  */
 export function ruleGte(opts: {
   id: string;
@@ -131,6 +133,7 @@ export function ruleGte(opts: {
   severity?: Severity;
   standards?: string[];
   message?: (a: number, b: number) => string;
+  suggestion?: string;
 }): Rule {
   return {
     id: opts.id,
@@ -152,7 +155,9 @@ export function ruleGte(opts: {
           message:
             opts.message?.(va, vb) ??
             `${opts.a} (${va}) doit être ≥ ${opts.b} (${vb}).`,
-          suggestion: `Vérifier la cohérence des deux valeurs (méthodologie, unité, périmètre).`,
+          suggestion:
+            opts.suggestion ??
+            `Vérifier la cohérence des deux valeurs (méthodologie, unité, périmètre).`,
           computed: { expected: vb, actual: va, deltaPct: deltaPct(va, vb) },
         },
       ];
@@ -402,7 +407,7 @@ export function ruleDependenciesPresent(opts: {
 
 /**
  * Exécute toutes les règles fournies et agrège les findings.
- * Calcule complétude obligatoire globale et un score audit-grade 0-100.
+ * Calcule complétude obligatoire globale et un score d'audit 0-100.
  */
 export function runValidation(
   state: DatapointState,
@@ -439,7 +444,7 @@ export function runValidation(
   }).length;
   const mandatoryFilledPct = mandatoryDefs.length === 0 ? 100 : (filledMandatory / mandatoryDefs.length) * 100;
 
-  // Score audit-grade : complétude (50 %) + absence d'erreurs (40 %) + warnings (10 %)
+  // Score d'audit : complétude (50 %) + absence d'erreurs (40 %) + warnings (10 %)
   const completenessScore = mandatoryFilledPct * 0.5;
   const errorPenalty = Math.min(40, counts.error * 4); // 1 error = -4 pts, max -40
   const warningPenalty = Math.min(10, counts.warning * 1); // 1 warning = -1 pt, max -10

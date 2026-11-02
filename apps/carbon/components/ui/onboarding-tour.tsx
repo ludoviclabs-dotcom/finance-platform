@@ -35,17 +35,17 @@ const STEPS: readonly Step[] = [
   {
     title: "2. Vérifiez les calculs",
     body:
-      "CarbonCo applique les facteurs ADEME, IPCC ou DEFRA. Le copilote IA propose des corrections sourcées ESRS si quelque chose paraît anormal.",
+      "CarbonCo applique les facteurs ADEME Base Empreinte® versionnés, selon les principes du GHG Protocol. Le copilote IA propose des corrections sourcées ESRS si quelque chose paraît anormal.",
   },
   {
     title: "3. Audit trail",
     body:
-      "Chaque écriture est signée SHA-256 et chaînée à la précédente. Votre commissaire aux comptes peut auditer ligne par ligne.",
+      "Chaque écriture porte une empreinte SHA-256 chaînée à la précédente : toute modification devient détectable. Votre vérificateur (CAC ou OTI) peut contrôler ligne par ligne.",
   },
   {
     title: "4. Exportez le rapport",
     body:
-      "PDF prêt OTI signé, ou export CSV/XLSX si vous préférez intégrer les chiffres à vos propres outils.",
+      "PDF avec manifeste SHA-256, ou export CSV/XLSX si vous préférez intégrer les chiffres à vos propres outils.",
   },
 ] as const;
 

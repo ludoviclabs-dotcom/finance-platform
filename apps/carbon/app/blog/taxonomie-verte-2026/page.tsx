@@ -21,11 +21,17 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <ArticleLayout article={article}>
+      <Aside title="Mis à jour le 2 novembre 2026">
+        Article complété après l&apos;entrée en application de l&apos;acte délégué de
+        simplification (UE) 2026/73 et de la directive (UE) 2026/470 (Omnibus I). État du
+        droit au 2 novembre 2026.
+      </Aside>
+
       <P>
-        La Taxonomie verte européenne entre dans une nouvelle phase en 2026 :
-        consolidation des critères techniques, articulation renforcée avec la CSRD, et
-        attentes investisseurs croissantes sur les KPIs financiers. Tour d&apos;horizon
-        des évolutions et de leur impact opérationnel pour une ETI.
+        La Taxonomie verte européenne entre dans une phase de simplification en 2026 :
+        allègement des publications par l&apos;acte délégué (UE) 2026/73, champ resserré avec
+        celui de la CSRD, et attentes investisseurs toujours fortes sur les KPIs financiers.
+        Tour d&apos;horizon des évolutions et de leur impact opérationnel.
       </P>
 
       <H2>Rappel — qu&apos;est-ce que la Taxonomie</H2>
@@ -41,30 +47,40 @@ export default function Page() {
 
       <H2>Ce qui change en 2026</H2>
 
-      <H3>1 — Élargissement des critères techniques</H3>
+      <H3>1 — Un acte délégué de simplification</H3>
       <P>
-        Les Actes délégués 2024 et 2025 finalisent l&apos;extension aux 4 derniers
-        objectifs (eau, économie circulaire, pollution, biodiversité). Application pleine
-        et entière en 2026 : une ETI matériellement exposée doit publier ses KPIs sur les
-        6 axes, et non plus seulement sur le climat.
+        L&apos;acte délégué (UE) 2026/73, adopté le 4 juillet 2025 et publié au JOUE le
+        8 janvier 2026, s&apos;applique depuis le 1er janvier 2026 (son application était
+        facultative pour l&apos;exercice 2025). Il introduit un <strong>seuil de matérialité de
+        10 %</strong>, à documenter KPI par KPI, une{" "}
+        <strong>exemption pour le KPI OpEx</strong> et une réduction d&apos;environ 64 % des
+        points à publier pour les entreprises non financières. Une nouvelle révision des
+        publications est visée au premier trimestre 2027.
       </P>
 
-      <H3>2 — Articulation CSRD/Taxonomie clarifiée</H3>
+      <H3>2 — Un champ qui suit celui de la CSRD</H3>
       <P>
-        Le rapport CSRD inclut désormais explicitement les KPIs Taxonomie (CA, CapEx,
-        OpEx alignés). Plus de double tableau séparé : un seul rapport, une seule note
-        méthodologique, un seul périmètre d&apos;audit.
+        L&apos;obligation de publier les KPIs Taxonomie (article 8 du règlement (UE) 2020/852)
+        vise les entreprises soumises à la CSRD. Depuis la directive (UE) 2026/470 du
+        24 février 2026, ce sont celles de plus de 1 000 salariés et de plus de 450 M€ de
+        chiffre d&apos;affaires net. Une entreprise sortie du champ de la CSRD peut continuer à
+        calculer ses KPIs à titre volontaire, notamment pour ses banques.
       </P>
 
-      <H3>3 — Critères DNSH renforcés</H3>
+      <H3>3 — Articulation CSRD/Taxonomie</H3>
       <P>
-        Le « Do No Significant Harm » devient plus exigeant : il ne suffit plus
-        d&apos;affirmer le respect, il faut le documenter activité par activité, avec
-        évaluation des impacts résiduels. C&apos;est la principale source de
-        non-conformité observée en 2024-2025.
+        Le rapport de durabilité CSRD inclut les KPIs Taxonomie (CA, CapEx, OpEx alignés).
+        Pas de double tableau séparé : un seul rapport, une seule note méthodologique, un
+        seul périmètre de vérification.
       </P>
 
-      <H3>4 — Garanties minimales sociales</H3>
+      <H3>4 — Le DNSH à documenter</H3>
+      <P>
+        Le « Do No Significant Harm » ne se présume pas : il faut le documenter activité
+        par activité, avec évaluation des impacts résiduels.
+      </P>
+
+      <H3>5 — Garanties minimales sociales</H3>
       <P>
         L&apos;alignement Taxonomie nécessite désormais le respect documenté des
         principes UN Global Compact, OCDE pour les entreprises multinationales, et
@@ -81,7 +97,8 @@ export default function Page() {
             consacrés à des activités alignées ou à leur transition.</span>,
           <span key="3"><strong>OpEx aligné</strong> — pourcentage des dépenses
             d&apos;exploitation R&D, location à court terme, maintenance et formation
-            servant des activités alignées.</span>,
+            servant des activités alignées. L&apos;acte 2026/73 prévoit une exemption pour ce
+            KPI, à justifier.</span>,
         ]}
       />
 
@@ -92,10 +109,10 @@ export default function Page() {
         le CA aligné.
       </Aside>
 
-      <H2>Cas d&apos;une ETI industrielle</H2>
+      <H2>Cas illustratif d&apos;une ETI industrielle</H2>
       <P>
-        Une ETI industrielle (production de matériaux de construction, 250 M€ CA) a publié
-        en 2025 :
+        Exemple fictif : une ETI industrielle (production de matériaux de construction,
+        250 M€ CA) publiant volontairement ses KPIs Taxonomie :
       </P>
       <List
         items={[
@@ -106,16 +123,16 @@ export default function Page() {
         ]}
       />
       <P>
-        Le KPI CapEx aligné de 47 % a été repris en argument central de la communication
-        investisseurs : il démontre une trajectoire crédible sans surinvestir le KPI CA
-        aligné qui reste structurellement bas dans ce secteur.
+        Dans ce cas, le KPI CapEx aligné de 47 % devient l&apos;argument central de la
+        communication investisseurs : il démontre une trajectoire crédible sans surinvestir
+        le KPI CA aligné qui reste structurellement bas dans ce secteur.
       </P>
 
       <H2>Recommandations pratiques 2026</H2>
       <Numbered
         items={[
-          "Re-cartographier les activités selon la NACE-Taxonomie 2026 (ajustements mineurs mais réels sur certaines codes).",
-          "Auditer le DNSH : c'est ici que se cachent 80 % des risques de déclassement.",
+          "Appliquer le seuil de matérialité de 10 % de l'acte délégué (UE) 2026/73 KPI par KPI, et documenter chaque choix (y compris le recours à l'exemption OpEx).",
+          "Auditer le DNSH : c'est le critère le plus exigeant à documenter, activité par activité.",
           "Documenter les garanties minimales sociales avec un tableau de correspondance dispositif/principe.",
           "Aligner la note méthodologique CSRD et la note Taxonomie sur un seul périmètre, un seul vocabulaire.",
           "Anticiper le scénario d'audit : préparer 2 ou 3 activités pilotes que l'auditeur testera en priorité.",
@@ -127,8 +144,14 @@ export default function Page() {
         2026 marque la fin de la phase d&apos;expérimentation : la Taxonomie devient un
         instrument central du dialogue avec les investisseurs et avec les banques (qui
         l&apos;utilisent pour leur reporting Pilier 3 ESG). Une publication soignée
-        devient un actif réputationnel ; une publication bâclée devient un passif.
+        devient un actif réputationnel ; une publication bâclée devient un passif. À
+        surveiller : la nouvelle révision des publications visée au premier trimestre 2027.
       </P>
+
+      <Aside title="Et CarbonCo ?">
+        CarbonCo : module Taxonomie en feuille de route. La plateforme ne calcule pas
+        aujourd&apos;hui l&apos;éligibilité, l&apos;alignement ni les critères DNSH.
+      </Aside>
     </ArticleLayout>
   );
 }

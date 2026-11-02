@@ -133,12 +133,12 @@ export function CarbonNeuralValidation({
           exit={reduce ? undefined : { y: 16, opacity: 0 }}
           transition={SPRING.sheet}
         >
-          {/* En-tête : marque NEURAL + version + tag ESRS natif. */}
+          {/* En-tête : marque NEURAL + version + tag ESRS 2026. */}
           <header className="flex items-center gap-2">
             <NeuralMark size={18} />
             <span className="text-xs font-bold text-white">NEURAL · v2.4</span>
             <span className="ml-auto font-mono text-[10px] text-white/40">
-              ESRS native
+              ESRS 2026
             </span>
           </header>
 

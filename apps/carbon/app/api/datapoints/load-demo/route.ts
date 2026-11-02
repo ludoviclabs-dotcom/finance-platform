@@ -1,7 +1,8 @@
 /**
  * POST /api/datapoints/load-demo
  *
- * Charge un jeu de 30 datapoints ESRS Set 2 réalistes dans le state du tenant
+ * Charge un jeu de 30 datapoints réalistes du référentiel ESRS (avis EFRAG 2025,
+ * alignement 2026/1563 à venir) dans le state du tenant
  * courant pour permettre à un prospect de découvrir l'app sans uploader ses
  * propres documents.
  *
@@ -32,9 +33,10 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Role check
-  if (!requireRole(payload, ["analyst", "admin", "auditor", "daf"])) {
+  // Le vérificateur (auditor) est en lecture seule : il ne charge pas de données.
+  if (!requireRole(payload, ["analyst", "admin", "daf"])) {
     return NextResponse.json(
-      { error: "Permission insuffisante (analyst, admin, auditor ou daf requis)" },
+      { error: "Permission insuffisante (analyst, admin ou daf requis)" },
       { status: 403 },
     );
   }

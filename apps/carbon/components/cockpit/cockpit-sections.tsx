@@ -245,7 +245,7 @@ export function Hero({
 
       {/* Score conformité */}
       <div className="cc-card cc-hero-score">
-        <div className="cc-eyebrow"><Gauge className="w-3.5 h-3.5" /> Score de conformité ESRS</div>
+        <div className="cc-eyebrow"><Gauge className="w-3.5 h-3.5" /> Score de couverture ESRS</div>
         {esrs.score !== null ? (
           <>
             <div className="cc-score-ring-wrap">
@@ -279,7 +279,7 @@ export function Hero({
             </p>
             <Link href="/esrs" className="cc-score-goal">
               <Flag className="w-3.5 h-3.5" style={{ color: "var(--cc-em)" }} />
-              <span>Voir la conformité ESRS</span>
+              <span>Voir la couverture ESRS</span>
             </Link>
           </>
         )}
@@ -620,7 +620,7 @@ export function BridgeRow({
       <div className="cc-card cc-esrs-heat">
         <div className="cc-card-head">
           <div className="cc-eyebrow">
-            <LayoutGrid className="w-3.5 h-3.5" /> Conformité ESRS · heatmap
+            <LayoutGrid className="w-3.5 h-3.5" /> Couverture ESRS · heatmap
           </div>
         </div>
         {esrs.radial.length > 0 ? (
@@ -798,7 +798,7 @@ export function CopilotDrawer({
                   Votre <strong>Scope 3</strong> représente {scope3SharePct} % des émissions affichées.{" "}
                 </>
               ) : null}
-              Je peux vous aider à identifier des leviers de réduction, suivre votre conformité ESRS,
+              Je peux vous aider à identifier des leviers de réduction, suivre votre couverture ESRS,
               ou pré-rédiger un rapport.
             </div>
           </div>

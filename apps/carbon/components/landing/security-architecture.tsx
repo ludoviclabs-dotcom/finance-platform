@@ -75,12 +75,12 @@ const STAGES = [
   {
     id: "export",
     label: "Export auditeur",
-    sub: "PDF signé · OTI ready",
+    sub: "PDF + manifeste SHA-256",
     status: "vérifiable",
     color: "#7C3AED",
     description: "PDF, Excel, Evidence Pack ZIP et manifeste vérifiable.",
     dataKept: "rapport figé, manifeste, hash global",
-    control: "package signé + vérification publique",
+    control: "manifeste d'empreintes + vérification publique",
     evidence: "/verify/{hash}",
     auditorView: "contrôle sans compte via hash public",
   },
@@ -119,7 +119,7 @@ export function SecurityArchitecture({ className = "" }: SecurityArchitecturePro
           <desc id="sec-archi-desc">
             Pipeline en cinq étapes : saisie des données, transit chiffré TLS 1.3,
             stockage en Europe avec chiffrement AES-256, audit trail append-only
-            signé SHA-256, et export auditeur avec manifeste vérifiable.
+            chaîné SHA-256, et export auditeur avec manifeste vérifiable.
           </desc>
 
           <defs>

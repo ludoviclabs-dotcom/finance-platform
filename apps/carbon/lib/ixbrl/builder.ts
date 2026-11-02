@@ -1,8 +1,8 @@
 /**
  * Générateur iXBRL ESRS — open-source, sans dépendance commerciale.
  *
- * Produit un document XHTML inline-XBRL conforme :
- *   - schémas EFRAG ESRS Set 2 (taxonomie 2024-12-04)
+ * Produit un document XHTML inline-XBRL (bêta) qui suit :
+ *   - la taxonomie XBRL ESRS de l'EFRAG (2024-12-04)
  *   - faits taggés via <ix:nonFraction> (numériques) et <ix:nonNumeric> (texte)
  *   - contextes (entité + période)
  *   - unités (EUR, tCO2e, MWh, pure, ratios)
@@ -12,7 +12,8 @@
  * le contenu généré), et exporte une chaîne XML utilisable directement.
  *
  * Phase 2 :
- *   - couvre ESRS E1-E5, S1-S4, G1 (Set 2 complet — 107 dps)
+ *   - couvre ESRS E1-E5, S1-S4, G1 (107 dps obligatoires du référentiel ESRS
+ *     (avis EFRAG 2025, alignement 2026/1563 à venir))
  *   - nouvelles unités : tonne, m3, ha, m3_per_meur
  *   - schemaRef pointe vers la taxonomie EFRAG officielle (URL externe)
  *   - pas de footnotes, pas de calcLink, pas de presentationLink personnalisé
@@ -31,7 +32,7 @@ import { ESRS_E5_TAG_INDEX } from "./esrs-e5-tags";
 import { ESRS_S1_S4_TAG_INDEX } from "./esrs-s1-s4-tags";
 import { ESRS_G1_TAG_INDEX } from "./esrs-g1-tags";
 
-/** Index unifié Set 2 complet (E1-E5 + S1-S4 + G1). */
+/** Index unifié du référentiel ESRS (E1-E5 + S1-S4 + G1). */
 const FULL_TAG_INDEX = new Map([
   ...ESRS_E1_TAG_INDEX,
   ...ESRS_E2_TAG_INDEX,
@@ -272,7 +273,7 @@ export function buildIxbrl(params: BuildIxbrlParams): BuildIxbrlResult {
     </div>
     <article>
       <h1>${escapeXml(params.entity.name)} — Rapport de durabilité ${params.period.startDate} → ${params.period.endDate}</h1>
-      <p>Document iXBRL ESRS Set 2 — ${tagged.length} faits taggés, ${warnings.length} alertes. Voir l'attribut <code>name</code> de chaque <code>&lt;ix:&gt;</code> pour le mapping ESRS.</p>
+      <p>Document iXBRL (bêta) selon la taxonomie XBRL ESRS de l'EFRAG (2024) — ${tagged.length} faits taggés, ${warnings.length} alertes. Voir l'attribut <code>name</code> de chaque <code>&lt;ix:&gt;</code> pour le mapping ESRS. Aucun dépôt balisé de l'état de durabilité n'est exigé à ce jour (directive (UE) 2026/470) : ce fichier sert au contrôle de cohérence des données.</p>
       <section>
         ${factsXml}
       </section>

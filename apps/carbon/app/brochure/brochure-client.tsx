@@ -135,7 +135,7 @@ export function BrochureClient() {
               </span>
             </h1>
             <p className="text-base sm:text-lg text-neutral-600 max-w-xl mb-10 sm:mb-12 leading-relaxed">
-              CarbonCo automatise la conformité ESRS, sécurise la traçabilité de
+              CarbonCo structure votre couverture ESRS, sécurise la traçabilité de
               chaque chiffre et met en route votre reporting CSRD en moins de trois
               semaines.
             </p>
@@ -150,7 +150,7 @@ export function BrochureClient() {
               </div>
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl print:text-3xl font-extrabold text-green-700">UE</p>
-                <p className="text-[10px] sm:text-xs text-neutral-500 uppercase tracking-wide sm:tracking-widest mt-1">Hébergement & IA</p>
+                <p className="text-[10px] sm:text-xs text-neutral-500 uppercase tracking-wide sm:tracking-widest mt-1">Stockage des données</p>
               </div>
             </div>
           </div>
@@ -159,14 +159,17 @@ export function BrochureClient() {
         {/* Page 2 — sommaire + positionnement */}
         <Page index="02" title="Pourquoi CarbonCo">
           <p className="mb-6">
-            Le règlement CSRD impose désormais à plus de 50 000 entreprises européennes de
-            publier un reporting de durabilité aussi rigoureux que leurs comptes financiers.
-            Les ETI se retrouvent face à un défi simple à formuler, complexe à exécuter :
-            <strong> produire un rapport ESRS auditable sans alourdir leurs équipes.</strong>
+            Depuis la directive (UE) 2026/470 du 24 février 2026 (« Omnibus I »), la CSRD vise
+            les entreprises de plus de 1 000 salariés et de plus de 450 M€ de chiffre
+            d&apos;affaires net, tenues de publier un reporting de durabilité vérifié par un
+            commissaire aux comptes ou un OTI. Leurs fournisseurs reçoivent, eux, des demandes
+            fondées sur la norme volontaire (VS, ex-VSME). Dans les deux cas, le défi est simple à
+            formuler, complexe à exécuter :
+            <strong> produire des chiffres ESG traçables sans alourdir les équipes.</strong>
           </p>
           <p className="mb-6">
-            CarbonCo répond à ce défi avec une plateforme conçue dès l&apos;origine pour la
-            traçabilité OTI : chaque donnée porte sa provenance, sa méthode et un hash
+            CarbonCo répond à ce défi avec une plateforme conçue dès l&apos;origine pour faciliter
+            les travaux du vérificateur : chaque donnée porte sa provenance, sa méthode et un hash
             cryptographique de chaîne. Le résultat : un rapport que votre commissaire aux
             comptes peut auditer ligne par ligne.
           </p>
@@ -185,10 +188,10 @@ export function BrochureClient() {
         <Page index="03" title="Le produit en un coup d'œil">
           <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4">
             {[
-              { Comp: CollecteIllustration, t: "Collecte simplifiée",   d: "Import Excel + connecteurs API. Lignée préservée." },
+              { Comp: CollecteIllustration, t: "Collecte simplifiée",   d: "Import Excel + API REST. Lignée préservée." },
               { Comp: CalculIllustration,  t: "Calcul automatique",    d: "Facteurs ADEME · IPCC · DEFRA. Méthodes tracées." },
               { Comp: AuditIllustration,   t: "Audit trail intégral",  d: "Hash SHA-256 à chaque écriture. Append-only." },
-              { Comp: RapportIllustration, t: "Rapport prêt OTI",      d: "PDF signé. Provenance et méthode incluses." },
+              { Comp: RapportIllustration, t: "Dossier vérificateur",  d: "PDF avec empreinte SHA-256. Provenance et méthode incluses." },
             ].map(({ Comp, t, d }) => (
               <div key={t} className="rounded-2xl border border-neutral-200 p-4">
                 <Comp className="mb-2" />
@@ -207,13 +210,13 @@ export function BrochureClient() {
           <p className="mb-6">
             Vos données extra-financières sont aussi sensibles que vos données financières.
             CarbonCo applique le même niveau d&apos;exigence : chiffrement AES-256 au repos,
-            TLS 1.3 en transit, audit trail immuable et hébergement entièrement européen.
+            TLS 1.3 en transit, journal en ajout seul et données stockées en UE.
           </p>
           <div className="my-6">
             <SecurityArchitecture />
           </div>
           <h3 className="font-bold text-base text-neutral-900 mt-6 mb-4">
-            Conformité native et certifications
+            Engagements de sécurité et certifications
           </h3>
           <TrustBadges />
         </Page>
@@ -251,8 +254,9 @@ export function BrochureClient() {
             <div className="rounded-2xl bg-green-50 p-4 border border-green-200">
               <OtiIllustration className="mb-2" />
               <p className="text-xs text-neutral-700">
-                CarbonCo aligne sa roadmap sur les guidelines EFRAG 2025-2026 et fait évoluer
-                les datapoints au fil des publications.
+                CarbonCo aligne sa feuille de route sur les ESRS 2026 (règlement délégué (UE)
+                2026/1563) et la norme volontaire (règlement délégué (UE) 2026/1560), et fait
+                évoluer les datapoints par migrations versionnées.
               </p>
             </div>
             <div className="rounded-2xl bg-neutral-50 p-4 border border-neutral-200">
@@ -271,7 +275,7 @@ export function BrochureClient() {
             {[
               { name: "Starter",    price: "490 €", target: "PME en reporting volontaire",      bullets: ["Scope 1 & 2", "ESRS E1", "1 utilisateur", "Export PDF"] },
               { name: "Business",   price: "1 290 €", target: "ETI fournisseur grands comptes", bullets: ["Scope 1, 2 & 3", "Copilote IA", "5 utilisateurs", "API REST"], highlight: true },
-              { name: "Enterprise", price: "Sur devis", target: "Groupes multi-sites",          bullets: ["Multi-sites", "SSO + RBAC", "Support dédié", "Onboarding"] },
+              { name: "Enterprise", price: "Sur devis", target: "Groupes multi-sites",          bullets: ["Multi-sites", "SSO + RBAC (planifié)", "Support dédié", "Onboarding"] },
             ].map((p) => (
               <div
                 key={p.name}

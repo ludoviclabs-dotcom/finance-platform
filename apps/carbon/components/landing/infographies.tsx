@@ -130,10 +130,10 @@ export function AuditTrailInfographic({ className = "" }: InfoProps) {
       aria-labelledby="ig-audit-title"
       className={`w-full h-auto ${className}`}
     >
-      <title id="ig-audit-title">Comment fonctionne l&apos;audit trail signé SHA-256</title>
+      <title id="ig-audit-title">Comment fonctionne l&apos;audit trail chaîné SHA-256</title>
       <rect width="800" height="280" rx="16" fill={PAPER} />
       <text x="400" y="36" textAnchor="middle" fontFamily="system-ui" fontWeight="800" fontSize="20" fill={INK}>
-        Audit trail signé SHA-256
+        Audit trail chaîné SHA-256
       </text>
 
       {[
@@ -168,10 +168,10 @@ export function AuditTrailInfographic({ className = "" }: InfoProps) {
       </defs>
 
       <text x="400" y="234" textAnchor="middle" fontFamily="system-ui" fontSize="13" fill={SLATE}>
-        Modifier une ligne casse la chaîne — l&apos;OTI détecte la rupture.
+        Modifier une ligne casse la chaîne — le vérificateur détecte la rupture.
       </text>
       <text x="400" y="254" textAnchor="middle" fontFamily="system-ui" fontWeight="700" fontSize="13" fill={EMERALD}>
-        Append-only · Immuable · Vérifiable hors ligne
+        Append-only · Modification détectable · Vérifiable hors ligne
       </text>
     </svg>
   );
@@ -236,7 +236,7 @@ export function OtiWorkflowInfographic({ className = "" }: InfoProps) {
     { label: "2. Données",    sub: "Provenance + hash" },
     { label: "3. Méthode",    sub: "Facteur d'émission" },
     { label: "4. Calcul",     sub: "Reproductible" },
-    { label: "5. Rapport",    sub: "PDF signé · OTI ready" },
+    { label: "5. Rapport",    sub: "PDF + manifeste SHA-256" },
   ];
   return (
     <svg
@@ -307,7 +307,7 @@ export function ExcelToReportInfographic({ className = "" }: InfoProps) {
           </g>
         ))}
         <text x="210" y="232" textAnchor="middle" fontFamily="system-ui" fontSize="11" fill="#DC2626">
-          Pas de provenance · pas de hash · risque de rejet OTI
+          Pas de provenance · pas de hash · réserves du vérificateur
         </text>
       </g>
 
@@ -329,7 +329,7 @@ export function ExcelToReportInfographic({ className = "" }: InfoProps) {
           "Import Excel structuré",
           "Méthode + facteur tracés",
           "Hash de chaîne SHA-256",
-          "PDF signé prêt OTI",
+          "Dossier de preuves pour le vérificateur",
         ].map((label, i) => (
           <g key={label}>
             <circle cx="528" cy={140 + i * 24} r="6" fill={EMERALD} />

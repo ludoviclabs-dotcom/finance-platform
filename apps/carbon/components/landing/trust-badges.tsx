@@ -1,9 +1,13 @@
 /**
- * Trust badges — 8 visuels de conformité (SVG inline, sobres, vectoriels).
+ * Trust badges — 8 visuels de sécurité et de preuve (SVG inline, sobres, vectoriels).
  *
  * Statuts :
- *   - verified : conformité native (RGPD, hébergement EU, audit trail SHA-256, AES-256, CSRD)
- *   - in-progress : certification en cours d'évaluation (SOC 2, ISO 27001, DORA)
+ *   - verified : mesure en place et vérifiable (sous-traitants RGPD publiés,
+ *     traitement en UE, chiffrement, audit trail chaîné SHA-256, référentiel ESRS)
+ *   - in-progress : certification planifiée, aucun auditeur mandaté à ce jour
+ *     (SOC 2, ISO 27001 — registre `certifs-soc2-iso` = planifie)
+ *
+ * Aucun badge ne dit « conforme » : seul un tiers habilité certifie.
  *
  * Chaque badge est autonome (titre, statut, mini-icône). Affichage en grille
  * responsive 2 → 4 → 8 colonnes selon la largeur.
@@ -79,14 +83,14 @@ const Award = (
 );
 
 export const TRUST_BADGES: readonly BadgeDef[] = [
-  { id: "rgpd",        title: "RGPD",                 short: "Conforme",        status: "verified",    icon: ShieldCheck },
-  { id: "eu",          title: "Hébergement EU",       short: "Vercel · Neon",   status: "verified",    icon: Globe },
+  { id: "rgpd",        title: "RGPD",                 short: "Sous-traitants publiés", status: "verified", icon: ShieldCheck },
+  { id: "eu",          title: "Traitement en UE",     short: "Francfort · fra1", status: "verified",   icon: Globe },
   { id: "aes256",      title: "AES-256 + TLS 1.3",    short: "Chiffrement",     status: "verified",    icon: KeyRound },
   { id: "audit",       title: "Audit Trail",          short: "Append-only",     status: "verified",    icon: FileCheck },
-  { id: "sha256",      title: "Signature SHA-256",    short: "Hash de chaîne",  status: "verified",    icon: Hash },
-  { id: "csrd",        title: "CSRD-Ready",           short: "ESRS E1 prio.",   status: "verified",    icon: Award },
-  { id: "soc2",        title: "SOC 2 Type II",        short: "En évaluation",   status: "in-progress", icon: Lock },
-  { id: "iso27001",    title: "ISO 27001",            short: "En évaluation",   status: "in-progress", icon: Building },
+  { id: "sha256",      title: "Empreinte SHA-256",    short: "Chaîne vérifiable", status: "verified",  icon: Hash },
+  { id: "csrd",        title: "ESRS 2026",            short: "E1 approfondie",  status: "verified",    icon: Award },
+  { id: "soc2",        title: "SOC 2 Type II",        short: "Planifiée",       status: "in-progress", icon: Lock },
+  { id: "iso27001",    title: "ISO 27001",            short: "Planifiée",       status: "in-progress", icon: Building },
 ] as const;
 
 interface TrustBadgesProps {
@@ -97,7 +101,7 @@ export function TrustBadges({ className = "" }: TrustBadgesProps) {
   return (
     <ul
       role="list"
-      aria-label="Badges de conformité et de sécurité"
+      aria-label="Badges de sécurité et de preuve"
       className={`grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 ${className}`}
     >
       {TRUST_BADGES.map((badge) => {
@@ -112,7 +116,7 @@ export function TrustBadges({ className = "" }: TrustBadgesProps) {
               className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${
                 isVerified ? "bg-green-500" : "bg-amber-500"
               }`}
-              title={isVerified ? "Conforme" : "Certification en cours"}
+              title={isVerified ? "En place" : "Certification planifiée"}
             />
             <div
               className={`flex items-center justify-center w-12 h-12 rounded-full mb-2 ${

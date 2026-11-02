@@ -2900,6 +2900,7 @@
         {
           "date": "2025-11-07",
           "text": "Annonce n° 70 : suspension des mesures d'octobre jusqu'au 10 novembre 2026.",
+          "review_by": "2026-11-10",
           "provenance": {
             "data_quality": "verified",
             "source_ids": [
@@ -2910,6 +2911,7 @@
         {
           "date": "2026-09-28",
           "text": "Prolongation jusqu'au 10 janvier 2027 de l'arrangement commercial sino-américain qui fonde cette suspension.",
+          "review_by": "2027-01-10",
           "provenance": {
             "data_quality": "estimated",
             "source_ids": [

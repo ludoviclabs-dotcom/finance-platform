@@ -17,6 +17,7 @@ import {
   getRoboticsDataset,
   layersInReadingOrder,
   resolveLayerMaterials,
+  signalsDueForReview,
   summarizeRobotics,
   validateRoboticsDataset,
   ROBOTICS_SCHEMA_VERSION,
@@ -156,6 +157,39 @@ describe("Rattachement pays → bloc", () => {
     const actor = ds.actors.find(a => a.countries.length === 1 && a.countries[0] === "US")!;
     actor.bloc = "cn";
     expect(validateRoboticsDataset(ds, materials)).toContain(`actors.${actor.id} : bloc cn sans pays correspondant`);
+  });
+});
+
+describe("Échéances de revérification — aucun état révolu présenté comme actuel", () => {
+  const at = (iso: string) => new Date(`${iso}T12:00:00Z`).getTime();
+
+  it("rien n'est à revérifier à la date du snapshot", async () => {
+    const ds = await getRoboticsDataset();
+    expect(signalsDueForReview(ds, at(ds.snapshot_date))).toEqual([]);
+  });
+
+  it("la suspension des contrôles chinois d'octobre 2025 est à revérifier dès son échéance du 10/11/2026", async () => {
+    const ds = await getRoboticsDataset();
+    expect(signalsDueForReview(ds, at("2026-11-09"))).toEqual([]);
+    const due = signalsDueForReview(ds, at("2026-11-10"));
+    expect(due.map(d => d.chokepoint_id)).toEqual(["aimants-controles-export"]);
+    expect(due[0].signal.review_by).toBe("2026-11-10");
+  });
+
+  it("la prolongation de l'arrangement sino-américain s'y ajoute après le 10/01/2027", async () => {
+    const ds = await getRoboticsDataset();
+    expect(signalsDueForReview(ds, at("2027-01-10")).map(d => d.signal.review_by)).toEqual(["2026-11-10", "2027-01-10"]);
+  });
+
+  it("une échéance mal formée ou antérieure au signal est signalée", async () => {
+    const ds = clone(await getRoboticsDataset());
+    const { materials } = await getMaterials();
+    const chokepoint = ds.chokepoints.find(c => c.signals.length >= 2)!;
+    chokepoint.signals[0].review_by = "10/11/2026";
+    chokepoint.signals[1].review_by = "2000-01-01";
+    const issues = validateRoboticsDataset(ds, materials);
+    expect(issues).toContain(`chokepoints.${chokepoint.id}.signals.0 : échéance invalide`);
+    expect(issues).toContain(`chokepoints.${chokepoint.id}.signals.1 : échéance antérieure au signal`);
   });
 });
 

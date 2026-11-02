@@ -16,6 +16,9 @@
 //
 // Hors périmètre, volontairement : cours, valorisations, tickers et thèses
 // d'investissement du dossier d'origine. Ils restent sur le portfolio.
+//
+// Le JSON est généré par scripts/robotics/build_snapshot.py (source de vérité,
+// contrôlée en CI par `--check`) : ne jamais le retoucher à la main.
 
 import type { DataQuality, Material } from "@/lib/crm/dataLoader";
 import { ISO3166_ALPHA2_TO_NUMERIC } from "@/lib/iso3166";
@@ -147,6 +150,9 @@ export interface MarketProjection {
 export interface Signal {
   date: string;
   text: string;
+  // Échéance au-delà de laquelle le signal décrit peut-être un état révolu
+  // (mesure suspendue jusqu'à une date, accord prolongé jusqu'à une date…).
+  review_by?: string;
   provenance: Provenance;
 }
 
@@ -370,6 +376,11 @@ export function validateRoboticsDataset(ds: RoboticsDataset, materials: Material
   ds.oems.forEach(o => refActor(`oems.${o.actor_id}`, o.actor_id));
   ds.alliances.forEach(a => refActor(`alliances.${a.id}`, a.oem_actor_id));
   ds.chokepoints.forEach(c => {
+    c.signals.forEach((s, i) => {
+      if (s.review_by === undefined) return;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s.review_by)) issues.push(`chokepoints.${c.id}.signals.${i} : échéance invalide`);
+      else if (s.review_by < s.date) issues.push(`chokepoints.${c.id}.signals.${i} : échéance antérieure au signal`);
+    });
     c.actor_ids.forEach(id => refActor(`chokepoints.${c.id}`, id));
     c.layer_ids.forEach(id => {
       if (!layerIds.has(id)) issues.push(`chokepoints.${c.id} : couche inconnue ${id}`);
@@ -396,6 +407,22 @@ export function validateRoboticsDataset(ds: RoboticsDataset, materials: Material
   });
 
   return issues;
+}
+
+// Signaux dont l'échéance est atteinte : la page les marque « à revérifier »
+// plutôt que de présenter un état peut-être révolu comme actuel. `now` est
+// injectable, et la page le fixe côté serveur (même discipline que
+// isSnapshotStale : jamais recalculé à l'hydratation).
+export function signalsDueForReview(
+  ds: RoboticsDataset,
+  now: number = Date.now(),
+): { chokepoint_id: string; signal: Signal }[] {
+  const today = new Date(now).toISOString().slice(0, 10);
+  return ds.chokepoints.flatMap(c =>
+    c.signals
+      .filter(s => s.review_by !== undefined && s.review_by <= today)
+      .map(signal => ({ chokepoint_id: c.id, signal })),
+  );
 }
 
 export interface RoboticsSummary {

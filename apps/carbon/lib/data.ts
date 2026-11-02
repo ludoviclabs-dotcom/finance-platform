@@ -238,7 +238,7 @@ export const recentActivity: Activity[] = [
     id: 4,
     type: "report",
     title: "Rapport CSRD Q4 généré",
-    description: "PDF exporté — prêt pour soumission",
+    description: "PDF exporté — prêt pour relecture",
     time: "Hier",
     icon: "file-text",
   },
@@ -347,7 +347,7 @@ export const aiResponses: Record<string, string> = {
   // Chiffres alignés sur le jeu démo unique data/demo-dataset.json (T0.5).
   scope:
     "Vos émissions totales s'élèvent à **12 847 tCO₂e** sur les 12 derniers mois.\n\n- **Scope 1** : 3 210 tCO₂e (25%) — en baisse de 8%\n- **Scope 2** : 2 415 tCO₂e (19%) — en baisse de 18%\n- **Scope 3** : 7 222 tCO₂e (56%) — en baisse de 9%\n\nLe Scope 3 reste votre principal levier de réduction. Je recommande de cibler les achats de biens & services et le transport amont.",
-  esrs: "Votre conformité ESRS globale est de **63%**.\n\n**Points forts :**\n- ESRS 1 (Exigences générales) : 95% ✅\n- ESRS S1 (Effectifs) : 90% ✅\n\n**Priorités :**\n- ESRS S3 (Communautés) : 30% — démarrez la consultation des parties prenantes\n- ESRS S4 (Consommateurs) : 35% — collectez les données de satisfaction client\n- ESRS S2 (Chaîne de valeur) : 40% — lancez un questionnaire fournisseurs",
+  esrs: "Votre taux de couverture ESRS est de **63 %** des datapoints applicables.\n\n**Points forts :**\n- ESRS 1 (Exigences générales) : 95% ✅\n- ESRS S1 (Effectifs) : 90% ✅\n\n**Priorités :**\n- ESRS S3 (Communautés) : 30% — démarrez la consultation des parties prenantes\n- ESRS S4 (Consommateurs) : 35% — collectez les données de satisfaction client\n- ESRS S2 (Chaîne de valeur) : 40% — lancez un questionnaire fournisseurs",
   cbam: "Le **CBAM** (Mécanisme d'ajustement carbone aux frontières) est en **régime définitif depuis le 1ᵉʳ janvier 2026**.\n\n**Repères :**\n1. Les importateurs sous **50 tonnes/an** de marchandises couvertes (acier, aluminium, ciment, engrais, électricité, hydrogène) sont exemptés.\n2. Au-delà du seuil : statut de **déclarant agréé** requis, **achat de certificats à partir de février 2027**.\n3. Première **déclaration annuelle au 30 septembre 2027**.\n\n⚠️ *Exemple pédagogique — les chiffres ci-dessous sont fictifs et doivent être remplacés par vos données réelles.*\nExposition illustrative : ~240 tCO₂e sur des importations d'acier et d'aluminium.",
   taxonomie:
     "La **Taxonomie européenne** définit 6 objectifs environnementaux.\n\n⚠️ *Exemple pédagogique — les pourcentages ci-dessous sont fictifs et doivent être calculés à partir de vos données financières réelles.*\n\nActivités potentiellement éligibles :\n- Atténuation climat : à évaluer selon vos activités\n- Adaptation climat : à évaluer selon votre exposition aux risques physiques\n- Eau & ressources marines : si applicable à votre secteur\n\n**Prochaine étape** : documenter les critères DNSH (Do No Significant Harm) pour vos principales activités éligibles.",

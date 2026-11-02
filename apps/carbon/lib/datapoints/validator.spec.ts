@@ -40,7 +40,7 @@ describe("validator — empty state", () => {
   });
 });
 
-describe("validator — règle E1-scope2-LB-gte-MB", () => {
+describe("validator — règle E1-scope2-MB-above-LB (information)", () => {
   it("ne déclenche rien quand LB >= MB", () => {
     const state = makeState({
       "E1-6_scope2_location_based": makeDp("E1-6_scope2_location_based", 1500, "extracted", "tCO2e"),
@@ -48,21 +48,38 @@ describe("validator — règle E1-scope2-LB-gte-MB", () => {
     });
     const report = runValidation(state, RULES_SET2);
     expect(
-      report.findings.find((f) => f.ruleId === "E1-scope2-LB-gte-MB"),
+      report.findings.find((f) => f.ruleId === "E1-scope2-MB-above-LB"),
     ).toBeUndefined();
   });
 
-  it("déclenche un error quand LB < MB", () => {
+  it("MB > LB sans instrument (mix résiduel) : information, jamais une erreur", () => {
+    // Exemple du dossier de maîtrise : 10 GWh, mix moyen 0,30 → 3 000 tCO₂e
+    // location-based ; mix résiduel 0,45 → 4 500 tCO₂e market-based.
     const state = makeState({
-      "E1-6_scope2_location_based": makeDp("E1-6_scope2_location_based", 1000, "extracted", "tCO2e"),
-      "E1-6_scope2_market_based": makeDp("E1-6_scope2_market_based", 1500, "extracted", "tCO2e"),
+      "E1-6_scope2_location_based": makeDp("E1-6_scope2_location_based", 3000, "extracted", "tCO2e"),
+      "E1-6_scope2_market_based": makeDp("E1-6_scope2_market_based", 4500, "extracted", "tCO2e"),
     });
     const report = runValidation(state, RULES_SET2);
-    const finding = report.findings.find((f) => f.ruleId === "E1-scope2-LB-gte-MB");
+    const finding = report.findings.find((f) => f.ruleId === "E1-scope2-MB-above-LB");
     expect(finding).toBeDefined();
-    expect(finding?.severity).toBe("error");
-    expect(finding?.computed?.expected).toBe(1500);
-    expect(finding?.computed?.actual).toBe(1000);
+    expect(finding?.severity).toBe("info");
+    expect(finding?.message).toMatch(/mix résiduel/);
+    expect(report.findings.filter((f) => f.severity === "error" && f.datapointIds.includes("E1-6_scope2_market_based"))).toHaveLength(0);
+  });
+
+  it("n'abaisse pas le score d'audit", () => {
+    const base = {
+      "E1-6_scope2_location_based": makeDp("E1-6_scope2_location_based", 3000, "extracted", "tCO2e"),
+    };
+    const lower = runValidation(
+      makeState({ ...base, "E1-6_scope2_market_based": makeDp("E1-6_scope2_market_based", 1800, "extracted", "tCO2e") }),
+      RULES_SET2,
+    );
+    const higher = runValidation(
+      makeState({ ...base, "E1-6_scope2_market_based": makeDp("E1-6_scope2_market_based", 4500, "extracted", "tCO2e") }),
+      RULES_SET2,
+    );
+    expect(higher.auditScore).toBe(lower.auditScore);
   });
 
   it("ne déclenche rien quand seul MB est saisi (LB absent)", () => {
@@ -71,7 +88,7 @@ describe("validator — règle E1-scope2-LB-gte-MB", () => {
     });
     const report = runValidation(state, RULES_SET2);
     expect(
-      report.findings.find((f) => f.ruleId === "E1-scope2-LB-gte-MB"),
+      report.findings.find((f) => f.ruleId === "E1-scope2-MB-above-LB"),
     ).toBeUndefined();
   });
 });
@@ -103,6 +120,22 @@ describe("validator — règle E1-total-GHG-equals-sum-scopes", () => {
     );
     expect(finding).toBeDefined();
     expect(finding?.severity).toBe("error");
+  });
+});
+
+describe("validator — total GHG sur l'une ou l'autre base de scope 2", () => {
+  it("accepte un total calculé avec le scope 2 location-based", () => {
+    const state = makeState({
+      "E1-6_scope1_gross": makeDp("E1-6_scope1_gross", 1000, "extracted", "tCO2e"),
+      "E1-6_scope2_location_based": makeDp("E1-6_scope2_location_based", 3000, "extracted", "tCO2e"),
+      "E1-6_scope2_market_based": makeDp("E1-6_scope2_market_based", 4500, "extracted", "tCO2e"),
+      "E1-6_scope3_total": makeDp("E1-6_scope3_total", 6000, "extracted", "tCO2e"),
+      "E1-6_total_ghg": makeDp("E1-6_total_ghg", 10000, "extracted", "tCO2e"),
+    });
+    const report = runValidation(state, RULES_SET2);
+    expect(
+      report.findings.find((f) => f.ruleId === "E1-total-GHG-equals-sum-scopes"),
+    ).toBeUndefined();
   });
 });
 

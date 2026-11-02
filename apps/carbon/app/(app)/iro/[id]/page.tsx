@@ -8,7 +8,7 @@
  * affiché (plan §6/§11). Formulaire de décision humaine (`is_material`,
  * `basis`, `justification` obligatoire) avec historique append-only visible.
  * Actions et correspondances de disclosure. Téléchargement de l'Evidence
- * Pack (ZIP signé).
+ * Pack (manifeste + empreintes SHA-256).
  *
  * États loading / schema_not_ready / error / ready explicites — motif
  * `/water/cockpit`, `/nature`.
@@ -216,7 +216,7 @@ function IroDetailContent({
           data-testid="iro-evidence-pack-download"
         >
           <Download className="h-3.5 w-3.5" aria-hidden />
-          Télécharger l&apos;Evidence Pack (ZIP signé)
+          Télécharger l&apos;Evidence Pack (manifeste + empreintes SHA-256)
         </button>
       </header>
 

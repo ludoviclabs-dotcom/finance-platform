@@ -111,30 +111,54 @@ export default async function ProductModulePage({
           </div>
         </section>
 
-        {/* Preuves */}
+        {/* Disponible / feuille de route — séparés pour ne jamais présenter un planifié comme livré */}
         <section className="mb-12">
           <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-neutral-900 mb-6">
-            Preuves
+            Ce qui existe, ce qui arrive
           </h2>
-          <ul className="space-y-3">
-            {m.proofs.map((p) => (
-              <li key={p} className="flex items-start gap-3">
-                <span className="text-green-600 mt-1">✓</span>
-                <span className="text-base text-neutral-700">{p}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6">
+              <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-emerald-800 mb-4">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Disponible aujourd&apos;hui
+              </p>
+              <ul className="space-y-3">
+                {m.proofs.map((p) => (
+                  <li key={p} className="flex items-start gap-3">
+                    <span className="text-emerald-600 mt-0.5" aria-hidden>✓</span>
+                    <span className="text-sm text-neutral-700 leading-relaxed">{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6">
+              <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-neutral-500 mb-4">
+                <span className="h-2 w-2 rounded-full border-2 border-neutral-400" />
+                En feuille de route
+              </p>
+              <ul className="space-y-3">
+                {m.roadmap.map((p) => (
+                  <li key={p} className="flex items-start gap-3">
+                    <span className="text-neutral-400 mt-0.5" aria-hidden>○</span>
+                    <span className="text-sm text-neutral-600 leading-relaxed">{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-neutral-400">
+            Statuts tirés du registre public des fonctionnalités, détaillé sur{" "}
+            <Link href="/etat-du-produit" className="underline hover:text-neutral-600">/etat-du-produit</Link>.
+          </p>
         </section>
 
-        {/* Cas d'usage */}
+        {/* Scénario illustratif : le produit n'est pas commercialisé, aucun résultat client n'est revendiqué */}
         <section className="mb-12 rounded-2xl bg-neutral-50 border border-neutral-200 p-8">
           <p className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">
-            Cas d&apos;usage
+            Scénario illustratif
           </p>
           <p className="font-bold text-neutral-900 mb-2">{m.useCase.who}</p>
-          <p className="text-base text-neutral-700 leading-relaxed italic">
-            « {m.useCase.story} »
-          </p>
+          <p className="text-base text-neutral-700 leading-relaxed">{m.useCase.story}</p>
         </section>
 
         {/* CTA + module suivant */}

@@ -44,7 +44,7 @@ function NeuralBadge() {
       </div>
       <div className="leading-tight">
         <div className="text-[12px] font-bold tracking-tight text-[#0F172A]">Copilote NEURAL</div>
-        <div className={`text-[10.5px] ${styles.fontMono} text-neutral-500`}>v2.4 · ESRS native</div>
+        <div className={`text-[10.5px] ${styles.fontMono} text-neutral-500`}>v2.4 · ESRS 2026</div>
       </div>
     </div>
   );

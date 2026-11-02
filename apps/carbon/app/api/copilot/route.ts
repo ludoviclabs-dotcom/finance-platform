@@ -4,6 +4,7 @@ import { checkCopilotRateLimit } from "@/lib/rate-limit";
 import { verifyBearerToken } from "@/lib/verify-jwt";
 import { isLiveAi, demoStreamResponse } from "@/lib/ai/provider";
 import { buildDemoCopilotAnswer } from "@/lib/ai/demo-copilot";
+import { COMPANY_ALIAS, pseudonymizeContext } from "@/lib/ai/pseudonymize";
 
 export const maxDuration = 60;
 
@@ -102,6 +103,8 @@ function buildSystemPrompt(
     '3. Cite systématiquement tes sources : "d\'après le snapshot Carbone", "selon la matérialité ESG", etc.',
     "4. Structure avec du markdown : listes à puces, gras, sous-titres.",
     "5. Si la question sort du périmètre ESG/Finance/Carbone, redirige poliment.",
+    `6. L'entreprise est désignée par l'alias « ${COMPANY_ALIAS} » : n'essaie pas de l'identifier.`,
+    "7. Tu ne calcules aucun chiffre : tu cites uniquement les valeurs fournies, telles quelles.",
     "",
     "=== DONNÉES EN TEMPS RÉEL ===",
   ];
@@ -279,7 +282,12 @@ export async function POST(req: Request) {
     return demoStreamResponse(buildDemoCopilotAnswer(messages, tools ?? null));
   }
 
-  const system = buildSystemPrompt(tools ?? null, snapshots ?? null, ragHits ?? null);
+  // Pseudonymisation avant tout envoi au modèle (cf. /trust/sub-processors).
+  const system = buildSystemPrompt(
+    tools ? pseudonymizeContext(tools) : null,
+    snapshots ? pseudonymizeContext(snapshots) : null,
+    ragHits ?? null,
+  );
 
   const result = streamText({
     model: "anthropic/claude-sonnet-4.6",

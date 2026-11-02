@@ -132,12 +132,12 @@ export function Sidebar({
               onClick={() => onMobileClose?.()}
               className="text-[10px] text-[var(--color-foreground-subtle)] underline hover:text-[var(--color-foreground)]"
             >
-              Voir la conformité ESRS
+              Voir la couverture ESRS
             </Link>
           </motion.div>
         )}
 
-        {/* Nav — groupée par catégorie (Pilotage / Conformité / Données / IA & Audit) */}
+        {/* Nav — groupée par catégorie (Pilotage / Pilotage CSRD / Données / IA & Audit) */}
         <nav className="flex-1 py-3 px-2 overflow-y-auto">
           {NAV_GROUPS.map((grp) => (
             <div

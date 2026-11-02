@@ -37,14 +37,14 @@ export const INTEGRATIONS = {
 
 export const HOSTING = {
   /** Réalité technique actuelle */
-  current: "Infrastructure EU — Vercel (CDN/compute) + Neon PostgreSQL (eu-central-1)",
+  current: "Traitement et stockage en UE — fonctions Vercel à Francfort (fra1) + Neon PostgreSQL (eu-central-1) ; modèles d'IA hébergés aux États-Unis",
   /** Chiffrement réel */
   encryption_transit: "Chiffrement TLS 1.3 en transit",
   encryption_rest: "Chiffrement AES-256 au repos (Neon)",
   /** RGPD */
-  rgpd: "Conforme RGPD — hébergement EU, traitement prioritaire en zone EU",
+  rgpd: "RGPD — sous-traitants publiés avec leur région et leurs transferts hors UE",
   /** Certifications — honest roadmap */
-  certs_roadmap: "Certifications en évaluation (SOC2, ISO 27001) — non obtenues à ce jour",
+  certs_roadmap: "Certifications planifiées (SOC 2, ISO 27001) — aucun auditeur mandaté, non obtenues à ce jour",
   /** AI Gateway */
   ai_gateway: "Traitement IA via Vercel AI Gateway — traitement prioritaire en EU",
 } as const;
@@ -86,10 +86,15 @@ export const METHODOLOGY = {
 // "garantie", "conforme à", "100% compliant" qui n'est pas opposable.
 
 export const PROOF = {
-  /** Hash chain Merkle SHA-256 — vraie infra audit-grade Phase 1.B */
-  hash_chain: "Audit trail append-only · hash SHA-256 chaîné",
-  /** Export ZIP signé + portail vérification */
-  export_pack: "Rapports PDF + Evidence Pack ZIP signé",
+  /** Chaîne d'empreintes SHA-256 (Phase 1.B) : rend une modification détectable, ne l'empêche pas */
+  hash_chain: "Audit trail append-only · empreinte SHA-256 chaînée · modification détectable",
+  /** Export ZIP avec manifeste d'empreintes (aucune signature cryptographique à ce jour) */
+  export_pack: "Rapports PDF + Evidence Pack (manifeste et empreintes SHA-256)",
+  /** Ce que l'empreinte prouve — et ce qu'elle ne prouve pas */
+  integrity_scope:
+    "L'empreinte prouve l'intégrité et l'ordre depuis la capture ; l'exactitude et l'exhaustivité se vérifient par rapprochement",
+  /** Rôle du produit face au vérificateur */
+  verifier: "Dossier de preuves conçu pour faciliter les travaux d'un CAC ou d'un OTI inscrit à la H2A",
   /** Vérification publique sans compte */
   verify_public: "Vérifiable publiquement via /verify/{hash} — sans aucun outil tiers",
   /** Provenance par fact_id */
@@ -100,11 +105,15 @@ export const PROOF = {
 
 export const DISCLAIMERS = {
   ai_act_august_2026:
-    "L'application générale du règlement UE 2024/1689 (EU AI Act) intervient le 2 août 2026.",
+    "Le règlement (UE) 2024/1689 (AI Act), modifié par le règlement (UE) 2026/1744, s'applique de façon générale depuis le 2 août 2026 ; l'article 50(2) s'impose au 2 décembre 2026 aux systèmes déjà sur le marché.",
   csrd_omnibus:
-    "Périmètre CSRD réajusté par l'Omnibus du 26 février 2025 — voir /etat-du-produit.",
+    "Périmètre CSRD réécrit par la directive (UE) 2026/470 du 24 février 2026 (Omnibus I), en vigueur le 18 mars 2026 — transposition française en cours.",
   vsme_recommended:
-    "Standard VSME recommandé par la Commission depuis le 30 juillet 2025 pour les PME non cotées.",
+    "Norme volontaire (ex-VSME) adoptée par le règlement délégué (UE) 2026/1560, en vigueur depuis le 24 septembre 2026.",
+  esrs_2026:
+    "ESRS 2026 : règlement délégué (UE) 2026/1563, en vigueur le 10 novembre 2026, obligatoire pour les exercices ouverts à compter du 1er janvier 2027.",
+  ixbrl:
+    "Export iXBRL en bêta (taxonomie EFRAG 2024) : aucun dépôt balisé de l'état de durabilité n'est exigé à ce jour (directive (UE) 2026/470).",
 } as const;
 
 // ─── Réductions chiffrées ─────────────────────────────────────────────────

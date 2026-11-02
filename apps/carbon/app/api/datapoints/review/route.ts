@@ -2,20 +2,24 @@
  * POST /api/datapoints/review
  *
  * Workflow review des datapoints ESRS extraits par le copilote.
- * Permet à un auditeur (rôle analyst ou admin) d'accepter, surcharger
- * ou rejeter une valeur extraite.
+ * Permet à un relecteur de l'entreprise (rôle analyst, admin ou daf)
+ * d'accepter, surcharger ou rejeter une valeur extraite. Le vérificateur
+ * externe (rôle auditor) a un accès en lecture seule : il ne valide jamais
+ * une donnée qu'il est chargé de vérifier.
  *
  * Body : ReviewActionBody
  * Réponse : 200 { datapointId, action, status, value, validatedBy, reviewedAt }
  *
  * Sécurité :
  *   - JWT Bearer token obligatoire (verifyBearerToken)
- *   - Seuls les rôles analyst, admin, auditor, daf peuvent écrire
+ *   - Seuls les rôles analyst, admin, daf peuvent écrire (auditor exclu : lecture seule)
  *   - Isolation tenant : seul le state du cid JWT est modifié
  *
  * Audit :
  *   - validatedBy (userId) stocké dans ExtractedDatapoint
  *   - reasoning mis à jour avec action + acteur pour traçabilité
+ *   - reviewHistory : chaque décision est AJOUTÉE (acteur, date, ancienne et
+ *     nouvelle valeur), jamais écrasée
  */
 
 import { type NextRequest, NextResponse } from "next/server";
@@ -53,10 +57,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   }
 
-  // 2. Autorisation — seuls analyst et admin peuvent valider/rejeter
-  if (!requireRole(payload, ["analyst", "admin", "auditor", "daf"])) {
+  // 2. Autorisation — le vérificateur (auditor) est en lecture seule : il ne
+  //    valide pas les données qu'il vérifie.
+  if (!requireRole(payload, ["analyst", "admin", "daf"])) {
     return NextResponse.json(
-      { error: "Permission insuffisante (analyst ou admin requis)" },
+      { error: "Permission insuffisante (analyst, admin ou daf requis ; le rôle auditor est en lecture seule)" },
       { status: 403 },
     );
   }
@@ -90,7 +95,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 5. Vérification que le datapointId est connu dans le référentiel ESRS Set 2
+  // 5. Vérification que le datapointId est connu dans le référentiel ESRS
   const definition = findDatapoint(body.datapointId);
   if (!definition) {
     return NextResponse.json(
@@ -151,10 +156,27 @@ export async function POST(req: NextRequest) {
       break;
   }
 
-  // 8. Persistance dans Vercel Blob
+  // 8. Historique append-only : la décision s'ajoute aux précédentes
+  updated = {
+    ...updated,
+    reviewHistory: [
+      ...(existing.reviewHistory ?? []),
+      {
+        action: body.action,
+        by: actor,
+        at: now,
+        previousStatus: existing.status,
+        previousValue: existing.value,
+        newValue: updated.value,
+        ...(body.justification ? { justification: body.justification } : {}),
+      },
+    ],
+  };
+
+  // 9. Persistance dans Vercel Blob
   await upsertExtraction(cid, updated);
 
-  // 9. Réponse
+  // 10. Réponse
   return NextResponse.json({
     datapointId: body.datapointId,
     action: body.action,

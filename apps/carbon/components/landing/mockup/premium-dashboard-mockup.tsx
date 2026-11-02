@@ -53,7 +53,7 @@ const HOTSPOTS: Hotspot[] = [
     targetId: "card-postes",
     label: "Postes d'émission",
     description:
-      "Détail par poste (énergie, transport, achats, numérique…) avec ventilation automatique et facteurs ADEME/IEA.",
+      "Détail par poste (énergie, transport, achats, numérique…) avec ventilation automatique et facteurs ADEME Base Empreinte® versionnés.",
     number: "03",
     side: "right",
     color: "#7c3aed",
@@ -75,7 +75,7 @@ const HOTSPOTS: Hotspot[] = [
     targetId: "card-rapports",
     label: "Rapports CSRD",
     description:
-      "Génération automatique de rapports conformes CSRD, CDP, bilan GES. Format auditeur prêt pour signature.",
+      "Projets de rapports structurés pour la CSRD, le CDP et le BEGES, à relire et valider, avec leur dossier de preuves.",
     number: "05",
     side: "left",
     color: "#16a34a",

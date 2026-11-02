@@ -46,7 +46,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
     category: "CSRD",
     question: "Mon ETI est-elle concernée par la CSRD ?",
     answer:
-      "Calendrier post stop-the-clock (Directive UE 2025/794) : Vague 2 reportée à publication 2028 sur exercice 2027 — grandes entreprises dépassant 2 des 3 seuils 250 salariés / 50 M€ CA / 25 M€ bilan. Vague 3 à publication 2029 sur exercice 2028 — PME cotées et autres entités d'intérêt public. Si vous êtes filiale d'un groupe coté UE, vous reportez via la consolidation mère. Les seuils peuvent évoluer en cas d'adoption définitive du paquet Omnibus.",
+      "Depuis le 18 mars 2026, la directive (UE) 2026/470 du 24 février 2026 (Omnibus I) réserve la CSRD aux entreprises de plus de 1 000 salariés ET de plus de 450 M€ de chiffre d'affaires net : les deux critères sont cumulatifs. Pour les entreprises de la vague 2 qui restent dans le champ, le premier rapport porte sur l'exercice 2027 et est publié en 2028. La vague 3 (PME cotées) sort du champ. Les groupes non européens sont visés à partir de l'exercice 2028 s'ils réalisent plus de 450 M€ de chiffre d'affaires dans l'UE et y ont une filiale ou une succursale de plus de 200 M€. En France, la loi de transposition est en cours d'examen (échéance : 19 mars 2027) ; tant qu'elle n'est pas promulguée, le droit français reste l'ordonnance n° 2023-1142 modifiée. Si vous êtes filiale d'un groupe soumis à la CSRD, vous pouvez être couverte par le rapport consolidé de la mère. Hors du champ, vérifiez votre BEGES (au-delà de 500 salariés) et les demandes de vos clients selon la norme volontaire (VS, ex-VSME). Cette réponse est une orientation, pas un avis juridique.",
   },
   {
     id: "scope-3-categorie-importante",
@@ -56,18 +56,25 @@ export const FAQ_ENTRIES: FaqEntry[] = [
       "Pour un industriel : catégorie 11 (utilisation des produits vendus) — souvent 40 à 70 % du Scope 3. Pour un prestataire de services : catégorie 1 (achats de biens et services) ou catégorie 7 (déplacements domicile-travail). Notre module Scope 3 calcule automatiquement les 15 catégories en hypothèses ratios pour identifier les catégories matérielles à raffiner.",
   },
   {
+    id: "qui-valide-carbonco",
+    category: "CSRD",
+    question: "Qui valide que CarbonCo respecte la CSRD ?",
+    answer:
+      "Personne, et aucun éditeur ne peut le prétendre : il n'existe pas de label CSRD pour un logiciel. C'est le rapport de votre entreprise qui est certifié, par un commissaire aux comptes ou un organisme tiers indépendant inscrit à la H2A. Notre rôle est de lui fournir une piste d'audit complète. Pour l'outil lui-même, les preuves pertinentes sont une attestation sur nos contrôles (type ISAE 3402 / SOC 2) et une certification de sécurité (ISO 27001), que nous visons : planifiées, déclenchées à la demande d'un premier client grand compte.",
+  },
+  {
     id: "audit-trail-sha256",
     category: "Sécurité",
     question: "À quoi sert l'audit trail SHA-256 ?",
     answer:
-      "À prouver à votre commissaire aux comptes que les données publiées sont identiques à celles saisies, et n'ont pas été altérées entre temps. Chaque écriture porte un hash cryptographique lié au précédent. Toute modification rompt la chaîne de manière détectable. C'est devenu un standard de fait en assurance limitée CSRD.",
+      "À montrer à votre vérificateur (commissaire aux comptes ou OTI) que les données publiées sont identiques à celles enregistrées, et n'ont pas été modifiées depuis. Chaque écriture porte une empreinte SHA-256 liée à la précédente : toute modification rompt la chaîne de manière détectable (tamper-evident), sans pour autant l'empêcher. L'empreinte prouve l'intégrité et l'ordre des écritures ; elle ne prouve ni l'exactitude ni l'exhaustivité des données, qui se vérifient par des rapprochements avec les pièces sources.",
   },
   {
     id: "hebergement-rgpd",
     category: "Sécurité",
     question: "Où sont hébergées mes données ?",
     answer:
-      "Infrastructure 100 % UE : compute Vercel (Frankfurt), base de données Neon (Frankfurt), stockage objet Vercel Blob (UE). Aucun transfert hors UE. Conformité RGPD documentée, DPA disponible sur demande. Les modèles IA sont accédés via Vercel AI Gateway en région UE prioritaire.",
+      "Vos données métier sont stockées en UE (base de données Neon, Francfort). Les modèles d'IA sont hébergés aux États-Unis et accédés via Vercel AI Gateway : la liste complète des sous-traitants, avec leur localisation et leur finalité, est publiée sur /trust/sub-processors. DPA disponible sur demande.",
   },
   {
     id: "import-excel-format",
@@ -102,7 +109,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
     category: "Intégrations",
     question: "Pouvez-vous vous connecter à mon ERP ?",
     answer:
-      "Connecteurs natifs disponibles pour Sage, Cegid, SAP S/4HANA, Microsoft Dynamics 365 et les principaux fournisseurs d'énergie (EDF, Engie, TotalEnergies). Pour un ERP custom ou métier, l'API REST documentée à /dev permet une intégration en 1-2 jours. Aucun connecteur n'est obligatoire : tout fonctionne aussi par import Excel.",
+      "Pas encore par connecteur natif : aucun connecteur ERP (Sage, Cegid, SAP, Dynamics…) n'est livré à ce jour, ils sont planifiés selon la demande client (voir /etat-du-produit). Aujourd'hui, tout fonctionne par import Excel structuré, et l'API REST documentée à /dev permet une intégration sur mesure.",
   },
   {
     id: "api-publique",

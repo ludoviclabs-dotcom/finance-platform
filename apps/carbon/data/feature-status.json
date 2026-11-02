@@ -1,5 +1,5 @@
 {
-  "derniere_maj": "2026-09-16",
+  "derniere_maj": "2026-11-02",
   "derniere_verification": "2026-09-16",
   "note": "Source de vérité UNIQUE des statuts produit (T0.2 du PLAN_ACTION_CARBONCO). Consommée par /etat-du-produit, /couverture et /integrations. Aucun statut ne doit être codé en dur dans un composant. statut ∈ live | verification | beta | planifie (+ roadmap pour les intégrations). 'live' = disponible ET vérifiable en production ; il exige une 'preuve' (chemin repo) et, si la preuve est sous apps/api/, une date 'verifie_le' de contrôle concluant en production. 'verification' = livré dans le code mais disponibilité en production non confirmée au dernier contrôle (derniere_verification) : le 2026-09-16, l'API de production était indisponible et la tâche planifiée quotidienne des alertes échouait.",
   "features": [
@@ -193,9 +193,9 @@
     },
     {
       "id": "ixbrl-eseef",
-      "label": "Export iXBRL ESEF",
-      "description": "Format de rapport électronique structuré requis pour la soumission officielle aux autorités (OAM). Un constructeur interne existe, mais un dépôt ESEF de niveau production nécessite un partenaire certifié (CoreFiling, ParsePort, IRIS — coût estimé 3–8 k€/an). Reste planifié tant que ce partenariat n'est pas engagé.",
-      "statut": "planifie",
+      "label": "Export iXBRL (bêta, taxonomie EFRAG 2024)",
+      "description": "Constructeur interne iXBRL suivant la taxonomie XBRL ESRS de l'EFRAG (version 2024), utilisé par l'export du module Datapoints. Aucun dépôt balisé de l'état de durabilité n'est exigé à ce jour : la directive (UE) 2026/470 l'a suspendu jusqu'à l'adoption de l'acte délégué. Bêta : fichier non encore validé par un validateur XBRL indépendant ; migration vers la taxonomie des ESRS 2026 prévue à sa publication définitive.",
+      "statut": "beta", "preuve": "apps/carbon/lib/ixbrl/builder.ts",
       "normes": []
     },
     {

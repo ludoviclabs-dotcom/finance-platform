@@ -3,11 +3,17 @@
  *
  * Cible les requêtes "bilan carbone obligatoire entreprise", "BEGES 500 salariés",
  * "bilan GES réglementaire 2026". Le BEGES (art. L229-25 du code de l'environnement)
- * est un droit NATIONAL, indépendant de la CSRD et de l'Omnibus : c'est l'angle
- * différenciant de la page.
+ * est un droit NATIONAL, dont les seuils ne suivent pas ceux de la CSRD. Il n'en est
+ * pas indépendant pour autant : la loi n° 2025-391 du 30 avril 2025 (art. 10) dispense
+ * du BEGES les entités soumises au rapport de durabilité qui y publient un bilan GES et
+ * un plan de transition. Les entreprises de 500 à 1 000 salariés que la directive (UE)
+ * 2026/470 (Omnibus I) fait sortir de la CSRD perdent cette dispense : c'est l'angle
+ * différenciant de la page (PLAN_ACTION_CSRD_2026-11, T12.3).
  *
  * Tous les faits réglementaires cités sont sourcés (décret n° 2022-982, arrêté du
- * 25/01/2022, loi Industrie verte du 23/10/2023) et re-vérifiés en juillet 2026.
+ * 25/01/2022, loi Industrie verte du 23/10/2023, loi n° 2025-391, directive (UE)
+ * 2026/470) et re-vérifiés le 2 novembre 2026. Non traité ici : la portée exacte de
+ * l'obligation scope 3 selon l'article R.229-47 en vigueur (à vérifier avant d'affiner).
  * Les capacités produit mentionnées reflètent le registre feature-status.json
  * (export-beges = beta) — aucune promesse au-delà.
  */
@@ -21,7 +27,8 @@ export const metadata: Metadata = {
   description:
     "Bilan GES réglementaire (BEGES) : obligatoire tous les 4 ans dès 500 salariés (250 en outre-mer), " +
     "postes indirects significatifs inclus, plan de transition exigé, jusqu'à 50 000 € d'amende. " +
-    "Ce que dit vraiment la réglementation en 2026 — et en quoi elle ne dépend pas de la CSRD.",
+    "Ce que dit vraiment la réglementation en 2026 — et pourquoi les entreprises qui sortent de la CSRD " +
+    "perdent la dispense de la loi n° 2025-391.",
   alternates: { canonical: "/bilan-carbone-beges" },
 };
 
@@ -40,7 +47,8 @@ const CHECKLIST = [
       "Effectif ≥ 500 ETP en France métropolitaine (≥ 250 dans les DROM) sur l'entité légale ou le groupe " +
       "d'établissements. Les collectivités de plus de 50 000 habitants et les établissements publics de plus " +
       "de 250 agents sont également concernés. Vérifiez la date de votre dernier dépôt sur bilans-ges.ademe.fr : " +
-      "l'échéance suivante en découle.",
+      "l'échéance suivante en découle. Si vous publiez un rapport de durabilité CSRD, vérifiez s'il contient le bilan " +
+      "GES et le plan de transition qui ouvrent la dispense de la loi n° 2025-391.",
   },
   {
     num: "02",
@@ -77,10 +85,17 @@ const CHECKLIST = [
 const FAQ = [
   {
     q: "Le BEGES est-il supprimé ou allégé par la directive Omnibus ?",
-    a: "Non. L'Omnibus (publiée au JOUE en février 2026) relève les seuils de la CSRD — plus de 1 000 salariés " +
-      "et plus de 450 M€ de chiffre d'affaires — mais ne modifie en rien le BEGES, qui relève du droit national " +
-      "français (article L229-25 du code de l'environnement). Une ETI sortie du champ CSRD peut parfaitement " +
-      "rester assujettie au BEGES.",
+    a: "Non. La directive (UE) 2026/470 du 24 février 2026 (Omnibus I, en vigueur le 18 mars 2026) relève les " +
+      "seuils de la CSRD — plus de 1 000 salariés et plus de 450 M€ de chiffre d'affaires net, critères cumulatifs — " +
+      "mais ne modifie pas le BEGES, qui relève du droit national français (article L229-25 du code de " +
+      "l'environnement). Elle a en revanche un effet indirect : une entreprise de plus de 500 salariés qui sort du " +
+      "champ de la CSRD perd la dispense prévue par la loi n° 2025-391, et son BEGES redevient dû.",
+  },
+  {
+    q: "Une entreprise soumise à la CSRD doit-elle aussi déposer un BEGES ?",
+    a: "Pas nécessairement. La loi n° 2025-391 du 30 avril 2025 (article 10) dispense du BEGES les entités soumises " +
+      "au rapport de durabilité qui y publient un bilan de leurs émissions de GES et un plan de transition, le bilan " +
+      "décrivant leurs activités en France. Sans ces deux éléments dans le rapport de durabilité, le BEGES reste dû.",
   },
   {
     q: "Le Scope 3 est-il obligatoire dans le BEGES ?",
@@ -105,7 +120,8 @@ const FAQ = [
     q: "Un BEGES volontaire a-t-il un intérêt sous les seuils ?",
     a: "Oui : banques, assureurs et donneurs d'ordre demandent de plus en plus un bilan GES structuré, quelle que " +
       "soit la taille. Un BEGES volontaire déposé sur la plateforme ADEME est un signal public vérifiable — et le " +
-      "travail de collecte alimente directement un rapport VSME/VS ou les réponses aux questionnaires clients.",
+      "travail de collecte alimente directement un rapport selon la norme volontaire (VS, ex-VSME) ou les réponses " +
+      "aux questionnaires clients.",
   },
 ];
 
@@ -148,15 +164,16 @@ export default function BegesPage() {
         {/* Header */}
         <header className="mb-10 pb-8 border-b border-neutral-200">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-green-600 mb-4">
-            Réglementation France · Mise à jour juillet 2026
+            Réglementation France · Mise à jour le 2 novembre 2026
           </p>
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-neutral-900 leading-tight mb-4">
             BEGES : le bilan GES obligatoire, expliqué sans détour.
           </h1>
           <p className="text-lg text-neutral-600 leading-relaxed">
             Qui est concerné, ce que le bilan doit contenir depuis 2023, ce que vous risquez,
-            et pourquoi la directive Omnibus n&apos;y change strictement rien. Pour les DAF,
-            responsables RSE et dirigeants d&apos;entreprises de 250 à 5 000 salariés.
+            et pourquoi les entreprises qui sortent de la CSRD retrouvent l&apos;obligation de
+            le déposer. Pour les DAF, responsables RSE et dirigeants d&apos;entreprises de 250 à
+            5 000 salariés.
           </p>
         </header>
 
@@ -173,7 +190,7 @@ export default function BegesPage() {
         {/* Corps */}
         <section className="space-y-5 text-neutral-800 leading-relaxed">
           <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-neutral-900">
-            Une obligation française, indépendante de la CSRD
+            Une obligation française, aux seuils distincts de la CSRD
           </h2>
           <p>
             Le bilan d&apos;émissions de gaz à effet de serre (<strong>BEGES</strong>) est prévu par
@@ -184,11 +201,44 @@ export default function BegesPage() {
             plus de 250 agents.
           </p>
           <p>
-            C&apos;est un point que le marché confond en permanence : la directive Omnibus a réduit le
-            champ de la CSRD aux entreprises de plus de 1 000 salariés et 450 M€ de chiffre
-            d&apos;affaires — mais le BEGES est du <strong>droit national</strong>. Sortir du champ de
-            la CSRD ne dispense de rien côté ADEME.
+            C&apos;est un point que le marché confond en permanence : la directive (UE) 2026/470 du
+            24 février 2026 (« Omnibus I ») a réduit le champ de la CSRD aux entreprises de plus
+            de 1 000 salariés et de plus de 450 M€ de chiffre d&apos;affaires net — mais le BEGES
+            est du <strong>droit national</strong>, que cette directive ne modifie pas. Sortir du
+            champ de la CSRD ne dispense de rien côté ADEME : c&apos;est même l&apos;inverse.
           </p>
+
+          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-neutral-900 pt-4">
+            La dispense de la loi n° 2025-391, et sa perte
+          </h2>
+          <p>
+            La loi n° 2025-391 du 30 avril 2025 (article 10), qui transpose la directive
+            « stop-the-clock » (UE) 2025/794, dispense du BEGES les entités soumises au rapport de
+            durabilité qui y publient un <strong>bilan de leurs émissions de GES</strong> et un{" "}
+            <strong>plan de transition</strong>, le bilan décrivant leurs activités en France.
+          </p>
+          <p>
+            Les entreprises de 500 à 1 000 salariés que la directive (UE) 2026/470 fait sortir du
+            champ de la CSRD perdent cette dispense : <strong>votre BEGES reste dû</strong>, tous
+            les quatre ans, et il sert aussi de réponse au volet climat de la norme volontaire
+            (VS, ex-VSME, règlement délégué (UE) 2026/1560), à laquelle vos clients et banques
+            peuvent se référer. Calendrier français : la loi de transposition de l&apos;Omnibus est
+            en cours d&apos;examen (échéance : 19 mars 2027) ; tant qu&apos;elle n&apos;est pas
+            promulguée, le droit français applicable reste l&apos;ordonnance n° 2023-1142 modifiée.
+          </p>
+          <ul className="space-y-2 ml-5 list-disc marker:text-green-600">
+            <li>
+              <strong>Soumis à la CSRD, avec bilan GES et plan de transition</strong> dans le
+              rapport de durabilité : dispensé du BEGES.
+            </li>
+            <li>
+              <strong>Soumis à la CSRD, sans ces deux éléments</strong> : BEGES dû.
+            </li>
+            <li>
+              <strong>Hors du champ de la CSRD, plus de 500 salariés</strong> (250 en outre-mer) :
+              BEGES dû.
+            </li>
+          </ul>
 
           <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-neutral-900 pt-4">
             Ce que le bilan doit contenir depuis 2023
@@ -319,8 +369,9 @@ export default function BegesPage() {
           <p>
             Références : art. L229-25 du code de l&apos;environnement · décret n° 2022-982 du
             1er juillet 2022 · arrêté du 25 janvier 2022 (méthodologie v5) · loi n° 2023-973 du
-            23 octobre 2023 relative à l&apos;industrie verte. Cette page est informative et ne
-            constitue pas un conseil juridique.
+            23 octobre 2023 relative à l&apos;industrie verte · loi n° 2025-391 du 30 avril 2025
+            (art. 10) · directive (UE) 2026/470 du 24 février 2026. État du droit au 2 novembre
+            2026. Cette page est informative et ne constitue pas un conseil juridique.
           </p>
         </footer>
       </article>

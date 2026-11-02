@@ -254,6 +254,28 @@ body {
   animation: pulse-slow 4s ease-in-out infinite;
 }
 
+/* Titre de l'accueil : le dégradé de « prouvé » glisse lentement. */
+@keyframes hero-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-gradient-text {
+    animation: hero-gradient-shift 9s ease-in-out infinite;
+  }
+}
+
+/* Bloc « Ce que l'empreinte prouve » : maillons de chaîne qui s'allument en séquence. */
+@keyframes proof-link-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+  40% { box-shadow: 0 0 0 6px rgba(16,185,129,0.18); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .proof-link-glow {
+    animation: proof-link-glow 3.6s ease-in-out infinite;
+  }
+}
+
 /* ─── How it works — section "Opérationnel en 3 étapes" ──────────────────── */
 
 .how-bg {

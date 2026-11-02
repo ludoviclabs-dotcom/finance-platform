@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function ExitStrategyPage() {
   return (
-    <LegalLayout title="Stratégie de sortie" lastUpdated="28 mai 2026">
+    <LegalLayout title="Stratégie de sortie" lastUpdated="2 novembre 2026">
       <Section title="Principe directeur">
         <p>
           Vos données ESG vous appartiennent. À tout moment — pendant le contrat ou à sa fin —
@@ -43,8 +43,8 @@ export default function ExitStrategyPage() {
           </li>
           <li>
             <strong>PDF rapport CSRD</strong> — Rapport assemblé selon la présentation ESRS,
-            prêt pour soumission auditeur (ISAE 3000). Inclut narratifs, tableaux quantitatifs
-            et page de signature.
+            accompagné du dossier de preuves remis au vérificateur. Inclut narratifs, tableaux
+            quantitatifs et page de signature.
           </li>
           <li>
             <strong>Evidence Pack ZIP</strong> — Archive contenant : (a) les rapports PDF, (b)
@@ -104,9 +104,9 @@ shasum -a 256 report.pdf
 # Doit correspondre au champ "sha256" du manifeste`}
         </pre>
         <p>
-          Le manifeste est lui-même signé par une clé publique CarbonCo (Ed25519), permettant
-          à un commissaire aux comptes ou un OTI de prouver qu'il n'a pas été falsifié après
-          export.
+          Ces empreintes rendent détectable toute modification d'une pièce après l'export.
+          Elles ne prouvent ni l'exactitude ni l'exhaustivité des données, qui relèvent des
+          contrôles du commissaire aux comptes ou de l'OTI.
         </p>
       </Section>
 

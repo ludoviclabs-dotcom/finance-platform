@@ -270,7 +270,7 @@ export function DatapointsPage() {
         title="Datapoints ESRS — Extraction LLM-RAG"
         subtitle={
           data
-            ? `Référentiel ${data.version} · ${data.definitions.length} datapoints obligatoires`
+            ? `${data.version} · ${data.definitions.length} datapoints couverts à ce jour`
             : "Chargement du référentiel…"
         }
       />
@@ -288,7 +288,7 @@ export function DatapointsPage() {
             <p className="text-xs text-[var(--color-foreground-muted)] mt-0.5 leading-relaxed">
               30 datapoints ESRS pré-remplis (E1 climat · S1 effectifs · G1 corruption …) avec
               sources fictives mais formellement valides. Vous pourrez ensuite tester{" "}
-              <span className="font-semibold">Validation CSRD</span> et l&apos;export iXBRL ESEF
+              <span className="font-semibold">Validation CSRD</span> et l&apos;export iXBRL (bêta)
               sans avoir à uploader vos propres documents.
             </p>
             <div className="flex items-center gap-3 mt-3 flex-wrap">
@@ -324,7 +324,7 @@ export function DatapointsPage() {
         <StatCard label="Rejetés / faible confiance" value={stats.rejected} tone="danger" />
       </div>
 
-      {/* Validation audit-grade — visible dès qu'on a au moins 1 datapoint */}
+      {/* Contrôles de cohérence — visibles dès qu'on a au moins 1 datapoint */}
       {!stateIsEmpty && <ValidatorPanel />}
 
       <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">

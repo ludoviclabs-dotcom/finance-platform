@@ -9,8 +9,9 @@ import { buildOpenApiSpec } from "@/lib/openapi";
  * sert aussi la page de documentation /dev — source unique de vérité.
  *
  * Caching : public, 5 minutes (CDN edge), revalidation côté serveur sur build.
+ * Runtime Node.js par défaut (le runtime edge est déprécié et s'exécuterait hors
+ * de la région fra1 fixée dans vercel.json).
  */
-export const runtime = "edge";
 
 export async function GET() {
   const spec = buildOpenApiSpec();

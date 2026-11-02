@@ -65,8 +65,8 @@ export const metadata: Metadata = {
     template: "%s | CarbonCo",
   },
   description:
-    "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
-    "et générez vos rapports ESG en quelques clics. Données métier en zone UE (Neon Postgres).",
+    "Structurez votre reporting ESRS, centralisez vos données extra-financières " +
+    "et générez vos projets de rapport ESG, chaque chiffre relié à sa source. Données métier en zone UE (Neon Postgres).",
   keywords: [
     "ESG",
     "CSRD",
@@ -74,11 +74,10 @@ export const metadata: Metadata = {
     "empreinte carbone",
     "reporting extra-financier",
     "Scope 1 2 3",
-    "Taxonomie verte",
-    "CBAM",
+    "estimation exposition CBAM",
     "RSE",
     "SaaS B2B",
-    "conformité ESG",
+    "reporting de durabilité",
     "pilotage ESG",
     "rapport ESG IA",
   ],
@@ -91,16 +90,16 @@ export const metadata: Metadata = {
     siteName: "CarbonCo",
     title: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
     description:
-      "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
-      "et générez vos rapports ESG en quelques clics. Données métier en zone UE (Neon Postgres).",
+      "Structurez votre reporting ESRS, centralisez vos données extra-financières " +
+      "et générez vos projets de rapport ESG, chaque chiffre relié à sa source. Données métier en zone UE (Neon Postgres).",
     // OG image: served dynamically by app/opengraph-image.tsx (Next.js convention)
   },
   twitter: {
     card: "summary_large_image",
     title: "CarbonCo — Plateforme de pilotage ESG & CSRD augmentée par l'IA",
     description:
-      "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
-      "et générez vos rapports ESG en quelques clics.",
+      "Structurez votre reporting ESRS, centralisez vos données extra-financières " +
+      "et générez vos projets de rapport ESG, chaque chiffre relié à sa source.",
     // Twitter image: served dynamically by app/opengraph-image.tsx
   },
   robots: {

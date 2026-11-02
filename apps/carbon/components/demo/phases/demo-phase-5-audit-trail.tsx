@@ -1,10 +1,11 @@
 "use client";
 
-// PHASE 5 — Journal de preuve (chaîne d'événements signés, façon « ledger »).
+// PHASE 5 — Journal de preuve (chaîne d'événements chaînés, façon « ledger »).
 //
 // On déroule le journal d'audit (AUDIT_EVENTS) comme un REGISTRE CRYPTOGRAPHIQUE :
-// chaque événement est une carte signée (horodatage, libellé, empreinte) reliée à
-// la précédente par un maillon — matérialisant le chaînage des hash (inviolable).
+// chaque événement est une carte horodatée (horodatage, libellé, empreinte) reliée à
+// la précédente par un maillon — matérialisant le chaînage des hash (modification
+// détectable).
 // Apparition en cascade au moment « audit-trail-events ».
 //
 // Composant PRÉSENTATIONNEL. prefers-reduced-motion : état final, sans cascade.
@@ -50,7 +51,7 @@ export function DemoPhase5AuditTrail() {
     >
       <p className="mb-6 flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-widest text-emerald-300/80">
         <Lock className="h-3.5 w-3.5" aria-hidden="true" />
-        Chaîne d'événements signés · inviolable
+        Chaîne d'événements chaînés · modification détectable
       </p>
 
       {showEvents ? (
@@ -83,7 +84,7 @@ export function DemoPhase5AuditTrail() {
                   ) : null}
                 </div>
 
-                {/* Carte signée : horodatage + n° de bloc, libellé, empreinte. */}
+                {/* Carte horodatée : horodatage + n° de bloc, libellé, empreinte. */}
                 <div className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-mono text-xs text-white/50">{event.time}</p>

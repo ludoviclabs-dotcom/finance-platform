@@ -25,19 +25,19 @@ export interface BlogArticleMeta {
 export const BLOG_ARTICLES: BlogArticleMeta[] = [
   {
     slug: "vsme-devient-vs-2026",
-    title: "VSME devient VS : ce que change le projet d'acte délégué de mai 2026",
+    title: "VSME devient VS : ce que change le règlement délégué (UE) 2026/1560",
     description:
-      "Renommage en « Voluntary Standard », datapoints allégés, exemptions micro-entreprises et value chain cap opposable : le point sur le projet d'acte délégué du 6 mai 2026 et le calendrier jusqu'à l'application 2027.",
-    date: "2026-07-02",
+      "Norme volontaire adoptée le 3 juillet 2026, en vigueur depuis le 24 septembre 2026 : quatre catégories de points, plafond de la chaîne de valeur à partir de l'exercice 2027, et ce que ce plafond ne couvre pas. Mis à jour le 2 novembre 2026.",
+    date: "2026-11-02",
     readingTime: "6 min",
     category: "Réglementation",
-    tags: ["VSME", "VS", "EFRAG", "Acte délégué", "Value chain cap"],
+    tags: ["Norme volontaire", "VS", "VSME", "Acte délégué", "Plafond chaîne de valeur"],
   },
   {
     slug: "vsme-standard-chaine-valeur",
-    title: "VSME : le standard de la chaîne de valeur après l'Omnibus",
+    title: "Norme volontaire (VS, ex-VSME) : le standard de la chaîne de valeur après l'Omnibus",
     description:
-      "Après l'Omnibus, la pression ESG ne disparaît pas pour les PME : elle change de canal. Le standard volontaire VSME (EFRAG) devient le langage commun des banques et donneurs d'ordre.",
+      "Après l'Omnibus, la pression ESG ne disparaît pas pour les PME : elle change de canal. La norme volontaire (VS, ex-VSME), règlement délégué (UE) 2026/1560, devient le langage commun des banques et donneurs d'ordre.",
     date: "2026-06-13",
     readingTime: "7 min",
     category: "Réglementation",
@@ -47,7 +47,7 @@ export const BLOG_ARTICLES: BlogArticleMeta[] = [
     slug: "csrd-2027-checklist",
     title: "Préparer son audit CSRD 2027 — checklist en 12 points",
     description:
-      "Calendrier, périmètre, gouvernance, données, audit trail : tout ce qu'une ETI doit verrouiller avant la première vague d'assurance limitée 2027.",
+      "Calendrier, périmètre, gouvernance, données, audit trail : tout ce qu'une entreprise de la vague 2 doit verrouiller avant son premier rapport, sur l'exercice 2027, publié et vérifié en 2028.",
     date: "2026-04-22",
     readingTime: "9 min",
     category: "CSRD",
@@ -67,7 +67,7 @@ export const BLOG_ARTICLES: BlogArticleMeta[] = [
     slug: "double-materialite",
     title: "Double matérialité : méthodologie ESRS pas à pas",
     description:
-      "Identifier les enjeux financiers et d'impact, scorer, prioriser, documenter. Le b.a.-ba conforme ESRS 1 §3.",
+      "Identifier les enjeux financiers et d'impact, scorer, prioriser, documenter. Le b.a.-ba selon ESRS 1, chapitre 3, et ce que changent les ESRS 2026.",
     date: "2026-03-30",
     readingTime: "8 min",
     category: "ESRS",
@@ -75,9 +75,9 @@ export const BLOG_ARTICLES: BlogArticleMeta[] = [
   },
   {
     slug: "audit-trail-oti",
-    title: "Pourquoi l'audit trail SHA-256 est devenu un standard OTI",
+    title: "Audit trail SHA-256 : ce que le vérificateur peut en tirer",
     description:
-      "Sans traçabilité cryptographique, votre rapport ESG ne passe pas l'assurance raisonnable. Comment le commissaire aux comptes vérifie la chaîne.",
+      "Une chaîne d'empreintes rend toute modification détectable, sans prouver ni l'exactitude ni l'exhaustivité. Comment un commissaire aux comptes ou un OTI l'utilise en assurance limitée.",
     date: "2026-03-18",
     readingTime: "7 min",
     category: "OTI",
@@ -87,7 +87,7 @@ export const BLOG_ARTICLES: BlogArticleMeta[] = [
     slug: "taxonomie-verte-2026",
     title: "Taxonomie verte UE : ce qui change en 2026",
     description:
-      "Nouveaux critères techniques, articulation avec la CSRD, KPIs financiers obligatoires. Le tour d'horizon des évolutions 2026 et leur impact opérationnel.",
+      "Acte délégué de simplification (UE) 2026/73 (seuil de matérialité de 10 %, exemption OpEx), champ aligné sur la CSRD, KPIs à publier : le tour d'horizon des évolutions 2026 et leur impact opérationnel.",
     date: "2026-02-28",
     readingTime: "10 min",
     category: "Réglementation",

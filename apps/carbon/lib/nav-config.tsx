@@ -73,7 +73,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    group: "Conformité CSRD",
+    group: "Pilotage CSRD",
     items: [
       {
         id: "esrs", href: "/esrs", label: "ESRS / CSRD", icon: <BookOpen className="w-5 h-5" />,
@@ -97,7 +97,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       {
         id: "reports", href: "/reports", label: "Rapports & iXBRL", icon: <FileBarChart className="w-5 h-5" />,
-        badge: { text: "ESEF", color: "bg-amber-500/15 text-amber-600" },
+        badge: { text: "bêta", color: "bg-amber-500/15 text-amber-600" },
       },
     ],
   },

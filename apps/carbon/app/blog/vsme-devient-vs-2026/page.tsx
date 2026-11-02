@@ -19,69 +19,86 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <ArticleLayout article={article}>
+      <Aside title="Mis à jour le 2 novembre 2026">
+        Première version publiée le 2 juillet 2026, sur la base du projet d&apos;acte délégué du
+        6 mai 2026. Article réécrit après l&apos;adoption du texte. État du droit au 2 novembre
+        2026.
+      </Aside>
+
       <P>
-        Le 6 mai 2026, la Commission européenne a publié son projet d&apos;acte délégué
-        établissant le standard volontaire de reporting de durabilité. Deux surprises :
-        le référentiel connu depuis décembre 2024 sous le nom <strong>VSME</strong> y est
-        rebaptisé <strong>« VS » (Voluntary Standard)</strong>, et il en ressort allégé.
-        La consultation publique s&apos;est achevée le 3 juin ; le texte final est attendu
-        à la mi-juillet 2026.
+        La Commission européenne a adopté le 3 juillet 2026 la norme volontaire de reporting de
+        durabilité : <strong>règlement délégué (UE) 2026/1560</strong> (C(2026) 5011), publié au
+        Journal officiel de l&apos;UE le 21 septembre 2026 et <strong>en vigueur depuis le
+        24 septembre 2026</strong>. Le référentiel connu sous le nom <strong>VSME</strong> (avis
+        de l&apos;EFRAG de décembre 2024, puis recommandation (UE) 2025/1710 du 30 juillet 2025)
+        devient la <strong>norme volontaire, « VS »</strong> (Voluntary Standard). Son usage
+        reste volontaire ; son effet juridique tient au plafond qu&apos;elle fixe aux demandes
+        adressées à la chaîne de valeur.
       </P>
 
-      <H2>Ce qui change concrètement</H2>
+      <H2>Ce que contient le texte adopté</H2>
       <List
         items={[
-          <span key="1"><strong>Un nom élargi</strong> — « VS » plutôt que « VSME » : le standard
-            n&apos;est plus présenté comme réservé aux PME, mais comme le socle volontaire de
-            toute entreprise hors du champ CSRD.</span>,
-          <span key="2"><strong>Moins de datapoints</strong> — le volume de données demandées est
-            réduit par rapport à la version EFRAG de décembre 2024, en cohérence avec la
-            révision parallèle des ESRS.</span>,
-          <span key="3"><strong>Exemptions renforcées</strong> — des allègements supplémentaires
-            sont prévus pour les entreprises de 10 salariés ou moins.</span>,
-          <span key="4"><strong>Le « value chain cap » devient opposable</strong> — les grands
-            donneurs d&apos;ordre ne pourront pas exiger de leurs fournisseurs de moins de
-            1 000 salariés des informations au-delà de ce standard. C&apos;est LA protection
-            concrète pour les PME sous pression de questionnaires clients.</span>,
+          <span key="1"><strong>Un nom élargi</strong> — « VS » plutôt que « VSME » : la norme
+            n&apos;est plus présentée comme réservée aux PME, mais comme le socle volontaire de
+            toute entreprise hors du champ de la CSRD.</span>,
+          <span key="2"><strong>Une structure reprise de l&apos;EFRAG</strong> — les intitulés
+            des modules B1–B11 et C1–C9 sont ceux de la version EFRAG ; l&apos;acte délégué a
+            procédé à des ajustements ciblés.</span>,
+          <span key="3"><strong>Quatre catégories de points</strong> — chaque information est
+            classée « nécessaire », « nécessaire si applicable », « volontaire » ou
+            « information sectorielle à considérer ».</span>,
+          <span key="4"><strong>Un plafond de la chaîne de valeur</strong> — à partir des
+            exercices ouverts au 1er janvier 2027, une entreprise soumise à la CSRD ne peut pas
+            exiger d&apos;une entreprise de 1 000 salariés ou moins davantage que les points
+            « nécessaires » (annexe II), pour la collecte qu&apos;elle mène au titre de son
+            propre reporting CSRD.</span>,
         ]}
       />
 
+      <Aside title="Ce que le plafond couvre, et ce qu&apos;il ne couvre pas">
+        Il couvre les demandes d&apos;un donneur d&apos;ordre soumis à la CSRD, adressées à une
+        entreprise de 1 000 salariés ou moins, pour alimenter son rapport de durabilité, à
+        partir des exercices ouverts au 1er janvier 2027. Il ne couvre pas les demandes
+        d&apos;une banque, les clauses contractuelles ni les diligences au titre du devoir de
+        vigilance. Le plafond limite un canal ; il ne supprime pas tous les questionnaires.
+      </Aside>
+
       <Aside title="Le calendrier">
-        Consultation close le 3 juin 2026 · publication des ESRS révisés attendue fin
-        juin · acte délégué VS attendu à la mi-juillet · application aux exercices
-        ouverts en 2027, avec application volontaire anticipée possible dès l&apos;exercice
-        2026.
+        6 mai 2026 : projet d&apos;acte délégué · 3 juin 2026 : fin de la consultation ·
+        3 juillet 2026 : adoption du règlement délégué (UE) 2026/1560 · 21 septembre 2026 :
+        publication au JOUE · 24 septembre 2026 : entrée en vigueur · exercices ouverts à
+        compter du 1er janvier 2027 : plafond de la chaîne de valeur applicable.
       </Aside>
 
       <H2>Ce qui ne change pas</H2>
       <P>
-        Contrairement à ce que certains anticipaient, la Commission maintient pleinement la
-        logique de <strong>double matérialité</strong> dans les ESRS révisés : pas de bascule
-        vers une approche purement financière à l&apos;américaine. Et le standard volontaire
-        reste ce qu&apos;il était sur le fond : un référentiel court, public et gratuit —
-        base de préparation, énergie et GES, pollution, effectifs, gouvernance — que banques
-        et donneurs d&apos;ordre savent lire.
+        Les ESRS 2026 (règlement délégué (UE) 2026/1563 du 3 juillet 2026, en vigueur le
+        10 novembre 2026), qui s&apos;appliquent aux entreprises restées dans le champ de la
+        CSRD, conservent la logique de <strong>double matérialité</strong> : pas de bascule vers
+        une approche purement financière. Et la norme volontaire reste ce qu&apos;elle était sur
+        le fond : un référentiel court, public et gratuit — base de préparation, énergie et GES,
+        pollution, effectifs, gouvernance — que banques et donneurs d&apos;ordre savent lire.
       </P>
 
-      <H2>Faut-il attendre le texte final pour commencer ?</H2>
+      <H2>Faut-il attendre pour commencer ?</H2>
       <P>
-        Non, et c&apos;est même le contresens à éviter. Les données qui alimentent un rapport
-        VSME 2024 alimenteront un rapport VS 2026 : bilan GES Scopes 1-2-3, indicateurs
-        énergie, effectifs, gouvernance. Un standard qui s&apos;allège ne rend jamais obsolète
-        la donnée déjà collectée — il en supprime une partie. Les entreprises qui collectent
-        dès maintenant seront prêtes quel que soit le périmètre final ; celles qui attendent
-        repartiront de zéro en 2027, au moment où leurs donneurs d&apos;ordre basculeront
-        leurs questionnaires sur le VS.
+        Non, et c&apos;est même le contresens à éviter. Les données qui alimentaient un rapport
+        VSME alimentent un rapport selon la norme volontaire : bilan GES Scopes 1-2-3,
+        indicateurs énergie, effectifs, gouvernance. Des ajustements ciblés ne rendent pas
+        obsolète la donnée déjà collectée. Les entreprises qui collectent dès maintenant seront
+        prêtes lorsque leurs donneurs d&apos;ordre adapteront leurs questionnaires pour
+        l&apos;exercice 2027 ; celles qui attendent repartiront de zéro.
       </P>
 
-      <H2>Ce que CarbonCo fera à la publication de l&apos;acte</H2>
+      <H2>Ce que CarbonCo fait du texte adopté</H2>
       <P>
-        Le référentiel VSME de CarbonCo (modules Basic B1-B11 et Comprehensive C1-C9) est
-        versionné : dès la publication de l&apos;acte délégué, le catalogue de datapoints sera
-        aligné sur le texte final par une migration tracée — les datapoints supprimés seront
+        Le référentiel de CarbonCo (modules Basic B1-B11 et Comprehensive C1-C9) suit
+        aujourd&apos;hui la version EFRAG de décembre 2024. Son alignement sur le règlement
+        délégué (UE) 2026/1560, avec la catégorie de chaque point, est en feuille de route. Il
+        passera par une migration versionnée : les datapoints modifiés ou supprimés seront
         marqués comme tels, jamais effacés, et vos données saisies resteront rattachées à leur
-        version de référentiel. C&apos;est exactement le scénario pour lequel l&apos;architecture
-        « chaque évolution du standard = migration versionnée » a été conçue.
+        version de référentiel.
       </P>
     </ArticleLayout>
   );

@@ -1,5 +1,5 @@
 /**
- * Mapping datapoints CarbonCo → tags iXBRL ESRS Set 2.
+ * Mapping datapoints CarbonCo → tags iXBRL de la taxonomie XBRL ESRS de l'EFRAG (2024).
  *
  * Référence : ESRS XBRL Taxonomy 2024-12-04 (EFRAG) — namespaces officiels :
  *   esrs   = https://xbrl.efrag.org/taxonomy/esrs/2024-12-04/esrs

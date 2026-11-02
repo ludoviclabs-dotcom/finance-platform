@@ -5,8 +5,8 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "CarbonCo — Plateforme ESG & CSRD",
     short_name: "CarbonCo",
     description:
-      "Automatisez votre conformité ESRS, centralisez vos données extra-financières " +
-      "et générez vos rapports ESG en quelques clics. Hébergé en Europe.",
+      "Structurez votre reporting ESRS, centralisez vos données extra-financières " +
+      "et générez vos projets de rapport ESG, chaque chiffre relié à sa source. Données stockées en UE.",
     start_url: "/",
     display: "standalone",
     background_color: "#0F172A",

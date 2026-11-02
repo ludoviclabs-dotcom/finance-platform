@@ -1,4 +1,5 @@
 import { getMaterials, summarize } from "@/lib/crm/dataLoader";
+import { ESRS_SET2 } from "@/lib/esrs/schema";
 import { HomeClient } from "@/components/pages/home-client";
 
 const MOIS = [
@@ -27,6 +28,7 @@ export default async function Home() {
         chinaThreshold,
         snapshotLabel,
       }}
+      esrsDatapointCount={ESRS_SET2.datapoints.length}
     />
   );
 }

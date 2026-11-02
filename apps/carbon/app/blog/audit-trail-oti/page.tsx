@@ -22,28 +22,38 @@ export default function Page() {
   return (
     <ArticleLayout article={article}>
       <P>
-        L&apos;assurance limitée CSRD impose à l&apos;Organisme Tiers Indépendant (OTI) de
-        vérifier la fiabilité des données extra-financières. Sans audit trail
-        cryptographique, vous ne pouvez pas répondre techniquement à ses tests. Voici
-        pourquoi le SHA-256 s&apos;est imposé comme standard de fait.
+        En assurance limitée CSRD, les informations de durabilité sont vérifiées par un
+        commissaire aux comptes (CAC) ou un organisme tiers indépendant (OTI) inscrit à la H2A
+        (Haute autorité de l&apos;audit). Un journal chaîné par empreinte SHA-256 l&apos;aide à
+        répondre vite à une question précise : la donnée a-t-elle changé depuis sa capture ?
+        Voici ce que cette technique apporte au vérificateur, et ce qu&apos;elle ne prouve pas.
       </P>
 
-      <H2>Ce que contrôle un OTI</H2>
+      <H2>Ce que contrôle le vérificateur</H2>
       <P>
-        Lors d&apos;une assurance limitée, l&apos;auditeur exécute :
+        Lors d&apos;une assurance limitée, le vérificateur exécute notamment :
       </P>
       <List
         items={[
           "Des tests d'existence (l'écriture est-elle traçable depuis sa source ?).",
           "Des tests de complétude (l'ensemble des données pertinentes est-il pris en compte ?).",
-          "Des tests d'exactitude (la donnée n'a-t-elle pas été altérée entre la collecte et la publication ?).",
+          "Des tests d'exactitude (la donnée reflète-t-elle correctement la pièce source ?).",
           "Des tests de présentation (le rapport reflète-t-il fidèlement les données sous-jacentes ?).",
         ]}
       />
       <P>
-        Sur les tests d&apos;exactitude, le hash cryptographique devient l&apos;outil le
-        plus efficace.
+        Le hash cryptographique ne répond qu&apos;à une partie de ces questions : il démontre
+        que la donnée n&apos;a pas été altérée entre sa capture et sa publication.
       </P>
+
+      <Aside title="Intégrité ≠ exactitude ≠ exhaustivité">
+        L&apos;empreinte prouve l&apos;<strong>intégrité</strong> et l&apos;ordre des écritures
+        depuis leur capture. Elle ne prouve pas l&apos;<strong>exactitude</strong> : une facture
+        mal saisie reste fausse, même parfaitement chaînée. Elle ne prouve pas davantage
+        l&apos;<strong>exhaustivité</strong> : une donnée jamais saisie n&apos;apparaît dans aucune
+        chaîne. Ces deux points se vérifient par des rapprochements avec les pièces sources et
+        la comptabilité.
+      </Aside>
 
       <H2>Pourquoi SHA-256 et pas un simple log</H2>
       <P>
@@ -67,16 +77,18 @@ export default function Page() {
         items={[
           "Un hash du contenu (la donnée saisie).",
           "Un hash de l'écriture précédente (lien vers l'antécédent).",
-          "Un hash combiné des deux, qui devient l'identifiant immuable de la nouvelle écriture.",
+          "Un hash combiné des deux, qui devient l'identifiant de la nouvelle écriture : un identifiant qui change si le contenu change.",
         ]}
       />
       <P>
-        Cette structure rend toute manipulation détectable : si un attaquant modifie une
+        Cette structure rend toute manipulation détectable : si quelqu&apos;un modifie une
         écriture, tous les hashs descendants deviennent invalides. C&apos;est la même
-        mécanique qui sécurise Git ou les blockchains.
+        mécanique que celle de Git. Elle ne l&apos;empêche pas pour autant : qui contrôle la
+        base pourrait recalculer toute la chaîne. D&apos;où l&apos;intérêt de conserver
+        l&apos;empreinte hors de la base, par exemple dans le PDF remis au vérificateur.
       </P>
 
-      <H2>Ce que l&apos;OTI peut tester</H2>
+      <H2>Ce que le vérificateur peut tester</H2>
       <H3>Test 1 — non-altération</H3>
       <P>
         L&apos;auditeur prend une donnée publiée dans le rapport (ex : 12 450 tCO2e
@@ -86,9 +98,10 @@ export default function Page() {
 
       <H3>Test 2 — chronologie</H3>
       <P>
-        Chaque écriture a un timestamp signé. Si l&apos;écriture est antidatée pour
-        cacher une correction tardive, le hash combiné ne correspond plus. Détection
-        automatique.
+        Chaque écriture porte un horodatage inclus dans le contenu haché. Si l&apos;écriture
+        est antidatée après coup pour cacher une correction tardive, le hash combiné ne
+        correspond plus. Sans ancrage externe, la chaîne prouve l&apos;ordre des écritures,
+        pas leur date absolue.
       </P>
 
       <H3>Test 3 — lignée méthodologique</H3>
@@ -100,15 +113,15 @@ export default function Page() {
       <H2>Implications opérationnelles</H2>
       <List
         items={[
-          "Une erreur détectée après publication ne peut pas être effacée discrètement : il faut une nouvelle écriture qui annule la précédente, signée et datée.",
+          "Une erreur détectée après publication ne peut pas être effacée discrètement : il faut une nouvelle écriture qui annule la précédente, datée et attribuée à son auteur.",
           "Toute opération destructive (delete, archive) est en réalité une écriture additionnelle marquée comme telle. La trace originale subsiste.",
-          "L'export PDF du rapport peut inclure le hash racine de la période publiée. L'OTI peut vérifier en quelques secondes que ce hash correspond aux données sources.",
+          "L'export PDF du rapport peut inclure le hash racine de la période publiée. Le vérificateur peut contrôler en quelques secondes que ce hash correspond aux données enregistrées.",
         ]}
       />
 
       <H2>Combien de hash par rapport CSRD ?</H2>
       <P>
-        Pour une ETI de 600 personnes avec 250 datapoints reportés, on observe en moyenne
+        Pour une ETI de 600 personnes avec 250 datapoints reportés, on peut estimer de
         15 000 à 40 000 écritures sur l&apos;année (saisies, corrections, validations,
         commentaires d&apos;auditeur). Chaque écriture est hashée. Le coût de stockage
         reste négligeable (quelques Mo).
@@ -116,11 +129,11 @@ export default function Page() {
 
       <H2>Verdict</H2>
       <P>
-        Le SHA-256 chaîné n&apos;est pas un gadget marketing : c&apos;est devenu le
-        standard de fait que les Big Four et la majorité des cabinets OTI demandent
-        désormais lors des phases de cadrage. Si votre solution ESG actuelle n&apos;en
-        propose pas, vous risquez de devoir produire les preuves d&apos;exactitude par
-        échantillonnage manuel — un travail consommateur de jours-homme évitables.
+        Le SHA-256 chaîné n&apos;est pas un gadget marketing : il donne au vérificateur un
+        moyen rapide de tester l&apos;intégrité des données. Il ne remplace ni les
+        rapprochements avec les pièces sources ni les tests d&apos;exhaustivité, qui restent
+        son travail. Sans lui, la preuve d&apos;intégrité passe par un échantillonnage manuel
+        plus long — des jours-homme que l&apos;on peut consacrer à l&apos;exactitude.
       </P>
     </ArticleLayout>
   );

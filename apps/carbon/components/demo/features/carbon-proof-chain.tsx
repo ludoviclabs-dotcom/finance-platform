@@ -1,8 +1,8 @@
 "use client";
 
-// FEATURE B — chaîne de preuve (5 blocs signés).
+// FEATURE B — chaîne de preuve (5 blocs chaînés par empreinte SHA-256).
 //
-// Encadré présentationnel illustrant l'horodatage et la signature en chaîne de
+// Encadré présentationnel illustrant l'horodatage et le chaînage par empreinte de
 // chaque étape du parcours (Import → Calcul → Contrôle → Rapport → Evidence
 // Pack). Les blocs apparaissent un par un, démarrent en état « pending »
 // (bordure pointillée, sans coche) puis basculent en état « validated »
@@ -28,7 +28,7 @@ import { CheckmarkDraw } from "@/components/demo/primitives/checkmark-draw";
 type CarbonProofChainProps = {
   /** Le parent rend la chaîne visible pour le moment courant. */
   visible: boolean;
-  /** Blocs à signer (défaut : PROOF_BLOCKS). */
+  /** Blocs à chaîner (défaut : PROOF_BLOCKS). */
   blocks?: ProofBlock[];
   /** Callback optionnel (analytics) appelé une fois le DERNIER bloc validé. */
   onLastValidated?: () => void;
@@ -186,7 +186,7 @@ export function CarbonProofChain({
                     "items-center gap-2",
                   ].join(" ")}
                 >
-                  {/* Carte du bloc signé. */}
+                  {/* Carte du bloc chaîné. */}
                   <motion.div
                     className={[
                       "min-w-[120px] rounded-lg bg-neutral-900 px-3 py-2",

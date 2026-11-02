@@ -167,13 +167,13 @@ export function LoginScreen({
                   backgroundClip: "text",
                 }}
               >
-                conformité ESG
+                reporting ESG
               </span><br />
               en toute sérénité.
             </h2>
 
             <p className="text-white/50 text-base leading-relaxed max-w-sm mb-12">
-              Structurez votre conformité CSRD, centralisez vos données extra-financières et générez vos rapports ESRS en quelques clics.
+              Structurez votre reporting CSRD, centralisez vos données extra-financières et générez vos rapports ESRS en quelques clics.
             </p>
 
             {/* Bénéfices */}

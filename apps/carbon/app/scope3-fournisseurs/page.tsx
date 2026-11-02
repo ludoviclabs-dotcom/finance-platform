@@ -7,8 +7,11 @@
  * tokenisé sans compte, campagnes de collecte avec suivi et relances, écran de
  * revue avant intégration.
  *
- * L'argument réglementaire « value chain cap » (plafond de la chaîne de valeur du
- * standard volontaire VS/VSME) est vérifié sur le projet d'acte délégué de mai 2026.
+ * L'argument réglementaire « value chain cap » (plafond de la chaîne de valeur de la
+ * norme volontaire VS, ex-VSME) est vérifié sur le texte adopté : règlement délégué
+ * (UE) 2026/1560 du 3 juillet 2026, en vigueur le 24 septembre 2026 (état du droit au
+ * 2 novembre 2026). Le formulaire ne tague pas encore ses questions par catégorie
+ * (nécessaire / si applicable / volontaire / sectorielle) : ne pas l'affirmer.
  */
 
 import type { Metadata } from "next";
@@ -20,7 +23,7 @@ export const metadata: Metadata = {
   description:
     "Collectez les données carbone de vos fournisseurs avec un questionnaire par lien sécurisé, sans " +
     "création de compte : campagnes avec deadline, suivi des réponses, relances et revue avant intégration " +
-    "dans votre Scope 3. Et ce que le « value chain cap » du standard VSME/VS change pour vos demandes.",
+    "dans votre Scope 3. Et ce que le plafond de la chaîne de valeur de la norme volontaire (VS, ex-VSME) change pour vos demandes.",
   alternates: { canonical: "/scope3-fournisseurs" },
 };
 
@@ -51,10 +54,13 @@ const SUPPLIER_VIEW = [
 const FAQ = [
   {
     q: "Que peut-on légalement demander à un fournisseur PME ?",
-    a: "Le projet d'acte délégué du standard volontaire (VS, ex-VSME) publié en mai 2026 formalise un « plafond " +
-      "de la chaîne de valeur » : les grands donneurs d'ordre ne peuvent pas exiger de leurs fournisseurs de " +
-      "moins de 1 000 salariés des informations allant au-delà de ce standard. Concrètement : un questionnaire " +
-      "aligné sur le VS est le maximum opposable — et c'est exactement le niveau que couvre le formulaire CarbonCo.",
+    a: "La norme volontaire (VS, ex-VSME), adoptée par le règlement délégué (UE) 2026/1560 et en vigueur depuis le " +
+      "24 septembre 2026, fixe un « plafond de la chaîne de valeur » : à partir des exercices ouverts au 1er janvier " +
+      "2027, une entreprise soumise à la CSRD ne peut pas exiger d'un fournisseur de 1 000 salariés ou moins davantage " +
+      "que les points « nécessaires » de la norme (annexe II), pour la collecte qu'elle mène au titre de son propre " +
+      "reporting CSRD. Les demandes liées à un contrat, à un financement bancaire ou au devoir de vigilance ne relèvent " +
+      "pas de ce plafond. Le formulaire CarbonCo reste volontairement court ; il ne distingue pas encore les catégories " +
+      "de points de la norme.",
   },
   {
     q: "Le fournisseur doit-il créer un compte ?",
@@ -161,20 +167,29 @@ export default function Scope3FournisseursPage() {
         {/* Value chain cap */}
         <section className="space-y-5 text-neutral-800 leading-relaxed">
           <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-neutral-900">
-            Le « value chain cap » : demandez le standard, pas plus
+            Le « value chain cap » : les points nécessaires, pas plus
           </h2>
           <p>
-            Le standard volontaire européen (VS, ex-VSME) n&apos;est pas qu&apos;un référentiel de
-            reporting : son acte délégué formalise un <strong>plafond de la chaîne de valeur</strong>.
-            Les donneurs d&apos;ordre soumis à la CSRD ne peuvent pas exiger de leurs fournisseurs de
-            moins de 1 000 salariés des données allant au-delà de ce standard. Pour vous, deux
-            conséquences pratiques : un questionnaire aligné sur le VS est à la fois
-            <strong> suffisant</strong> (vos propres reportings) et <strong>proportionné</strong>
-            (vous ne mettez pas vos fournisseurs en difficulté juridique ou opérationnelle).
+            La norme volontaire européenne (VS, ex-VSME) n&apos;est pas qu&apos;un référentiel de
+            reporting : le règlement délégué (UE) 2026/1560, en vigueur depuis le 24 septembre
+            2026, fixe un <strong>plafond de la chaîne de valeur</strong>. À partir des exercices
+            ouverts au 1er janvier 2027, un donneur d&apos;ordre soumis à la CSRD ne peut pas exiger
+            d&apos;un fournisseur de 1 000 salariés ou moins davantage que les points
+            « nécessaires » de la norme (annexe II), pour la collecte qu&apos;il mène au titre de
+            son propre reporting CSRD. Pour vous, deux conséquences pratiques : un questionnaire
+            centré sur ces points est à la fois <strong>suffisant</strong> pour ce reporting et{" "}
+            <strong>proportionné</strong> (vous ne mettez pas vos fournisseurs en difficulté
+            juridique ou opérationnelle).
+          </p>
+          <p>
+            Le plafond ne couvre qu&apos;un canal : les demandes liées à un contrat, à un
+            financement bancaire ou au devoir de vigilance n&apos;en relèvent pas.
           </p>
           <p>
             C&apos;est le parti pris du formulaire CarbonCo : émissions par scope, méthodologie,
-            année de référence, certifications — rien d&apos;exotique, tout exploitable.
+            année de référence, certifications — rien d&apos;exotique, tout exploitable. Il ne
+            distingue pas encore les catégories de points de la norme (nécessaire, nécessaire si
+            applicable, volontaire, information sectorielle à considérer).
           </p>
         </section>
 
@@ -228,9 +243,10 @@ export default function Scope3FournisseursPage() {
         {/* Footer */}
         <footer className="mt-12 pt-6 border-t border-neutral-200 text-xs text-neutral-500">
           <p>
-            Le « plafond de la chaîne de valeur » est prévu par le projet d&apos;acte délégué du
-            standard volontaire (VS) publié par la Commission européenne en mai 2026 — texte final
-            attendu à l&apos;été 2026. Cette page est informative et ne constitue pas un conseil juridique.
+            Le « plafond de la chaîne de valeur » est prévu par la norme volontaire (VS) :
+            règlement délégué (UE) 2026/1560 du 3 juillet 2026, publié au JOUE le 21 septembre
+            2026, en vigueur le 24 septembre 2026. État du droit au 2 novembre 2026. Cette page est
+            informative et ne constitue pas un conseil juridique.
           </p>
         </footer>
       </article>

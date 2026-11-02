@@ -46,6 +46,22 @@ export const SourceCitationSchema = z.object({
 });
 export type SourceCitation = z.infer<typeof SourceCitationSchema>;
 
+/**
+ * Décision de revue humaine, conservée en ajout seul : une nouvelle décision
+ * s'ajoute à l'historique au lieu d'écraser la précédente (le vérificateur doit
+ * pouvoir lire qui a validé quoi, quand, et quelle valeur a été remplacée).
+ */
+export const ReviewDecisionSchema = z.object({
+  action: z.enum(["accept", "override", "reject"]),
+  by: z.string(),
+  at: z.string(),
+  previousStatus: z.enum(["empty", "extracted", "validated", "rejected"]),
+  previousValue: z.union([z.number(), z.string(), z.boolean(), z.null()]),
+  newValue: z.union([z.number(), z.string(), z.boolean(), z.null()]),
+  justification: z.string().optional(),
+});
+export type ReviewDecision = z.infer<typeof ReviewDecisionSchema>;
+
 export const ExtractedDatapointSchema = z.object({
   datapointId: z.string(),
   value: z.union([z.number(), z.string(), z.boolean(), z.null()]),
@@ -56,6 +72,8 @@ export const ExtractedDatapointSchema = z.object({
   status: z.enum(["empty", "extracted", "validated", "rejected"]),
   extractedAt: z.string(),
   validatedBy: z.string().optional(),
+  /** Historique append-only des décisions de revue (absent sur les états antérieurs). */
+  reviewHistory: z.array(ReviewDecisionSchema).optional(),
 });
 export type ExtractedDatapoint = z.infer<typeof ExtractedDatapointSchema>;
 

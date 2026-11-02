@@ -7,7 +7,8 @@
  * /api/jobs/[batchId].
  *
  * Avantages :
- *   - Pas de limite max (on peut envoyer 127 datapoints Set 2 complet)
+ *   - Pas de limite max (on peut envoyer les 127 datapoints du référentiel ESRS
+ *     (avis EFRAG 2025, alignement 2026/1563 à venir))
  *   - Pas de timeout HTTP — Inngest scale les workers
  *   - Retry automatique sur erreurs transient (Anthropic 5xx, Voyage 429)
  *

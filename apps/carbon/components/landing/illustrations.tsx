@@ -106,10 +106,10 @@ export function AuditIllustration({ className = "", title }: IllustrationProps) 
   );
 }
 
-/* 4. RAPPORT — document signé */
+/* 4. RAPPORT — document avec empreinte */
 export function RapportIllustration({ className = "", title }: IllustrationProps) {
   return (
-    <svg {...ROOT_PROPS} className={`${ROOT_PROPS.className} ${className}`} aria-label={title ?? "Rapport ESG signé"}>
+    <svg {...ROOT_PROPS} className={`${ROOT_PROPS.className} ${className}`} aria-label={title ?? "Rapport ESG avec empreinte SHA-256"}>
       <rect width="200" height="160" rx="12" fill={COLOR.mist} />
       <path d="M58 32 L120 32 L142 54 L142 132 Q142 138 136 138 L58 138 Q52 138 52 132 L52 38 Q52 32 58 32 Z" fill={COLOR.paper} stroke={COLOR.forest} strokeWidth="2" />
       <path d="M120 32 L120 54 L142 54" fill="none" stroke={COLOR.forest} strokeWidth="2" />
@@ -185,16 +185,16 @@ export function Scope3Illustration({ className = "", title }: IllustrationProps)
   );
 }
 
-/* 8. OTI — examen tiers indépendant (badge à cocher) */
+/* 8. VÉRIFICATEUR — espace en lecture seule pour le CAC ou l'OTI */
 export function OtiIllustration({ className = "", title }: IllustrationProps) {
   return (
-    <svg {...ROOT_PROPS} className={`${ROOT_PROPS.className} ${className}`} aria-label={title ?? "Examen tiers indépendant (OTI)"}>
+    <svg {...ROOT_PROPS} className={`${ROOT_PROPS.className} ${className}`} aria-label={title ?? "Espace vérificateur en lecture seule (CAC ou OTI)"}>
       <rect width="200" height="160" rx="12" fill={COLOR.mist} />
       <path d="M100 26 L130 38 L130 86 Q130 108 100 134 Q70 108 70 86 L70 38 Z" fill={COLOR.paper} stroke={COLOR.forest} strokeWidth="2.5" />
       <path d="M100 26 L130 38 L130 86 Q130 108 100 134 Q70 108 70 86 L70 38 Z" fill={COLOR.emerald} opacity="0.08" />
       <path d="M88 78 L98 90 L114 70" stroke={COLOR.emerald} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <text x="100" y="148" textAnchor="middle" fontFamily="system-ui" fontSize="11" fontWeight="700" fill={COLOR.forest}>
-        OTI · Vérifié
+        Lecture seule
       </text>
     </svg>
   );
@@ -209,13 +209,13 @@ export interface IllustrationDef {
 
 export const PRODUCT_ILLUSTRATIONS: readonly IllustrationDef[] = [
   { id: "collecte", title: "Collecte simplifiée",   description: "Import Excel et connecteurs API en quelques clics.",       Component: CollecteIllustration },
-  { id: "calcul",   title: "Calcul automatique",    description: "Facteurs ADEME, IPCC, DEFRA appliqués en continu.",        Component: CalculIllustration },
+  { id: "calcul",   title: "Calcul automatique",    description: "Facteurs ADEME Base Empreinte® versionnés, GHG Protocol.",        Component: CalculIllustration },
   { id: "audit",    title: "Audit trail intégral",  description: "Chaque chiffre justifiable, hash de chaîne SHA-256.",      Component: AuditIllustration },
-  { id: "rapport",  title: "Rapport prêt OTI",      description: "Export auditeur signé, conforme ESRS et VSME.",             Component: RapportIllustration },
+  { id: "rapport",  title: "Projet de rapport",     description: "Structuré selon les ESRS ou la norme volontaire, à valider.",             Component: RapportIllustration },
   { id: "scope1",   title: "Scope 1 — directes",    description: "Combustion sur site, flotte, fluides frigorigènes.",        Component: Scope1Illustration },
   { id: "scope2",   title: "Scope 2 — énergie",     description: "Électricité, vapeur, chaleur achetées.",                   Component: Scope2Illustration },
   { id: "scope3",   title: "Scope 3 — valeur",      description: "Achats, transport, usage produits, fournisseurs.",          Component: Scope3Illustration },
-  { id: "oti",      title: "OTI ready",             description: "Traçabilité prête pour l'organisme tiers indépendant.",     Component: OtiIllustration },
+  { id: "oti",      title: "Espace vérificateur",   description: "Lecture seule pour le CAC ou l'OTI, chiffre par chiffre.",     Component: OtiIllustration },
 ] as const;
 
 interface IllustrationGalleryProps {

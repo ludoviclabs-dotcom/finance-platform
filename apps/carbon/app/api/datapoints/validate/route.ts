@@ -1,8 +1,9 @@
 /**
  * POST /api/datapoints/validate
  *
- * Exécute le validateur ESRS Set 2 sur l'état datapoints du tenant courant
- * et retourne un rapport audit-grade :
+ * Exécute le validateur du référentiel ESRS (avis EFRAG 2025, alignement
+ * 2026/1563 à venir) sur l'état datapoints du tenant courant et retourne un
+ * rapport de contrôles de cohérence :
  *  - findings (errors, warnings, infos)
  *  - score audit 0-100
  *  - complétude obligatoire %

@@ -360,7 +360,7 @@ export const ANOMALY_ROWS: AnomalyRow[] = [
   },
 ];
 
-/* ── Phase 5 — journal d'audit (chaîne d'événements signés) ──────────────────── */
+/* ── Phase 5 — journal d'audit (chaîne d'événements chaînés) ─────────────────── */
 
 export interface AuditEvent {
   id: string;
@@ -370,7 +370,7 @@ export interface AuditEvent {
 }
 
 export const AUDIT_EVENTS: AuditEvent[] = [
-  { id: "import", time: "14:30:02", label: "Import signé", hash: "a3f8c2d1…" },
+  { id: "import", time: "14:30:02", label: "Import horodaté", hash: "a3f8c2d1…" },
   { id: "calc", time: "14:30:48", label: "Calcul GES appliqué", hash: "c2d1e9b0…" },
   { id: "qc", time: "14:31:15", label: "Contrôle qualité validé", hash: "e9b047ac…" },
   { id: "human", time: "14:31:53", label: "Validation auditeur", hash: "47ac9f23…" },
@@ -387,11 +387,11 @@ export interface ExportFormat {
 
 export const EXPORT_FORMATS: ExportFormat[] = [
   { id: "pdf", label: "Rapport ESRS", ext: "PDF", detail: "Synthèse E1 · 14 pages" },
-  { id: "xbrl", label: "Document ESEF", ext: "iXBRL", detail: "Taxonomie EFRAG 2024 · beta" },
-  { id: "zip", label: "Evidence Pack", ext: "ZIP", detail: "Sources + manifest signé" },
+  { id: "xbrl", label: "Document iXBRL (bêta)", ext: "iXBRL", detail: "Taxonomie XBRL ESRS de l'EFRAG (2024)" },
+  { id: "zip", label: "Evidence Pack", ext: "ZIP", detail: "Sources + manifeste et empreintes SHA-256" },
 ];
 
-/* ── Feature B — chaîne de preuve (5 blocs signés) ──────────────────────────── */
+/* ── Feature B — chaîne de preuve (5 blocs chaînés) ─────────────────────────── */
 
 export interface ProofBlock {
   id: string;

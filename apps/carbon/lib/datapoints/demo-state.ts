@@ -1,5 +1,6 @@
 /**
- * Demo state — 30 datapoints ESRS Set 2 réalistes pour onboarding prospect.
+ * Demo state — 30 datapoints réalistes du référentiel ESRS (avis EFRAG 2025,
+ * alignement 2026/1563 à venir) pour onboarding prospect.
  *
  * Permet à un visiteur curieux de découvrir l'app sans avoir à uploader
  * ses propres documents. Couvre E1 (climat), E2 (pollution), E3 (eau),

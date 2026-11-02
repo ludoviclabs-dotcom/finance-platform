@@ -2,7 +2,7 @@
 
 /**
  * ExportIxbrlButton — bouton client pour générer et télécharger un document
- * iXBRL ESEF conforme EFRAG taxonomie 2024-12-04.
+ * iXBRL (bêta) qui suit la taxonomie XBRL ESRS de l'EFRAG (2024-12-04).
  *
  * Workflow :
  *   1. Mount → GET /api/datapoints/export-ixbrl pour récupérer le nombre de
@@ -172,14 +172,14 @@ export function ExportIxbrlButton({
         disabled={!canExport && !canExportDraft}
         title={
           canExport || canExportDraft
-            ? `Exporter le rapport CSRD au format iXBRL ESEF`
+            ? `Export iXBRL (bêta) — taxonomie XBRL ESRS de l'EFRAG (2024)`
             : "Validez au moins un datapoint avant l'export"
         }
         className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-colors ${sizeCls} ${variantCls}`}
         data-testid="export-ixbrl-button"
       >
         <FileCode2 className={size === "sm" ? "w-3.5 h-3.5" : "w-4 h-4"} />
-        Exporter iXBRL
+        Exporter en iXBRL (bêta)
         {validatedCount > 0 && (
           <span
             className={`ml-1 px-1.5 rounded-full text-[10px] ${
@@ -199,10 +199,13 @@ export function ExportIxbrlButton({
               <div>
                 <h3 className="font-display font-bold text-base text-[var(--color-foreground)] flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-carbon-emerald" />
-                  Exporter iXBRL ESEF
+                  Export iXBRL (bêta)
                 </h3>
                 <p className="text-xs text-[var(--color-foreground-muted)] mt-1">
-                  Document XHTML conforme EFRAG taxonomie 2024-12-04, prêt pour soumission auditeur ou ESEF.
+                  Document XHTML selon la taxonomie XBRL ESRS de l&apos;EFRAG (2024). Aucun dépôt balisé de
+                  l&apos;état de durabilité n&apos;est exigé à ce jour : la directive (UE) 2026/470 l&apos;a suspendu
+                  jusqu&apos;à l&apos;adoption de l&apos;acte délégué. Ce fichier sert au contrôle de cohérence de vos
+                  données.
                 </p>
               </div>
               <button

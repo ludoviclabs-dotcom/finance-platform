@@ -5,7 +5,7 @@ import { getSafeInternalRedirect } from "@/lib/auth/safe-redirect";
 export const metadata: Metadata = {
   title: "Connexion — CarbonCo",
   description:
-    "Connectez-vous à votre espace CarbonCo pour piloter votre conformité ESG et CSRD.",
+    "Connectez-vous à votre espace CarbonCo pour piloter votre reporting ESG et CSRD.",
   alternates: { canonical: "/login" },
   robots: { index: false, follow: false },
 };

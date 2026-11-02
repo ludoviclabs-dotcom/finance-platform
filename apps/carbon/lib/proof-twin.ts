@@ -172,7 +172,7 @@ export const PROOF_TWIN_NODES: ProofTwinNode[] = [
     claim: "Le rapport doit relier donnees, controles, review humaine et hash public de verification.",
     why: "C'est la sortie partageable avec DAF, OTI ou client grand compte.",
     sourceLabel: "Export package, manifest.json, audit_trail.json",
-    method: "ZIP signe, manifest SHA-256 et page publique /verify/{hash}.",
+    method: "ZIP avec manifeste et empreintes SHA-256, page publique /verify/{hash}.",
     limitation: "La valeur probante depend du gel des datapoints et de la verification de chaine.",
     nextAction: "Generer un Evidence Pack depuis /revue lorsque les preuves critiques sont completes.",
     route: "/revue",

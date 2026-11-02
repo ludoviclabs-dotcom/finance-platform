@@ -21,9 +21,9 @@ const RESIDENCY: ResidencyRow[] = [
   {
     layer: "Application Next.js",
     provider: "Vercel",
-    region: "Fonctions par défaut US · CDN edge mondial · AI Gateway zone UE",
+    region: "Fonctions à Francfort (fra1) · CDN edge mondial",
     notes:
-      "Les fonctions serverless qui n'effectuent que du rendu HTML ou des appels base de données ne traitent pas de données personnelles persistantes. Configuration région UE explicite en cours d'évaluation.",
+      "La région d'exécution des fonctions de l'application et de l'API est fixée à fra1 dans vercel.json, à côté de la base Neon. Le CDN sert les pages statiques depuis le point de présence le plus proche du visiteur.",
   },
   {
     layer: "Base de données métier",
@@ -37,7 +37,7 @@ const RESIDENCY: ResidencyRow[] = [
     provider: "Upstash Redis & Vector",
     region: "eu-central-1 (Frankfurt, Union européenne)",
     notes:
-      "Rate-limiting, sessions et corpus RAG ESRS du copilote. Le corpus vectoriel ne contient que des extraits publics (EFRAG, ADEME).",
+      "Rate-limiting, sessions et corpus RAG du copilote : extraits publics (EFRAG, ADEME) et, dans un espace de noms par tenant, extraits des documents importés pour l'extraction de datapoints.",
   },
   {
     layer: "Stockage objet",
@@ -49,9 +49,9 @@ const RESIDENCY: ResidencyRow[] = [
   {
     layer: "Copilote IA",
     provider: "Anthropic Claude via Vercel AI Gateway",
-    region: "AI Gateway zone UE · modèles hébergés US (Anthropic)",
+    region: "Vercel AI Gateway · modèles hébergés aux États-Unis (Anthropic)",
     notes:
-      "Prompts pseudonymisés côté CarbonCo (pas de PII, pas de noms d'entreprises). Politique zero-retention Anthropic enterprise : prompts non utilisés pour l'entraînement.",
+      "Le copilote reçoit des indicateurs chiffrés et un alias d'entreprise, sans PII. L'extraction de datapoints envoie des extraits des documents importés. Politique zero-retention Anthropic enterprise : prompts non utilisés pour l'entraînement.",
   },
   {
     layer: "Facturation",
@@ -64,7 +64,7 @@ const RESIDENCY: ResidencyRow[] = [
 
 export default function TrustCenterPage() {
   return (
-    <LegalLayout title="Trust Center" lastUpdated="28 mai 2026">
+    <LegalLayout title="Trust Center" lastUpdated="2 novembre 2026">
       <Section title="Vue d'ensemble">
         <p>
           Cette page centralise tout ce qu'un acheteur, un DAF, un RSI ou un commissaire aux
@@ -227,7 +227,7 @@ export default function TrustCenterPage() {
           </li>
           <li>
             <Link href="/ai-act" className="underline">
-              Conformité AI Act (copilote NEURAL)
+              NEURAL et l&apos;AI Act (copilote)
             </Link>
           </li>
           <li>

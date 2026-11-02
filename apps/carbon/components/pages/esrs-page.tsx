@@ -161,7 +161,7 @@ export function ESRSPage() {
             <div className="flex items-center gap-2 text-xs text-[var(--cc-subtle)] mt-1">
               {isLive && <span className="cc-live-dot" />}
               <span>
-                Conformité réglementaire · {STANDARD_IDS_COUNT} normes
+                Couverture ESRS · {STANDARD_IDS_COUNT} normes
                 {isLive ? ` · ${totals.avg}% global` : ""}
               </span>
             </div>
@@ -187,7 +187,7 @@ export function ESRSPage() {
         )}
 
         {esgSnap.status === "error" && !esgSnap.empty && (
-          <EsrsNotice tone="error" title="Conformité ESRS indisponible">
+          <EsrsNotice tone="error" title="Couverture ESRS indisponible">
             <p>{esgSnap.error}</p>
           </EsrsNotice>
         )}
@@ -195,7 +195,7 @@ export function ESRSPage() {
         {esgSnap.status === "ready" && !isLive && (
           <EsrsNotice tone="empty" title="Matrice de matérialité non renseignée">
             <p>
-              Votre snapshot ESG ne rattache encore aucun enjeu à une norme ESRS : la conformité ne
+              Votre snapshot ESG ne rattache encore aucun enjeu à une norme ESRS : la couverture ne
               peut pas être calculée.
             </p>
             <p className="mt-3">
@@ -241,7 +241,7 @@ export function ESRSPage() {
             />
 
             <div className="text-center text-[11px] text-[var(--cc-subtle)] font-mono py-2">
-              Conformité ESRS dérivée de la matrice de matérialité · objectif {TARGET}%
+              Couverture ESRS dérivée de la matrice de matérialité · objectif {TARGET}%
             </div>
           </>
         )}

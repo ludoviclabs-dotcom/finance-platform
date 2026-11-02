@@ -13,9 +13,9 @@ const DEADLINES = [
     tag: "CSRD",
   },
   {
-    title: "Filing CBAM — Déclaration trimestrielle",
-    date: "2026-05-02",
-    daysLeft: 35,
+    title: "CBAM — Déclaration annuelle (importations 2026)",
+    date: "2027-09-30",
+    daysLeft: 332,
     completion: 40,
     urgency: "medium" as const,
     tag: "CBAM",
@@ -27,14 +27,6 @@ const DEADLINES = [
     completion: 18,
     urgency: "low" as const,
     tag: "GHG",
-  },
-  {
-    title: "Taxonomie verte — Alignement activités",
-    date: "2026-07-15",
-    daysLeft: 108,
-    completion: 5,
-    urgency: "low" as const,
-    tag: "Taxonomie",
   },
 ];
 
@@ -50,7 +42,7 @@ export function DeadlinesWidget() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-display font-semibold text-sm text-[var(--color-foreground)]">Échéances réglementaires</h3>
-          <p className="text-xs text-[var(--color-foreground-muted)] mt-0.5">4 délais à suivre</p>
+          <p className="text-xs text-[var(--color-foreground-muted)] mt-0.5">{DEADLINES.length} délais à suivre</p>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-red-500 font-semibold">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />

@@ -1,7 +1,8 @@
 "use client";
 
 /**
- * ValidatorPanel — affiche le score audit ESRS Set 2 et les findings de validation.
+ * ValidatorPanel — affiche le score de contrôle du référentiel ESRS (avis EFRAG
+ * 2025, alignement 2026/1563 à venir) et les findings de validation.
  *
  * Au mount : POST /api/datapoints/validate → récupère le rapport complet.
  * Affiche :
@@ -237,7 +238,7 @@ export function ValidatorPanel({ compact = false, standardFilter }: ValidatorPan
           <div className="flex items-center gap-2 mb-1">
             <h2 className="font-display text-base font-bold text-[var(--color-foreground)] flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-carbon-emerald" />
-              Validation audit-grade
+              Contrôles de cohérence
             </h2>
             <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full uppercase tracking-wider">
               30+ règles

@@ -20,11 +20,24 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <ArticleLayout article={article}>
+      <Aside title="Mis à jour le 2 novembre 2026">
+        Depuis le 18 mars 2026, la directive (UE) 2026/470 du 24 février 2026 (« Omnibus I »)
+        réserve la CSRD aux entreprises de plus de 1 000 salariés <strong>et</strong> de plus de
+        450 M€ de chiffre d&apos;affaires net (critères cumulatifs). La vague 3 (PME cotées) sort
+        du champ. Les groupes non européens sont visés à partir de l&apos;exercice 2028 (CA dans
+        l&apos;UE supérieur à 450 M€ et filiale ou succursale UE au-delà de 200 M€). En France, la
+        loi de transposition est en cours d&apos;examen (échéance : 19 mars 2027).
+      </Aside>
+
       <P>
-        L&apos;exercice 2026 sera le premier rapport CSRD pour les ETI françaises (vague 2 :
-        plus de 250 salariés, plus de 50 M€ de CA ou plus de 25 M€ de bilan). Publication en
-        2027, assurance limitée obligatoire. Voici les douze chantiers à verrouiller dès
-        maintenant pour ne pas découvrir les manques en septembre.
+        Pour les entreprises de la vague 2 qui restent dans le champ, le premier rapport CSRD
+        portera sur l&apos;exercice 2027 et sera publié en 2028 (report décidé par la directive
+        « stop-the-clock » 2025/794 du 14 avril 2025), avec une assurance limitée conduite par
+        un commissaire aux comptes ou un OTI inscrit à la H2A. Les entreprises de la vague 1
+        ont, pour l&apos;exercice 2026, trois options : ESRS 2023 avec le « quick fix »
+        2025/1416, ESRS 2026 par anticipation, ou ESRS 2023 avec les allègements 2026. Voici les
+        douze chantiers à verrouiller dès maintenant pour ne pas découvrir les manques au
+        dernier moment.
       </P>
 
       <H2>1 — Cadrer le périmètre</H2>
@@ -51,8 +64,8 @@ export default function Page() {
 
       <H2>3 — Réaliser l&apos;analyse de double matérialité</H2>
       <P>
-        L&apos;ESRS 1 §3 impose une analyse documentée croisant impact et matérialité
-        financière. Cible : 6 à 10 enjeux matériels priorisés, scoring justifié, parties
+        L&apos;ESRS 1 (chapitre 3) impose une analyse documentée croisant impact et matérialité
+        financière ; les ESRS 2026 admettent une approche descendante (top-down). Cible : 6 à 10 enjeux matériels priorisés, scoring justifié, parties
         prenantes consultées.
       </P>
 
@@ -64,10 +77,12 @@ export default function Page() {
 
       <H2>4 — Cartographier les datapoints obligatoires</H2>
       <P>
-        Les ESRS thématiques (E1 à E5, S1 à S4, G1) déclinent ~1 100 datapoints. Pour une
-        ETI matériellement concernée par 4 à 6 standards, le périmètre opérationnel se
-        réduit à 250-400 datapoints. Cartographier <em>quelle équipe / quel système /
-        quelle fréquence</em> pour chacun.
+        Les ESRS thématiques (E1 à E5, S1 à S4, G1) déclinaient ~1 100 datapoints dans leur
+        version 2023 ; les ESRS 2026 (règlement délégué (UE) 2026/1563, obligatoires pour les
+        exercices ouverts à compter du 1er janvier 2027) réduisent d&apos;environ 61 % les points
+        obligatoires. Pour une entreprise matériellement concernée par 4 à 6 normes, le
+        périmètre opérationnel se compte en centaines de datapoints. Cartographier{" "}
+        <em>quelle équipe / quel système / quelle fréquence</em> pour chacun.
       </P>
 
       <H2>5 — Verrouiller la collecte Scope 1 & 2</H2>
@@ -100,14 +115,15 @@ export default function Page() {
 
       <H2>8 — Choisir l&apos;outil de pilotage</H2>
       <P>
-        Critères non négociables pour passer l&apos;assurance limitée 2027 :
+        Critères à exiger de l&apos;outil avant l&apos;assurance limitée de l&apos;exercice 2027 :
       </P>
       <List
         items={[
-          "Audit trail immuable, idéalement avec hash cryptographique de chaîne.",
+          "Journal en ajout seul, modifications détectables, chaîné par empreinte cryptographique et ancré hors de la base.",
           "Lignée de la donnée (qui, quand, source, méthode) tracée à la ligne.",
-          "Hébergement UE et conformité RGPD documentée.",
-          "Export PDF signé incluant la justification méthodologique de chaque KPI.",
+          "Données stockées en UE, sous-traitants et transferts hors UE documentés (RGPD).",
+          "Export PDF avec empreinte vérifiable, incluant la justification méthodologique de chaque KPI.",
+          "Version du référentiel ESRS appliquée (2023 ou 2026) tracée sur chaque rapport.",
         ]}
       />
 

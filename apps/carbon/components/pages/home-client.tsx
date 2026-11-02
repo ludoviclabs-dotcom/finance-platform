@@ -5,10 +5,23 @@ import { LandingPage, type MaterialsStats } from "@/components/pages/landing-pag
 
 /**
  * Enveloppe client de la homepage. La page serveur (app/page.tsx) charge les
- * chiffres réels du module Matières critiques au build et les passe ici —
- * seuls 4 nombres traversent la frontière serveur→client, jamais le dataset.
+ * chiffres réels du module Matières critiques et le compte de datapoints du
+ * référentiel ESRS au build, et les passe ici — seuls quelques nombres
+ * traversent la frontière serveur→client, jamais les datasets.
  */
-export function HomeClient({ materialsStats }: { materialsStats: MaterialsStats }) {
+export function HomeClient({
+  materialsStats,
+  esrsDatapointCount,
+}: {
+  materialsStats: MaterialsStats;
+  esrsDatapointCount: number;
+}) {
   const router = useRouter();
-  return <LandingPage onEnterApp={() => router.push("/login")} materialsStats={materialsStats} />;
+  return (
+    <LandingPage
+      onEnterApp={() => router.push("/login")}
+      materialsStats={materialsStats}
+      esrsDatapointCount={esrsDatapointCount}
+    />
+  );
 }

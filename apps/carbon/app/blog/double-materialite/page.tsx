@@ -24,8 +24,19 @@ export default function Page() {
         La double matérialité est le pilier méthodologique d&apos;un rapport CSRD :
         c&apos;est elle qui justifie quels enjeux ESRS vous traitez et lesquels vous
         excluez. Une analyse mal documentée bloque l&apos;assurance limitée. Voici la
-        méthodologie en 6 étapes, conforme ESRS 1 §3.
+        méthodologie en 6 étapes, selon ESRS 1, chapitre 3.
       </P>
+
+      <Aside title="Ce que changent les ESRS 2026">
+        Les ESRS 2026 (règlement délégué (UE) 2026/1563 du 3 juillet 2026, en vigueur le
+        10 novembre 2026, obligatoires pour les exercices ouverts à compter du 1er janvier 2027)
+        conservent la double matérialité mais en allègent la mise en œuvre : une approche
+        descendante (top-down) est admise. En contrepartie, publier une information sur un
+        sujet jugé non matériel est interdit, sauf exceptions prévues par les normes. Pour
+        l&apos;exercice 2026, les entreprises de la vague 1 ont trois options : ESRS 2023 avec le
+        « quick fix » 2025/1416, ESRS 2026 par anticipation, ou ESRS 2023 avec les allègements
+        2026.
+      </Aside>
 
       <H2>Le concept en une phrase</H2>
       <Aside title="Définition">
@@ -35,7 +46,7 @@ export default function Page() {
         (matérialité financière).
       </Aside>
 
-      <H2>Les 6 étapes ESRS 1 §3</H2>
+      <H2>Les 6 étapes (ESRS 1, chapitre 3)</H2>
 
       <Numbered
         items={[

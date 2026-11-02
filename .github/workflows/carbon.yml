@@ -27,6 +27,10 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Le JSON robotique est généré : le script est la source de vérité.
+      - name: Snapshot robotique à jour
+        run: python3 scripts/robotics/build_snapshot.py --check
+
       - name: Lint
         run: npm run lint
 

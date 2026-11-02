@@ -103,6 +103,7 @@ const COUNTRY_NAME_FR: Readonly<Record<string, string>> = {
   TR: "Turquie", UA: "Ukraine", US: "États-Unis", UZ: "Ouzbékistan",
   VN: "Viêt Nam", ZA: "Afrique du Sud", ZM: "Zambie", ZW: "Zimbabwe",
   KR: "Corée du Sud", TW: "Taïwan", RS: "Serbie", TJ: "Tadjikistan",
+  CH: "Suisse",
 };
 
 /**

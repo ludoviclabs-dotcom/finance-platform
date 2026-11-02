@@ -15,6 +15,12 @@
  * Deux entrées thématiques (Métaux, Eau) sont regroupées sous « Ressources ».
  * La barre perd un lien au lieu d'en gagner un.
  *
+ * Le menu s'appelle désormais « Dépendances » : il accueille aussi la chaîne
+ * de valeur des robots humanoïdes (/robotics), qui n'est pas une ressource.
+ * Métaux, eau, robotique : trois dépendances de la chaîne de valeur, au sens
+ * où les ESRS parlent des risques nés des dépendances. Le libellé change, pas
+ * les identifiants (`nav-resources-*`) sur lesquels reposent les tests.
+ *
  * ## Accessibilité — ce qui est tenu, et comment
  *
  * - **Ouverture par bouton**, jamais par survol seul : un menu qui ne s'ouvre
@@ -48,7 +54,7 @@ export interface ResourceMenuEntry {
 }
 
 /**
- * Les deux surfaces publiques thématiques.
+ * Les surfaces publiques thématiques.
  *
  * Exportées pour que les tests vérifient les cibles sans monter le composant,
  * et pour que la version mobile rende exactement les mêmes entrées — une
@@ -65,9 +71,14 @@ export const RESOURCE_MENU_ENTRIES: readonly ResourceMenuEntry[] = [
     label: "Eau et ressources hydriques",
     description: "Stress, prélèvements, qualité, réglementation et résilience",
   },
+  {
+    href: "/robotics",
+    label: "Robotique & IA physique",
+    description: "Chaîne de valeur des humanoïdes, de la mine aux modèles d’IA",
+  },
 ] as const;
 
-export const RESOURCE_MENU_LABEL = "Ressources";
+export const RESOURCE_MENU_LABEL = "Dépendances";
 
 /** Menu déroulant accessible de la barre desktop. */
 export function NavResourcesMenu() {
@@ -204,7 +215,7 @@ export function NavResourcesMenu() {
  * Version mobile — mêmes entrées, sans dépliage.
  *
  * Le tiroir mobile est déjà une liste verticale : y imbriquer un second niveau
- * repliable ajouterait un état à gérer sans rien rendre plus lisible. Les deux
+ * repliable ajouterait un état à gérer sans rien rendre plus lisible. Les
  * entrées sont donc listées à plat sous un intertitre, ce qui les rend
  * atteignables en un geste au lieu de deux.
  */

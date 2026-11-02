@@ -91,11 +91,12 @@ beforeEach(() => {
 
 /* ================================================= 1 · 2 — Liens présents */
 
-describe("menu Ressources — cibles", () => {
-  it("porte les deux modules, /materials conservé et /water ajouté", () => {
+describe("menu Dépendances — cibles", () => {
+  it("porte les trois modules : /materials, /water, puis /robotics", () => {
     const hrefs = RESOURCE_MENU_ENTRIES.map((e) => e.href);
-    expect(hrefs).toEqual(["/materials", "/water"]);
-    expect(RESOURCE_MENU_LABEL).toBe("Ressources");
+    expect(hrefs).toEqual(["/materials", "/water", "/robotics"]);
+    // Renommé de « Ressources » : la robotique n'est pas une ressource.
+    expect(RESOURCE_MENU_LABEL).toBe("Dépendances");
   });
 
   it("décrit chaque entrée en texte, jamais par la seule couleur", () => {
@@ -108,6 +109,9 @@ describe("menu Ressources — cibles", () => {
     );
     expect(RESOURCE_MENU_ENTRIES[1].description).toBe(
       "Stress, prélèvements, qualité, réglementation et résilience",
+    );
+    expect(RESOURCE_MENU_ENTRIES[2].description).toBe(
+      "Chaîne de valeur des humanoïdes, de la mine aux modèles d’IA",
     );
   });
 
@@ -124,7 +128,7 @@ describe("menu Ressources — cibles", () => {
 
 /* ================================================ 3 · 5 — Clavier et Échap */
 
-describe("menu Ressources — comportement", () => {
+describe("menu Dépendances — comportement", () => {
   it("est fermé au départ et l’annonce par aria-expanded", async () => {
     const m = await mount(<NavResourcesMenu />);
     const trigger = pick<HTMLButtonElement>(m.container, '[data-testid="nav-resources-trigger"]');
@@ -141,9 +145,10 @@ describe("menu Ressources — comportement", () => {
     });
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     const panel = pick<HTMLElement>(m.container, '[data-testid="nav-resources-panel"]');
-    expect(panel.querySelectorAll("a").length).toBe(2);
+    expect(panel.querySelectorAll("a").length).toBe(3);
     expect(panel.querySelector('a[href="/water"]')).toBeTruthy();
     expect(panel.querySelector('a[href="/materials"]')).toBeTruthy();
+    expect(panel.querySelector('a[href="/robotics"]')).toBeTruthy();
     await unmount(m);
   });
 
@@ -205,14 +210,16 @@ describe("menu Ressources — comportement", () => {
 
 /* ==================================================== 4 — Version mobile */
 
-describe("menu Ressources — mobile", () => {
+describe("menu Dépendances — mobile", () => {
   const html = renderToStaticMarkup(<NavResourcesMobileGroup onNavigate={() => {}} />);
 
-  it("expose les deux mêmes cibles, à plat", () => {
+  it("expose les mêmes cibles, à plat", () => {
     expect(html).toContain('data-testid="nav-resources-mobile"');
     expect(html).toContain('href="/materials"');
     expect(html).toContain('href="/water"');
+    expect(html).toContain('href="/robotics"');
     expect(html).toContain("Eau et ressources hydriques");
+    expect(html).toContain("Dépendances");
   });
 
   it("ne dépend d’aucun état replié pour être atteignable", () => {

@@ -1,0 +1,3902 @@
+{
+  "schema_version": "ROBOTICS-SNAPSHOT-1",
+  "snapshot_date": "2026-11-02",
+  "scope_note": "Données de contexte sur la chaîne de valeur mondiale des robots humanoïdes. Non normatives : elles éclairent l'analyse des dépendances de votre chaîne de valeur et ne constituent ni une donnée ESRS, ni un conseil en investissement.",
+  "methodology_note": "Snapshot compilé le 2 novembre 2026 à partir du dossier « Robotique humanoïde » de L-Labs (14 octobre 2026). Chaque chiffre du dossier a été relu dans une source datée : publications officielles (USGS, AIE, BLS, Eurostat), documents réglementaires et boursiers (MOFCOM, SEC, HKEX, prospectus), communiqués des entreprises, recherche bancaire, cabinets d'études de marché et presse. Les chiffres introuvables ont été retirés, les chiffres divergents corrigés (voir « corrections »). « Vérifié » : valeur lue telle quelle dans la source. « Estimé » : fourchette de plusieurs sources, estimation d'analyste ou chiffre relayé. « Saisie manuelle » : qualification éditoriale, jamais un chiffre. Hors périmètre : cours, valorisations, symboles boursiers et thèses d'investissement du dossier d'origine.",
+  "corrections": [
+    {
+      "id": "aimants",
+      "claim": "Part chinoise de la fabrication d'aimants permanents",
+      "dossier_value": "~90 %",
+      "outcome": "corrected",
+      "corrected_value": "94 % des aimants frittés (2024)",
+      "source_ids": [
+        "iea-ree-2026"
+      ]
+    },
+    {
+      "id": "raffinage",
+      "claim": "Part chinoise du raffinage des terres rares",
+      "dossier_value": "~90 %",
+      "outcome": "corrected",
+      "corrected_value": "85 % (2025), après 91 % en 2024",
+      "source_ids": [
+        "iea-gcmo-2026",
+        "iea-ree-2026"
+      ]
+    },
+    {
+      "id": "volumes-chine",
+      "claim": "Part chinoise des volumes d'humanoïdes",
+      "dossier_value": "~90 %",
+      "outcome": "corrected",
+      "corrected_value": "87 % des livraisons 2025 (Omdia)",
+      "source_ids": [
+        "futura-omdia-2026"
+      ]
+    },
+    {
+      "id": "marche-2026",
+      "claim": "Marché mondial 2026",
+      "dossier_value": "2,5–4,2 Md$",
+      "outcome": "corrected",
+      "corrected_value": "3–11 Md$ selon les cabinets",
+      "source_ids": [
+        "roots-2026",
+        "mm-2026-07",
+        "gmi-2026"
+      ]
+    },
+    {
+      "id": "marche-2030",
+      "claim": "Marché mondial 2030",
+      "dossier_value": "15–30 Md$",
+      "outcome": "corrected",
+      "corrected_value": "6–15 Md$ selon les cabinets",
+      "source_ids": [
+        "yole-2025-11",
+        "abi-2025",
+        "bcc-2025-10",
+        "roots-2026",
+        "mm-2030"
+      ]
+    },
+    {
+      "id": "bofa-citi-2035",
+      "claim": "Projection Bank of America / Citi 2035",
+      "dossier_value": "100–250 Md$",
+      "outcome": "corrected",
+      "corrected_value": "Citi : 209 Md$ ; BofA ne publie pas de montant (10 millions d'unités par an)",
+      "source_ids": [
+        "yahoo-citi-2024",
+        "bofa-physical-ai-2026"
+      ]
+    },
+    {
+      "id": "foyers-2050",
+      "claim": "Part des foyers dans le parc 2050 (Morgan Stanley)",
+      "dossier_value": "10 %",
+      "outcome": "corrected",
+      "corrected_value": "≈ 80 millions d'unités, environ 8 %",
+      "source_ids": [
+        "emsnow-ms-2025"
+      ]
+    },
+    {
+      "id": "cout-2050",
+      "claim": "Coût de revient d'un humanoïde en 2050",
+      "dossier_value": "12–15 k$",
+      "outcome": "corrected",
+      "corrected_value": "Aucune source ; Morgan Stanley projette un prix de 50 000 $ dans les pays à haut revenu",
+      "source_ids": [
+        "emsnow-ms-2025"
+      ]
+    },
+    {
+      "id": "repartition-bom",
+      "claim": "Part des articulations et des mains dans le coût matériel",
+      "dossier_value": "~60 %",
+      "outcome": "corrected",
+      "corrected_value": "≈ 70 % en 2030 (actionneurs 51 %, mains 19 %)",
+      "source_ids": [
+        "bofa-physical-ai-2026"
+      ]
+    },
+    {
+      "id": "surcout-usa",
+      "claim": "Surcoût de fabrication aux États-Unis face à la Chine",
+      "dossier_value": "2 à 3 fois",
+      "outcome": "corrected",
+      "corrected_value": "≈ 2,8 fois pour Optimus Gen 2 sans fournisseurs chinois",
+      "source_ids": [
+        "scmp-ms-2025-12"
+      ]
+    },
+    {
+      "id": "salaire",
+      "claim": "Salaire annuel d'un ouvrier posté (US/UE)",
+      "dossier_value": "30 000–40 000 $",
+      "outcome": "corrected",
+      "corrected_value": "46 990 $ (médiane production, États-Unis) ; 39 800 € (moyenne UE, tous secteurs)",
+      "source_ids": [
+        "bls-production",
+        "eurostat-2025-11"
+      ]
+    },
+    {
+      "id": "aimants-kg",
+      "claim": "Aimants NdFeB par robot",
+      "dossier_value": "2–4 kg, presque autant qu'une voiture électrique",
+      "outcome": "corrected",
+      "corrected_value": "2 à 4,5 kg, autant voire plus qu'un véhicule électrique (1,4 kg)",
+      "source_ids": [
+        "adamas-2026-04",
+        "fai-2026-09"
+      ]
+    },
+    {
+      "id": "agibot",
+      "claim": "AgiBot",
+      "dossier_value": "10 000e unité fin mars 2026 ; clients BYD, Nio, Geely",
+      "outcome": "corrected",
+      "corrected_value": "20 000e unité en septembre 2026 ; actionnaires BYD, SAIC et BAIC (Nio et Geely non trouvés)",
+      "source_ids": [
+        "agibot-2026-09",
+        "pedaily-2025-05"
+      ]
+    },
+    {
+      "id": "tesla-46-jours",
+      "claim": "Ligne de Fremont reconvertie en 46 jours pour Optimus V3",
+      "dossier_value": "46 jours (mai 2026)",
+      "outcome": "corrected",
+      "corrected_value": "46 jours pour démonter l'ancienne ligne Model S/X ; production d'Optimus lancée au 3e trimestre 2026",
+      "source_ids": [
+        "drivetesla-2026-07",
+        "tesla-q3-2026"
+      ]
+    },
+    {
+      "id": "unitree-cumul",
+      "claim": "Production cumulée d'Unitree",
+      "dossier_value": "~11 000 (G1 / H1)",
+      "outcome": "corrected",
+      "corrected_value": "≈ 18 000 humanoïdes bipèdes à fin juillet 2026 (11 000 = G1 seul, juin 2026)",
+      "source_ids": [
+        "10jqka-2026-08"
+      ]
+    },
+    {
+      "id": "1x",
+      "claim": "1X Technologies",
+      "dossier_value": "Usine inaugurée en mai 2026 ; plus de 10 000 précommandes",
+      "outcome": "corrected",
+      "corrected_value": "Usine annoncée le 30 avril 2026 ; ≈ 10 000 NEO réservés",
+      "source_ids": [
+        "1x-neo-factory"
+      ]
+    },
+    {
+      "id": "ubtech-capacite",
+      "claim": "Capacité d'UBTECH",
+      "dossier_value": "5 000/an en 2026, 10 000/an en 2027",
+      "outcome": "corrected",
+      "corrected_value": "Objectif de production de 10 000 unités dès 2026 (rapport semestriel)",
+      "source_ids": [
+        "ubtech-hkex-2026-08"
+      ]
+    },
+    {
+      "id": "batterie",
+      "claim": "Autonomie en travail intensif",
+      "dossier_value": "2–4 h avec 2 kWh",
+      "outcome": "corrected",
+      "corrected_value": "2,3 kWh pour 5 h à pleine performance (Figure 03)",
+      "source_ids": [
+        "figure-battery-2025"
+      ]
+    },
+    {
+      "id": "conception-puces",
+      "claim": "Part américaine de la conception des puces d'IA",
+      "dossier_value": "95 %",
+      "outcome": "removed",
+      "corrected_value": null,
+      "source_ids": []
+    },
+    {
+      "id": "tesla-gen2",
+      "claim": "Flotte interne d'Optimus Gen 2",
+      "dossier_value": "Quelques centaines",
+      "outcome": "removed",
+      "corrected_value": null,
+      "source_ids": []
+    },
+    {
+      "id": "isaac-lab",
+      "claim": "Essais virtuels accumulés dans Isaac Lab",
+      "dossier_value": "10 000 h",
+      "outcome": "removed",
+      "corrected_value": null,
+      "source_ids": []
+    },
+    {
+      "id": "raas-gxo",
+      "claim": "Tarif de location d'Agility chez GXO",
+      "dossier_value": "10–15 $/h",
+      "outcome": "removed",
+      "corrected_value": null,
+      "source_ids": []
+    },
+    {
+      "id": "agility-flotte",
+      "claim": "Robots Digit en service commercial",
+      "dossier_value": "40 à 150",
+      "outcome": "removed",
+      "corrected_value": null,
+      "source_ids": []
+    }
+  ],
+  "blocs": [
+    {
+      "id": "us",
+      "name": "États-Unis",
+      "strengths": [
+        "Puces d'IA et modèles de fondation pour robots",
+        "Capital-risque abondant",
+        "Capteurs de force et connectique haut de gamme"
+      ],
+      "weaknesses": [
+        "Coût de fabrication élevé hors de la chaîne d'approvisionnement chinoise",
+        "Dépendance aux aimants et à l'usinage asiatiques"
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "cn",
+      "name": "Chine",
+      "strengths": [
+        "Premier producteur mondial d'humanoïdes en volume",
+        "Maîtrise de la chaîne matérielle (aimants, batteries, moteurs) à bas coût",
+        "Fonds publics dédiés à l'IA et à la robotique"
+      ],
+      "weaknesses": [
+        "Accès restreint aux puces américaines d'entraînement les plus avancées",
+        "Dépendance partielle aux réducteurs et vis à rouleaux haut de gamme étrangers"
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "eu",
+      "name": "Europe",
+      "strengths": [
+        "Mécatronique de précision : roulements, vis à rouleaux, moteurs miniatures",
+        "Semi-conducteurs de puissance, capteurs MEMS et logiciels de simulation industrielle"
+      ],
+      "weaknesses": [
+        "Peu de constructeurs d'humanoïdes de taille mondiale",
+        "Coût de l'énergie pour l'usinage lourd"
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "as",
+      "name": "Japon, Corée du Sud et Taïwan",
+      "strengths": [
+        "Savoir-faire historique des réducteurs et des guidages linéaires",
+        "Mains robotiques, batteries et fonderie de puces"
+      ],
+      "weaknesses": [
+        "Moins présents que la Silicon Valley sur l'IA incarnée",
+        "Pression sur les marges face aux fabricants chinois de réducteurs"
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    }
+  ],
+  "layers": [
+    {
+      "id": "aimants-terres-rares",
+      "number": 1,
+      "order": 1,
+      "name": "Matières premières & aimants NdFeB",
+      "segment": "amont",
+      "dominant_blocs": [
+        "cn"
+      ],
+      "challenger_blocs": [
+        "us",
+        "other"
+      ],
+      "dominance_note": "Chine : 69 % de l'extraction de terres rares (2025), 85 % du raffinage (2025) et 94 % des aimants frittés (2024). Alternatives : États-Unis (MP Materials) et Australie (Lynas).",
+      "key_figure_ids": [
+        "chine-extraction-terres-rares",
+        "chine-extraction-terres-rares-aimants",
+        "chine-raffinage-terres-rares",
+        "chine-aimants-frittes",
+        "ndfeb-par-humanoide"
+      ],
+      "material_links": [
+        {
+          "material_id": "light-ree",
+          "rationale": "Néodyme et praséodyme, cœur des aimants NdFeB des moteurs d'articulation."
+        },
+        {
+          "material_id": "heavy-ree",
+          "rationale": "Dysprosium et terbium, ajoutés pour que l'aimant tienne à haute température."
+        },
+        {
+          "material_id": "boron",
+          "rationale": "Le « B » de NdFeB : le bore entre dans la composition de l'aimant."
+        }
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "usgs-mcs-2026-ree",
+          "iea-ree-2026",
+          "iea-gcmo-2026"
+        ]
+      }
+    },
+    {
+      "id": "calcul-ia-fonderie",
+      "number": 2,
+      "order": 2,
+      "name": "Calcul IA, mémoire & fonderie",
+      "segment": "amont",
+      "dominant_blocs": [
+        "us",
+        "as"
+      ],
+      "challenger_blocs": [],
+      "dominance_note": "Conception : entreprises américaines (53,4 % des ventes mondiales de semi-conducteurs en 2025). Fabrication : Taïwan (69 % des capacités de logique avancée en 2022 ; TSMC, 72,5 % des revenus de fonderie au 2e trimestre 2026).",
+      "key_figure_ids": [
+        "us-ventes-semi-conducteurs",
+        "taiwan-logique-avancee",
+        "tsmc-revenus-fonderie"
+      ],
+      "material_links": [
+        {
+          "material_id": "silicon-metal",
+          "rationale": "Silicium de base des puces de calcul."
+        },
+        {
+          "material_id": "hafnium",
+          "rationale": "Oxyde de hafnium des grilles des nœuds de gravure avancés."
+        },
+        {
+          "material_id": "helium",
+          "rationale": "Gaz de procédé indispensable aux fonderies de semi-conducteurs."
+        }
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "sia-2026",
+          "sia-bcg-2024",
+          "trendforce-2026-09"
+        ]
+      }
+    },
+    {
+      "id": "batteries",
+      "number": 7,
+      "order": 3,
+      "name": "Batteries haute densité",
+      "segment": "amont",
+      "dominant_blocs": [
+        "cn",
+        "as"
+      ],
+      "challenger_blocs": [],
+      "dominance_note": "Chine et Corée du Sud.",
+      "key_figure_ids": [
+        "batterie-figure-03"
+      ],
+      "material_links": [
+        {
+          "material_id": "lithium",
+          "rationale": "Électrolyte et cathode des cellules lithium-ion."
+        },
+        {
+          "material_id": "cobalt",
+          "rationale": "Cathodes NMC à haute densité d'énergie."
+        },
+        {
+          "material_id": "nickel",
+          "rationale": "Cathodes NMC à haute densité d'énergie."
+        },
+        {
+          "material_id": "manganese",
+          "rationale": "Cathodes NMC et LMFP."
+        },
+        {
+          "material_id": "natural-graphite",
+          "rationale": "Anodes des cellules lithium-ion."
+        }
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "vision-perception",
+      "number": 3,
+      "order": 4,
+      "name": "Vision 3D, profondeur & centrales inertielles",
+      "segment": "milieu",
+      "dominant_blocs": [
+        "eu",
+        "us",
+        "cn"
+      ],
+      "challenger_blocs": [],
+      "dominance_note": "Europe et États-Unis pour les puces MEMS et l'optique, Chine pour les modules 3D.",
+      "key_figure_ids": [],
+      "material_links": [
+        {
+          "material_id": "gallium",
+          "rationale": "Lasers VCSEL en arséniure de gallium des capteurs de profondeur à temps de vol."
+        },
+        {
+          "material_id": "arsenic",
+          "rationale": "Second composant de l'arséniure de gallium (GaAs) des émetteurs infrarouges."
+        }
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "capteurs-force-tactiles",
+      "number": 4,
+      "order": 5,
+      "name": "Capteurs de force, de couple & tactiles",
+      "segment": "milieu",
+      "dominant_blocs": [
+        "us",
+        "cn"
+      ],
+      "challenger_blocs": [],
+      "dominance_note": "États-Unis sur le haut de gamme, Chine sur le volume à bas coût.",
+      "key_figure_ids": [],
+      "material_links": [],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "electronique-puissance",
+      "number": 5,
+      "order": 6,
+      "name": "Électronique de puissance & contrôle moteur",
+      "segment": "milieu",
+      "dominant_blocs": [
+        "eu",
+        "us",
+        "as"
+      ],
+      "challenger_blocs": [],
+      "dominance_note": "Europe, États-Unis et Japon.",
+      "key_figure_ids": [],
+      "material_links": [
+        {
+          "material_id": "gallium",
+          "rationale": "Transistors en nitrure de gallium (GaN) des convertisseurs et des drivers moteur."
+        },
+        {
+          "material_id": "silicon-metal",
+          "rationale": "Silicium et carbure de silicium des composants de puissance."
+        },
+        {
+          "material_id": "tantalum",
+          "rationale": "Condensateurs des cartes électroniques."
+        }
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "connectique-faisceaux",
+      "number": 6,
+      "order": 7,
+      "name": "Connectique & faisceaux",
+      "segment": "milieu",
+      "dominant_blocs": [
+        "us",
+        "eu",
+        "as"
+      ],
+      "challenger_blocs": [],
+      "dominance_note": "États-Unis, Europe et Taïwan.",
+      "key_figure_ids": [],
+      "material_links": [
+        {
+          "material_id": "copper",
+          "rationale": "Conducteurs des faisceaux et des connecteurs."
+        },
+        {
+          "material_id": "beryllium",
+          "rationale": "Alliages cuivre-béryllium des contacts à ressort des connecteurs."
+        }
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "moteurs-actionneurs",
+      "number": 8,
+      "order": 8,
+      "name": "Moteurs & actionneurs intégrés",
+      "segment": "mecatronique",
+      "dominant_blocs": [
+        "eu",
+        "as",
+        "us"
+      ],
+      "challenger_blocs": [
+        "cn"
+      ],
+      "dominance_note": "Suisse, Japon et États-Unis sur la précision, face à la Chine et à sa base industrielle automobile.",
+      "key_figure_ids": [],
+      "material_links": [
+        {
+          "material_id": "light-ree",
+          "rationale": "Aimants NdFeB des moteurs sans balais."
+        },
+        {
+          "material_id": "heavy-ree",
+          "rationale": "Tenue en température des aimants des moteurs."
+        },
+        {
+          "material_id": "copper",
+          "rationale": "Bobinages des moteurs."
+        }
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "reducteurs-vis-roulements",
+      "number": 9,
+      "order": 9,
+      "name": "Réducteurs, vis à rouleaux & roulements",
+      "segment": "mecatronique",
+      "dominant_blocs": [
+        "as",
+        "eu"
+      ],
+      "challenger_blocs": [
+        "cn"
+      ],
+      "dominance_note": "Japon et Europe (savoir-faire métallurgique), face à la Chine (Leaderdrive), désormais associée à SKF.",
+      "key_figure_ids": [],
+      "material_links": [
+        {
+          "material_id": "vanadium",
+          "rationale": "Aciers à haute résistance des engrenages et des vis."
+        },
+        {
+          "material_id": "tungsten",
+          "rationale": "Carbures cémentés des outils d'usinage de précision."
+        }
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique",
+          "skf-leaderdrive-2026"
+        ]
+      }
+    },
+    {
+      "id": "mains-prehenseurs",
+      "number": 10,
+      "order": 10,
+      "name": "Mains dextres & préhenseurs",
+      "segment": "mecatronique",
+      "dominant_blocs": [
+        "as",
+        "eu"
+      ],
+      "challenger_blocs": [],
+      "dominance_note": "Corée du Sud et Europe (Royaume-Uni, Allemagne).",
+      "key_figure_ids": [
+        "bofa-actionneurs-mains-2030"
+      ],
+      "material_links": [
+        {
+          "material_id": "light-ree",
+          "rationale": "Aimants des micro-moteurs des doigts."
+        }
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "modeles-ia-simulation",
+      "number": 11,
+      "order": 11,
+      "name": "Modèles IA, simulation & jumeaux numériques",
+      "segment": "aval",
+      "dominant_blocs": [
+        "us",
+        "eu"
+      ],
+      "challenger_blocs": [],
+      "dominance_note": "États-Unis pour les modèles d'IA, Europe pour la simulation industrielle.",
+      "key_figure_ids": [
+        "gr00t-donnees-synthetiques"
+      ],
+      "material_links": [],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "constructeurs-oem",
+      "number": 12,
+      "order": 12,
+      "name": "Constructeurs d'humanoïdes",
+      "segment": "aval",
+      "dominant_blocs": [
+        "cn",
+        "us"
+      ],
+      "challenger_blocs": [],
+      "dominance_note": "Chine : 87 % des quelque 13 300 humanoïdes livrés en 2025 (Omdia). États-Unis : capital, puces et modèles d'IA.",
+      "key_figure_ids": [
+        "livraisons-mondiales-2025",
+        "part-chine-livraisons-2025"
+      ],
+      "material_links": [
+        {
+          "material_id": "bauxite",
+          "rationale": "Aluminium des structures et des carters."
+        },
+        {
+          "material_id": "magnesium",
+          "rationale": "Alliages légers des membres et du châssis."
+        }
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "futura-omdia-2026",
+          "agibot-2026-01",
+          "restofworld-2026"
+        ]
+      }
+    }
+  ],
+  "actors": [
+    {
+      "id": "mp-materials",
+      "name": "MP Materials",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "aimants-terres-rares"
+      ],
+      "role": "Terres rares : mine de Mountain Pass (Californie) et usine d'aimants au Texas.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "lynas",
+      "name": "Lynas Rare Earths",
+      "countries": [
+        "AU"
+      ],
+      "bloc": "other",
+      "layer_ids": [
+        "aimants-terres-rares"
+      ],
+      "role": "Producteur de terres rares séparées hors de Chine.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "jl-mag",
+      "name": "JL MAG Rare-Earth",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "aimants-terres-rares"
+      ],
+      "role": "Fabricant d'aimants permanents NdFeB.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "nvidia",
+      "name": "Nvidia",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "calcul-ia-fonderie",
+        "modeles-ia-simulation"
+      ],
+      "role": "Puces embarquées Jetson Thor, simulation Isaac et modèles de fondation GR00T.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "nvidia-thor-2025",
+          "nvidia-gr00t-2025"
+        ]
+      }
+    },
+    {
+      "id": "qualcomm",
+      "name": "Qualcomm",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "calcul-ia-fonderie"
+      ],
+      "role": "Calcul IA embarqué.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "amd",
+      "name": "AMD",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "calcul-ia-fonderie"
+      ],
+      "role": "Calcul IA.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "tsmc",
+      "name": "TSMC",
+      "countries": [
+        "TW"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "calcul-ia-fonderie"
+      ],
+      "role": "Fonderie des puces IA.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "bosch",
+      "name": "Bosch",
+      "countries": [
+        "DE"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "vision-perception"
+      ],
+      "role": "Centrales inertielles et capteurs MEMS, intégration système de rang 1.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "onsemi",
+      "name": "Onsemi",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "vision-perception"
+      ],
+      "role": "Capteurs d'image global shutter et à temps de vol.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "stmicroelectronics",
+      "name": "STMicroelectronics",
+      "countries": [
+        "FR",
+        "IT"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "vision-perception",
+        "electronique-puissance"
+      ],
+      "role": "Capteurs d'image et de temps de vol, centrales inertielles MEMS, électronique de puissance.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "orbbec",
+      "name": "Orbbec",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "vision-perception"
+      ],
+      "role": "Caméras de profondeur 3D pour la robotique.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "realsense",
+      "name": "RealSense",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "vision-perception"
+      ],
+      "role": "Modules de vision 3D et de cartographie.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "novanta-ati",
+      "name": "Novanta (ATI)",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "capteurs-force-tactiles"
+      ],
+      "role": "Capteurs de force et de couple six axes.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "vpg",
+      "name": "VPG (Vishay Precision Group)",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "capteurs-force-tactiles"
+      ],
+      "role": "Jauges de contrainte de précision.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "honeywell",
+      "name": "Honeywell",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "capteurs-force-tactiles"
+      ],
+      "role": "Capteurs de force et de couple.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "sri",
+      "name": "Sunrise Instruments (SRI)",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "capteurs-force-tactiles"
+      ],
+      "role": "Capteurs de force et de couple, fournisseur d'OEM asiatiques.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "infineon",
+      "name": "Infineon",
+      "countries": [
+        "DE"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "electronique-puissance"
+      ],
+      "role": "Semi-conducteurs de puissance (silicium, SiC, GaN).",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "texas-instruments",
+      "name": "Texas Instruments",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "electronique-puissance"
+      ],
+      "role": "Électronique analogique, de puissance et de contrôle moteur.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "analog-devices",
+      "name": "Analog Devices",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "electronique-puissance"
+      ],
+      "role": "Semi-conducteurs analogiques et de puissance.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "renesas",
+      "name": "Renesas",
+      "countries": [
+        "JP"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "electronique-puissance"
+      ],
+      "role": "Microcontrôleurs et semi-conducteurs de puissance.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "te-connectivity",
+      "name": "TE Connectivity",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "connectique-faisceaux"
+      ],
+      "role": "Capteurs et faisceaux d'interconnexion.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "amphenol",
+      "name": "Amphenol",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "connectique-faisceaux"
+      ],
+      "role": "Connectique miniature haute densité.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "molex",
+      "name": "Molex",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "connectique-faisceaux"
+      ],
+      "role": "Connectique.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "bizlink",
+      "name": "BizLink",
+      "countries": [
+        "TW"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "connectique-faisceaux"
+      ],
+      "role": "Faisceaux et câblage.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "rosenberger",
+      "name": "Rosenberger",
+      "countries": [
+        "DE"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "connectique-faisceaux"
+      ],
+      "role": "Connectique haute densité.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "lg-energy-solution",
+      "name": "LG Energy Solution",
+      "countries": [
+        "KR"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "batteries"
+      ],
+      "role": "Cellules lithium-ion.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "eve-energy",
+      "name": "EVE Energy",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "batteries"
+      ],
+      "role": "Cellules lithium-ion.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "nidec",
+      "name": "Nidec",
+      "countries": [
+        "JP"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "moteurs-actionneurs"
+      ],
+      "role": "Moteurs de précision.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "maxon",
+      "name": "Maxon",
+      "countries": [
+        "CH"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "moteurs-actionneurs"
+      ],
+      "role": "Moteurs miniatures de précision.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "kollmorgen",
+      "name": "Kollmorgen",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "moteurs-actionneurs"
+      ],
+      "role": "Moteurs et servo-entraînements.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "sanhua",
+      "name": "Sanhua",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "moteurs-actionneurs"
+      ],
+      "role": "Actionneurs intégrés pour constructeurs d'humanoïdes.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "tuopu",
+      "name": "Tuopu",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "moteurs-actionneurs"
+      ],
+      "role": "Équipementier automobile diversifié dans les actionneurs.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "inovance",
+      "name": "Inovance",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "moteurs-actionneurs"
+      ],
+      "role": "Moteurs et entraînements pour l'industrie et l'automobile électrique.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "schaeffler",
+      "name": "Schaeffler",
+      "countries": [
+        "DE"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "moteurs-actionneurs",
+        "reducteurs-vis-roulements"
+      ],
+      "role": "Roulements, vis à rouleaux et actionneur planétaire pour humanoïdes présenté au CES 2026.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "schaeffler-actuator-2025"
+        ]
+      }
+    },
+    {
+      "id": "skf",
+      "name": "SKF",
+      "countries": [
+        "SE"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "reducteurs-vis-roulements"
+      ],
+      "role": "Roulements et vis à rouleaux ; coentreprise avec Leaderdrive en Chine, détenue à 60 % par SKF (juillet 2026).",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "skf-leaderdrive-2026"
+        ]
+      }
+    },
+    {
+      "id": "leaderdrive",
+      "name": "Leaderdrive",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "reducteurs-vis-roulements"
+      ],
+      "role": "Réducteurs harmoniques ; partenaire de SKF depuis juillet 2026.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "skf-leaderdrive-2026"
+        ]
+      }
+    },
+    {
+      "id": "harmonic-drive",
+      "name": "Harmonic Drive Systems",
+      "countries": [
+        "JP"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "reducteurs-vis-roulements"
+      ],
+      "role": "Réducteurs harmoniques.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "nabtesco",
+      "name": "Nabtesco",
+      "countries": [
+        "JP"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "reducteurs-vis-roulements"
+      ],
+      "role": "Réducteurs cycloïdaux.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "thk",
+      "name": "THK",
+      "countries": [
+        "JP"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "reducteurs-vis-roulements"
+      ],
+      "role": "Vis et guidages linéaires.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "hiwin",
+      "name": "Hiwin",
+      "countries": [
+        "TW"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "reducteurs-vis-roulements"
+      ],
+      "role": "Vis à billes, vis à rouleaux et guidages linéaires.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "shadow-robot",
+      "name": "Shadow Robot",
+      "countries": [
+        "GB"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "mains-prehenseurs"
+      ],
+      "role": "Mains dextres pour la recherche.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "tesollo",
+      "name": "Tesollo",
+      "countries": [
+        "KR"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "mains-prehenseurs"
+      ],
+      "role": "Mains robotiques dextres.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "wonik-robotics",
+      "name": "Wonik Robotics",
+      "countries": [
+        "KR"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "mains-prehenseurs"
+      ],
+      "role": "Mains robotiques dextres.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "robotis",
+      "name": "Robotis",
+      "countries": [
+        "KR"
+      ],
+      "bloc": "as",
+      "layer_ids": [
+        "mains-prehenseurs"
+      ],
+      "role": "Mains et actionneurs robotiques.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "schunk",
+      "name": "Schunk",
+      "countries": [
+        "DE"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "mains-prehenseurs"
+      ],
+      "role": "Pinces et préhenseurs industriels.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "google-deepmind",
+      "name": "Google DeepMind",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "modeles-ia-simulation"
+      ],
+      "role": "Modèles Gemini Robotics.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "physical-intelligence",
+      "name": "Physical Intelligence",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "modeles-ia-simulation"
+      ],
+      "role": "Modèles de fondation pour robots.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "skild-ai",
+      "name": "Skild AI",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "modeles-ia-simulation"
+      ],
+      "role": "Modèle de fondation généraliste pour robots.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "siemens",
+      "name": "Siemens",
+      "countries": [
+        "DE"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "modeles-ia-simulation"
+      ],
+      "role": "Logiciels PLM et simulation d'usine (jumeau numérique).",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "dassault-systemes",
+      "name": "Dassault Systèmes",
+      "countries": [
+        "FR"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "modeles-ia-simulation"
+      ],
+      "role": "Plateforme de conception et de simulation 3DEXPERIENCE.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "tesla",
+      "name": "Tesla",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïde Optimus.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "figure-ai",
+      "name": "Figure AI",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïde Figure 03.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "boston-dynamics",
+      "name": "Boston Dynamics",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïde Atlas ; filiale du groupe Hyundai, qui en détient 80 % depuis 2021.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "hyundai-bd-2021"
+        ]
+      }
+    },
+    {
+      "id": "agility-robotics",
+      "name": "Agility Robotics",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïde Digit.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "apptronik",
+      "name": "Apptronik",
+      "countries": [
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïde Apollo.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "1x-technologies",
+      "name": "1X Technologies",
+      "countries": [
+        "NO",
+        "US"
+      ],
+      "bloc": "us",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïde domestique NEO.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "ubtech",
+      "name": "UBTECH",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïde industriel Walker S2.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "agibot",
+      "name": "AgiBot",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïdes industriels et de service.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "unitree",
+      "name": "Unitree",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïdes G1 et H1.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "fourier",
+      "name": "Fourier",
+      "countries": [
+        "CN"
+      ],
+      "bloc": "cn",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïdes.",
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    },
+    {
+      "id": "neura-robotics",
+      "name": "Neura Robotics",
+      "countries": [
+        "DE"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïdes et robots cognitifs ; partenaire de Schaeffler pour les actionneurs.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "schaeffler-neura-2025"
+        ]
+      }
+    },
+    {
+      "id": "humanoid-uk",
+      "name": "Humanoid",
+      "countries": [
+        "GB"
+      ],
+      "bloc": "eu",
+      "layer_ids": [
+        "constructeurs-oem"
+      ],
+      "role": "Humanoïdes à roues et bipèdes ; contrat de déploiement avec Schaeffler.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "humanoid-schaeffler-2026"
+        ]
+      }
+    }
+  ],
+  "oems": [
+    {
+      "actor_id": "unitree",
+      "model": "G1 / H1",
+      "volume": {
+        "kind": "shipped",
+        "value": 5511,
+        "value_min": null,
+        "label": "5 511 humanoïdes livrés en 2025",
+        "as_of": "2025",
+        "provenance": {
+          "data_quality": "verified",
+          "source_ids": [
+            "unitree-prospectus-2026",
+            "sse-chinadaily-2026-08"
+          ]
+        }
+      },
+      "capacity": null,
+      "facts": "Premier constructeur mondial en volume. Environ 18 000 humanoïdes bipèdes produits en cumulé à fin juillet 2026.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "unitree-prospectus-2026",
+          "10jqka-2026-08"
+        ]
+      }
+    },
+    {
+      "actor_id": "agibot",
+      "model": "Gammes industrielles et de service",
+      "volume": {
+        "kind": "produced",
+        "value": 20000,
+        "value_min": null,
+        "label": "20 000e robot sorti de la ligne (septembre 2026)",
+        "as_of": "2026-09",
+        "provenance": {
+          "data_quality": "verified",
+          "source_ids": [
+            "agibot-2026-09"
+          ]
+        }
+      },
+      "capacity": null,
+      "facts": "10 000e unité fin mars 2026. 5 168 robots livrés en 2025, soit 39 % du marché mondial selon Omdia.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "agibot-2026-03",
+          "agibot-2026-01"
+        ]
+      }
+    },
+    {
+      "actor_id": "ubtech",
+      "model": "Walker S2",
+      "volume": {
+        "kind": "shipped",
+        "value": 921,
+        "value_min": null,
+        "label": "921 humanoïdes grand format vendus au 1er semestre 2026",
+        "as_of": "2026-06",
+        "provenance": {
+          "data_quality": "verified",
+          "source_ids": [
+            "ubtech-hkex-2026-08"
+          ]
+        }
+      },
+      "capacity": {
+        "units_per_year": 10000,
+        "year": 2026,
+        "label": "Objectif de production annuel : 10 000 unités",
+        "provenance": {
+          "data_quality": "verified",
+          "source_ids": [
+            "ubtech-hkex-2026-08"
+          ]
+        }
+      },
+      "facts": "1 000e Walker S2 sorti de l'usine de Liuzhou le 26 décembre 2025. Batterie échangée de façon autonome en moins de trois minutes.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "ubtech-2025-12",
+          "ubtech-walker-s2"
+        ]
+      }
+    },
+    {
+      "actor_id": "tesla",
+      "model": "Optimus",
+      "volume": null,
+      "capacity": {
+        "units_per_year": 1000000,
+        "year": null,
+        "label": "Capacité prévue à terme de la première ligne : 1 million de robots par an",
+        "provenance": {
+          "data_quality": "verified",
+          "source_ids": [
+            "tesla-q4-2025"
+          ]
+        }
+      },
+      "facts": "Production lancée sur les lignes à haut volume de Fremont au 3e trimestre 2026, sans volume publié. L'ancienne ligne Model S/X a été démontée en 46 jours.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "tesla-q3-2026",
+          "drivetesla-2026-07"
+        ]
+      }
+    },
+    {
+      "actor_id": "figure-ai",
+      "model": "Figure 03",
+      "volume": {
+        "kind": "produced",
+        "value": 350,
+        "value_min": null,
+        "label": "Plus de 350 Figure 03 sortis de l'usine BotQ (avril 2026)",
+        "as_of": "2026-04",
+        "provenance": {
+          "data_quality": "verified",
+          "source_ids": [
+            "figure-ramping-2026"
+          ]
+        }
+      },
+      "capacity": null,
+      "facts": "Cadence portée à un robot par heure. Une partie des unités sert à la R&D et à la collecte de données de Figure.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "figure-ramping-2026"
+        ]
+      }
+    },
+    {
+      "actor_id": "1x-technologies",
+      "model": "NEO",
+      "volume": {
+        "kind": "preorders",
+        "value": 10000,
+        "value_min": null,
+        "label": "≈ 10 000 NEO réservés en cinq jours (octobre 2025)",
+        "as_of": "2025-10",
+        "provenance": {
+          "data_quality": "verified",
+          "source_ids": [
+            "1x-neo-factory"
+          ]
+        }
+      },
+      "capacity": {
+        "units_per_year": 10000,
+        "year": 2026,
+        "label": "Usine de Hayward (Californie) : jusqu'à 10 000 unités par an",
+        "provenance": {
+          "data_quality": "verified",
+          "source_ids": [
+            "1x-neo-factory"
+          ]
+        }
+      },
+      "facts": "Objectif annoncé : plus de 100 000 unités par an fin 2027.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "1x-neo-factory"
+        ]
+      }
+    },
+    {
+      "actor_id": "agility-robotics",
+      "model": "Digit",
+      "volume": {
+        "kind": "shipped",
+        "value": 150,
+        "value_min": null,
+        "label": "≈ 150 robots livrés en 2025 (estimation d'un concurrent)",
+        "as_of": "2025",
+        "provenance": {
+          "data_quality": "estimated",
+          "source_ids": [
+            "unitree-prospectus-2026"
+          ],
+          "note": "Estimation du prospectus d'Unitree, non confirmée par Agility Robotics."
+        }
+      },
+      "capacity": null,
+      "facts": "Plus de 65 000 heures d'exploitation et plus de 100 000 bacs déplacés ; 9 sites clients engagés (octobre 2026).",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "agility-425-2026-10"
+        ]
+      }
+    },
+    {
+      "actor_id": "boston-dynamics",
+      "model": "Atlas",
+      "volume": null,
+      "capacity": {
+        "units_per_year": 30000,
+        "year": 2028,
+        "label": "Système de production de 30 000 robots par an visé d'ici 2028 (Hyundai)",
+        "provenance": {
+          "data_quality": "verified",
+          "source_ids": [
+            "hyundai-ces-2026"
+          ]
+        }
+      },
+      "facts": "Atlas doit être déployé à l'usine Hyundai de Géorgie (HMGMA) d'ici 2028.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "hyundai-ces-2026"
+        ]
+      }
+    }
+  ],
+  "bom": [
+    {
+      "id": "actionneurs-lineaires",
+      "label": "Actionneurs linéaires",
+      "detail": "Vis à rouleaux, moteurs et électronique des membres",
+      "min_pct": 27,
+      "max_pct": 27,
+      "layer_ids": [
+        "moteurs-actionneurs",
+        "reducteurs-vis-roulements"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Répartition projetée pour 2030, humanoïde assemblé en Chine."
+      }
+    },
+    {
+      "id": "actionneurs-rotatifs",
+      "label": "Actionneurs rotatifs",
+      "detail": "Moteurs, réducteurs et roulements des articulations",
+      "min_pct": 24,
+      "max_pct": 24,
+      "layer_ids": [
+        "moteurs-actionneurs",
+        "reducteurs-vis-roulements"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Répartition projetée pour 2030, humanoïde assemblé en Chine."
+      }
+    },
+    {
+      "id": "mains-dextres",
+      "label": "Mains dextres",
+      "detail": "Micro-actionneurs, tendons et capteurs tactiles",
+      "min_pct": 19,
+      "max_pct": 19,
+      "layer_ids": [
+        "mains-prehenseurs",
+        "capteurs-force-tactiles"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Répartition projetée pour 2030, humanoïde assemblé en Chine."
+      }
+    },
+    {
+      "id": "controle",
+      "label": "Système de contrôle",
+      "detail": "Calcul embarqué et électronique de commande",
+      "min_pct": 10,
+      "max_pct": 10,
+      "layer_ids": [
+        "calcul-ia-fonderie",
+        "electronique-puissance"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Répartition projetée pour 2030, humanoïde assemblé en Chine."
+      }
+    },
+    {
+      "id": "vision-capteurs",
+      "label": "Vision et autres capteurs",
+      "detail": "Caméras, profondeur, centrales inertielles",
+      "min_pct": 4,
+      "max_pct": 4,
+      "layer_ids": [
+        "vision-perception"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Répartition projetée pour 2030, humanoïde assemblé en Chine."
+      }
+    },
+    {
+      "id": "energie",
+      "label": "Système énergétique",
+      "detail": "Batterie et gestion de l'énergie",
+      "min_pct": 4,
+      "max_pct": 4,
+      "layer_ids": [
+        "batteries"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Répartition projetée pour 2030, humanoïde assemblé en Chine."
+      }
+    },
+    {
+      "id": "autres",
+      "label": "Autres",
+      "detail": "Structure, câblage, connectique",
+      "min_pct": 12,
+      "max_pct": 12,
+      "layer_ids": [
+        "connectique-faisceaux"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Répartition projetée pour 2030, humanoïde assemblé en Chine."
+      }
+    }
+  ],
+  "projections": [
+    {
+      "id": "ms-2050",
+      "institution": "Morgan Stanley",
+      "horizon": 2050,
+      "min_bn_usd": 5000,
+      "max_bn_usd": 5000,
+      "scope": "Humanoïdes, chaînes d'approvisionnement et services de maintenance compris",
+      "detail": "Environ 1 milliard d'humanoïdes en service, dont 90 % dans l'industrie et le commerce.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "ms-humanoids-5tn",
+          "cnbc-ms-2025"
+        ]
+      }
+    },
+    {
+      "id": "ms-2050-revision",
+      "institution": "Morgan Stanley (révision 2026)",
+      "horizon": 2050,
+      "min_bn_usd": 7500,
+      "max_bn_usd": 7500,
+      "scope": "Marché annuel des humanoïdes",
+      "detail": "Chiffre cité en mars 2026 par l'équipe robotique de la banque.",
+      "provenance": {
+        "data_quality": "estimated",
+        "source_ids": [
+          "ms-podcast-2026-03"
+        ],
+        "note": "Cité oralement dans un podcast de la banque ; rapport écrit non consulté."
+      }
+    },
+    {
+      "id": "citi-2050",
+      "institution": "Citi",
+      "horizon": 2050,
+      "min_bn_usd": 7000,
+      "max_bn_usd": 7000,
+      "scope": "Marché adressable des humanoïdes",
+      "detail": "Près de 650 millions d'humanoïdes en service en 2050.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "citi-gps-2024",
+          "yahoo-citi-2024"
+        ]
+      }
+    },
+    {
+      "id": "citi-2035",
+      "institution": "Citi",
+      "horizon": 2035,
+      "min_bn_usd": 209,
+      "max_bn_usd": 209,
+      "scope": "Marché adressable des humanoïdes",
+      "detail": "Étape intermédiaire de la projection 2050 de Citi.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "yahoo-citi-2024"
+        ]
+      }
+    },
+    {
+      "id": "gs-2035-2026",
+      "institution": "Goldman Sachs (révision 2026)",
+      "horizon": 2035,
+      "min_bn_usd": 138,
+      "max_bn_usd": 138,
+      "scope": "Robots humanoïdes",
+      "detail": "Environ 6,5 millions d'unités livrées en 2035, contre 1,4 million dans la prévision de 2024.",
+      "provenance": {
+        "data_quality": "estimated",
+        "source_ids": [
+          "wallst-gs-2026"
+        ],
+        "note": "Chiffres relayés par la presse financière ; à confirmer sur le site de Goldman Sachs."
+      }
+    },
+    {
+      "id": "gs-2035-2024",
+      "institution": "Goldman Sachs (2024)",
+      "horizon": 2035,
+      "min_bn_usd": 38,
+      "max_bn_usd": 38,
+      "scope": "Robots humanoïdes",
+      "detail": "Prévision multipliée par plus de six par rapport aux 6 Md$ de 2022 ; 1,4 million d'unités livrées en 2035.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "gs-humanoid-2024"
+        ]
+      }
+    },
+    {
+      "id": "etudes-2035",
+      "institution": "Cabinets d'études de marché",
+      "horizon": 2035,
+      "min_bn_usd": 50,
+      "max_bn_usd": 193,
+      "scope": "Robots humanoïdes, définitions variables selon le cabinet",
+      "detail": "MarketsandMarkets 50,3 Md$, Yole 51 Md$, Global Market Insights 192,7 Md$.",
+      "provenance": {
+        "data_quality": "estimated",
+        "source_ids": [
+          "mm-2026-07",
+          "yole-2025-11",
+          "gmi-2026"
+        ]
+      }
+    },
+    {
+      "id": "etudes-2030",
+      "institution": "Cabinets d'études de marché",
+      "horizon": 2030,
+      "min_bn_usd": 6,
+      "max_bn_usd": 15,
+      "scope": "Robots humanoïdes, définitions variables selon le cabinet",
+      "detail": "Yole 6 Md$, ABI Research 6,5 Md$, BCC 11 Md$, Roots Analysis 12 Md$, MarketsandMarkets 15,3 Md$.",
+      "provenance": {
+        "data_quality": "estimated",
+        "source_ids": [
+          "yole-2025-11",
+          "abi-2025",
+          "bcc-2025-10",
+          "roots-2026",
+          "mm-2030"
+        ]
+      }
+    },
+    {
+      "id": "etudes-2026",
+      "institution": "Cabinets d'études de marché",
+      "horizon": 2026,
+      "min_bn_usd": 3,
+      "max_bn_usd": 11,
+      "scope": "Robots humanoïdes, définitions variables selon le cabinet",
+      "detail": "Roots Analysis 3 Md$, MarketsandMarkets 5,4 Md$, Global Market Insights 10,9 Md$.",
+      "provenance": {
+        "data_quality": "estimated",
+        "source_ids": [
+          "roots-2026",
+          "mm-2026-07",
+          "gmi-2026"
+        ]
+      }
+    }
+  ],
+  "key_figures": [
+    {
+      "id": "chine-extraction-terres-rares",
+      "label": "Part de la Chine dans l'extraction mondiale de terres rares",
+      "value_label": "69 %",
+      "min": 69,
+      "max": 69,
+      "unit": "%",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "usgs-mcs-2026-ree"
+        ],
+        "note": "270 000 t sur 390 000 t d'oxydes (estimation 2025). Le chiffre chinois suit le quota officiel : c'est un plancher."
+      }
+    },
+    {
+      "id": "chine-extraction-terres-rares-aimants",
+      "label": "Part de la Chine dans l'extraction des terres rares pour aimants (NdPr, Dy, Tb)",
+      "value_label": "60 %",
+      "min": 60,
+      "max": 60,
+      "unit": "%",
+      "as_of": "2024",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "iea-ree-2026"
+        ]
+      }
+    },
+    {
+      "id": "chine-raffinage-terres-rares",
+      "label": "Part de la Chine dans le raffinage des terres rares",
+      "value_label": "85 %",
+      "min": 85,
+      "max": 85,
+      "unit": "%",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "iea-gcmo-2026",
+          "iea-ree-2026"
+        ],
+        "note": "Plus de 90 % en 2023 et 91 % en 2024 ; la baisse vient de nouveaux projets aux États-Unis et en Malaisie."
+      }
+    },
+    {
+      "id": "chine-aimants-frittes",
+      "label": "Part de la Chine dans la production d'aimants permanents frittés",
+      "value_label": "94 %",
+      "min": 94,
+      "max": 94,
+      "unit": "%",
+      "as_of": "2024",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "iea-ree-2026"
+        ]
+      }
+    },
+    {
+      "id": "ndfeb-par-humanoide",
+      "label": "Aimants NdFeB par humanoïde",
+      "value_label": "2 à 4,5 kg",
+      "min": 2,
+      "max": 4.5,
+      "unit": "kg",
+      "as_of": "2026",
+      "provenance": {
+        "data_quality": "estimated",
+        "source_ids": [
+          "adamas-2026-04",
+          "fai-2026-09"
+        ],
+        "note": "Estimations d'analystes ; aucun constructeur ne publie ce chiffre. Adamas retient environ 4 kg pour un humanoïde avancé."
+      }
+    },
+    {
+      "id": "ndfeb-par-vehicule-electrique",
+      "label": "Aimants NdFeB par véhicule électrique (moyenne pondérée des ventes)",
+      "value_label": "1,4 kg",
+      "min": 1.4,
+      "max": 1.4,
+      "unit": "kg",
+      "as_of": "2026",
+      "provenance": {
+        "data_quality": "estimated",
+        "source_ids": [
+          "fai-2026-09"
+        ],
+        "note": "Un humanoïde contient donc autant, voire plus d'aimants qu'un véhicule électrique."
+      }
+    },
+    {
+      "id": "us-ventes-semi-conducteurs",
+      "label": "Part des entreprises américaines dans les ventes mondiales de semi-conducteurs",
+      "value_label": "53,4 %",
+      "min": 53.4,
+      "max": 53.4,
+      "unit": "%",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "sia-2026"
+        ],
+        "note": "Tous semi-conducteurs confondus, pas seulement les puces d'IA."
+      }
+    },
+    {
+      "id": "taiwan-logique-avancee",
+      "label": "Part de Taïwan dans les capacités de logique avancée (< 10 nm)",
+      "value_label": "69 %",
+      "min": 69,
+      "max": 69,
+      "unit": "%",
+      "as_of": "2022",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "sia-bcg-2024"
+        ],
+        "note": "Corée du Sud 31 %, États-Unis 0 % en 2022 ; projection 2032 : Taïwan 47 %, États-Unis 28 %."
+      }
+    },
+    {
+      "id": "tsmc-revenus-fonderie",
+      "label": "Part de TSMC dans les revenus mondiaux de la fonderie",
+      "value_label": "72,5 %",
+      "min": 72.5,
+      "max": 72.5,
+      "unit": "%",
+      "as_of": "T2 2026",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "trendforce-2026-09"
+        ],
+        "note": "Part des revenus des dix premiers fondeurs, tous nœuds confondus."
+      }
+    },
+    {
+      "id": "gr00t-donnees-synthetiques",
+      "label": "Démonstrations humaines simulées générées par NVIDIA pour GR00T N1",
+      "value_label": "6 500 h en 11 h",
+      "min": 6500,
+      "max": 6500,
+      "unit": "heures",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "nvidia-gr00t-2025"
+        ],
+        "note": "780 000 trajectoires synthétiques, soit neuf mois de démonstrations humaines, générées en 11 heures."
+      }
+    },
+    {
+      "id": "livraisons-mondiales-2025",
+      "label": "Humanoïdes livrés dans le monde",
+      "value_label": "≈ 13 300",
+      "min": 13318,
+      "max": 13318,
+      "unit": "robots",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "futura-omdia-2026",
+          "agibot-2026-01"
+        ],
+        "note": "Omdia ; IDC estime de son côté près de 18 000 unités."
+      }
+    },
+    {
+      "id": "part-chine-livraisons-2025",
+      "label": "Part des entreprises chinoises dans les livraisons mondiales d'humanoïdes",
+      "value_label": "87 %",
+      "min": 87,
+      "max": 87,
+      "unit": "%",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "futura-omdia-2026",
+          "restofworld-2026"
+        ]
+      }
+    },
+    {
+      "id": "bofa-livraisons-2030",
+      "label": "Livraisons annuelles d'humanoïdes projetées en 2030 (BofA)",
+      "value_label": "1,2 million",
+      "min": 1200000,
+      "max": 1200000,
+      "unit": "robots/an",
+      "as_of": "2030",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ]
+      }
+    },
+    {
+      "id": "bofa-livraisons-2035",
+      "label": "Livraisons annuelles d'humanoïdes projetées en 2035 (BofA)",
+      "value_label": "10 millions",
+      "min": 10000000,
+      "max": 10000000,
+      "unit": "robots/an",
+      "as_of": "2035",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Contre 20 000 en 2025 et 90 000 en 2026."
+      }
+    },
+    {
+      "id": "ms-parc-2050",
+      "label": "Humanoïdes en service en 2050 (Morgan Stanley)",
+      "value_label": "≈ 1 milliard",
+      "min": 1000000000,
+      "max": 1000000000,
+      "unit": "robots",
+      "as_of": "2050",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "ms-humanoids-5tn",
+          "cnbc-ms-2025"
+        ]
+      }
+    },
+    {
+      "id": "ms-parc-chine-2050",
+      "label": "Humanoïdes en service en Chine en 2050 (Morgan Stanley)",
+      "value_label": "302 millions",
+      "min": 302.3,
+      "max": 302.3,
+      "unit": "millions de robots",
+      "as_of": "2050",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "emsnow-ms-2025"
+        ]
+      }
+    },
+    {
+      "id": "ms-parc-usa-2050",
+      "label": "Humanoïdes en service aux États-Unis en 2050 (Morgan Stanley)",
+      "value_label": "78 millions",
+      "min": 77.7,
+      "max": 77.7,
+      "unit": "millions de robots",
+      "as_of": "2050",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "emsnow-ms-2025"
+        ]
+      }
+    },
+    {
+      "id": "ms-usage-professionnel-2050",
+      "label": "Part des usages industriels et commerciaux en 2050 (Morgan Stanley)",
+      "value_label": "90 %",
+      "min": 90,
+      "max": 90,
+      "unit": "%",
+      "as_of": "2050",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "emsnow-ms-2025"
+        ],
+        "note": "Environ 930 millions d'unités ; environ 80 millions dans les foyers."
+      }
+    },
+    {
+      "id": "bofa-bom-chine-2025",
+      "label": "Coût matériel d'un humanoïde assemblé en Chine",
+      "value_label": "35 000 $",
+      "min": 35000,
+      "max": 35000,
+      "unit": "$",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ]
+      }
+    },
+    {
+      "id": "bofa-bom-chine-2030",
+      "label": "Coût matériel projeté d'un humanoïde assemblé en Chine",
+      "value_label": "< 17 000 $",
+      "min": 17000,
+      "max": 17000,
+      "unit": "$",
+      "as_of": "2030",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Borne haute : BofA projette un coût inférieur à 17 000 $."
+      }
+    },
+    {
+      "id": "ms-bom-hors-chine",
+      "label": "Surcoût matériel d'Optimus Gen 2 sans fournisseurs chinois",
+      "value_label": "≈ 2,8 fois",
+      "min": 2.8,
+      "max": 2.8,
+      "unit": "facteur",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "scmp-ms-2025-12"
+        ],
+        "note": "Morgan Stanley : environ 46 000 $ avec la chaîne chinoise, 131 000 $ sans."
+      }
+    },
+    {
+      "id": "ms-prix-2050",
+      "label": "Prix projeté d'un humanoïde dans les pays à haut revenu (Morgan Stanley)",
+      "value_label": "≈ 50 000 $",
+      "min": 50000,
+      "max": 50000,
+      "unit": "$",
+      "as_of": "2050",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "emsnow-ms-2025"
+        ],
+        "note": "Environ 200 000 $ en 2024 et 150 000 $ en 2028 : un prix de vente, pas un coût matériel."
+      }
+    },
+    {
+      "id": "yole-prix-moyen",
+      "label": "Prix de vente moyen d'un humanoïde (Yole)",
+      "value_label": "75 000 $ → 25 000 $",
+      "min": 25000,
+      "max": 75000,
+      "unit": "$",
+      "as_of": "2025–2035",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "yole-2025-11"
+        ],
+        "note": "75 000 $ en 2025, 25 000 $ projetés en 2035."
+      }
+    },
+    {
+      "id": "agility-cout-production",
+      "label": "Coût de production actuel d'un Digit (Agility Robotics)",
+      "value_label": "125 000 $",
+      "min": 125000,
+      "max": 125000,
+      "unit": "$",
+      "as_of": "2026",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "agility-425-2026-06"
+        ],
+        "note": "Déclaration de l'entreprise ; objectif de coût matériel : 30 000 $."
+      }
+    },
+    {
+      "id": "bofa-actionneurs-mains-2030",
+      "label": "Part des actionneurs et des mains dans le coût matériel projeté",
+      "value_label": "≈ 70 %",
+      "min": 70,
+      "max": 70,
+      "unit": "%",
+      "as_of": "2030",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ],
+        "note": "Actionneurs linéaires 27 %, rotatifs 24 %, mains dextres 19 %."
+      }
+    },
+    {
+      "id": "ddl-humanoide",
+      "label": "Degrés de liberté d'un humanoïde",
+      "value_label": "30 à 40 en moyenne",
+      "min": 30,
+      "max": 40,
+      "unit": "degrés de liberté",
+      "as_of": "2026",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "adamas-2026-01"
+        ],
+        "note": "Jusqu'à 56 pour l'Atlas électrique de Boston Dynamics."
+      }
+    },
+    {
+      "id": "batterie-figure-03",
+      "label": "Batterie de Figure 03",
+      "value_label": "2,3 kWh · 5 h",
+      "min": 2.3,
+      "max": 2.3,
+      "unit": "kWh",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "figure-battery-2025"
+        ],
+        "note": "Cinq heures d'autonomie à pleine performance."
+      }
+    },
+    {
+      "id": "digit-cout-horaire",
+      "label": "Coût d'exploitation estimé de Digit",
+      "value_label": "10 à 12 $/h",
+      "min": 10,
+      "max": 12,
+      "unit": "$/h",
+      "as_of": "2023",
+      "provenance": {
+        "data_quality": "estimated",
+        "source_ids": [
+          "interestingeng-2023"
+        ],
+        "note": "Estimation Bloomberg sur une durée de vie d'environ 20 000 heures ; pas un tarif payé par un client."
+      }
+    },
+    {
+      "id": "agility-retour-investissement",
+      "label": "Retour sur investissement annoncé en location (RaaS)",
+      "value_label": "< 1 an",
+      "min": 0,
+      "max": 1,
+      "unit": "an",
+      "as_of": "2026",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "agility-425-2026-06"
+        ],
+        "note": "Déclaration d'Agility Robotics ; la location est facturée sous le coût horaire chargé du poste remplacé."
+      }
+    },
+    {
+      "id": "salaire-production-usa",
+      "label": "Salaire annuel médian des métiers de production aux États-Unis",
+      "value_label": "46 990 $",
+      "min": 46990,
+      "max": 46990,
+      "unit": "$",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bls-production"
+        ],
+        "note": "Salaire de base de mai 2025, hors charges."
+      }
+    },
+    {
+      "id": "salaire-moyen-ue",
+      "label": "Salaire annuel moyen en équivalent temps plein dans l'UE",
+      "value_label": "39 800 €",
+      "min": 39800,
+      "max": 39800,
+      "unit": "€",
+      "as_of": "2024",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "eurostat-2025-11"
+        ],
+        "note": "Tous secteurs confondus, pas seulement l'industrie."
+      }
+    },
+    {
+      "id": "fonds-pekin-ia-robotique",
+      "label": "Fonds public de Pékin pour l'IA et la robotique",
+      "value_label": "jusqu'à 100 Md CNY",
+      "min": 100,
+      "max": 100,
+      "unit": "Md CNY",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "yicai-2025-02"
+        ],
+        "note": "Environ 13,7 Md$ ; plafond annoncé, pas un capital engagé ; périmètre IA et robotique."
+      }
+    },
+    {
+      "id": "fonds-national-capital-risque",
+      "label": "Fonds national chinois d'orientation du capital-risque",
+      "value_label": "100 Md CNY",
+      "min": 100,
+      "max": 100,
+      "unit": "Md CNY",
+      "as_of": "2025",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "caixin-2025-12"
+        ],
+        "note": "Environ 14 Md$ de capital public, lancé le 26 décembre 2025 ; l'IA incarnée fait partie des secteurs visés, il n'est pas propre à la robotique."
+      }
+    }
+  ],
+  "chokepoints": [
+    {
+      "id": "aimants-controles-export",
+      "title": "Aimants terres rares & contrôles à l'export",
+      "layer_ids": [
+        "aimants-terres-rares",
+        "moteurs-actionneurs"
+      ],
+      "issue": "Chaque articulation repose sur un moteur à aimants NdFeB. La Chine produit 94 % des aimants frittés et soumet à licence, depuis avril 2025, l'exportation de sept terres rares moyennes et lourdes et des aimants qui en contiennent.",
+      "signals": [
+        {
+          "date": "2025-04-04",
+          "text": "Annonce n° 18 : licence obligatoire pour sept terres rares moyennes et lourdes et les aimants NdFeB au dysprosium ou au terbium. Toujours en vigueur.",
+          "provenance": {
+            "data_quality": "verified",
+            "source_ids": [
+              "mofcom-18-2025",
+              "usgs-mcs-2026-ree"
+            ]
+          }
+        },
+        {
+          "date": "2025-10-09",
+          "text": "Extension à cinq terres rares supplémentaires et aux produits étrangers contenant des terres rares chinoises.",
+          "provenance": {
+            "data_quality": "verified",
+            "source_ids": [
+              "usgs-mcs-2026-ree"
+            ]
+          }
+        },
+        {
+          "date": "2025-11-07",
+          "text": "Annonce n° 70 : suspension des mesures d'octobre jusqu'au 10 novembre 2026.",
+          "review_by": "2026-11-10",
+          "provenance": {
+            "data_quality": "verified",
+            "source_ids": [
+              "mofcom-70-2025"
+            ]
+          }
+        },
+        {
+          "date": "2026-09-28",
+          "text": "Prolongation jusqu'au 10 janvier 2027 de l'arrangement commercial sino-américain qui fonde cette suspension.",
+          "review_by": "2027-01-10",
+          "provenance": {
+            "data_quality": "estimated",
+            "source_ids": [
+              "chinadaily-2026-09"
+            ],
+            "note": "La déclaration ne cite pas les terres rares ; aucun texte modifiant l'annonce n° 70 n'a été trouvé."
+          }
+        }
+      ],
+      "actor_ids": [
+        "mp-materials",
+        "lynas",
+        "jl-mag"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "iea-ree-2026",
+          "mofcom-18-2025"
+        ]
+      }
+    },
+    {
+      "id": "puces-ia-controles",
+      "title": "Puces d'IA & contrôles américains",
+      "layer_ids": [
+        "calcul-ia-fonderie",
+        "modeles-ia-simulation"
+      ],
+      "issue": "Le calcul embarqué et l'entraînement des modèles dépendent de puces conçues aux États-Unis et gravées à Taïwan. Washington restreint depuis 2022 l'accès de la Chine aux puces d'IA les plus avancées.",
+      "signals": [
+        {
+          "date": "2022-10-13",
+          "text": "Première règle du BIS sur les puces de calcul avancé et les équipements de fabrication.",
+          "provenance": {
+            "data_quality": "verified",
+            "source_ids": [
+              "bis-2022-10"
+            ]
+          }
+        },
+        {
+          "date": "2025-08-25",
+          "text": "NVIDIA commercialise Jetson AGX Thor, son calculateur embarqué pour robots.",
+          "provenance": {
+            "data_quality": "verified",
+            "source_ids": [
+              "nvidia-thor-2025"
+            ]
+          }
+        },
+        {
+          "date": "2026-01-15",
+          "text": "Examen au cas par cas des exportations vers la Chine de puces de la classe H200 ; les puces plus avancées restent refusées par principe.",
+          "provenance": {
+            "data_quality": "verified",
+            "source_ids": [
+              "covington-2026-01"
+            ]
+          }
+        }
+      ],
+      "actor_ids": [
+        "nvidia",
+        "tsmc",
+        "qualcomm",
+        "amd"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "trendforce-2026-09",
+          "sia-bcg-2024"
+        ]
+      }
+    },
+    {
+      "id": "actionneurs-mecanique",
+      "title": "Actionneurs, réducteurs & mécanique de précision",
+      "layer_ids": [
+        "moteurs-actionneurs",
+        "reducteurs-vis-roulements"
+      ],
+      "issue": "Les actionneurs linéaires et rotatifs pèseraient environ la moitié du coût matériel d'un humanoïde en 2030. Réducteurs harmoniques et vis à rouleaux comptent parmi les pièces les plus difficiles à usiner.",
+      "signals": [
+        {
+          "date": "2025-12-16",
+          "text": "Schaeffler présente un actionneur planétaire intégré pour humanoïdes, prêt pour la série (CES 2026).",
+          "provenance": {
+            "data_quality": "verified",
+            "source_ids": [
+              "schaeffler-actuator-2025"
+            ]
+          }
+        },
+        {
+          "date": "2026-07-02",
+          "text": "SKF et Leaderdrive créent en Chine une coentreprise de composants de précision pour humanoïdes, détenue à 60 % par SKF.",
+          "provenance": {
+            "data_quality": "verified",
+            "source_ids": [
+              "skf-leaderdrive-2026"
+            ]
+          }
+        }
+      ],
+      "actor_ids": [
+        "harmonic-drive",
+        "nabtesco",
+        "skf",
+        "thk",
+        "hiwin",
+        "schaeffler",
+        "leaderdrive",
+        "sanhua",
+        "tuopu",
+        "inovance"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ]
+      }
+    },
+    {
+      "id": "mains-tactile",
+      "title": "Mains dextres, toucher & connectique",
+      "layer_ids": [
+        "capteurs-force-tactiles",
+        "connectique-faisceaux",
+        "mains-prehenseurs"
+      ],
+      "issue": "Les mains dextres représenteraient environ 19 % du coût matériel en 2030. Micro-actionneurs, tendons et peaux tactiles doivent résister à des milliers d'heures de manipulation.",
+      "signals": [],
+      "actor_ids": [
+        "novanta-ati",
+        "vpg",
+        "honeywell",
+        "sri",
+        "te-connectivity",
+        "amphenol",
+        "shadow-robot",
+        "tesollo",
+        "schunk"
+      ],
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "bofa-physical-ai-2026"
+        ]
+      }
+    },
+    {
+      "id": "vision-puissance",
+      "title": "Vision 3D, contrôle moteur & électronique de puissance",
+      "layer_ids": [
+        "vision-perception",
+        "electronique-puissance"
+      ],
+      "issue": "La valeur migre du capteur isolé vers le module de vision 3D intégré. Chaque articulation exige aussi un driver moteur, des convertisseurs et une gestion de batterie, un segment tenu par quelques grands de l'analogique et de la puissance.",
+      "signals": [],
+      "actor_ids": [
+        "orbbec",
+        "realsense",
+        "bosch",
+        "stmicroelectronics",
+        "onsemi",
+        "infineon",
+        "texas-instruments",
+        "analog-devices",
+        "renesas"
+      ],
+      "provenance": {
+        "data_quality": "manual",
+        "source_ids": [
+          "ll-dossier-robotique"
+        ]
+      }
+    }
+  ],
+  "alliances": [
+    {
+      "id": "bmw-figure",
+      "client": "BMW",
+      "oem_actor_id": "figure-ai",
+      "sector": "Automobile",
+      "relation": "Figure 02 déployé 11 mois sur une ligne de l'usine de Spartanburg ; Figure 03 affecté à la logistique depuis juin 2026.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "figure-bmw-2025",
+          "automotiveworld-2026-06"
+        ]
+      }
+    },
+    {
+      "id": "mercedes-apptronik",
+      "client": "Mercedes-Benz",
+      "oem_actor_id": "apptronik",
+      "sector": "Automobile",
+      "relation": "Investisseur et partenaire commercial ; Apollo testé dans les usines de Kecskemét et de Berlin.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "apptronik-2025-03",
+          "heise-2025-03"
+        ]
+      }
+    },
+    {
+      "id": "hyundai-boston",
+      "client": "Hyundai Motor Group",
+      "oem_actor_id": "boston-dynamics",
+      "sector": "Automobile",
+      "relation": "Actionnaire majoritaire (80 % depuis 2021) ; déploiement d'Atlas prévu dans ses usines.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "hyundai-bd-2021",
+          "hyundai-ces-2026"
+        ]
+      }
+    },
+    {
+      "id": "constructeurs-ubtech",
+      "client": "BYD, Dongfeng Liuzhou, Geely, FAW-Volkswagen, Audi FAW, BAIC",
+      "oem_actor_id": "ubtech",
+      "sector": "Automobile",
+      "relation": "Collaborations industrielles annoncées par UBTECH, sans volume par constructeur.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "ubtech-2025-11"
+        ]
+      }
+    },
+    {
+      "id": "actionnaires-agibot",
+      "client": "BYD, SAIC, BAIC",
+      "oem_actor_id": "agibot",
+      "sector": "Automobile",
+      "relation": "Constructeurs présents au capital d'AgiBot (directement ou via leurs fonds).",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "pedaily-2025-05"
+        ]
+      }
+    },
+    {
+      "id": "tesla-optimus",
+      "client": "Tesla",
+      "oem_actor_id": "tesla",
+      "sector": "Automobile",
+      "relation": "Développement intégré : Optimus est produit et utilisé par Tesla.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "tesla-q3-2026",
+          "unitree-prospectus-2026"
+        ]
+      }
+    },
+    {
+      "id": "gxo-agility",
+      "client": "GXO Logistics",
+      "oem_actor_id": "agility-robotics",
+      "sector": "Logistique",
+      "relation": "Contrat pluriannuel de 2024, premier déploiement commercial d'humanoïdes en location (Robot-as-a-Service).",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "agility-gxo-2024"
+        ]
+      }
+    },
+    {
+      "id": "schaeffler-agility",
+      "client": "Schaeffler",
+      "oem_actor_id": "agility-robotics",
+      "sector": "Équipementier",
+      "relation": "Actionnaire minoritaire et futur client : intention d'acheter des Digit pour ses usines.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "agility-schaeffler-2024"
+        ]
+      }
+    },
+    {
+      "id": "schaeffler-humanoid",
+      "client": "Schaeffler",
+      "oem_actor_id": "humanoid-uk",
+      "sector": "Équipementier",
+      "relation": "Déploiement d'un nombre d'unités à quatre chiffres d'ici 2032 ; Schaeffler fournisseur privilégié d'actionneurs.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "humanoid-schaeffler-2026"
+        ]
+      }
+    },
+    {
+      "id": "schaeffler-neura",
+      "client": "Schaeffler",
+      "oem_actor_id": "neura-robotics",
+      "sector": "Équipementier",
+      "relation": "Partenariat technologique sur les composants clés, dont les actionneurs.",
+      "provenance": {
+        "data_quality": "verified",
+        "source_ids": [
+          "schaeffler-neura-2025"
+        ]
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "ll-dossier-robotique",
+      "publisher": "L-Labs (Ludovic Labeaut)",
+      "title": "Robotique humanoïde : où se capte la valeur, de 2026 à 2050",
+      "url": "https://l-labs-portfolio.vercel.app/dossiers/robotique-humanoide",
+      "published": "2026-10-14",
+      "accessed": "2026-11-02",
+      "kind": "editorial",
+      "note": "Dossier éditorial d'origine : structure des 12 couches, choix des acteurs, qualifications."
+    },
+    {
+      "id": "usgs-mcs-2026-ree",
+      "publisher": "U.S. Geological Survey",
+      "title": "Mineral Commodity Summaries 2026 — Rare Earths",
+      "url": "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-rare-earths.pdf",
+      "published": "2026-02",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "iea-ree-2026",
+      "publisher": "Agence internationale de l'énergie (AIE)",
+      "title": "Rare Earth Elements — Executive summary",
+      "url": "https://www.iea.org/reports/rare-earth-elements/executive-summary",
+      "published": "2026-04-08",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "iea-gcmo-2026",
+      "publisher": "Agence internationale de l'énergie (AIE)",
+      "title": "Supply concentration, export restrictions and declining investment put critical mineral security at risk",
+      "url": "https://www.iea.org/news/supply-concentration-export-restrictions-and-declining-investment-put-critical-mineral-security-at-risk",
+      "published": "2026-07-16",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Communiqué de lancement du Global Critical Minerals Outlook 2026."
+    },
+    {
+      "id": "adamas-2026-04",
+      "publisher": "Adamas Intelligence",
+      "title": "Humanoid robotics sector accelerates on multiple commercialization fronts in March",
+      "url": "https://www.adamasintel.com/humanoid-robotics-sector-accelerates-on-multiple-commercialization-fronts-in-march/",
+      "published": "2026-04-14",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "adamas-2026-01",
+      "publisher": "Adamas Intelligence",
+      "title": "What Boston Dynamics' Atlas reveals about the future of NdFeB magnet demand",
+      "url": "https://www.adamasintel.com/what-boston-dynamics-atlas-reveals-about-the-future-of-ndfeb-magnet-demand/",
+      "published": "2026-01-16",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "fai-2026-09",
+      "publisher": "Foundation for American Innovation (Policy Gradients)",
+      "title": "The robot boom has a magnet problem",
+      "url": "https://policygradients.thefai.org/p/the-robot-boom-has-a-magnet-problem",
+      "published": "2026-09-08",
+      "accessed": "2026-11-02",
+      "kind": "secondary",
+      "note": "Le chiffre par véhicule électrique y est attribué au JRC (Commission européenne)."
+    },
+    {
+      "id": "mofcom-18-2025",
+      "publisher": "Ministère chinois du Commerce (MOFCOM) et Administration des douanes",
+      "title": "Announcement No. 18 of 2025 on export control of some medium and heavy rare earth related items",
+      "url": "https://english.mofcom.gov.cn/Policies/AnnouncementsOrders/art/2025/art_0dd87cbee7b045bf93fabe6ab2faceee.html",
+      "published": "2025-04-04",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "mofcom-70-2025",
+      "publisher": "Ministère chinois du Commerce (MOFCOM) et Administration des douanes",
+      "title": "商务部、海关总署公告2025年第70号 (annonce n° 70 de 2025)",
+      "url": "https://www.mofcom.gov.cn/zwgk/zcfb/art/2025/art_b1ec77dd3f0d4762952904df7cdaadec.html",
+      "published": "2025-11-07",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "chinadaily-2026-09",
+      "publisher": "China Daily Hong Kong",
+      "title": "China-US economic and trade consultations yield positive consensus",
+      "url": "https://www.chinadailyhk.com/article/640241",
+      "published": "2026-09-28",
+      "accessed": "2026-11-02",
+      "kind": "secondary",
+      "note": "La déclaration ne cite pas explicitement les terres rares."
+    },
+    {
+      "id": "sia-2026",
+      "publisher": "Semiconductor Industry Association (SIA)",
+      "title": "2026 State of the Industry Report: Historic Growth Amid Intensifying Global Competition",
+      "url": "https://www.semiconductors.org/2026-state-of-the-industry-report-historic-growth-amid-intensifying-global-competition/",
+      "published": "2026-07-27",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "sia-bcg-2024",
+      "publisher": "SIA et Boston Consulting Group",
+      "title": "Emerging Resilience in the Semiconductor Supply Chain — Briefing",
+      "url": "https://semiconductors.org/wp-content/uploads/2024/05/Emerging-Resilience-in-the-Semiconductor-Supply-Chain_BCG-Briefing.pdf",
+      "published": "2024-05",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "trendforce-2026-09",
+      "publisher": "TrendForce",
+      "title": "Global Foundry Revenue Approaches US$53.49 Billion in 2Q26 as SMIC Narrows Market Share Gap with Samsung",
+      "url": "https://www.trendforce.com/presscenter/news/20260909-13225.html",
+      "published": "2026-09-09",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "bis-2022-10",
+      "publisher": "Federal Register — Bureau of Industry and Security (BIS)",
+      "title": "Implementation of Additional Export Controls: Certain Advanced Computing and Semiconductor Manufacturing Items",
+      "url": "https://www.federalregister.gov/documents/2022/10/13/2022-21658/implementation-of-additional-export-controls-certain-advanced-computing-and-semiconductor",
+      "published": "2022-10-13",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Page inaccessible au moment de la relecture : valeur lue dans l'extrait de recherche."
+    },
+    {
+      "id": "covington-2026-01",
+      "publisher": "Covington & Burling",
+      "title": "US Commerce Department revises license review policy for exports of certain advanced computing commodities to China and Macau",
+      "url": "https://www.cov.com/en/news-and-insights/insights/2026/01/us-commerce-department-revises-license-review-policy-for-exports-of-certain-advanced-computing-commodities-to-china-and-macau",
+      "published": "2026-01-20",
+      "accessed": "2026-11-02",
+      "kind": "secondary",
+      "note": "Note d'un cabinet d'avocats résumant la règle BIS du 13 janvier 2026."
+    },
+    {
+      "id": "nvidia-gr00t-2025",
+      "publisher": "NVIDIA",
+      "title": "NVIDIA Announces Isaac GR00T N1 — the World's First Open Humanoid Robot Foundation Model",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-isaac-gr00t-n1-open-humanoid-robot-foundation-model-simulation-frameworks",
+      "published": "2025-03-18",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "nvidia-thor-2025",
+      "publisher": "NVIDIA",
+      "title": "NVIDIA Blackwell-Powered Jetson Thor Now Available, Accelerating the Age of General Robotics",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-blackwell-powered-jetson-thor-now-available-accelerating-the-age-of-general-robotics",
+      "published": "2025-08-25",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "futura-omdia-2026",
+      "publisher": "Futura-Sciences (d'après Omdia)",
+      "title": "Jusqu'à 100 000 robots humanoïdes en un an en Chine",
+      "url": "https://www.futura-sciences.com/tech/actualites/robotique-jusqua-100-000-robots-humanoides-an-chine-occident-pourrait-ne-jamais-rattraper-133093/",
+      "published": "2026-03-23",
+      "accessed": "2026-11-02",
+      "kind": "secondary",
+      "note": "Le rapport Omdia d'origine est payant."
+    },
+    {
+      "id": "restofworld-2026",
+      "publisher": "Rest of World",
+      "title": "Article sur les robots humanoïdes chinois (février 2026)",
+      "url": "https://restofworld.org/2026/china-humanoid-robots/",
+      "published": "2026-02-05",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "agibot-2026-01",
+      "publisher": "AgiBot",
+      "title": "Communiqué sur les livraisons mondiales de 2025 (données Omdia)",
+      "url": "https://www.agibot.com/article/231/detail/33.html",
+      "published": "2026-01-08",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "agibot-2026-03",
+      "publisher": "AgiBot (PR Newswire)",
+      "title": "AGIBOT Reaches 10,000 Units as Real-World Demand for Robots Accelerates",
+      "url": "https://tools.prnewswire.com/en-us/live/20823/release/20260330EN21903",
+      "published": "2026-03-30",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "agibot-2026-09",
+      "publisher": "AgiBot (PR Newswire, repris par Thailand Business News)",
+      "title": "AGIBOT and Chimelong Launch Large-Scale Embodied AI Theme Park with More Than 300 Robots",
+      "url": "https://www.thailand-business-news.com/?p=330876",
+      "published": "2026-09-24",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "pedaily-2025-05",
+      "publisher": "投资界 (PEdaily)",
+      "title": "刘强东，投了稚晖君 (actionnaires d'AgiBot)",
+      "url": "https://news.pedaily.cn/202505/550304.shtml",
+      "published": "2025-05-28",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "unitree-prospectus-2026",
+      "publisher": "Unitree Robotics et CITIC Securities (CNINFO)",
+      "title": "宇树科技 — prospectus d'introduction au STAR Market (version soumise au comité)",
+      "url": "https://dataclouds.cninfo.com.cn/sjother2/documents/2026/2026-05-25/3d7fc0538abe281340a95c9c77a90525.pdf",
+      "published": "2026-05-25",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "sse-chinadaily-2026-08",
+      "publisher": "China Daily (repris par la Bourse de Shanghai)",
+      "title": "Unitree IPO draws spotlight to China's fast-growing humanoid robot sector",
+      "url": "https://english.sse.com.cn/news/newsrelease/voice/c/c_20260811_10828578.shtml",
+      "published": "2026-08",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "10jqka-2026-08",
+      "publisher": "同花顺财经 (d'après 21世纪经济报道)",
+      "title": "Production cumulée des humanoïdes Unitree (août 2026)",
+      "url": "https://stock.10jqka.com.cn/20260815/c678984034.shtml",
+      "published": "2026-08-15",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "ubtech-2025-11",
+      "publisher": "UBTECH (PR Newswire)",
+      "title": "UBTECH Humanoid Robot Walker S2 Begins Mass Production and Delivery, with Orders Exceeding 800 Million Yuan",
+      "url": "https://kyodonewsprwire.jp/index.php/release/202511179261",
+      "published": "2025-11-17",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "ubtech-2025-12",
+      "publisher": "UBTECH (communiqué publié par Global Times)",
+      "title": "1 000e Walker S2 sorti de la ligne de Liuzhou",
+      "url": "https://www.globaltimes.cn/page/202512/1351863.shtml",
+      "published": "2025-12-30",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "ubtech-hkex-2026-08",
+      "publisher": "UBTECH Robotics (HKEX : 9880)",
+      "title": "Interim Results Announcement for the Six Months Ended June 30, 2026",
+      "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0828/2026082801691.pdf",
+      "published": "2026-08-28",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "ubtech-walker-s2",
+      "publisher": "UBTECH",
+      "title": "Walker S2 — fiche produit",
+      "url": "https://www.ubtrobot.com/en/humanoid/products/WalkerS2",
+      "published": null,
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "tesla-q4-2025",
+      "publisher": "Tesla (formulaire 8-K, SEC)",
+      "title": "Tesla Q4 2025 Update",
+      "url": "https://www.sec.gov/Archives/edgar/data/1318605/000162828026003837/exhibit991.htm",
+      "published": "2026-01-28",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "tesla-q3-2026",
+      "publisher": "Tesla (formulaire 8-K, SEC)",
+      "title": "Tesla Q3 2026 Update",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001318605/000162828026066738/exhibit9914.htm",
+      "published": "2026-10-21",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "drivetesla-2026-07",
+      "publisher": "Drive Tesla Canada",
+      "title": "Tesla Dismantles Model S/X Line in Just 46 Days to Make Room for Optimus Production",
+      "url": "https://driveteslacanada.ca/news/tesla-optimus-production-fremont-model-sx-line-46-days/",
+      "published": "2026-07-11",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "figure-ramping-2026",
+      "publisher": "Figure AI",
+      "title": "Ramping Figure 03 Production",
+      "url": "https://www.figure.ai/news/ramping-figure-03-production",
+      "published": "2026-04-29",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "figure-bmw-2025",
+      "publisher": "Figure AI",
+      "title": "F.02 Contributed to the Production of 30,000 Cars at BMW",
+      "url": "https://figure.ai/news/production-at-bmw",
+      "published": "2025-11-19",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "figure-battery-2025",
+      "publisher": "Figure AI",
+      "title": "Figure 03 — développement de la batterie",
+      "url": "https://figure.ai/news/f-03-battery-development",
+      "published": "2025-07-17",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "automotiveworld-2026-06",
+      "publisher": "Automotive World",
+      "title": "BMW Group brings Figure 03 humanoid to Spartanburg",
+      "url": "https://www.automotiveworld.com/news/bmw-group-brings-figure-03-humanoid-to-spartanburg/",
+      "published": "2026-06-25",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "1x-neo-factory",
+      "publisher": "1X Technologies",
+      "title": "NEO Factory",
+      "url": "https://www.1x.tech/discover/neo-factory",
+      "published": "2026-04-30",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "agility-425-2026-06",
+      "publisher": "Agility Robotics (formulaire 425, SEC)",
+      "title": "Transcription du webcast investisseurs (juin 2026)",
+      "url": "https://www.sec.gov/Archives/edgar/data/0002074973/000121390026072063/ea029599102-425_churchill11.htm",
+      "published": "2026-06",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Déclarations de l'entreprise, non auditées."
+    },
+    {
+      "id": "agility-425-2026-10",
+      "publisher": "Agility Robotics (formulaire 425, SEC)",
+      "title": "Agility Robotics Commercial Update and Investor Call transcript",
+      "url": "https://www.sec.gov/Archives/edgar/data/0002074973/000121390026112934/ea0309843-425_churchill11.htm",
+      "published": "2026-10-26",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Déclarations de l'entreprise, non auditées."
+    },
+    {
+      "id": "agility-gxo-2024",
+      "publisher": "Agility Robotics et GXO Logistics",
+      "title": "GXO Signs Industry-First Multi-Year Agreement with Agility Robotics",
+      "url": "https://agilityrobotics.com/content/gxo-signs-industry-first-multi-year-agreement-with-agility-robotics",
+      "published": "2024-06-27",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "agility-schaeffler-2024",
+      "publisher": "Agility Robotics",
+      "title": "Agility Robotics Announces Strategic Investment and Agreement with Motion Technology Company Schaeffler Group",
+      "url": "https://agilityrobotics.com/content/agility-robotics-announces-strategic-investment-and-agreement-with-motiontechnology-company-schaeffler-group",
+      "published": "2024-11-13",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "interestingeng-2023",
+      "publisher": "Interesting Engineering (d'après Bloomberg)",
+      "title": "Robo-retailer? Watch GXO test 'human-centric' robot at SPANX warehouse",
+      "url": "https://interestingengineering.com/innovation/gxo-test-human-centric-robot-at-spanx",
+      "published": "2023-12-14",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "skf-leaderdrive-2026",
+      "publisher": "SKF (communiqué repris par Inderes)",
+      "title": "SKF and Leaderdrive form a venture for precision components in humanoids",
+      "url": "https://www.inderes.fi/en/releases/skf-and-leaderdrive-form-a-venture-for-precision-components-in-humanoids",
+      "published": "2026-07-02",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "schaeffler-actuator-2025",
+      "publisher": "Schaeffler",
+      "title": "Schaeffler presents innovative planetary gear actuator for humanoid robots",
+      "url": "https://www.schaeffler.com/en/media/press-releases/press-releases-detail.jsp?id=88156672",
+      "published": "2025-12-16",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "schaeffler-neura-2025",
+      "publisher": "Schaeffler",
+      "title": "Schaeffler and Neura Robotics launch future-oriented technology partnership",
+      "url": "https://www.schaeffler.com/en/media/press-releases/press-releases-detail.jsp?id=88136515",
+      "published": "2025-11-04",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "humanoid-schaeffler-2026",
+      "publisher": "Humanoid (SKL Robotics)",
+      "title": "Humanoid Secures Landmark Deal with Schaeffler to Deploy Thousands of Humanoid Robots",
+      "url": "https://thehumanoid.ai/humanoid-secures-landmark-deal-with-schaeffler-to-deploy-thousands-of-humanoid-robots/",
+      "published": "2026-05-13",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "apptronik-2025-03",
+      "publisher": "Apptronik",
+      "title": "Apptronik closes additional Series A funding",
+      "url": "https://apptronik.com/news-collection/apptronik-closes-additional-series-a-funding",
+      "published": "2025-03-18",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "heise-2025-03",
+      "publisher": "heise online",
+      "title": "Humanoid robots: Mercedes-Benz invests millions in Apptronik",
+      "url": "https://heise.de/-10320691",
+      "published": "2025-03-19",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "hyundai-bd-2021",
+      "publisher": "Hyundai Motor Group",
+      "title": "Hyundai Motor Group Completes Acquisition of Boston Dynamics from SoftBank",
+      "url": "https://www.hyundai.com/worldwide/en/newsroom/detail/hyundai-motor-group-completes-acquisition-of-boston-dynamics-from-softbank-0000000516",
+      "published": "2021-06-21",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "hyundai-ces-2026",
+      "publisher": "Hyundai Motor Group",
+      "title": "Hyundai Motor Group Announces AI Robotics Strategy … at CES 2026",
+      "url": "https://www.hyundai.com/worldwide/en/newsroom/detail/0000001100",
+      "published": "2026-01-05",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "yicai-2025-02",
+      "publisher": "Yicai Global",
+      "title": "Beijing to Invest up to USD13.7 Billion in AI and Robotics Startups, Official Says",
+      "url": "https://yicaiglobal.com/news/beijing-to-invest-up-to-usd137-billion-in-ai-and-robotics-startups-official-says",
+      "published": "2025-02-28",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "caixin-2025-12",
+      "publisher": "Caixin Global",
+      "title": "China launches $14 billion state fund to back strategic tech industries",
+      "url": "https://www.caixinglobal.com/2025-12-26/china-launches-14-billion-state-fund-to-back-strategic-tech-industries-102397440.html",
+      "published": "2025-12-26",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "gs-humanoid-2024",
+      "publisher": "Goldman Sachs Research",
+      "title": "The global market for humanoid robots could reach $38 billion by 2035",
+      "url": "https://www.goldmansachs.com/insights/articles/the-global-market-for-robots-could-reach-38-billion-by-2035",
+      "published": "2024-02-27",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Page inaccessible au moment de la relecture : valeur lue dans l'extrait de recherche."
+    },
+    {
+      "id": "wallst-gs-2026",
+      "publisher": "24/7 Wall St.",
+      "title": "Goldman Sachs Just Supercharged Its Humanoid Robot Prediction 5X to 6.5 Million by 2035",
+      "url": "https://247wallst.com/investing/2026/09/14/goldman-sachs-just-supercharged-its-humanoid-robot-prediction-5x-to-6-5-million-by-2035/",
+      "published": "2026-09-14",
+      "accessed": "2026-11-02",
+      "kind": "secondary",
+      "note": "Chiffres relayés ; le rapport Goldman Sachs de septembre 2026 n'a pas été consulté."
+    },
+    {
+      "id": "ms-humanoids-5tn",
+      "publisher": "Morgan Stanley Research",
+      "title": "Humanoid Robot Market Expected to Reach $5 Trillion by 2050",
+      "url": "https://www.morganstanley.com/insights/articles/humanoid-robot-market-5-trillion-by-2050",
+      "published": null,
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Page inaccessible au moment de la relecture : valeur lue dans l'extrait de recherche."
+    },
+    {
+      "id": "cnbc-ms-2025",
+      "publisher": "CNBC",
+      "title": "Morgan Stanley says humanoid robots will be a $5 trillion market by 2050. How to play it",
+      "url": "https://www.cnbc.com/2025/04/29/how-to-play-a-5-trillion-market-for-humanoid-robots-by-2050.html",
+      "published": "2025-04-29",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "emsnow-ms-2025",
+      "publisher": "EMSNow (d'après Morgan Stanley Research)",
+      "title": "Humanoids: A $5 Trillion Market",
+      "url": "https://www.emsnow.com/?p=46855",
+      "published": "2025-06-09",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "ms-podcast-2026-03",
+      "publisher": "Morgan Stanley, podcast « Thoughts on the Market » (transcription)",
+      "title": "Japan's Bull Market Takes Shape",
+      "url": "https://www.podcast.de/episode/702302875/japans-bull-market-takes-shape",
+      "published": "2026-03",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "scmp-ms-2025-12",
+      "publisher": "South China Morning Post (via Yahoo), d'après Morgan Stanley",
+      "title": "China packs a patent punch in the race to build humanoid robots",
+      "url": "https://tech.yahoo.com/science/articles/china-packs-patent-punch-race-093000841.html",
+      "published": "2025-12-20",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "bofa-physical-ai-2026",
+      "publisher": "Bank of America Institute (d'après BofA Global Research)",
+      "title": "Physical AI, part 2: Humanoid robots",
+      "url": "https://institute.bankofamerica.com/content/dam/transformation/physical-ai-part-2.pdf",
+      "published": "2026-03-12",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "citi-gps-2024",
+      "publisher": "Citi Global Insights",
+      "title": "The Rise of AI Robots – Humanoids are Coming for You",
+      "url": "https://citigroup.com/global/insights/the-rise-of-ai-robots-humanoids-are-coming-for-you",
+      "published": "2024-11-04",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    },
+    {
+      "id": "yahoo-citi-2024",
+      "publisher": "Yahoo Finance (d'après Citi Global Insights)",
+      "title": "Tesla's Elon Musk may not be the only one cashing in on humanoid robots",
+      "url": "https://finance.yahoo.com/news/teslas-elon-musk-may-not-be-the-only-one-cashing-in-on-humanoid-robots-133048663.html",
+      "published": "2024-12-01",
+      "accessed": "2026-11-02",
+      "kind": "secondary"
+    },
+    {
+      "id": "mm-2026-07",
+      "publisher": "MarketsandMarkets (communiqué repris par finanznachrichten.de)",
+      "title": "Humanoid Robot Market worth $50.27 billion by 2035",
+      "url": "https://www.finanznachrichten.de/nachrichten-2026-07/68953029-humanoid-robot-market-worth-dollar-50-27-billion-by-2035-exclusive-report-by-marketsandmarkets-008.htm",
+      "published": "2026-07-06",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Cabinet d'études de marché."
+    },
+    {
+      "id": "mm-2030",
+      "publisher": "MarketsandMarkets",
+      "title": "Humanoid Robot Market Size, Share & Analysis, 2030",
+      "url": "https://www.marketsandmarkets.com/ResearchInsight/humanoid-robot-market-analysis.asp",
+      "published": null,
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Cabinet d'études de marché. Page inaccessible au moment de la relecture : valeur lue dans l'extrait de recherche."
+    },
+    {
+      "id": "roots-2026",
+      "publisher": "Roots Analysis",
+      "title": "Humanoid Robot Market",
+      "url": "https://www.rootsanalysis.com/humanoid-robot-market",
+      "published": "2026-08",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Cabinet d'études de marché."
+    },
+    {
+      "id": "gmi-2026",
+      "publisher": "Global Market Insights",
+      "title": "Humanoid Robot Market",
+      "url": "https://www.gminsights.com/pressrelease/humanoid-robot-market",
+      "published": "2026-09",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Cabinet d'études de marché."
+    },
+    {
+      "id": "abi-2025",
+      "publisher": "ABI Research",
+      "title": "Humanoid Robot Market Size Outlook",
+      "url": "https://www.abiresearch.com/news-resources/chart-data/humanoid-robot-market-size-outlook",
+      "published": null,
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Cabinet d'études de marché ; page non datée, rapport d'origine du 3e trimestre 2025."
+    },
+    {
+      "id": "yole-2025-11",
+      "publisher": "Yole Group (repris par Edge AI and Vision Alliance)",
+      "title": "Humanoid Robots 2025: The Race to Useful Intelligence",
+      "url": "https://www.edge-ai-vision.com/2025/11/humanoid-robots-2025-the-race-to-useful-intelligence/",
+      "published": "2025-11-11",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Cabinet d'études de marché."
+    },
+    {
+      "id": "bcc-2025-10",
+      "publisher": "BCC Research",
+      "title": "Humanoid Robot: Applications, Verticals and Global Markets",
+      "url": "https://www.bccresearch.com/market-research/instrumentation-and-sensors/humanoid-robot-market.html",
+      "published": "2025-10",
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Cabinet d'études de marché."
+    },
+    {
+      "id": "bls-production",
+      "publisher": "U.S. Bureau of Labor Statistics",
+      "title": "Occupational Outlook Handbook — Production Occupations",
+      "url": "https://www.bls.gov/ooh/production/home.htm",
+      "published": null,
+      "accessed": "2026-11-02",
+      "kind": "primary",
+      "note": "Données de mai 2025."
+    },
+    {
+      "id": "eurostat-2025-11",
+      "publisher": "Eurostat",
+      "title": "Annual full-time adjusted salary in EU up 5.2% in 2024",
+      "url": "https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20251112-1",
+      "published": "2025-11-12",
+      "accessed": "2026-11-02",
+      "kind": "primary"
+    }
+  ]
+}

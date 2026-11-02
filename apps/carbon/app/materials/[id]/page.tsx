@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getMaterials, getMaterialById, getChinaShare, isChinaConcentrated, hasRenderableHistory } from "@/lib/crm/dataLoader";
 import { DataStatusBadge, statusFromQuality } from "@/components/ui/data-status-badge";
 import Sparkline from "@/components/materials/Sparkline";
+import { getLayersForMaterial, getRoboticsDataset } from "@/lib/robotics/dataLoader";
 
 interface PageProps { params: Promise<{ id: string }> }
 
@@ -39,6 +40,7 @@ export default async function MaterialPage({ params }: PageProps) {
   const price = material.price_snapshot;
   const history = material.price_history;
   const related = materials.filter(m => m.category === material.category && m.id !== material.id).slice(0, 4);
+  const robotics = getLayersForMaterial(await getRoboticsDataset(), material.id);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -175,6 +177,29 @@ export default async function MaterialPage({ params }: PageProps) {
             </ul>
           </div>
         </section>
+
+        {/* Pont retour vers /robotics : les couches de la chaîne des humanoïdes
+            qui consomment cette matière (liens éditoriaux du snapshot robotique). */}
+        {robotics.length > 0 && (
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 space-y-4" data-testid="material-robotics-bridge">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-bold text-white">Dans la chaîne des robots humanoïdes</h2>
+              <Link href="/robotics" className="text-xs text-zinc-400 hover:text-white transition">
+                Robotique &amp; IA physique →
+              </Link>
+            </div>
+            <ul className="space-y-3">
+              {robotics.map(({ layer, rationale }) => (
+                <li key={layer.id} className="text-sm">
+                  <Link href={`/robotics/${layer.id}`} className="font-semibold text-zinc-200 hover:text-white transition">
+                    {layer.name} →
+                  </Link>
+                  <p className="text-xs text-zinc-500 mt-0.5">{rationale}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* Matières liées */}
         {related.length > 0 && (

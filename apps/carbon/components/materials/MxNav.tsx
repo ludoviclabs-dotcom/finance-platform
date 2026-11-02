@@ -1,16 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useMxTheme } from "./MxThemeProvider";
 
-const SECTIONS = [
+export interface MxNavSection {
+  readonly id: string;
+  readonly label: string;
+}
+
+// Sections de /materials, valeur par défaut. /robotics, qui partage la peau
+// Industry, passe les siennes.
+const MATERIALS_SECTIONS: readonly MxNavSection[] = [
   { id: "pourquoi", label: "Pourquoi" },
   { id: "chine", label: "Dépendance" },
   { id: "carte", label: "Cartographie" },
   { id: "risque", label: "Risque" },
   { id: "chaine", label: "Chaîne" },
-] as const;
+];
 
 const NAV_GAP = 13.6;
 
@@ -44,9 +51,19 @@ function useScrollSpy(ids: readonly string[]): string {
   return active;
 }
 
-export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string }) {
+export default function MxNav({
+  snapshotDateLabel,
+  sections = MATERIALS_SECTIONS,
+  moduleLabel = "Matières critiques",
+}: {
+  snapshotDateLabel: string;
+  sections?: readonly MxNavSection[];
+  moduleLabel?: string;
+}) {
   const { theme, setTheme } = useMxTheme();
-  const activeSection = useScrollSpy(SECTIONS.map(s => s.id));
+  // Mémoïsé : useScrollSpy relance son observateur à chaque nouveau tableau.
+  const sectionIds = useMemo(() => sections.map(s => s.id), [sections]);
+  const activeSection = useScrollSpy(sectionIds);
 
   return (
     <div
@@ -97,12 +114,12 @@ export default function MxNav({ snapshotDateLabel }: { snapshotDateLabel: string
               color: "var(--ink-70)",
             }}
           >
-            Matières critiques
+            {moduleLabel}
           </span>
         </Link>
 
         <nav className="mx-scrollbar-none flex overflow-x-auto min-w-0" style={{ gap: NAV_GAP }}>
-          {SECTIONS.map(s => {
+          {sections.map(s => {
             const isActive = activeSection === s.id;
             return (
               <a

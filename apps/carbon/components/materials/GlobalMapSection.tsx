@@ -12,7 +12,8 @@ import { SectionKicker, SectionTitle, SectionLead } from "./industry/SectionKick
 
 // Une seule teinte acier, déclinée par thème : la rampe de poids va du pâle au
 // profond en clair, et s'inverse en sombre pour rester lisible sur le fond.
-const PALETTES: Record<"clair" | "sombre", MapPalette> = {
+// Exportée pour la carte des acteurs de /robotics (même peau).
+export const PALETTES: Record<"clair" | "sombre", MapPalette> = {
   clair: {
     base: "#e7e7ea", stroke: "#f2f2f3", high: "#2c455d", low: "#d6ebff",
     flow: "#5980a6", hub: "#1d1f20", hubStroke: "#f2f2f3", selected: "#1d1f20",

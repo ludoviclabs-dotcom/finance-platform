@@ -49,15 +49,35 @@ interface Props {
   palette: MapPalette;
   /** Légende rendue dans le repère du conteneur (positionnée par l'appelant). */
   legend?: React.ReactNode;
+  /** Corps de l'infobulle d'un pays. Par défaut : ses matières (/materials) ;
+   *  /robotics y liste ses acteurs. */
+  renderTooltip?: (weight: CountryWeight) => React.ReactNode;
 }
 
 interface TooltipState {
   x: number;
   y: number;
-  country: string;
-  materialsCount: number;
-  totalPts: number;
-  top: { name: string; share: number }[];
+  weight: CountryWeight;
+}
+
+function MaterialsTooltip({ weight }: { weight: CountryWeight }) {
+  return (
+    <>
+      <p className="m-0 font-bold">{weight.country}</p>
+      <p className="m-0 mt-[3px] mb-1.5" style={{ fontSize: 11, fontWeight: 600, color: "var(--color-accent-700)", fontFeatureSettings: "'tnum' 1" }}>
+        {weight.materials.length} matière(s) · {Math.round(weight.total)} pts
+      </p>
+      <div className="flex flex-col gap-[3px]" style={{ fontSize: 11.5 }}>
+        {weight.materials.slice(0, 3).map(m => (
+          <span key={m.name_fr} className="flex justify-between gap-3.5">
+            <span>{m.name_fr}</span>
+            <span style={{ fontWeight: 600, color: "var(--ink-70)", fontFeatureSettings: "'tnum' 1" }}>{m.share_pct}%</span>
+          </span>
+        ))}
+      </div>
+      <p className="m-0 mt-1.5" style={{ fontSize: "10.5px", color: "var(--ink-55)" }}>Cliquer pour le détail →</p>
+    </>
+  );
 }
 
 // Point d'ancrage des flèches de flux ("vers l'Europe"), et pays déjà
@@ -94,6 +114,7 @@ export default function WorldMap({
   onSelectCountry,
   palette,
   legend,
+  renderTooltip,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgNodeRef = useRef<SVGSVGElement | null>(null);
@@ -181,12 +202,7 @@ export default function WorldMap({
           let y = event.clientY - rect.top + 14;
           if (x > rect.width - 220) x = event.clientX - rect.left - 220;
           if (y > rect.height - 130) y = event.clientY - rect.top - 130;
-          setTooltip({
-            x, y, country: c.country,
-            materialsCount: c.materials.length,
-            totalPts: c.total,
-            top: c.materials.slice(0, 3).map(m => ({ name: m.name_fr, share: m.share_pct })),
-          });
+          setTooltip({ x, y, weight: c });
         })
         .on("mouseleave", () => setTooltip(null))
         .on("click", (_event: MouseEvent, f) => {
@@ -324,19 +340,7 @@ export default function WorldMap({
             boxShadow: "var(--shadow-md)",
           }}
         >
-          <p className="m-0 font-bold">{tooltip.country}</p>
-          <p className="m-0 mt-[3px] mb-1.5" style={{ fontSize: 11, fontWeight: 600, color: "var(--color-accent-700)", fontFeatureSettings: "'tnum' 1" }}>
-            {tooltip.materialsCount} matière(s) · {Math.round(tooltip.totalPts)} pts
-          </p>
-          <div className="flex flex-col gap-[3px]" style={{ fontSize: 11.5 }}>
-            {tooltip.top.map(m => (
-              <span key={m.name} className="flex justify-between gap-3.5">
-                <span>{m.name}</span>
-                <span style={{ fontWeight: 600, color: "var(--ink-70)", fontFeatureSettings: "'tnum' 1" }}>{m.share}%</span>
-              </span>
-            ))}
-          </div>
-          <p className="m-0 mt-1.5" style={{ fontSize: "10.5px", color: "var(--ink-55)" }}>Cliquer pour le détail →</p>
+          {renderTooltip ? renderTooltip(tooltip.weight) : <MaterialsTooltip weight={tooltip.weight} />}
         </div>
       )}
 

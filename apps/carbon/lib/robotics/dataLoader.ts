@@ -226,6 +226,14 @@ export function blocForCountry(code: string): BlocId {
   return "other";
 }
 
+// Chiffre clé exigé par la page : un identifiant absent fait échouer le build
+// plutôt que d'afficher une case vide.
+export function getKeyFigure(ds: RoboticsDataset, id: string): KeyFigure {
+  const figure = ds.key_figures.find(k => k.id === id);
+  if (!figure) throw new Error(`Chiffre clé absent du snapshot robotique : ${id}`);
+  return figure;
+}
+
 export function getLayerById(ds: RoboticsDataset, id: string): Layer | null {
   return ds.layers.find(l => l.id === id) ?? null;
 }
@@ -423,6 +431,17 @@ export function signalsDueForReview(
       .filter(s => s.review_by !== undefined && s.review_by <= today)
       .map(signal => ({ chokepoint_id: c.id, signal })),
   );
+}
+
+// Clés « idGoulot:indexSignal » des signaux à revérifier, pour la page :
+// Date.now() reste encapsulé ici, hors du rendu d'un composant.
+export function dueSignalKeys(ds: RoboticsDataset, now: number = Date.now()): Set<string> {
+  const keys = new Set<string>();
+  for (const { chokepoint_id, signal } of signalsDueForReview(ds, now)) {
+    const chokepoint = ds.chokepoints.find(c => c.id === chokepoint_id);
+    if (chokepoint) keys.add(`${chokepoint_id}:${chokepoint.signals.indexOf(signal)}`);
+  }
+  return keys;
 }
 
 export interface RoboticsSummary {

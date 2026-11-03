@@ -46,7 +46,8 @@ import {
 import { NAV_GROUPS, isNavItemActive } from "@/lib/nav-config";
 
 const CARBON_ROOT = resolve(__dirname, "..");
-const LANDING = resolve(CARBON_ROOT, "components/pages/landing-page.tsx");
+const HOME_NAV = resolve(CARBON_ROOT, "components/accueil/HomeNav.tsx");
+const HOME_CONTENT = resolve(CARBON_ROOT, "components/accueil/content.ts");
 const SITEMAP = resolve(CARBON_ROOT, "app/sitemap.ts");
 const MENU = resolve(CARBON_ROOT, "components/landing/nav-resources-menu.tsx");
 const SECTION = resolve(CARBON_ROOT, "components/landing/environmental-intelligence.tsx");
@@ -115,14 +116,13 @@ describe("menu Dépendances — cibles", () => {
     );
   });
 
-  it("remplace l’entrée de premier niveau « Métaux critiques » dans la barre", () => {
-    const landing = read(LANDING);
-    // L'ancien lien top-level a disparu…
-    expect(landing).not.toContain('{ href: "/materials", label: "Métaux critiques" }');
-    // …et le menu occupe sa place dans l'ordre déclaré.
-    expect(landing).toContain("RESOURCES_MENU_SLOT");
-    expect(landing).toContain("<NavResourcesMenu");
-    expect(landing).toContain("<NavResourcesMobileGroup");
+  it("est monté dans la barre de la page d’accueil, desktop et mobile", () => {
+    const nav = read(HOME_NAV);
+    // Pas de lien de premier niveau vers un seul des trois modules…
+    expect(nav).not.toContain('href: "/materials"');
+    // …le menu les porte tous, en déroulant comme dans le tiroir mobile.
+    expect(nav).toContain("<NavResourcesMenu");
+    expect(nav).toContain("<NavResourcesMobileGroup");
   });
 });
 
@@ -238,9 +238,11 @@ describe("section Intelligence environnementale", () => {
     expect(html).toContain("environnementale");
   });
 
-  it("porte les deux cartes et leurs CTA", () => {
+  it("porte les cartes et leurs CTA", () => {
     expect(html).toContain('data-testid="env-card-materials"');
     expect(html).toContain('data-testid="env-card-water"');
+    expect(html).toContain('data-testid="env-card-robotics"');
+    expect(html).toContain('href="/robotics"');
     expect(html).toContain('href="/materials"');
     expect(html).toContain('href="/water"');
     expect(html).toContain("Explorer Water Intelligence");
@@ -407,20 +409,19 @@ describe("sitemap et non-régression", () => {
   });
 
   it("conserve les liens de navigation existants", () => {
-    const landing = read(LANDING);
-    for (const href of ["/produit", "/proof", "/demo", "#features", "#pricing", "#how"]) {
-      expect(landing, `lien de navigation perdu : ${href}`).toContain(`"${href}"`);
+    const content = read(HOME_CONTENT);
+    for (const href of ["/produit", "/proof", "/demo", "/tarifs", "#pourquoi", "#modules"]) {
+      expect(content, `lien de navigation perdu : ${href}`).toContain(`"${href}"`);
     }
   });
 
   it("garde /materials atteignable depuis l’accueil, menu et pied de page", () => {
-    const landing = read(LANDING);
-    expect(landing).toContain('href="/materials"'); // pied de page
+    expect(read(HOME_CONTENT)).toContain('href: "/materials"'); // pied de page
     expect(read(MENU)).toContain('href: "/materials"'); // menu
   });
 
   it("ajoute Water Intelligence au pied de page", () => {
-    expect(read(LANDING)).toContain('href="/water"');
+    expect(read(HOME_CONTENT)).toContain('href: "/water"');
   });
 });
 
@@ -441,9 +442,10 @@ describe("garde-fous", () => {
   it("neutralise ses transitions sous mouvement réduit", () => {
     for (const file of [MENU, SECTION]) {
       const source = read(file);
+      // Les styles vivent désormais dans globals.css (charte Industry) ; une
+      // transition Tailwind réintroduite ici devrait rester neutralisable.
       const transitions = (source.match(/transition-colors/g) ?? []).length;
       const guarded = (source.match(/motion-reduce:transition-none/g) ?? []).length;
-      expect(transitions).toBeGreaterThan(0);
       expect(guarded).toBe(transitions);
     }
   });

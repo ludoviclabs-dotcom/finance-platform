@@ -9,39 +9,46 @@ const EASE = "cubic-bezier(.2,.7,.2,1)";
 /** Sens dans lequel chaque repère s'écarte au survol d'un cadre. */
 const OFF: Record<string, [number, number]> = { tl: [-1, -1], tr: [1, -1], bl: [-1, 1], br: [1, 1] };
 
+/** Clé propre à la home : le choix fait sur /materials n'a pas à la suivre. */
+const STORAGE_KEY = "carbonco-home-theme";
+
 /**
- * Une page d'accueil complète sous la peau Industry, avec son propre thème.
+ * Enveloppe client de la page d'accueil : peau Industry, thème Clair / Sombre
+ * mémorisé, barre de navigation et animations de la maquette.
  *
- * Le thème n'est pas persisté (contrairement à MxThemeProvider) : la page de
- * revue en pose trois côte à côte, chacune basculable seule.
- *
- * Animations reprises de la maquette, limitées au sous-arbre de la planche :
+ * Animations, limitées au sous-arbre de la page et coupées si le visiteur
+ * demande moins d'animations :
  *  - [data-reveal="n"] entre en fondu au défilement, décalé de n × 110 ms ;
  *    masqué seulement une fois le JS chargé, donc visible sans lui ;
  *  - les repères « + » des cadres tournent en place au chargement, puis
  *    s'écartent au survol ;
  *  - [data-glitch] (« prouvé. ») tressaute toutes les 6,5 s.
  */
-export function Planche({
-  prefix,
-  defaultTheme = "clair",
-  motion = true,
-  showGrid = false,
-  children,
-}: {
-  /** Préfixe des ancres de la planche (« 1a » → #1a-pourquoi). */
-  prefix: string;
-  defaultTheme?: MxTheme;
-  motion?: boolean;
-  showGrid?: boolean;
-  children: ReactNode;
-}) {
-  const [theme, setTheme] = useState<MxTheme>(defaultTheme);
+export function HomeShell({ children }: { children: ReactNode }) {
+  const [theme, setThemeState] = useState<MxTheme>("clair");
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored === "sombre" || stored === "clair") setThemeState(stored);
+    } catch {
+      /* localStorage indisponible (navigation privée…) — garde le clair */
+    }
+  }, []);
+
+  const setTheme = (next: MxTheme) => {
+    setThemeState(next);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      /* ignorer */
+    }
+  };
+
+  useEffect(() => {
     const el = root.current;
-    if (!el || !motion || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const cleanups: (() => void)[] = [];
 
     const show = (node: HTMLElement) => {
@@ -157,7 +164,7 @@ export function Planche({
     });
 
     return () => cleanups.forEach((fn) => fn());
-  }, [motion]);
+  }, []);
 
   return (
     <div
@@ -165,23 +172,10 @@ export function Planche({
       data-mx
       data-mx-skin="industry"
       data-mx-theme={theme}
-      className="acc-root"
-      style={{ ...industryFontVars, position: "relative", boxShadow: "var(--shadow-lg)" }}
+      className="acc-root acc-home"
+      style={industryFontVars}
     >
-      {showGrid && (
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            inset: "0 48px",
-            zIndex: 30,
-            pointerEvents: "none",
-            backgroundImage:
-              "repeating-linear-gradient(to right, color-mix(in srgb, var(--color-accent) 10%, transparent) 0 70px, transparent 70px 94px)",
-          }}
-        />
-      )}
-      <HomeNav theme={theme} onTheme={setTheme} motion={motion} anchor={(id) => `${prefix}-${id}`} />
+      <HomeNav theme={theme} onTheme={setTheme} />
       {children}
     </div>
   );

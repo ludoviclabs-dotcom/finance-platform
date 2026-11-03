@@ -85,23 +85,16 @@ test.describe("Phase 0 — Homepage sans claims faux", () => {
     }
   });
 
-  test("la homepage affiche les scénarios sectoriels avec tag 'Scénario illustratif'", async ({ page }) => {
-    await page.goto("/");
+  // Les scénarios sectoriels et la grille tarifaire ne sont plus sur la home
+  // (refonte Industry, novembre 2026) : les tarifs vivent sur /tarifs, lié
+  // depuis la barre et le pied de page.
+  test("/tarifs affiche les 3 plans tarifaires (Starter, Business, Enterprise)", async ({ page }) => {
+    await page.goto("/tarifs");
     await page.waitForLoadState("networkidle");
 
-    // La section scénarios doit être présente
-    const scenarioTag = page.locator("text=Scénario illustratif").first();
-    await expect(scenarioTag).toBeVisible({ timeout: 8_000 });
-  });
-
-  test("la homepage affiche les 3 plans tarifaires (VSME, Business, Enterprise)", async ({ page }) => {
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
-
-    const pricing = page.locator("section#pricing");
-    await pricing.scrollIntoViewIfNeeded();
-    for (const plan of ["VSME", "Business", "Enterprise"]) {
-      await expect(pricing.getByText(plan, { exact: true }).first()).toBeVisible();
+    // Noms de pricingPlans (lib/data.ts) ; le plan d'entrée couvre le VSME.
+    for (const plan of ["Starter", "Business", "Enterprise"]) {
+      await expect(page.getByText(plan, { exact: true }).first()).toBeVisible();
     }
 
     // Plan Souverain ne doit pas exister

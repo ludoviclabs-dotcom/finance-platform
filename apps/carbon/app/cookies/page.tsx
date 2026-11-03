@@ -47,7 +47,7 @@ const LOCAL_STORAGE: TrackerRow[] = [
     duration: `${CONSENT_VALIDITY_MONTHS} mois`,
   },
   {
-    name: "carbonco-theme, carbonco-materials-theme, carbonco-materials-refonte-theme, carbonco-wi-theme",
+    name: "carbonco-theme, carbonco-materials-theme, carbonco-materials-refonte-theme, carbonco-home-theme, carbonco-wi-theme",
     purpose: "Thème clair ou sombre que vous avez choisi.",
     duration: "Jusqu'à modification ou effacement par vous",
   },
@@ -94,7 +94,7 @@ function TrackerTable({ caption, rows }: { caption: string; rows: TrackerRow[] }
 
 export default function CookiesPage() {
   return (
-    <LegalLayout title="Cookies et traceurs" lastUpdated="16 septembre 2026">
+    <LegalLayout title="Cookies et traceurs" lastUpdated="4 novembre 2026">
       <Section title="En bref">
         <ul className="list-disc pl-5 space-y-1">
           <li>

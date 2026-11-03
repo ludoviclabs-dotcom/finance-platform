@@ -10,7 +10,7 @@ import { Frame } from "@/components/materials/industry/Frame";
  *
  * Animations (Web Animations API, comme la maquette) : tracé des formes,
  * scan en va-et-vient, jauge qui se remplit, et un glitch à intervalle
- * irrégulier. Rien ne joue si `motion` est faux ou si le visiteur demande
+ * irrégulier. Rien ne joue si le visiteur demande
  * moins d'animations.
  */
 
@@ -59,7 +59,7 @@ const ROW: React.CSSProperties = {
   borderBottom: "1px solid var(--color-divider)",
 };
 
-export function AvatarBlueprint({ size = 150, motion = true }: { size?: number; motion?: boolean }) {
+export function AvatarBlueprint({ size = 150 }: { size?: number }) {
   const main = useRef<SVGGElement>(null);
   const ghost = useRef<SVGGElement>(null);
   const eyes = useRef<SVGGElement>(null);
@@ -67,7 +67,7 @@ export function AvatarBlueprint({ size = 150, motion = true }: { size?: number; 
   const bar = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!motion || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const anims: Animation[] = [];
     main.current?.querySelectorAll<SVGGeometryElement>("[data-s]").forEach((el, i) => {
       const L = Math.ceil(el.getTotalLength());
@@ -136,7 +136,7 @@ export function AvatarBlueprint({ size = 150, motion = true }: { size?: number; 
       clearTimeout(timer);
       anims.forEach((a) => a.cancel());
     };
-  }, [motion]);
+  }, []);
 
   return (
     <Frame as="figure" style={{ margin: 0, width: "100%", boxSizing: "border-box", color: "var(--color-text)" }}>

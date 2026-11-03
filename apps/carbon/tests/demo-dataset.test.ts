@@ -63,11 +63,6 @@ describe("Demo dataset — pas de chiffres démo contradictoires", () => {
     expect(src).toContain("12 847");
     expect(src).not.toContain("5 955");
   });
-
-  it("sector-mockups.tsx n'affiche plus 12 480", () => {
-    const src = read("components/landing/sector-mockups.tsx");
-    expect(src).not.toContain("12 480");
-  });
 });
 
 describe("Demo dataset — typographie française (accents)", () => {
@@ -87,8 +82,8 @@ describe("Demo dataset — typographie française (accents)", () => {
     "Pret a signer",
   ];
   const FILES = [
-    "components/landing/mockup/premium-dashboard-mockup.tsx",
-    "components/pages/landing-page.tsx",
+    "components/accueil/content.ts",
+    "components/accueil/HomePage.tsx",
   ];
 
   for (const file of FILES) {

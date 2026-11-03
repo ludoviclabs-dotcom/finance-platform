@@ -1,8 +1,11 @@
 /**
- * Contenu commun aux trois grilles de l'accueil (maquette Claude Design
- * « Accueil Layouts », tour 1). Les trois planches montrent le même texte
- * organisé autrement : il vit donc ici, une seule fois. La maquette le dit
- * elle-même — hors hero, les textes de section sont provisoires.
+ * Textes de la page d'accueil (charte Industry, grille 1d de la maquette
+ * Claude Design « Accueil Layouts »).
+ *
+ * Là où la maquette posait un texte provisoire, on reprend la formulation
+ * déjà validée de l'ancienne home (annexe A.4 pour le programme pilote,
+ * section Conformité & sécurité pour l'hébergement) : rien ici ne doit
+ * promettre plus que l'ancienne page.
  */
 
 export const HERO = {
@@ -18,72 +21,110 @@ export const HERO = {
   ],
 } as const;
 
-/** Bande d'indicateurs. `short` sert au rail étroit de la grille 1b. */
+/** Bande d'indicateurs ; la première valeur est calculée (voir HomePage). */
 export const KPIS = [
-  { value: "67/100", label: "ESRS E1 · couverture climat (exemple)", short: "ESRS E1 · climat (exemple)" },
-  { value: "iXBRL", label: "Export ESRS 2026 · bêta", short: "Export ESRS 2026 · bêta" },
-  { value: "UE", label: "Traitement et stockage · Francfort", short: "Stockage · Francfort" },
-  { value: "14 j", label: "Essai gratuit · aucune carte", short: "Essai gratuit · sans carte" },
+  { value: "iXBRL", label: "Export ESRS 2026 · bêta" },
+  { value: "UE", label: "Traitement et stockage · Francfort" },
+  { value: "14 j", label: "Essai gratuit · aucune carte" },
 ] as const;
 
 export const WHY = [
-  { n: "01", title: "Chaque chiffre relié à sa cellule source", body: "Un clic sur un indicateur ouvre la ligne du fichier qui l'a produit." },
-  { n: "02", title: "Chaque modification détectable", body: "Historique horodaté de chaque saisie et de chaque correction." },
-  { n: "03", title: "Un dossier de preuves vérifiable", body: "Votre auditeur le contrôle sans outil propriétaire." },
+  {
+    n: "01",
+    title: "Chaque chiffre relié à sa cellule source",
+    body: "Un indicateur remonte à la ligne du fichier qui l'a produit.",
+  },
+  {
+    n: "02",
+    title: "Chaque modification détectable",
+    body: "Journal append-only : chaque saisie et chaque correction est horodatée.",
+  },
+  {
+    n: "03",
+    title: "Un dossier de preuves vérifiable",
+    body: "Manifeste et empreintes vérifiables publiquement, sans outil tiers.",
+  },
 ] as const;
 
-/** `short` : la version resserrée de la colonne étroite de la grille 1c. */
 export const STEPS = [
-  { n: "01", title: "Importer", body: "Fichiers Excel, exports comptables, factures énergie.", short: "Excel, exports comptables, factures énergie." },
-  { n: "02", title: "Calculer", body: "Facteurs ADEME, GHG Protocol, référentiel EFRAG.", short: "ADEME, GHG Protocol, EFRAG." },
-  { n: "03", title: "Prouver", body: "Rapport, dossier de preuves, export iXBRL.", short: "Rapport, preuves, export iXBRL." },
+  { n: "01", title: "Importer", body: "Fichiers Excel, exports comptables, factures énergie." },
+  { n: "02", title: "Calculer", body: "Facteurs ADEME Base Empreinte®, GHG Protocol, référentiel EFRAG." },
+  { n: "03", title: "Prouver", body: "Rapport, dossier de preuves, export iXBRL bêta." },
 ] as const;
 
 /**
- * Les six modules du menu et des tuiles. La maquette pointe tout vers
- * #modules ; ici chaque tuile mène à la page publique qui en parle déjà.
+ * Les six modules. Chaque tuile mène à la page publique qui en parle déjà ;
+ * le corps de M05 reçoit le nombre réel de matières suivies.
  */
 export const MODULES = [
   { code: "M01", title: "Bilan GES", body: "BEGES · scopes 1, 2 et 3", href: "/bilan-carbone-beges" },
   { code: "M02", title: "Norme volontaire", body: "Rapport ex-VSME", href: "/guide-csrd-vsme-2026" },
   { code: "M03", title: "ESRS 2026", body: "Points de donnée · export iXBRL bêta", href: "/couverture" },
   { code: "M04", title: "Dossier de preuves", body: "Traçabilité cellule par cellule", href: "/proof" },
-  { code: "M05", title: "Dépendances", body: "34 matières critiques · Scope 3", href: "/materials" },
+  { code: "M05", title: "Dépendances", body: "Matières critiques · Scope 3", href: "/materials" },
   { code: "M06", title: "Copilote NEURAL", body: "Assistant ESG v2.4", href: "/ai-act" },
 ] as const;
 
-export const SECTORS = ["Industrie", "Agroalimentaire", "BTP", "Transport & logistique", "Distribution", "Services"] as const;
-
+/** Repris de la section Conformité & sécurité de l'ancienne home. */
 export const SECURITY = [
-  "Hébergement UE — Francfort",
-  "Journal d'audit horodaté",
-  "Export ouvert, sans outil propriétaire",
+  "Traitement et stockage en UE — Francfort",
+  "TLS 1.3 en transit, AES-256 au repos",
+  "Journal append-only : toute modification devient détectable",
+  "Copilote : modèles Claude hébergés aux États-Unis",
 ] as const;
 
+/** Annexe A.4 du plan d'action, verbatim. */
 export const PILOT = {
-  title: "Rejoindre le pilote",
-  body: "Accompagnement sur votre premier rapport, retours intégrés à la feuille de route.",
+  badge: "3 places pour l'exercice 2026",
+  body:
+    "Nous équipons gratuitement trois organisations (PME, ETI ou cabinet) pour produire leur premier rapport VSME auditable, en échange d'un retour d'expérience publiable.",
   cta: "Candidater →",
+  subject: "Programme pilote CarbonCo — exercice 2026",
 } as const;
 
-export const CALC = {
-  title: "Êtes-vous concerné ?",
-  body: "Trois questions pour savoir quel référentiel s'applique : norme volontaire, ESRS ou BEGES.",
-} as const;
-
-export const FOOTER_LINKS = [
-  { label: "Matières critiques", href: "/materials" },
-  { label: "Tarifs", href: "/tarifs" },
-  { label: "Démo", href: "/demo" },
+export const NAV_LINKS = [
+  { href: "#pourquoi", label: "Pourquoi" },
+  { href: "#modules", label: "Modules" },
+] as const;
+export const NAV_LINKS_AFTER = [
+  { href: "/tarifs", label: "Tarifs" },
+  { href: "/demo", label: "Démo" },
 ] as const;
 
-/** Les ancres de la barre de navigation, dans l'ordre de la maquette. */
-export const NAV_ANCHORS = [
-  { id: "pourquoi", label: "Pourquoi" },
-  { id: "comment", label: "Comment" },
-] as const;
-export const NAV_ANCHORS_AFTER = [
-  { id: "secteurs", label: "Secteurs" },
-  { id: "pilote", label: "Pilote" },
-  { id: "securite", label: "Sécurité" },
+export const FOOTER_COLUMNS = [
+  {
+    title: "Produit",
+    links: [
+      { href: "/produit", label: "Modules produit" },
+      { href: "/tarifs", label: "Tarifs" },
+      { href: "/couverture", label: "Couverture ESRS" },
+      { href: "/integrations", label: "Sources & intégrations" },
+      { href: "/materials", label: "Métaux critiques" },
+      { href: "/water", label: "Eau & risques hydriques" },
+      { href: "/robotics", label: "Robotique & IA physique" },
+      { href: "/etat-du-produit", label: "État du produit" },
+    ],
+  },
+  {
+    title: "Confiance & sécurité",
+    links: [
+      { href: "/trust", label: "Trust Center" },
+      { href: "/trust/sub-processors", label: "Sous-traitants" },
+      { href: "/trust/exit-strategy", label: "Stratégie de sortie" },
+      { href: "/status", label: "Statut du service" },
+      { href: "/ai-act", label: "NEURAL et l'AI Act" },
+    ],
+  },
+  {
+    title: "Ressources & légal",
+    links: [
+      { href: "/blog", label: "Blog CSRD & ESG" },
+      { href: "/guide-csrd-vsme-2026", label: "Guide CSRD & VSME (2026)" },
+      { href: "/aide", label: "Centre d'aide" },
+      { href: "/brochure", label: "Brochure (imprimable)" },
+      { href: "/mentions-legales", label: "Mentions légales" },
+      { href: "/confidentialite", label: "Confidentialité" },
+      { href: "/cgu", label: "CGU" },
+    ],
+  },
 ] as const;

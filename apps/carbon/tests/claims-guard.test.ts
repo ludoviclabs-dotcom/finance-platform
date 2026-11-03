@@ -159,7 +159,6 @@ const FORBIDDEN_CLAIMS: { pattern: RegExp; reason: string; scope: "public" | "al
  *   des items "non disponibles" sans déclencher le guard
  */
 const STATIC_FILES_TO_SCAN: { path: string; scope: "public" | "transparency" }[] = [
-  { path: "components/pages/landing-page.tsx", scope: "public" },
   { path: "components/pages/login-screen.tsx", scope: "public" },
   { path: "components/dashboard/methodology-modal.tsx", scope: "public" },
   { path: "app/etat-du-produit/page.tsx", scope: "transparency" },
@@ -167,9 +166,10 @@ const STATIC_FILES_TO_SCAN: { path: string; scope: "public" | "transparency" }[]
 ];
 
 /**
- * Tous les composants de components/landing sont du marketing public : on les
+ * La page d'accueil (components/accueil, textes compris dans content.ts) et
+ * les composants de components/landing sont du marketing public : on les
  * scanne intégralement pour empêcher toute réintroduction d'un claim interdit
- * (T0.1). Parcours récursif (inclut le sous-dossier mockup/).
+ * (T0.1). Parcours récursif.
  */
 function landingFiles(): { path: string; scope: "public" }[] {
   const out: { path: string; scope: "public" }[] = [];
@@ -177,11 +177,12 @@ function landingFiles(): { path: string; scope: "public" }[] {
     for (const entry of readdirSync(abs, { withFileTypes: true })) {
       const child = join(abs, entry.name);
       if (entry.isDirectory()) walk(child);
-      else if (entry.name.endsWith(".tsx")) {
+      else if (/\.tsx?$/.test(entry.name)) {
         out.push({ path: relative(ROOT, child), scope: "public" });
       }
     }
   };
+  walk(join(ROOT, "components/accueil"));
   walk(join(ROOT, "components/landing"));
   return out;
 }

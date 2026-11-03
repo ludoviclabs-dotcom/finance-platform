@@ -39,9 +39,10 @@
  * - Chaque entrée porte un libellé ET une description : la couleur ne porte
  *   aucune information.
  *
- * Aucun paquet n'est ajouté : ni Radix, ni Headless UI. L'animation se limite à
- * une transition d'opacité, neutralisée sous `prefers-reduced-motion`, et le
- * menu est parfaitement utilisable sans elle.
+ * Aucun paquet n'est ajouté : ni Radix, ni Headless UI. Les styles suivent la
+ * charte Industry de la page d'accueil (classes `acc-*` de globals.css) ;
+ * seule la flèche pivote, et cette rotation est coupée sous
+ * `prefers-reduced-motion`.
  */
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
@@ -143,7 +144,7 @@ export function NavResourcesMenu() {
   return (
     <div
       ref={containerRef}
-      className="relative"
+      className="acc-dd"
       onKeyDown={onKeyDown}
       onBlur={onFocusOut}
       data-testid="nav-resources-menu"
@@ -159,22 +160,21 @@ export function NavResourcesMenu() {
           setOpen(next);
           // Ouverture au clavier comme à la souris : la première entrée reçoit
           // le focus, sinon un utilisateur clavier ouvrirait un menu vide de
-          // point d'entrée.
-          if (next) requestAnimationFrame(() => itemRefs.current[0]?.focus());
+          // point d'entrée. Sauf si le focus est déjà sur une entrée : la
+          // frame peut tomber après une première flèche, qu'elle annulerait.
+          if (next)
+            requestAnimationFrame(() => {
+              if (itemRefs.current.some((item) => item === document.activeElement)) return;
+              itemRefs.current[0]?.focus();
+            });
         }}
-        className="flex items-center gap-1 whitespace-nowrap text-xs 2xl:text-sm font-semibold text-neutral-500 hover:text-black transition-colors motion-reduce:transition-none tracking-wide cursor-pointer"
+        className="acc-nav-toggle"
         data-testid="nav-resources-trigger"
       >
         {RESOURCE_MENU_LABEL}
-        <svg
-          className="w-3 h-3"
-          aria-hidden="true"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-        </svg>
+        <span aria-hidden="true" className="acc-chevron" data-open={open || undefined}>
+          ▾
+        </span>
       </button>
 
       {/*
@@ -187,9 +187,13 @@ export function NavResourcesMenu() {
           id={menuId}
           role="group"
           aria-label={RESOURCE_MENU_LABEL}
-          className="absolute left-0 top-full mt-3 w-[22rem] rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl"
+          className="ind-frame acc-dd-panel"
           data-testid="nav-resources-panel"
         >
+          <i className="ind-corner tl" />
+          <i className="ind-corner tr" />
+          <i className="ind-corner bl" />
+          <i className="ind-corner br" />
           {RESOURCE_MENU_ENTRIES.map((entry, index) => (
             <Link
               key={entry.href}
@@ -198,11 +202,11 @@ export function NavResourcesMenu() {
                 itemRefs.current[index] = node;
               }}
               onClick={() => setOpen(false)}
-              className="block rounded-xl px-4 py-3 hover:bg-neutral-50 focus-visible:bg-neutral-50 transition-colors motion-reduce:transition-none"
+              className="acc-dd-item"
               data-testid={`nav-resources-item-${index}`}
             >
-              <span className="block text-sm font-bold text-black">{entry.label}</span>
-              <span className="mt-0.5 block text-xs text-neutral-500">{entry.description}</span>
+              <span className="acc-dd-label">{entry.label}</span>
+              <span className="acc-dd-desc">{entry.description}</span>
             </Link>
           ))}
         </div>
@@ -222,7 +226,7 @@ export function NavResourcesMenu() {
 export function NavResourcesMobileGroup({ onNavigate }: { onNavigate: () => void }) {
   return (
     <div data-testid="nav-resources-mobile">
-      <p className="pt-3 pb-1 text-[0.7rem] uppercase tracking-widest font-bold text-neutral-400">
+      <p className="acc-mobile-group">
         {RESOURCE_MENU_LABEL}
       </p>
       {RESOURCE_MENU_ENTRIES.map((entry, index) => (
@@ -230,11 +234,11 @@ export function NavResourcesMobileGroup({ onNavigate }: { onNavigate: () => void
           key={entry.href}
           href={entry.href}
           onClick={onNavigate}
-          className="block py-3 border-b border-neutral-100 hover:text-black transition-colors motion-reduce:transition-none"
+          className="acc-mobile-item"
           data-testid={`nav-resources-mobile-item-${index}`}
         >
-          <span className="block text-sm font-semibold text-neutral-600">{entry.label}</span>
-          <span className="block text-xs text-neutral-400">{entry.description}</span>
+          <span className="acc-dd-label">{entry.label}</span>
+          <span className="acc-dd-desc">{entry.description}</span>
         </Link>
       ))}
     </div>

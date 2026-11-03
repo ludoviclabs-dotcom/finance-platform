@@ -6,7 +6,7 @@ import { countryLabelFr } from "@/lib/iso3166";
 import { Section } from "@/components/materials/industry/Section";
 import { SectionKicker } from "@/components/materials/industry/SectionKicker";
 import { QualityTag } from "./KeyFigure";
-import { BLOC_COLOR, VOLUME_KIND_LABEL, blocHatch, formatBnUsd, formatIsoDate, institutionBase, institutionShort } from "./labels";
+import { BLOC_COLOR, blocHatch, formatBnUsd, formatIsoDate, institutionBase, institutionShort } from "./labels";
 import {
   PanelFigure,
   PanelHead,
@@ -373,7 +373,9 @@ export default function MarketSection({
   const OX0 = 200;
   const OX1 = 560;
   const ox = (v: number) => r1(OX0 + ((Math.log10(v) - oLow) / Math.max(1, oHigh - oLow)) * (OX1 - OX0));
-  const ROW = 56;
+  // Trois lignes par constructeur : barre, libellé de la source (qui porte
+  // seul ses nuances : « plus de », « 20 000e », période couverte), capacité.
+  const ROW = 64;
   const kindStyle = (kind: string, bloc: keyof typeof BLOC_COLOR) => {
     const c = BLOC_COLOR[bloc];
     if (kind === "produced") return { background: blocHatch(bloc), border: `1.5px solid ${c.edge}` };
@@ -418,23 +420,23 @@ export default function MarketSection({
             </span>
             {o.volume && v ? (
               <>
-                <i className="rb-growx" style={{ position: "absolute", left: OX0, top: 10, width: bw, height: 16, boxSizing: "border-box", ...kindStyle(o.volume.kind, bloc), animationDelay: `${0.3 + i * 0.08}s` }} />
-                <span style={{ position: "absolute", left: OX0 + bw + 8, top: 10, fontSize: 12, lineHeight: "16px", whiteSpace: "nowrap", fontFeatureSettings: "'tnum' 1" }}>
-                  {nf(v)} {VOLUME_KIND_LABEL[o.volume.kind]} · {formatIsoDate(o.volume.as_of)}
+                <i className="rb-growx" style={{ position: "absolute", left: OX0, top: 8, width: bw, height: 14, boxSizing: "border-box", ...kindStyle(o.volume.kind, bloc), animationDelay: `${0.3 + i * 0.08}s` }} />
+                <span style={{ position: "absolute", left: OX0, top: 26, fontSize: 12, lineHeight: "16px", whiteSpace: "nowrap", fontFeatureSettings: "'tnum' 1" }}>
+                  {o.volume.label}
                   {o.volume.provenance.data_quality === "estimated" && " · estimé"}
                 </span>
               </>
             ) : (
-              <span style={{ position: "absolute", left: OX0 + 4, top: 10, fontSize: 12, lineHeight: "16px", color: "var(--ink-70)" }}>Volume non publié</span>
+              <span style={{ position: "absolute", left: OX0 + 4, top: 8, fontSize: 12, lineHeight: "16px", color: "var(--ink-70)" }}>Volume non publié</span>
             )}
             {o.capacity && (
               <>
-                <i style={{ position: "absolute", left: OX0, top: 36, width: cx - OX0, height: 0, borderTop: "1.5px dashed var(--color-accent-700)" }} />
-                <i style={{ position: "absolute", left: cx - 4, top: 32, width: 8, height: 8, boxSizing: "border-box", transform: "rotate(45deg)", background: "var(--color-bg)", border: "1.5px solid var(--color-accent-700)" }} />
+                <i style={{ position: "absolute", left: OX0, top: 50, width: cx - OX0, height: 0, borderTop: "1.5px dashed var(--color-accent-700)" }} />
+                <i style={{ position: "absolute", left: cx - 4, top: 46, width: 8, height: 8, boxSizing: "border-box", transform: "rotate(45deg)", background: "var(--color-bg)", border: "1.5px solid var(--color-accent-700)" }} />
                 <span
                   style={{
                     position: "absolute",
-                    top: capOverflow && !v ? 10 : 29,
+                    top: 42,
                     left: capOverflow ? cx - 10 : cx + 10,
                     transform: capOverflow ? "translateX(-100%)" : undefined,
                     padding: "0 4px",

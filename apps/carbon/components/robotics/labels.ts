@@ -2,7 +2,7 @@
 // (lib/robotics/dataLoader.ts), qui reste libre de toute présentation.
 import type { DataQuality } from "@/lib/crm/dataLoader";
 import { countryLabelFr } from "@/lib/iso3166";
-import type { Actor, BlocId, Layer, SegmentId, SourceKind, VolumeKind } from "@/lib/robotics/dataLoader";
+import type { Actor, BlocId, Layer, SegmentId, SourceKind } from "@/lib/robotics/dataLoader";
 
 export const BLOC_ORDER: readonly BlocId[] = ["us", "cn", "eu", "as", "other"];
 
@@ -76,14 +76,6 @@ const LAYER_SHORT: Record<string, string> = {
 export function layerShort(layer: Pick<Layer, "id" | "name">): string {
   return LAYER_SHORT[layer.id] ?? layer.name;
 }
-
-export const VOLUME_KIND_LABEL: Record<VolumeKind, string> = {
-  produced: "produits",
-  shipped: "livrés",
-  assembled: "assemblés",
-  deployed: "déployés",
-  preorders: "réservés",
-};
 
 // Étiquette courte d'une institution sur le graphique des projections :
 // « Goldman Sachs (révision 2026) » → « GS 2026 ».

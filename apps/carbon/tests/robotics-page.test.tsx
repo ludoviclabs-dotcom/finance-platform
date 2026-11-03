@@ -270,6 +270,15 @@ describe("07 · marché & volumes", () => {
     for (const o of ds.oems) expect(html).toContain(names.get(o.actor_id)!);
     expect(html).toContain("Volume non publié");
   });
+
+  it("reprend le libellé de volume de la source, sans le réduire à un chiffre exact", async () => {
+    const ds = await getRoboticsDataset();
+    const html = renderToStaticMarkup(market(ds, "constructeurs"));
+    // « Plus de 350 » est un plancher et « 20 000e » un jalon cumulé : le
+    // graphique ne doit pas les réécrire en « 350 produits ».
+    for (const o of ds.oems) if (o.volume) expect(html).toContain(esc(o.volume.label));
+    expect(html).not.toMatch(/\d produits ·/);
+  });
 });
 
 describe("08 · méthode", () => {

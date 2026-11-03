@@ -160,8 +160,13 @@ export function NavResourcesMenu() {
           setOpen(next);
           // Ouverture au clavier comme à la souris : la première entrée reçoit
           // le focus, sinon un utilisateur clavier ouvrirait un menu vide de
-          // point d'entrée.
-          if (next) requestAnimationFrame(() => itemRefs.current[0]?.focus());
+          // point d'entrée. Sauf si le focus est déjà sur une entrée : la
+          // frame peut tomber après une première flèche, qu'elle annulerait.
+          if (next)
+            requestAnimationFrame(() => {
+              if (itemRefs.current.some((item) => item === document.activeElement)) return;
+              itemRefs.current[0]?.focus();
+            });
         }}
         className="acc-nav-toggle"
         data-testid="nav-resources-trigger"

@@ -8,7 +8,8 @@ import { Barlow, Barlow_Condensed } from "next/font/google";
  */
 const barlow = Barlow({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  // 600 : surtitres et étiquettes, sinon synthétisés en faux gras.
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 

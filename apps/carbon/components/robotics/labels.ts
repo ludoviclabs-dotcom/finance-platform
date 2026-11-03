@@ -2,7 +2,7 @@
 // (lib/robotics/dataLoader.ts), qui reste libre de toute présentation.
 import type { DataQuality } from "@/lib/crm/dataLoader";
 import { countryLabelFr } from "@/lib/iso3166";
-import type { Actor, BlocId, SegmentId, SourceKind } from "@/lib/robotics/dataLoader";
+import type { Actor, BlocId, Layer, SegmentId, SourceKind } from "@/lib/robotics/dataLoader";
 
 export const BLOC_ORDER: readonly BlocId[] = ["us", "cn", "eu", "as", "other"];
 
@@ -29,6 +29,70 @@ export function blocDisplayName(bloc: BlocId, layerActors: readonly Actor[]): st
   if (bloc !== "other") return BLOC_LABEL[bloc];
   const countries = [...new Set(layerActors.filter(a => a.bloc === "other").flatMap(a => a.countries))];
   return countries.length > 0 ? countries.map(countryLabelFr).join(", ") : BLOC_LABEL.other;
+}
+
+// Teintes des blocs : jetons --rb-* de la peau Industry (globals.css), qui
+// s'inversent en thème sombre. `edge` borde les teintes claires, `ink` écrit
+// dessus.
+export const BLOC_COLOR: Record<BlocId, { fill: string; edge: string; ink: string }> = {
+  us: { fill: "var(--rb-us)", edge: "var(--rb-us-edge)", ink: "var(--rb-us-ink)" },
+  cn: { fill: "var(--rb-cn)", edge: "var(--rb-cn-edge)", ink: "var(--rb-cn-ink)" },
+  eu: { fill: "var(--rb-eu)", edge: "var(--rb-eu-edge)", ink: "var(--rb-eu-ink)" },
+  as: { fill: "var(--rb-as)", edge: "var(--rb-as-edge)", ink: "var(--rb-as-ink)" },
+  other: { fill: "var(--rb-other)", edge: "var(--rb-other-edge)", ink: "var(--rb-other-ink)" },
+};
+
+/** Hachures d'un bloc qui conteste une couche (le plein est réservé à « domine »). */
+export function blocHatch(bloc: BlocId): string {
+  return `repeating-linear-gradient(45deg, ${BLOC_COLOR[bloc].edge} 0 2px, transparent 2px 5px)`;
+}
+
+// Codes des pastilles de bloc ; « Autres » prend les codes pays de ses acteurs.
+const BLOC_CODE: Record<Exclude<BlocId, "other">, string> = { us: "US", cn: "CN", eu: "EU", as: "JP·KR·TW" };
+
+export function blocCode(bloc: BlocId, layerActors: readonly Actor[]): string {
+  if (bloc !== "other") return BLOC_CODE[bloc];
+  const countries = [...new Set(layerActors.filter(a => a.bloc === "other").flatMap(a => a.countries))];
+  return countries.length > 0 ? countries.join("·") : "AUT";
+}
+
+// Libellés courts des couches pour les graphiques serrés (pile, flux,
+// parcours) ; le nom complet reste dans le panneau de lecture et les fiches.
+const LAYER_SHORT: Record<string, string> = {
+  "aimants-terres-rares": "Aimants & terres rares",
+  "calcul-ia-fonderie": "Calcul IA & fonderie",
+  batteries: "Batteries",
+  "vision-perception": "Vision 3D & inertie",
+  "capteurs-force-tactiles": "Capteurs force & toucher",
+  "electronique-puissance": "Électronique de puissance",
+  "connectique-faisceaux": "Connectique & faisceaux",
+  "moteurs-actionneurs": "Moteurs & actionneurs",
+  "reducteurs-vis-roulements": "Réducteurs & vis",
+  "mains-prehenseurs": "Mains dextres",
+  "modeles-ia-simulation": "Modèles IA & simulation",
+  "constructeurs-oem": "Constructeurs",
+};
+
+export function layerShort(layer: Pick<Layer, "id" | "name">): string {
+  return LAYER_SHORT[layer.id] ?? layer.name;
+}
+
+// Étiquette courte d'une institution sur le graphique des projections :
+// « Goldman Sachs (révision 2026) » → « GS 2026 ».
+const INSTITUTION_SHORT: Record<string, string> = {
+  "Morgan Stanley": "MS",
+  "Goldman Sachs": "GS",
+  "Bank of America": "BofA",
+};
+
+export function institutionBase(name: string): string {
+  return name.replace(/\s*\(.*\)\s*$/, "");
+}
+
+export function institutionShort(name: string): string {
+  const base = institutionBase(name);
+  const year = /\((?:[^)]*?)(\d{4})\)/.exec(name)?.[1];
+  return [INSTITUTION_SHORT[base] ?? base, year].filter(Boolean).join(" ");
 }
 
 export const SEGMENT_ORDER: readonly SegmentId[] = ["amont", "milieu", "mecatronique", "aval"];

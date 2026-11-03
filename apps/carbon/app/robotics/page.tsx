@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getMaterials, isSnapshotStale, snapshotAgeDays } from "@/lib/crm/dataLoader";
+import { getChinaShare, getMaterials, isSnapshotStale, snapshotAgeDays } from "@/lib/crm/dataLoader";
 import {
   dueSignalKeys,
   getKeyFigure,
   getRoboticsDataset,
   layersInReadingOrder,
+  renderDateIso,
   summarizeRobotics,
 } from "@/lib/robotics/dataLoader";
 import { MxThemeProvider } from "@/components/materials/MxThemeProvider";
@@ -15,14 +16,14 @@ import { Section } from "@/components/materials/industry/Section";
 import { SectionKicker, SectionLead, SectionTitle } from "@/components/materials/industry/SectionKicker";
 import { industryFontVars } from "@/components/materials/industry/fonts";
 import ActorMapSection from "@/components/robotics/ActorMapSection";
-import BomTreemap from "@/components/robotics/BomTreemap";
-import ChokepointsList from "@/components/robotics/ChokepointsList";
+import ChokepointTimeline from "@/components/robotics/ChokepointTimeline";
+import ControlSection from "@/components/robotics/ControlSection";
+import CostAnatomy from "@/components/robotics/CostAnatomy";
 import { KeyFigure } from "@/components/robotics/KeyFigure";
-import LayerControlMatrix from "@/components/robotics/LayerControlMatrix";
-import MarketOverview from "@/components/robotics/MarketOverview";
+import MarketSection from "@/components/robotics/MarketSection";
 import MethodPanel from "@/components/robotics/MethodPanel";
-import ValueChainLayers from "@/components/robotics/ValueChainLayers";
-import { BOM_WEIGHT_META, formatIsoDate } from "@/components/robotics/labels";
+import ValueChainFlow from "@/components/robotics/ValueChainFlow";
+import { formatIsoDate } from "@/components/robotics/labels";
 
 export const metadata: Metadata = {
   title: "Robotique & IA physique | Carbon&Co Intelligence",
@@ -105,8 +106,18 @@ export default async function RoboticsPage() {
   // /materials) ; `revalidate` les tient à jour d'un jour sur l'autre.
   const isStale = isSnapshotStale(ds.snapshot_date);
   const ageDays = snapshotAgeDays(ds.snapshot_date);
-  const dueKeys = dueSignalKeys(ds);
+  const dueKeys = [...dueSignalKeys(ds)];
+  const today = renderDateIso();
   const snapshotDateLabel = formatIsoDate(ds.snapshot_date);
+
+  // Pont vers /materials : les matières consommées par la chaîne, avec la part
+  // chinoise que /materials affiche (null quand la Chine n'est pas parmi les
+  // premiers producteurs suivis).
+  const linkedIds = new Set(ds.layers.flatMap(l => l.material_links.map(m => m.material_id)));
+  const flowMaterials = materials
+    .filter(m => linkedIds.has(m.id))
+    .map(m => ({ id: m.id, name: m.name_fr, chinaShare: m.top_producers.some(p => p.country === "Chine") ? getChinaShare(m) : null }));
+  const materialNames = Object.fromEntries(materials.map(m => [m.id, m.name_fr]));
 
   return (
     <MxThemeProvider skin="industry" style={industryFontVars}>
@@ -160,118 +171,76 @@ export default async function RoboticsPage() {
             </div>
           </Section>
 
-          <Section id="controle" revealDelay={0.2}>
-            <SectionKicker>02 · Contrôle de la chaîne</SectionKicker>
-            <div className="mb-8">
-              <SectionTitle>Qui tient chaque maillon</SectionTitle>
-              <SectionLead>
-                Blocs qui dominent ou contestent chacune des {summary.layers} couches, et parts chinoises mesurées aux
-                étapes où la dépendance est la plus forte.
-              </SectionLead>
-            </div>
-            <LayerControlMatrix
-              layers={layers}
-              chinaFigures={[
-                fig("chine-extraction-terres-rares"),
-                fig("chine-raffinage-terres-rares"),
-                fig("chine-aimants-frittes"),
-                fig("part-chine-livraisons-2025"),
-              ]}
-            />
-          </Section>
+          <ControlSection
+            revealDelay={0.2}
+            layers={layers}
+            actors={ds.actors}
+            keyFigures={ds.key_figures}
+            materialNames={materialNames}
+            china={{
+              extraction: fig("chine-extraction-terres-rares"),
+              raffinage: fig("chine-raffinage-terres-rares"),
+              aimants: fig("chine-aimants-frittes"),
+              livraisons: fig("part-chine-livraisons-2025"),
+              extractionAimants: fig("chine-extraction-terres-rares-aimants"),
+            }}
+          />
 
           <ActorMapSection actors={ds.actors} layers={ds.layers} revealDelay={0.3} />
 
-          <Section id="cout" revealDelay={0.4}>
-            <SectionKicker>04 · Anatomie du coût</SectionKicker>
-            <div className="flex items-end justify-between gap-6 flex-wrap mb-8">
-              <div>
-                <SectionTitle>Où se loge la valeur matérielle</SectionTitle>
-                <SectionLead>
-                  Répartition projetée du coût matériel d’un humanoïde assemblé en Chine en 2030 (BofA Global
-                  Research). Cliquer une tuile pour les couches concernées.
-                </SectionLead>
-              </div>
-              <div className="flex gap-4 flex-wrap" style={{ fontSize: 12, color: "var(--ink-70)" }}>
-                {Object.values(BOM_WEIGHT_META).map(meta => (
-                  <span key={meta.label} className="flex items-center gap-1.5">
-                    <i style={{ width: 10, height: 10, background: meta.colorVar, border: "1px solid var(--color-divider)" }} />
-                    {meta.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <BomTreemap items={ds.bom} layers={ds.layers} />
+          <CostAnatomy
+            revealDelay={0.4}
+            bom={ds.bom}
+            layers={ds.layers}
+            chokepoints={ds.chokepoints}
+            figures={{
+              actuatorsHands: fig("bofa-actionneurs-mains-2030"),
+              bom2025: fig("bofa-bom-chine-2025"),
+              bom2030: fig("bofa-bom-chine-2030"),
+              offChina: fig("ms-bom-hors-chine"),
+              avgPrice: fig("yole-prix-moyen"),
+              digitCost: fig("agility-cout-production"),
+              digitHourly: fig("digit-cout-horaire"),
+              wageUs: fig("salaire-production-usa"),
+              wageEu: fig("salaire-moyen-ue"),
+              roi: fig("agility-retour-investissement"),
+            }}
+          />
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8" style={{ marginTop: 40 }}>
-              <KeyFigure figure={fig("bofa-bom-chine-2025")} size={36} />
-              <KeyFigure figure={fig("bofa-bom-chine-2030")} size={36} />
-              <KeyFigure figure={fig("ms-bom-hors-chine")} size={36} />
-              <KeyFigure figure={fig("agility-cout-production")} size={36} />
-            </div>
+          <ValueChainFlow
+            revealDelay={0.5}
+            layers={layers}
+            actors={ds.actors}
+            keyFigures={ds.key_figures}
+            materials={flowMaterials}
+            trackedMaterials={materials.length}
+          />
 
-            <h3
-              style={{
-                margin: "48px 0 16px",
-                fontFamily: "var(--font-heading)",
-                fontWeight: 600,
-                fontSize: 22,
-                lineHeight: "24px",
-                letterSpacing: ".02em",
-                textTransform: "uppercase",
-              }}
-            >
-              Face au coût du travail
-            </h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
-              <KeyFigure figure={fig("digit-cout-horaire")} size={36} />
-              <KeyFigure figure={fig("agility-retour-investissement")} size={36} />
-              <KeyFigure figure={fig("salaire-production-usa")} size={36} />
-              <KeyFigure figure={fig("salaire-moyen-ue")} size={36} />
-            </div>
-          </Section>
+          <ChokepointTimeline
+            revealDelay={0.6}
+            chokepoints={ds.chokepoints}
+            layers={layers}
+            actors={ds.actors}
+            today={today}
+            dueKeys={dueKeys}
+          />
 
-          <Section id="chaine" revealDelay={0.5}>
-            <SectionKicker>05 · De la mine au robot</SectionKicker>
-            <div className="mb-8">
-              <SectionTitle>La chaîne de valeur en {summary.layers} couches</SectionTitle>
-              <SectionLead maxCh={72}>
-                Chaque couche renvoie aux fiches des matières critiques qu’elle consomme : {summary.linkedMaterials} des{" "}
-                {materials.length} matières suivies dans <Link href="/materials">Matières critiques</Link>.
-              </SectionLead>
-            </div>
-            <ValueChainLayers ds={ds} materials={materials} />
-          </Section>
-
-          <Section id="goulots" revealDelay={0.6}>
-            <SectionKicker>06 · Goulots d’étranglement</SectionKicker>
-            <div className="mb-8">
-              <SectionTitle>Là où la chaîne peut casser</SectionTitle>
-              <SectionLead maxCh={72}>
-                Les points de contrôle qui pèsent le plus sur l’approvisionnement, avec leurs signaux datés. Un signal
-                arrivé à échéance est signalé « à revérifier » plutôt que présenté comme actuel.
-              </SectionLead>
-            </div>
-            <ChokepointsList ds={ds} dueKeys={dueKeys} />
-          </Section>
-
-          <Section id="marche" revealDelay={0.7}>
-            <SectionKicker>07 · Marché & volumes</SectionKicker>
-            <div className="mb-8">
-              <SectionTitle>D’un marché de niche à une économie de masse</SectionTitle>
-              <SectionLead maxCh={72}>
-                Projections publiées par les banques et les cabinets d’études, puis volumes déclarés par les
-                constructeurs.
-              </SectionLead>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8" style={{ marginBottom: 40 }}>
-              <KeyFigure figure={fig("livraisons-mondiales-2025")} size={36} />
-              <KeyFigure figure={fig("bofa-livraisons-2030")} size={36} />
-              <KeyFigure figure={fig("bofa-livraisons-2035")} size={36} />
-              <KeyFigure figure={fig("ms-parc-2050")} size={36} />
-            </div>
-            <MarketOverview ds={ds} />
-          </Section>
+          <MarketSection
+            revealDelay={0.7}
+            projections={ds.projections}
+            oems={ds.oems}
+            actors={ds.actors}
+            steps={[
+              { figure: fig("livraisons-mondiales-2025"), kind: "livraisons", caption: "livrés" },
+              { figure: fig("bofa-livraisons-2030"), kind: "livraisons", caption: "par an · BofA" },
+              { figure: fig("bofa-livraisons-2035"), kind: "livraisons", caption: "par an · BofA" },
+              { figure: fig("ms-parc-2050"), kind: "parc", caption: "en service · MS" },
+            ]}
+            deliveries={fig("livraisons-mondiales-2025")}
+            chinaShare={fig("part-chine-livraisons-2025")}
+            fleet={{ total: fig("ms-parc-2050"), china: fig("ms-parc-chine-2050"), usa: fig("ms-parc-usa-2050") }}
+            proUse={fig("ms-usage-professionnel-2050")}
+          />
 
           <Section id="methode" revealDelay={0.8} paddingBottom={72}>
             <SectionKicker>08 · Méthode</SectionKicker>

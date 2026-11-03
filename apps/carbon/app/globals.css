@@ -1768,3 +1768,81 @@ body {
      explicitement l'état final, sinon le trait resterait invisible. */
   .ind-draw { stroke-dashoffset: 0; }
 }
+
+/* ═══ /robotics — infographies des sections 02 à 07 ═══════════════════════
+   Couleurs des blocs géographiques : même logique que les paliers Chine de la
+   peau (foncé en clair, clair en sombre) et cinq luminosités distinctes, pour
+   rester lisibles en niveaux de gris. Les animations ne jouent que sous
+   `.rb-play`, posée quand le graphique approche de la fenêtre : sans
+   JavaScript, tout est rendu dans son état final. */
+[data-mx][data-mx-skin="industry"] {
+  --rb-us: #416180; --rb-us-edge: #416180; --rb-us-ink: #f2f2f3;
+  --rb-cn: #1d2d3d; --rb-cn-edge: #1d2d3d; --rb-cn-ink: #f2f2f3;
+  --rb-eu: #94bce3; --rb-eu-edge: #749dc4; --rb-eu-ink: #1d1f20;
+  --rb-as: #d6ebff; --rb-as-edge: #94bce3; --rb-as-ink: #1d1f20;
+  --rb-other: #c9c9cc; --rb-other-edge: #8d8d92; --rb-other-ink: #1d1f20;
+}
+[data-mx][data-mx-skin="industry"][data-mx-theme="sombre"] {
+  --rb-us: #94bce3; --rb-us-edge: #94bce3; --rb-us-ink: #1d2d3d;
+  --rb-cn: #eef6ff; --rb-cn-edge: #eef6ff; --rb-cn-ink: #1d2d3d;
+  --rb-eu: #597ea3; --rb-eu-edge: #749dc4; --rb-eu-ink: #f2f2f3;
+  --rb-as: #2c455d; --rb-as-edge: #749dc4; --rb-as-ink: #f2f2f3;
+  --rb-other: #55555a; --rb-other-edge: #8d8d92; --rb-other-ink: #f2f2f3;
+}
+
+/* Graphique et panneau « Lecture » côte à côte ; sous 972px de cadre (660 de
+   graphique, 32 d'écart, 280 de panneau), le panneau passe dessous. */
+.rb-split { container-type: inline-size; }
+.rb-panel { box-sizing: border-box; padding-left: 28px; border-left: 1px solid var(--color-divider); }
+@container (max-width: 971px) {
+  .rb-panel { padding: 20px 0 0; border-left: 0; border-top: 1px solid var(--color-divider); }
+}
+
+.rb-hit { border: 0; background: transparent; padding: 0; margin: 0; cursor: pointer; font: inherit; color: inherit; text-align: left; }
+.rb-hit:hover { background: color-mix(in srgb, var(--color-text) 5%, transparent); }
+.rb-hit[aria-pressed="true"] { background: var(--color-surface); }
+.rb-card { border: 1px solid var(--color-divider); background: transparent; cursor: pointer; font: inherit; color: inherit; text-align: left; }
+.rb-card:hover { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+.rb-card[aria-pressed="true"] { background: var(--color-surface); border-color: var(--color-text); }
+.rb-ib { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--color-divider); background: transparent; color: var(--color-text); cursor: pointer; }
+.rb-ib:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.rb-dot { border: 0; background: transparent; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.rb-dot i { display: block; width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; transition: transform .2s; }
+.rb-dot:hover i { transform: scale(1.25); }
+.rb-dot[aria-pressed="true"] i { transform: scale(1.4); box-shadow: 0 0 0 3px var(--color-bg), 0 0 0 4.5px var(--color-text); }
+.rb-slab { cursor: pointer; transition: transform .5s cubic-bezier(.16,1,.3,1), opacity .3s; }
+.rb-dim { transition: opacity .3s; }
+.rb-flow, .rb-ping, .rb-scan { opacity: 0; }
+
+@keyframes rb-drop { from { opacity: 0; transform: translateY(-36px); } to { opacity: 1; transform: none; } }
+@keyframes rb-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes rb-pop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes rb-grow { from { transform: scaleY(0); } to { transform: none; } }
+@keyframes rb-growx { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes rb-draw { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+@keyframes rb-flow { from { stroke-dashoffset: 36; } to { stroke-dashoffset: 0; } }
+@keyframes rb-ping { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(3.2); opacity: 0; } }
+@keyframes rb-scan { 0% { transform: translateY(0); opacity: 0; } 10%, 90% { opacity: .9; } 100% { transform: translateY(560px); opacity: 0; } }
+@keyframes rb-reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes rb-travel { 0% { left: 0; opacity: 0; } 8%, 92% { opacity: 1; } 100% { left: calc(100% - 8px); opacity: 0; } }
+
+.rb-play .rb-drop { animation: rb-drop .7s cubic-bezier(.16,1,.3,1) both; }
+.rb-play .rb-fade { animation: rb-fade .6s cubic-bezier(.16,1,.3,1) both; }
+.rb-play .rb-pop { animation: rb-pop .5s cubic-bezier(.16,1,.3,1) both; transform-box: fill-box; transform-origin: center; }
+.rb-play .rb-grow { animation: rb-grow 1.1s cubic-bezier(.16,1,.3,1) both; transform-origin: bottom; }
+.rb-play .rb-growx { animation: rb-growx 1s cubic-bezier(.16,1,.3,1) both; transform-origin: left; }
+.rb-play .rb-draw { stroke-dasharray: 1000; animation: rb-draw 1.4s cubic-bezier(.65,0,.35,1) both; }
+.rb-play .rb-flow { opacity: 1; stroke-dasharray: 2 16; animation: rb-flow 1.1s linear infinite; }
+.rb-play .rb-ping { animation: rb-ping 2.2s cubic-bezier(0,0,.2,1) 1.4s infinite; transform-box: fill-box; transform-origin: center; }
+.rb-play .rb-scan { animation: rb-scan 1.8s cubic-bezier(.45,0,.55,1) .2s both; }
+.rb-play .rb-reveal { animation: rb-reveal 1.4s cubic-bezier(.65,0,.35,1) .2s both; }
+.rb-play .rb-travel { animation: rb-travel 5s linear infinite; }
+.rb-play .rb-tile { animation: ind-tile-in .6s cubic-bezier(.16,1,.3,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-play .rb-drop, .rb-play .rb-fade, .rb-play .rb-pop, .rb-play .rb-grow, .rb-play .rb-growx,
+  .rb-play .rb-draw, .rb-play .rb-reveal, .rb-play .rb-tile { animation: none; }
+  .rb-play .rb-draw { stroke-dasharray: none; }
+  .rb-play .rb-flow, .rb-play .rb-ping, .rb-play .rb-scan, .rb-play .rb-travel { animation: none; display: none; }
+  .rb-slab, .rb-dim, .rb-dot i { transition: none; }
+}

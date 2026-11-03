@@ -454,6 +454,12 @@ export function signalsDueForReview(
   );
 }
 
+// Date du rendu (AAAA-MM-JJ) pour la frise des goulots : posée par la page au
+// rendu serveur, avec dueSignalKeys, et jamais recalculée à l'hydratation.
+export function renderDateIso(now: number = Date.now()): string {
+  return new Date(now).toISOString().slice(0, 10);
+}
+
 // Clés « idGoulot:indexSignal » des signaux à revérifier, pour la page :
 // Date.now() reste encapsulé ici, hors du rendu d'un composant.
 export function dueSignalKeys(ds: RoboticsDataset, now: number = Date.now()): Set<string> {

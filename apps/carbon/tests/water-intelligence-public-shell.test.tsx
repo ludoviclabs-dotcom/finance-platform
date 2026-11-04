@@ -21,6 +21,10 @@ import { resolve } from "path";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import WaterIntelligencePage, { metadata } from "@/app/water/page";
+import {
+  CONTEXT_CANDIDATES,
+  publishableContextFacts,
+} from "@/lib/water-intelligence/context-candidates";
 import { PILOT_FILE } from "@/lib/water-intelligence/pilot-snapshot";
 
 const CARBON_ROOT = resolve(__dirname, "..");
@@ -239,7 +243,7 @@ describe("aucun appel réseau ni bailout CSR", () => {
     }
   });
 
-  it("ne pointe vers l'extérieur que par les URL que le document PORTE", () => {
+  it("ne pointe vers l'extérieur que par les URL que les documents PORTENT", () => {
     /* Un `href` externe n'est pas un appel réseau — le navigateur ne va nulle
        part tant que personne ne clique. Il en faut d'ailleurs : la Phase F
        exige que l'URL officielle de la source soit affichée à côté de chaque
@@ -262,9 +266,16 @@ describe("aucun appel réseau ni bailout CSR", () => {
       }
     };
     walk(PILOT_FILE);
+    /* Refonte Industry : les repères de contexte citent leur source primaire.
+       Seuls ceux que la revue laisse passer — et les cas locaux du même
+       document revu — entrent dans l'ensemble permis : un repère non publiable
+       n'ouvre aucun lien. */
+    walk(publishableContextFacts());
+    if (publishableContextFacts().length > 0) walk(CONTEXT_CANDIDATES.local_cases);
 
+    /* L'attribut est lu tel que le navigateur le lira : `&amp;` redevient `&`. */
     const externalHrefs = [...markup.matchAll(/href="((?:https?:)?\/\/[^"]*)"/g)].map(
-      (m) => m[1],
+      (m) => m[1].replace(/&amp;/g, "&"),
     );
     const unexpected = externalHrefs.filter((href) => !allowed.has(href));
     expect(unexpected).toEqual([]);

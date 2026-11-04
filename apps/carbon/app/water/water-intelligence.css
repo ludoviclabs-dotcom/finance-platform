@@ -2,131 +2,111 @@
  * water-intelligence.css — système visuel de Water Intelligence.
  *
  * Scopé à `[data-wi]` : n'affecte aucune autre surface du site. Le préfixe
- * `--wi-*` est délibérément distinct de `--mx-*` (propre à /materials) — les
- * deux modules partagent une ambition produit, pas des variables. La
- * convergence voulue par WI-V3-01 est PERCEPTUELLE (rythme des conteneurs,
- * hairlines, radius, mono metadata) : aucun sélecteur `[data-mx]` n'est référencé
- * ici, et `apps/carbon/tests/water-v1-experience.test.tsx` le vérifie par grep.
+ * `--wi-*` reste distinct de celui de /materials : les deux modules partagent
+ * une CHARTE (système « Industry » : Barlow Condensed sur Barlow, fond acier,
+ * accent bleu acier, filets 1px, angles vifs, repères « + » aux coins), pas des
+ * variables. Aucun sélecteur de /materials n'est référencé ici, et
+ * `apps/carbon/tests/water-v1-experience.test.tsx` le vérifie par grep.
  *
- * ## Thème — sombre PAR DÉFAUT, indépendamment du système (WI-V3-01)
+ * ## Thème — CLAIR par défaut, indépendamment du système (refonte Industry)
  *
- * Le bloc `[data-wi]` ci-dessous porte les valeurs SOMBRES sans condition :
- * c'est le rendu de toute première visite, avant même l'hydratation, qu'importe
- * `prefers-color-scheme`. Le thème clair n'existe que sous
- * `[data-wi][data-wi-theme="clair"]` — un attribut posé explicitement par
- * `IntelligenceThemeProvider`, jamais déduit du système.
- *
- * Avant WI-V3-01, l'absence de choix mémorisé retombait sur la préférence
- * système (règle supprimée ci-dessous). Ce n'est plus le cas : Water est un
- * produit d'intelligence institutionnelle, pas un habillage qui suit l'OS du
- * lecteur. Le mécanisme reste néanmoins générique côté React — voir
- * `components/intelligence/IntelligenceThemeProvider.tsx` — un domaine futur
- * pourrait choisir d'honorer `prefers-color-scheme` en écrivant sa propre
- * feuille de style différemment ; c'est un choix de CSS, pas de composant.
+ * Le bloc `[data-wi]` ci-dessous porte les valeurs CLAIRES sans condition,
+ * comme /materials et /robotics : c'est le rendu de toute première visite,
+ * avant même l'hydratation, qu'importe la préférence du système. Le sombre
+ * n'existe que sous `[data-wi][data-wi-theme="sombre"]` — un attribut posé
+ * explicitement par `IntelligenceThemeProvider`, jamais déduit du système.
+ * `[data-wi][data-wi-theme="clair"]` reste un choix explicite valide : il
+ * redit le défaut.
  *
  * ## La couleur ne porte JAMAIS un statut à elle seule
  *
  * Chaque état est doublé d'un libellé, d'une icône et — pour les états
  * d'absence — d'un motif hachuré. C'est une règle d'accessibilité, et c'est
- * aussi une règle d'honnêteté : un point vert n'explique pas pourquoi une
+ * aussi une règle d'honnêteté : un point coloré n'explique pas pourquoi une
  * source est publiée.
  *
- * Sémantique :
- *   --wi-water       turquoise → ressource, eau, valeur publiée
- *   --wi-data        bleu clair → donnée, provenance, méthode
- *   --wi-glacier     glacier   → accent froid, conformité
- *   --wi-stress      vigilance → attention, report, condition
- *   --wi-alert       critique  → blocage, indisponibilité
- *   --wi-adapt       succès    → adaptation, disponible
+ * Sémantique (une teinte = un sens, contrastes ≥ 4,5:1 sur le fond) :
+ *   --wi-water       bleu acier profond → ressource, valeur publiée, accent
+ *   --wi-data        bleu acier → donnée, provenance, méthode, liens
+ *   --wi-glacier     bleu acier moyen → accent froid, conformité
+ *   --wi-stress      ocre → vigilance, report, condition
+ *   --wi-alert       brique → blocage, indisponibilité
+ *   --wi-adapt       vert sourd → adaptation, disponible
  *   --wi-absent      gris + hachures → donnée absente (JAMAIS un zéro)
  *   --wi-compliance  alias de glacier, conservé pour les composants livrés
  */
 
 [data-wi] {
-  /* ---------------------------------------------------------- Sombre (défaut,
-     inconditionnel — voir la docstring de thème ci-dessus) */
-  --wi-bg: #07111f;
-  /* `--wi-surface` (fond de page/footer) et `--wi-card` (cartes) étaient la
-     MÊME valeur avant WI-V3-01 : aucune des deux surfaces ne se détachait de
-     l'autre. Materials distingue ses trois paliers (surface < card < card-2)
-     en sombre uniquement — même en clair, `--mx-card` y vaut `--mx-surface`.
-     Le geste est donc perceptuel, pas une copie de valeurs : un palier de plus
-     entre le fond et le relief, en sombre seulement. */
-  --wi-surface: #0d1b2a;
-  --wi-raised: #13263a;
-  --wi-card: #102237;
-  --wi-card-2: #13263a;
-  /* Hairline neutralisée : la teinte cyan vive (165,243,252) tirait la bordure
-     vers un accent, alors que la bordure n'est JAMAIS un accent — seul
-     `--wi-water` doit l'être, et « cyan/glacier très contrôlé » (WI-V3-01 §2)
-     s'applique aussi aux bordures. Le rôle ne change pas (hairline 1px), la
-     teinte se rapproche du gris-froid neutre de `--mx-border`. */
-  --wi-border: rgba(198, 219, 230, 0.13);
-  --wi-border-2: rgba(198, 219, 230, 0.28);
+  /* ------------------------------------------------ Clair (défaut, inconditionnel) */
+  --wi-bg: #f2f2f3;
+  --wi-surface: #e9e9ea;
+  --wi-raised: #f7f7f8;
+  --wi-card: #f7f7f8;
+  --wi-card-2: #e7e7ea;
+  --wi-border: rgb(29 31 32 / 0.16);
+  --wi-border-2: rgb(29 31 32 / 0.32);
+  --wi-fg: #1d1f20;
+  --wi-muted: #46494b;
+  --wi-subtle: #5d6063;
 
-  --wi-fg: #f8fafc;
-  --wi-muted: #a9b8ca;
-  --wi-subtle: #8598ad;
+  /* Échelle d'accent acier — la même que /materials et /robotics. */
+  --wi-steel-100: #eef6ff;
+  --wi-steel-200: #d6ebff;
+  --wi-steel-300: #b5d9fd;
+  --wi-steel-400: #94bce3;
+  --wi-steel-500: #749dc4;
+  --wi-steel-600: #597ea3;
+  --wi-steel-700: #416180;
+  --wi-steel-800: #2c455d;
+  --wi-accent: #5980a6;
+  --wi-on-accent: #f2f2f3;
 
-  /*
-   * Comportement d'accent — délibérément NON convergé vers Materials.
-   *
-   * `--mx-em` est UN accent unique, répété partout (CTA, KPI, treemap, nav
-   * active…) : c'est un langage de MARQUE. Ici, six teintes se partagent le
-   * rôle d'accent et chacune est verrouillée à UN SEUL sens : `--wi-water`
-   * (ressource/valeur publiée), `--wi-data` (donnée/méthode), `--wi-glacier`
-   * (conformité), `--wi-stress` (vigilance UNIQUEMENT), `--wi-alert` (blocage
-   * UNIQUEMENT), `--wi-adapt` (disponibilité/adaptation UNIQUEMENT). Aplatir
-   * ces six rôles vers un accent unique romprait exactement la distinction que
-   * le contrat épistémique exige de garder lisible (WI-V3-00 §4-5). C'est un
-   * langage d'ÉVIDENCE, pas de marque — la convergence s'arrête ici.
-   */
-  --wi-water: #2dd4bf;
-  --wi-data: #38bdf8;
-  --wi-glacier: #a5f3fc;
-  --wi-stress: #f59e0b;
-  --wi-alert: #fb7185;
-  --wi-adapt: #4ade80;
-  --wi-absent: #93a5b8;
+  --wi-water: #416180;
+  --wi-data: #416180;
+  --wi-glacier: #3f6488;
+  --wi-stress: #845414;
+  --wi-alert: #9a2f2a;
+  --wi-adapt: #2f6845;
+  --wi-absent: #5d6063;
   --wi-compliance: var(--wi-glacier);
 
-  --wi-focus: #38bdf8;
-  --wi-hatch: rgba(147, 165, 184, 0.26);
-  --wi-glow: rgba(45, 212, 191, 0.14);
+  --wi-focus: #416180;
+  --wi-hatch: rgb(116 157 196 / 0.45);
+  --wi-glow: rgb(89 128 166 / 0.08);
+  --wi-grid: rgb(89 128 166 / 0.1);
 
-  /* 14px → 16px : parenté avec le radius des cartes Materials (`rounded-2xl`),
-     qui pose la même intention — « premium », pas « anguleux ». */
-  --wi-radius: 16px;
-  --wi-radius-sm: 9px;
-  --wi-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -18px rgb(0 0 0 / 0.9);
-  --wi-shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 48px -24px rgb(0 0 0 / 0.95);
-  --wi-shadow-panel: 0 10px 30px rgb(0 0 0 / 0.42);
-  --wi-shadow-tip: 0 4px 14px rgb(0 0 0 / 0.35);
+  /* Angles vifs : le système Industry n'arrondit rien. */
+  --wi-radius: 0px;
+  --wi-radius-sm: 0px;
+  /* Pas d'ombre portée : la profondeur vient des filets, jamais du flou. */
+  --wi-shadow: none;
+  --wi-shadow-lift: none;
+  --wi-shadow-panel: 0 3px 10px rgb(43 43 45 / 0.16);
+  --wi-shadow-tip: 0 3px 10px rgb(43 43 45 / 0.16);
 
   /* Rampe cartographique — extrémité basse = le fond, jamais une teinte. */
   --wi-ramp-from: var(--wi-card-2);
-  --wi-ramp-to: var(--wi-stress);
-  --wi-map-land: var(--wi-card-2);
+  --wi-ramp-to: var(--wi-steel-700);
+  --wi-map-land: #e1e2e4;
   --wi-map-stroke: var(--wi-border);
   --wi-map-select: var(--wi-fg);
 
-  --wi-font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --wi-font-display: var(--font-barlow-condensed, "Barlow Condensed"), system-ui, sans-serif;
+  --wi-font-body: var(--font-barlow, "Barlow"), system-ui, sans-serif;
   --wi-font-mono: var(--font-jetbrains-mono), ui-monospace, Menlo, Consolas, monospace;
 
   background: var(--wi-bg);
   color: var(--wi-fg);
+  font-family: var(--wi-font-body);
   min-height: 100vh;
+  text-wrap: pretty;
+  transition: background-color 0.3s, color 0.3s;
   /* Les chiffres s'alignent en colonne : un tableau de volumes dont les
      chiffres dansent se relit mal, et se compare encore plus mal. */
   font-variant-numeric: tabular-nums;
 
   /*
    * Aucun élément DÉCORATIF ne peut faire défiler la page.
-   *
-   * Le halo du hero déborde volontairement de sa boîte (`inset: … -20% …`)
-   * pour adoucir ses bords. Sans cette ligne, ce débordement devenait un
-   * défilement horizontal du document — 144 px sur un écran de 1280, trouvé
-   * par l'E2E et non par relecture.
    *
    * `clip` et non `hidden` : `hidden` crée un conteneur de défilement, ce qui
    * casserait le `position: sticky` de la navigation ancrée. `clip` coupe
@@ -135,59 +115,52 @@
   overflow-x: clip;
 }
 
-/*
- * Clair. Servi UNIQUEMENT par choix explicite (`data-wi-theme="clair"`),
- * jamais par `prefers-color-scheme` depuis WI-V3-01 — voir la docstring de
- * thème en tête de fichier. La déclaration des variables `--wi-light-*` et
- * leur application sont désormais un seul et même bloc : il n'existe plus de
- * second contexte (`:not([data-wi-theme])`) où elles s'appliqueraient sans
- * attribut posé.
- *
- * Ce ne sont pas les mêmes valeurs hexadécimales que le sombre, c'est le MÊME
- * rôle : les teintes vives du thème sombre descendraient sous 4,5:1 sur fond
- * clair.
- */
+/* Clair explicite : redit le défaut, rien de plus. */
 [data-wi][data-wi-theme="clair"] {
-  --wi-light-bg: #f2f7fb;
-  --wi-light-surface: #ffffff;
-  --wi-light-card-2: #e8f0f8;
-  --wi-light-border: rgb(7 17 31 / 0.12);
-  --wi-light-border-2: rgb(7 17 31 / 0.26);
-  --wi-light-fg: #07111f;
-  --wi-light-muted: #3f5468;
-  --wi-light-subtle: #586d82;
-  --wi-light-water: #0f766e;
-  --wi-light-data: #0369a1;
-  --wi-light-glacier: #0e7490;
-  --wi-light-stress: #92400e;
-  --wi-light-alert: #9f1239;
-  --wi-light-adapt: #15803d;
-  --wi-light-absent: #4e6178;
+  color-scheme: light;
+}
 
-  --wi-bg: var(--wi-light-bg);
-  --wi-surface: var(--wi-light-surface);
-  --wi-raised: var(--wi-light-surface);
-  --wi-card: var(--wi-light-surface);
-  --wi-card-2: var(--wi-light-card-2);
-  --wi-border: var(--wi-light-border);
-  --wi-border-2: var(--wi-light-border-2);
-  --wi-fg: var(--wi-light-fg);
-  --wi-muted: var(--wi-light-muted);
-  --wi-subtle: var(--wi-light-subtle);
-  --wi-water: var(--wi-light-water);
-  --wi-data: var(--wi-light-data);
-  --wi-glacier: var(--wi-light-glacier);
-  --wi-stress: var(--wi-light-stress);
-  --wi-alert: var(--wi-light-alert);
-  --wi-adapt: var(--wi-light-adapt);
-  --wi-absent: var(--wi-light-absent);
-  --wi-focus: var(--wi-light-data);
-  --wi-hatch: rgb(78 97 120 / 0.22);
-  --wi-glow: rgb(15 118 110 / 0.1);
-  --wi-shadow: 0 1px 2px rgb(7 17 31 / 0.06), 0 12px 28px -20px rgb(7 17 31 / 0.4);
-  --wi-shadow-lift: 0 2px 4px rgb(7 17 31 / 0.08), 0 24px 44px -26px rgb(7 17 31 / 0.5);
-  --wi-shadow-panel: 0 10px 30px rgb(7 17 31 / 0.16);
-  --wi-shadow-tip: 0 4px 14px rgb(7 17 31 / 0.14);
+/*
+ * Sombre. Servi UNIQUEMENT par choix explicite (`data-wi-theme="sombre"`),
+ * jamais par la préférence du système. Ce ne sont pas les mêmes valeurs que le
+ * clair, c'est le MÊME rôle : l'échelle acier s'inverse pour tenir 4,5:1.
+ */
+[data-wi][data-wi-theme="sombre"] {
+  color-scheme: dark;
+  --wi-bg: #1d2d3d;
+  --wi-surface: #23374b;
+  --wi-raised: #22364a;
+  --wi-card: #22364a;
+  --wi-card-2: #2c455d;
+  --wi-border: rgb(242 242 243 / 0.22);
+  --wi-border-2: rgb(242 242 243 / 0.4);
+  --wi-fg: #f2f2f3;
+  --wi-muted: #cfd8e1;
+  --wi-subtle: #b3c0cc;
+
+  --wi-steel-100: #2c455d;
+  --wi-steel-200: #416180;
+  --wi-steel-300: #597ea3;
+  --wi-steel-700: #b5d9fd;
+  --wi-steel-800: #d6ebff;
+  --wi-accent: #94bce3;
+  --wi-on-accent: #1d2d3d;
+
+  --wi-water: #b5d9fd;
+  --wi-data: #b5d9fd;
+  --wi-glacier: #94bce3;
+  --wi-stress: #f0c27a;
+  --wi-alert: #ffa39b;
+  --wi-adapt: #9bd8b0;
+  --wi-absent: #b3c0cc;
+
+  --wi-focus: #b5d9fd;
+  --wi-hatch: rgb(148 188 227 / 0.4);
+  --wi-glow: rgb(148 188 227 / 0.08);
+  --wi-grid: rgb(148 188 227 / 0.1);
+  --wi-shadow-panel: none;
+  --wi-shadow-tip: none;
+  --wi-map-land: #2a4058;
 }
 
 /* ------------------------------------------------------------------ Structure */
@@ -230,21 +203,26 @@
 }
 
 [data-wi] .wi-h1 {
-  font-size: clamp(2.25rem, 6vw, 4rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.04;
+  font-size: clamp(2.75rem, 7vw, 5rem);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  line-height: 0.98;
+  text-transform: uppercase;
 }
 
 [data-wi] .wi-h2 {
-  font-size: clamp(1.5rem, 3.2vw, 2.125rem);
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.75rem, 3.6vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 [data-wi] .wi-h3 {
-  font-size: 1.0625rem;
-  font-weight: 650;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
 [data-wi] .wi-h4 {
@@ -254,9 +232,10 @@
 }
 
 [data-wi] .wi-kicker {
-  font-family: var(--wi-font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
+  font-family: var(--wi-font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--wi-water);
   margin: 0 0 0.5rem;
@@ -308,7 +287,7 @@
 [data-wi] [tabindex]:focus-visible {
   outline: 3px solid var(--wi-focus);
   outline-offset: 2px;
-  border-radius: 0.25rem;
+  border-radius: 0;
 }
 
 /* ------------------------------------------------------- Navigation ancrée */
@@ -342,7 +321,7 @@
 [data-wi] .wi-nav-link {
   white-space: nowrap;
   padding: 0.375rem 0.625rem;
-  border-radius: 0.375rem;
+  border-radius: 0;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--wi-muted);
@@ -359,7 +338,7 @@
 [data-wi] .wi-card {
   background: var(--wi-card);
   border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius);
+  border-radius: 0;
   padding: 1.25rem;
   box-shadow: var(--wi-shadow);
 }
@@ -403,7 +382,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.1875rem 0.5rem;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid currentColor;
   font-size: 0.6875rem;
   font-weight: 700;
@@ -438,7 +417,7 @@
   align-items: center;
   gap: 0.4375rem;
   padding: 0.3125rem 0.75rem;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--wi-border-2);
   background: var(--wi-card-2);
   color: var(--wi-fg);
@@ -464,7 +443,7 @@
     transparent 12px
   );
   border: 1px dashed var(--wi-border-2);
-  border-radius: 0.5rem;
+  border-radius: 0;
 }
 
 /* --------------------------------------------------------- Bandeau bordure */
@@ -500,7 +479,7 @@
   */
   overflow-x: auto;
   border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius);
+  border-radius: 0;
   background: var(--wi-card);
   -webkit-overflow-scrolling: touch;
 }
@@ -554,7 +533,7 @@
   border: 1px solid var(--wi-border);
   background: var(--wi-card);
   color: var(--wi-muted);
-  border-radius: 999px;
+  border-radius: 0;
   padding: 0.4375rem 0.875rem;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -579,7 +558,7 @@
   border: 1px solid var(--wi-border);
   background: var(--wi-card-2);
   color: var(--wi-muted);
-  border-radius: var(--wi-radius-sm);
+  border-radius: 0;
   padding: 0.25rem 0.5rem;
   font-size: 0.6875rem;
   font-weight: 650;
@@ -642,7 +621,7 @@
   padding: 0.625rem 1rem;
   background: var(--wi-surface);
   border: 2px solid var(--wi-focus);
-  border-radius: 0.375rem;
+  border-radius: 0;
   color: var(--wi-fg);
   font-weight: 600;
 }
@@ -736,7 +715,7 @@
   align-items: center;
   justify-content: center;
   padding: 0.6875rem 1.25rem;
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 0.9375rem;
   font-weight: 650;
   text-decoration: none;
@@ -748,7 +727,7 @@
   background: var(--wi-water);
   /* Texte sombre sur turquoise : c'est le sens qui donne le contraste AA,
      pas l'inverse. Le fond profond du thème sert de couleur de texte. */
-  color: #07111f;
+  color: var(--wi-on-accent);
 }
 
 [data-wi] .wi-cta-primary:hover {
@@ -775,7 +754,7 @@
 [data-wi] .wi-cascade {
   background: var(--wi-card);
   border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius);
+  border-radius: 0;
   padding: 1.375rem;
   box-shadow: var(--wi-shadow-lift);
 }
@@ -906,7 +885,7 @@
 
 [data-wi] .wi-bar-track {
   height: 0.75rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--wi-card-2);
   border: 1px solid var(--wi-border);
   overflow: hidden;
@@ -916,7 +895,7 @@
   display: block;
   height: 100%;
   background: linear-gradient(90deg, var(--wi-water), var(--wi-data));
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 [data-wi] .wi-bar-value {
@@ -969,7 +948,7 @@
 [data-wi] .wi-constellation-node {
   background: var(--wi-card);
   border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius);
+  border-radius: 0;
   box-shadow: var(--wi-shadow);
   overflow: hidden;
   /* Un panneau ouvert doit pouvoir dépasser la hauteur de ses voisins sans
@@ -1070,7 +1049,7 @@
 [data-wi] .wi-intensity-dots > span {
   width: 0.4375rem;
   height: 0.4375rem;
-  border-radius: 50%;
+  border-radius: 0;
   border: 1px solid var(--wi-border-2);
 }
 
@@ -1166,7 +1145,7 @@
   display: grid;
   gap: 0;
   border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius);
+  border-radius: 0;
   overflow: hidden;
   background: var(--wi-card);
 }
@@ -1244,7 +1223,7 @@
 [data-wi] .wi-bridge-step {
   background: var(--wi-card);
   border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius-sm);
+  border-radius: 0;
   align-self: start;
   overflow: hidden;
 }
@@ -1321,7 +1300,7 @@
 
 [data-wi] .wi-hero-halo > span {
   position: absolute;
-  border-radius: 50%;
+  border-radius: 0;
   filter: blur(2px);
 }
 
@@ -1336,7 +1315,7 @@
   left: -5rem;
   width: 32.5rem;
   height: 32.5rem;
-  background: radial-gradient(circle, rgb(45 212 191 / 0.16), transparent 65%);
+  background: radial-gradient(circle, var(--wi-glow), transparent 65%);
 }
 
 [data-wi] .wi-hero-halo > span:last-child {
@@ -1344,7 +1323,7 @@
   right: -8.75rem;
   width: 38.75rem;
   height: 38.75rem;
-  background: radial-gradient(circle, rgb(56 189 248 / 0.12), transparent 65%);
+  background: radial-gradient(circle, var(--wi-glow), transparent 65%);
 }
 
 /* ---------------------------------------------- Pastille d'état publication */
@@ -1372,7 +1351,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.1875rem 0.625rem;
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 0.65625rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -1385,7 +1364,7 @@
   content: "";
   width: 0.375rem;
   height: 0.375rem;
-  border-radius: 50%;
+  border-radius: 0;
   background: currentColor;
 }
 
@@ -1416,9 +1395,9 @@
 [data-wi] .wi-pulse-bars > span {
   flex: 0 0 auto;
   width: 1.125rem;
-  border-radius: 2px 2px 0 0;
+  border-radius: 0;
   background: var(--wi-water);
-  box-shadow: 0 0 10px rgb(45 212 191 / 0.35);
+  box-shadow: none;
 }
 
 /* ---------------------------------------------------- Constellation en orbite */
@@ -1428,7 +1407,7 @@
   min-height: 30rem;
   background: radial-gradient(circle at 50% 50%, var(--wi-card) 0%, var(--wi-bg) 70%);
   border: 1px solid var(--wi-border);
-  border-radius: 1.125rem;
+  border-radius: 0;
   overflow: clip;
 }
 
@@ -1447,7 +1426,7 @@
   text-align: center;
   background: var(--wi-raised);
   border: 1px solid var(--wi-border-2);
-  border-radius: 1rem;
+  border-radius: 0;
   padding: 0.875rem 1.125rem;
   box-shadow: var(--wi-shadow-panel);
 }
@@ -1475,7 +1454,7 @@
   align-items: center;
   gap: 0.3125rem;
   appearance: none;
-  border-radius: 0.875rem;
+  border-radius: 0;
   color: var(--wi-fg);
   cursor: pointer;
   transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
@@ -1494,7 +1473,7 @@
 [data-wi] .wi-orbit-detail {
   background: var(--wi-card);
   border: 1px solid var(--wi-border);
-  border-radius: 1.125rem;
+  border-radius: 0;
   padding: 1.625rem;
   display: flex;
   flex-direction: column;
@@ -1553,7 +1532,7 @@
   justify-content: center;
   width: 100%;
   min-height: 2.125rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   font-weight: 650;
@@ -1564,7 +1543,7 @@
 
 [data-wi] .wi-rank[data-rank="structurante"] {
   background: var(--wi-water);
-  color: #07111f;
+  color: var(--wi-on-accent);
 }
 [data-wi] .wi-rank[data-rank="significative"] {
   background: color-mix(in srgb, var(--wi-water) 38%, transparent);
@@ -1605,7 +1584,7 @@
 [data-wi] .wi-rank-legend-swatch > span {
   width: 0.75rem;
   height: 0.75rem;
-  border-radius: 0.25rem;
+  border-radius: 0;
 }
 
 /* ----------------------------------------------- Innovations — barres d'axes */
@@ -1628,7 +1607,7 @@
 
 [data-wi] .wi-innov-axis-track {
   height: 0.4375rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--wi-card-2);
   overflow: hidden;
 }
@@ -1636,7 +1615,7 @@
 [data-wi] .wi-innov-axis-fill {
   display: block;
   height: 100%;
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 [data-wi] .wi-innov-axis-fill[data-hatched="true"] {
@@ -1653,7 +1632,7 @@
 
 [data-wi] .wi-map-frame {
   border: 1px solid var(--wi-border);
-  border-radius: 1rem;
+  border-radius: 0;
   overflow: hidden;
   background: var(--wi-bg);
   min-height: 28.75rem;
@@ -1750,7 +1729,7 @@
 
 [data-wi] .wi-deferred-layers {
   border: 1px dashed var(--wi-border-2);
-  border-radius: 0.875rem;
+  border-radius: 0;
   padding: 1.25rem;
   background-image: repeating-linear-gradient(
     45deg,
@@ -1794,7 +1773,7 @@
   align-items: center;
   gap: 0.4375rem;
   padding: 0.25rem 0.75rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--wi-card);
   border: 1px solid var(--wi-border);
   font-size: 0.78125rem;
@@ -1804,12 +1783,12 @@
 [data-wi] .wi-bassin-legend-item > span {
   width: 0.5625rem;
   height: 0.5625rem;
-  border-radius: 50%;
+  border-radius: 0;
 }
 
 [data-wi] .wi-bassin-canvas-wrap {
   border: 1px solid var(--wi-border);
-  border-radius: 1rem;
+  border-radius: 0;
   overflow: hidden;
   background: #0a1626;
   position: relative;
@@ -1835,7 +1814,7 @@
   color: var(--wi-muted);
   background: color-mix(in srgb, var(--wi-bg) 70%, transparent);
   padding: 0.25rem 0.625rem;
-  border-radius: 999px;
+  border-radius: 0;
   pointer-events: none;
 }
 
@@ -1852,7 +1831,7 @@
   border: 1px solid var(--wi-border-2);
   background: var(--wi-raised);
   color: var(--wi-fg);
-  border-radius: 0.5rem;
+  border-radius: 0;
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 650;
@@ -1900,7 +1879,7 @@
   background: var(--wi-card);
   border: 1px solid var(--wi-border);
   border-top: 3px solid var(--wi-subtle);
-  border-radius: 0.75rem;
+  border-radius: 0;
   padding: 0.75rem;
   color: var(--wi-fg);
   cursor: pointer;
@@ -1950,7 +1929,7 @@
 [data-wi] .wi-bridge-legend-item > span {
   width: 0.625rem;
   height: 0.625rem;
-  border-radius: 0.1875rem;
+  border-radius: 0;
 }
 
 /* -------------------------------------------------------------- Simulateur */
@@ -1959,7 +1938,7 @@
   margin-top: 2.75rem;
   background: linear-gradient(180deg, var(--wi-card), var(--wi-bg));
   border: 1px solid var(--wi-border-2);
-  border-radius: 1.125rem;
+  border-radius: 0;
   padding: 1.75rem;
 }
 
@@ -2026,7 +2005,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.375rem 0.8125rem;
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 0.78125rem;
   font-weight: 650;
   border: 1px solid var(--wi-border);
@@ -2055,7 +2034,7 @@
 [data-wi] .wi-proof-card {
   background: var(--wi-card);
   border: 1px solid var(--wi-border);
-  border-radius: 0.75rem;
+  border-radius: 0;
   padding: 1rem 1.125rem;
   display: flex;
   flex-direction: column;
@@ -2086,7 +2065,7 @@
 [data-wi] .wi-limits-card {
   background: var(--wi-card);
   border: 1px dashed var(--wi-border-2);
-  border-radius: 0.75rem;
+  border-radius: 0;
   padding: 1.125rem;
 }
 
@@ -2129,7 +2108,7 @@
   gap: 0.1875rem;
   padding: 0.9375rem 1rem 1rem;
   border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius-sm);
+  border-radius: 0;
   background: var(--wi-card);
   text-decoration: none;
   color: inherit;
@@ -2189,7 +2168,7 @@
   z-index: 5;
   max-width: min(18rem, 68vw);
   padding: 0.4375rem 0.625rem;
-  border-radius: 0.375rem;
+  border-radius: 0;
   border: 1px solid var(--wi-border-2);
   background: var(--wi-raised);
   box-shadow: var(--wi-shadow-tip);
@@ -2221,7 +2200,7 @@
     ),
     var(--wi-card);
   border: 1px solid color-mix(in srgb, var(--wi-water) 22%, var(--wi-border));
-  border-radius: var(--wi-radius);
+  border-radius: 0;
   padding: 1.25rem;
   box-shadow: var(--wi-shadow-lift);
 }
@@ -2294,7 +2273,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem;
-  border-radius: 0.625rem;
+  border-radius: 0;
   text-decoration: none;
   color: inherit;
   transition: background-color 140ms ease;
@@ -2308,7 +2287,7 @@
   flex: 0 0 auto;
   width: 2rem;
   height: 2rem;
-  border-radius: 50%;
+  border-radius: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2350,7 +2329,7 @@
   margin-left: auto;
   width: 0.5rem;
   height: 0.5rem;
-  border-radius: 50%;
+  border-radius: 0;
   box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
 }
 
@@ -2522,7 +2501,7 @@
   background: none;
   border: none;
   padding: 0.625rem 0.375rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -2597,7 +2576,7 @@
   top: 50%;
   height: 2px;
   margin-top: -1px;
-  border-radius: 1px;
+  border-radius: 0;
   background: linear-gradient(
     90deg,
     color-mix(in srgb, var(--wi-water) 45%, transparent),
@@ -2611,7 +2590,7 @@
   top: 50%;
   width: 0.5625rem;
   height: 0.5625rem;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--wi-water);
   transform: translate(-50%, -50%);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--wi-water) 18%, transparent);
@@ -2661,7 +2640,7 @@
   margin: 0 0 0.75rem;
   padding: 0.875rem 1rem;
   border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius-sm);
+  border-radius: 0;
   background: var(--wi-card-2);
   display: grid;
   gap: 0.625rem;
@@ -2812,7 +2791,7 @@
   margin: -1.375rem 0 0 -1.375rem;
   padding: 0;
   border: none;
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
   cursor: pointer;
 }
@@ -2827,7 +2806,7 @@
   margin-top: 1rem;
   padding: 1rem 1.125rem;
   border: 1px solid var(--wi-border);
-  border-radius: var(--wi-radius);
+  border-radius: 0;
   background: var(--wi-card);
 }
 
@@ -2847,7 +2826,7 @@
  */
 [data-wi] .wi-atlas-layer {
   display: block;
-  border-radius: 0.5rem;
+  border-radius: 0;
 }
 
 /* Une couche différée est visiblement inerte : hachurée, en retrait, et sans
@@ -2877,7 +2856,7 @@
   appearance: none;
   background: none;
   border: 1px solid transparent;
-  border-radius: 0.5rem;
+  border-radius: 0;
   color: inherit;
   font: inherit;
   text-align: left;
@@ -2895,7 +2874,7 @@
   width: 0.875rem;
   height: 0.875rem;
   margin-top: 0.125rem;
-  border-radius: 0.25rem;
+  border-radius: 0;
 }
 
 [data-wi] .wi-atlas-swatch-published {
@@ -3028,7 +3007,7 @@
   appearance: none;
   flex: 0 0 auto;
   border: 1px solid var(--wi-border-2);
-  border-radius: 0.5rem;
+  border-radius: 0;
   background: var(--wi-card);
   color: var(--wi-fg);
   font: inherit;
@@ -3094,7 +3073,7 @@
   margin: 0 0 0.75rem;
   padding: 0.5rem 0.75rem;
   border: 1px dashed var(--wi-border-2);
-  border-radius: 0.5rem;
+  border-radius: 0;
   font-size: 0.75rem;
   line-height: 1.5;
   color: var(--wi-stress);
@@ -3108,3 +3087,1533 @@
   }
 }
 
+
+/* ==========================================================================
+   Water Intelligence v4 — chapitres Industry
+   --------------------------------------------------------------------------
+   Refonte : un chapitre = un écran, rail de progression, cadre filaire à
+   repères « + », onglets, boussole, repères France, coupe du cycle, bilan.
+   Toutes les animations jouent un nombre FINI de fois (aucune n'est
+   perpétuelle) et s'effacent sous `prefers-reduced-motion`.
+   ========================================================================== */
+
+/* ---------------------------------------------------------- Défilement */
+:root:has([data-wi] .wi-chapters) {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 3.75rem;
+}
+
+/* ------------------------------------------------------------ En-tête */
+[data-wi] .wi-nav {
+  background: var(--wi-bg);
+  backdrop-filter: none;
+}
+
+[data-wi] .wi-nav-inner {
+  gap: 0.75rem 1.5rem;
+  min-height: 3.5rem;
+  padding: 0.5rem 1.25rem;
+}
+
+[data-wi] .wi-nav-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  flex: none;
+}
+
+[data-wi] .wi-nav-mark {
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-nav-module {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wi-muted);
+  white-space: nowrap;
+}
+
+[data-wi] .wi-nav-links {
+  display: flex;
+  gap: 0.125rem 0.25rem;
+  margin-left: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+[data-wi] .wi-nav-link {
+  font-family: var(--wi-font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-nav-link:hover {
+  color: var(--wi-water);
+  background: transparent;
+}
+
+[data-wi] .wi-nav-aside {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: none;
+}
+
+[data-wi] .wi-nav-snapshot {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wi-water);
+  white-space: nowrap;
+}
+
+@media (max-width: 63.99rem) {
+  [data-wi] .wi-nav-inner {
+    flex-wrap: wrap;
+  }
+  [data-wi] .wi-nav-links {
+    order: 3;
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+  [data-wi] .wi-nav-snapshot {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------ Boutons */
+[data-wi] .wi-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--wi-border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--wi-fg);
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+[data-wi] .wi-btn:hover {
+  background: color-mix(in srgb, var(--wi-fg) 7%, transparent);
+}
+
+[data-wi] .wi-btn-primary {
+  background: var(--wi-accent);
+  border-color: var(--wi-accent);
+  color: var(--wi-on-accent);
+}
+
+[data-wi] .wi-btn-primary:hover {
+  background: var(--wi-steel-600);
+  border-color: var(--wi-steel-600);
+}
+
+[data-wi] .wi-btn-ghost {
+  color: var(--wi-water);
+  border-color: var(--wi-accent);
+}
+
+[data-wi] .wi-btn[aria-pressed="true"] {
+  background: var(--wi-accent);
+  border-color: var(--wi-accent);
+  color: var(--wi-on-accent);
+}
+
+[data-wi] .wi-nav-theme {
+  min-height: 2.25rem;
+  font-size: 0.875rem;
+}
+
+/* ---------------------------------------------------- Cadre filaire */
+[data-wi] .wi-frame {
+  position: relative;
+  border: 1px solid var(--wi-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Quatre repères « + » qui débordent de 6px aux coins, tracés par un seul
+   pseudo-élément : huit traits de 1px posés en dégradés. */
+[data-wi] .wi-frame::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  --c: var(--wi-subtle);
+  background:
+    linear-gradient(var(--c), var(--c)) 5px 0 / 1px 11px no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 5px / 11px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) calc(100% - 5px) 0 / 1px 11px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 5px / 11px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) 5px 100% / 1px 11px no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 calc(100% - 5px) / 11px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) calc(100% - 5px) 100% / 1px 11px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% calc(100% - 5px) / 11px 1px no-repeat;
+  opacity: 0.8;
+}
+
+[data-wi] .wi-gridpaper {
+  background-image:
+    linear-gradient(var(--wi-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--wi-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+[data-wi] .wi-hatched {
+  background-image: repeating-linear-gradient(135deg, var(--wi-hatch) 0 1px, transparent 1px 6px);
+}
+
+[data-wi] .wi-tag {
+  display: inline-block;
+  margin: 0.5rem 0 0;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--wi-steel-500);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-water);
+}
+
+/* ------------------------------------------------------------ Chapitres */
+[data-wi] .wi-chapters {
+  padding-bottom: 0;
+}
+
+[data-wi] .wi-chapter {
+  min-height: calc(100svh - 3.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 0 0;
+  border-bottom: 1px solid var(--wi-border);
+  /* La compensation de la nav collante vient du `scroll-padding-top` de la
+     racine : la redire ici la compterait deux fois. */
+  scroll-margin-top: 0;
+  scroll-snap-align: start;
+}
+
+[data-wi] .wi-chapter .wi-section {
+  padding-top: 0;
+  scroll-margin-top: 1rem;
+}
+
+[data-wi] .wi-chapter-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 4rem;
+}
+
+[data-wi] .wi-chapter-head-main {
+  flex: 7 1 32rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-chapter-lead {
+  flex: 5 1 20rem;
+  min-width: 0;
+  font-size: 1rem;
+}
+
+[data-wi] .wi-chapter-lead .wi-muted {
+  margin: 0;
+}
+
+[data-wi] .wi-chapter-body {
+  flex: 1;
+  min-width: 0;
+}
+
+[data-wi] .wi-chapter-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  padding: 0.875rem 0;
+  border-top: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-chapter-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-chapter-segments {
+  display: flex;
+  gap: 4px;
+  flex: 1 1 10rem;
+}
+
+[data-wi] .wi-chapter-segment {
+  flex: 1;
+  height: 3px;
+  background: var(--wi-border);
+}
+
+[data-wi] .wi-chapter-segment[data-state="done"],
+[data-wi] .wi-chapter-segment[data-state="current"] {
+  background: var(--wi-accent);
+}
+
+[data-wi] .wi-chapter-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+[data-wi] .wi-chapter-split-main {
+  flex: 6 1 26rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-chapter-split-side {
+  flex: 6 1 32rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-chapter .wi-section .wi-h2 {
+  font-size: clamp(1.375rem, 2.4vw, 1.75rem);
+}
+
+[data-wi] .wi-chapter-note {
+  margin: 1rem 0 0;
+  max-width: 62ch;
+  font-size: 0.875rem;
+}
+
+/* -------------------------------------------------------------- Onglets */
+[data-wi] .wi-tablist {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--wi-border);
+  margin-bottom: 1.25rem;
+}
+
+[data-wi] .wi-tabbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: 0;
+  border-right: 1px solid var(--wi-border);
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--wi-fg);
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+[data-wi] .wi-tabbtn[aria-selected="true"] {
+  background: var(--wi-steel-100);
+  border-bottom-color: var(--wi-accent);
+}
+
+[data-wi] .wi-tabbtn-n {
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-tabpanel:not([hidden]) {
+  animation: wiV4Fade 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-seg {
+  display: inline-flex;
+  border: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-seg button {
+  min-height: 2.25rem;
+  padding: 0 0.875rem;
+  border: 0;
+  background: transparent;
+  color: var(--wi-fg);
+  font-family: var(--wi-font-body);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+[data-wi] .wi-seg button[aria-pressed="true"] {
+  background: var(--wi-accent);
+  color: var(--wi-on-accent);
+}
+
+/* ------------------------------------------------------------- Boussole */
+[data-wi] .wi-compass {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+[data-wi] .wi-compass-figure {
+  flex: 7 1 28rem;
+  min-width: 0;
+  padding: 1rem;
+}
+
+[data-wi] .wi-compass-stage {
+  position: relative;
+  width: 100%;
+  max-width: 34rem;
+  aspect-ratio: 480 / 440;
+  margin: 0 auto;
+}
+
+[data-wi] .wi-compass-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+[data-wi] .wi-compass-hatchline {
+  stroke: var(--wi-steel-500);
+  stroke-width: 1.4;
+}
+
+[data-wi] .wi-compass-orbit {
+  fill: none;
+  stroke: var(--wi-border);
+  stroke-dasharray: 2 5;
+}
+
+[data-wi] .wi-compass-core {
+  fill: none;
+  stroke: var(--wi-border);
+}
+
+[data-wi] .wi-compass-seg {
+  stroke: var(--wi-steel-500);
+  stroke-width: 1;
+  cursor: pointer;
+  transition: transform 350ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: wiV4Fade 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-compass-seg[data-on="true"] {
+  stroke: var(--wi-fg);
+  stroke-width: 2;
+}
+
+[data-wi] .wi-compass-seg-published { fill: var(--wi-steel-700); }
+[data-wi] .wi-compass-seg-qualitative { fill: var(--wi-steel-300); }
+[data-wi] .wi-compass-seg-deferred { fill: url(#wiCompassHatch); }
+[data-wi] .wi-compass-seg-not_instrumented {
+  fill: transparent;
+  stroke: var(--wi-muted);
+  stroke-dasharray: 4 4;
+}
+
+[data-wi] .wi-compass-num {
+  font-family: var(--wi-font-display);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  fill: var(--wi-muted);
+}
+
+[data-wi] .wi-compass-label {
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 20px;
+  text-transform: uppercase;
+  fill: var(--wi-fg);
+}
+
+[data-wi] .wi-compass-chip {
+  position: absolute;
+  width: 23.4%;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.375rem;
+  border: 1px solid var(--wi-border);
+  background: var(--wi-bg);
+  color: var(--wi-fg);
+  font-family: var(--wi-font-body);
+  font-size: 0.8125rem;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+[data-wi] .wi-compass-chip[aria-pressed="true"] {
+  border-color: var(--wi-accent);
+  background: var(--wi-steel-100);
+  font-weight: 600;
+}
+
+[data-wi] .wi-compass-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-compass-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+[data-wi] .wi-compass-key {
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+}
+
+[data-wi] .wi-compass-key-published { background: var(--wi-steel-700); }
+[data-wi] .wi-compass-key-qualitative { background: var(--wi-steel-300); }
+[data-wi] .wi-compass-key-deferred {
+  border: 1px solid var(--wi-steel-500);
+  background-image: repeating-linear-gradient(135deg, var(--wi-hatch) 0 1px, transparent 1px 4px);
+}
+[data-wi] .wi-compass-key-not_instrumented { border: 1px dashed var(--wi-muted); }
+
+[data-wi] .wi-compass-panel {
+  flex: 5 1 20rem;
+  min-width: 0;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: wiV4Fade 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-compass-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+[data-wi] .wi-compass-title {
+  font-size: 1.875rem;
+  line-height: 1;
+}
+
+[data-wi] .wi-compass-question {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+[data-wi] .wi-compass-facts {
+  margin: 0;
+  border-top: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-compass-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-compass-facts dt {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-compass-facts dd {
+  margin: 0;
+  text-align: right;
+  font-size: 0.875rem;
+}
+
+[data-wi] .wi-compass-go {
+  margin-top: auto;
+}
+
+/* ------------------------------------------------------------- NEURAL */
+[data-wi] .wi-neural {
+  margin: 0;
+  border: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-neural-head {
+  display: flex;
+  border-bottom: 1px solid var(--wi-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+[data-wi] .wi-neural-head span {
+  padding: 0.6875rem 0.875rem;
+}
+
+[data-wi] .wi-neural-head span:first-child {
+  flex: 1;
+}
+
+[data-wi] .wi-neural-plate {
+  border-left: 1px solid var(--wi-border);
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-neural-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 1rem 0 1.75rem;
+  background-image:
+    linear-gradient(var(--wi-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--wi-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+[data-wi] .wi-neural-svg {
+  color: var(--wi-accent);
+  overflow: visible;
+}
+
+[data-wi] .wi-neural-draw {
+  stroke-dasharray: 640;
+  animation: wiV4Draw 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-neural-cap {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.375rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wi-muted);
+}
+
+/* --------------------------------------------------------- Repères */
+[data-wi] .wi-rep-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+[data-wi] .wi-rep-chart {
+  padding: 1rem 1.125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+[data-wi] .wi-rep-chart .wi-h4,
+[data-wi] .wi-h4 {
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+[data-wi] .wi-rep-bars,
+[data-wi] .wi-rep-diverge,
+[data-wi] .wi-rep-years {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+[data-wi] .wi-rep-bars li,
+[data-wi] .wi-rep-diverge li {
+  display: grid;
+  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr) 4.5rem;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+[data-wi] .wi-rep-bar-label {
+  font-size: 0.8125rem;
+  line-height: 1.2;
+}
+
+[data-wi] .wi-rep-bar-period {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-rep-bar-track,
+[data-wi] .wi-rep-diverge-track {
+  display: block;
+  height: 1.375rem;
+  background: var(--wi-surface);
+}
+
+[data-wi] .wi-rep-bar-fill {
+  display: block;
+  height: 100%;
+  background-color: var(--wi-steel-700);
+  border: 1px solid var(--wi-steel-700);
+  box-sizing: border-box;
+  transform-origin: left;
+  animation: wiV4GrowX 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-rep-bar-fill.wi-hatched {
+  background-color: transparent;
+}
+
+[data-wi] .wi-rep-diverge-track {
+  display: flex;
+  justify-content: flex-end;
+}
+
+[data-wi] .wi-rep-diverge-fill {
+  display: block;
+  height: 100%;
+  background: var(--wi-steel-500);
+  transform-origin: right;
+  animation: wiV4GrowX 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-rep-bar-value {
+  text-align: right;
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+[data-wi] .wi-rep-figs {
+  display: grid;
+  gap: 1.25rem;
+}
+
+[data-wi] .wi-rep-fig {
+  padding: 0.875rem 1rem;
+}
+
+[data-wi] .wi-rep-fig-value {
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+[data-wi] .wi-rep-fig-unit {
+  font-size: 1rem;
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-rep-fig-label {
+  margin: 0.375rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+
+[data-wi] .wi-rep-fig-caveat,
+[data-wi] .wi-rep-note {
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-rep-src {
+  margin: 0.375rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-rep-missing {
+  color: var(--wi-muted);
+  font-style: italic;
+}
+
+[data-wi] .wi-rep-donut-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+[data-wi] .wi-rep-donut {
+  width: 12.5rem;
+  height: 12.5rem;
+  flex: none;
+}
+
+[data-wi] .wi-rep-donut-track {
+  fill: none;
+  stroke: var(--wi-surface);
+  stroke-width: 34;
+}
+
+[data-wi] .wi-rep-donut-arc {
+  fill: none;
+  stroke-width: 34;
+  transition: stroke-dasharray 900ms cubic-bezier(0.2, 0.7, 0.2, 1), stroke-dashoffset 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-wi] .wi-rep-use-centrales { stroke: var(--wi-steel-800); background: var(--wi-steel-800); }
+[data-wi] .wi-rep-use-agriculture { stroke: var(--wi-steel-600); background: var(--wi-steel-600); }
+[data-wi] .wi-rep-use-potable { stroke: var(--wi-steel-400); background: var(--wi-steel-400); }
+[data-wi] .wi-rep-use-canaux { stroke: var(--wi-steel-200); background: var(--wi-steel-200); }
+[data-wi] .wi-rep-use-autres { stroke: var(--wi-muted); background: var(--wi-muted); }
+
+[data-wi] .wi-rep-donut-big {
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 26px;
+  fill: var(--wi-fg);
+}
+
+[data-wi] .wi-rep-donut-small {
+  font-size: 12px;
+  fill: var(--wi-muted);
+}
+
+[data-wi] .wi-rep-table {
+  flex: 1 1 14rem;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+[data-wi] .wi-rep-table th,
+[data-wi] .wi-rep-table td {
+  padding: 0.4375rem 0.25rem;
+  border-bottom: 1px solid var(--wi-border);
+  text-align: left;
+  font-weight: 400;
+}
+
+[data-wi] .wi-rep-table thead th {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-rep-table td {
+  text-align: right;
+  font-family: var(--wi-font-display);
+  font-size: 1rem;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-rep-table td[data-on="true"] {
+  color: var(--wi-fg);
+  font-weight: 600;
+}
+
+[data-wi] .wi-rep-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 0.375rem;
+}
+
+[data-wi] .wi-rep-unitrow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+[data-wi] .wi-rep-units {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+  width: 9.5rem;
+  flex: none;
+}
+
+[data-wi] .wi-rep-unit {
+  aspect-ratio: 1;
+  border: 1px solid var(--wi-border);
+  box-sizing: border-box;
+}
+
+[data-wi] .wi-rep-unit-on {
+  background: var(--wi-steel-700);
+  border-color: var(--wi-steel-700);
+}
+
+[data-wi] .wi-rep-pfas {
+  width: 100%;
+  height: auto;
+}
+
+[data-wi] .wi-rep-pfas-limit {
+  stroke: var(--wi-alert);
+  stroke-dasharray: 5 4;
+}
+
+[data-wi] .wi-rep-pfas-limit-label {
+  font-size: 11px;
+  fill: var(--wi-alert);
+}
+
+[data-wi] .wi-rep-pfas-axis {
+  stroke: var(--wi-fg);
+}
+
+[data-wi] .wi-rep-pfas-axis-label {
+  font-size: 10px;
+  fill: var(--wi-muted);
+}
+
+[data-wi] .wi-rep-pfas-dot {
+  fill: var(--wi-steel-700);
+  animation: wiV4Pop 400ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+[data-wi] .wi-rep-stack {
+  display: flex;
+  height: 2rem;
+  border: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-rep-stack-part {
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-right: 2px solid var(--wi-bg);
+  transform-origin: left;
+  animation: wiV4GrowX 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-rep-stack-0 { background: var(--wi-steel-700); color: var(--wi-on-accent); }
+[data-wi] .wi-rep-stack-1 { background: var(--wi-steel-400); color: #1d1f20; }
+
+[data-wi] .wi-rep-stack-legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.8125rem;
+}
+
+[data-wi] .wi-rep-ladder {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+[data-wi] .wi-rep-ladder li {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: 0.625rem;
+  align-items: center;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+}
+
+[data-wi] .wi-rep-ladder-name {
+  padding: 0.25rem 0.5rem;
+  font-weight: 600;
+}
+
+[data-wi] .wi-rep-ladder li[data-level="0"] .wi-rep-ladder-name { background: var(--wi-steel-200); color: var(--wi-fg); }
+[data-wi] .wi-rep-ladder li[data-level="1"] .wi-rep-ladder-name { background: var(--wi-steel-400); color: #1d1f20; }
+[data-wi] .wi-rep-ladder li[data-level="2"] .wi-rep-ladder-name { background: var(--wi-steel-600); color: #f2f2f3; }
+[data-wi] .wi-rep-ladder li[data-level="3"] .wi-rep-ladder-name { background: var(--wi-steel-800); color: var(--wi-bg); }
+
+[data-wi] .wi-rep-ladder-effect {
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-rep-years li {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) 3.5rem;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+[data-wi] .wi-rep-years {
+  gap: 0.3125rem;
+}
+
+[data-wi] .wi-rep-year {
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+[data-wi] .wi-rep-yearbar {
+  display: flex;
+  height: 0.875rem;
+  background: var(--wi-surface);
+  transform-origin: left;
+  animation: wiV4GrowX 800ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-rep-lvl {
+  display: inline-block;
+  height: 100%;
+}
+
+[data-wi] .wi-rep-lvl-legend .wi-rep-lvl {
+  width: 12px;
+  height: 12px;
+  margin-right: 0.375rem;
+  vertical-align: -2px;
+}
+
+[data-wi] .wi-rep-lvl-crise { background: var(--wi-steel-800); }
+[data-wi] .wi-rep-lvl-renforcee { background: var(--wi-steel-600); }
+[data-wi] .wi-rep-lvl-alerte { background: var(--wi-steel-400); }
+[data-wi] .wi-rep-lvl-vigilance {
+  background-image: repeating-linear-gradient(135deg, var(--wi-hatch) 0 1px, transparent 1px 4px);
+}
+
+[data-wi] .wi-rep-lvl-legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.75rem;
+  color: var(--wi-muted);
+}
+
+/* ------------------------------------------------------------- Cycle */
+[data-wi] .wi-cycle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+[data-wi] .wi-cycle-figure {
+  flex: 8 1 34rem;
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-wi] .wi-cycle-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0.5625rem 0.875rem;
+  border-bottom: 1px solid var(--wi-border);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+[data-wi] .wi-cycle-banner strong {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+[data-wi] .wi-cycle-banner-key {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--wi-steel-500);
+}
+
+[data-wi] .wi-cycle-stage {
+  position: relative;
+  aspect-ratio: 760 / 430;
+  overflow: hidden;
+}
+
+[data-wi] .wi-cycle-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+[data-wi] .wi-cy-rock { fill: var(--wi-card-2); }
+[data-wi] .wi-cy-aquifer { fill: var(--wi-steel-200); }
+[data-wi] .wi-cy-soil { fill: var(--wi-surface); }
+[data-wi] .wi-cy-land { fill: var(--wi-map-land); stroke: var(--wi-fg); stroke-width: 1.2; }
+[data-wi] .wi-cy-river { fill: var(--wi-steel-400); }
+[data-wi] .wi-cy-table { stroke: var(--wi-steel-500); stroke-dasharray: 3 4; }
+[data-wi] .wi-cy-label { font-size: 11px; letter-spacing: 0.08em; fill: var(--wi-muted); }
+[data-wi] .wi-cy-label-strong { fill: var(--wi-steel-800); }
+[data-wi] .wi-cy-group { transition: opacity 450ms; }
+[data-wi] .wi-cy-cloud circle,
+[data-wi] .wi-cy-cloud line { fill: var(--wi-bg); stroke: var(--wi-fg); stroke-width: 1.2; }
+[data-wi] .wi-cy-cloud-fill { fill: var(--wi-bg); }
+[data-wi] .wi-cy-rain,
+[data-wi] .wi-cy-rain-still { stroke: var(--wi-accent); stroke-width: 1.5; stroke-linecap: round; }
+[data-wi] .wi-cy-rain { animation: wiV4Rain 1.1s linear 4 both; }
+[data-wi] .wi-cy-flow,
+[data-wi] .wi-cy-seep,
+[data-wi] .wi-cy-vapor { fill: none; }
+[data-wi] .wi-cy-flow { stroke: var(--wi-accent); stroke-width: 2.5; stroke-dasharray: 6 8; }
+[data-wi] .wi-cy-flow-dark { stroke: var(--wi-steel-800); }
+[data-wi] .wi-cy-flow-light { stroke: var(--wi-steel-400); }
+[data-wi] .wi-cy-seep { stroke: var(--wi-steel-700); stroke-width: 1.75; stroke-dasharray: 3 9; }
+[data-wi] .wi-cy-vapor { stroke: var(--wi-steel-500); stroke-width: 1.5; stroke-dasharray: 4 6; }
+[data-wi] .wi-cy-flow-on { animation: wiV4Flow 1.4s linear 4 both; }
+[data-wi] .wi-cy-pipe { fill: var(--wi-bg); stroke: var(--wi-fg); stroke-width: 1.2; }
+[data-wi] .wi-cy-outline { fill: none; stroke: var(--wi-fg); stroke-width: 1.2; }
+[data-wi] .wi-cy-outlet { fill: none; stroke: var(--wi-fg); stroke-width: 5; stroke-linejoin: round; }
+
+[data-wi] .wi-cycle-hot {
+  position: absolute;
+  width: 2.125rem;
+  height: 2.125rem;
+  margin: -1.0625rem 0 0 -1.0625rem;
+  border: 1.5px solid var(--wi-fg);
+  border-radius: 50%;
+  background: var(--wi-bg);
+  color: var(--wi-fg);
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  cursor: pointer;
+  transition: transform 200ms, background-color 200ms;
+}
+
+[data-wi] .wi-cycle-hot:hover {
+  transform: scale(1.08);
+}
+
+[data-wi] .wi-cycle-hot[aria-pressed="true"] {
+  background: var(--wi-fg);
+  color: var(--wi-bg);
+}
+
+[data-wi] .wi-cycle-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.875rem;
+  padding: 0.625rem 0.875rem;
+  border-top: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-cycle-track {
+  display: flex;
+  gap: 4px;
+  flex: 1 1 6rem;
+}
+
+[data-wi] .wi-cycle-track span {
+  flex: 1;
+  height: 3px;
+  background: var(--wi-border);
+  transition: background-color 300ms;
+}
+
+[data-wi] .wi-cycle-track span[data-on="true"] {
+  background: var(--wi-accent);
+}
+
+[data-wi] .wi-cycle-panel {
+  flex: 4 1 20rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-wi] .wi-cycle-read {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1.125rem 1.25rem;
+  border-bottom: 1px solid var(--wi-border);
+  animation: wiV4Fade 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-cycle-read p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+[data-wi] .wi-cycle-title {
+  font-size: 1.875rem;
+  line-height: 1;
+}
+
+[data-wi] .wi-cycle-measure {
+  padding: 0.625rem 0.75rem;
+  background: var(--wi-steel-100);
+}
+
+[data-wi] .wi-cycle-measure-k {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-cycle-src {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+  margin-top: 0.25rem !important;
+}
+
+[data-wi] .wi-cycle-state {
+  padding: 0.0625rem 0.5rem;
+  border: 1px solid var(--wi-steel-500);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-cycle-state-on {
+  background: var(--wi-bg);
+}
+
+[data-wi] .wi-cycle-ctx {
+  padding-left: 0.625rem;
+  border-left: 2px solid var(--wi-steel-500);
+  font-size: 0.8125rem !important;
+}
+
+[data-wi] .wi-cycle-list {
+  margin: 0;
+  padding: 0.375rem 0;
+  list-style: none;
+  flex: 1;
+}
+
+[data-wi] .wi-cycle-list button {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0 1.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--wi-fg);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+[data-wi] .wi-cycle-list button[aria-current="step"] {
+  background: var(--wi-steel-100);
+}
+
+[data-wi] .wi-cycle-list-n {
+  width: 1.125rem;
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-cycle-list-t {
+  flex: 1;
+}
+
+[data-wi] .wi-cycle-mk {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--wi-steel-500);
+  box-sizing: border-box;
+}
+
+[data-wi] .wi-cycle-mk-on {
+  background: var(--wi-steel-700);
+}
+
+[data-wi] .wi-cycle-list-s {
+  width: 5.5rem;
+  font-size: 0.75rem;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-cycle-sum {
+  margin: 0;
+  padding: 0.625rem 1.25rem 0.875rem;
+  border-top: 1px solid var(--wi-border);
+  font-size: 0.8125rem;
+  color: var(--wi-muted);
+}
+
+/* -------------------------------------------------------------- Bilan */
+[data-wi] .wi-quiz {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+[data-wi] .wi-quiz-guide {
+  flex: 4 1 17rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0 0 1rem;
+}
+
+[data-wi] .wi-quiz-guide .wi-neural {
+  border: 0;
+  border-bottom: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-quiz-guide > :not(.wi-neural) {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+[data-wi] .wi-quiz-score {
+  margin: 0;
+}
+
+[data-wi] .wi-quiz-score > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--wi-border);
+}
+
+[data-wi] .wi-quiz-score dt {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-quiz-score dd {
+  margin: 0;
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 1.1875rem;
+}
+
+[data-wi] .wi-quiz-gauge {
+  display: block;
+  height: 4px;
+  background: var(--wi-border);
+}
+
+[data-wi] .wi-quiz-gauge span {
+  display: block;
+  height: 100%;
+  background: var(--wi-accent);
+  transition: width 800ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-wi] .wi-quiz-voice {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+[data-wi] .wi-quiz-list {
+  flex: 8 1 28rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+[data-wi] .wi-quiz-q {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.25rem 0.75rem;
+  padding: 0.75rem 1rem;
+  transition: border-color 300ms;
+}
+
+[data-wi] .wi-quiz-q[data-state="right"] {
+  border-color: var(--wi-steel-700);
+}
+
+[data-wi] .wi-quiz-n {
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 1.375rem;
+  color: var(--wi-water);
+}
+
+[data-wi] .wi-quiz-text {
+  margin: 0 0 0.5rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+[data-wi] .wi-quiz-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+[data-wi] .wi-quiz-opts button {
+  min-height: 2.25rem;
+  min-width: 4rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--wi-border);
+  background: transparent;
+  color: var(--wi-fg);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+[data-wi] .wi-quiz-opts button[aria-pressed="true"] {
+  border-color: var(--wi-fg);
+}
+
+[data-wi] .wi-quiz-opts button[data-good="true"] {
+  background: var(--wi-steel-700);
+  border-color: var(--wi-steel-700);
+  color: var(--wi-on-accent);
+}
+
+[data-wi] .wi-quiz-explain {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--wi-muted);
+  animation: wiV4Fade 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[data-wi] .wi-quiz-explain strong {
+  color: var(--wi-fg);
+}
+
+[data-wi] .wi-quiz-skill {
+  margin: 0.375rem 0 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wi-muted);
+}
+
+[data-wi] .wi-quiz-skill[data-on="true"] {
+  color: var(--wi-adapt);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------- Footer */
+[data-wi] .wi-footer {
+  border-top: 1px solid var(--wi-border);
+  background: var(--wi-surface);
+}
+
+[data-wi] .wi-footer-title {
+  margin: 0;
+  font-family: var(--wi-font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+}
+
+[data-wi] .wi-limits-card.wi-frame {
+  border-radius: 0;
+}
+
+/* ---------------------------------------------------------- Animations */
+@keyframes wiV4Fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes wiV4GrowX {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes wiV4Draw {
+  from { stroke-dashoffset: 640; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes wiV4Pop {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes wiV4Rain {
+  0% { transform: translateY(-14px); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translateY(46px); opacity: 0; }
+}
+
+@keyframes wiV4Flow {
+  to { stroke-dashoffset: -28; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-wi] .wi-tabpanel:not([hidden]),
+  [data-wi] .wi-compass-seg,
+  [data-wi] .wi-compass-panel,
+  [data-wi] .wi-neural-draw,
+  [data-wi] .wi-rep-bar-fill,
+  [data-wi] .wi-rep-diverge-fill,
+  [data-wi] .wi-rep-pfas-dot,
+  [data-wi] .wi-rep-stack-part,
+  [data-wi] .wi-rep-yearbar,
+  [data-wi] .wi-cy-rain,
+  [data-wi] .wi-cy-flow-on,
+  [data-wi] .wi-cycle-read,
+  [data-wi] .wi-quiz-explain {
+    animation: none !important;
+  }
+  [data-wi] .wi-compass-seg,
+  [data-wi] .wi-rep-donut-arc,
+  [data-wi] .wi-cy-group,
+  [data-wi] .wi-quiz-gauge span {
+    transition: none !important;
+  }
+  :root:has([data-wi] .wi-chapters) {
+    scroll-snap-type: none;
+  }
+}

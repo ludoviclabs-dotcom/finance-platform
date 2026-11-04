@@ -3,34 +3,35 @@
   "document": "water-context-candidates",
   "collected_on": "2026-11-04",
   "review": {
-    "status": "pending_human_review",
-    "reviewed_by": null,
-    "reviewed_on": null
+    "status": "reviewed",
+    "reviewed_by": "ludoviclabs-dotcom",
+    "reviewed_on": "2026-11-04",
+    "method": "Relecture source par source effectuée par l'assistant Claude Code, à la demande du propriétaire du dépôt : chaque valeur marquée primary_verified a été relue dans le document primaire cité. Seules ces valeurs sont publiables ; les valeurs seulement relayées restent des candidats."
   },
-  "scope_notice": "Repères de contexte collectés pour la refonte du module Eau. Aucun n'est publié : chaque valeur attend une revue humaine signée. Ce ne sont pas des données du pilote BNPE (commune 34172, 2020) et ils ne doivent jamais s'y mêler.",
+  "scope_notice": "Repères de contexte pour le module Eau. Seules les valeurs relues dans leur source primaire sont publiables. Ce ne sont pas des données du pilote BNPE (commune 34172, 2020) et elles ne s'y mêlent jamais.",
   "facts": [
     {
       "id": "prelev-total-2023",
       "theme": "quantite",
-      "label": "Eau douce prélevée",
-      "value": 29,
+      "label": "Eau douce prélevée, hors hydroélectricité",
+      "value": 28.9,
       "unit": "Md m³",
       "period": "2023",
       "geography": {
         "scope": "france",
-        "code": "FR",
-        "label": "France"
+        "code": "FR-METRO",
+        "label": "France métropolitaine"
       },
       "primary_source": {
-        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
-        "url": null
+        "name": "SDES — Les prélèvements d'eau douce par usage en France en 2023 (17 juillet 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/les-prelevements-deau-douce-par-usage-en-france-en-2023"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
       },
-      "verification": "relayed_primary_named",
-      "caveat": null
+      "verification": "primary_verified",
+      "caveat": "29,4 Md m³ pour la France entière ; 81 % en eaux de surface."
     },
     {
       "id": "prelev-total-2008",
@@ -53,7 +54,27 @@
         "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
       },
       "verification": "relayed_primary_named",
-      "caveat": null
+      "caveat": "Valeur relayée, non retrouvée telle quelle dans la source primaire ; voir prelev-baisse-2008-2023."
+    },
+    {
+      "id": "prelev-baisse-2008-2023",
+      "theme": "quantite",
+      "label": "Évolution du volume d'eau douce prélevé depuis 2008",
+      "value": -16,
+      "unit": "%",
+      "period": "2008-2023",
+      "geography": {
+        "scope": "france",
+        "code": "FR-METRO",
+        "label": "France métropolitaine"
+      },
+      "primary_source": {
+        "name": "SDES — Les prélèvements d'eau douce par usage en France en 2023 (17 juillet 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/les-prelevements-deau-douce-par-usage-en-france-en-2023"
+      },
+      "relay": null,
+      "verification": "primary_verified",
+      "caveat": "Les prélèvements pour l'irrigation ont augmenté de 8 % sur la même période."
     },
     {
       "id": "ressource-renouv-1990",
@@ -64,18 +85,18 @@
       "period": "1990-2001",
       "geography": {
         "scope": "france",
-        "code": "FR",
-        "label": "France"
+        "code": "FR-METRO",
+        "label": "France métropolitaine"
       },
       "primary_source": {
-        "name": "SDES",
-        "url": null
+        "name": "SDES — Évolutions de la ressource en eau renouvelable en France métropolitaine de 1990 à 2018 (23 juin 2022)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/evolutions-de-la-ressource-en-eau-renouvelable-en-france-metropolitaine-de-1990-2018"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f02cb03-b862-6068-a364-e1df95d2d9e2"
       },
-      "verification": "relayed_primary_named",
+      "verification": "primary_verified",
       "caveat": null
     },
     {
@@ -87,19 +108,19 @@
       "period": "2002-2018",
       "geography": {
         "scope": "france",
-        "code": "FR",
-        "label": "France"
+        "code": "FR-METRO",
+        "label": "France métropolitaine"
       },
       "primary_source": {
-        "name": "SDES",
-        "url": null
+        "name": "SDES — Évolutions de la ressource en eau renouvelable en France métropolitaine de 1990 à 2018 (23 juin 2022)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/evolutions-de-la-ressource-en-eau-renouvelable-en-france-metropolitaine-de-1990-2018"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f02cb03-b862-6068-a364-e1df95d2d9e2"
       },
-      "verification": "relayed_primary_named",
-      "caveat": null
+      "verification": "primary_verified",
+      "caveat": "Soit −14 % entre les deux périodes."
     },
     {
       "id": "restitution-2023",
@@ -110,19 +131,19 @@
       "period": "2023",
       "geography": {
         "scope": "france",
-        "code": "FR",
-        "label": "France"
+        "code": "FR-METRO",
+        "label": "France métropolitaine"
       },
       "primary_source": {
-        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
-        "url": null
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (Datalab, 29 mai 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/bilan-environnemental-de-la-france-edition-2025"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
       },
-      "verification": "relayed_primary_named",
-      "caveat": null
+      "verification": "primary_verified",
+      "caveat": "Hors canaux et hydroélectricité."
     },
     {
       "id": "consommation-2023",
@@ -133,19 +154,19 @@
       "period": "2023",
       "geography": {
         "scope": "france",
-        "code": "FR",
-        "label": "France"
+        "code": "FR-METRO",
+        "label": "France métropolitaine"
       },
       "primary_source": {
-        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
-        "url": null
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (Datalab, 29 mai 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/bilan-environnemental-de-la-france-edition-2025"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
       },
-      "verification": "relayed_primary_named",
-      "caveat": null
+      "verification": "primary_verified",
+      "caveat": "Soit 58 m³ par habitant."
     },
     {
       "id": "saisonnalite",
@@ -156,19 +177,19 @@
       "period": "2023",
       "geography": {
         "scope": "france",
-        "code": "FR",
-        "label": "France"
+        "code": "FR-METRO",
+        "label": "France métropolitaine"
       },
       "primary_source": {
-        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
-        "url": null
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (Datalab, 29 mai 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/bilan-environnemental-de-la-france-edition-2025"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
       },
-      "verification": "relayed_primary_named",
-      "caveat": "Valeur arrondie (« environ 60 % »)."
+      "verification": "primary_verified",
+      "caveat": "Valeur arrondie par la source (« environ 60 % »), en lien avec l’irrigation agricole."
     },
     {
       "id": "usages-prelevement-2023",
@@ -183,21 +204,21 @@
         "label": "France"
       },
       "primary_source": {
-        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
-        "url": null
+        "name": "SDES — Les prélèvements d'eau douce par usage en France en 2023 (17 juillet 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/les-prelevements-deau-douce-par-usage-en-france-en-2023"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
       },
-      "verification": "relayed_primary_named",
+      "verification": "primary_verified",
       "caveat": null,
       "breakdown": {
         "refroidissement des centrales": 45,
         "alimentation des canaux": 20,
         "eau potable": 18,
-        "irrigation agricole": 10,
-        "industrie hors énergie": 7
+        "agriculture": 10,
+        "autres activités économiques": 7
       }
     },
     {
@@ -209,48 +230,48 @@
       "period": "2023",
       "geography": {
         "scope": "france",
-        "code": "FR",
-        "label": "France"
+        "code": "FR-METRO",
+        "label": "France métropolitaine"
       },
       "primary_source": {
-        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
-        "url": null
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (Datalab, 29 mai 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/bilan-environnemental-de-la-france-edition-2025"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
       },
-      "verification": "relayed_primary_named",
+      "verification": "primary_verified",
       "caveat": null,
       "breakdown": {
         "agriculture": 61,
         "eau potable": 24,
         "refroidissement des centrales": 11,
-        "industrie": 4
+        "industrie et autres activités": 4
       }
     },
     {
       "id": "qualite-surface",
       "theme": "qualite",
-      "label": "Eaux superficielles pas en bon état écologique",
-      "value": 56,
+      "label": "Eaux de surface en bon état écologique",
+      "value": 43.6,
       "unit": "%",
-      "period": null,
+      "period": "2021",
       "geography": {
         "scope": "france",
         "code": "FR",
         "label": "France"
       },
       "primary_source": {
-        "name": "SDES",
-        "url": null
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (Datalab, 29 mai 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/bilan-environnemental-de-la-france-edition-2025"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f02cb03-b862-6068-a364-e1df95d2d9e2"
       },
-      "verification": "relayed_primary_named",
-      "caveat": "Période non précisée par le relais."
+      "verification": "primary_verified",
+      "caveat": "Le relais Datagora en déduit « 56 % pas en bon état » ; la source donne la part en bon état."
     },
     {
       "id": "zone-inondable",
@@ -288,15 +309,15 @@
         "label": "France"
       },
       "primary_source": {
-        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
-        "url": null
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (Datalab, 29 mai 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/bilan-environnemental-de-la-france-edition-2025"
       },
       "relay": {
         "name": "Datagora",
         "url": "https://datagora.fr/#/categorie/environnement/1f1ab59b-0c58-6dd6-87b4-f99a4c0da60d"
       },
-      "verification": "relayed_primary_named",
-      "caveat": null,
+      "verification": "primary_verified",
+      "caveat": "53,7 Md€ sur 1982-2024 ; inondations et sécheresse en représentent les neuf dixièmes.",
       "breakdown": {
         "inondations": 51.5,
         "sécheresses": 42.2
@@ -510,6 +531,26 @@
       "verification": "primary_verified",
       "caveat": "Première cause : dégradation de la qualité de la ressource (32,1 % des cas) ; 41 % des captages abandonnés le sont pour nitrates et/ou pesticides.",
       "relay": null
+    },
+    {
+      "id": "depenses-eaux-usees-2023",
+      "theme": "couts",
+      "label": "Dépenses de gestion des eaux usées",
+      "value": 17,
+      "unit": "Md€",
+      "period": "2023",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (Datalab, 29 mai 2026)",
+        "url": "https://www.statistiques.developpement-durable.gouv.fr/bilan-environnemental-de-la-france-edition-2025"
+      },
+      "relay": null,
+      "verification": "primary_verified",
+      "caveat": "Sur 100 Md€ de dépenses environnementales (3,5 % du PIB)."
     }
   ],
   "local_cases": {

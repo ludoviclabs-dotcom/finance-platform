@@ -18,11 +18,11 @@
  *
  * ## Ce que ce module ne fait PAS
  *
- * Il ne publie rien. Le document porte `review.status = pending_human_review`,
- * sans réviseur ni date de revue : `publishableContextFacts()` renvoie donc une
- * liste VIDE. C'est la même règle que `editorial.ts` — un contenu non revu par
- * un humain identifié n'atteint pas la surface publique — appliquée à des
- * chiffres de contexte.
+ * Il ne publie que ce qui a passé la revue. Un document sans réviseur nommé,
+ * sans date ou sans méthode de revue ne publie RIEN ; un document revu ne
+ * publie que les valeurs `primary_verified`. C'est la règle d'`editorial.ts` —
+ * rien n'atteint la surface publique sans revue identifiée — appliquée à des
+ * chiffres de contexte, avec une exigence de plus : la source primaire.
  *
  * Ces repères ne sont pas des données du pilote BNPE (commune 34172, 2020) : ils
  * n'entrent ni dans le snapshot public ni dans les observations, et un test
@@ -141,6 +141,8 @@ export const WiContextCandidatesSchema = z.object({
     status: z.enum(["pending_human_review", "reviewed"]),
     reviewed_by: z.string().min(1).nullable(),
     reviewed_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+    /** Comment la revue a été conduite — obligatoire pour qu'elle compte. */
+    method: z.string().min(1).optional(),
   }),
   scope_notice: z.string().min(1),
   facts: z.array(WiContextFactSchema).min(1),
@@ -199,19 +201,29 @@ export function isHumanReviewed(doc: WiContextCandidates): boolean {
   return (
     doc.review.status === "reviewed" &&
     Boolean(doc.review.reviewed_by?.trim()) &&
-    Boolean(doc.review.reviewed_on)
+    Boolean(doc.review.reviewed_on) &&
+    Boolean(doc.review.method?.trim())
   );
 }
 
 /**
- * Repères publiables : AUCUN tant qu'aucun humain n'a signé la revue, et jamais
- * une valeur restée non vérifiée.
+ * Repères publiables : AUCUN tant que la revue n'est pas signée et décrite, et
+ * alors SEULEMENT les valeurs relues dans leur source primaire. Une valeur
+ * seulement relayée reste un candidat, même dans un document revu.
  */
 export function publishableContextFacts(
   doc: WiContextCandidates = CONTEXT_CANDIDATES,
 ): readonly WiContextFact[] {
   if (!isHumanReviewed(doc)) return [];
-  return doc.facts.filter((fact) => fact.verification !== "relayed_unverified");
+  return doc.facts.filter((fact) => fact.verification === "primary_verified");
+}
+
+/** Un repère publiable par identifiant, ou `null` s'il ne l'est pas. */
+export function publishableFact(
+  id: string,
+  doc: WiContextCandidates = CONTEXT_CANDIDATES,
+): WiContextFact | null {
+  return publishableContextFacts(doc).find((fact) => fact.id === id) ?? null;
 }
 
 /** Analyses PFAS au-delà de la limite de qualité (lecture, pas conclusion). */

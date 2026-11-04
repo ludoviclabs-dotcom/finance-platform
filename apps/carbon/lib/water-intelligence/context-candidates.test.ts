@@ -1,5 +1,5 @@
 /**
- * context-candidates.test.ts — les repères de contexte restent des CANDIDATS.
+ * context-candidates.test.ts — seuls les repères revus et vérifiés à la source sont publiables.
  */
 
 import { describe, expect, it } from "vitest";
@@ -19,29 +19,41 @@ describe("document de repères de contexte", () => {
     expect(() => WiContextCandidatesSchema.parse(CONTEXT_CANDIDATES)).not.toThrow();
   });
 
-  it("n'est pas revu : aucun repère n'est publiable", () => {
-    expect(CONTEXT_CANDIDATES.review.status).toBe("pending_human_review");
-    expect(CONTEXT_CANDIDATES.review.reviewed_by).toBeNull();
-    expect(isHumanReviewed(CONTEXT_CANDIDATES)).toBe(false);
-    expect(publishableContextFacts()).toEqual([]);
+  it("est revu, signé, daté et décrit", () => {
+    expect(CONTEXT_CANDIDATES.review.status).toBe("reviewed");
+    expect(CONTEXT_CANDIDATES.review.reviewed_by).toBeTruthy();
+    expect(CONTEXT_CANDIDATES.review.method).toMatch(/source primaire|document primaire/);
+    expect(isHumanReviewed(CONTEXT_CANDIDATES)).toBe(true);
   });
 
-  it("ne publie jamais une valeur non vérifiée, même après revue", () => {
-    const reviewed = {
-      ...CONTEXT_CANDIDATES,
-      review: { status: "reviewed" as const, reviewed_by: "relecteur", reviewed_on: "2026-11-05" },
-    };
-    const published = publishableContextFacts(reviewed);
+  it("ne publie que les valeurs relues dans leur source primaire", () => {
+    const published = publishableContextFacts();
     expect(published.length).toBeGreaterThan(0);
-    expect(published.every((f) => f.verification !== "relayed_unverified")).toBe(true);
+    expect(published.every((f) => f.verification === "primary_verified")).toBe(true);
+    expect(published.every((f) => f.primary_source.url)).toBe(true);
+    expect(published.map((f) => f.id)).not.toContain("captages-abandonnes");
+    expect(published.map((f) => f.id)).not.toContain("pfas-robinet");
   });
 
-  it("une revue sans réviseur nommé ne compte pas", () => {
+  it("une revue en attente ne publie rien", () => {
+    const pending = {
+      ...CONTEXT_CANDIDATES,
+      review: { status: "pending_human_review" as const, reviewed_by: null, reviewed_on: null },
+    };
+    expect(publishableContextFacts(pending)).toEqual([]);
+  });
+
+  it("une revue sans réviseur nommé ou sans méthode ne compte pas", () => {
     const unsigned = {
       ...CONTEXT_CANDIDATES,
-      review: { status: "reviewed" as const, reviewed_by: "  ", reviewed_on: "2026-11-05" },
+      review: { ...CONTEXT_CANDIDATES.review, reviewed_by: "  " },
+    };
+    const undescribed = {
+      ...CONTEXT_CANDIDATES,
+      review: { ...CONTEXT_CANDIDATES.review, method: undefined },
     };
     expect(publishableContextFacts(unsigned)).toEqual([]);
+    expect(publishableContextFacts(undescribed)).toEqual([]);
   });
 
   it("garde les identifiants de repères uniques", () => {

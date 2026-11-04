@@ -107,7 +107,7 @@ export const WiRestrictionYearSchema = z
     observed_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     observed_to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     days_observed: z.number().int().min(1).max(366),
-    days_any_restriction: z.number().int().min(0),
+    days_vigilance_or_higher: z.number().int().min(0),
     days_alerte_or_higher: z.number().int().min(0),
     days_alerte_renforcee_or_higher: z.number().int().min(0),
     days_crise: z.number().int().min(0),
@@ -116,7 +116,7 @@ export const WiRestrictionYearSchema = z
     // Les seuils sont emboîtés : un jour de crise est aussi un jour d'alerte.
     const ordered = [
       y.days_observed,
-      y.days_any_restriction,
+      y.days_vigilance_or_higher,
       y.days_alerte_or_higher,
       y.days_alerte_renforcee_or_higher,
       y.days_crise,

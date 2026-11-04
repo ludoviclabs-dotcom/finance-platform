@@ -109,3 +109,12 @@ describe("cas locaux — commune 34172", () => {
     expect(pfasAnalysesAboveLimit()).toEqual([]);
   });
 });
+
+describe("vigilance et restriction", () => {
+  it("ne compte pas la vigilance comme une restriction", () => {
+    const y2023 = CONTEXT_CANDIDATES.local_cases.restrictions_34172.years.find((y) => y.year === 2023);
+    expect(y2023).toBeDefined();
+    expect(y2023!.days_alerte_or_higher).toBeLessThan(y2023!.days_vigilance_or_higher);
+    expect(CONTEXT_CANDIDATES.local_cases.restrictions_34172.method).toMatch(/vigilance n'est qu'une incitation/);
+  });
+});

@@ -525,7 +525,7 @@
         "resource_url": "https://static.data.gouv.fr/resources/donnee-secheresse-vigieau/20260915-045824/historique-communes.zip",
         "retrieved_on": "2026-11-04"
       },
-      "method": "Niveau journalier le plus élevé parmi les trois types de zones (eaux superficielles, souterraines, eau potable). Un jour compte dans une colonne si ce niveau maximal atteint le seuil indiqué.",
+      "method": "Niveau journalier le plus élevé parmi les trois types de zones (eaux superficielles, souterraines, eau potable). Un jour compte dans une colonne si ce niveau maximal atteint le seuil indiqué. La vigilance n'est qu'une incitation aux économies d'eau : les jours de restriction effective se lisent à partir du niveau alerte (days_alerte_or_higher).",
       "caveat": "Données non opposables : seuls les arrêtés publiés au recueil des actes administratifs font foi. 2010 commence le 1er mai, 2026 s'arrête au 15 septembre.",
       "years": [
         {
@@ -533,7 +533,7 @@
           "observed_from": "2010-05-01",
           "observed_to": "2010-12-31",
           "days_observed": 245,
-          "days_any_restriction": 0,
+          "days_vigilance_or_higher": 0,
           "days_alerte_or_higher": 0,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -543,7 +543,7 @@
           "observed_from": "2011-01-01",
           "observed_to": "2011-12-31",
           "days_observed": 365,
-          "days_any_restriction": 0,
+          "days_vigilance_or_higher": 0,
           "days_alerte_or_higher": 0,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -553,7 +553,7 @@
           "observed_from": "2012-01-01",
           "observed_to": "2012-12-31",
           "days_observed": 366,
-          "days_any_restriction": 131,
+          "days_vigilance_or_higher": 131,
           "days_alerte_or_higher": 78,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -563,7 +563,7 @@
           "observed_from": "2013-01-01",
           "observed_to": "2013-12-31",
           "days_observed": 365,
-          "days_any_restriction": 0,
+          "days_vigilance_or_higher": 0,
           "days_alerte_or_higher": 0,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -573,7 +573,7 @@
           "observed_from": "2014-01-01",
           "observed_to": "2014-12-31",
           "days_observed": 365,
-          "days_any_restriction": 159,
+          "days_vigilance_or_higher": 159,
           "days_alerte_or_higher": 126,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -583,7 +583,7 @@
           "observed_from": "2015-01-01",
           "observed_to": "2015-12-31",
           "days_observed": 365,
-          "days_any_restriction": 45,
+          "days_vigilance_or_higher": 45,
           "days_alerte_or_higher": 0,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -593,7 +593,7 @@
           "observed_from": "2016-01-01",
           "observed_to": "2016-12-31",
           "days_observed": 366,
-          "days_any_restriction": 95,
+          "days_vigilance_or_higher": 95,
           "days_alerte_or_higher": 0,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -603,7 +603,7 @@
           "observed_from": "2017-01-01",
           "observed_to": "2017-12-31",
           "days_observed": 365,
-          "days_any_restriction": 97,
+          "days_vigilance_or_higher": 97,
           "days_alerte_or_higher": 54,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -613,7 +613,7 @@
           "observed_from": "2018-01-01",
           "observed_to": "2018-12-31",
           "days_observed": 365,
-          "days_any_restriction": 0,
+          "days_vigilance_or_higher": 0,
           "days_alerte_or_higher": 0,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -623,7 +623,7 @@
           "observed_from": "2019-01-01",
           "observed_to": "2019-12-31",
           "days_observed": 365,
-          "days_any_restriction": 111,
+          "days_vigilance_or_higher": 111,
           "days_alerte_or_higher": 34,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -633,7 +633,7 @@
           "observed_from": "2020-01-01",
           "observed_to": "2020-12-31",
           "days_observed": 366,
-          "days_any_restriction": 24,
+          "days_vigilance_or_higher": 24,
           "days_alerte_or_higher": 0,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -643,7 +643,7 @@
           "observed_from": "2021-01-01",
           "observed_to": "2021-12-31",
           "days_observed": 365,
-          "days_any_restriction": 164,
+          "days_vigilance_or_higher": 164,
           "days_alerte_or_higher": 66,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -653,7 +653,7 @@
           "observed_from": "2022-01-01",
           "observed_to": "2022-12-31",
           "days_observed": 365,
-          "days_any_restriction": 98,
+          "days_vigilance_or_higher": 98,
           "days_alerte_or_higher": 66,
           "days_alerte_renforcee_or_higher": 0,
           "days_crise": 0
@@ -663,7 +663,7 @@
           "observed_from": "2023-01-01",
           "observed_to": "2023-12-31",
           "days_observed": 365,
-          "days_any_restriction": 271,
+          "days_vigilance_or_higher": 271,
           "days_alerte_or_higher": 234,
           "days_alerte_renforcee_or_higher": 157,
           "days_crise": 50
@@ -673,7 +673,7 @@
           "observed_from": "2024-01-01",
           "observed_to": "2024-12-31",
           "days_observed": 366,
-          "days_any_restriction": 214,
+          "days_vigilance_or_higher": 214,
           "days_alerte_or_higher": 106,
           "days_alerte_renforcee_or_higher": 80,
           "days_crise": 0
@@ -683,7 +683,7 @@
           "observed_from": "2025-01-01",
           "observed_to": "2025-12-31",
           "days_observed": 365,
-          "days_any_restriction": 170,
+          "days_vigilance_or_higher": 170,
           "days_alerte_or_higher": 127,
           "days_alerte_renforcee_or_higher": 77,
           "days_crise": 0
@@ -693,7 +693,7 @@
           "observed_from": "2026-01-01",
           "observed_to": "2026-09-15",
           "days_observed": 258,
-          "days_any_restriction": 90,
+          "days_vigilance_or_higher": 90,
           "days_alerte_or_higher": 15,
           "days_alerte_renforcee_or_higher": 15,
           "days_crise": 0

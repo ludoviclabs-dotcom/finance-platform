@@ -17,10 +17,10 @@ describe("Asterion demo — invariants de données (fictif, déterministe)", () 
   });
 
   it("expose les métriques canoniques du scénario", () => {
-    expect(ASTERION_METRICS.scope3.value).toBe(3480);
-    expect(ASTERION_METRICS.magnetsShare.value).toBeCloseTo(61.8, 1);
-    expect(ASTERION_METRICS.scope2Lb.value).toBe(1860);
-    expect(ASTERION_METRICS.scope2Mb.value).toBe(1090);
+    expect(ASTERION_METRICS.scope3.value).toBe(3552);
+    expect(ASTERION_METRICS.magnetsShare.value).toBeCloseTo(60.6, 1);
+    expect(ASTERION_METRICS.scope2Lb.value).toBe(489);
+    expect(ASTERION_METRICS.scope2Mb.value).toBe(237);
     expect(ASTERION_METRICS.coverage.value).toBe(54);
     expect(ASTERION_METRICS.dependency.value).toBe(92);
     expect(ASTERION_METRICS.dependency.status).toBe("estimated"); // estimé ≠ vérifié

@@ -61,8 +61,8 @@ démonstration reste parfaitement lisible (transitions neutralisées).
 
 ## 3. Fil narratif (rappel express)
 
-Situation (12 000 moteurs) → Import (5,8 M€) → Scope 3 (aimants 61,8 %) → CRMA (dépendance
-92 % `estimated`) → Scope 2 (LB 1 860 / MB 1 090, couverture 54 %) → Eau/nature (72 000 m³,
+Situation (12 000 moteurs) → Import (5,8 M€) → Scope 3 (aimants 60,6 %) → CRMA (dépendance
+92 % `estimated`) → Scope 2 (LB 489 / MB 237, couverture 54 %) → Eau/nature (72 000 m³,
 stress élevé, confiance 0,81) → IRO (exposition 1,4 M€) → **IA citée (4 cas)** → Décision
 humaine → Evidence Pack.
 
@@ -124,7 +124,7 @@ cockpit figé, lui, reste complet).
 1. **Continuer la présentation sur le cockpit** — il est autonome et suffit pour tout le
    discours ; l'exploration est un *bonus*, pas un prérequis.
 2. En parallèle ou après, lancer le workflow **`demo-scenario` → `seed`**, puis **`verify`**
-   (rapport de parité : sommes Scope 3 = 3 480, part aimants 61,8 %, couverture 54 %).
+   (rapport de parité : sommes Scope 3 = 3 552, part aimants 60,6 %, couverture 54 %).
 3. Vérifier que l'app cible tourne en **`AI_REVIEW_MODE=demo`** et que le tenant
    `asterion-motion-demo` existe (sinon `POST /auth/demo` le crée à la volée pour l'accès,
    mais **ne peuple pas** les données — c'est le rôle du seed).

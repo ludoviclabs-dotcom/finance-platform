@@ -7,9 +7,12 @@
   "status": "manual",
   "method": "meter readings",
   "scope2": {
-    "location_based_tco2e": 1860,
-    "market_based_tco2e": 1090,
-    "lb_factor_tco2e_per_mwh": 0.2163,
+    "location_based_tco2e": 489,
+    "market_based_tco2e": 237,
+    "lb_factor_tco2e_per_mwh": 0.0569,
+    "lb_factor_ref": "FE020 — Électricité France, mix moyen 2023 (ADEME 2024), CarbonCo_Calcul_Carbone_v2.xlsx",
+    "residual_mix_factor_tco2e_per_mwh": 0.06,
+    "residual_mix_factor_ref": "FE020 colonne market-based — mix résiduel France (AIB 2023), CarbonCo_Calcul_Carbone_v2.xlsx",
     "contractual_coverage_pct": 54,
     "status": "estimated",
     "method": "GHG Protocol Scope 2 dual reporting"
@@ -20,7 +23,7 @@
       "type": "PPA",
       "energy_source": "hydro",
       "mwh": 3200,
-      "residual_factor_tco2e_per_mwh": 0.0,
+      "instrument_factor_tco2e_per_mwh": 0.0,
       "status": "manual",
       "synthetic": true
     },
@@ -29,10 +32,10 @@
       "type": "GO",
       "energy_source": "wind",
       "mwh": 1444,
-      "residual_factor_tco2e_per_mwh": 0.0,
+      "instrument_factor_tco2e_per_mwh": 0.0,
       "status": "manual",
       "synthetic": true
     }
   ],
-  "note": "Couverture = (3200+1444)/8600 = 54%. LB 1860 > MB 1090 (instruments bas-carbone). Résultats déterministes, jamais recalculés par l'IA."
+  "note": "Couverture = (3200+1444)/8600 = 54%. LB = 8 600 MWh × 0,0569 = 489,34 t (affiché 489). MB = 3 956 MWh non couverts × 0,06 = 237,36 t (affiché 237) ; la part couverte est à 0 (instruments renouvelables). Recalculé par le moteur dans tests/test_calc_reference_asterion.py, jamais par l'IA."
 }

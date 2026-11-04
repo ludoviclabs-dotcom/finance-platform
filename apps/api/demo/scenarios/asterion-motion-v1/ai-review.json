@@ -48,7 +48,7 @@
       "use_case": "calc_explanation",
       "claims": [
         {
-          "claim_text": "Le Scope 2 market-based (1 090 tCO2e) est cohérent avec une couverture contractuelle de 54% et le calcul déterministe du run.",
+          "claim_text": "Le Scope 2 market-based (237 tCO2e) est cohérent avec une couverture contractuelle de 54% et le calcul déterministe du run.",
           "output_label": "REVIEW_REQUIRED",
           "cite_marker": "calc",
           "contradiction": false,

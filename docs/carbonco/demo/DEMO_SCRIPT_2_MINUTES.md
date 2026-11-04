@@ -32,14 +32,14 @@ lignes.
 > aimants NdFeB, cuivre, aluminium. Chaque ligne porte sa source, sa date et son statut. »
 
 ### 3 · Scope 3 — hotspots — `0:25 → 0:40` (15 s)
-**Focus écran :** barres de hotspots ; la barre *Aimants* s'illumine, badge *61,8 %*.
+**Focus écran :** barres de hotspots ; la barre *Aimants* s'illumine, badge *60,6 %*.
 **Narration :**
 > « Trois mille quatre cent quatre-vingts tonnes de CO2 sur les achats. Les aimants
 > concentrent soixante et un virgule huit pour cent des émissions : hotspot numéro un,
 > calculé de façon déterministe — pas estimé par une IA. »
 
 ### 4 · Scope 2 — double reporting — `0:40 → 0:53` (13 s)
-**Focus écran :** deux colonnes *Location-based 1 860* / *Market-based 1 090*, jauge de
+**Focus écran :** deux colonnes *Location-based 489* / *Market-based 237*, jauge de
 couverture *54 %*.
 **Narration :**
 > « Scope 2 en double comptage : location-based mille huit cent soixante tonnes,

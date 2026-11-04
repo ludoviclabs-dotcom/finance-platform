@@ -4,7 +4,7 @@ sont obtenus »).
 
 Trois niveaux, du plus portable au plus complet :
   1. Parité ARITHMÉTIQUE (toujours, sans base) — dérive du scénario les invariants
-     déterministes : somme des lignes Scope 3 = 3 480 tCO2e, part aimants = 61,8 %,
+     déterministes : somme des lignes Scope 3 = 3 552 tCO2e, part aimants = 60,6 %,
      couverture contractuelle = 54 %.
   2. Parité de PEUPLEMENT (si base) — le tenant démo contient bien l'IRO, les
      artefacts, les liens de preuve et les observations attendus.

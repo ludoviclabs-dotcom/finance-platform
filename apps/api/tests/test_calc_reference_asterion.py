@@ -6,9 +6,9 @@ Tests PURS (aucune base, aucun réseau). Trois questions, dans cet ordre :
 
   A. Achats (Scope 3 cat. 1) — le moteur `procurement.compute_line` redonne-t-il,
      à partir des quantités et facteurs du scénario Asterion, les tCO2e déclarées
-     par ligne et le total de 3 480 tCO2e ?
+     par ligne et le total de 3 552 tCO2e ?
   B. Scope 2 — le moteur `scope2.calculate` redonne-t-il le location-based
-     (1 860 t), la couverture contractuelle (54 %) et le market-based (1 090 t) ?
+     (489 t), la couverture contractuelle (54 %) et le market-based (237 t) ?
   C. Classeur de référence `data/CarbonCo_Calcul_Carbone_v2.xlsx` — les facteurs
      du scénario sont-ils ceux du classeur, et les totaux de `Synthese_GES`
      restent-ils des formules ?
@@ -17,15 +17,16 @@ Tests PURS (aucune base, aucun réseau). Trois questions, dans cet ordre :
 additionne les tCO2e déjà écrites dans le JSON). Ce fichier va plus loin : il
 fait recalculer les chiffres par les moteurs, à partir des données d'entrée.
 
-Écarts connus → `xfail(strict=True)`. Chaque écart constaté le 2026-11-04 est
-marqué avec sa raison, en distinguant :
-  * ERREUR DE CALCUL      — le chiffre ne découle pas de ses propres entrées ;
-  * ERREUR DE DÉFINITION  — facteur ou périmètre incohérent avec la référence ;
-  * ERREUR DE TRAITEMENT  — règle du moteur contraire à la méthode (GHG Protocol) ;
-  * DONNÉE MANQUANTE      — le chiffre ne peut pas être recalculé.
-`strict=True` : dès qu'un écart est corrigé, le test passe, pytest le signale
-en échec (XPASS strict) et il faut retirer le marqueur. Un écart corrigé ne
-peut donc pas rester marqué « connu » par oubli.
+Les six écarts relevés le 2026-11-04 sont corrigés (rappelés dans la
+docstring du test concerné) :
+  * calcul      — aluminium 530 t au lieu de 528,96 t, donc total 3 480 t ;
+  * définition  — facteur réseau FR 0,2163 au lieu de 0,0569 (FE020) ;
+  * périmètre   — 290 k€ d'achats sans émissions (ligne « autres achats ») ;
+  * traitement  — instruments écartés après clôture (moteur Scope 2 1.1.0) ;
+  * donnée      — mix résiduel absent pour le market-based.
+Si un futur écart est assumé temporairement, le marquer
+`xfail(strict=True, raises=AssertionError, reason=...)` : il échouera dès qu'il
+sera corrigé, et ne pourra pas rester marqué « connu » par oubli.
 """
 
 from __future__ import annotations
@@ -74,28 +75,41 @@ def energy() -> dict:
 # A. Achats — Scope 3 catégorie 1, recalculé par le moteur procurement
 # ---------------------------------------------------------------------------
 
+PHYSICAL_MATERIALS = ("NDFEB", "CU", "AL")
+
+
 def _compute_purchase_line(idx: int, line: dict) -> procurement.LineComputation:
-    """Passe une ligne Asterion dans la VRAIE cascade de méthodes : sans PCF ni
-    déclaration fournisseur, le moteur doit retenir le facteur physique moyen."""
+    """Passe une ligne Asterion dans la VRAIE cascade de méthodes. Sans PCF ni
+    déclaration fournisseur, le moteur retient le facteur physique moyen s'il y
+    a une masse, sinon le facteur monétaire (ligne « autres achats »)."""
+    physical = line.get("physical_kg") is not None
+    ctx = procurement.LineContext(
+        physical_factor=procurement.FactorCandidate(
+            factor_id=f"ASTERION-{line['material_code']}",
+            factor_version="asterion-motion-v1",
+            factor_kgco2e=float(line["emission_factor_kgco2e_per_kg"]),
+            unit="kg",
+            source="scénario Asterion (fictif)",
+        ) if physical else None,
+        spend_factor=None if physical else procurement.FactorCandidate(
+            factor_id=f"ASTERION-{line['material_code']}",
+            factor_version="asterion-motion-v1",
+            factor_kgco2e=float(line["emission_factor_kgco2e_per_keur"]),
+            unit="kEUR",
+            source=line.get("emission_factor_ref"),
+        ),
+    )
     return procurement.compute_line(
         procurement.LineInput(
             line_id=idx,
-            quantity=float(line["physical_kg"]),
-            unit="kg",
+            quantity=float(line["physical_kg"]) if physical else None,
+            unit="kg" if physical else None,
             spend_amount=float(line["spend_eur"]),
             currency="EUR",
             category_code=line["material_code"],
             mapping_status="mapped",
         ),
-        procurement.LineContext(
-            physical_factor=procurement.FactorCandidate(
-                factor_id=f"ASTERION-{line['material_code']}",
-                factor_version="asterion-motion-v1",
-                factor_kgco2e=float(line["emission_factor_kgco2e_per_kg"]),
-                unit="kg",
-                source="scénario Asterion (fictif)",
-            ),
-        ),
+        ctx,
     )
 
 
@@ -107,6 +121,10 @@ def purchase_results(purchases) -> dict[str, procurement.LineComputation]:
     }
 
 
+def _line(purchases: dict, material: str) -> dict:
+    return next(ln for ln in purchases["lines"] if ln["material_code"] == material)
+
+
 class TestAchatsScope3:
     @pytest.mark.parametrize(
         "material,kg_per_motor_key",
@@ -115,40 +133,29 @@ class TestAchatsScope3:
     def test_masse_achetee_egale_nomenclature(self, manifest, purchases, material, kg_per_motor_key):
         """Masse achetée = moteurs/an × kg par moteur (nomenclature)."""
         m = manifest["expected_metrics"]
-        line = next(ln for ln in purchases["lines"] if ln["material_code"] == material)
-        assert line["physical_kg"] == pytest.approx(m["motors_per_year"] * m[kg_per_motor_key])
+        assert _line(purchases, material)["physical_kg"] == pytest.approx(
+            m["motors_per_year"] * m[kg_per_motor_key]
+        )
 
-    def test_le_moteur_retient_le_facteur_physique(self, purchase_results):
-        for res in purchase_results.values():
-            assert res.calculation_method == "average_physical"
-            assert res.result_tco2e is not None
+    @pytest.mark.parametrize("material", PHYSICAL_MATERIALS)
+    def test_le_moteur_retient_le_facteur_physique(self, purchase_results, material):
+        assert purchase_results[material].calculation_method == "average_physical"
 
-    @pytest.mark.parametrize("material", ["NDFEB", "CU"])
+    def test_autres_achats_sur_facteur_monetaire(self, purchase_results):
+        """290 k€ × 250 kgCO2e/k€ (FEM10) = 72,5 t, calculés par le niveau 4."""
+        res = purchase_results["OTHER"]
+        assert res.calculation_method == "spend_based_economic"
+        assert res.result_tco2e == pytest.approx(72.5)
+
+    @pytest.mark.parametrize("material", (*PHYSICAL_MATERIALS, "OTHER"))
     def test_ligne_recalculee_egale_ligne_declaree(self, purchases, purchase_results, material):
-        line = next(ln for ln in purchases["lines"] if ln["material_code"] == material)
-        assert purchase_results[material].result_tco2e == pytest.approx(line["scope3_tco2e"], abs=TOL_TCO2E)
+        assert purchase_results[material].result_tco2e == pytest.approx(
+            _line(purchases, material)["scope3_tco2e"], abs=TOL_TCO2E
+        )
 
-    @pytest.mark.xfail(
-        strict=True,
-        raises=AssertionError,
-        reason=(
-            "ERREUR DE CALCUL — aluminium : 348 000 kg × 1,52 kgCO2e/kg = 528,96 t, "
-            "mais purchases.json déclare 530 t (+1,04 t). Le total de 3 480 t en dépend."
-        ),
-    )
-    def test_ligne_aluminium_recalculee_egale_ligne_declaree(self, purchases, purchase_results):
-        line = next(ln for ln in purchases["lines"] if ln["material_code"] == "AL")
-        assert purchase_results["AL"].result_tco2e == pytest.approx(line["scope3_tco2e"], abs=TOL_TCO2E)
-
-    @pytest.mark.xfail(
-        strict=True,
-        raises=AssertionError,
-        reason=(
-            "ERREUR DE CALCUL — total recalculé par le moteur = 3 479,16 t "
-            "(2 151 + 799,2 + 528,96), affiché 3 480 t. Conséquence de l'écart aluminium."
-        ),
-    )
     def test_total_recalcule_egale_total_affiche(self, manifest, purchase_results):
+        """2 151 + 799,2 + 528,96 + 72,5 = 3 551,66 t, affiché 3 552 t.
+        (Jusqu'au 2026-11-04 : aluminium déclaré 530 t au lieu de 528,96 t.)"""
         run = procurement.aggregate_run(list(purchase_results.values()))
         assert run.unresolved_count == 0
         assert run.total_tco2e == pytest.approx(
@@ -156,27 +163,24 @@ class TestAchatsScope3:
         )
 
     def test_part_aimants_recalculee(self, manifest, purchase_results):
-        """La part aimants (hotspot n°1) résiste à l'écart aluminium : 61,8 %."""
+        """Hotspot n°1 : 2 151 / 3 551,66 = 60,6 %."""
         total = sum(r.result_tco2e for r in purchase_results.values())
         share = purchase_results["NDFEB"].result_tco2e / total * 100
         assert round(share, 1) == pytest.approx(manifest["expected_metrics"]["scope3_magnets_share_pct"])
 
-    def test_parts_par_ligne_somment_a_100(self, purchases):
-        assert sum(ln["share_pct"] for ln in purchases["lines"]) == pytest.approx(100.0, abs=0.15)
+    def test_parts_declarees_egales_parts_recalculees(self, purchases, purchase_results):
+        total = sum(r.result_tco2e for r in purchase_results.values())
+        for material, res in purchase_results.items():
+            assert _line(purchases, material)["share_pct"] == pytest.approx(
+                res.result_tco2e / total * 100, abs=TOL_PCT
+            )
 
-    @pytest.mark.xfail(
-        strict=True,
-        raises=AssertionError,
-        reason=(
-            "ERREUR DE DÉFINITION (périmètre) — les 3 lignes d'achat totalisent "
-            "5 510 000 €, mais total_spend_eur et le cockpit affichent 5,8 M€. "
-            "290 000 € d'achats n'ont aucune émission : soit le total est faux, "
-            "soit le Scope 3 « achats » est incomplet."
-        ),
-    )
     def test_depense_des_lignes_egale_depense_totale(self, manifest, purchases):
+        """(Jusqu'au 2026-11-04 : 3 lignes pour 5,51 M€ contre 5,8 M€ affichés ;
+        la ligne « autres achats » de 290 k€ comble l'écart.)"""
         spend = sum(ln["spend_eur"] for ln in purchases["lines"])
         assert spend == pytest.approx(manifest["expected_metrics"]["purchases_total_eur"])
+        assert spend == pytest.approx(purchases["total_spend_eur"])
 
 
 # ---------------------------------------------------------------------------
@@ -273,16 +277,9 @@ class TestScope2:
         assert result.is_complete is False
         assert any(mf.basis == "market" and mf.segment == "uncovered" for mf in result.missing_factors)
 
-    @pytest.mark.xfail(
-        strict=True,
-        raises=AssertionError,
-        reason=(
-            "DONNÉE MANQUANTE — energy.json ne fournit aucun facteur de mix résiduel. "
-            "Le market-based de 1 090 t n'est pas recalculable : il supposerait "
-            "1 090 / 3 956 MWh non couverts = 0,2755 tCO2e/MWh, une valeur écrite nulle part."
-        ),
-    )
     def test_market_based_recalcule(self, manifest, energy):
+        """3 956 MWh non couverts × 0,06 = 237,36 t, affiché 237 t. (Jusqu'au
+        2026-11-04 : aucun mix résiduel fourni, 1 090 t non recalculables.)"""
         residual = energy["scope2"].get("residual_mix_factor_tco2e_per_mwh")
         assert residual is not None, "facteur de mix résiduel absent du scénario"
         result = scope2.calculate(
@@ -328,20 +325,21 @@ def workbook_factors(workbook) -> dict[str, dict]:
 
 
 class TestCoherenceClasseur:
-    @pytest.mark.xfail(
-        strict=True,
-        raises=AssertionError,
-        reason=(
-            "ERREUR DE DÉFINITION — Asterion est en France mais son facteur "
-            "location-based vaut 0,2163 tCO2e/MWh. Ton classeur (FE020, ADEME 2024) "
-            "donne 0,0569 : 3,8 fois moins. Avec FE020, le LB serait ≈ 489 t, pas 1 860 t."
-        ),
-    )
     def test_facteur_reseau_fr_identique_au_classeur(self, energy, workbook_factors):
+        """(Jusqu'au 2026-11-04 : 0,2163 tCO2e/MWh, 3,8 fois le facteur FE020.)
+        t/MWh = kg/kWh : les deux valeurs se comparent directement."""
         fe = workbook_factors["FE020"]
         assert "France" in fe["label"]
-        tolerance = fe["uncertainty_pct"] / 100
-        assert energy["scope2"]["lb_factor_tco2e_per_mwh"] == pytest.approx(fe["total"], rel=tolerance)
+        assert energy["scope2"]["lb_factor_tco2e_per_mwh"] == pytest.approx(fe["total"])
+
+    def test_mix_residuel_fr_identique_au_classeur(self, energy, workbook_factors):
+        fe = workbook_factors["FE020"]
+        assert energy["scope2"]["residual_mix_factor_tco2e_per_mwh"] == pytest.approx(fe["market"])
+
+    def test_facteur_autres_achats_identique_au_classeur(self, purchases, workbook_factors):
+        fe = workbook_factors["FEM10"]  # Équipements électroniques, kgCO2e/k€
+        assert fe["unit"] == "k€"
+        assert _line(purchases, "OTHER")["emission_factor_kgco2e_per_keur"] == pytest.approx(fe["total"])
 
     def test_facteur_cuivre_dans_l_incertitude_du_classeur(self, purchases, workbook_factors):
         fe = workbook_factors["FE072"]  # Cuivre, kgCO2e/tonne

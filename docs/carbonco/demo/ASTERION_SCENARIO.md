@@ -46,11 +46,11 @@ recalcule et compare (rapport de parité).
 | Domaine | Métrique | Valeur | Statut / méthode |
 |---|---|---|---|
 | Achats | Total achats | **5,8 M€** | `manual` |
-| Scope 3 | Émissions achats | **3 480 tCO2e** | `estimated` (facteurs monétaires + physiques) |
-| Scope 3 | Part des aimants | **61,8 %** | dérivé déterministe (hotspot n°1) |
+| Scope 3 | Émissions achats | **3 552 tCO2e** | `estimated` (facteurs physiques + 1 facteur monétaire) |
+| Scope 3 | Part des aimants | **60,6 %** | dérivé déterministe (hotspot n°1) |
 | Énergie | Consommation électrique | **8,6 GWh** | `manual` (relevés) |
-| Scope 2 | Location-based (LB) | **1 860 tCO2e** | déterministe (mix réseau) |
-| Scope 2 | Market-based (MB) | **1 090 tCO2e** | déterministe (instruments contractuels) |
+| Scope 2 | Location-based (LB) | **489 tCO2e** | déterministe (mix réseau) |
+| Scope 2 | Market-based (MB) | **237 tCO2e** | déterministe (instruments contractuels) |
 | Scope 2 | Couverture contractuelle | **54 %** | dérivé |
 | Eau | Prélèvement annuel | **72 000 m³** | `manual` |
 | Eau | Stress hydrique | **élevé**, confidence **0,81** | screening (risque ≠ confiance) |
@@ -58,9 +58,11 @@ recalcule et compare (rapport de parité).
 | IRO | Exposition financière indicative | **1,4 M€** | `estimated`, fourchette |
 
 Cohérence interne vérifiable :
-- Part aimants Scope 3 : `0,618 × 3 480 ≈ 2 151 tCO2e` attribués aux aimants.
-- Facteur Scope 2 LB implicite : `1 860 / 8 600 MWh ≈ 0,216 tCO2e/MWh` (≈ moyenne réseau UE).
-- MB < LB (1 090 < 1 860) cohérent avec 54 % de couverture contractuelle bas-carbone.
+- Scope 3 achats = aimants 150 000 kg × 14,34 + cuivre 216 000 kg × 3,7 + aluminium 348 000 kg × 1,52 + autres achats 290 k€ × 250 kgCO2e/k€ = 2 151 + 799,2 + 528,96 + 72,5 = **3 551,66 tCO2e** (affiché 3 552). Part aimants : 2 151 / 3 551,66 = 60,6 %.
+- Les 4 lignes d'achat totalisent 5,8 M€. Facteur « autres achats » : FEM10 (Équipements électroniques, ADEME/Exiobase) du classeur `CarbonCo_Calcul_Carbone_v2.xlsx`.
+- Scope 2 LB = 8 600 MWh × 0,0569 tCO2e/MWh (FE020, mix moyen France, ADEME 2024) = 489,34 t.
+- Scope 2 MB = 3 956 MWh non couverts × 0,06 tCO2e/MWh (mix résiduel France, AIB 2023) = 237,36 t ; la part couverte (4 644 MWh, PPA + GO) est à 0.
+- Ces chiffres sont recalculés par les vrais moteurs dans `apps/api/tests/test_calc_reference_asterion.py`.
 
 ## 4. Les 4 cas obligatoires de revue IA (mode `demo`, déterministe)
 
@@ -71,7 +73,7 @@ l'évidence de sorte que chaque statut émerge **naturellement** :
 
 | # | Claim (brouillon IA) | Statut attendu | Pourquoi (déterministe) |
 |---|---|---|---|
-| 1 | « Les aimants représentent **61,8 %** des émissions Scope 3 achats. » | **`supported`** | Cite le **résultat de calcul déterministe** Scope 3 (corroboration exacte, frais). |
+| 1 | « Les aimants représentent **60,6 %** des émissions Scope 3 achats. » | **`supported`** | Cite le **résultat de calcul déterministe** Scope 3 (corroboration exacte, frais). |
 | 2 | « La dépendance aux terres rares lourdes dépasse **90 %**. » | **`partially_supported`** | Cite une observation **`estimated`** (92 %) — résolue mais non corroborée déterministiquement → au mieux partiel. |
 | 3 | « Le contenu recyclé déclaré des aimants est de **80 %**. » | **`contradicted`** | La preuve citée établit **35 % prouvé** — contradiction chiffrée détectée. |
 | 4 | « Un fournisseur alternatif est qualifiable **sous 90 jours**. » | **`unsupported`** | **Aucune** référence interne ne soutient l'affirmation → non étayé. |
@@ -103,9 +105,9 @@ DÉMONSTRATION FICTIVE**.
 
 1. **Situation** — profil Asterion, enjeux CSRD/ESRS.
 2. **Import** — achats 5,8 M€, BOM E-Drive X4.
-3. **Scope 3** — hotspots, part aimants 61,8 %.
+3. **Scope 3** — hotspots, part aimants 60,6 %.
 4. **CRMA** — criticité terres rares, dépendance 92 % (estimated).
-5. **Scope 2** — LB 1 860 / MB 1 090, couverture 54 %.
+5. **Scope 2** — LB 489 / MB 237, couverture 54 %.
 6. **Eau & nature** — 72 000 m³, stress élevé (confidence 0,81), TNFD.
 7. **IRO** — double matérialité, exposition 1,4 M€.
 8. **IA** — revue citée : les 4 cas, trace fonctionnelle.

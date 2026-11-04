@@ -123,9 +123,9 @@ Ce que le seed insère concrètement (cf. `evidence.json`, `iro.json`) :
 parité**. Il vérifie l'**arithmétique** attendue plutôt que de rétro-ingénier chaque moteur
 de calcul :
 
-- somme des lignes Scope 3 achats = **3 480 tCO2e** ;
-- part des aimants = **61,8 %** ;
-- couverture contractuelle Scope 2 = **54 %** (cohérente avec MB 1 090 < LB 1 860) ;
+- somme des lignes Scope 3 achats = **3 552 tCO2e** ;
+- part des aimants = **60,6 %** ;
+- couverture contractuelle Scope 2 = **54 %** (cohérente avec MB 237 < LB 489) ;
 - prélèvement eau = **72 000 m³**, dépendance terres rares lourdes = **92 %** (`estimated`).
 
 `verify` **refuse de s'exécuter en cas de slug non conforme** et signale toute dérive.
@@ -176,7 +176,7 @@ de **UC-2 (explication de calcul Scope 2)** :
 
 | # | Claim (brouillon IA) | Voie | Statut | Mécanisme déterministe |
 |---|---|---|---|---|
-| 1 | « Les aimants représentent **61,8 %** des émissions Scope 3 achats. » | **UC-2** | **`supported`** | Corroboration par **résultat de calcul déterministe** (`calc_result`) : citations résolues, exactes et fraîches. Le provider demo n'atteint `supported` **que** par une explication de calcul. |
+| 1 | « Les aimants représentent **60,6 %** des émissions Scope 3 achats. » | **UC-2** | **`supported`** | Corroboration par **résultat de calcul déterministe** (`calc_result`) : citations résolues, exactes et fraîches. Le provider demo n'atteint `supported` **que** par une explication de calcul. |
 | 2 | « La dépendance aux terres rares lourdes dépasse **90 %**. » | UC-1 | **`partially_supported`** | Cite une observation **`estimated`** (92 %, `artifact-dependency-study`) : résolue mais non corroborée déterministiquement → au mieux partiel. |
 | 3 | « Le contenu recyclé déclaré des aimants est de **80 %**. » | UC-1 | **`contradicted`** | La preuve citée (audit masse-bilan tiers, `artifact-recycled-audit`) **prouve 35 %** (`verified`) → écart chiffré → contradiction détectée. |
 | 4 | « Un fournisseur alternatif est qualifiable **sous 90 jours**. » | UC-1 | **`unsupported`** | **Aucune** référence interne ne l'étaye (pas de marqueur de citation) → non étayé. |
@@ -185,7 +185,7 @@ de **UC-2 (explication de calcul Scope 2)** :
 > (sélection, licence, résolution, entailment, gate). Le statut **`supported`** n'est
 > atteignable qu'en **UC-2**, où un claim cite le `calc_result` déterministe Scope 2 : c'est
 > la seule voie par laquelle une corroboration exacte et fraîche produit `supported`. Le cas
-> vitrine « aimants 61,8 % » est donc démontré via cette voie de corroboration de calcul, pas
+> vitrine « aimants 60,6 % » est donc démontré via cette voie de corroboration de calcul, pas
 > via une simple observation.
 
 En complément, l'assistant émet des **questions de revue** et des **suggestions d'action**
@@ -236,9 +236,9 @@ spectateur voit donc **l'interface réelle**, pas une capture d'écran. Le manif
 |---|---|---|---|
 | 1 | Situation | 12 000 moteurs/an | `/dashboard` |
 | 2 | Import des achats | 5,8 M€ | `/fournisseurs/scope3` |
-| 3 | Scope 3 — hotspots | part aimants 61,8 % | `/scopes` |
+| 3 | Scope 3 — hotspots | part aimants 60,6 % | `/scopes` |
 | 4 | CRMA — matières critiques | dépendance 92 % (`estimated`) | `/crma` |
-| 5 | Scope 2 — double reporting | MB 1 090 / LB 1 860, couv. 54 % | `/scopes` |
+| 5 | Scope 2 — double reporting | MB 237 / LB 489, couv. 54 % | `/scopes` |
 | 6 | Eau & nature | 72 000 m³, stress élevé (conf. 0,81) | `/water` |
 | 7 | IRO — double matérialité | exposition 1,4 M€ | `/iro` |
 | 8 | Revue IA citée | les 4 cas, trace fonctionnelle | `/iro` |
@@ -311,8 +311,8 @@ environnement**. Par conséquent :
 - Les comportements **dépendants de la base** — idempotence du seed, garde-slug, portée
   tenant du reset, parité de `demo_verify` — sont **prouvés en CI uniquement** (base de test
   éphémère du pipeline), **jamais** exécutés localement ici.
-- `demo_verify` contrôle la **parité arithmétique** (sommes de lignes = 3 480, part aimants
-  61,8 %, couverture 54 %) — il **ne rétro-ingénie pas** chaque moteur de calcul.
+- `demo_verify` contrôle la **parité arithmétique** (sommes de lignes = 3 552, part aimants
+  60,6 %, couverture 54 %) — il **ne rétro-ingénie pas** chaque moteur de calcul.
 - La **revue IA sur l'IRO seedé (UC-1)** est **entièrement réelle** ; le statut `supported`
   requiert la **voie UC-2** (explication de calcul Scope 2 citant un `calc_result`).
 - Le **cockpit figé** (`/demo/asterion-motion`) est autonome : il rend des données Asterion

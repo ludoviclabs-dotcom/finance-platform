@@ -116,7 +116,9 @@ class Methodology:
     """
 
     code: str = "CC-SCOPE2-DUAL"
-    version: str = "1.0.0"
+    # 1.1.0 (2026-11-04) : un instrument couvrant la période de consommation
+    # n'est plus écarté parce que sa validité est échue à la date du calcul.
+    version: str = "1.1.0"
     allow_market_fallback: bool = False
     fallback_note: str | None = None
 
@@ -667,19 +669,25 @@ class _AllocationCheck:
     warnings: list[str] = field(default_factory=list)
 
 
-def _check_allocations(activity: ActivityInput, activity_mwh: float, today: date) -> _AllocationCheck:
+def _check_allocations(activity: ActivityInput, activity_mwh: float) -> _AllocationCheck:
     """Contrôles d'allocation d'une activité (contrôles obligatoires du plan) :
 
       * **double allocation** : deux allocations du MÊME instrument à la MÊME
         activité → erreur explicite (la base l'interdit déjà via `UNIQUE`, on ne
         s'y fie pas aveuglément au moment de calculer) ;
       * **vecteur compatible** (technologie pertinente ici) → exclusion + warning ;
+      * **instrument actif** (statut `active`) → exclusion + warning ;
       * **période compatible** : la consommation doit tomber dans la validité de
         l'instrument → exclusion + warning ;
-      * **instrument actif** (non annulé/expiré à la date de calcul) → exclusion
-        + warning ;
       * **quantité couverte ≤ consommation** → erreur explicite (survente d'un
         périmètre : on ne peut pas couvrir plus que ce qu'on a consommé).
+
+    La date du calcul n'intervient PAS (méthodologie 1.1.0). Un instrument est
+    admissible s'il couvre la période de CONSOMMATION (GHG Protocol Scope 2
+    Guidance, critère de qualité n°4), qu'il soit encore valide ou non le jour où
+    l'on calcule. Jusqu'en 1.0.0, un instrument dont `valid_to` était passé à la
+    date du calcul était écarté : un bilan 2025 calculé en 2026 perdait toutes
+    ses GO et PPA 2025, et un même bilan changeait selon sa date de recalcul.
     """
     check = _AllocationCheck()
     seen: set[int] = set()
@@ -701,12 +709,6 @@ def _check_allocations(activity: ActivityInput, activity_mwh: float, today: date
             check.warnings.append(
                 f"Allocation {alloc.allocation_id} ignorée : instrument "
                 f"{alloc.instrument_id} non actif (statut {alloc.status})."
-            )
-            continue
-        if alloc.valid_to < today:
-            check.warnings.append(
-                f"Allocation {alloc.allocation_id} ignorée : instrument "
-                f"{alloc.instrument_id} expiré le {alloc.valid_to}."
             )
             continue
         if activity.period_start < alloc.valid_from or activity.period_end > alloc.valid_to:
@@ -777,9 +779,10 @@ def calculate(
 ) -> Scope2Result:
     """Calcule le Scope 2 dual sur un ensemble d'activités.
 
-    Fonction PURE et REPRODUCTIBLE : mêmes entrées ⇒ mêmes sorties. `today` (par
-    défaut la date du jour) n'intervient QUE dans le contrôle d'expiration des
-    instruments et doit être fourni explicitement pour un calcul rejouable.
+    Fonction PURE et REPRODUCTIBLE : mêmes entrées ⇒ mêmes sorties. `today` est
+    conservé pour compatibilité d'appel mais n'influence plus aucun résultat
+    depuis la méthodologie 1.1.0 (voir `_check_allocations`) : la date de
+    référence d'un run est enregistrée dans son snapshot, pas dans son calcul.
 
     Les erreurs de fin de hiérarchie ne font pas échouer tout le run : elles sont
     capturées en `MissingFactor` (avec le message d'erreur explicite intégral),
@@ -788,7 +791,7 @@ def calculate(
     explicite » et « la trace doit montrer tout ce qui manque, pas seulement le
     premier problème ».
     """
-    today = today or date.today()
+    del today  # sans effet sur le calcul (méthodologie 1.1.0)
     ordered = sorted(activities, key=lambda a: a.activity_id)
     _check_instrument_volumes(ordered)
 
@@ -818,7 +821,7 @@ def calculate(
                 "ATTENTE DE REVUE (review_status=pending)."
             )
 
-        check = _check_allocations(activity, activity_mwh, today)
+        check = _check_allocations(activity, activity_mwh)
         warnings.extend(check.warnings)
         covered = sum(a.allocated_mwh for a in check.valid)
         uncovered = max(0.0, activity_mwh - covered)

@@ -190,7 +190,9 @@ class TestAntiDoubleAllocation:
 @_skip_no_db_url
 @_skip_no_psycopg2
 class TestAllocationCompatibility:
-    def test_expired_instrument_refused(self, energy_companies):
+    def test_expired_instrument_allocatable_to_the_period_it_covers(self, energy_companies):
+        """Bilan d'un exercice clos : une GO 2025, échue aujourd'hui, s'alloue
+        toujours à une consommation 2025 qu'elle couvre (méthodologie 1.1.0)."""
         cid = energy_companies["a"]
         meter = _make_meter(cid, f"EXP-{cid}")
         activity = _make_activity(cid, meter, None, "electricity", date(2025, 3, 1), date(2025, 3, 31))
@@ -198,11 +200,28 @@ class TestAllocationCompatibility:
             company_id=cid,
             payload=InstrumentCreate(
                 instrument_type="rec", volume_mwh=100.0,
-                valid_from=date(2025, 1, 1), valid_to=date(2025, 12, 31),  # expiré (< aujourd'hui)
+                valid_from=date(2025, 1, 1), valid_to=date(2025, 12, 31),  # échue (< aujourd'hui)
             ),
         )
         assert instruments_service.get_instrument(company_id=cid, instrument_id=inst.id).is_expired is True
-        with pytest.raises(EnergyError, match="expiré"):
+        alloc = instruments_service.allocate_instrument(
+            company_id=cid, instrument_id=inst.id,
+            payload=AllocationRequest(energy_activity_id=activity, allocated_mwh=10.0), allocated_by=None,
+        )
+        assert alloc.allocated_mwh == 10.0
+
+    def test_expired_instrument_refused_outside_its_period(self, energy_companies):
+        cid = energy_companies["a"]
+        meter = _make_meter(cid, f"EXP2-{cid}")
+        activity = _make_activity(cid, meter, None, "electricity", date(2026, 3, 1), date(2026, 3, 31))
+        inst = instruments_service.create_instrument(
+            company_id=cid,
+            payload=InstrumentCreate(
+                instrument_type="rec", volume_mwh=100.0,
+                valid_from=date(2025, 1, 1), valid_to=date(2025, 12, 31),
+            ),
+        )
+        with pytest.raises(EnergyError, match="Période incompatible"):
             instruments_service.allocate_instrument(
                 company_id=cid, instrument_id=inst.id,
                 payload=AllocationRequest(energy_activity_id=activity, allocated_mwh=10.0), allocated_by=None,

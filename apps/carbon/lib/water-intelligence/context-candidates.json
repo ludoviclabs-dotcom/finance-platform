@@ -1,0 +1,825 @@
+{
+  "schema_version": "1.0.0",
+  "document": "water-context-candidates",
+  "collected_on": "2026-11-04",
+  "review": {
+    "status": "pending_human_review",
+    "reviewed_by": null,
+    "reviewed_on": null
+  },
+  "scope_notice": "Repères de contexte collectés pour la refonte du module Eau. Aucun n'est publié : chaque valeur attend une revue humaine signée. Ce ne sont pas des données du pilote BNPE (commune 34172, 2020) et ils ne doivent jamais s'y mêler.",
+  "facts": [
+    {
+      "id": "prelev-total-2023",
+      "theme": "quantite",
+      "label": "Eau douce prélevée",
+      "value": 29,
+      "unit": "Md m³",
+      "period": "2023",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null
+    },
+    {
+      "id": "prelev-total-2008",
+      "theme": "quantite",
+      "label": "Eau douce prélevée",
+      "value": 34,
+      "unit": "Md m³",
+      "period": "2008",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null
+    },
+    {
+      "id": "ressource-renouv-1990",
+      "theme": "quantite",
+      "label": "Ressource en eau renouvelable, moyenne annuelle",
+      "value": 229,
+      "unit": "Md m³/an",
+      "period": "1990-2001",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f02cb03-b862-6068-a364-e1df95d2d9e2"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null
+    },
+    {
+      "id": "ressource-renouv-2002",
+      "theme": "quantite",
+      "label": "Ressource en eau renouvelable, moyenne annuelle",
+      "value": 197,
+      "unit": "Md m³/an",
+      "period": "2002-2018",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f02cb03-b862-6068-a364-e1df95d2d9e2"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null
+    },
+    {
+      "id": "restitution-2023",
+      "theme": "usages",
+      "label": "Part de l'eau prélevée restituée aux milieux",
+      "value": 83,
+      "unit": "%",
+      "period": "2023",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null
+    },
+    {
+      "id": "consommation-2023",
+      "theme": "usages",
+      "label": "Eau douce consommée",
+      "value": 3.8,
+      "unit": "Md m³",
+      "period": "2023",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null
+    },
+    {
+      "id": "saisonnalite",
+      "theme": "usages",
+      "label": "Part de la consommation annuelle concentrée de juin à août",
+      "value": 60,
+      "unit": "%",
+      "period": "2023",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": "Valeur arrondie (« environ 60 % »)."
+    },
+    {
+      "id": "usages-prelevement-2023",
+      "theme": "usages",
+      "label": "Prélèvements — refroidissement des centrales",
+      "value": 45,
+      "unit": "%",
+      "period": "2023",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null,
+      "breakdown": {
+        "refroidissement des centrales": 45,
+        "alimentation des canaux": 20,
+        "eau potable": 18,
+        "irrigation agricole": 10,
+        "industrie hors énergie": 7
+      }
+    },
+    {
+      "id": "usages-consommation-2023",
+      "theme": "usages",
+      "label": "Consommation — agriculture",
+      "value": 61,
+      "unit": "%",
+      "period": "2023",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f1b65bc-46ac-6268-a45e-2be714c72d2b"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null,
+      "breakdown": {
+        "agriculture": 61,
+        "eau potable": 24,
+        "refroidissement des centrales": 11,
+        "industrie": 4
+      }
+    },
+    {
+      "id": "qualite-surface",
+      "theme": "qualite",
+      "label": "Eaux superficielles pas en bon état écologique",
+      "value": 56,
+      "unit": "%",
+      "period": null,
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f02cb03-b862-6068-a364-e1df95d2d9e2"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": "Période non précisée par le relais."
+    },
+    {
+      "id": "zone-inondable",
+      "theme": "risques",
+      "label": "Français vivant en zone inondable",
+      "value": "1 sur 4",
+      "unit": "population",
+      "period": null,
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f1ab59b-0c58-6dd6-87b4-f99a4c0da60d"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null
+    },
+    {
+      "id": "catnat-cout",
+      "theme": "risques",
+      "label": "Indemnisation annuelle moyenne des catastrophes naturelles",
+      "value": 1.28,
+      "unit": "Md€/an",
+      "period": "1982-2024",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "SDES — Bilan environnemental de la France, édition 2025 (mai 2026)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f1ab59b-0c58-6dd6-87b4-f99a4c0da60d"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": null,
+      "breakdown": {
+        "inondations": 51.5,
+        "sécheresses": 42.2
+      }
+    },
+    {
+      "id": "adaptation-eau-i4ce",
+      "theme": "couts",
+      "label": "Besoin annuel chiffré pour protéger les ressources en eau (adaptation)",
+      "value": 300,
+      "unit": "M€/an",
+      "period": "2022",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "I4CE — Se donner les moyens de s'adapter aux conséquences du changement climatique en France (juin 2022)",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1ed4a367-813f-6f00-b008-ad0bc3dd06d4"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": "Sur 2,3 Md€/an chiffrés au total pour 18 mesures."
+    },
+    {
+      "id": "pfas-robinet",
+      "theme": "qualite",
+      "label": "Communes testées avec des PFAS au robinet",
+      "value": 96,
+      "unit": "%",
+      "period": "janvier 2025",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "UFC-Que Choisir × Générations Futures",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1f02cb03-b862-6068-a364-e1df95d2d9e2"
+      },
+      "verification": "relayed_primary_named",
+      "caveat": "Échantillon de 30 communes, non représentatif : ne jamais généraliser. Voir le contrôle sanitaire officiel pour la commune 34172."
+    },
+    {
+      "id": "captages-abandonnes",
+      "theme": "qualite",
+      "label": "Captages d'eau potable abandonnés entre 1980 et 2019",
+      "value": 27,
+      "unit": "%",
+      "period": "1980-2019",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "Non identifiée",
+        "url": null
+      },
+      "relay": {
+        "name": "Datagora",
+        "url": "https://datagora.fr/#/categorie/environnement/1eff52ac-5594-6eb8-9579-05064ce69d66"
+      },
+      "verification": "relayed_unverified",
+      "caveat": "Valeur introuvable dans les sources primaires consultées ; remplacée par captages-fermes-1980-2024 (Assemblée nationale)."
+    },
+    {
+      "id": "prix-eau-france",
+      "theme": "couts",
+      "label": "Prix moyen TTC de l'eau potable et de l'assainissement collectif, redevances comprises",
+      "value": 4.69,
+      "unit": "€/m³",
+      "period": "au 1er janvier 2024",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "OFB — Rapport SISPEA 2025, données 2023",
+        "url": "https://economie.eaufrance.fr/sites/default/files/2025-07/rapport_sispea_2023_vf.pdf"
+      },
+      "verification": "primary_verified",
+      "caveat": "Pour 120 m³ par an ; 2,32 €/m³ eau potable, 2,37 €/m³ assainissement collectif.",
+      "relay": null
+    },
+    {
+      "id": "prix-eau-rmc",
+      "theme": "couts",
+      "label": "Prix moyen TTC de l'eau, bassin Rhône-Méditerranée-Corse",
+      "value": 4.34,
+      "unit": "€/m³",
+      "period": "au 1er janvier 2024",
+      "geography": {
+        "scope": "bassin",
+        "code": "RMC",
+        "label": "Rhône-Méditerranée-Corse"
+      },
+      "primary_source": {
+        "name": "OFB — Rapport SISPEA 2025, données 2023",
+        "url": "https://economie.eaufrance.fr/sites/default/files/2025-07/rapport_sispea_2023_vf.pdf"
+      },
+      "verification": "primary_verified",
+      "caveat": "2,18 €/m³ eau potable, 2,16 €/m³ assainissement collectif.",
+      "relay": null
+    },
+    {
+      "id": "rendement-reseaux",
+      "theme": "quantite",
+      "label": "Rendement moyen des réseaux d'eau potable",
+      "value": 81.2,
+      "unit": "%",
+      "period": "2023",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "OFB — Rapport SISPEA 2025, données 2023",
+        "url": "https://economie.eaufrance.fr/sites/default/files/2025-07/rapport_sispea_2023_vf.pdf"
+      },
+      "verification": "primary_verified",
+      "caveat": "Environ 1 litre sur 5 perdu en fuites.",
+      "relay": null
+    },
+    {
+      "id": "explore2-debit-ete-fort",
+      "theme": "quantite",
+      "label": "Débit moyen estival (juin-août), fin de siècle, scénario de fortes émissions",
+      "value": -30,
+      "unit": "% (médiane)",
+      "period": "fin de siècle",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France hexagonale"
+      },
+      "primary_source": {
+        "name": "INRAE / OiEau — Messages et enseignements du projet Explore2 (28 juin 2024)",
+        "url": "https://www.inrae.fr/sites/default/files/projetexplore2-synthese.pdf"
+      },
+      "verification": "primary_verified",
+      "caveat": "Majorité des projections entre −50 % et −15 % ; secteur méditerranéen autour de −40 %. Débits naturels, hors gestion.",
+      "relay": null
+    },
+    {
+      "id": "explore2-debit-ete-modere",
+      "theme": "quantite",
+      "label": "Débit moyen estival (juin-août), fin de siècle, scénario d’émissions modérées",
+      "value": -15,
+      "unit": "% (ordre de grandeur)",
+      "period": "fin de siècle",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France hexagonale"
+      },
+      "primary_source": {
+        "name": "INRAE / OiEau — Messages et enseignements du projet Explore2 (28 juin 2024)",
+        "url": "https://www.inrae.fr/sites/default/files/projetexplore2-synthese.pdf"
+      },
+      "verification": "primary_verified",
+      "caveat": "Pour la majorité des projections entre −25 % et 0.",
+      "relay": null
+    },
+    {
+      "id": "explore2-qmna",
+      "theme": "quantite",
+      "label": "Débit d'étiage QMNA, fin de siècle, scénario de fortes émissions",
+      "value": -40,
+      "unit": "% (médiane)",
+      "period": "fin de siècle",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France hexagonale"
+      },
+      "primary_source": {
+        "name": "INRAE / OiEau — Messages et enseignements du projet Explore2 (28 juin 2024)",
+        "url": "https://www.inrae.fr/sites/default/files/projetexplore2-synthese.pdf"
+      },
+      "verification": "primary_verified",
+      "caveat": "Autour de −60 % pour le sud ; hausse projetée pour les Alpes.",
+      "relay": null
+    },
+    {
+      "id": "captages-fermes-1980-2024",
+      "theme": "qualite",
+      "label": "Captages d'eau potable fermés",
+      "value": 14288,
+      "unit": "captages",
+      "period": "1980-2024",
+      "geography": {
+        "scope": "france",
+        "code": "FR",
+        "label": "France"
+      },
+      "primary_source": {
+        "name": "Assemblée nationale — Rapport n° 928 (commission du développement durable), proposition de loi « Protéger l'eau potable »",
+        "url": "https://www.assemblee-nationale.fr/dyn/17/rapports/cion-dvp/l17b0928_rapport-fond.pdf"
+      },
+      "verification": "primary_verified",
+      "caveat": "Première cause : dégradation de la qualité de la ressource (32,1 % des cas) ; 41 % des captages abandonnés le sont pour nitrates et/ou pesticides.",
+      "relay": null
+    }
+  ],
+  "local_cases": {
+    "restrictions_34172": {
+      "geography": {
+        "scope": "commune",
+        "code": "34172",
+        "label": "Montpellier"
+      },
+      "source": {
+        "name": "VigiEau — Donnée Sécheresse, « Historique Communes » (Etalab 2.0)",
+        "url": "https://www.data.gouv.fr/datasets/donnee-secheresse-vigieau",
+        "resource_url": "https://static.data.gouv.fr/resources/donnee-secheresse-vigieau/20260915-045824/historique-communes.zip",
+        "retrieved_on": "2026-11-04"
+      },
+      "method": "Niveau journalier le plus élevé parmi les trois types de zones (eaux superficielles, souterraines, eau potable). Un jour compte dans une colonne si ce niveau maximal atteint le seuil indiqué. La vigilance n'est qu'une incitation aux économies d'eau : les jours de restriction effective se lisent à partir du niveau alerte (days_alerte_or_higher).",
+      "caveat": "Données non opposables : seuls les arrêtés publiés au recueil des actes administratifs font foi. 2010 commence le 1er mai, 2026 s'arrête au 15 septembre.",
+      "years": [
+        {
+          "year": 2010,
+          "observed_from": "2010-05-01",
+          "observed_to": "2010-12-31",
+          "days_observed": 245,
+          "days_vigilance_or_higher": 0,
+          "days_alerte_or_higher": 0,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2011,
+          "observed_from": "2011-01-01",
+          "observed_to": "2011-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 0,
+          "days_alerte_or_higher": 0,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2012,
+          "observed_from": "2012-01-01",
+          "observed_to": "2012-12-31",
+          "days_observed": 366,
+          "days_vigilance_or_higher": 131,
+          "days_alerte_or_higher": 78,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2013,
+          "observed_from": "2013-01-01",
+          "observed_to": "2013-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 0,
+          "days_alerte_or_higher": 0,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2014,
+          "observed_from": "2014-01-01",
+          "observed_to": "2014-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 159,
+          "days_alerte_or_higher": 126,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2015,
+          "observed_from": "2015-01-01",
+          "observed_to": "2015-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 45,
+          "days_alerte_or_higher": 0,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2016,
+          "observed_from": "2016-01-01",
+          "observed_to": "2016-12-31",
+          "days_observed": 366,
+          "days_vigilance_or_higher": 95,
+          "days_alerte_or_higher": 0,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2017,
+          "observed_from": "2017-01-01",
+          "observed_to": "2017-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 97,
+          "days_alerte_or_higher": 54,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2018,
+          "observed_from": "2018-01-01",
+          "observed_to": "2018-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 0,
+          "days_alerte_or_higher": 0,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2019,
+          "observed_from": "2019-01-01",
+          "observed_to": "2019-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 111,
+          "days_alerte_or_higher": 34,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2020,
+          "observed_from": "2020-01-01",
+          "observed_to": "2020-12-31",
+          "days_observed": 366,
+          "days_vigilance_or_higher": 24,
+          "days_alerte_or_higher": 0,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2021,
+          "observed_from": "2021-01-01",
+          "observed_to": "2021-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 164,
+          "days_alerte_or_higher": 66,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2022,
+          "observed_from": "2022-01-01",
+          "observed_to": "2022-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 98,
+          "days_alerte_or_higher": 66,
+          "days_alerte_renforcee_or_higher": 0,
+          "days_crise": 0
+        },
+        {
+          "year": 2023,
+          "observed_from": "2023-01-01",
+          "observed_to": "2023-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 271,
+          "days_alerte_or_higher": 234,
+          "days_alerte_renforcee_or_higher": 157,
+          "days_crise": 50
+        },
+        {
+          "year": 2024,
+          "observed_from": "2024-01-01",
+          "observed_to": "2024-12-31",
+          "days_observed": 366,
+          "days_vigilance_or_higher": 214,
+          "days_alerte_or_higher": 106,
+          "days_alerte_renforcee_or_higher": 80,
+          "days_crise": 0
+        },
+        {
+          "year": 2025,
+          "observed_from": "2025-01-01",
+          "observed_to": "2025-12-31",
+          "days_observed": 365,
+          "days_vigilance_or_higher": 170,
+          "days_alerte_or_higher": 127,
+          "days_alerte_renforcee_or_higher": 77,
+          "days_crise": 0
+        },
+        {
+          "year": 2026,
+          "observed_from": "2026-01-01",
+          "observed_to": "2026-09-15",
+          "days_observed": 258,
+          "days_vigilance_or_higher": 90,
+          "days_alerte_or_higher": 15,
+          "days_alerte_renforcee_or_higher": 15,
+          "days_crise": 0
+        }
+      ]
+    },
+    "pfas_34172": {
+      "geography": {
+        "scope": "commune",
+        "code": "34172",
+        "label": "Montpellier"
+      },
+      "source": {
+        "name": "Hub'Eau — API Qualité de l'eau potable (contrôle sanitaire des ARS, Etalab 2.0)",
+        "url": "https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable/resultats_dis?code_commune=34172&code_parametre=8847&date_min_prelevement=2023-01-01",
+        "retrieved_on": "2026-11-04"
+      },
+      "parameter": {
+        "code": "8847",
+        "label": "Somme de 20 substances perfluoroalkylées (PFAS)"
+      },
+      "unit": "µg/L",
+      "quality_limit": 0.1,
+      "analyses": [
+        {
+          "date": "2025-07-16",
+          "value_ug_l": 0.003
+        },
+        {
+          "date": "2025-08-08",
+          "value_ug_l": 0.0
+        },
+        {
+          "date": "2025-09-19",
+          "value_ug_l": 0.0
+        },
+        {
+          "date": "2025-10-30",
+          "value_ug_l": 0.0
+        },
+        {
+          "date": "2025-11-07",
+          "value_ug_l": 0.0
+        },
+        {
+          "date": "2025-12-12",
+          "value_ug_l": 0.004
+        },
+        {
+          "date": "2026-06-11",
+          "value_ug_l": 0.001
+        },
+        {
+          "date": "2026-06-17",
+          "value_ug_l": 0.001
+        },
+        {
+          "date": "2026-06-24",
+          "value_ug_l": 0.0
+        },
+        {
+          "date": "2026-07-03",
+          "value_ug_l": 0.002
+        },
+        {
+          "date": "2026-07-21",
+          "value_ug_l": 0.0
+        },
+        {
+          "date": "2026-07-22",
+          "value_ug_l": 0.003
+        },
+        {
+          "date": "2026-08-21",
+          "value_ug_l": 0.0
+        },
+        {
+          "date": "2026-08-21",
+          "value_ug_l": 0.016
+        }
+      ],
+      "caveat": "Une valeur de 0 signifie un résultat sous le seuil de quantification, pas une absence prouvée. Les analyses portent sur le réseau de distribution, pas sur la ressource."
+    },
+    "restriction_level_departement_34": {
+      "source": {
+        "name": "VigiEau — API publique",
+        "url": "https://api.vigieau.gouv.fr/api/departements",
+        "retrieved_on": "2026-11-04"
+      },
+      "max_level": "crise",
+      "note": "Niveau maximal en vigueur dans au moins une zone du département le jour du relevé ; il ne vaut pas pour tout le département."
+    }
+  },
+  "restriction_scale": [
+    {
+      "niveau": "Vigilance",
+      "effet": "Incitation à faire des économies d'eau"
+    },
+    {
+      "niveau": "Alerte",
+      "effet": "Réduction des prélèvements à fins agricoles de moins de 50 % ; autres restrictions (arrosage…)"
+    },
+    {
+      "niveau": "Alerte renforcée",
+      "effet": "Réduction des prélèvements agricoles de 50 % ou plus ; restrictions plus fortes"
+    },
+    {
+      "niveau": "Crise",
+      "effet": "Arrêt des prélèvements non prioritaires, y compris agricoles ; eau réservée à la santé, la sécurité civile, l'eau potable et la salubrité"
+    }
+  ],
+  "remaining_gaps": [
+    {
+      "need": "Prélèvements et consommation par bassin et par département",
+      "why_not_collected": "La décision de publication BNPE couvre la seule commune 34172 pour 2020. Agréger d'autres territoires exige une nouvelle décision humaine, pas une collecte.",
+      "lead": "Hub'Eau prélèvements (BNPE), après décision."
+    },
+    {
+      "need": "Taux de redevance des agences de l'eau",
+      "why_not_collected": "Les taux sont fixés par délibération de chaque agence, par usage et par zone : aucun jeu ouvert unique. Le prix SISPEA les inclut déjà.",
+      "lead": "Délibérations de l'agence Rhône Méditerranée Corse."
+    },
+    {
+      "need": "Source primaire de l'article Datagora sur le 27 % de captages abandonnés",
+      "why_not_collected": "Valeur introuvable dans les sources primaires consultées ; remplacée par le rapport n° 928 de l'Assemblée nationale.",
+      "lead": "Bilan DGS des abandons de captages 1980-2019."
+    }
+  ]
+}

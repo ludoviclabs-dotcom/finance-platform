@@ -4,9 +4,11 @@
  *
  * Garanties tenues ici, indépendantes de toute maquette :
  *
- * 1. Le thème est sombre PAR DÉFAUT, structurellement — plus aucune dépendance
- *    à `prefers-color-scheme` dans la feuille de style, et le mécanisme reste
- *    générique côté React (aucun nom de domaine en dur).
+ * 1. Le thème a un défaut STRUCTUREL — clair depuis la refonte Industry, qui
+ *    aligne Water sur /materials et /robotics — sans aucune dépendance à
+ *    `prefers-color-scheme` dans la feuille de style ; l'autre thème n'existe
+ *    que sous un attribut explicite, et le mécanisme reste générique côté React
+ *    (aucun nom de domaine en dur).
  * 2. Un choix explicite se persiste — « clair » comme « sombre » — et se
  *    retrouve identique après un remontage (l'équivalent d'un retour sur la
  *    page).
@@ -55,7 +57,7 @@ const stripComments = (source: string) =>
    1 — Sombre par défaut, structurellement
    ========================================================================== */
 
-describe("thème Water — sombre par défaut, sans dépendre du système", () => {
+describe("thème Water — clair par défaut, sans dépendre du système", () => {
   /* Commentaires retirés avant chaque assertion : ce fichier CSS documente en
      prose, dans ses propres commentaires, les sélecteurs qu'il n'emploie plus
      — un grep naïf sur le texte brut confondrait cette documentation avec du
@@ -66,19 +68,22 @@ describe("thème Water — sombre par défaut, sans dépendre du système", () =
     expect(css).not.toContain("prefers-color-scheme");
   });
 
-  it("le clair n'existe que sous l'attribut explicite data-wi-theme=\"clair\"", () => {
+  it("le sombre n'existe que sous l'attribut explicite, et le clair explicite reste reconnu", () => {
+    expect(css).toContain('[data-wi][data-wi-theme="sombre"]');
     expect(css).toContain('[data-wi][data-wi-theme="clair"]');
     // Aucun sélecteur fonctionnel ne conditionne plus une règle à L'ABSENCE d'attribut.
     expect(css).not.toContain(":not([data-wi-theme])");
   });
 
-  it("le bloc [data-wi] de base pose des valeurs sombres inconditionnelles", () => {
+  it("le bloc [data-wi] de base pose des valeurs claires Industry inconditionnelles", () => {
     const start = css.indexOf("[data-wi] {");
     const end = css.indexOf('[data-wi][data-wi-theme="clair"]');
     expect(start).toBeGreaterThanOrEqual(0);
     expect(end).toBeGreaterThan(start);
     const baseBlock = css.slice(start, end);
-    expect(baseBlock).toContain("--wi-bg: #07111f;");
+    expect(baseBlock).toContain("--wi-bg: #f2f2f3;");
+    expect(baseBlock).toContain("--wi-accent: #5980a6;");
+    expect(baseBlock).toContain('--wi-font-display: var(--font-barlow-condensed, "Barlow Condensed")');
     expect(baseBlock).not.toContain("@media");
   });
 
@@ -136,6 +141,23 @@ describe("persistance du thème Water", () => {
     );
     expect(themeAttr(m.container)).toBeNull();
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+    await unmount(m);
+  });
+
+  it("avec un défaut clair, la première bascule va vers le sombre — un changement visible", async () => {
+    const m = await mount(
+      <IntelligenceThemeProvider scope="wi" defaultTheme="clair">
+        <IntelligenceThemeToggle />
+      </IntelligenceThemeProvider>,
+    );
+    expect(themeAttr(m.container)).toBeNull();
+    const toggle = m.container.querySelector<HTMLButtonElement>('[data-testid="wi-theme-toggle"]')!;
+    expect(toggle.getAttribute("aria-label")).toBe("Basculer vers le thème sombre");
+    await act(async () => {
+      toggle.click();
+    });
+    expect(themeAttr(m.container)).toBe("sombre");
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBe("sombre");
     await unmount(m);
   });
 

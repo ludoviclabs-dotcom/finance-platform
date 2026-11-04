@@ -17,6 +17,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import WaterIntelligencePage from "@/app/water/page";
+import {
+  publishableContextFacts,
+  publishableLocalCases,
+} from "@/lib/water-intelligence/context-candidates";
 import { PILOT_FILE } from "@/lib/water-intelligence/pilot-snapshot";
 
 const markup = renderToStaticMarkup(<WaterIntelligencePage />);
@@ -178,7 +182,29 @@ describe("Wave D — les deux previews sont remplacées", () => {
 
 describe("garde-fous de la surface publique", () => {
   it("ne réintroduit aucune valeur fabriquée", () => {
-    expect(visible).not.toMatch(/\b42\b/);
+    /* « 42 » est la sentinelle d'une valeur jadis inventée sur cette page.
+       Depuis la refonte, la page affiche des repères de contexte relus dans
+       leur source primaire — dont la part de la sécheresse dans le coût des
+       catastrophes naturelles (42,2 %, SDES). Comme pour les empreintes plus
+       bas, le contrôle porte sur l'ORIGINE : une valeur que porte un repère
+       publiable est retirée avant la recherche ; toute autre occurrence reste
+       interdite. Tant qu'aucun repère n'est publiable, rien n'est retiré. */
+    const sourced = new Set<string>();
+    const add = (value: unknown) => {
+      if (typeof value === "number") sourced.add(value.toLocaleString("fr-FR"));
+    };
+    for (const fact of publishableContextFacts()) {
+      add(fact.value);
+      Object.values(fact.breakdown ?? {}).forEach(add);
+    }
+    for (const year of publishableLocalCases().restrictions?.years ?? []) {
+      Object.values(year).forEach(add);
+    }
+    let unsourced = visible;
+    for (const value of [...sourced].sort((a, b) => b.length - a.length)) {
+      if (value.includes(",")) unsourced = unsourced.split(value).join(" ");
+    }
+    expect(unsourced).not.toMatch(/\b42\b/);
   });
 
   it("ne rend aucune empreinte qui ne vienne du document publié", () => {

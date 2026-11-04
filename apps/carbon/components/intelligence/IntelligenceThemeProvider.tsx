@@ -31,11 +31,11 @@
  *
  * Ce que « l'absence d'attribut » rend concrètement dépend donc du domaine :
  * `/materials` (`MxThemeProvider`, non dérivé de ce composant) répond à
- * `prefers-color-scheme` ; Water, depuis WI-V3-01, a retiré cette règle de
- * `water-intelligence.css` et rend systématiquement son sombre par défaut,
- * qu'importe le système — un choix de produit, pas une limite de ce provider.
- * Un domaine futur reste libre de choisir l'un ou l'autre : c'est sa feuille de
- * style qui tranche, jamais un paramètre ajouté ici.
+ * `prefers-color-scheme` ; Water, depuis sa refonte Industry, rend
+ * systématiquement son CLAIR par défaut, qu'importe le système — un choix de
+ * produit, pas une limite de ce provider. C'est toujours la feuille de style
+ * qui tranche le rendu ; `defaultTheme` ne pose rien sur le DOM, il dit
+ * seulement au bouton de bascule dans quel sens aller depuis « aucun choix ».
  *
  * Conséquence assumée : le premier rendu suit le comportement par défaut de la
  * feuille de style du domaine, et l'attribut n'apparaît qu'après hydratation si
@@ -49,6 +49,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 
@@ -59,6 +60,8 @@ interface IntelligenceThemeContextValue {
    *  système décide alors, et l'UI doit le dire plutôt que d'annoncer un
    *  thème que l'utilisateur n'a pas choisi. */
   theme: IntelligenceTheme | null;
+  /** Thème réellement affiché : le choix mémorisé, sinon le défaut du domaine. */
+  effectiveTheme: IntelligenceTheme;
   setTheme: (next: IntelligenceTheme) => void;
   toggle: () => void;
 }
@@ -85,12 +88,18 @@ export interface IntelligenceThemeProviderProps {
   scope: string;
   /** Classe appliquée au conteneur, si la surface en a besoin. */
   className?: string;
+  /** Thème que la feuille de style du domaine sert sans attribut (défaut : sombre). */
+  defaultTheme?: IntelligenceTheme;
+  /** Style du conteneur — par exemple les familles de police du domaine. */
+  style?: CSSProperties;
 }
 
 export function IntelligenceThemeProvider({
   children,
   scope,
   className,
+  defaultTheme = "sombre",
+  style,
 }: IntelligenceThemeProviderProps) {
   const storageKey = `carbonco-${scope}-theme`;
   const [theme, setThemeState] = useState<IntelligenceTheme | null>(null);
@@ -114,15 +123,17 @@ export function IntelligenceThemeProvider({
         /* ignorer — le choix vaut alors pour la session en cours */
       }
     };
+    const effectiveTheme: IntelligenceTheme = theme ?? defaultTheme;
     return {
       theme,
+      effectiveTheme,
       setTheme,
-      /* Depuis « aucun choix », basculer va vers le clair : le thème par
-         défaut de cette surface est le sombre, et l'utilisateur qui actionne
-         la bascule demande l'autre. */
-      toggle: () => setTheme(theme === "clair" ? "sombre" : "clair"),
+      /* Depuis « aucun choix », basculer va vers l'AUTRE thème que le défaut
+         du domaine : l'utilisateur qui actionne la bascule demande un
+         changement visible. */
+      toggle: () => setTheme(effectiveTheme === "clair" ? "sombre" : "clair"),
     };
-  }, [theme, storageKey]);
+  }, [theme, storageKey, defaultTheme]);
 
   return (
     <IntelligenceThemeContext.Provider value={value}>
@@ -130,6 +141,7 @@ export function IntelligenceThemeProvider({
         {...{ [`data-${scope}`]: "" }}
         {...(theme ? { [`data-${scope}-theme`]: theme } : {})}
         className={className}
+        style={style}
       >
         {children}
       </div>
@@ -143,8 +155,8 @@ export function IntelligenceThemeToggle({
 }: {
   className?: string;
 }) {
-  const { theme, toggle } = useIntelligenceTheme();
-  const goingToLight = theme !== "clair";
+  const { effectiveTheme, toggle } = useIntelligenceTheme();
+  const goingToLight = effectiveTheme !== "clair";
 
   return (
     <button

@@ -18,11 +18,11 @@
  *
  * ## Ce que ce module ne fait PAS
  *
- * Il ne publie rien. Le document porte `review.status = pending_human_review`,
- * sans réviseur ni date de revue : `publishableContextFacts()` renvoie donc une
- * liste VIDE. C'est la même règle que `editorial.ts` — un contenu non revu par
- * un humain identifié n'atteint pas la surface publique — appliquée à des
- * chiffres de contexte.
+ * Il ne publie que ce qui a passé la revue. Un document sans réviseur nommé,
+ * sans date ou sans méthode de revue ne publie RIEN ; un document revu ne
+ * publie que les valeurs `primary_verified`. C'est la règle d'`editorial.ts` —
+ * rien n'atteint la surface publique sans revue identifiée — appliquée à des
+ * chiffres de contexte, avec une exigence de plus : la source primaire.
  *
  * Ces repères ne sont pas des données du pilote BNPE (commune 34172, 2020) : ils
  * n'entrent ni dans le snapshot public ni dans les observations, et un test
@@ -141,11 +141,19 @@ export const WiContextCandidatesSchema = z.object({
     status: z.enum(["pending_human_review", "reviewed"]),
     reviewed_by: z.string().min(1).nullable(),
     reviewed_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+    /** Comment la revue a été conduite — obligatoire pour qu'elle compte. */
+    method: z.string().min(1).optional(),
+    /**
+     * L'humain qui AUTORISE la publication — distinct de celui qui a relu
+     * (`reviewed_by`), qui peut être un assistant. Sans lui, rien n'est publié.
+     */
+    authorized_by: z.string().min(1).nullable().optional(),
   }),
   scope_notice: z.string().min(1),
   facts: z.array(WiContextFactSchema).min(1),
   local_cases: z.object({
     restrictions_34172: z.object({
+      verification: WiContextVerificationEnum.optional(),
       geography: GeographySchema,
       source: RetrievedSourceSchema,
       method: z.string().min(1),
@@ -153,6 +161,7 @@ export const WiContextCandidatesSchema = z.object({
       years: z.array(WiRestrictionYearSchema).min(1),
     }),
     pfas_34172: z.object({
+      verification: WiContextVerificationEnum.optional(),
       geography: GeographySchema,
       source: RetrievedSourceSchema,
       parameter: z.object({ code: z.string().min(1), label: z.string().min(1) }),
@@ -169,6 +178,7 @@ export const WiContextCandidatesSchema = z.object({
       caveat: z.string().min(1),
     }),
     restriction_level_departement_34: z.object({
+      verification: WiContextVerificationEnum.optional(),
       source: RetrievedSourceSchema,
       max_level: z.enum(["vigilance", "alerte", "alerte_renforcee", "crise"]),
       note: z.string().min(1),
@@ -194,24 +204,58 @@ export type WiContextCandidates = z.infer<typeof WiContextCandidatesSchema>;
 export const CONTEXT_CANDIDATES: WiContextCandidates =
   WiContextCandidatesSchema.parse(rawCandidates);
 
-/** Un document n'est revu que s'il porte un réviseur ET une date de revue. */
+/**
+ * Un document n'est publiable que s'il est revu (relecteur, date, méthode) ET
+ * qu'un humain nommé en a autorisé la publication. Le relecteur peut être un
+ * assistant ; l'autorisation, jamais.
+ */
 export function isHumanReviewed(doc: WiContextCandidates): boolean {
   return (
     doc.review.status === "reviewed" &&
     Boolean(doc.review.reviewed_by?.trim()) &&
-    Boolean(doc.review.reviewed_on)
+    Boolean(doc.review.reviewed_on) &&
+    Boolean(doc.review.method?.trim()) &&
+    Boolean(doc.review.authorized_by?.trim())
   );
 }
 
 /**
- * Repères publiables : AUCUN tant qu'aucun humain n'a signé la revue, et jamais
- * une valeur restée non vérifiée.
+ * Repères publiables : AUCUN tant que la revue n'est pas signée et décrite, et
+ * alors SEULEMENT les valeurs relues dans leur source primaire. Une valeur
+ * seulement relayée reste un candidat, même dans un document revu.
  */
 export function publishableContextFacts(
   doc: WiContextCandidates = CONTEXT_CANDIDATES,
 ): readonly WiContextFact[] {
   if (!isHumanReviewed(doc)) return [];
-  return doc.facts.filter((fact) => fact.verification !== "relayed_unverified");
+  return doc.facts.filter((fact) => fact.verification === "primary_verified");
+}
+
+export type WiLocalCases = WiContextCandidates["local_cases"];
+
+/**
+ * Cas locaux publiables : chacun passe par SA propre vérification, jamais par
+ * celle des repères nationaux. Un cas non vérifié à la source est `null`.
+ */
+export function publishableLocalCases(doc: WiContextCandidates = CONTEXT_CANDIDATES): {
+  readonly restrictions: WiLocalCases["restrictions_34172"] | null;
+  readonly pfas: WiLocalCases["pfas_34172"] | null;
+} {
+  const reviewed = isHumanReviewed(doc);
+  const ok = (c: { verification?: WiContextVerification }) =>
+    reviewed && c.verification === "primary_verified";
+  return {
+    restrictions: ok(doc.local_cases.restrictions_34172) ? doc.local_cases.restrictions_34172 : null,
+    pfas: ok(doc.local_cases.pfas_34172) ? doc.local_cases.pfas_34172 : null,
+  };
+}
+
+/** Un repère publiable par identifiant, ou `null` s'il ne l'est pas. */
+export function publishableFact(
+  id: string,
+  doc: WiContextCandidates = CONTEXT_CANDIDATES,
+): WiContextFact | null {
+  return publishableContextFacts(doc).find((fact) => fact.id === id) ?? null;
 }
 
 /** Analyses PFAS au-delà de la limite de qualité (lecture, pas conclusion). */

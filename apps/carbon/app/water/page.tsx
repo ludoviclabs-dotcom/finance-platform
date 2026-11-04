@@ -68,39 +68,65 @@
  * Le composant et sa feuille de style sont supprimés plutôt que laissés
  * dormants : rien ne le rendait, et un composant mort se réveille toujours par
  * accident.
+ *
+ * ## Refonte Industry — chapitres en un écran
+ *
+ * La page adopte la charte de /materials et /robotics (Barlow Condensed sur
+ * Barlow, fond acier clair, accent bleu acier, filets 1px, angles vifs) et se
+ * découpe en NEUF chapitres qui tiennent chacun dans un écran : un rail de
+ * progression et des liens Précédent / Suivant remplacent le défilement sans
+ * fin. Les contenus secondaires d'un chapitre passent en onglets : ils restent
+ * rendus côté serveur (panneau `hidden`, pas absent), et une ancre qui les vise
+ * ouvre leur onglet. Toutes les ancres historiques sont conservées.
+ *
+ * Nouveautés de contenu, toutes lues dans des documents versionnés :
+ * - la boussole des huit facettes (`PULSE_FACETS`) ;
+ * - le chapitre « Repères France » et les cas Montpellier
+ *   (`context-candidates.json`, filtré par `publishableContextFacts()` : revue
+ *   signée et valeurs relues dans leur source primaire, seulement) ;
+ * - la coupe du cycle de l'eau, qui remplace le bloc 3D et relie chaque étape
+ *   à l'état réel de sa source (`source-status.json`) ;
+ * - le bilan du parcours avec le guide NEURAL de l'accueil.
  */
 
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { industryFontVars } from "@/components/materials/industry/fonts";
+import { WiChapter, type WiChapterLink } from "@/components/water-intelligence/WiChapter";
+import { WiCompass } from "@/components/water-intelligence/WiCompass";
+import { WiConstellation } from "@/components/water-intelligence/WiConstellation";
+import { WiCycle, type WiCycleSource } from "@/components/water-intelligence/WiCycle";
 import { WiFinancialEngineContract } from "@/components/water-intelligence/WiFinancialEngine";
 import { WiHero } from "@/components/water-intelligence/WiHero";
-import { WiPilotData } from "@/components/water-intelligence/WiPilotData";
-import { WiConstellation } from "@/components/water-intelligence/WiConstellation";
 import {
   WiInnovations,
   WiSectors,
   WiTerritory,
   WiTimeline,
 } from "@/components/water-intelligence/WiMatrices";
+import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
+import { WiPilotData } from "@/components/water-intelligence/WiPilotData";
+import { WiSection } from "@/components/water-intelligence/WiPrimitives";
 import {
   WiFinancialBridge,
   WiFinancialSimulator,
   WiProofTable,
 } from "@/components/water-intelligence/WiProof";
-import { WiNav, type WiNavItem } from "@/components/water-intelligence/WiNav";
-import {
-  WiEvidenceChip,
-  WiSection,
-  WiStatusChip,
-} from "@/components/water-intelligence/WiPrimitives";
+import { WiQuiz } from "@/components/water-intelligence/WiQuiz";
+import { WiReperes } from "@/components/water-intelligence/WiReperes";
+import { WiTabs } from "@/components/water-intelligence/WiTabs";
 import {
   IntelligenceThemeProvider,
   IntelligenceThemeToggle,
 } from "@/components/intelligence/IntelligenceThemeProvider";
-import { PULSE_FACETS } from "@/lib/water-intelligence/editorial-matrices";
 import { basinJoin } from "@/lib/water-intelligence/basin-atlas";
 import { SOURCE_STATUS, orderedSources } from "@/lib/water-intelligence/canonical-snapshot";
+import {
+  CONTEXT_CANDIDATES,
+  publishableContextFacts,
+  publishableLocalCases,
+} from "@/lib/water-intelligence/context-candidates";
 import {
   PILOT_FILE,
   pilotCoverageWarnings,
@@ -126,26 +152,40 @@ export const metadata: Metadata = {
 };
 
 /**
- * Ancres. Les historiques sont CONSERVÉES — elles existent en production
- * publique et des liens externes peuvent les viser. La refonte réorganise ce
- * qu'elles contiennent, elle n'en renomme ni n'en supprime aucune ; `finance`
- * est la seule addition, et `reglementation`/`synergies` restent des cibles
- * de défilement valides même si la barre de navigation ne les affiche plus
- * séparément (voir la section 08 plus bas).
+ * Chapitres — l'ordre de lecture. Les ancres historiques restent toutes des
+ * cibles : `risques`, `carte`, `sources`, `secteurs`, `finance`, `limites`
+ * sont des chapitres ; `pilote`, `preuves`, `evenements`, `innovations`,
+ * `reglementation` et `synergies` vivent DANS un chapitre (un lien qui les vise
+ * ouvre l'onglet qui les porte).
  */
-const NAV_ITEMS: readonly WiNavItem[] = [
+const CHAPTERS = [
   { id: "vue-ensemble", label: "Vue d'ensemble" },
-  { id: "risques", label: "Comprendre les risques" },
-  { id: "pilote", label: "Données pilotes" },
-  { id: "carte", label: "Carte et territoires" },
-  { id: "sources", label: "Sources et preuves" },
-  { id: "secteurs", label: "Secteurs et dépendances" },
-  { id: "evenements", label: "Climat et événements" },
-  { id: "innovations", label: "Innovations et adaptation" },
+  { id: "risques", label: "Risques" },
+  { id: "reperes", label: "Repères France" },
+  { id: "carte", label: "Territoire" },
+  { id: "cycle", label: "Cycle" },
+  { id: "sources", label: "Sources" },
+  { id: "secteurs", label: "Secteurs" },
   { id: "finance", label: "Finance" },
-  { id: "preuves", label: "Preuves et provenance" },
-  { id: "limites", label: "Limites et suite" },
-];
+  { id: "limites", label: "Bilan" },
+] as const;
+
+const NAV_ITEMS: readonly WiNavItem[] = CHAPTERS.map((c) => ({ id: c.id, label: c.label }));
+
+function rail(id: (typeof CHAPTERS)[number]["id"]): {
+  index: number;
+  total: number;
+  prev: WiChapterLink | null;
+  next: WiChapterLink | null;
+} {
+  const at = CHAPTERS.findIndex((c) => c.id === id);
+  return {
+    index: at + 1,
+    total: CHAPTERS.length,
+    prev: at > 0 ? CHAPTERS[at - 1] : null,
+    next: at < CHAPTERS.length - 1 ? CHAPTERS[at + 1] : null,
+  };
+}
 
 /**
  * Centre de la commune 34172 (Montpellier) — un fait géographique public et
@@ -181,34 +221,50 @@ export default function WaterIntelligencePage() {
   const methodLabel = observations[0]
     ? `${observations[0].methodCode} · ${observations[0].methodVersion}`
     : "n.c.";
+  const snapshotDate = pilotDocument ? pilotDocument.generated_at.slice(0, 10) : null;
 
-  /*
-   * Hauteurs des trois mini-barres de la carte « Prélèvements » (Water
-   * Pulse). Dérivées des MÊMES observations que le graphique de la section
-   * 02, avec la MÊME échelle (`Math.max` des valeurs, jamais un total) —
-   * jamais une proportion inventée. Un plancher de 4% garde une barre nulle
-   * visible plutôt qu'invisible, comme la comparaison de la section 02.
-   */
-  const pulseBarHeights = (() => {
-    const values = observations.map((o) => (typeof o.value === "number" ? o.value : 0));
-    const scale = Math.max(...values, 1);
-    return values.map((v) => `${Math.max(4, Math.round((v / scale) * 100))}%`);
-  })();
+  /* Repères de contexte : seulement ce que la revue laisse passer. */
+  const contextFacts = publishableContextFacts();
+  /* Chaque cas local passe par SA vérification, pas par celle des repères. */
+  const local = publishableLocalCases();
+  const cycleSources: WiCycleSource[] = SOURCE_STATUS.sources.map((source) => ({
+    code: source.source_code,
+    label: source.label,
+    stateLabel: source.state_label,
+    publishable: source.state === "publishable",
+  }));
 
   return (
-    <IntelligenceThemeProvider scope="wi">
+    <IntelligenceThemeProvider scope="wi" defaultTheme="clair" style={industryFontVars}>
       <a href="#contenu" className="wi-skip">
         Aller au contenu principal
       </a>
 
-      <WiNav items={NAV_ITEMS} />
+      <WiNav
+        items={NAV_ITEMS}
+        brand={
+          <>
+            <span className="wi-nav-mark">Carbon&amp;Co</span>
+            <span className="wi-nav-module">Eau &amp; résilience</span>
+          </>
+        }
+        aside={
+          <>
+            <span className="wi-nav-snapshot">
+              {snapshotDate ? `Snapshot ${snapshotDate.split("-").reverse().join(".")}` : "Snapshot non généré"}
+            </span>
+            <IntelligenceThemeToggle className="wi-btn wi-nav-theme" />
+          </>
+        }
+      />
 
-      <main id="contenu" className="wi-shell">
-        <div id="vue-ensemble" className="wi-section" style={{ paddingTop: 0 }}>
+      <main id="contenu" className="wi-shell wi-chapters">
+        {/* ------------------------------------------- 01 — Vue d'ensemble */}
+        <WiChapter id="vue-ensemble" bare {...rail("vue-ensemble")}>
           <WiHero
             observationCount={observations.length}
             isPublished={published}
-            snapshotDate={pilotDocument ? pilotDocument.generated_at.slice(0, 10) : null}
+            snapshotDate={snapshotDate}
             scopeLabel={scopeLabel}
             territoryCode={scope.geographyCode}
             periodLabel={yearLabel}
@@ -217,386 +273,426 @@ export default function WaterIntelligencePage() {
             sourceCount={SOURCE_STATUS.source_count}
             publishableCount={SOURCE_STATUS.publishable_count}
           />
-        </div>
+        </WiChapter>
 
-        {/* ---------------------------------------------- 1 — Water Pulse */}
-        <WiSection
+        {/* ------------------------------------------------- 02 — Risques */}
+        <WiChapter
           id="risques"
-          kicker="01 — Water Pulse"
-          title="Comprendre les risques : huit facettes, tenues séparées"
+          kicker="Water Pulse"
+          title="Huit questions sur l'eau. Une seule déjà prouvée."
+          lead={
+            <p className="wi-muted">
+              «&nbsp;Risque hydrique&nbsp;» recouvre des réalités qui n&apos;ont ni les
+              mêmes causes, ni les mêmes échelles de temps, ni les mêmes réponses. Le
+              module les tient séparées et ne produit aucun indice composite&nbsp;: chaque
+              facette reste lisible, comparable et contestable seule.
+            </p>
+          }
+          {...rail("risques")}
         >
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            «&nbsp;Risque hydrique&nbsp;» recouvre des réalités qui n&apos;ont ni les
-            mêmes causes, ni les mêmes échelles de temps, ni les mêmes réponses. Le
-            module les tient séparées et ne produit aucun indice composite&nbsp;: chaque
-            facette reste lisible, comparable et contestable seule.
-          </p>
+          <WiCompass />
+        </WiChapter>
 
-          <div className="wi-pulse-legend" aria-hidden="true">
-            <span className="wi-pulse-legend-label">États&nbsp;:</span>
-            {(["published", "qualitative", "deferred", "not_instrumented"] as const).map(
-              (state) => (
-                <WiStatusChip key={state} state={state} />
-              ),
-            )}
-          </div>
+        {/* ------------------------------------------ 03 — Repères France */}
+        <WiChapter
+          id="reperes"
+          kicker="Repères France"
+          title="Moins d'eau prélevée. Moins d'eau disponible."
+          lead={
+            <>
+              <p className="wi-muted">
+                Le contexte national avant le zoom sur la commune pilote. Seules les
+                valeurs relues dans leur source primaire sont affichées, chacune avec sa
+                source et sa période.
+              </p>
+              <p className="wi-tag wi-hatched">Contexte national — hors pilote</p>
+            </>
+          }
+          {...rail("reperes")}
+        >
+          {contextFacts.length > 0 ? (
+            <WiReperes
+              facts={contextFacts}
+              restrictions={
+                local.restrictions
+                  ? {
+                      years: local.restrictions.years,
+                      sourceName: local.restrictions.source.name,
+                      sourceUrl: local.restrictions.source.url,
+                      caveat: local.restrictions.caveat,
+                    }
+                  : null
+              }
+              pfas={
+                local.pfas
+                  ? {
+                      analyses: local.pfas.analyses,
+                      limit: local.pfas.quality_limit,
+                      unit: local.pfas.unit,
+                      parameterLabel: local.pfas.parameter.label,
+                      sourceName: local.pfas.source.name,
+                      sourceUrl: local.pfas.source.url,
+                      caveat: local.pfas.caveat,
+                    }
+                  : null
+              }
+              scale={CONTEXT_CANDIDATES.restriction_scale}
+            />
+          ) : (
+            <p className="wi-muted">
+              Aucun repère de contexte n&apos;a encore passé la revue : rien n&apos;est
+              affiché tant qu&apos;une revue signée ne l&apos;autorise.
+            </p>
+          )}
+        </WiChapter>
 
-          <div className="wi-grid wi-grid-4" style={{ marginTop: "1.5rem" }}>
-            {PULSE_FACETS.map((facet) => (
-              <article key={facet.id} className={`wi-card wi-accent-${facet.accent}`}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
-                  <h3 className="wi-h3">{facet.label}</h3>
-                  <WiStatusChip
-                    state={facet.publicationState}
-                    testId={`wi-pulse-state-${facet.id}`}
+        {/* ------------------------------------------------ 04 — Territoire */}
+        <WiChapter
+          id="carte"
+          kicker="Territoire"
+          title="Un point vérifié. Pas une couverture."
+          lead={
+            <p className="wi-muted">
+              Les couches géographiques complètes restent différées. Un unique point
+              vérifié est désormais montré — la commune du périmètre signé, rien de
+              plus — et la section dit toujours ce qui manque pour aller plus loin.
+            </p>
+          }
+          {...rail("carte")}
+        >
+          <div className="wi-chapter-split">
+            <div className="wi-chapter-split-main">
+              <WiTerritory
+                geographyType={scope.geographyType}
+                geographyCode={scope.geographyCode}
+                periodLabel={scope.periodStart.slice(0, 4)}
+                ouvrageCount={observations.length}
+                isPublished={published}
+                markerLonLat={published ? MONTPELLIER_LONLAT : null}
+                join={join}
+                sourceCode={scope.sourceCode}
+                reviewedOn={scope.reviewedOn}
+              />
+            </div>
+            <div className="wi-chapter-split-side">
+              <WiSection id="pilote" kicker="Données pilotes" title="Ce qui est effectivement publié">
+                <p className="wi-muted">
+                  Valeurs indépendantes — aucune agrégation, moyenne ou hiérarchie
+                  n&apos;est calculée.{" "}
+                  {published
+                    ? `${observations.length} observation${observations.length > 1 ? "s" : ""}, dans l'ordre du document, sur le périmètre signé et rien d'autre.`
+                    : "Aucune observation publiée à ce jour : le document pilote n'a pas encore été généré."}
+                </p>
+                <div style={{ marginTop: "1rem" }}>
+                  <WiPilotData
+                    observations={observations}
+                    coverageWarnings={warnings}
+                    scopeLabel={scopeLabel}
+                    attribution={pilot?.attribution ?? null}
+                    sourceUrl={pilot?.source_information_url ?? null}
+                    isPublished={published}
+                    reviewedOn={scope.reviewedOn}
+                    sourceCode={scope.sourceCode}
+                    licenseLabel={licenseLabel}
+                    methodLabel={methodLabel}
+                    yearLabel={yearLabel}
+                    notGeneratedExplanation="Le document canonique est produit par un workflow de génération : il réacquiert le périmètre signé, vérifie le checksum, le nombre d'observations, la pagination exhaustive et le budget, puis écrit le document et son miroir. Tant qu'il n'a pas été déclenché, aucune observation n'est publiée."
                   />
                 </div>
-                <p
-                  className="wi-muted"
-                  style={{ marginTop: "0.375rem", fontSize: "0.8125rem", fontStyle: "italic" }}
-                >
-                  {facet.question}
-                </p>
-                <p className="wi-muted" style={{ marginTop: "0.75rem", fontSize: "0.875rem" }}>
-                  {facet.body}
-                </p>
-                <p
-                  style={{
-                    marginTop: "0.875rem",
-                    paddingTop: "0.75rem",
-                    borderTop: "1px solid var(--wi-border)",
-                    fontSize: "0.8125rem",
-                    color: "var(--wi-muted)",
-                  }}
-                >
-                  <strong style={{ color: "var(--wi-fg)" }}>
-                    Publié aujourd&apos;hui&nbsp;:
-                  </strong>{" "}
-                  {facet.published}
-                </p>
-                {facet.publicationState === "published" && (
-                  <span className="wi-pulse-bars" aria-hidden="true" data-testid={`wi-pulse-bars-${facet.id}`}>
-                    {pulseBarHeights.map((height, index) => (
-                      <span key={index} style={{ height }} />
-                    ))}
-                  </span>
-                )}
-                <span style={{ display: "inline-block", marginTop: "0.625rem" }}>
-                  <WiEvidenceChip level={facet.evidenceLevel} />
-                </span>
-              </article>
-            ))}
+              </WiSection>
+            </div>
           </div>
+        </WiChapter>
 
-          <p
-            className="wi-muted"
-            style={{ marginTop: "1.5rem", maxWidth: "62ch", fontSize: "0.875rem" }}
-          >
-            Chaque chiffre affiché sur cette page porte sa source, sa période, son
-            territoire, sa date de consultation et son statut. Une valeur sans cet
-            ensemble n&apos;est pas publiable — c&apos;est une règle du gate de
-            publication, pas une intention éditoriale.
-          </p>
-        </WiSection>
-
-        {/* --------------------------------------- 2 — Observed Withdrawals */}
-        <WiSection
-          id="pilote"
-          kicker="02 — Observed Withdrawals"
-          title="Ce qui est effectivement publié"
+        {/* ----------------------------------------------------- 05 — Cycle */}
+        <WiChapter
+          id="cycle"
+          kicker="Cycle et bassin"
+          title="De la pluie au forage. Ce que chaque source mesure."
+          lead={
+            <p className="wi-muted">
+              Six étapes, six questions, six sources possibles. Suivez la goutte : à
+              chaque étape, la page dit quelle source officielle la mesure — et si sa
+              valeur est publiable aujourd&apos;hui.
+            </p>
+          }
+          {...rail("cycle")}
         >
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Valeurs indépendantes — aucune agrégation, moyenne ou hiérarchie
-            n&apos;est calculée.{" "}
-            {published
-              ? `${observations.length} observation${observations.length > 1 ? "s" : ""}, dans l'ordre du document, sur le périmètre signé et rien d'autre.`
-              : "Aucune observation publiée à ce jour : le document pilote n'a pas encore été généré."}
-          </p>
+          <WiCycle sources={cycleSources} facts={contextFacts} />
+        </WiChapter>
 
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiPilotData
-              observations={observations}
-              coverageWarnings={warnings}
-              scopeLabel={scopeLabel}
-              attribution={pilot?.attribution ?? null}
-              sourceUrl={pilot?.source_information_url ?? null}
-              isPublished={published}
-              reviewedOn={scope.reviewedOn}
-              sourceCode={scope.sourceCode}
-              licenseLabel={licenseLabel}
-              methodLabel={methodLabel}
-              yearLabel={yearLabel}
-              notGeneratedExplanation="Le document canonique est produit par un workflow de génération : il réacquiert le périmètre signé, vérifie le checksum, le nombre d'observations, la pagination exhaustive et le budget, puis écrit le document et son miroir. Tant qu'il n'a pas été déclenché, aucune observation n'est publiée."
-            />
-          </div>
-        </WiSection>
+        {/* --------------------------------------------------- 06 — Sources */}
+        <WiChapter
+          id="sources"
+          kicker="Provenance"
+          title="Sept sources. Une seule franchit la décision humaine."
+          lead={
+            <p className="wi-muted">
+              Sept sources officielles instrumentées, sept licences vérifiées, une seule
+              publication autorisée. Chacune ouvre son état réel&nbsp;: son rôle, sa
+              couverture, sa méthode, ce qui la bloque et la prochaine action.
+            </p>
+          }
+          {...rail("sources")}
+        >
+          <WiTabs
+            label="Sources et preuves"
+            tabs={[
+              { id: "constellation", label: "Constellation des sources", content: <WiConstellation sources={sources} /> },
+              {
+                id: "preuves",
+                label: "Chaque valeur porte sa preuve",
+                content: (
+                  <div id="preuves">
+                    <p className="wi-muted" style={{ maxWidth: "62ch", marginBottom: "1rem" }}>
+                      Ce qu&apos;il faut pouvoir emporter pour vérifier par soi-même. Les
+                      références techniques sont copiables&nbsp;: une empreinte de 64
+                      caractères ne se recopie pas à la main sans erreur, et rendre la
+                      vérification pénible revient à la décourager.
+                    </p>
+                    <WiProofTable
+                      fields={[
+                        { label: "Source", value: scope.sourceCode, mono: true, copyable: true },
+                        {
+                          label: "Clé de release",
+                          value: pilot?.release_key ?? null,
+                          mono: true,
+                          copyable: Boolean(pilot),
+                          note: pilot ? undefined : "Attribuée à la génération du document.",
+                        },
+                        {
+                          label: "Checksum du payload source",
+                          value: pilot?.payload_sha256 ?? null,
+                          mono: true,
+                          copyable: Boolean(pilot),
+                          note: "Empreinte SHA-256 des octets reçus de la source, approuvée avant publication.",
+                        },
+                        {
+                          label: "URL officielle",
+                          value: pilot?.source_information_url ?? null,
+                          href: pilot?.source_information_url,
+                          mono: true,
+                          copyable: Boolean(pilot),
+                        },
+                        {
+                          label: "Licence",
+                          value: licenseLabel,
+                          note: "Vérifiée au niveau de la plateforme, pas jeu par jeu.",
+                        },
+                        { label: "Attribution", value: pilot?.attribution ?? null },
+                        {
+                          label: "Date de consultation",
+                          value: pilot?.retrieved_at ?? null,
+                          note: "Le jour où la source a été interrogée — pas le jour où elle a changé.",
+                        },
+                        {
+                          label: "Dernière mise à jour de la source",
+                          value: pilot?.source_last_updated_on ?? null,
+                          note: "Non relevée. La condition de paternité de la Licence Ouverte 2.0 est satisfaite par la voie de l'URL officielle, retenue explicitement par le signataire. Le relevé direct reste dû.",
+                        },
+                        {
+                          label: "Période observée",
+                          value: pilot
+                            ? `${pilot.observed_period_start} → ${pilot.observed_period_end}`
+                            : `${scope.periodStart} → ${scope.periodEnd}`,
+                        },
+                        {
+                          label: "Cadence de rafraîchissement",
+                          value: pilot?.source_refresh_cadence ?? null,
+                          note: "Non vérifiée. Aucune cadence n'est affichée tant qu'aucun relevé direct n'a eu lieu.",
+                        },
+                        {
+                          label: "Méthode",
+                          value: observations[0] ? methodLabel : null,
+                          mono: true,
+                          note: "Reprise verbatim des volumes déclarés, sans conversion d'unité.",
+                        },
+                        {
+                          label: "Statut de qualité",
+                          value: observations[0]?.dataStatus ?? null,
+                          mono: true,
+                          note: "Une donnée déclarée par un exploitant, ni observée ni modélisée.",
+                        },
+                        {
+                          label: "Décision de publication",
+                          value: `approuvée le ${scope.reviewedOn} par ${scope.reviewedBy}`,
+                          note: "Périmètre signé : une commune, une année. Aucun usage dérivé n'est autorisé — ni total, ni moyenne, ni classement, ni score.",
+                        },
+                      ]}
+                    />
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </WiChapter>
 
-        {/* -------------------------------------------- 3 — Territoires */}
-        <WiSection id="carte" kicker="03 — Territoires" title="Territory Readiness">
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Les couches géographiques complètes restent différées. Un unique point
-            vérifié est désormais montré — la commune du périmètre signé, rien de
-            plus — et la section dit toujours ce qui manque pour aller plus loin.
-          </p>
+        {/* -------------------------------------------------- 07 — Secteurs */}
+        <WiChapter
+          id="secteurs"
+          kicker="Exposition"
+          title="Où l'eau pèse, et ce qui s'y adapte."
+          lead={
+            <p className="wi-muted">
+              Où l&apos;eau est-elle une contrainte de procédé, et où est-elle un risque
+              d&apos;approvisionnement&nbsp;? La matrice décrit la <strong>nature</strong>{" "}
+              d&apos;une dépendance, qui se vérifie par lecture — pas son ampleur, qui se
+              mesure sur site.
+            </p>
+          }
+          {...rail("secteurs")}
+        >
+          <WiTabs
+            label="Secteurs, événements et adaptation"
+            tabs={[
+              { id: "matrice", label: "Secteurs et dépendances", content: <WiSectors /> },
+              {
+                id: "evenements",
+                label: "Climat et événements",
+                content: (
+                  <div id="evenements">
+                    <p className="wi-muted" style={{ maxWidth: "62ch", marginBottom: "1rem" }}>
+                      Sécheresses, restrictions, inondations, pollutions, tensions sur
+                      nappes et interruptions opérationnelles. Un événement est rapporté
+                      avec sa source, jamais expliqué par cette page.
+                    </p>
+                    <WiTimeline />
+                  </div>
+                ),
+              },
+              {
+                id: "innovations",
+                label: "Innovations et adaptation",
+                content: (
+                  <div id="innovations">
+                    <p className="wi-muted" style={{ maxWidth: "62ch", marginBottom: "1rem" }}>
+                      Chaque famille porte sa contrepartie au même niveau que son
+                      bénéfice&nbsp;: énergie, carbone, coût, maturité. Une solution
+                      présentée par son seul gain hydrique est une promesse, pas une option.
+                    </p>
+                    <WiInnovations />
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </WiChapter>
 
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiTerritory
-              geographyType={scope.geographyType}
-              geographyCode={scope.geographyCode}
-              periodLabel={scope.periodStart.slice(0, 4)}
-              ouvrageCount={observations.length}
-              isPublished={published}
-              markerLonLat={published ? MONTPELLIER_LONLAT : null}
-              join={join}
-              sourceCode={scope.sourceCode}
-              reviewedOn={scope.reviewedOn}
-            />
-          </div>
-        </WiSection>
-
-        {/* ----------------------------------------------- 4 — Sources */}
-        <WiSection id="sources" kicker="04 — Provenance" title="Constellation des sources">
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Sept sources officielles instrumentées, sept licences vérifiées, une seule
-            publication autorisée. Chacune ouvre son état réel&nbsp;: son rôle, sa
-            couverture, sa méthode, ce qui la bloque et la prochaine action.
-          </p>
-
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiConstellation sources={sources} />
-          </div>
-        </WiSection>
-
-        {/* ---------------------------------------------- 5 — Secteurs */}
-        <WiSection id="secteurs" kicker="05 — Exposition" title="Secteurs et dépendances">
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Où l&apos;eau est-elle une contrainte de procédé, et où est-elle un risque
-            d&apos;approvisionnement&nbsp;? Cette matrice décrit la <strong>nature</strong>{" "}
-            d&apos;une dépendance, qui se vérifie par lecture — pas son ampleur, qui se
-            mesure sur site.
-          </p>
-
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiSectors />
-          </div>
-        </WiSection>
-
-        {/* ------------------------------------ 6 — Climat et événements */}
-        <WiSection id="evenements" kicker="06 — Observations" title="Climat et événements">
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Sécheresses, restrictions, inondations, pollutions, tensions sur nappes et
-            interruptions opérationnelles. Un événement est rapporté avec sa source,
-            jamais expliqué par cette page.
-          </p>
-
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiTimeline />
-          </div>
-        </WiSection>
-
-        {/* -------------------------------- 7 — Innovations et adaptation */}
-        <WiSection id="innovations" kicker="07 — Adaptation" title="Innovations et adaptation">
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Chaque famille porte sa contrepartie au même niveau que son bénéfice&nbsp;:
-            énergie, carbone, coût, maturité. Une solution présentée par son seul gain
-            hydrique est une promesse, pas une option.
-          </p>
-
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiInnovations />
-          </div>
-        </WiSection>
-
-        {/* ------------------------------------------------- 8 — Finance */}
-        <WiSection id="finance" kicker="08 — Finance" title="Financial Water Bridge">
-          {/* Cibles de défilement historiques — voir la docstring en tête de
-              fichier. Invisibles, sans contenu propre : elles existent pour
-              qu'un ancien lien externe atterrisse ici plutôt que nulle part. */}
+        {/* --------------------------------------------------- 08 — Finance */}
+        <WiChapter
+          id="finance"
+          kicker="Finance"
+          title="Financial Water Bridge"
+          lead={
+            <p className="wi-muted">
+              Dix étapes, d&apos;une interruption d&apos;usage à un signal comptable.
+              Chacune est une <strong>question à instruire</strong>, jamais un calcul — le
+              moteur de scénarios vit côté authentifié et exige des hypothèses explicites.
+            </p>
+          }
+          {...rail("finance")}
+        >
+          {/* Cibles de défilement historiques — invisibles, sans contenu propre :
+              elles existent pour qu'un ancien lien externe atterrisse ici. */}
           <span id="reglementation" aria-hidden="true" />
           <span id="synergies" aria-hidden="true" />
-
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Dix étapes, d&apos;une interruption d&apos;usage à un signal comptable.
-            Chacune est une <strong>question à instruire</strong>, jamais un calcul — le
-            moteur de scénarios vit côté authentifié et exige des hypothèses explicites.
+          <WiTabs
+            label="Passerelle financière"
+            tabs={[
+              { id: "passerelle", label: "La passerelle", content: <WiFinancialBridge /> },
+              { id: "correcteurs", label: "Les correcteurs", content: <WiFinancialSimulator /> },
+              { id: "moteur", label: "Le moteur authentifié", content: <WiFinancialEngineContract /> },
+            ]}
+          />
+          <p className="wi-muted wi-chapter-note">
             Cette section réunit ce que la V1 présentait séparément sous « Réglementation »
-            et « Synergies Carbon&amp;Co »&nbsp;: cette page publique se resserre sur
-            l&apos;exposition financière&nbsp;; le registre juridique et les ponts vers les
-            autres modules restent dans le code, avec leurs tests, mais ne sont pour
-            l&apos;instant rendus sur aucune route — les réintégrer est une décision
-            d&apos;intégration distincte, pas encore prise.
+            et « Synergies Carbon&amp;Co »&nbsp;: le registre juridique et les ponts vers
+            les autres modules restent dans le code, avec leurs tests, mais ne sont pour
+            l&apos;instant rendus sur aucune route.
           </p>
+        </WiChapter>
 
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiFinancialBridge />
-          </div>
-
-          <div style={{ marginTop: "2rem" }}>
-            <WiFinancialSimulator />
-          </div>
-
-          <div style={{ marginTop: "2rem" }}>
-            <WiFinancialEngineContract />
-          </div>
-        </WiSection>
-
-        {/* ------------------------------------------ 9 — Preuves */}
-        <WiSection id="preuves" kicker="09 — Vérification" title="Chaque valeur porte sa preuve">
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            Ce qu&apos;il faut pouvoir emporter pour vérifier par soi-même. Les
-            références techniques sont copiables&nbsp;: une empreinte de 64 caractères ne
-            se recopie pas à la main sans erreur, et rendre la vérification pénible
-            revient à la décourager.
-          </p>
-
-          <div style={{ marginTop: "1.5rem" }}>
-            <WiProofTable
-              fields={[
-                { label: "Source", value: scope.sourceCode, mono: true, copyable: true },
-                {
-                  label: "Clé de release",
-                  value: pilot?.release_key ?? null,
-                  mono: true,
-                  copyable: Boolean(pilot),
-                  note: pilot ? undefined : "Attribuée à la génération du document.",
-                },
-                {
-                  label: "Checksum du payload source",
-                  value: pilot?.payload_sha256 ?? null,
-                  mono: true,
-                  copyable: Boolean(pilot),
-                  note: "Empreinte SHA-256 des octets reçus de la source, approuvée avant publication.",
-                },
-                {
-                  label: "URL officielle",
-                  value: pilot?.source_information_url ?? null,
-                  href: pilot?.source_information_url,
-                  mono: true,
-                  copyable: Boolean(pilot),
-                },
-                {
-                  label: "Licence",
-                  value: licenseLabel,
-                  note: "Vérifiée au niveau de la plateforme, pas jeu par jeu.",
-                },
-                { label: "Attribution", value: pilot?.attribution ?? null },
-                {
-                  label: "Date de consultation",
-                  value: pilot?.retrieved_at ?? null,
-                  note: "Le jour où la source a été interrogée — pas le jour où elle a changé.",
-                },
-                {
-                  label: "Dernière mise à jour de la source",
-                  value: pilot?.source_last_updated_on ?? null,
-                  note: "Non relevée. La condition de paternité de la Licence Ouverte 2.0 est satisfaite par la voie de l'URL officielle, retenue explicitement par le signataire. Le relevé direct reste dû.",
-                },
-                {
-                  label: "Période observée",
-                  value: pilot
-                    ? `${pilot.observed_period_start} → ${pilot.observed_period_end}`
-                    : `${scope.periodStart} → ${scope.periodEnd}`,
-                },
-                {
-                  label: "Cadence de rafraîchissement",
-                  value: pilot?.source_refresh_cadence ?? null,
-                  note: "Non vérifiée. Aucune cadence n'est affichée tant qu'aucun relevé direct n'a eu lieu.",
-                },
-                {
-                  label: "Méthode",
-                  value: observations[0] ? methodLabel : null,
-                  mono: true,
-                  note: "Reprise verbatim des volumes déclarés, sans conversion d'unité.",
-                },
-                {
-                  label: "Statut de qualité",
-                  value: observations[0]?.dataStatus ?? null,
-                  mono: true,
-                  note: "Une donnée déclarée par un exploitant, ni observée ni modélisée.",
-                },
-                {
-                  label: "Décision de publication",
-                  value: `approuvée le ${scope.reviewedOn} par ${scope.reviewedBy}`,
-                  note: "Périmètre signé : une commune, une année. Aucun usage dérivé n'est autorisé — ni total, ni moyenne, ni classement, ni score.",
-                },
-              ]}
-            />
-          </div>
-        </WiSection>
-
-        {/* ------------------------------------------ 10 — Limites et suite */}
-        <WiSection id="limites" kicker="10 — Honnêteté" title="Limites et prochaines étapes">
-          <p className="wi-muted" style={{ maxWidth: "62ch" }}>
-            L&apos;état réel de ce module, sans arrondi favorable. Aucune de ces étapes
-            n&apos;est technique&nbsp;: ce sont des décisions et des démarches humaines.
-          </p>
-
-          <h3 className="wi-h3" style={{ marginTop: "2rem" }}>
-            Ce qui reste dû
-          </h3>
-
-          <div className="wi-limits-grid" style={{ marginTop: "1rem" }}>
-            <div className="wi-limits-card">
-              <p className="wi-kicker" style={{ margin: 0 }}>
-                Provenance
-              </p>
-              <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
-                Le relevé direct de la date de dernière mise à jour de chaque source. Il
-                reste <strong>bloquant</strong> pour la piézométrie et la qualité,
-                qu&apos;aucune signature ne couvre.
-              </p>
-            </div>
-            <div className="wi-limits-card">
-              <p className="wi-kicker" style={{ margin: 0 }}>
-                Cartographie
-              </p>
-              <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
-                Les couches géographiques validées, sans lesquelles aucune carte de
-                couverture ne monte — seul un point reste montré aujourd&apos;hui.
-              </p>
-            </div>
-            <div className="wi-limits-card">
-              <p className="wi-kicker" style={{ margin: 0 }}>
-                Réglementation
-              </p>
-              <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
-                Un réviseur juridique, sans lequel chaque règle du registre reste{" "}
-                <span className="wi-mono">unknown</span>.
-              </p>
-            </div>
-            <div className="wi-limits-card">
-              <p className="wi-kicker" style={{ margin: 0 }}>
-                Sources mondiales
-              </p>
-              <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
-                L&apos;enregistrement exigé par WRI, et l&apos;arbitrage sur le décodage
-                raster Copernicus. Deux démarches humaines, pas des réglages.
-              </p>
-            </div>
-          </div>
-        </WiSection>
+        {/* ------------------------------------------------- 09 — Limites */}
+        <WiChapter
+          id="limites"
+          kicker="Honnêteté"
+          title="Limites et prochaines étapes"
+          lead={
+            <p className="wi-muted">
+              L&apos;état réel de ce module, sans arrondi favorable. Aucune de ces étapes
+              n&apos;est technique&nbsp;: ce sont des décisions et des démarches humaines.
+            </p>
+          }
+          {...rail("limites")}
+        >
+          <WiTabs
+            label="Bilan et limites"
+            tabs={[
+              {
+                id: "bilan",
+                label: "Bilan du parcours",
+                content: (
+                  <WiQuiz restitution={contextFacts.find((fact) => fact.id === "restitution-2023")} />
+                ),
+              },
+              {
+                id: "reste-du",
+                label: "Ce qui reste dû",
+                content: (
+                  <>
+                    <h3 className="wi-h3">Ce qui reste dû</h3>
+                  <div className="wi-limits-grid" style={{ marginTop: "1rem" }}>
+                    <div className="wi-limits-card wi-frame">
+                      <p className="wi-kicker" style={{ margin: 0 }}>
+                        Provenance
+                      </p>
+                      <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
+                        Le relevé direct de la date de dernière mise à jour de chaque source. Il
+                        reste <strong>bloquant</strong> pour la piézométrie et la qualité,
+                        qu&apos;aucune signature ne couvre.
+                      </p>
+                    </div>
+                    <div className="wi-limits-card wi-frame">
+                      <p className="wi-kicker" style={{ margin: 0 }}>
+                        Cartographie
+                      </p>
+                      <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
+                        Les couches géographiques validées, sans lesquelles aucune carte de
+                        couverture ne monte — seul un point reste montré aujourd&apos;hui.
+                      </p>
+                    </div>
+                    <div className="wi-limits-card wi-frame">
+                      <p className="wi-kicker" style={{ margin: 0 }}>
+                        Réglementation
+                      </p>
+                      <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
+                        Un réviseur juridique, sans lequel chaque règle du registre reste{" "}
+                        <span className="wi-mono">unknown</span>.
+                      </p>
+                    </div>
+                    <div className="wi-limits-card wi-frame">
+                      <p className="wi-kicker" style={{ margin: 0 }}>
+                        Sources mondiales
+                      </p>
+                      <p className="wi-muted" style={{ marginTop: "0.5rem", fontSize: "0.9375rem" }}>
+                        L&apos;enregistrement exigé par WRI, et l&apos;arbitrage sur le décodage
+                        raster Copernicus. Deux démarches humaines, pas des réglages.
+                      </p>
+                    </div>
+                  </div>
+                  </>
+                ),
+              },
+            ]}
+          />
+        </WiChapter>
       </main>
 
       {/* ------------------------------------------------------------ Footer */}
-      <footer
-        style={{ borderTop: "1px solid var(--wi-border)", background: "var(--wi-surface)" }}
-      >
+      <footer className="wi-footer">
         <div className="wi-shell" style={{ paddingTop: "2rem", paddingBottom: "2.5rem" }}>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "1rem",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <p style={{ fontWeight: 650, margin: 0 }}>Water Intelligence — Carbon&amp;Co</p>
-            <IntelligenceThemeToggle />
-          </div>
-          <p
-            className="wi-muted"
-            style={{ marginTop: "0.75rem", maxWidth: "62ch", fontSize: "0.9375rem" }}
-          >
+          <p className="wi-footer-title">Water Intelligence — Carbon&amp;Co</p>
+          <p className="wi-muted" style={{ marginTop: "0.75rem", maxWidth: "62ch", fontSize: "0.9375rem" }}>
             Publication pilote sur un périmètre limité. Les six autres sources restent non
             publiées, chacune pour un motif nommé — aucune n&apos;attend un correctif
             technique.
@@ -608,6 +704,10 @@ export default function WaterIntelligencePage() {
             {" · "}
             <Link href="/materials" className="wi-link">
               Métaux critiques
+            </Link>
+            {" · "}
+            <Link href="/robotics" className="wi-link">
+              Robotique &amp; IA physique
             </Link>
             {" · "}
             <Link href="/" className="wi-link">

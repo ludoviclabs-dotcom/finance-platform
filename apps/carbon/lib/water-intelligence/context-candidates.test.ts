@@ -1,5 +1,5 @@
 /**
- * context-candidates.test.ts — les repères de contexte restent des CANDIDATS.
+ * context-candidates.test.ts — seuls les repères revus et vérifiés à la source sont publiables.
  */
 
 import { describe, expect, it } from "vitest";
@@ -11,6 +11,7 @@ import {
   isHumanReviewed,
   pfasAnalysesAboveLimit,
   publishableContextFacts,
+  publishableLocalCases,
 } from "./context-candidates";
 import { PILOT_FILE, pilotIsPublished } from "./pilot-snapshot";
 
@@ -19,29 +20,54 @@ describe("document de repères de contexte", () => {
     expect(() => WiContextCandidatesSchema.parse(CONTEXT_CANDIDATES)).not.toThrow();
   });
 
-  it("n'est pas revu : aucun repère n'est publiable", () => {
-    expect(CONTEXT_CANDIDATES.review.status).toBe("pending_human_review");
-    expect(CONTEXT_CANDIDATES.review.reviewed_by).toBeNull();
-    expect(isHumanReviewed(CONTEXT_CANDIDATES)).toBe(false);
-    expect(publishableContextFacts()).toEqual([]);
+  it("est revu, daté, décrit, et sa publication autorisée par un humain nommé", () => {
+    expect(CONTEXT_CANDIDATES.review.status).toBe("reviewed");
+    expect(CONTEXT_CANDIDATES.review.reviewed_by).toBeTruthy();
+    expect(CONTEXT_CANDIDATES.review.authorized_by).toBe("ludoviclabs-dotcom");
+    expect(CONTEXT_CANDIDATES.review.method).toMatch(/source primaire|document primaire/);
+    expect(isHumanReviewed(CONTEXT_CANDIDATES)).toBe(true);
   });
 
-  it("ne publie jamais une valeur non vérifiée, même après revue", () => {
-    const reviewed = {
-      ...CONTEXT_CANDIDATES,
-      review: { status: "reviewed" as const, reviewed_by: "relecteur", reviewed_on: "2026-11-05" },
-    };
-    const published = publishableContextFacts(reviewed);
+  it("ne publie que les valeurs relues dans leur source primaire", () => {
+    const published = publishableContextFacts();
     expect(published.length).toBeGreaterThan(0);
-    expect(published.every((f) => f.verification !== "relayed_unverified")).toBe(true);
+    expect(published.every((f) => f.verification === "primary_verified")).toBe(true);
+    expect(published.every((f) => f.primary_source.url)).toBe(true);
+    expect(published.map((f) => f.id)).not.toContain("captages-abandonnes");
+    expect(published.map((f) => f.id)).not.toContain("pfas-robinet");
   });
 
-  it("une revue sans réviseur nommé ne compte pas", () => {
+  it("une revue en attente ne publie rien", () => {
+    const pending = {
+      ...CONTEXT_CANDIDATES,
+      review: { status: "pending_human_review" as const, reviewed_by: null, reviewed_on: null },
+    };
+    expect(publishableContextFacts(pending)).toEqual([]);
+  });
+
+  it("sans autorisation humaine nommée, rien n'est publiable — même relu", () => {
+    for (const authorized_by of [undefined, null, "  "]) {
+      const unauthorized = {
+        ...CONTEXT_CANDIDATES,
+        review: { ...CONTEXT_CANDIDATES.review, authorized_by },
+      };
+      expect(isHumanReviewed(unauthorized)).toBe(false);
+      expect(publishableContextFacts(unauthorized)).toEqual([]);
+      expect(publishableLocalCases(unauthorized)).toEqual({ restrictions: null, pfas: null });
+    }
+  });
+
+  it("une revue sans réviseur nommé ou sans méthode ne compte pas", () => {
     const unsigned = {
       ...CONTEXT_CANDIDATES,
-      review: { status: "reviewed" as const, reviewed_by: "  ", reviewed_on: "2026-11-05" },
+      review: { ...CONTEXT_CANDIDATES.review, reviewed_by: "  " },
+    };
+    const undescribed = {
+      ...CONTEXT_CANDIDATES,
+      review: { ...CONTEXT_CANDIDATES.review, method: undefined },
     };
     expect(publishableContextFacts(unsigned)).toEqual([]);
+    expect(publishableContextFacts(undescribed)).toEqual([]);
   });
 
   it("garde les identifiants de repères uniques", () => {
@@ -116,5 +142,34 @@ describe("vigilance et restriction", () => {
     expect(y2023).toBeDefined();
     expect(y2023!.days_alerte_or_higher).toBeLessThan(y2023!.days_vigilance_or_higher);
     expect(CONTEXT_CANDIDATES.local_cases.restrictions_34172.method).toMatch(/vigilance n'est qu'une incitation/);
+  });
+});
+
+describe("cas locaux — leur propre vérification", () => {
+  it("passent quand le document est revu et le cas vérifié à la source", () => {
+    const local = publishableLocalCases();
+    expect(local.restrictions?.geography.code).toBe("34172");
+    expect(local.pfas?.geography.code).toBe("34172");
+  });
+
+  it("un cas non vérifié reste hors de la page, même dans un document revu", () => {
+    const doc = {
+      ...CONTEXT_CANDIDATES,
+      local_cases: {
+        ...CONTEXT_CANDIDATES.local_cases,
+        pfas_34172: { ...CONTEXT_CANDIDATES.local_cases.pfas_34172, verification: undefined },
+      },
+    };
+    const local = publishableLocalCases(doc);
+    expect(local.pfas).toBeNull();
+    expect(local.restrictions).not.toBeNull();
+  });
+
+  it("un document non revu ne publie aucun cas local", () => {
+    const pending = {
+      ...CONTEXT_CANDIDATES,
+      review: { status: "pending_human_review" as const, reviewed_by: null, reviewed_on: null },
+    };
+    expect(publishableLocalCases(pending)).toEqual({ restrictions: null, pfas: null });
   });
 });

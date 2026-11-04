@@ -22,8 +22,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import WaterIntelligencePage, { metadata } from "@/app/water/page";
 import {
-  CONTEXT_CANDIDATES,
   publishableContextFacts,
+  publishableLocalCases,
 } from "@/lib/water-intelligence/context-candidates";
 import { PILOT_FILE } from "@/lib/water-intelligence/pilot-snapshot";
 
@@ -267,11 +267,11 @@ describe("aucun appel réseau ni bailout CSR", () => {
     };
     walk(PILOT_FILE);
     /* Refonte Industry : les repères de contexte citent leur source primaire.
-       Seuls ceux que la revue laisse passer — et les cas locaux du même
-       document revu — entrent dans l'ensemble permis : un repère non publiable
+       Seuls ceux que la revue laisse passer — et les cas locaux qui ont passé
+       leur propre vérification — entrent dans l'ensemble permis : un repère non publiable
        n'ouvre aucun lien. */
     walk(publishableContextFacts());
-    if (publishableContextFacts().length > 0) walk(CONTEXT_CANDIDATES.local_cases);
+    walk(publishableLocalCases());
 
     /* L'attribut est lu tel que le navigateur le lira : `&amp;` redevient `&`. */
     const externalHrefs = [...markup.matchAll(/href="((?:https?:)?\/\/[^"]*)"/g)].map(

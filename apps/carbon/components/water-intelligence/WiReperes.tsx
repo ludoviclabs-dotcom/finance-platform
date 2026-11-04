@@ -20,12 +20,14 @@ import { WiTabs } from "./WiTabs";
 
 export interface WiReperesProps {
   readonly facts: readonly WiContextFact[];
+  /** `null` : le cas n'a pas passé sa propre vérification — rien n'est affiché. */
   readonly restrictions: {
     readonly years: readonly WiRestrictionYear[];
     readonly sourceName: string;
     readonly sourceUrl: string;
     readonly caveat: string;
-  };
+  } | null;
+  /** `null` : même règle que `restrictions`. */
   readonly pfas: {
     readonly analyses: readonly { readonly date: string; readonly value_ug_l: number }[];
     readonly limit: number;
@@ -34,7 +36,7 @@ export interface WiReperesProps {
     readonly sourceName: string;
     readonly sourceUrl: string;
     readonly caveat: string;
-  };
+  } | null;
   readonly scale: readonly { readonly niveau: string; readonly effet: string }[];
 }
 
@@ -279,7 +281,6 @@ function UnitGrid({ share, hatched }: { share: number; hatched?: boolean }) {
 function QualitePanel({ get, pfas }: { get: (id: string) => WiContextFact | undefined; pfas: WiReperesProps["pfas"] }) {
   const surface = get("qualite-surface");
   const captages = get("captages-fermes-1980-2024");
-  const max = Math.max(pfas.limit, ...pfas.analyses.map((a) => a.value_ug_l));
   return (
     <div className="wi-rep-grid">
       {surface && typeof surface.value === "number" ? (
@@ -295,6 +296,15 @@ function QualitePanel({ get, pfas }: { get: (id: string) => WiContextFact | unde
           <SourceLine fact={surface} />
         </div>
       ) : null}
+      {pfas ? <PfasChart pfas={pfas} /> : null}
+      <div className="wi-rep-figs">{captages ? <FactFigure fact={captages} /> : null}</div>
+    </div>
+  );
+}
+
+function PfasChart({ pfas }: { pfas: NonNullable<WiReperesProps["pfas"]> }) {
+  const max = Math.max(pfas.limit, ...pfas.analyses.map((a) => a.value_ug_l));
+  return (
       <div className="wi-frame wi-rep-chart">
         <h3 className="wi-h4">Montpellier · PFAS au robinet, contrôle sanitaire</h3>
         <svg viewBox="0 0 420 150" className="wi-rep-pfas" role="img" aria-label={`${pfas.analyses.length} analyses ${pfas.parameterLabel}, toutes comparées à la limite de ${fr(pfas.limit)} ${pfas.unit}`}>
@@ -319,8 +329,6 @@ function QualitePanel({ get, pfas }: { get: (id: string) => WiContextFact | unde
           </a>
         </p>
       </div>
-      <div className="wi-rep-figs">{captages ? <FactFigure fact={captages} /> : null}</div>
-    </div>
   );
 }
 
@@ -382,7 +390,7 @@ function RisquesPanel({ get, scale }: { get: (id: string) => WiContextFact | und
 
 /* ---------------------------------------------------- Montpellier */
 
-function MontpellierPanel({ restrictions }: { restrictions: WiReperesProps["restrictions"] }) {
+function MontpellierPanel({ restrictions }: { restrictions: NonNullable<WiReperesProps["restrictions"]> }) {
   const max = 366;
   return (
     <div className="wi-frame wi-rep-chart">
@@ -449,7 +457,9 @@ export function WiReperes({ facts, restrictions, pfas, scale }: WiReperesProps) 
         { id: "usages", label: "Usages", content: <UsagesPanel get={get} /> },
         { id: "qualite", label: "Qualité", content: <QualitePanel get={get} pfas={pfas} /> },
         { id: "risques-couts", label: "Risques et coûts", content: <RisquesPanel get={get} scale={scale} /> },
-        { id: "montpellier", label: "Cas Montpellier", content: <MontpellierPanel restrictions={restrictions} /> },
+        ...(restrictions
+          ? [{ id: "montpellier", label: "Cas Montpellier", content: <MontpellierPanel restrictions={restrictions} /> }]
+          : []),
       ]}
     />
   );

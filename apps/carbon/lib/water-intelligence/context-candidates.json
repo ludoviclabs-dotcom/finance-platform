@@ -4,9 +4,10 @@
   "collected_on": "2026-11-04",
   "review": {
     "status": "reviewed",
-    "reviewed_by": "ludoviclabs-dotcom",
+    "reviewed_by": "Claude Code (assistant)",
     "reviewed_on": "2026-11-04",
-    "method": "Relecture source par source effectuée par l'assistant Claude Code, à la demande du propriétaire du dépôt : chaque valeur marquée primary_verified a été relue dans le document primaire cité. Seules ces valeurs sont publiables ; les valeurs seulement relayées restent des candidats."
+    "authorized_by": "ludoviclabs-dotcom",
+    "method": "Relecture source par source effectuée par l'assistant Claude Code : chaque repère marqué primary_verified a été relu dans le document primaire cité, et chaque cas local marqué primary_verified est un extrait direct de l'API ou du fichier primaire cité. Publication autorisée explicitement par le propriétaire du dépôt (ludoviclabs-dotcom), qui a demandé cette relecture. Seules les valeurs primary_verified sont publiables ; les valeurs seulement relayées restent des candidats."
   },
   "scope_notice": "Repères de contexte pour le module Eau. Seules les valeurs relues dans leur source primaire sont publiables. Ce ne sont pas des données du pilote BNPE (commune 34172, 2020) et elles ne s'y mêlent jamais.",
   "facts": [
@@ -739,7 +740,8 @@
           "days_alerte_renforcee_or_higher": 15,
           "days_crise": 0
         }
-      ]
+      ],
+      "verification": "primary_verified"
     },
     "pfas_34172": {
       "geography": {
@@ -816,7 +818,8 @@
           "value_ug_l": 0.016
         }
       ],
-      "caveat": "Une valeur de 0 signifie un résultat sous le seuil de quantification, pas une absence prouvée. Les analyses portent sur le réseau de distribution, pas sur la ressource."
+      "caveat": "Une valeur de 0 signifie un résultat sous le seuil de quantification, pas une absence prouvée. Les analyses portent sur le réseau de distribution, pas sur la ressource.",
+      "verification": "primary_verified"
     },
     "restriction_level_departement_34": {
       "source": {
@@ -825,7 +828,8 @@
         "retrieved_on": "2026-11-04"
       },
       "max_level": "crise",
-      "note": "Niveau maximal en vigueur dans au moins une zone du département le jour du relevé ; il ne vaut pas pour tout le département."
+      "note": "Niveau maximal en vigueur dans au moins une zone du département le jour du relevé ; il ne vaut pas pour tout le département.",
+      "verification": "primary_verified"
     }
   },
   "restriction_scale": [

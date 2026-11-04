@@ -18,8 +18,8 @@ import { describe, expect, it } from "vitest";
 
 import WaterIntelligencePage from "@/app/water/page";
 import {
-  CONTEXT_CANDIDATES,
   publishableContextFacts,
+  publishableLocalCases,
 } from "@/lib/water-intelligence/context-candidates";
 import { PILOT_FILE } from "@/lib/water-intelligence/pilot-snapshot";
 
@@ -197,10 +197,8 @@ describe("garde-fous de la surface publique", () => {
       add(fact.value);
       Object.values(fact.breakdown ?? {}).forEach(add);
     }
-    if (publishableContextFacts().length > 0) {
-      for (const year of CONTEXT_CANDIDATES.local_cases.restrictions_34172.years) {
-        Object.values(year).forEach(add);
-      }
+    for (const year of publishableLocalCases().restrictions?.years ?? []) {
+      Object.values(year).forEach(add);
     }
     let unsourced = visible;
     for (const value of [...sourced].sort((a, b) => b.length - a.length)) {

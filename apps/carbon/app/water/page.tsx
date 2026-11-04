@@ -125,6 +125,7 @@ import { SOURCE_STATUS, orderedSources } from "@/lib/water-intelligence/canonica
 import {
   CONTEXT_CANDIDATES,
   publishableContextFacts,
+  publishableLocalCases,
 } from "@/lib/water-intelligence/context-candidates";
 import {
   PILOT_FILE,
@@ -224,7 +225,8 @@ export default function WaterIntelligencePage() {
 
   /* Repères de contexte : seulement ce que la revue laisse passer. */
   const contextFacts = publishableContextFacts();
-  const local = CONTEXT_CANDIDATES.local_cases;
+  /* Chaque cas local passe par SA vérification, pas par celle des repères. */
+  const local = publishableLocalCases();
   const cycleSources: WiCycleSource[] = SOURCE_STATUS.sources.map((source) => ({
     code: source.source_code,
     label: source.label,
@@ -311,21 +313,29 @@ export default function WaterIntelligencePage() {
           {contextFacts.length > 0 ? (
             <WiReperes
               facts={contextFacts}
-              restrictions={{
-                years: local.restrictions_34172.years,
-                sourceName: local.restrictions_34172.source.name,
-                sourceUrl: local.restrictions_34172.source.url,
-                caveat: local.restrictions_34172.caveat,
-              }}
-              pfas={{
-                analyses: local.pfas_34172.analyses,
-                limit: local.pfas_34172.quality_limit,
-                unit: local.pfas_34172.unit,
-                parameterLabel: local.pfas_34172.parameter.label,
-                sourceName: local.pfas_34172.source.name,
-                sourceUrl: local.pfas_34172.source.url,
-                caveat: local.pfas_34172.caveat,
-              }}
+              restrictions={
+                local.restrictions
+                  ? {
+                      years: local.restrictions.years,
+                      sourceName: local.restrictions.source.name,
+                      sourceUrl: local.restrictions.source.url,
+                      caveat: local.restrictions.caveat,
+                    }
+                  : null
+              }
+              pfas={
+                local.pfas
+                  ? {
+                      analyses: local.pfas.analyses,
+                      limit: local.pfas.quality_limit,
+                      unit: local.pfas.unit,
+                      parameterLabel: local.pfas.parameter.label,
+                      sourceName: local.pfas.source.name,
+                      sourceUrl: local.pfas.source.url,
+                      caveat: local.pfas.caveat,
+                    }
+                  : null
+              }
               scale={CONTEXT_CANDIDATES.restriction_scale}
             />
           ) : (

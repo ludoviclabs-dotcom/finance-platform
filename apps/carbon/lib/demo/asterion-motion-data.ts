@@ -28,11 +28,11 @@ export interface DemoMetric {
 export const ASTERION_METRICS: Record<string, DemoMetric> = {
   motors: { key: "motors", label: "Moteurs / an", value: 12000, unit: "", status: "manual" },
   purchases: { key: "purchases", label: "Achats", value: 5.8, unit: "M€", status: "manual", decimals: 1 },
-  scope3: { key: "scope3", label: "Scope 3 achats", value: 3480, unit: "tCO₂e", status: "estimated" },
-  magnetsShare: { key: "magnetsShare", label: "Part aimants (Scope 3)", value: 61.8, unit: "%", status: "estimated", decimals: 1, hint: "Hotspot n°1" },
+  scope3: { key: "scope3", label: "Scope 3 achats", value: 3552, unit: "tCO₂e", status: "estimated" },
+  magnetsShare: { key: "magnetsShare", label: "Part aimants (Scope 3)", value: 60.6, unit: "%", status: "estimated", decimals: 1, hint: "Hotspot n°1" },
   electricity: { key: "electricity", label: "Électricité", value: 8.6, unit: "GWh", status: "manual", decimals: 1 },
-  scope2Lb: { key: "scope2Lb", label: "Scope 2 (location-based)", value: 1860, unit: "tCO₂e", status: "estimated" },
-  scope2Mb: { key: "scope2Mb", label: "Scope 2 (market-based)", value: 1090, unit: "tCO₂e", status: "estimated" },
+  scope2Lb: { key: "scope2Lb", label: "Scope 2 (location-based)", value: 489, unit: "tCO₂e", status: "estimated" },
+  scope2Mb: { key: "scope2Mb", label: "Scope 2 (market-based)", value: 237, unit: "tCO₂e", status: "estimated" },
   coverage: { key: "coverage", label: "Couverture contractuelle", value: 54, unit: "%", status: "estimated" },
   water: { key: "water", label: "Prélèvement d'eau", value: 72000, unit: "m³", status: "manual" },
   waterConfidence: { key: "waterConfidence", label: "Confiance (stress hydrique)", value: 0.81, unit: "", status: "estimated", decimals: 2, hint: "Risque ≠ confiance" },
@@ -131,7 +131,7 @@ export const ASTERION_REVIEW: ReviewRunResponse = {
     {
       id: 4,
       claim_index: 3,
-      claim_text: "Les aimants représentent **61,8 %** des émissions Scope 3 achats — corroboré par le calcul déterministe.",
+      claim_text: "Les aimants représentent **60,6 %** des émissions Scope 3 achats — corroboré par le calcul déterministe.",
       structured_payload: { ref_id: "calc:scope3" },
       output_label: "REVIEW_REQUIRED",
       support_status: "supported",
@@ -139,7 +139,7 @@ export const ASTERION_REVIEW: ReviewRunResponse = {
         {
           id: 103, resource_type: "calc_result", internal_id: 900, source_id: null,
           release_id: null, artifact_id: null, observation_id: null,
-          locator: { excerpt: "Scope 3 achats 3 480 tCO₂e — part aimants 2 151 tCO₂e (61,8 %)." },
+          locator: { excerpt: "Scope 3 achats 3 552 tCO₂e — part aimants 2 151 tCO₂e (60,6 %)." },
           data_status: "estimated", sensitivity: "internal", license_ok: true, stale: false,
         },
       ],

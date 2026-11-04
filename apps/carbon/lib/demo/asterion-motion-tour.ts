@@ -48,7 +48,7 @@ export const ASTERION_TOUR: TourStep[] = [
   },
   {
     id: "scope3", index: 3, title: "Scope 3 — hotspots",
-    narration: "3 480 tCO₂e sur les achats. Les aimants concentrent 61,8 % des émissions : hotspot n°1, calculé de façon déterministe.",
+    narration: "3 552 tCO₂e sur les achats. Les aimants concentrent 60,6 % des émissions : hotspot n°1, calculé de façon déterministe.",
     metric: ASTERION_METRICS.magnetsShare, durationMs: 14000,
   },
   {
@@ -58,7 +58,7 @@ export const ASTERION_TOUR: TourStep[] = [
   },
   {
     id: "scope2", index: 5, title: "Scope 2 — double reporting",
-    narration: "Location-based 1 860 tCO₂e, market-based 1 090 tCO₂e. La couverture contractuelle bas-carbone atteint 54 %. Résultats déterministes, jamais recalculés par l'IA.",
+    narration: "Location-based 489 tCO₂e, market-based 237 tCO₂e. La couverture contractuelle bas-carbone atteint 54 %. Résultats déterministes, jamais recalculés par l'IA.",
     metric: ASTERION_METRICS.scope2Mb, durationMs: 13000,
   },
   {

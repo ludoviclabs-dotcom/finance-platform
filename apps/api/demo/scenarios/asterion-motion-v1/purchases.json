@@ -4,10 +4,10 @@
   "reporting_year": 2025,
   "currency": "EUR",
   "total_spend_eur": 5800000,
-  "scope3_purchases_tco2e": 3480,
-  "magnets_share_pct": 61.8,
+  "scope3_purchases_tco2e": 3551.66,
+  "magnets_share_pct": 60.6,
   "status": "estimated",
-  "method": "spend-based + physical-unit hybrid (EEIO monetary factors, magnets on physical factor)",
+  "method": "physical-unit + spend-based hybrid (physical factors for magnets, copper, aluminium; monetary factor for other purchases)",
   "lines": [
     {
       "key": "purchase-magnets",
@@ -18,7 +18,7 @@
       "physical_kg": 150000,
       "emission_factor_kgco2e_per_kg": 14.34,
       "scope3_tco2e": 2151,
-      "share_pct": 61.8,
+      "share_pct": 60.6,
       "factor_status": "estimated",
       "synthetic": true
     },
@@ -30,8 +30,8 @@
       "spend_eur": 1740000,
       "physical_kg": 216000,
       "emission_factor_kgco2e_per_kg": 3.7,
-      "scope3_tco2e": 799,
-      "share_pct": 23.0,
+      "scope3_tco2e": 799.2,
+      "share_pct": 22.5,
       "factor_status": "estimated",
       "synthetic": true
     },
@@ -43,11 +43,25 @@
       "spend_eur": 1160000,
       "physical_kg": 348000,
       "emission_factor_kgco2e_per_kg": 1.52,
-      "scope3_tco2e": 530,
-      "share_pct": 15.2,
+      "scope3_tco2e": 528.96,
+      "share_pct": 14.9,
+      "factor_status": "estimated",
+      "synthetic": true
+    },
+    {
+      "key": "purchase-other",
+      "supplier_key": null,
+      "material_code": "OTHER",
+      "category": "Other purchases (electronics, fasteners, consumables)",
+      "spend_eur": 290000,
+      "physical_kg": null,
+      "emission_factor_kgco2e_per_keur": 250,
+      "emission_factor_ref": "FEM10 — Équipements électroniques (ADEME/Exiobase), CarbonCo_Calcul_Carbone_v2.xlsx",
+      "scope3_tco2e": 72.5,
+      "share_pct": 2.0,
       "factor_status": "estimated",
       "synthetic": true
     }
   ],
-  "note": "Somme des lignes = 3 480 tCO2e ; part aimants = 2 151/3 480 = 61,8% (hotspot n°1, corrobore le cas IA #1 supported)."
+  "note": "Somme des lignes = 2 151 + 799,2 + 528,96 + 72,5 = 3 551,66 tCO2e (affiché 3 552) ; part aimants = 2 151/3 551,66 = 60,6% (hotspot n°1, corrobore le cas IA #1 supported). Dépense des lignes = 5,8 M€. Recalculé par le moteur dans tests/test_calc_reference_asterion.py."
 }

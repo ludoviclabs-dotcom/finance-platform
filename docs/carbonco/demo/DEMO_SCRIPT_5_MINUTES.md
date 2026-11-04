@@ -40,10 +40,10 @@ distinction de statut existe **dès l'import**.
 **Explorer :** `/fournisseurs/scope3`.
 
 ## 3 · Scope 3 — hotspots — `0:50 → 1:25`
-**Focus :** barres de hotspots ; *Aimants* surlignés, badge *61,8 %*.
+**Focus :** barres de hotspots ; *Aimants* surlignés, badge *60,6 %*.
 **Discours :**
-> « Trois mille quatre cent quatre-vingts tonnes de CO2 sur les achats. Un hotspot domine :
-> les aimants, soixante et un virgule huit pour cent. Ce pourcentage est un **calcul
+> « Trois mille cinq cent cinquante-deux tonnes de CO2 sur les achats. Un hotspot domine :
+> les aimants, soixante virgule six pour cent. Ce pourcentage est un **calcul
 > déterministe** du moteur Scope 3 — pas une estimation d'IA. En ordre de grandeur, cela
 > attribue environ deux mille cent cinquante tonnes aux seuls aimants. »
 
@@ -63,10 +63,10 @@ saisie.
 **Explorer :** `/crma`.
 
 ## 5 · Scope 2 — double reporting — `1:55 → 2:25`
-**Focus :** colonnes *LB 1 860* / *MB 1 090*, jauge *couverture 54 %*.
+**Focus :** colonnes *LB 489* / *MB 237*, jauge *couverture 54 %*.
 **Discours :**
-> « Scope 2 en double comptage. Location-based : mille huit cent soixante tonnes, le mix
-> réseau. Market-based : mille quatre-vingt-dix, après instruments contractuels. Le
+> « Scope 2 en double comptage. Location-based : quatre cent quatre-vingt-neuf tonnes, le mix
+> réseau. Market-based : deux cent trente-sept, après instruments contractuels. Le
 > market-based est plus bas parce que la couverture bas-carbone atteint cinquante-quatre pour
 > cent. Ces résultats sont déterministes — l'IA ne les recalculera jamais. »
 
@@ -144,7 +144,7 @@ Les statuts ne sont **jamais déclarés par le modèle** : ils sont calculés pa
 `entailment_service` à partir des preuves seedées. Trois viennent de **UC-1 (revue de
 l'IRO)** ; le quatrième de **UC-2 (explication de calcul Scope 2)**.
 
-**Cas 1 — « Les aimants représentent 61,8 % du Scope 3 » → `supported`.**
+**Cas 1 — « Les aimants représentent 60,6 % du Scope 3 » → `supported`.**
 Voie **UC-2** : l'affirmation cite le **résultat de calcul déterministe** (`calc_result`).
 Toutes les citations sont résolues, exactes et fraîches → corroboration exacte. C'est la
 **seule** voie qui produit `supported` dans le provider demo : un statut « soutenu » exige une

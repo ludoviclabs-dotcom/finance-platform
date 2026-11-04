@@ -144,11 +144,13 @@ class ProductsFile(_Base):
 
 class PurchaseLine(_Base):
     key: str
-    supplier_key: str
+    # Ligne agrégée « autres achats » : pas de fournisseur unique ni de masse,
+    # calculée sur un facteur monétaire.
+    supplier_key: str | None = None
     material_code: str
     category: str
     spend_eur: float
-    physical_kg: float
+    physical_kg: float | None = None
     scope3_tco2e: float
     share_pct: float
     factor_status: DataStatus = "estimated"

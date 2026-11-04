@@ -24,7 +24,7 @@
       apparaissent (sélection, licence/sensibilité, résolution, confrontation, brouillon,
       attente de revue). Pas de « pensée » ni de tokens de raisonnement.
 - [ ] Les **4 statuts** sont présents et **correctement étiquetés** :
-  - [ ] aimants 61,8 % Scope 3 → **`supported`** (voie UC-2, corroboration de calcul) ;
+  - [ ] aimants 60,6 % Scope 3 → **`supported`** (voie UC-2, corroboration de calcul) ;
   - [ ] dépendance terres rares > 90 % → **`partially_supported`** (observation `estimated`) ;
   - [ ] contenu recyclé déclaré 80 % → **`contradicted`** (audit prouve 35 %) ;
   - [ ] fournisseur alternatif < 90 j → **`unsupported`** (aucune preuve interne).
@@ -85,8 +85,8 @@
       sans doublon.
 - [ ] Le seed est **transactionnel** et dispose d'un mode **dry-run**.
 - [ ] Le seed est **borné au tenant démo** (garde-slug) ; refus si slug non conforme.
-- [ ] **`demo_verify` — parité arithmétique OK** : somme Scope 3 = **3 480 tCO2e**, part
-      aimants = **61,8 %**, couverture contractuelle = **54 %**, eau = **72 000 m³**,
+- [ ] **`demo_verify` — parité arithmétique OK** : somme Scope 3 = **3 552 tCO2e**, part
+      aimants = **60,6 %**, couverture contractuelle = **54 %**, eau = **72 000 m³**,
       dépendance = **92 %**.
 - [ ] Le **loader** rejette tout JSON non conforme au schéma Pydantic (aucun JSON non typé).
 

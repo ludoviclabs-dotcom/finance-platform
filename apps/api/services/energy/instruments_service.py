@@ -8,7 +8,9 @@ des activités énergie. L'allocation refuse explicitement :
     `energy_allocation_guard` + pré-contrôle applicatif pour un message clair) ;
   - un vecteur (carrier) incompatible entre instrument et activité ;
   - une période d'activité hors de la validité de l'instrument ;
-  - un instrument expiré / non actif.
+  - un instrument non actif.
+Un instrument dont la validité est échue AUJOURD'HUI reste allouable à une
+consommation qu'il couvre (bilan d'un exercice clos).
 
 L'anti-double-allocation est garanti EN BASE (migration 031) : le service ajoute
 un pré-contrôle lisible, mais la contrainte UNIQUE et le trigger sont la barrière
@@ -193,12 +195,13 @@ def allocate_instrument(
             if act is None:
                 raise EnergyError(f"Activité '{payload.energy_activity_id}' introuvable.")
 
-            # Instrument expiré / non actif → refus (le flag d'expiration est aussi
-            # remonté en lecture pour l'UI, cf. list_instruments.is_expired).
+            # Instrument non actif → refus. Une validité ÉCHUE à la date du jour
+            # n'est PAS un motif de refus : une GO 2025 s'alloue en 2026 à une
+            # consommation 2025 (bilan annuel). Seule compte la couverture de la
+            # période, contrôlée plus bas — même règle que le moteur Scope 2
+            # (méthodologie 1.1.0). `is_expired` reste remonté en lecture pour l'UI.
             if inst["status"] != "active":
                 raise EnergyError(f"Instrument '{instrument_id}' non actif (statut {inst['status']}).")
-            if inst["valid_to"] < date.today():
-                raise EnergyError(f"Instrument '{instrument_id}' expiré le {inst['valid_to']}.")
 
             # Vecteur (carrier) compatible.
             if inst["carrier"] != act["carrier"]:

@@ -390,13 +390,37 @@ class TestAllocationControls:
         assert result.contractual_coverage_mwh == 0.0
         assert any("vecteur incompatible" in w for w in result.warnings)
 
-    def test_instrument_expire_exclu_avec_warning(self):
+    def test_instrument_d_une_autre_periode_exclu_avec_warning(self):
+        """Instrument 2020-2021 alloué à une consommation 2025 : exclu parce qu'il
+        ne couvre pas la période, pas parce qu'il serait « expiré »."""
         act = activity(allocations=(allocation(1, valid_from=date(2020, 1, 1), valid_to=date(2021, 12, 31)),))
         result = scope2.calculate(
             [act], [factor(1), factor(2, basis="residual_mix")], today=TODAY
         )
         assert result.contractual_coverage_mwh == 0.0
-        assert any("expiré" in w for w in result.warnings)
+        assert any("hors de la validité" in w for w in result.warnings)
+
+    def test_instrument_de_l_exercice_compte_apres_la_cloture(self):
+        """Méthodologie 1.1.0 : une GO valide exactement sur 2025, appliquée à une
+        consommation 2025 et calculée en 2026 (bilan annuel), est retenue. Le
+        GHG Protocol exige qu'elle couvre la période de consommation, pas qu'elle
+        soit encore valide le jour du calcul."""
+        act = activity(allocations=(allocation(1, mwh=400.0, valid_from=P_START, valid_to=P_END),))
+        factors = [factor(1), factor(2, basis="residual_mix", value=0.09)]
+        result = scope2.calculate([act], factors, today=TODAY)
+        assert TODAY > P_END
+        assert result.contractual_coverage_mwh == 400.0
+        assert result.market_based_tco2e == pytest.approx(600 * 90 / 1000)
+        assert not any("expiré" in w for w in result.warnings)
+
+    def test_resultat_independant_de_la_date_du_calcul(self):
+        """Reproductibilité : le même bilan donne le même résultat, qu'on le
+        calcule à la clôture ou deux ans plus tard."""
+        act = activity(allocations=(allocation(1, mwh=400.0, valid_from=P_START, valid_to=P_END),))
+        factors = [factor(1), factor(2, basis="residual_mix", value=0.09)]
+        at_close = scope2.calculate([act], factors, today=P_END)
+        later = scope2.calculate([act], factors, today=date(2028, 1, 1))
+        assert scope2.result_to_dict(at_close) == scope2.result_to_dict(later)
 
     def test_instrument_non_actif_exclu(self):
         act = activity(allocations=(allocation(1, status="cancelled"),))

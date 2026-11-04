@@ -34,16 +34,16 @@ lignes.
 ### 3 · Scope 3 — hotspots — `0:25 → 0:40` (15 s)
 **Focus écran :** barres de hotspots ; la barre *Aimants* s'illumine, badge *60,6 %*.
 **Narration :**
-> « Trois mille quatre cent quatre-vingts tonnes de CO2 sur les achats. Les aimants
-> concentrent soixante et un virgule huit pour cent des émissions : hotspot numéro un,
+> « Trois mille cinq cent cinquante-deux tonnes de CO2 sur les achats. Les aimants
+> concentrent soixante virgule six pour cent des émissions : hotspot numéro un,
 > calculé de façon déterministe — pas estimé par une IA. »
 
 ### 4 · Scope 2 — double reporting — `0:40 → 0:53` (13 s)
 **Focus écran :** deux colonnes *Location-based 489* / *Market-based 237*, jauge de
 couverture *54 %*.
 **Narration :**
-> « Scope 2 en double comptage : location-based mille huit cent soixante tonnes,
-> market-based mille quatre-vingt-dix. La couverture contractuelle bas-carbone atteint
+> « Scope 2 en double comptage : location-based quatre cent quatre-vingt-neuf tonnes,
+> market-based deux cent trente-sept. La couverture contractuelle bas-carbone atteint
 > cinquante-quatre pour cent. Résultats déterministes. »
 
 ### 5 · IRO — double matérialité — `0:53 → 1:08` (15 s)
@@ -62,7 +62,7 @@ leur pastille de statut.
 > « L'assistant IA analyse l'IRO. Il sélectionne les preuves autorisées, écarte le
 > confidentiel et le sous-licence, résout chaque citation, puis confronte chaque affirmation
 > à la preuve. Quatre verdicts, calculés — jamais déclarés par le modèle :
-> les aimants à soixante et un virgule huit pour cent du Scope 3 : **soutenu**, corroboré par
+> les aimants à soixante virgule six pour cent du Scope 3 : **soutenu**, corroboré par
 > le calcul. La dépendance terres rares au-delà de quatre-vingt-dix pour cent : **partiel**,
 > car la preuve est estimée. Le contenu recyclé déclaré à quatre-vingts pour cent :
 > **contredit**, l'audit prouve trente-cinq. Un fournisseur alternatif sous quatre-vingt-dix

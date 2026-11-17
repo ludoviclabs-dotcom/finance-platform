@@ -1,13 +1,15 @@
 name: E2E Tests
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - "apps/carbon/**"
-      - ".github/workflows/e2e.yml"
-  # Manuel pour lancer sur PR si besoin
+  # Manuel uniquement (Actions > E2E Tests > Run workflow). Le déclenchement
+  # `push` sur master a été retiré : à chaque run de novembre 2026 l'étape
+  # « Run E2E tests » restait bloquée jusqu'au timeout du job (20 min facturées
+  # pour rien). À rétablir une fois les E2E authentifiés stabilisés.
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   e2e:
@@ -16,7 +18,7 @@ jobs:
     # échoue : « does not support chromium on ubuntu26.04-x64 »). À repasser
     # sur `ubuntu-latest` après une montée de Playwright qui supporte 26.04.
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: apps/carbon

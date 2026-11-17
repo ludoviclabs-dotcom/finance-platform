@@ -2,17 +2,24 @@ name: Carbon Frontend CI
 
 on:
   push:
+    branches: [master]
     paths:
       - "apps/carbon/**"
       - ".github/workflows/frontend.yml"
   pull_request:
+    branches: [master]
     paths:
       - "apps/carbon/**"
       - ".github/workflows/frontend.yml"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-and-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: apps/carbon
@@ -41,6 +48,7 @@ jobs:
 
   security-audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: apps/carbon

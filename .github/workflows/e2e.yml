@@ -3,8 +3,13 @@ name: E2E Tests
 on:
   # Manuel uniquement (Actions > E2E Tests > Run workflow). Le déclenchement
   # `push` sur master a été retiré : à chaque run de novembre 2026 l'étape
-  # « Run E2E tests » restait bloquée jusqu'au timeout du job (20 min facturées
-  # pour rien). À rétablir une fois les E2E authentifiés stabilisés.
+  # « Run E2E tests » tournait jusqu'au timeout du job (20 min facturées pour
+  # rien). Cause : `e2e/tests` est une suite d'intégration qui appelle un vrai
+  # backend, or le secret E2E_API_URL n'existe pas et le front construit en CI
+  # pointait sur http://localhost:8000 (rien n'y écoute). Chaque test attendait
+  # donc son timeout puis était rejoué. Le pré-contrôle ci-dessous échoue
+  # maintenant en quelques secondes si le backend n'est pas configuré.
+  # À rétablir sur `push` seulement une fois la suite verte en manuel.
   workflow_dispatch:
 
 concurrency:
@@ -25,7 +30,12 @@ jobs:
 
     env:
       E2E_BASE_URL: http://localhost:3003
+      # Staging / Preview uniquement : ces tests créent des données (upload,
+      # revue, export). Ne jamais pointer ce secret sur la production.
       E2E_API_URL: ${{ secrets.E2E_API_URL }}
+      # Le front lit NEXT_PUBLIC_API_BASE_URL (lib/api.ts), inlinée au BUILD ;
+      # E2E_API_URL n'est lue par aucun code applicatif.
+      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.E2E_API_URL }}
       E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
       E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
       AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
@@ -35,6 +45,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # Échoue en quelques secondes, AVANT l'installation de Playwright (~4 min)
+      # et le build, si les prérequis des E2E manquent ou si le backend ne répond
+      # pas. Les valeurs des secrets ne sont jamais affichées.
+      - name: Pré-contrôle des prérequis (backend + compte de test)
+        run: |
+          missing=0
+          for v in E2E_API_URL E2E_USER_EMAIL E2E_USER_PASSWORD AUTH_JWT_SECRET; do
+            if [ -z "${!v}" ]; then
+              echo "::error title=Prérequis E2E manquant::Le secret ${v} est absent ou vide."
+              missing=1
+            fi
+          done
+          [ "$missing" = 0 ] || exit 1
+          curl --fail --silent --show-error --max-time 20 --retry 2 --retry-delay 3             "${E2E_API_URL%/}/health" > /dev/null             || { echo "::error title=Backend E2E injoignable::GET /health a échoué sur le backend de E2E_API_URL."; exit 1; }
+          echo "Backend joignable, prérequis OK."
 
       - uses: actions/setup-node@v4
         with:

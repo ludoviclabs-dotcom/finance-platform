@@ -16,22 +16,21 @@
 #     API. `AUTH_JWT_SECRET` n'est pas fourni : `lib/verify-jwt` retombe sur sa
 #     valeur de développement, qu'aucune route publique ne sollicite.
 #
-# Ce job ne remplace pas `e2e.yml`, qui garde ses secrets et son déclenchement
-# sur `master` : la politique existante n'est pas modifiée, elle est complétée.
+# Ce job ne remplace pas `e2e.yml`, qui garde ses secrets et passe en
+# déclenchement manuel (coût Actions) : il est complété, pas remplacé.
+# Il ne tourne plus sur `push` : la PR vers `master` l'a déjà exécuté avant la
+# fusion. Lancement manuel possible (workflow_dispatch).
 # Les scénarios authentifiés restent hors de portée d'une PR.
 
 name: E2E publics (sans secret)
 
 on:
   pull_request:
-    paths:
-      - "apps/carbon/**"
-      - ".github/workflows/e2e-public.yml"
-  push:
     branches: [master]
     paths:
       - "apps/carbon/**"
       - ".github/workflows/e2e-public.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -48,7 +47,7 @@ jobs:
     # échoue : « does not support chromium on ubuntu26.04-x64 »). À repasser
     # sur `ubuntu-latest` après une montée de Playwright qui supporte 26.04.
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: apps/carbon

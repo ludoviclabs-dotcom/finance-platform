@@ -2,17 +2,26 @@ name: API CI
 
 on:
   push:
+    branches: [master]
     paths:
       - "apps/api/**"
+      - "scripts/carbonco/**"
       - ".github/workflows/api.yml"
   pull_request:
+    branches: [master]
     paths:
       - "apps/api/**"
+      - "scripts/carbonco/**"
       - ".github/workflows/api.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: apps/api
@@ -66,6 +75,7 @@ jobs:
   # Job séparé : pytest + Block A indépendants du lint (T1.8).
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: apps/api
@@ -87,6 +97,7 @@ jobs:
   # inchangé (mode /tmp, sans DB) et continue de couvrir le reste de la suite.
   migration-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: apps/api
@@ -239,6 +250,7 @@ jobs:
 
   security-audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: apps/api

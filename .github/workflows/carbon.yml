@@ -2,17 +2,26 @@ name: Carbon CI
 
 on:
   push:
+    branches: [master]
     paths:
       - "apps/carbon/**"
+      - "docs/carbonco/water-intelligence/contracts/**"
       - ".github/workflows/carbon.yml"
   pull_request:
+    branches: [master]
     paths:
       - "apps/carbon/**"
+      - "docs/carbonco/water-intelligence/contracts/**"
       - ".github/workflows/carbon.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: apps/carbon
@@ -43,4 +52,5 @@ jobs:
       - name: Build
         run: npm run build
 
-# Playwright e2e reste sur master via e2e.yml (exige API + secrets) — décision T1.8.
+# Playwright e2e : déclenchement manuel via e2e.yml (exige API + secrets) — décision T1.8,
+# révisée en novembre 2026 pour le coût Actions.

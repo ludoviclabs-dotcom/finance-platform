@@ -7,7 +7,10 @@ import { defineConfig, devices } from "@playwright/test";
  *   E2E_BASE_URL      — URL du frontend (défaut : http://localhost:3003)
  *   E2E_USER_EMAIL    — Email du compte de test (défaut : ludoviclabs@gmail.com)
  *   E2E_USER_PASSWORD — Mot de passe du compte de test
- *   E2E_API_URL       — URL du backend API (défaut : http://localhost:8000)
+ *   NEXT_PUBLIC_API_BASE_URL — URL du backend API, inlinée au BUILD du front
+ *                      (défaut : http://localhost:8000, cf. lib/api.ts). En CI
+ *                      elle est alimentée par le secret E2E_API_URL.
+ *                      `E2E_API_URL` seule n'est lue par aucun code.
  */
 export default defineConfig({
   /*
@@ -25,7 +28,16 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: process.env.CI ? "github" : "list",
+  // Garde-fous CI : sans eux, un backend absent donne une cascade d'échecs
+  // lents (≈15 s/test x 137 tests, retry compris) jusqu'au timeout du job, avec
+  // un reporter muet et aucun rapport. On s'arrête après 5 échecs, on borne la
+  // durée totale (à ajuster une fois la suite verte) et on garde un rapport.
+  timeout: 30_000,
+  maxFailures: process.env.CI ? 5 : undefined,
+  globalTimeout: process.env.CI ? 8 * 60_000 : undefined,
+  reporter: process.env.CI
+    ? [["list"], ["github"], ["html", { open: "never" }]]
+    : "list",
 
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3003",
